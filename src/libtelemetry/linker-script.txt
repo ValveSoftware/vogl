@@ -1,0 +1,12 @@
+LIBTELEMETRY_1_0 {
+  global:
+    g_telemetry;
+    telemetry_tick;
+    telemetry_set_servername;
+    telemetry_get_servername;
+    telemetry_set_level;
+    telemetry_get_level;
+  local:
+    *;
+};
+

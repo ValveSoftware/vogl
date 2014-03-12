@@ -1,0 +1,6 @@
+bin/x86_64/mkvogl
+bin/x86_64/steamlauncher
+bin/i386/mkvogl
+bin/i386/steamlauncher
+vogl_build/*
+vogl_extbuild/*

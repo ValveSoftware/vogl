@@ -1,0 +1,26 @@
+.PHONY: cleandeps
+
+ifneq ($(OS),Windows)
+
+.static-dep/%.dep: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) -MM -MT $(patsubst %.cpp,%.o,$<) $(CPPFLAGS) $< > $@
+
+.shared-dep/%.dep: %.cpp
+	@mkdir -p $(dir $@)
+	$(CXX) -MM -MT $(patsubst %.cpp,%.lo,$<) $(CPPFLAGS) $< > $@
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),distclean)
+-include $(addprefix .static-dep/,$(SRC:.cpp=.dep))
+-include $(addprefix .shared-dep/,$(SRC:.cpp=.dep))
+endif
+endif
+
+cleandeps:
+	$(RM) -R .static-dep
+	$(RM) -R .shared-dep
+
+else
+cleandeps:
+endif

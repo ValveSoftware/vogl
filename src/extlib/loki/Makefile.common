@@ -1,0 +1,7 @@
+VERSION := 0.1.7
+OS ?= $(shell uname -s)
+
+CXXWARNFLAGS := -Wall -Wold-style-cast -Wundef -Wsign-compare -Wconversion -Wpointer-arith -pedantic
+CXXFLAGS := $(CXXWARNFLAGS) -g -O2
+
+prefix := /usr

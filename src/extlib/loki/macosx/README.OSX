@@ -1,0 +1,23 @@
+This directory contians an XCode build project (for Mac OS X). Note that if you are unfamiliar with OS X and you are wondering what is in this directory that XCode build projects are actually directories.
+
+This is an XCode project for Xcode 2.1 or better - and therefore unfortunately it also only supports OS 10.4 or better.
+
+The project builds the Loki library as a framework (if you want a *nix style library then use the makefiles).
+
+In order to use this project you can open it using XCode and build it. However, if you want to install the framework in /Library/Frameworks then it is easiest to build it and install it from the command line. To do this open a terminal and cd into loki/macosx and then run the following command:
+
+sudo xcodebuild clean install -configuration Release DSTROOT=/ INSTALL_PATH=/Library/Frameworks DEPLOYMENT_LOCATION=YES
+
+Be warned the clean part of the command with erase any previous directory called /Library/Frameworks/loki.framework. Documentation for xcodebuild can be found by searching for xcodebuild in the xcode documentation.
+
+Once you have Loki installed as a framework you can use it by adding the framework to your projects or if you are building from the command line by adding '-framework loki' to your build command. Include the Loki framework header files in the following way #include<loki/SmartPtr.h>. Note that depending on how you created your Xcode project you may need to manually set the framework search path to include /Library/Frameworks - if you include Loki headers in the above manner and xcode cannot find them then that is a likely source of the problem. Of course you should also check that the Loki framework actually is in /Library/Frameworks.
+
+The Xcode project does not currently build the yasli and flex parts of Loki. If anyone would like that then please post a request on the loki developers forum.
+
+The Debug configuration of XCode project will build binaries that are native to the build platform and the Release build will produce universial binaries. The build has been tested on a G5 and a MacBook Pro.
+
+Neither the documentation nor the tests are built.
+
+Bug #1463844 discusses the fact that code stripping does not work on OS X. The Xcode build also fails when a separate code strip is enabled, however some code stripping is still being done in the build.
+ The framework binary is quite a bit larger than the library produced by the make file - but it is a univerisal binary.
+
