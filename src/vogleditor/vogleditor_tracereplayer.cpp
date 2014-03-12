@@ -273,6 +273,7 @@ bool vogleditor_traceReplayer::replay(vogl_trace_file_reader* m_pTraceReader, vo
               if (bStatus == false)
               {
                  vogl_error_printf("%s: Replay ending abruptly at frame index %u, global api call %" PRIu64 "\n", VOGL_FUNCTION_NAME, m_pTraceReplayer->get_frame_index(), m_pTraceReplayer->get_last_processed_call_counter());
+                 break;
               }
               else
               {
@@ -282,6 +283,10 @@ bool vogleditor_traceReplayer::replay(vogl_trace_file_reader* m_pTraceReader, vo
                      break;
                  }
               }
+          }
+          else
+          {
+              break;
           }
       }
    }
