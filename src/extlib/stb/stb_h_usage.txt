@@ -1,0 +1,521 @@
+This file provides sample code snippets that
+demonstrate many major features of stb.h. It will
+be integrated into the main stb.h documentation at
+some point.
+
+==============================================================================
+stbprint()
+
+A stupid little console printing routine that allows you
+to color text with embedded codes. Use "{foo}" for the
+basic "get a different-from-default color"; other variant
+colors: "{!foo}", "{@foo}", "{$foo}". Or specify any of
+the sixteen possible foreground colors with "{#0foo}",
+"{#1foo}", ... "{#efoo}", "{#ffoo}".
+
+Just prints regularly for non-windows, for now.
+
+==============================================================================
+qsort comparison routines, e.g. stb_intcmp()
+
+These functions are designed to be called from qsort();
+that means they expect a pointer to a data structure that
+contains, say, an int in the case of stb_intcmp(). The
+functions actually _return_ the function to be passed
+to quicksort, and take the field offset, e.g.:
+
+typedef struct 
+{
+   float f;
+   int i;
+   char *str;
+} MyStruct;
+
+void sort_mystruct_f(MyStruct *arr, int count)
+{
+   qsort(arr, count, sizeof(arr[0]), stb_floatcmp(offsetof(MyStruct,f)));
+}
+
+void sort_mystruct_i(MyStruct *arr, int count)
+{
+   qsort(arr, count, sizeof(arr[0]), stb_intcmp(offsetof(MyStruct,i)));
+}
+
+void sort_mystruct_str(MyStruct *arr, int count)
+{
+   qsort(arr, count, sizeof(arr[0]), stb_qsort_strcmp(offsetof(MyStruct,str)));
+}
+
+==============================================================================
+Binary search toolkit (note that the binary search allows
+for the possibility that multiple index numbers will compare
+equal, and I didn't include a 'take the first match' option,
+so this example will keep running even after a match is identified):
+
+int direction(void)
+{
+   for(;;) {
+      int c = _getch();
+      if (c == '<') return -1;
+      if (c == '>') return  1;
+      if (c == '=') return  0;
+   }
+}
+
+int main(void)
+{
+   int g;
+   stb_search search;
+   printf("Think of a random number from 1..100, and I'll guess it.\n");
+   g = stb_search_binary(&search, 1, 100, 0);
+   for(;;) {
+      int comparison;
+      printf("Is it '<', '>', or '=' to %d?\n", g);
+      comparison = direction();
+      if (!stb_probe(&search, comparison, &g))
+         break;
+   }   
+   printf("it better have been %d!\n", g);
+}
+
+==============================================================================
+stb_malloc -- hieararchical allocator
+
+void allocate(void)
+{
+   foo = stb_malloc_global(sizeof(*foo));
+   foo->x = stb_malloc(foo, sizeof(*foo->x));
+   foo->y = stb_malloc(foo, sizeof(*foo->y));
+   foo->z = stb_malloc(foo, sizeof(*foo->z));
+
+   bar = stb_malloc_global(sizeof(*bar));
+   
+   buz = stb_malloc_global(sizeof(*buz));
+   buz->a = stb_malloc(buz, sizeof(*buz->a));
+   buz->b = stb_reassign(buz, bar);
+}
+
+void deallocate(void)
+{
+   stb_free(foo);
+   stb_free(buz);
+}
+
+==============================================================================
+stb_arr  -- dynamic array
+
+void func(void)
+{
+   int i,n;
+
+   int *arr = NULL, *internal;
+
+   stb_arr_push(arr, 5);
+   stb_arr_push(arr, 3);
+   stb_arr_push(arr, 1);
+
+   assert(arr[1] == 3);
+
+   n=0;
+   for (i=0; i < stb_arr_len(arr); ++i)
+      n += arr[i];
+   assert(n == 9);
+
+   stb_arr_push(arr, complex_expression_computed_only_once);
+
+   internal = &arr[1];
+
+   assert(*internal == 3);
+   assert(arr[1] == 3);
+
+   for (i=10; i < 100; ++i)
+      stb_arr_push(arr, i);
+
+   assert(arr[1] == 3);
+   //assert(*internal == 3);
+   // invalid! array may have relocated
+
+   arr = function_that_extends_first_argument(arr, foo);
+   // have to return updated argument and store it back
+   assert(arr[1] == 3);
+}
+
+==============================================================================
+stb_ischar
+
+void classify(char *str)
+{
+   while (*str) {
+      if (stb_ischar(*str, "0123456789abcdefABCDEF")) ++hex_digits;
+      else if (stb_ischar(*str, ".,;:?!-")) ++punctuation;
+      else if (stb_ischar(*str, "()[]{}<>")) ++brackety;
+      else if (stb_ischar(*str, "!@#$%^&*")) ++shifted_number_keys;
+      ++str;
+   }
+}
+
+note that the true-false result here is identical to the
+true-false you get with strchr() with reversed arguments,
+but this performs much faster using a table lookup like
+the normal isupper() sorts of functions (for this to work,
+the strings must be constant).
+
+==============================================================================
+stb_sdict
+
+stb_sdict *foobar; // do 'foobar = stb_pdict_new(0)' somewhere; use (1) if you never delete keys
+void process(char *str)
+{
+   Bar *bar = stb_sdict_get(foobar, str);
+   if (bar == NULL) {
+      bar = malloc(sizeof(*bar));
+      stb_sdict_add(foobar, str, bar);
+      ... initialize bar ...
+   }
+   ... use bar ...
+}
+
+==============================================================================
+stb_ptrmap
+
+stb_ptrmap *foobar; // do 'foobar = stb_ptrmap_new()' somewhere
+void process(Foo *foo)
+{
+   // attach some satellite data to the foo without storing it inside
+   Bar *bar = stb_ptrmap_get(foobar, foo);
+   if (bar == NULL) {
+      bar = malloc(sizeof(*bar));
+      stb_ptrmap_add(foobar, foo, bar);
+      ... initialize bar ...
+   }
+   .. use bar ...
+}
+
+==============================================================================
+stb_fopen
+
+READING
+
+   FILE *f = stb_fopen(filename, "r"); // accepts utf8 filenames
+   ...
+   fclose(f);
+
+WRITING
+
+   FILE *f = stb_fopen(filename, "w");
+   ...
+   if (abandon)
+      stb_fclose(f, stb_keep_no);
+   else if (force_rewrite)
+      stb_fclose(f, stb_keep_yes);
+   else
+      stb_fclose(f, stb_keep_if_different);
+
+==============================================================================
+stb_file
+
+   int i,n;
+   char *data = stb_file("filename", &n);
+   for (i=0; i < n; ++i)
+      putchar(data[i]);
+
+==============================================================================
+stb_stringfile
+
+   int i,n;
+   char *data = stb_stringfile("filename", &n);
+
+   // either of the following approaches work:
+   if (rand() & 16)
+      for (i=0; i < n; ++i)
+         puts(data[i]);
+   else
+      for (i=0; data[i]; ++i)
+         puts(data[i]);
+
+==============================================================================
+stb_fcmp
+
+   int n = stb_fcmp("file1", "file2");
+   if (n == 0) printf("identical files");
+   if (n < 0) printf("'file1' comes before 'file2' lexically");
+   if (n > 0) printf("'file1' comes after 'file2' lexically");
+
+==============================================================================
+stb_getopt
+
+1. stb_getopt
+
+Allowed options: -x -n -z
+
+   char **opts = stb_getopt(&argc, argv);
+   for(i=0; opts[i]; ++i) {
+      switch (opts[i][0]) {
+         case 'x': had_x = TRUE; break;
+         case 'n': had_n = TRUE; break;
+         case 'z': had_z = TRUE; break;
+         default: goto print_usage_info;
+      }
+      ++opts;
+   }
+   for (i=1; i < argc; ++i)
+      process(argv[i]);
+   stb_getopt_free(opts);
+
+Commandline:   program -x foobar -zn buzbah
+Return values:
+   opts = { "x", "z", "n" }
+   argv = { "foobar", "buzbah" }
+
+2. stb_getopt_param -- some options take a parameter
+
+Allowed options: -x -n -z -f{filename}, -g{initial_guess}
+
+   char **opts = stb_getopt_param(&argc, argv, "fg");
+   for(i=0; opts[i]; ++i) {
+      switch (opts[i][0]) {
+         case 'x': had_x = TRUE; break;
+         case 'n': had_n = TRUE; break;
+         case 'z': had_z = TRUE; break;
+         case 'f': set_filename(opts[i]+1); break;
+         case 'g': set_guess(opts[i]+1]; break;
+         default: goto print_usage_info;
+      }
+      ++opts;
+   }
+   for (i=1; i < argc; ++i)
+      process(argv[i]);
+   stb_getopt_free(opts);
+
+Commandline:   program -x doh -f foobar -zgbuzbah -n test - blah -x -y
+Return values:
+   opts = { "x", "ffoobar", "z", "gbuzbah", "n" }
+   argv = { "doh", "test", "blah", "-x", "-y" }
+
+==============================================================================
+Directory reading
+
+Results are utf8. Wildcards are case-insensitive. Multiple wildcards
+can be separate by semicolons.
+
+Sample usage:
+
+    char **files   = stb_readdir_files("datafiles");
+    int total_size=0,i;
+    for (i=0; i < stb_arr_len(files); ++i) {
+       FILE *f = stb_fopen(files[i], "rb"); // handles utf8 filenames
+       total_size += stb_filelen(f);
+       fclose(f);
+    }
+    stb_readdir_free(files);
+
+    char **progdirs = stb_readdir_subdirs("c:/program files");
+    printf("There are %d directories in Program Files\n", stb_arr_len(progdirs));
+    stb_readdir_free(progdirs);
+
+    char **exes = stb_readdir_recursive("c:/program files", "*.exe;*.com");
+    printf("Found %d executables.\n", stb_arr_len(exes));
+    stb_readdir_free(exes);
+
+==============================================================================
+CRC32 (png etc. type)
+
+Checksumming of entire buffers is easy. Here's the streaming version:
+
+    FILE *f = fopen("filename", "rb");
+    uint crc = STB_CRC32_SEED; // or just 0
+    char buffer[256];
+    while (!feof(f)) {
+       int n = fread(buffer, 1, sizeof(buffer), f);
+       stb_crc32_block(crc, buffer, n);
+    }
+    printf("Checksum: %08x\n", crc);
+
+Yes, the seed for CRC32 is not 0, it is 0xffffffff. However, because
+of the way the code fixes up the checksum so that the return value
+after any block is the actual CRC, this is the correct initialization value.
+
+stb_adler32 works similarly (even though it has no _block in its
+name), just use STB_ADLER32_SEED as the initial value.
+
+==============================================================================
+WIN32 Registry lazy handling
+
+int global_setting_x = X_VALUE_IF_NOT_IN_REGISTRY;
+float global_setting_y = Y_VALUE_IF_NOT_IN_REGISTRY;
+char global_filename_z[256] = "initial_filename_if_not_in_registry";
+
+void load_registry_globals(void)
+{
+   void *reg = stb_reg_open("rHKLM", "Software\\MyCompany\\myprog");
+   stb_reg_read(reg, "x", &global_setting_x, sizeof(global_setting_x));
+   stb_reg_read(reg, "y", &global_setting_y, sizeof(global_setting_y));
+   stb_reg_read_string(reg, "z", &global_filename_z, sizeof(global_filename_z));
+   // using 'read' would also work, but it's nicer to get the registry type right so people can hack it in the registry
+   stb_reg_close(reg);
+}
+
+void save_registry_globals(void)
+{
+   void *reg = stb_reg_open("wHKLM", "Software\\MyCompany\\myprog");
+   stb_reg_write(reg, "x", &global_setting_x, sizeof(global_setting_x));
+   stb_reg_write(reg, "y", &global_setting_y, sizeof(global_setting_y));
+   stb_reg_write_string(reg, "z", &global_filename_z, sizeof(global_filename_z));
+   // using 'read' would also work, but it's nicer to get the registry type right so people can hack it in the registry
+   stb_reg_close(reg);
+}
+
+==============================================================================
+Portable registry-like system (in windows, the LOCATION of the config
+directory is stored in "HKLM\Software\SilverSpaceship\stb\config_dir"
+(if that registry doesn't exist, it stores config files in the directory
+"c:\stb"; in non-windows, the config directory is "~/.stbconfig").
+You probably don't want to do this for end users, but it's nice for
+internal tools to have them be able to save config info in a lightweight
+interface. (Although INI files might be better.)
+
+void load_config_globals(void)
+{
+   void *reg = stb_config_open("my_program", "r");
+   stb_cfg_read(reg, "x", &global_setting_x, sizeof(global_setting_x));
+   stb_cfg_read(reg, "y", &global_setting_y, sizeof(global_setting_y));
+   stb_cfg_read_string(reg, "z", &global_filename_z, sizeof(global_filename_z));
+   // using 'read' would also work, but it's nicer to get the config type right so people can hack it in the config
+   stb_cfg_close(reg);
+}
+
+void save_config_globals(void)
+{
+   void *reg = stb_config_open("my_program", "w");
+   stb_cfg_write(reg, "x", &global_setting_x, sizeof(global_setting_x));
+   stb_cfg_write(reg, "y", &global_setting_y, sizeof(global_setting_y));
+   stb_cfg_write_string(reg, "z", &global_filename_z, sizeof(global_filename_z));
+   // using 'read' would also work, but it's nicer to get the config type right so people can hack it in the config
+   stb_cfg_close(reg);
+}
+
+==============================================================================
+stb_dupe - exact duplicate finding by hashing
+
+typedef struct
+{
+   float f;
+   int i;
+   char *str;
+} MyStruct;
+
+int mystruct_hash(void *p, uint seed)
+{
+   int i = ((MyStruct *) p)->i;
+   return stb_hash_number(i + seed);
+}
+
+void func(void)
+{
+   int num_mys;
+   MyStruct *mys = create_a_ton_of_mys_in_one_big_array(&num_mys);
+
+   // find duplicate 'i' values
+   stb_dupe *d = stb_dupe_create(mystruct_hash, 0,sizeof(MyStruct), stb_intcmp(offsetof(MyStruct,i)));
+
+   for (j=0; j < num_mys; ++j)
+      stb_dupe_add(d, &mys[j]);
+
+   stb_dupe_finish(d);
+
+   for (j=0; j < stb_dupe_numsets(d); ++j) {
+      MyStruct **dupearr = stb_dupe_set(d, j);
+      int num_dupe = stb_dupe_set_count(d, j);
+      printf("%8d  -- %d MyStructs have this i value", dupearr[0]->i, num_dupe);
+   }
+}
+
+==============================================================================
+"Templatized" sort
+
+typedef struct
+{
+   float f;
+   int i;
+   char *str;
+} MyStruct;
+
+
+Array of pointers:
+   stb_define_sort(sort_mystruct_i_ptr, MyStruct *, (*a)->i < (*b)->i)
+
+   void sort_em(void)
+   {
+      int num;
+      MyStruct **mys = get_an_array_of_mystruct_pointers(&num);
+
+      sort_mystruct_i_ptr(mys, num);
+   }
+
+Array of structs:
+   stb_define_sort(sort_mystruct_i, MyStruct, a->i < b->i)
+
+   void sort_em(void)
+   {
+      int num;
+      MyStruct *mys = get_an_array_of_mystructs_packed_together(&num);
+
+      sort_mystruct_i(mys, num);
+   }
+
+==============================================================================
+regular expressions
+
+   void grep(char *exp, char *filename)
+   {
+      int i;
+      char **str = stb_stringfile(filename,NULL);
+
+      for (i=0; str[i]; ++i)
+         if (stb_regex(exp, str[i]))
+            printf("%4d: %s\n", i+1, str[i]);
+
+      free(str);
+   }
+
+Note that this actually compiles the regular expression behind the
+scenes to a very fast format (DFA-style, not NFA-style), so the
+language is less expressive (no back references, etc) but faster.
+However, you shouldn't call stb_regex() if you're not reusing the
+same expression multiple times, as its cacheing scheme is inefficient
+for frequently changing expressions. Instead, use one with an explicit
+compilation step:
+
+   void grep(char *exp, char *filename)
+   {
+      int i;
+      char **str = stb_stringfile(filename,NULL);
+
+      stb_matcher *m = stb_regex_matcher(exp);
+    
+      for (i=0; str[i]; ++i)
+         if (stb_matcher_find(m, str[i]))
+            printf("%4d: %s\n", i+1, str[i]);
+
+      free(str);
+   }
+
+==============================================================================
+stb_wrapper*
+
+This does malloc file/line Tracking (misnamed as "malloc wrapper")
+
+If you write your own allocators, or wrap the allocators
+yourself, you can still use stb.h's malloc tracking, which
+doesn't store the tracking information in the allocations,
+so it's always valid. (It does rely on being able to call
+a raw, unwrapped allocator, or at least you need to avoid
+recursion so it can call the allocator and not get called
+back.)
+
+in your malloc, before you return a pointer p:
+   stb_wrapper_malloc(p,requested_size,caller__FILE__,caller__LINE__);
+in your realloc, given a passed in pointer p and a returned pointer q:
+   stb_wrapper_realloc(p,q,requested_size,caller__FILE__,caller__LINE__);
+etc.
+

@@ -1,0 +1,759 @@
+<html><head><title>stb_stua documentation</title></head>
+<body>
+<!--!HTML
+!TITLE stb_stua documentation
+
+# Stua
+
+Stua is a little scripting language that largely rips off Lua. In
+fact you probably should just use Lua instead. Nevertheless, Stua
+is available if you use <a href="http://nothings.org/stb.h">stb.h</a>
+by globally setting the #define `STB_STUA`.
+
+## Why a brand new scripting language?
+
+Why does Stua exist, especially in the face of Lua?
+
+Stua's primary _raison d'\&ecirc;tre_ is
+simply because it is included in the library stb.h, so it
+is available with no effort to any application that uses
+stb.h (which, for its author, is every application).
+It also in the public domain so no attention need be
+spent on placing copyright notices anywhere.
+
+Of course this comes at a cost: all applications are
+bogged down by this implementation of Stua. However, it is
+not compiled into applications by default, and it uses a
+fairly small amount of source code (about 1200 lines, or
+about 15% of stb.h). The implementation is very small because
+it builds on features available in stb.h (like generic hash
+tables and lex-like regular-expression support), and
+because it is _extremely_ inefficient. (Someday a better
+implementation will be written to the exact same API; so
+you can use the stb.h Stua implementation until the performance
+becomes an issue, then drop in the better one.)
+
+## Language overview
+
+Some sample Stua code:
+
+   // compute the x'th most fibonacci number recursively
+   func fib(x)
+      if x < 3 then
+         1
+      else
+         fib(x-1) + fib(x-2)
+      end
+   end
+      /* Note that there is no explicit 'return'; if you do not explicitly
+       * return a value, then the value of a function is the value of its
+       * last statement.
+       */
+
+   var x = print(fib(20))
+
+
+### Identifiers
+
+Stua identifier syntax is identical to C: an identifier begins
+with an alphabetic character or an underscore, and continues
+with 0 or more alphabetic characters, digits, and underscores.
+
+### Simple data types
+
+Stua supports a number of simple data types.
+
+> *Numbers*:  30-bit integers, 31-bit floats. Defined in code like C. \
+> *Strings*:  Defined in code like C, or with single quotes.  \
+> *Booleans*: `true` and `false` are special value of their own type  \
+> *Nil*: the value `nil` is a special 'out of band' value like NULL in C
+
+Character constants are specified as in C, but prefixed with the
+letter c, e.g. `c'x'\ ` or `c'\\n'`.
+
+### Dictionaries
+
+Stua has a single container type used for multiple purposes. It is
+a dictionary mapping any data item (key) to any other data item (value).
+Each key can only appear once in each dictionary.
+
+You can create a dictionary in code in several ways.
+
+    x = { foo=17, bar="hello" }
+    y = { "foo", "bar", x, { a="b", c="d" } }
+    z = { }
+    w = { x=x }
+
+In the above code, `x` will receive a newly-created dictionary which
+maps the string "foo" to the integer 17 and the string "bar" to the
+string "hello".
+
+Because the dictionary stored in `y` does not specify the keys
+explicitly, the values are assigned increasing integers starting
+from 0, so y will receive the dictionary with the following mappings:
+
+> key = 0; value = "foo" \
+> key = 1; value = "bar" \
+> key = 2; value = x, the dictionary listed above \
+> key = 3; value = the dictionary ``{``\<"a",``"b">,``<"c",``"d">``}
+
+The variable z receives an empty dictionary, and the variable `w`
+receives a dictionary mapping the string "x" to the dictionary
+referenced by the value of `x`. Note that further assignments to
+the variable `x` will not change the dictionaries referenced in `y`
+and `w`, but changes _to_ the dictionary `x` will be visible.
+
+Dictionaries can be used for multiple purposes. They can take the
+place of arrays (simply using integers to index them), they can
+take the place of structures (storing values with string keys),
+and they can be used as general purpose hash tables.
+
+Dictionaries are referenced by using array-access notation:
+
+   print(y[0])
+   y[1] = x["foo"]
+   z["bar"] = 1
+
+You can also use a structure field access notation; the last line
+above could also be represented as `z.bar=1`.
+
+### Statements
+
+Stua supports several types of statements. All statements
+can be terminated with an optional ";". All statements
+produce values, and the value of a function is the value
+of its last statement.
+
+   return [EXPRESSION]
+
+This ends a function prematurely, and produces the optional
+as the result, or `nil` if none is provided.
+
+   if CONDITION then STATEMENTS [else STATEMENTS] end
+
+The `else``STATEMENTS` part is optional. This computes the
+obvious thing. The value of the `if` statement is the value
+of the chosen branch. If `else` is omitted the value in the
+`false` case is `nil`.
+
+   while CONDITION [update STATEMENTS] do STATEMENTS end
+
+The `update``STATEMENTS` part is optional. This repeatedly
+tests `CONDITION`, and if it's true, executes the `do``STATEMENTS`
+section. After executing the `do` section, the `update` section
+is executed. Then the process repeats. The value computed is
+the value of the last statement in the `do` section, or `nil`
+if the loop never executes.
+
+   break [EXPRESSION]
+
+This terminates a loop prematurely. If the optional expression
+is included, that value is the result of the loop.
+
+   continue
+
+This causes the current iteration of the to stop; the `update`
+section is then executed, if present, and then the loop repeats
+from the beginning.
+
+<s>
+   for VAR [,VAR] in EXPR do STATEMENTS end
+
+The `for` construction iterates over the keys or \<key,``value>``pairs
+of a dictionary. Note that if the dictionary changes during the
+iteration, those changes will not be visible to the iterator. Thus
+some pairs produced may not actually be in the dictionary.
+
+Results computed, and behavior of `continue` and `break`, are
+like `while`-`do`.</s> _Not implemented yet._
+
+   => LVALUE
+
+The *into* statement `=> x` takes the value computed by the
+preceding statement and stores it to the lvalue on the right
+side. The right side must be an identifier, array-access, or
+structure-access. The idea here is that you can use an `if-then-else`
+or `while` to compute a value and store it into a variable.
+You can do this in a more normal way, but this way is possibly
+clearer (it's an experimental design).
+
+### Expressions
+
+Stua supports all of the basic (non-assignment) C operators:
+
+   + - * /              arithmetic operators
+   << >> % & | ^ ~      bit operations (ints only)
+   && || !              boolean operations
+   == !=                equality comparisons
+   >= <= < >            inequality comparisons
+
+Stua "fixes" the precedence error in C's "&" and "|" operators; they
+have higher precedence than comparisons do.
+
+Also available is assignment, which can be written in either of these two ways:
+
+   x = a
+   let x = a
+
+The other C assignment operators are not available. Assignments produce
+values and 
+
+The `&&` and `||` operators are short circuiting. They also
+produce their arguments as results; for example, in `x``&&``y`, if x is
+false then the result is x; if x is true then the result is y.
+By default only boolean values have boolean meanings, so x must
+be a boolean (although y need not be); otherwise an error is
+thrown. However, you can overload the "conditional" operator
+to introduce other semantics for non-booleans (e.g. everything
+else being treated as true).
+
+### Function calls
+
+Function parameters can be declared as taking default values:
+
+   func myfunc(widget, parameter, name="default name")
+      ...
+   end
+
+Function calls can specify parameters by position or by name:
+
+   x = myfunc(a, 2, "my thing")
+   y = myfunc(a, 3, name="thing")
+   z = myfunc(widget=a, 4)
+   w = myfunc(parameter=5, a)
+
+Functions can also be called using dictionaries for their
+parameters lists, using ":" to call them; for example, the
+first call above can also be written as:
+
+   x = myfunc:{a, 2, "my thing"}
+
+You can perform _partial application_ by using the "+" operator
+instead of the ":" operator; this applies _named_ arguments to the
+parameters but doesn't call the function; instead it returns
+a "new" function. Each of the following is equivalent to the above:
+
+   f2 = myfunc+{widget=a, name="my thing"}
+   x = f2(5)
+
+   f3 = myfunc+{widget=a}+{parameter=5}+{name="my thing"}
+   x = f3()
+
+   x = (myfunc+{widget=a, name="mything})(5)
+
+However, there is no way to perform partial application by
+position; it is only allowed by name.
+
+Similarly, it is possible to introspect the current stack frame
+by viewing it as a dictionary:
+
+   func myfunc(widget, parameter, name="default name")
+      var x = _frame
+      print(x.widget)
+      myotherfunc:x
+      widget = 1
+      x["widget"] = 5
+      print(widget)  // not 5!
+   end
+
+This is useful for creating functions that accept variable
+number of parameters. The parameters will be listed in
+`\_frame` by integer values; the leftmost parameter is
+parameter 0, the next is parameter 1, etc..
+
+Nested functions can refer to lexically scoped variables
+outside their own definition; closures will be created.
+
+    func adder(z)
+       func(x) z+x end  // lexical closure
+    end
+    var p = adder(5)
+    print(p(2)) // prints 7
+    print(p(3)) // prints 8
+
+    func counter(z)
+       func() z = z + 1 end
+    end
+
+    var c = counter(0)
+    var d = counter(0)
+    print(c())   // prints 1
+    print(c())   // prints 2
+    print(c())   // prints 3
+    print(d())   // prints 1
+    print(d())   // prints 2
+    print(d())   // prints 3
+
+## Language in detail
+
+### Literals
+
+#### Integers
+
+Integer literals can be decimal numbers, hexadecimal numbers
+with a "0x" prefix, or single character constants. Character
+constants consist of a single character in single quotes
+preceded by the character 'c'.
+
+    44      0x2C        c'+'     c'A'
+    1000    0x0003e8    c'\n'    c'\t'
+
+#### Floating point
+
+Floating point literals are parsed as in C.
+
+#### Strings
+
+Strings appear as text inside single- or double-quoted strings.
+
+### Identifiers
+
+>  id    _id    a_very_long_identifier_52
+>  id2   id_    tHiS_iS_aLsO_lEgItImAtE
+
+Identifiers beginning with _ are reserved for use by the Stua.
+
+
+### More on dictionaries
+
+For the basic types, two items are identical if they have the same value. Integers and floating point numbers are identical in the appropriate cases.
+
+Non-basic types are only identical based on reference. (For example,
+two separately-created dictionaries with identical contents will still
+be two distinct keys.)
+
+
+
+
+
+
+
+
+## Details
+
+### Floating point representation
+
+
+Floating point numbers use a 31-bit variant of IEEE single-precision
+floating point with 23 bits of mantissa and only 7 of exponent.
+This representation exactly represents all numbers from 32-bit IEEE
+as small as 10<sup>-19</sup> and as large as 10<sup>19</sup> without any loss.
+Thus many floating point computations and algorithms will work unchanged;
+for example, when normalizing a vector you could safely square a number
+of magnitude as large as 10<sup>9</sup> without any loss.
+
+## Rationale
+
+### Why limitations on numbers?
+
+Stua makes some concessions to achieving a high-performance
+implementation. In particular, since everything is dynamically
+typed, data items must carry along a type indicator. If we
+want to store data items compactly when storing them in arrays
+and such, we have to resort to boxing them (storing them somewhere
+and keeping a pointer instead) or tagging (using some of the bits
+in the data item to indicate a subset of the types).
+
+Stua is designed to allow data items to be stored in 32 bits
+with tags; there are two tag bits so four cases each with 30
+bits; one case is ints, so ints are 30 bits; one case is a
+pointer to all other types (fortunately 4-byte aligned
+pointers don't use their bottom 2 bits anyway), and the other
+two cases are both used to represent floating point numbers,
+which therefore get 31 bits.
+
+(Someday when stb.h is rewritten to support 64-bit compilation,
+the "pointers" will become indices into a pointer table which
+already exists.)
+
+
+
+-->
+
+<h1>Stua</h1>
+
+
+Stua is a little scripting language that largely rips off Lua. In
+fact you probably should just use Lua instead. Nevertheless, Stua
+is available if you use <a href="http://nothings.org/stb.h">stb.h</a>
+by globally setting the #define <tt>STB_STUA</tt>.
+<p>
+<h2>Why a brand new scripting language?</h2>
+
+
+Why does Stua exist, especially in the face of Lua?
+<p>
+Stua's primary <i>raison d'&ecirc;tre</i> is
+simply because it is included in the library stb.h, so it
+is available with no effort to any application that uses
+stb.h (which, for its author, is every application).
+It also in the public domain so no attention need be
+spent on placing copyright notices anywhere.
+<p>
+Of course this comes at a cost: all applications are
+bogged down by this implementation of Stua. However, it is
+not compiled into applications by default, and it uses a
+fairly small amount of source code (about 1200 lines, or
+about 15% of stb.h). The implementation is very small because
+it builds on features available in stb.h (like generic hash
+tables and lex-like regular-expression support), and
+because it is <i>extremely</i> inefficient. (Someday a better
+implementation will be written to the exact same API; so
+you can use the stb.h Stua implementation until the performance
+becomes an issue, then drop in the better one.)
+<p>
+<h2>Language overview</h2>
+
+
+Some sample Stua code:
+<p>
+<pre>  // compute the x'th most fibonacci number recursively
+  func fib(x)
+     if x &lt; 3 then
+        1
+     else
+        fib(x-1) + fib(x-2)
+     end
+  end
+     /* Note that there is no explicit 'return'; if you do not explicitly
+      * return a value, then the value of a function is the value of its
+      * last statement.
+      */</pre>
+<p>
+<pre>  var x = print(fib(20))</pre>
+<p>
+
+<h3>Identifiers</h3>
+
+
+Stua identifier syntax is identical to C: an identifier begins
+with an alphabetic character or an underscore, and continues
+with 0 or more alphabetic characters, digits, and underscores.
+<p>
+<h3>Simple data types</h3>
+
+
+Stua supports a number of simple data types.
+<p>
+<blockquote><b>Numbers</b>:  30-bit integers, 31-bit floats. Defined in code like C. <br>
+<b>Strings</b>:  Defined in code like C, or with single quotes.  <br>
+<b>Booleans</b>: <tt>true</tt> and <tt>false</tt> are special value of their own type  <br>
+<b>Nil</b>: the value <tt>nil</tt> is a special 'out of band' value like NULL in C
+<p>
+</blockquote>Character constants are specified as in C, but prefixed with the
+letter c, e.g. <tt>c'x' </tt> or <tt>c'\n'`.
+</tt><p>
+<h3>Dictionaries</h3>
+
+
+Stua has a single container type used for multiple purposes. It is
+a dictionary mapping any data item (key) to any other data item (value).
+Each key can only appear once in each dictionary.
+<p>
+You can create a dictionary in code in several ways.
+<p>
+<pre>   x = { foo=17, bar="hello" }
+   y = { "foo", "bar", x, { a="b", c="d" } }
+   z = { }
+   w = { x=x }</pre>
+<p>
+In the above code, <tt>x</tt> will receive a newly-created dictionary which
+maps the string "foo" to the integer 17 and the string "bar" to the
+string "hello".
+<p>
+Because the dictionary stored in <tt>y</tt> does not specify the keys
+explicitly, the values are assigned increasing integers starting
+from 0, so y will receive the dictionary with the following mappings:
+<p>
+<blockquote>key = 0; value = "foo" <br>
+key = 1; value = "bar" <br>
+key = 2; value = x, the dictionary listed above <br>
+key = 3; value = the dictionary &nbsp;{&nbsp;&lt;"a",&nbsp;"b">,&nbsp;<"c",&nbsp;"d">&nbsp;}
+<p>
+</blockquote>The variable z receives an empty dictionary, and the variable <tt>w</tt>
+receives a dictionary mapping the string "x" to the dictionary
+referenced by the value of <tt>x</tt>. Note that further assignments to
+the variable <tt>x</tt> will not change the dictionaries referenced in <tt>y</tt>
+and <tt>w</tt>, but changes <i>to</i> the dictionary <tt>x</tt> will be visible.
+<p>
+Dictionaries can be used for multiple purposes. They can take the
+place of arrays (simply using integers to index them), they can
+take the place of structures (storing values with string keys),
+and they can be used as general purpose hash tables.
+<p>
+Dictionaries are referenced by using array-access notation:
+<p>
+<pre>  print(y[0])
+  y[1] = x["foo"]
+  z["bar"] = 1</pre>
+<p>
+You can also use a structure field access notation; the last line
+above could also be represented as <tt>z.bar=1</tt>.
+<p>
+<h3>Statements</h3>
+
+
+Stua supports several types of statements. All statements
+can be terminated with an optional ";". All statements
+produce values, and the value of a function is the value
+of its last statement.
+<p>
+<pre>  return [EXPRESSION]</pre>
+<p>
+This ends a function prematurely, and produces the optional
+as the result, or <tt>nil</tt> if none is provided.
+<p>
+<pre>  if CONDITION then STATEMENTS [else STATEMENTS] end</pre>
+<p>
+The <tt>else&nbsp;STATEMENTS</tt> part is optional. This computes the
+obvious thing. The value of the <tt>if</tt> statement is the value
+of the chosen branch. If <tt>else</tt> is omitted the value in the
+<tt>false</tt> case is <tt>nil</tt>.
+<p>
+<pre>  while CONDITION [update STATEMENTS] do STATEMENTS end</pre>
+<p>
+The <tt>update&nbsp;STATEMENTS</tt> part is optional. This repeatedly
+tests <tt>CONDITION</tt>, and if it's true, executes the <tt>do&nbsp;STATEMENTS</tt>
+section. After executing the <tt>do</tt> section, the <tt>update</tt> section
+is executed. Then the process repeats. The value computed is
+the value of the last statement in the <tt>do</tt> section, or <tt>nil</tt>
+if the loop never executes.
+<p>
+<pre>  break [EXPRESSION]</pre>
+<p>
+This terminates a loop prematurely. If the optional expression
+is included, that value is the result of the loop.
+<p>
+<pre>  continue</pre>
+<p>
+This causes the current iteration of the to stop; the <tt>update</tt>
+section is then executed, if present, and then the loop repeats
+from the beginning.
+<p>
+<s>
+<pre>  for VAR [,VAR] in EXPR do STATEMENTS end</pre>
+<p>
+The <tt>for</tt> construction iterates over the keys or &lt;key,&nbsp;value>&nbsp;pairs
+of a dictionary. Note that if the dictionary changes during the
+iteration, those changes will not be visible to the iterator. Thus
+some pairs produced may not actually be in the dictionary.
+<p>
+Results computed, and behavior of <tt>continue</tt> and <tt>break</tt>, are
+like <tt>while</tt>-`do`.</s> <i>Not implemented yet.</i>
+<p>
+<pre>  =&gt; LVALUE</pre>
+<p>
+The <b>into</b> statement <tt>=&gt; x</tt> takes the value computed by the
+preceding statement and stores it to the lvalue on the right
+side. The right side must be an identifier, array-access, or
+structure-access. The idea here is that you can use an <tt>if-then-else</tt>
+or <tt>while</tt> to compute a value and store it into a variable.
+You can do this in a more normal way, but this way is possibly
+clearer (it's an experimental design).
+<p>
+<h3>Expressions</h3>
+
+
+Stua supports all of the basic (non-assignment) C operators:
+<p>
+<pre>  + - * /              arithmetic operators
+  &lt;&lt; &gt;&gt; % &amp; | ^ ~      bit operations (ints only)
+  &amp;&amp; || !              boolean operations
+  == !=                equality comparisons
+  &gt;= &lt;= &lt; &gt;            inequality comparisons</pre>
+<p>
+Stua "fixes" the precedence error in C's "&amp;" and "|" operators; they
+have higher precedence than comparisons do.
+<p>
+Also available is assignment, which can be written in either of these two ways:
+<p>
+<pre>  x = a
+  let x = a</pre>
+<p>
+The other C assignment operators are not available. Assignments produce
+values and 
+<p>
+The <tt>&amp;&amp;</tt> and <tt>||</tt> operators are short circuiting. They also
+produce their arguments as results; for example, in <tt>x&nbsp;&amp;&amp;&nbsp;y</tt>, if x is
+false then the result is x; if x is true then the result is y.
+By default only boolean values have boolean meanings, so x must
+be a boolean (although y need not be); otherwise an error is
+thrown. However, you can overload the "conditional" operator
+to introduce other semantics for non-booleans (e.g. everything
+else being treated as true).
+<p>
+<h3>Function calls</h3>
+
+
+Function parameters can be declared as taking default values:
+<p>
+<pre>  func myfunc(widget, parameter, name="default name")
+     ...
+  end</pre>
+<p>
+Function calls can specify parameters by position or by name:
+<p>
+<pre>  x = myfunc(a, 2, "my thing")
+  y = myfunc(a, 3, name="thing")
+  z = myfunc(widget=a, 4)
+  w = myfunc(parameter=5, a)</pre>
+<p>
+Functions can also be called using dictionaries for their
+parameters lists, using ":" to call them; for example, the
+first call above can also be written as:
+<p>
+<pre>  x = myfunc:{a, 2, "my thing"}</pre>
+<p>
+You can perform <i>partial application</i> by using the "+" operator
+instead of the ":" operator; this applies <i>named</i> arguments to the
+parameters but doesn't call the function; instead it returns
+a "new" function. Each of the following is equivalent to the above:
+<p>
+<pre>  f2 = myfunc+{widget=a, name="my thing"}
+  x = f2(5)</pre>
+<p>
+<pre>  f3 = myfunc+{widget=a}+{parameter=5}+{name="my thing"}
+  x = f3()</pre>
+<p>
+<pre>  x = (myfunc+{widget=a, name="mything})(5)</pre>
+<p>
+However, there is no way to perform partial application by
+position; it is only allowed by name.
+<p>
+Similarly, it is possible to introspect the current stack frame
+by viewing it as a dictionary:
+<p>
+<pre>  func myfunc(widget, parameter, name="default name")
+     var x = _frame
+     print(x.widget)
+     myotherfunc:x
+     widget = 1
+     x["widget"] = 5
+     print(widget)  // not 5!
+  end</pre>
+<p>
+This is useful for creating functions that accept variable
+number of parameters. The parameters will be listed in
+<tt>_frame</tt> by integer values; the leftmost parameter is
+parameter 0, the next is parameter 1, etc..
+<p>
+Nested functions can refer to lexically scoped variables
+outside their own definition; closures will be created.
+<p>
+<pre>   func adder(z)
+      func(x) z+x end  // lexical closure
+   end
+   var p = adder(5)
+   print(p(2)) // prints 7
+   print(p(3)) // prints 8</pre>
+<p>
+<pre>   func counter(z)
+      func() z = z + 1 end
+   end</pre>
+<p>
+<pre>   var c = counter(0)
+   var d = counter(0)
+   print(c())   // prints 1
+   print(c())   // prints 2
+   print(c())   // prints 3
+   print(d())   // prints 1
+   print(d())   // prints 2
+   print(d())   // prints 3</pre>
+<p>
+<h2>Language in detail</h2>
+
+
+<h3>Literals</h3>
+
+
+<h4>Integers</h4>
+
+
+Integer literals can be decimal numbers, hexadecimal numbers
+with a "0x" prefix, or single character constants. Character
+constants consist of a single character in single quotes
+preceded by the character 'c'.
+<p>
+<pre>   44      0x2C        c'+'     c'A'
+   1000    0x0003e8    c'\n'    c'\t'</pre>
+<p>
+<h4>Floating point</h4>
+
+
+Floating point literals are parsed as in C.
+<p>
+<h4>Strings</h4>
+
+
+Strings appear as text inside single- or double-quoted strings.
+<p>
+<h3>Identifiers</h3>
+
+
+<blockquote><pre>id    _id    a_very_long_identifier_52
+id2   id_    tHiS_iS_aLsO_lEgItImAtE</pre>
+<p>
+</blockquote>Identifiers beginning with _ are reserved for use by the Stua.
+<p>
+
+<h3>More on dictionaries</h3>
+
+
+For the basic types, two items are identical if they have the same value. Integers and floating point numbers are identical in the appropriate cases.
+<p>
+Non-basic types are only identical based on reference. (For example,
+two separately-created dictionaries with identical contents will still
+be two distinct keys.)
+<p>
+
+
+
+
+
+
+
+<h2>Details</h2>
+
+
+<h3>Floating point representation</h3>
+
+
+
+Floating point numbers use a 31-bit variant of IEEE single-precision
+floating point with 23 bits of mantissa and only 7 of exponent.
+This representation exactly represents all numbers from 32-bit IEEE
+as small as 10<sup>-19</sup> and as large as 10<sup>19</sup> without any loss.
+Thus many floating point computations and algorithms will work unchanged;
+for example, when normalizing a vector you could safely square a number
+of magnitude as large as 10<sup>9</sup> without any loss.
+<p>
+<h2>Rationale</h2>
+
+
+<h3>Why limitations on numbers?</h3>
+
+
+Stua makes some concessions to achieving a high-performance
+implementation. In particular, since everything is dynamically
+typed, data items must carry along a type indicator. If we
+want to store data items compactly when storing them in arrays
+and such, we have to resort to boxing them (storing them somewhere
+and keeping a pointer instead) or tagging (using some of the bits
+in the data item to indicate a subset of the types).
+<p>
+Stua is designed to allow data items to be stored in 32 bits
+with tags; there are two tag bits so four cases each with 30
+bits; one case is ints, so ints are 30 bits; one case is a
+pointer to all other types (fortunately 4-byte aligned
+pointers don't use their bottom 2 bits anyway), and the other
+two cases are both used to represent floating point numbers,
+which therefore get 31 bits.
+<p>
+(Someday when stb.h is rewritten to support 64-bit compilation,
+the "pointers" will become indices into a pointer table which
+already exists.)
+<p>
+
+
+
+</body></html>

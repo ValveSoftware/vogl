@@ -1,0 +1,46 @@
+!!ARBvp1.0
+
+# bumpmap.vp
+#
+# setup interpolants for bumpmap lighting
+
+ATTRIB iPos = vertex.position;       # input position
+ATTRIB iPrC = vertex.color.primary;  # input primary color
+ATTRIB iNrm = vertex.normal;         # input normal
+ATTRIB iTC0 = vertex.texcoord[0];    # input texcoord 0
+ATTRIB iTC1 = vertex.texcoord[1];    # input texcoord 1
+ATTRIB iTC2 = vertex.texcoord[2];    # input texcoord 2
+ATTRIB iTC3 = vertex.texcoord[3];    # input texcoord 3
+
+OUTPUT oPos = result.position;       # output position
+OUTPUT oPrC = result.color.primary;  # output primary color
+OUTPUT oTC0 = result.texcoord[0];    # output texcoord 0
+OUTPUT oTC1 = result.texcoord[1];    # output texcoord 1
+
+PARAM mvp[4] = { state.matrix.mvp }; # model-view * projection matrix
+PARAM mv[4] =  { state.matrix.modelview }; # model-view matrix
+
+PARAM lightPos = program.local[0];   # light pos in eye space
+
+TEMP N, Lobj, Ltan;                  # temporary registers
+
+DP4 oPos.x, iPos, mvp[0];            # xform input pos by MVP
+DP4 oPos.y, iPos, mvp[1];
+DP4 oPos.z, iPos, mvp[2];
+DP4 oPos.w, iPos, mvp[3];
+
+MOV oTC0, iTC0;                      # copy bumpmap texcoords
+
+SUB Lobj, lightPos, iPos;            # vertex to light vector
+
+DP3 Ltan.x, Lobj, iTC1;              # transform to tangent space
+DP3 Ltan.y, Lobj, iTC2;              # transform to tangent space
+DP3 Ltan.z, Lobj, iTC3;              # transform to tangent space
+
+DP3 Ltan.w, Ltan, Ltan;              # normalize light vector
+RSQ Ltan.w, Ltan.w;
+MUL oTC1, Ltan, Ltan.w;              # put N in texcoord 0
+
+MOV oPrC, iPrC;                      # copy primary color in to out
+
+END

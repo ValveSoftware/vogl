@@ -1,0 +1,431 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1829612B09E6B96000B621DD /* StrongPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1829612A09E6B96000B621DD /* StrongPtr.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1829613F09E6C7B500B621DD /* StrongPtr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1829613E09E6C7B500B621DD /* StrongPtr.cpp */; };
+		18A7B7F609E3304F00F567CA /* OrderedStatic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A7B7F109E3304F00F567CA /* OrderedStatic.cpp */; };
+		18A7B7F709E3304F00F567CA /* SmartPtr.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A7B7F209E3304F00F567CA /* SmartPtr.cpp */; };
+		18A7B7F809E3304F00F567CA /* SafeFormat.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A7B7F309E3304F00F567CA /* SafeFormat.cpp */; };
+		18A7B7F909E3304F00F567CA /* Singleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A7B7F409E3304F00F567CA /* Singleton.cpp */; };
+		18A7B7FA09E3304F00F567CA /* SmallObj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18A7B7F509E3304F00F567CA /* SmallObj.cpp */; };
+		18A7B81B09E3306400F567CA /* AbstractFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B7FB09E3306400F567CA /* AbstractFactory.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B81C09E3306400F567CA /* AssocVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B7FC09E3306400F567CA /* AssocVector.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B81D09E3306400F567CA /* ConstPolicy.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B7FD09E3306400F567CA /* ConstPolicy.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B81E09E3306400F567CA /* DataGenerators.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B7FE09E3306400F567CA /* DataGenerators.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B81F09E3306400F567CA /* EmptyType.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B7FF09E3306400F567CA /* EmptyType.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82009E3306400F567CA /* Factory.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80009E3306400F567CA /* Factory.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82109E3306400F567CA /* Function.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80109E3306400F567CA /* Function.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82209E3306400F567CA /* Functor.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80209E3306400F567CA /* Functor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82309E3306400F567CA /* HierarchyGenerators.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80309E3306400F567CA /* HierarchyGenerators.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82409E3306400F567CA /* LockingPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80409E3306400F567CA /* LockingPtr.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82509E3306400F567CA /* LokiExport.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80509E3306400F567CA /* LokiExport.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82609E3306400F567CA /* LokiTypeInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80609E3306400F567CA /* LokiTypeInfo.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82709E3306400F567CA /* MultiMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80709E3306400F567CA /* MultiMethods.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82809E3306400F567CA /* NullType.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80809E3306400F567CA /* NullType.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82909E3306400F567CA /* OrderedStatic.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80909E3306400F567CA /* OrderedStatic.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82A09E3306400F567CA /* Pimpl.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80A09E3306400F567CA /* Pimpl.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82B09E3306400F567CA /* RefToValue.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80B09E3306400F567CA /* RefToValue.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82C09E3306400F567CA /* Register.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80C09E3306400F567CA /* Register.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82D09E3306400F567CA /* SafeFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80D09E3306400F567CA /* SafeFormat.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82E09E3306400F567CA /* ScopeGuard.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80E09E3306400F567CA /* ScopeGuard.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B82F09E3306400F567CA /* Sequence.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B80F09E3306400F567CA /* Sequence.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83009E3306400F567CA /* Singleton.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81009E3306400F567CA /* Singleton.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83109E3306400F567CA /* SmallObj.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81109E3306400F567CA /* SmallObj.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83209E3306400F567CA /* SmartPtr.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81209E3306400F567CA /* SmartPtr.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83309E3306400F567CA /* static_check.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81309E3306400F567CA /* static_check.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83409E3306400F567CA /* Threads.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81409E3306400F567CA /* Threads.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83509E3306400F567CA /* Tuple.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81509E3306400F567CA /* Tuple.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83609E3306400F567CA /* Typelist.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81609E3306400F567CA /* Typelist.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83709E3306400F567CA /* TypelistMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81709E3306400F567CA /* TypelistMacros.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83809E3306400F567CA /* TypeManip.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81809E3306400F567CA /* TypeManip.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83909E3306400F567CA /* TypeTraits.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81909E3306400F567CA /* TypeTraits.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		18A7B83A09E3306400F567CA /* Visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 18A7B81A09E3306400F567CA /* Visitor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		8D07F2C00486CC7A007CD1D0 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C1666FE841158C02AAC07 /* InfoPlist.strings */; };
+		8D07F2C40486CC7A007CD1D0 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 08FB77AAFE841565C02AAC07 /* Carbon.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		08FB77AAFE841565C02AAC07 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		1829612A09E6B96000B621DD /* StrongPtr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = StrongPtr.h; path = ../include/loki/StrongPtr.h; sourceTree = SOURCE_ROOT; };
+		1829613E09E6C7B500B621DD /* StrongPtr.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = StrongPtr.cpp; path = ../src/StrongPtr.cpp; sourceTree = SOURCE_ROOT; };
+		18A7B7F109E3304F00F567CA /* OrderedStatic.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = OrderedStatic.cpp; path = ../src/OrderedStatic.cpp; sourceTree = SOURCE_ROOT; };
+		18A7B7F209E3304F00F567CA /* SmartPtr.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SmartPtr.cpp; path = ../src/SmartPtr.cpp; sourceTree = SOURCE_ROOT; };
+		18A7B7F309E3304F00F567CA /* SafeFormat.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SafeFormat.cpp; path = ../src/SafeFormat.cpp; sourceTree = SOURCE_ROOT; };
+		18A7B7F409E3304F00F567CA /* Singleton.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = Singleton.cpp; path = ../src/Singleton.cpp; sourceTree = SOURCE_ROOT; };
+		18A7B7F509E3304F00F567CA /* SmallObj.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = SmallObj.cpp; path = ../src/SmallObj.cpp; sourceTree = SOURCE_ROOT; };
+		18A7B7FB09E3306400F567CA /* AbstractFactory.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AbstractFactory.h; path = ../include/loki/AbstractFactory.h; sourceTree = SOURCE_ROOT; };
+		18A7B7FC09E3306400F567CA /* AssocVector.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = AssocVector.h; path = ../include/loki/AssocVector.h; sourceTree = SOURCE_ROOT; };
+		18A7B7FD09E3306400F567CA /* ConstPolicy.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ConstPolicy.h; path = ../include/loki/ConstPolicy.h; sourceTree = SOURCE_ROOT; };
+		18A7B7FE09E3306400F567CA /* DataGenerators.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = DataGenerators.h; path = ../include/loki/DataGenerators.h; sourceTree = SOURCE_ROOT; };
+		18A7B7FF09E3306400F567CA /* EmptyType.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = EmptyType.h; path = ../include/loki/EmptyType.h; sourceTree = SOURCE_ROOT; };
+		18A7B80009E3306400F567CA /* Factory.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Factory.h; path = ../include/loki/Factory.h; sourceTree = SOURCE_ROOT; };
+		18A7B80109E3306400F567CA /* Function.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Function.h; path = ../include/loki/Function.h; sourceTree = SOURCE_ROOT; };
+		18A7B80209E3306400F567CA /* Functor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Functor.h; path = ../include/loki/Functor.h; sourceTree = SOURCE_ROOT; };
+		18A7B80309E3306400F567CA /* HierarchyGenerators.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HierarchyGenerators.h; path = ../include/loki/HierarchyGenerators.h; sourceTree = SOURCE_ROOT; };
+		18A7B80409E3306400F567CA /* LockingPtr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LockingPtr.h; path = ../include/loki/LockingPtr.h; sourceTree = SOURCE_ROOT; };
+		18A7B80509E3306400F567CA /* LokiExport.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LokiExport.h; path = ../include/loki/LokiExport.h; sourceTree = SOURCE_ROOT; };
+		18A7B80609E3306400F567CA /* LokiTypeInfo.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = LokiTypeInfo.h; path = ../include/loki/LokiTypeInfo.h; sourceTree = SOURCE_ROOT; };
+		18A7B80709E3306400F567CA /* MultiMethods.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MultiMethods.h; path = ../include/loki/MultiMethods.h; sourceTree = SOURCE_ROOT; };
+		18A7B80809E3306400F567CA /* NullType.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = NullType.h; path = ../include/loki/NullType.h; sourceTree = SOURCE_ROOT; };
+		18A7B80909E3306400F567CA /* OrderedStatic.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = OrderedStatic.h; path = ../include/loki/OrderedStatic.h; sourceTree = SOURCE_ROOT; };
+		18A7B80A09E3306400F567CA /* Pimpl.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Pimpl.h; path = ../include/loki/Pimpl.h; sourceTree = SOURCE_ROOT; };
+		18A7B80B09E3306400F567CA /* RefToValue.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = RefToValue.h; path = ../include/loki/RefToValue.h; sourceTree = SOURCE_ROOT; };
+		18A7B80C09E3306400F567CA /* Register.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Register.h; path = ../include/loki/Register.h; sourceTree = SOURCE_ROOT; };
+		18A7B80D09E3306400F567CA /* SafeFormat.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SafeFormat.h; path = ../include/loki/SafeFormat.h; sourceTree = SOURCE_ROOT; };
+		18A7B80E09E3306400F567CA /* ScopeGuard.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ScopeGuard.h; path = ../include/loki/ScopeGuard.h; sourceTree = SOURCE_ROOT; };
+		18A7B80F09E3306400F567CA /* Sequence.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Sequence.h; path = ../include/loki/Sequence.h; sourceTree = SOURCE_ROOT; };
+		18A7B81009E3306400F567CA /* Singleton.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Singleton.h; path = ../include/loki/Singleton.h; sourceTree = SOURCE_ROOT; };
+		18A7B81109E3306400F567CA /* SmallObj.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SmallObj.h; path = ../include/loki/SmallObj.h; sourceTree = SOURCE_ROOT; };
+		18A7B81209E3306400F567CA /* SmartPtr.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SmartPtr.h; path = ../include/loki/SmartPtr.h; sourceTree = SOURCE_ROOT; };
+		18A7B81309E3306400F567CA /* static_check.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = static_check.h; path = ../include/loki/static_check.h; sourceTree = SOURCE_ROOT; };
+		18A7B81409E3306400F567CA /* Threads.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Threads.h; path = ../include/loki/Threads.h; sourceTree = SOURCE_ROOT; };
+		18A7B81509E3306400F567CA /* Tuple.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Tuple.h; path = ../include/loki/Tuple.h; sourceTree = SOURCE_ROOT; };
+		18A7B81609E3306400F567CA /* Typelist.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Typelist.h; path = ../include/loki/Typelist.h; sourceTree = SOURCE_ROOT; };
+		18A7B81709E3306400F567CA /* TypelistMacros.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TypelistMacros.h; path = ../include/loki/TypelistMacros.h; sourceTree = SOURCE_ROOT; };
+		18A7B81809E3306400F567CA /* TypeManip.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TypeManip.h; path = ../include/loki/TypeManip.h; sourceTree = SOURCE_ROOT; };
+		18A7B81909E3306400F567CA /* TypeTraits.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TypeTraits.h; path = ../include/loki/TypeTraits.h; sourceTree = SOURCE_ROOT; };
+		18A7B81A09E3306400F567CA /* Visitor.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = Visitor.h; path = ../include/loki/Visitor.h; sourceTree = SOURCE_ROOT; };
+		8D07F2C70486CC7A007CD1D0 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8D07F2C80486CC7A007CD1D0 /* loki.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = loki.framework; path = loki.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8D07F2C30486CC7A007CD1D0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D07F2C40486CC7A007CD1D0 /* Carbon.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		034768DDFF38A45A11DB9C8B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8D07F2C80486CC7A007CD1D0 /* loki.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0867D691FE84028FC02AAC07 /* Loki */ = {
+			isa = PBXGroup;
+			children = (
+				18A7B7EE09E32FF100F567CA /* Headers */,
+				08FB77ACFE841707C02AAC07 /* Source */,
+				089C1665FE841158C02AAC07 /* Resources */,
+				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
+				034768DDFF38A45A11DB9C8B /* Products */,
+			);
+			name = Loki;
+			sourceTree = "<group>";
+		};
+		0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				08FB77AAFE841565C02AAC07 /* Carbon.framework */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		089C1665FE841158C02AAC07 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8D07F2C70486CC7A007CD1D0 /* Info.plist */,
+				089C1666FE841158C02AAC07 /* InfoPlist.strings */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		08FB77ACFE841707C02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				1829613E09E6C7B500B621DD /* StrongPtr.cpp */,
+				18A7B7F109E3304F00F567CA /* OrderedStatic.cpp */,
+				18A7B7F209E3304F00F567CA /* SmartPtr.cpp */,
+				18A7B7F309E3304F00F567CA /* SafeFormat.cpp */,
+				18A7B7F409E3304F00F567CA /* Singleton.cpp */,
+				18A7B7F509E3304F00F567CA /* SmallObj.cpp */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		18A7B7EE09E32FF100F567CA /* Headers */ = {
+			isa = PBXGroup;
+			children = (
+				1829612A09E6B96000B621DD /* StrongPtr.h */,
+				18A7B7FB09E3306400F567CA /* AbstractFactory.h */,
+				18A7B7FC09E3306400F567CA /* AssocVector.h */,
+				18A7B7FD09E3306400F567CA /* ConstPolicy.h */,
+				18A7B7FE09E3306400F567CA /* DataGenerators.h */,
+				18A7B7FF09E3306400F567CA /* EmptyType.h */,
+				18A7B80009E3306400F567CA /* Factory.h */,
+				18A7B80109E3306400F567CA /* Function.h */,
+				18A7B80209E3306400F567CA /* Functor.h */,
+				18A7B80309E3306400F567CA /* HierarchyGenerators.h */,
+				18A7B80409E3306400F567CA /* LockingPtr.h */,
+				18A7B80509E3306400F567CA /* LokiExport.h */,
+				18A7B80609E3306400F567CA /* LokiTypeInfo.h */,
+				18A7B80709E3306400F567CA /* MultiMethods.h */,
+				18A7B80809E3306400F567CA /* NullType.h */,
+				18A7B80909E3306400F567CA /* OrderedStatic.h */,
+				18A7B80A09E3306400F567CA /* Pimpl.h */,
+				18A7B80B09E3306400F567CA /* RefToValue.h */,
+				18A7B80C09E3306400F567CA /* Register.h */,
+				18A7B80D09E3306400F567CA /* SafeFormat.h */,
+				18A7B80E09E3306400F567CA /* ScopeGuard.h */,
+				18A7B80F09E3306400F567CA /* Sequence.h */,
+				18A7B81009E3306400F567CA /* Singleton.h */,
+				18A7B81109E3306400F567CA /* SmallObj.h */,
+				18A7B81209E3306400F567CA /* SmartPtr.h */,
+				18A7B81309E3306400F567CA /* static_check.h */,
+				18A7B81409E3306400F567CA /* Threads.h */,
+				18A7B81509E3306400F567CA /* Tuple.h */,
+				18A7B81609E3306400F567CA /* Typelist.h */,
+				18A7B81709E3306400F567CA /* TypelistMacros.h */,
+				18A7B81809E3306400F567CA /* TypeManip.h */,
+				18A7B81909E3306400F567CA /* TypeTraits.h */,
+				18A7B81A09E3306400F567CA /* Visitor.h */,
+			);
+			name = Headers;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		8D07F2BD0486CC7A007CD1D0 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18A7B81B09E3306400F567CA /* AbstractFactory.h in Headers */,
+				18A7B81C09E3306400F567CA /* AssocVector.h in Headers */,
+				18A7B81D09E3306400F567CA /* ConstPolicy.h in Headers */,
+				18A7B81E09E3306400F567CA /* DataGenerators.h in Headers */,
+				18A7B81F09E3306400F567CA /* EmptyType.h in Headers */,
+				18A7B82009E3306400F567CA /* Factory.h in Headers */,
+				18A7B82109E3306400F567CA /* Function.h in Headers */,
+				18A7B82209E3306400F567CA /* Functor.h in Headers */,
+				18A7B82309E3306400F567CA /* HierarchyGenerators.h in Headers */,
+				18A7B82409E3306400F567CA /* LockingPtr.h in Headers */,
+				18A7B82509E3306400F567CA /* LokiExport.h in Headers */,
+				18A7B82609E3306400F567CA /* LokiTypeInfo.h in Headers */,
+				18A7B82709E3306400F567CA /* MultiMethods.h in Headers */,
+				18A7B82809E3306400F567CA /* NullType.h in Headers */,
+				18A7B82909E3306400F567CA /* OrderedStatic.h in Headers */,
+				18A7B82A09E3306400F567CA /* Pimpl.h in Headers */,
+				18A7B82B09E3306400F567CA /* RefToValue.h in Headers */,
+				18A7B82C09E3306400F567CA /* Register.h in Headers */,
+				18A7B82D09E3306400F567CA /* SafeFormat.h in Headers */,
+				18A7B82E09E3306400F567CA /* ScopeGuard.h in Headers */,
+				18A7B82F09E3306400F567CA /* Sequence.h in Headers */,
+				18A7B83009E3306400F567CA /* Singleton.h in Headers */,
+				18A7B83109E3306400F567CA /* SmallObj.h in Headers */,
+				18A7B83209E3306400F567CA /* SmartPtr.h in Headers */,
+				18A7B83309E3306400F567CA /* static_check.h in Headers */,
+				18A7B83409E3306400F567CA /* Threads.h in Headers */,
+				18A7B83509E3306400F567CA /* Tuple.h in Headers */,
+				18A7B83609E3306400F567CA /* Typelist.h in Headers */,
+				18A7B83709E3306400F567CA /* TypelistMacros.h in Headers */,
+				18A7B83809E3306400F567CA /* TypeManip.h in Headers */,
+				18A7B83909E3306400F567CA /* TypeTraits.h in Headers */,
+				18A7B83A09E3306400F567CA /* Visitor.h in Headers */,
+				1829612B09E6B96000B621DD /* StrongPtr.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		8D07F2BC0486CC7A007CD1D0 /* loki */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4FADC24208B4156D00ABE55E /* Build configuration list for PBXNativeTarget "loki" */;
+			buildPhases = (
+				8D07F2BD0486CC7A007CD1D0 /* Headers */,
+				8D07F2BF0486CC7A007CD1D0 /* Resources */,
+				8D07F2C10486CC7A007CD1D0 /* Sources */,
+				8D07F2C30486CC7A007CD1D0 /* Frameworks */,
+				8D07F2C50486CC7A007CD1D0 /* Rez */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = loki;
+			productInstallPath = "$(HOME)/Library/Frameworks";
+			productName = loki;
+			productReference = 8D07F2C80486CC7A007CD1D0 /* loki.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0867D690FE84028FC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 4FADC24608B4156D00ABE55E /* Build configuration list for PBXProject "Loki" */;
+			hasScannedForEncodings = 1;
+			mainGroup = 0867D691FE84028FC02AAC07 /* Loki */;
+			productRefGroup = 034768DDFF38A45A11DB9C8B /* Products */;
+			projectDirPath = "";
+			targets = (
+				8D07F2BC0486CC7A007CD1D0 /* loki */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8D07F2BF0486CC7A007CD1D0 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8D07F2C00486CC7A007CD1D0 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXRezBuildPhase section */
+		8D07F2C50486CC7A007CD1D0 /* Rez */ = {
+			isa = PBXRezBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXRezBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8D07F2C10486CC7A007CD1D0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18A7B7F609E3304F00F567CA /* OrderedStatic.cpp in Sources */,
+				18A7B7F709E3304F00F567CA /* SmartPtr.cpp in Sources */,
+				18A7B7F809E3304F00F567CA /* SafeFormat.cpp in Sources */,
+				18A7B7F909E3304F00F567CA /* Singleton.cpp in Sources */,
+				18A7B7FA09E3304F00F567CA /* SmallObj.cpp in Sources */,
+				1829613F09E6C7B500B621DD /* StrongPtr.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		089C1666FE841158C02AAC07 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				089C1667FE841158C02AAC07 /* English */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		4FADC24308B4156D00ABE55E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_VERSION = A;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = "";
+				GCC_PREFIX_HEADER = "";
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Library/Frameworks";
+				LIBRARY_STYLE = DYNAMIC;
+				MACH_O_TYPE = mh_dylib;
+				PRODUCT_NAME = loki;
+				WRAPPER_EXTENSION = framework;
+				ZERO_LINK = NO;
+			};
+			name = Debug;
+		};
+		4FADC24408B4156D00ABE55E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					i386,
+					ppc,
+				);
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				DEPLOYMENT_POSTPROCESSING = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_VERSION = A;
+				GCC_DEBUGGING_SYMBOLS = full;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = "";
+				GCC_PREFIX_HEADER = "";
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(HOME)/Library/Frameworks";
+				LIBRARY_STYLE = DYNAMIC;
+				MACH_O_TYPE = mh_dylib;
+				PRESERVE_DEAD_CODE_INITS_AND_TERMS = NO;
+				PRODUCT_NAME = loki;
+				SEPARATE_STRIP = NO;
+				STRIP_INSTALLED_PRODUCT = NO;
+				STRIP_STYLE = all;
+				WRAPPER_EXTENSION = framework;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
+		4FADC24708B4156D00ABE55E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Debug;
+		};
+		4FADC24808B4156D00ABE55E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4FADC24208B4156D00ABE55E /* Build configuration list for PBXNativeTarget "loki" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4FADC24308B4156D00ABE55E /* Debug */,
+				4FADC24408B4156D00ABE55E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4FADC24608B4156D00ABE55E /* Build configuration list for PBXProject "loki" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4FADC24708B4156D00ABE55E /* Debug */,
+				4FADC24808B4156D00ABE55E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0867D690FE84028FC02AAC07 /* Project object */;
+}

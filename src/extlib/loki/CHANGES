@@ -1,0 +1,446 @@
+_____________________________________
+
+Version 0.1.7
+January 2009
+_____________________________________
+
+General:
+    - Fixed makefiles for GNU/kFreeBSD, GNU/hurd. (lf)
+    - Fixed build errors with gcc 4.3 pre-release. (lf)
+    - Fixed compiler error that occurs when using 64 bit pointers. (rs)
+    - Added support for Code::Blocks and MSVC 9. (rs, pk)
+    - Added more unit tests (rs)
+    - Several other bug fixes (rs, pk)
+
+Checker:
+    - Added for this release. (rs)
+    - Added test project. (rs)
+
+CheckReturn:
+    - Added for this release. (rs, pk)
+    - Added test project. (rs + pk)
+
+flex_string:
+    - Fixed bugs in several functions and storage policies. (aa, rs, jfg)
+
+LevelMutex:
+    - Added for this release. (rs)
+    - Added unit tests for LevelMutex. (rs)
+
+SafeBits:
+    - Added for this release. (rs, fp)
+    - Added unit tests for SafeBits. (rs, fp)
+
+SmartPtr:
+    - Fixed double-delete race condition. (rs)
+
+StrongPtr:
+    - Fixed destructor so cleanup is only done once. (rs)
+    - Fixed test by using class level locking. (lf)
+
+Threads:
+    - Add possibility to enable recursive mutex support for pthread (pk)
+    - Added more atomic functions.  (rs)
+
+Type Traits:
+    - Added 64 bit support. (cg)
+
+CVS commits by:
+	Andrei Alexandrescu (aa)
+	Guillaume Chatelet (cg)
+	Lukas Fittl (lf)
+	Peter Kümmel (pk)
+	Rich Sposato (rs)
+
+Contributions by:
+	Andrei Alexandrescu (aa)
+	Jean-Francois Bastien (jfb)
+	Guillaume Chatelet (cg)
+	Lukas Fittl (lf)
+	Fedor Pikus (fp)
+	Peter Kümmel (pk)
+	Rich Sposato (rs)
+
+_____________________________________
+
+Version 0.1.6
+February 25, 2007
+_____________________________________
+
+General:
+    - CacheFactory added by Guillaume Chatelet
+    - Factory documentation improved by Guillaume Chatelet
+    - migrated to subversion (pk)
+    - Mac linker errors fixed (lf)
+    - Makefiles can now be called from sub directories (lf)
+    - Makefiles know includes and recompile if they are changed (linux, macosx) (lf)
+    - Build all tests except SingletonDll with the static library (linux, macosx) (lf)
+    - use standard conforming naming, SUN's compiler needs it (pk)
+    - add Loki:: to LOKI_ macros
+    - several bug fixes.
+
+AbstractFactory:
+    - remove injected friends. (thanks to Sigoure Benoit, pk)
+   
+AssocVector:
+    - remove injected friends. (thanks to Sigoure Benoit, pk)
+    
+LockingPtr:
+    - constructor added which gets a std::pair of pointers 
+      to the object and the mutex (pk)
+    
+Pimpl:
+    - ImplT/PimplT/RimplT renamed to a more readable version: ImplOf (pk)
+
+Register:
+    - also produce a informative LOKI_CHECK_CLASS_IN_LIST error message with GCC (pk)
+
+SafeFormat:
+    - add writing to ostream, by Tom Browder (pk)
+    - add unsigned long version for Windows, (Thanks to ShenLei, pk)
+    
+Sequence:
+    - Also compiles with Aix
+    - switched to recursive implementation
+    
+Singleton
+    - example: move instantiation to the source file 
+      fixes linker error with gcc 4.0.1 on the mac, 
+      (Thanks to Idar Tollefsen and Sam Miller, pk)
+    - 64 bit linker error fixed (lf)
+
+SmallObj:
+    - compiler errors on SUN fixed (pk)    
+    - more documentation (rs)
+    - more tests (rs)
+    - AIX fixed, (thanks to Dieter Rosch, pk)
+  
+StrongPtr:
+    - Added typedef so LockableTwoRefCounts uses thread-safe allocator. (rs)
+    - AIX fixed, (thanks to Dieter Rosch, pk)
+    - linker error when using threads fixed (pk)
+  
+Threads:
+    - reentrance support added to the pthread mutex (Thanks to Shen Lei, pk)
+      
+
+CVS commits by Guillaume Chatelet (gc), Lukas Fittl (lf), Peter Kümmel (pk), Rich Sposato (rs)
+      
+
+_____________________________________
+
+Version 0.1.5
+June 19, 2006
+_____________________________________
+
+General:
+    - operator== added to Functor, initiated by Eric Beyeler (pk)
+    - new Strong/Weak smart pointer added. (rs)
+    - loki.spec (Thanks to Regis Desgroppes and Andreas Scherer, pk)
+    - build shared lib also on mac osx (Thanks to Sam Miller, lf)
+    - added MinGW .dev files for the library (rs)
+    - some makefile improvements (Thanks to Sam Miller, lf)
+    - adding an XCode build project (kx)
+    
+    
+flex_string:
+    - compare bug fixed in flex_string_shell.h (Thanks to David A. Capello, pk)
+    
+Function:
+    - test is doesn't need boost any more (pk)
+    - wrong default parameter fixed (pk)
+    
+OrderedStatic:
+    - undef all min/max macros (Thanks to Shen Lei, pk)
+    
+Singleton:
+    - Singleton<> moved into correct namespace (Thanks to Sam Miller, pk)
+    
+SmartPtr:
+    - patch for RedHat 9: undefined uintptr_t (Thanks to Regis Desgroppes, pk)
+    - more tests (rs)
+    - bugs 1452805 and 1451835 fixed (rs)
+    - addded HeapStorage policy as mentioned in Feature Request 1441024 (rs)
+    - added MinGW test project for SmartPtr (rs)
+    
+
+CVS commits by Rich Sposato (rs), Lukas Fittl (lf),
+Christopher Knox (kx), and Peter Kümmel (pk)
+
+
+
+_____________________________________
+
+Version 0.1.4
+March 8, 2006
+_____________________________________
+
+General:
+    - helper templates for Pimpl/Rimpl implementations added (pk)
+    - improved Makefiles (lf)
+    - improved make.msvc.bat files (pk)
+    - cvs LOG keywords added (rs)
+    - removed old c style casts (lf)
+    - more warning enabled on gcc (lf)
+    - new header added: ConstPolicy.h (rs,pk)
+    - new header added: RefToValue.h (rs,pk)
+    - standard RPM specification file for integrated installation 
+      on OpenSUSE Linux added (Thanks to Andreas Scherer, pk)
+    - using Loki as shared library is now possible (pk,lf)
+    - Register.h added (pk)
+    
+    
+Function:
+    - guard including (pk)
+    - test stsic functions (pk)
+    - test LOKI_FUNCTOR_IS_NOT_A_SMALLOBJECT  (pk)
+    
+Functor:
+    - Added explicit call to base copy-constructor (rs)  
+    - Changed base class from SmallObject to SmallValueObject. (Thanks to Sam Miller, rs)
+    - add possibility to disable inheritance from SmallValueObject: LOKI_FUNCTOR_IS_NOT_A_SMALLOBJECT (pk)
+    
+ScopeGuard:
+    - naming conflict with SmartPtr removed (rs,pk)
+    - ByRef moved to RefByVale (rs,pk)
+  
+Singleton:
+    - support of allocators with a standard interface added (Thanks to Miguel A. Figueroa-Villanueva, pk)
+    - convenience template Singleton added for shared libraries (Thanks to Marcus Lindblom, pk)
+    - example added which shows how to use Singletons with shared libraries added (Thanks to Marcus Lindblom, pk)
+
+SmartPtr:
+    - supports propagating constness by additional policy (rs,pk)
+    - ArrayStorage policy added (Thanks to Sam Miller, pk)
+    - fix in RefCounted for Mac OSX gcc 4.0.0 (Thanks to Sam Miller, pk)
+    - RefCounted ported to 64 bit (pk)
+    - add mutex policy (pk)
+    - new test code (rs)
+    - RecjectNullStrict const member function added (Thanks to Sam Miller, pk)
+    - Moved a monolithic RefLinkedBase class from header file to new source file. (rs)
+    - ByRef moved to RefToVale (rs,pk)
+    - Fixed bug 1425890.  Last SmartPtr in linked chain NULLs its prev & next
+      pointers to prevent infinite recursion.  Added asserts. (rs)
+    - Bug fix: infinite recursion in SmartPtr destructor (rs)
+    
+LockingPtr:
+    - wrong return types fixed (rs)
+    - add mutex policy (rs,pk)
+    - supports now propagating constness (pk,rs)
+    - macro switch LOKI_DEFAULT_CONSTNESS added for propagating constness (pk)
+    - multi threaded example added 
+    
+SafeFormat:
+    - definition moved to src/SafeFormat.cpp, it's now part of the library
+    
+Singleton:
+    - add mutex policy (pk)
+
+SmallObj:
+    - add mutex policy (pk)
+    - Added check for memory leak inside destructor. (Thanks to Kwak Jae Hyuk, rs)
+
+Threads:
+    - Mutex added (rs,pk)
+    - use Loki::Mutex instead of win32/posix mutexes in threading classes (rs,pk)
+
+
+CVS commits by Rich Sposato (rs), Lukas Fittl (lf)
+and Peter Kümmel (pk)
+
+
+
+_____________________________________
+
+Version 0.1.3
+January 9, 2006
+_____________________________________
+
+General:
+    - LockPtr added (rs)
+    - ScopeGuard added (pk,rs)
+    - improved Makefiles (lf,pk)
+    - several gcc fixes and removed warnings by Lukas Fittl (lf)
+    - tested on 64-bit Linux (pk)
+    - MS Visual C++ 2005 project files added (pk)
+    - now also the ms toolkit 2003 generates a library (pk)
+
+OrderedStatic:
+    - point operator added (pk)
+
+SafeFormat:
+    - moved into namespace Loki (pk)
+    - 64 bit problems fixed (Thanks to Zak Kipling)
+    - ported to 64-bit Windows, not tested (pk)
+    - Printf/SPrintfing of std::strings added (pk)
+    - all warnings removed gcc and msvc (pk)
+    - use snprintf for "%p"
+    - test program: speed comparison added (pk)
+
+SmallObject:
+    - added functions to check for memory corruption (rs)
+    - more fine tuning (rs)
+    - warnings removed (pk)
+    
+TypeTraits:
+    - bug 1388477 fixed (pk)
+    
+flex_string:
+    - fixed compare bug by updating (Thanks to Justin Matthews, pk)
+    - fixed seg faults on Linux and Windows (pk)
+    - improved error reporting of the test program (pk)
+    
+SmartPtr:
+    - make object level locking possible (Thanks to Ryan Smith, pk)
+    
+BindFirst:
+    - store Functor arguments by value (bug 1383566) (pk)
+    
+Visitor:
+    - add support for visiting constant member functions (pk)
+    - example added (pk)
+    
+ScopeGuard:
+    - example added (pk)
+    
+    
+CVS commits by Rich Sposato (rs), Lukas Fittl (lf)
+and Peter Kümmel (pk)
+
+
+_____________________________________
+
+Version 0.1.2
+November 16, 2005
+_____________________________________
+
+General:
+    - changes to compile under Linux (Thanks to David Lawrence, pk)
+    - more doxygen documentation, modules added (rs, pk)
+
+SmartPtr:
+    - three year old bugs 626407 and 541846 fixed: 
+      Assertion with SmartPtr<T, LinkedRef> (pk)
+      SmartPtr and COMRefCounted (Thanks to James Mclaren, pk)
+
+Typelists:
+    - it's now possible to completely disable the 
+      LOKI_TYPELIST_  macros (pk)
+    - marco definitions moved to a separate file (pk)
+
+Factory:
+    - Factory now protects its private data (pk)
+    - new method to get the keys: 
+      std::vector<IdType> RegisteredIds() (pk)
+    
+Functor:
+    - TR1 methods added: empty() and clear() (pk)
+    
+Function:
+    - boost/TR1 like Function template with 
+      improved member function pointer usage (pk)
+    - tested with boost's function_test.cpp 
+
+Sequence:
+    - small change in usage: use e.g. Functor<void,Seq<bool &> > 
+      instead of Functor<void,Seq<bool &>::Type > 
+
+SmallObjects:
+    - comparison of new/malloc/std::allocator/boost::object_pool (rs, pk)
+    - #undef LOKI_SMALL_OBJECT_USE_NEW_ARRAY when using a ms compiler (pk)
+    - new lifetimes in namespace LongevityLifetime to manage dependencies: 
+      DieAsSmallObjectParent and DieAsSmallObjectClient (pk)
+    - no memory leaks when using SmallObjects (pk)
+    - new default lifetime is DieAsSmallObjectParent (pk)
+
+Threads:
+    - threads on POSIX systems (Thanks to Ilya Volvovski ,pk)
+    - small regression test program (pk)
+
+Singleton:
+    - new lifetime: FollowIntoDeath (pk)
+    - new namespace LongevityLifetime with lifetimes DieLast, DieFirst,
+      DieDirectlyBeforeLast, and function SingletonFixedLongevity (pk)
+    - new implementation for SetLongevity (pk)
+    - example programs (pk)
+    
+    
+CVS commits by Rich Sposato (rs) and Peter Kümmel (pk)
+
+
+
+_____________________________________
+
+Version 0.1.1
+October 17, 2005
+_____________________________________
+
+Singleton: 
+    - wrong ordered longevity fixed (Thanks to Kwak Jae Hyuk, pk)
+    - less warnings with msvc (Thanks to  John Bates, pk)
+    - new policy, DeletableSingleton, from Curtis Krauskopf, 
+      see also CUJ article 'Creating Dynamic Singletons & the Loki Library',(pk)
+    
+AssocVector:
+    - hinted insert does now preserve ordering (Thanks to Christopher Twigg, pk)
+    - additional 'hinted insert' test for Regression test by Christopher Twigg (pk)
+    - fix name look up (Thanks to Markus Werle, pk)
+
+SmallObj:
+     - several improvements (rs)
+     - more documentation (rs)
+     - improved SmallBench (rs, pk)
+
+Longevity:
+    - example added (pk)
+    - additional example similar to that of the book, by Curtis Krauskopf (pk)
+    
+OrderedStatic:
+    - a proposal to solve the 'static initialization ordered fiasco' problem (pk)
+
+Sequence:
+    - a proposal to replace the LOKI_TYPELIST_XX macros with a template implementation (pk)
+    - e.g.: LOKI_TYPELIST_1(int) becomes Seq<int>::Type 
+      inspired by the functional language OPAL (pk)
+            
+            
+CVS commits by Rich Sposato (rs) and Peter Kümmel (pk)
+
+
+
+_____________________________________
+
+Version 0.1.0
+September 29, 2005
+_____________________________________
+
+General:
+    - version numbering started 
+    - new directory structure 
+    - Andrei's yasli, flex_string, and SafePrint added  (pk)
+    - all macros now in the LOKI "namespace", e.g.: 
+      TYPLELIST_1 -> LOKI_TYPELIST_1  (rs, pk)
+    - Makefiles added: tested with gcc 3.4 (mingw, cygwin),
+      msvc 8.0, and the toolkit  (pk)
+    - added some documentation (rs)
+    - several bug fixes (pk)
+    - added a cvs-list to sourceforge where you can see all changes (pk)
+    
+SmallObjects:
+    - new implementation (rs)
+    
+Factory:
+    - works now with parameters (pk)
+    - regression test added (Thanks to Kalle Rutanen, pk)
+    
+TypeTraits: 
+    - isMemberPointer, isFunction added (Thanks to Kalle Rutanen, pk)
+    - regression test added (Thanks to Kalle Rutanen, pk)
+    
+Threading: 
+    - new macros for better thread support (win32):
+      LOKI_CLASS_LEVEL_THREADING and LOKI_OBJECT_LEVEL_THREADING (pk)
+
+
+CVS commits by Rich Sposato (rs) and Peter Kümmel (pk)
+

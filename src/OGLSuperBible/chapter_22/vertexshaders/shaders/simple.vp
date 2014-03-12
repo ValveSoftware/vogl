@@ -1,0 +1,27 @@
+!!ARBvp1.0
+
+# simple.vp
+#
+# Generic vertex transformation,
+# copy primary color
+
+ATTRIB iPos = vertex.position;       # input position
+ATTRIB iPrC = vertex.color.primary;  # input primary color
+
+OUTPUT oPos = result.position;       # output position
+OUTPUT oPrC = result.color.primary;  # output primary color
+
+PARAM mvp[4] = { state.matrix.mvp }; # model-view * projection matrix
+
+TEMP clip;                           # temporary register
+
+DP4 clip.x, iPos, mvp[0];            # multiply input position by MVP
+DP4 clip.y, iPos, mvp[1];
+DP4 clip.z, iPos, mvp[2];
+DP4 clip.w, iPos, mvp[3];
+
+MOV oPos, clip;                      # output clip-space coord
+
+MOV oPrC, iPrC;                      # copy primary color in to out
+
+END

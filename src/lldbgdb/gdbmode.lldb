@@ -1,0 +1,11 @@
+command alias break _regexp-break
+command regex info s/^break$/'breakpoint list'/ s/^watch$/'breakpoint list'/ s/^args$/'frame variable'/ s/^locals$/'frame variable --no-args'/ s/^registers$/'register read'/ s/^all-registers$/'register read --all'/ s/^shared$/'image list'/
+command alias delete breakpoint delete
+command alias pwd script print os.getcwd()
+command script add -f utils.chdir cd
+command script add -f utils.system system
+command script add -f utils.system shell
+settings set target.x86-disassembly-flavor intel
+
+
+

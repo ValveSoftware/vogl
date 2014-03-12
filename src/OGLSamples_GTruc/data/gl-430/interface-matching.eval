@@ -1,0 +1,57 @@
+#version 420 core
+#extension GL_ARB_arrays_of_arrays : require
+
+#define POSITION		0
+#define COLOR			3
+#define FRAG_COLOR		0
+
+layout(quads, equal_spacing, ccw) in;
+
+struct vertex
+{
+	vec4 Color;
+};
+
+in gl_PerVertex
+{
+	vec4 gl_Position;
+	float gl_PointSize;
+	float gl_ClipDistance[];
+} gl_in[];
+
+layout(location = 0) in vertex st_In[][2];
+
+in block
+{
+	vec4 Color;
+} bl_In[]; 
+
+out gl_PerVertex
+{
+	vec4 gl_Position;
+	float gl_PointSize;
+	float gl_ClipDistance[];
+};
+
+layout(location = 0) out vertex st_Out[2];
+
+out block
+{
+	vec4 Color;
+} bl_Out; 
+
+vec4 interpolate(in vec4 v0, in vec4 v1, in vec4 v2, in vec4 v3)
+{
+	vec4 a = mix(v0, v1, gl_TessCoord.x);
+	vec4 b = mix(v3, v2, gl_TessCoord.x);
+	return mix(a, b, gl_TessCoord.y);
+}
+
+void main()
+{	
+	gl_Position = interpolate(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_in[2].gl_Position, gl_in[3].gl_Position);
+	st_Out[0].Color = interpolate(st_In[0][0].Color, st_In[1][0].Color, st_In[2][0].Color, st_In[3][0].Color);
+        st_Out[1].Color = interpolate(st_In[0][1].Color, st_In[1][1].Color, st_In[2][1].Color, st_In[3][1].Color);
+	bl_Out.Color = interpolate(bl_In[0].Color, bl_In[1].Color, bl_In[2].Color, bl_In[3].Color);
+}
+

@@ -1,0 +1,84 @@
+!!ARBvp1.0
+
+# skinning.vp
+#
+# Perform vertex skinning by
+# blending between two MV
+# matrices
+
+ATTRIB iPos = vertex.position;              # input position
+ATTRIB iPrC = vertex.color.primary;         # input primary color
+ATTRIB iNrm = vertex.normal;                # input normal
+ATTRIB iWeight = vertex.attrib[1];          # input weight
+
+OUTPUT oPos = result.position;              # output position
+OUTPUT oPrC = result.color.primary;         # output primary color
+OUTPUT oTxC = result.texcoord[0];           # output texcoord 0
+
+PARAM prj[4] = { state.matrix.projection }; # projection matrix
+PARAM mv1[4] = { state.matrix.modelview };  # model-view matrix 1
+PARAM mv2[4] = { state.matrix.program[0] }; # model-view matrix 2
+# inverse transpose of model-view matrix:
+PARAM mv1IT[4] = { state.matrix.modelview.invtrans }; 
+PARAM mv2IT[4] = { state.matrix.program[0].invtrans };
+
+PARAM lightPos = program.local[0];          # light pos in eye space
+
+TEMP N1, N2, N, V1, V2, V;                  # temporary registers
+TEMP L, H, NdotL, NdotH;
+
+DP4 V1.x, iPos, mv1[0];                     # xform input pos by MV1
+DP4 V1.y, iPos, mv1[1];
+DP4 V1.z, iPos, mv1[2];
+DP4 V1.w, iPos, mv1[3];
+
+DP4 V2.x, iPos, mv2[0];                     # xform input pos by MV2
+DP4 V2.y, iPos, mv2[1];
+DP4 V2.z, iPos, mv2[2];
+DP4 V2.w, iPos, mv2[3];
+
+SUB V, V1, V2;                              # blend verts w/ weight
+MAD V, V, iWeight.x, V2;
+
+DP4 oPos.x, V, prj[0];                      # xform to clip space
+DP4 oPos.y, V, prj[1];
+DP4 oPos.z, V, prj[2];
+DP4 oPos.w, V, prj[3];
+
+SUB L, lightPos, V;                         # vertex to light vector
+
+DP3 N1.x, iNrm, mv1IT[0];                   # xform norm to eye space
+DP3 N1.y, iNrm, mv1IT[1];
+DP3 N1.z, iNrm, mv1IT[2];
+
+DP3 N2.x, iNrm, mv2IT[0];                   # xform norm to eye space
+DP3 N2.y, iNrm, mv2IT[1];
+DP3 N2.z, iNrm, mv2IT[2];
+
+SUB N, N1, N2;                              # blend normals w/ weight
+MAD N, N, iWeight.x, N2;
+
+DP3 N.w, N, N;                              # normalize normal
+RSQ N.w, N.w;
+MUL N, N, N.w;
+
+DP3 L.w, L, L;                              # normalize light vector
+RSQ L.w, L.w;
+MUL L, L, L.w;
+
+ADD H.xyz, L, {0, 0, 1};
+
+DP3 H.w, H, H;                              # normalize half-angle
+RSQ H.w, H.w;
+MUL H, H, H.w;
+
+DP3 NdotL, N, L;                            # N . L
+MAX NdotL, NdotL, 0.0;
+MAD oPrC, iPrC, NdotL, 0.1;                 # output diffuse
+
+DP3 NdotH, N, H;                            # N . H
+MAD NdotH.x, NdotH, 8.0, {-7.0};            # (N . H) * 8 - 7
+MOV oTxC, {0.0, 0.0, 0.0, 1.0};
+MAX oTxC.x, NdotH, 0.0;                     # toss into texcoord 0
+
+END

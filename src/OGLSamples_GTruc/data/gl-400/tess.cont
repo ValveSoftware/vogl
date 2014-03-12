@@ -1,0 +1,26 @@
+#version 400 core
+
+layout(vertices = 4) out;
+
+in block
+{
+	vec4 Color;
+} In[];
+
+out block
+{
+	vec4 Color;
+} Out[];
+
+void main()
+{	
+	gl_TessLevelInner[0] = 16.0;
+	gl_TessLevelInner[1] = 16.0;
+	gl_TessLevelOuter[0] = 16.0;
+	gl_TessLevelOuter[1] = 16.0;
+	gl_TessLevelOuter[2] = 16.0;
+	gl_TessLevelOuter[3] = 16.0;
+	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+	Out[gl_InvocationID].Color = In[gl_InvocationID].Color;
+}
+

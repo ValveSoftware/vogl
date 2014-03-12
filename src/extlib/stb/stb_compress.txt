@@ -1,0 +1,224 @@
+STB.H COMPRESSOR
+
+I've never bothered documenting the lame compressor that's
+included in stb.h, but it turns out it compresses better
+than NTFS's file compression on the couple tests I've run,
+while using similar (fairly simple) technology, LZ77 without
+an entropy coder.
+
+
+COMPRESSION RESULTS
+
+               calgary files   calgary.tar     enwik8        enwik9
+ gzip                           1,022,810    36,445,248     322,591,995
+ lzop                           1,162,904    41,217,688     366,349,786
+ stb.h:4MB       1,570,429      1,514,354    49,834,290     437,129,232
+ stb.h:256K      1,583,171      1,577,732    55,123,277     469,520,316
+ NTFS            1,912,832[1]   1,884,160    66,134,016     636,870,656
+ uncompressed    3,141,622      3,152,896   100,000,000   1,000,000,000
+
+gzip, lzop numbers are as reported in Matt Mahoney's "Data Compression
+Explained" and "Large Text Compression Benchmark".
+
+NTFS are the results I found using NTFS compresison on my machine (running
+in Win7 64-bit). Matt Mahoney's "Data Compression Explained" reports
+item [1] as the nearly identical "1,916,928" and [2] as "636 MB".
+
+gzip is an LZ77-based compressor with an entropy coder. lzop is an LZ77
+compressor optimized for speed, and I don't remember if it has an entropy
+coder (it's open source, but the technology has not been documented, and
+the source isn't very readable) or if it does any bit-packing. (It seems
+like it must, to get so close to gzip.)
+
+stb.h:256K is the compressor in stb.h (described in more detail below)
+using a 256KB sliding window on decompression, and 1MB of storage for
+the hash table while compressing. stb.h:4MB uses a 4MB sliding window
+at decompression and 16MB of storage for the hash table while compressing.
+The size of the sliding window affects both the size of the compressed
+data and the decompression memory requirements; the size of the hash
+table affects the size of the compressed data but does not affect
+decompression memory (though it may affect compression speed by causing
+more cache misses -- or it may not, I've never tested). The hash table
+sizes used were chosen basically arbitrarily.
+
+The code for the stb.h library is in the public domain and is
+available on the web, and the particular compressor/decompressor
+used to get the above results using the library is listed at the
+end of this file.
+
+What about a couple binary files?
+
+               lzo-2.02.tar.gz    7za.exe (cmdline 7zip v4.65)
+ stb.h:4MB        596,536          372,827
+ stb.h:256K       596,547          374,090
+ NTFS             599,387          397,312
+ uncompressed     599,387          536,064
+
+
+STB COMPRESSOR PERFORMANCE
+
+Theoretically, the stb.h compressor can run fast, although
+no profiling-based optimization was performed so it could probably
+be faster. The compressor does fully greedy matching (not
+lazy matching), so there may be better compression obtainable
+by trading off some speed. It's an open question whether the
+difference between NTFS and stb.h is due to the file format
+(LZSS vs byte-packed LZ77) or just due to different compressor
+performance and/or memory usage.
+
+
+STB COMPRESSION FORMAT
+
+gzip is optimized for compression size traded-off with performance.
+lzop is primarily optimized for performance. The stb.h compressor
+was optimized largely for source code size/simplicity.
+
+It is an LZ77-esque compressor which outputs all tokens on byte
+boundaries. (It is theoretically possible to run an entropy coder
+on the output bytes, although you lose a lot of context by treating
+them all as one dictionary. For example, the ~49MB enwik8 compressed
+by stb.h can be further compressed to 40MB by winrar's default mode,
+whereas the original file compresses to 30MB.)
+
+The compressed stream is a sequence of the following tokens:
+
+      TYPE        BYTE SEQUENCE
+    [dict]      00000100 yyyyyyyy yyyyyyyy yyyyyyyy xxxxxxxx xxxxxxxx
+    [END]       00000101 11111010 
+    [dict]      00000110 yyyyyyyy yyyyyyyy yyyyyyyy xxxxxxxx
+    [literals]  00000111 zzzzzzzz zzzzzzzz
+    [literals]  00001zzz zzzzzzzz
+    [dict]      00010yyy yyyyyyyy yyyyyyyy xxxxxxxx xxxxxxxx
+    [dict]      00011yyy yyyyyyyy yyyyyyyy xxxxxxxx
+    [literals]  001zzzzz
+    [dict]      01yyyyyy yyyyyyyy xxxxxxxx
+    [dict]      1xxxxxxx yyyyyyyy
+  
+        xxxxxxxx: match length - 1
+        yyyyyyyy: backwards distance - 1
+        zzzzzzzz: num literals - 1, followed by the literal bytes
+
+The token values were designed ad hoc, without any analysis or number
+crunching or tuning against any particular files. No measurements
+have been made of the performance of the token types, or whether
+certain of the token types are even ever used. 
+
+As can be seen, the token encoding resembles an extremely skewed huffman
+tree, with the remaining bits always fully consumed so no bit-buffering
+is needed. The data is easy to decode -- while individual
+fields cross byte boundaries, they always end on byte boundaries;
+no byte shares data from more than one field, so each field can
+be determined by decoding 1-3 bytes and then masking out the top bits.
+
+Runs of up to 32 literals can be coded with 1 byte of overhead,
+up to 2048 literals with 2 bytes of overhead, and up to 65536
+literals with 3 bytes of overhead. Thus both short bursts of
+unique data and large uncompressable blobs are encoded efficiently.
+
+Matches are flexible. Nearby short matches can be coded in two bytes,
+while matches of length 64KB at distances of up to 16MB can be coded
+in 6 bytes. Moderate size and distance matches can be coded using
+intermediate byte counts.
+
+The complete stream format is slightly more thoroughly documented in stb.h,
+including the specification of the header and an adler32 checksum.
+
+
+STB COMPRESSOR DESCRIPTION
+
+The above description thoroughly characterizes the interesting part of
+the stb compressor -- the byte-aligned- but flexibly-sized-token file
+format. For completeness, I provide a description of the speed-oriented
+compressor.
+
+The compressor walks a pointer through the data to be decoded. It
+attempts to find a match for the data starting at the current
+location by hashing.
+
+Specifically, it computes four hash values for the current location;
+a hash value for the first 3 characters, for the first 5 characters,
+for the first 9 characters, and for the first 13 characters.
+
+Conceptually, it then looks in four hash tables for the most recent
+location in the sliding window that corresponds to each hash value.
+If the most recent match matched 13 characters, all four entries will
+point to the same spot in the window (because that spot matched both
+13 characters, 9 characters, 5 characters, and 3 characters). But if
+longer matches are rarer, then typically the entries indexed by longer
+hash values will be further back in the window. Thus in the best case
+there will be 4 different matching locations that can be tested for
+the best match. (Note that the number of hash entries is always 4
+and old entries are always overwritten on collision, thus if the hash
+tables are too small, a long window won't make much difference since
+items very far back in the window won't appear in the hash table anyway.)
+
+The hash value itself is extremely trivial and designed to be fast.
+Each hash is computed by circular shifting the previous hash (with fewer
+characters) and adding in the new data (addition is used rather than xor
+because carries propogate and give better mixing, and because of the
+possibility of LEA being used on x86).
+
+For a given hash value, there is only one matching entry in the hash
+table. If there is a hash collision, then the "true" match is lost.
+Matches which are short are more likely to disappear on collisions,
+because long matches will hash to multiple places and are unlikely
+to collide on all of them.
+
+To simplify coding and reduce register pressure in the
+inner loop, instead of four conceptual hash tables, one physical
+hash table is used to store all four entries. Thus entries from each
+conceptual hash table can collide with and hide other entries in the
+hash table. It is unclear what the practical cost of using one hash
+table instead of four is (they can collide against each other, but
+they also have more room in the table, so it's hopefully a wash).
+
+
+STB.H COMPRESSION PROGRAM
+
+// the following program is included to allow the possibility
+// of reproducing results. the actual compression algorithm
+// is found in stb.h
+
+#define STB_DEFINE
+#include "stb.h"   /*  http://nothings.org/stb.h  -- above results used version 2.23  */
+
+int main(int argc, char **argv)
+{
+   if (argc >= 2) {
+      int i;
+      stb_compress_window(1 << 18);   // bytes
+      stb_compress_hashsize(1 << 20); // bytes
+      switch (argv[1][0]) {
+         case 's':
+            stb_compress_window(1 << 22);
+            stb_compress_hashsize(1 << 24);
+            /* fallthrough */
+         case 'c':
+            for (i=2; i < argc; ++i) {
+               int len;
+               char *f = stb_file(argv[i], &len);
+               if (!f) stb_fatal("Couldn't open %s\n", argv[i]);
+               stb_compress_tofile(stb_sprintf("%s.stbcmp", argv[i]), f, len);
+               free(f);
+            }
+            return 0;
+         case 'd':
+            for (i=2; i < argc; ++i) {
+               int len;
+               char *f = stb_decompress_fromfile(argv[i], &len);
+               if (!f) stb_fatal("Couldn't open %s\n", argv[i]);
+               stb_filewrite(stb_sprintf("%s.decomp", argv[i]), f, len);
+               free(f);
+            }
+            return 0;
+      }
+   }
+   fprintf(stderr, "Usage:\n"
+                   "   scompress c {files to compress}\n"
+                   "   scompress d {files to decompress}\n");
+   return 1;
+}
+
+
+
+

@@ -1,0 +1,39 @@
+#
+# Enable this by doing this:
+#   ln -s $(readlink -f _steamlauncher_complete) /etc/bash_completion.d
+# or just sourcing this file.
+#
+# More details here:
+#   http://eli.thegreenplace.net/2013/12/26/adding-bash-completion-for-your-own-tools-an-example-for-pss/
+#
+_steamlauncher_complete()
+{
+    local cur_word prev_word type_list
+
+    # COMP_WORDS is an array of words in the current command line.
+    # COMP_CWORD is the index of the current word (the one the cursor is
+    # in). So COMP_WORDS[COMP_CWORD] is the current word; we also record
+    # the previous word here, although this specific script doesn't
+    # use it yet.
+    cur_word="${COMP_WORDS[COMP_CWORD]}"
+    prev_word="${COMP_WORDS[COMP_CWORD-1]}"
+
+    # Ask steamlauncher to generate a list of types it supports
+    type_list=$(steamlauncher.sh --show-type-list)
+    # type_list="--gameid --gli_tracefile --verbose --amd64 --dry-run --gli_pause --gli_long_pause --gli_backtrace_all_calls --help"
+
+    # Only perform completion if the current word starts with a dash ('-'),
+    # meaning that the user is trying to complete an option.
+    if [[ ${cur_word} == -* ]] ; then
+        # COMPREPLY is the array of possible completions, generated with
+        # the compgen builtin.
+        COMPREPLY=( $(compgen -W "${type_list}" -- ${cur_word}) )
+    else
+        COMPREPLY=()
+    fi
+    return 0
+}
+
+# Register _steamlauncher_complete to provide completion for the following commands
+complete -F _steamlauncher_complete steamlauncher.sh
+

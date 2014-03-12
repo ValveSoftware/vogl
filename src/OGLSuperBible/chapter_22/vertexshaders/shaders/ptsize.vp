@@ -1,0 +1,37 @@
+!!ARBvp1.0
+
+# ptsize.vs
+#
+# Generic vertex transformation,
+# attenuated point size
+
+ATTRIB iPos = vertex.position;             # input position
+ATTRIB iPrC = vertex.color.primary;        # input primary color
+
+OUTPUT oPos = result.position;             # output position
+OUTPUT oPrC = result.color.primary;        # output primary color
+OUTPUT oPtS = result.pointsize;            # output point size
+
+PARAM mvp[4] = { state.matrix.mvp };       # model-view * proj matrix
+PARAM mv[4] =  { state.matrix.modelview }; # model-view matrix
+
+TEMP V, ptSize;                            # temporary registers
+
+DP4 oPos.x, iPos, mvp[0];                  # xform input pos by MVP
+DP4 oPos.y, iPos, mvp[1];
+DP4 oPos.z, iPos, mvp[2];
+DP4 oPos.w, iPos, mvp[3];
+
+DP4 V.x, iPos, mv[0];                      # xform input pos by MV
+DP4 V.y, iPos, mv[1];
+DP4 V.z, iPos, mv[2];
+DP4 V.w, iPos, mv[3];
+
+MOV oPrC, iPrC;                            # copy color
+
+DP4 ptSize.x, V, V;                        # ptSize = 100000 / |Ve|^2
+RSQ ptSize.x, ptSize.x;
+MUL ptSize.x, ptSize.x, ptSize.x;
+MUL oPtS.x, ptSize.x, 100000;
+
+END

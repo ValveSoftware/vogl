@@ -1,0 +1,17 @@
+
+
+__kernel void templateKernel
+(
+	__global  float2 * Input,
+	__global  float2 * Output,
+	const     float16 MVP
+)
+{
+    uint GlobalID = get_global_id(0);
+    
+    output[GlobalID] = float2(MVP * float4(input[GlobalID], 0.0, 1.0));
+
+	Output[GlobalID][0] = m[0][0] * Input[GlobalID][0] + m[1][0] * Input[GlobalID][1] + m[3][0] * 1.0;
+	Output[GlobalID][1] = m[0][1] * Input[GlobalID][0] + m[1][1] * Input[GlobalID][1] + m[3][1] * 1.0;
+}
+           

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="Loki.cbp" active="1" />
+		<Project filename="test\CachedFactory\CachedFactory.cbp">
+			<Depends filename="Loki.cbp" />
+		</Project>
+		<Project filename="test\Checker\Checker.cbp" />
+		<Project filename="test\CheckReturn\CheckReturn.cbp" />
+		<Project filename="test\DeletableSingleton\DeletableSingleton.cbp">
+			<Depends filename="Loki.cbp" />
+		</Project>
+		<Project filename="test\Factory\Factory.cbp" />
+		<Project filename="test\flex_string\flex_string.cbp" />
+		<Project filename="test\Function\Function.cbp" />
+		<Project filename="test\LevelMutex\LevelMutex.cbp">
+			<Depends filename="Loki.cbp" />
+		</Project>
+		<Project filename="test\LockingPtr\LockingPtr.cbp" />
+		<Project filename="test\Longevity\Longevity.cbp" />
+		<Project filename="test\OrderedStatic\OrderedStatic.cbp">
+			<Depends filename="Loki.cbp" />
+		</Project>
+		<Project filename="test\Pimpl\Pimpl.cbp" />
+		<Project filename="test\Register\Register.cbp" />
+		<Project filename="test\RegressionTest\RegressionTest.cbp">
+			<Depends filename="Loki.cbp" />
+		</Project>
+		<Project filename="test\SafeFormat\SafeFormat.cbp">
+			<Depends filename="Loki.cbp" />
+		</Project>
+		<Project filename="test\ScopeGuard\ScopeGuard.cbp" />
+		<Project filename="test\Singleton\Singleton.cbp">
+			<Depends filename="Loki.cbp" />
+		</Project>
+		<Project filename="test\SmallObj\SmallObj.cbp">
+			<Depends filename="Loki.cbp" />
+		</Project>
+		<Project filename="test\SmallObj\DefaultAlloc.cbp" />
+		<Project filename="test\SmartPtr\SmartPtr.cbp">
+			<Depends filename="Loki.cbp" />
+		</Project>
+		<Project filename="test\Visitor\Visitor.cbp" />
+		<Project filename="test\SafeBits\SafeBits.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>

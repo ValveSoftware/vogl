@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# toilet website: http://caca.zoy.org/wiki/toilet
+
+# list all fonts in figlet
+# for font in `ls -1 /usr/share/figlet | grep .flf | cut -d . -f 1`; do echo "$font:"; figlet -f $font Hello World; done
+
+# time and date in terminal
+# while true; do echo -e "$(date '+%D %T' | toilet -f term -F border --gay)\033[3A"; sleep 1; done
+
+date '+%b %d %H:%M' | toilet -t -F border --gay
+
+# time without /usr/bin does built-in time command (help time)
+# for /usr/bin/time (man time)
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "${SCRIPT}")
+NINJA_APP=${SCRIPTPATH}/$(uname -i)/ninja
+/usr/bin/time -f "\ntime:%E for '%C'" ${NINJA_APP} "$@"

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "${SCRIPT}")
+CLANGFORMAT_APP=${SCRIPTPATH}/$(uname -i)/clang-format
+${CLANGFORMAT_APP} "$@"

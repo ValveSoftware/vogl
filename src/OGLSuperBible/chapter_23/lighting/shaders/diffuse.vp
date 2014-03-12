@@ -1,0 +1,43 @@
+!!ARBvp1.0
+
+# diffuse.vp
+#
+# setup interpolants for diffuse lighting
+
+ATTRIB iPos = vertex.position;       # input position
+ATTRIB iPrC = vertex.color.primary;  # input primary color
+ATTRIB iNrm = vertex.normal;         # input normal
+
+OUTPUT oPos = result.position;       # output position
+OUTPUT oPrC = result.color.primary;  # output primary color
+OUTPUT oTC0 = result.texcoord[0];    # output texcoord 0
+OUTPUT oTC1 = result.texcoord[1];    # output texcoord 1
+
+PARAM mvp[4] = { state.matrix.mvp }; # model-view * projection matrix
+PARAM mv[4] =  { state.matrix.modelview }; # model-view matrix
+# inverse transpose of model-view matrix:
+PARAM mvIT[4] = { state.matrix.modelview.invtrans }; 
+
+PARAM lightPos = program.local[0];   # light pos in eye space
+
+TEMP V;                              # temporary register
+
+DP4 oPos.x, iPos, mvp[0];            # xform input pos by MVP
+DP4 oPos.y, iPos, mvp[1];
+DP4 oPos.z, iPos, mvp[2];
+DP4 oPos.w, iPos, mvp[3];
+
+DP4 V.x, iPos, mv[0];                # xform input pos by MV
+DP4 V.y, iPos, mv[1];
+DP4 V.z, iPos, mv[2];
+DP4 V.w, iPos, mv[3];
+
+DP3 oTC0.x, iNrm, mvIT[0];           # xform norm to eye space
+DP3 oTC0.y, iNrm, mvIT[1];
+DP3 oTC0.z, iNrm, mvIT[2];           # put N in texcoord 0
+
+SUB oTC1, lightPos, V;               # light vector in texcoord 1
+
+MOV oPrC, iPrC;                      # copy primary color in to out
+
+END

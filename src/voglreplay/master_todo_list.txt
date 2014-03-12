@@ -1,0 +1,842 @@
+
+
+- Test GL state capture/restore code (used for trimming/tracing) in Serious Sam 3. This will be a major step, it's very different from Source1.
+
+- on a -interactive replay of a tf2 trace, with no keyframes: I paused, continued, then at the end of the trace there were a bunch of warnings about
+ARB programs that could not be deleted due to handle remapping issues. We need to support ARB programs for state capture/restore, at least enough to eliminate these warnings.
+Easy repro: Trim the very end of a tf2 trace, i.e. for 1 1273 frame trace do: ./voglreplay tf2_trace.bin -trim_frame 1200 -trim_file tf2_trimmed -trim_len 10000
+then replay this trace: ./voglreplay -endless  tf2_trimmed
+
+
+- Create two tracer SO filenames (32 and 64-bit), detect when the wrong tracer is used in a process - right now it asserts everywhere
+- Use blob manager everywhere, add file blob manager
+- Fix miniz so it supports zip64, hook it up to a blob manager
+- Figure out how to get all state capture blobs into the binary trim file
+- Add option to forceable loop at trace EOF back to a specific frame (no context deletion, snapshot restores, etc.)
+This is actually what apitrace does in its trim files. It's bogus but in most game frames might actually work.
+- In trim mode, the JSON snapshot file, and all referenced blobs are always written as a loose files that are referred to by the binary trace file. I need to fix this so it's possible to embed the entire snapshot+referred to object data blobs into a single binary trace.
+- Need to modify the JSON packet serializer/deserializer so it uses the vogl_blob_manager interface (which is already used for snapshots), so everybody is using the same basic manager to handle blobs. 
+- Add option to delete unused programs and textures from state snapshots, which should make a huge improvement to the looping perf of trimmed traces
+- Fix base paths of the file blob manager (it currently always uses the current directory)
+- Add option to write backbuffer CRC into trace file right before the interceptor processes glXSwapBuffers()'s, we can then automatically validate them during replay. Right now I do this semi-manually by using cmd line options and diff'ing text files of CRC's.
+- Add single frame capture mode to the interceptor SO, which should be mostly straightforward now. This hardest part will be properly shadowing the necessary handles, which will require a proper way of wrapping glGetError()'s (so we can call glGetError() to build the proper shadow).
+- Move ctypes and entrypoint radinternal packets so they are ALWAYS the first ones after SOF, so they can be immediately processed after a trace is opened. The current method of parsing them on the fly is a pain in the ass (because any code which wants to read a trace has to have support for parsing them).
+- Add option to voglreplay's --dump command that only dumps a specific frame, instead of always dumping every single frame of the trace
+
+- Supporting trimming straight to JSON. We only support tracing to binary right now. This may be too slow, I dunno.
+- The state snapshot code doesn't currently save/restore the contents of renderbuffers, only their configuration. This has not been an issue in any Source1 games. We also don't save/restore the front or backbuffers.
+- There's a whole slew of GL v3.x state that I need to add support for to the state capture/restore code.
+Related: I stopped replay GL API compat work weeks ago, so we don't fully support GL v3.3 yet. This should only take ~1 week or so.
+- Now that I can create/restore snapshots I can add backwards, forwards, paus, take snapshot, seek, etc. keys to the replayer
+- Now that I have single frame traces I can work on things which would actually help someone debug a trace:
+Pause frame and single step through draw calls
+Write screenshots on every draw call (I only support every frame right now)
+Dump all GL state at specific draw or GL call
+Dump only reachable GL state at specific draw or GL call (just like apitrace can do)
+Call stack/backtrace support
+gRemedy debug marker support - test with Source1
+
+- Add ability to disable program binaries during tracing (try disabling extension in interceptor and test with Serious Sam 3)
+- Add all glX functions to whitelist, ensure they are in the replayer to avoid GL call without context errors during replay
+- Check for mispelled/valid names in gl/glx whitelist text file.
+- Add warning to texture state restore code when *recreating* incomplete textures (it only warns on capturing right now). Incomplete textures are very buggy on AMD, and just bad.
+- GL state snapshots: Need to optimize shaders too, not just programs. On restore an optimized trim will contain many unused shaders which will be recreated and never used, or in dota you'll get restore warnings because these unused shaders where "marked as deleted" during capture and actually get deleted unexpectedly.
+- Add original frame number to trimmed files (right now we loose this information during trimming and slam the trim's first frame to 0).
+- Add UUID to trace file (done or almost done), add parent trace's UUID to trim trace
+- Test on laptops with both intel and nvidia drivers (optirun?)
+- Add the ability to only dump a specific set of frames to JSON, instead of always dumping every frame
+
+- optionally add framebuffer crc and sums to glxswap packet during tracing for easier verification of traces
+- Optimize client side array code in tracer and replayer (done every draw - make this smarter, don't do it unless the call stream actually uses CSA's)
+- Steam texture handles are failing to be remapped in vogl_replayer::replay_to_trace_handle_remapper::remap_handle
+- trying playing back with draw_kill_max_thresh and capturing the output using libvogltrace.so
+
+- Eliminate as many VOGL_FAIL conditions as possible in the tracer. Goal should never exit() or abort() during tracing, this is BAD.
+
+- Add a check/verification func to replayer that validates any shadows and handle hashmaps
+- For state objects: verify that the compare methods actually work
+- when glGetInteger differs, actually dump the GLenum pname so the user can see at a glance which value differed
+
+- Make sure replayer can still play an incomplete trace file endlessly (right now it just exits at the end with a "Failed reading from trace file" error)
+- Make sure tracer is recording the proper thread id (NOT the pthread id, but the one that the gdb debugger uses -there's a syscall to use)
+- Speed up the ungodly slow hash table searches in handle_delete_shader(), handle_delete_program(), etc.- create a new container that handles replay->trace and trace->replay handle mappings at the same time
+- When json filename ends in "]" the code which determines the actual trace filename to read gets confused?
+- Steam textures (at 62000) are failing to be remapped from the replay to trace domains on capturing - why is this? the handle hashtable should be filled with these entries when the textures are initialized (but not genned, because they are steam textures)
+- add glxgetcurrentcontext to replayer, and replayer whitelist 
+- add minimal support for ARB programs to capture/restore code to avoid l4d2 warnings about glDeleteProgramsARB on last frame of a trimmed replay
+- add __FILE__ and __LINE__ info to the GL error print routines, so we can get some context because the check_gl_error() calls are littered everywhere
+- voglgen parses the bin/glspec files to generate the .inc files needed to build the other stuff:
+This step needs to be put into cmake, right now I run it manually and run cp_inc_files.sh to copy the .inc's to /src/gliinc. 
+voglgen reads from a bunch of different sources (spec files, glapi.py, custom text files for the whitelist, etc.) to build its API database, which was fine to get bootstrapped but we need to create our own JSON format that has ALL the 
+GL spec/API/namespace/etc. data in a single place and ditch the other sources.
+- Was seeing some odd texture target issues during trimming/replaying or looping of l4d2 traces
+- need to add minimal ARB program save/restore support
+- Add get_all_handles() or whatever API to all the state objects, so they can report back all the handles they refer to and their namespaces.
+We can build a conservative tree of reachable objects, starting from the current context state and all the objects each packet refers to, in order to optimize the trace.
+- When we replay an x86 trace on x64, or vice versa, and we encounter program binaries, we should warning the user that they are likely to not work (they won't on nvidia)
+- Fix file blob manager so it doesn't overwrite already existing blobs and it warns the user
+- trim of Half-Life 1 almost works - it looks like some sort of multitexture state is not saved or restored, so the first frame of a trimmed replay isn't textured
+- sam3 trims: not finding programs?
+- sam3 trimming: textures with base level !=0 aren't saving right, the ktx stuff dies
+
+- glmaterialfv crashed during replay because one of the pname's (AMBIENT_AND_DIFFUSE) wasn't marked up right in the pname table
+the replayer should catch cases like this BEFORE it calls GL
+- Check the mode params of all the draw calls - there's an enum aliasing issue
+
+- When keyframes from multiple captures are mixed into the same dir, voglreplay shits itself in interactive mode. Fix this -or add some sort of UUID detection.
+- Add message to end of -info and something goes wrong, so the user doesn't miss any errors
+- add a GLX error callback
+
+- track glBegin/glEnd state in tracer, make sure when ctrl+c is pressed and we try to flush the contexts
+that glEnd gets called if needed otherwise the maps won't work
+- track display list creation in replayer 
+- display list shadowing in replayer
+- texture shadowing needs to be fully hooked up to the tracer and replayer, right now it still uses glIsTexture(), etc.
+
+- test all the internal texture formats!
+- add counter to error/warning output funcs, summarize at exit, especially in tools like voglgen
+- Air Conflicts: Pacific Carriers uses share lists
+- Trine2: Doesn't seem to destroy its contexts, and our atexit() isn't working?
+- Trime2: Uses ARB programs extensively
+- Window: Make sure the glx fbconfig's red/green/blue/alpha/stencil/depth config matches what the app wants, or bad bugs can happen
+- Postal2: uses texgen
+
+- in replayer: we really should have the option of calling glGetError() during tracing after each GL call and recording the results to check for divergence.
+- when a GL error occurs, print the actual error msg, not a #
+- try multitrimming every frame of a ~1000  frame darwinia trace, to repro the ktx file could not be validated error I saw earlier but could not repro
+
+- Trine2: atexit() hook is not working, investigate replay warning: Warning: While processing GL entrypoint packet func glDeleteTextures, frame 1329, swaps 1329, GL call counter 51781546, packet start trace context 0xC9BD238, cur trace context 0xC9BD238, trace thread 0x7C7A:
+- set pixelmap to defaults before calling glReadPixels in vogl_utils.cpp
+
+- add pixel map support to snapshot and restore:
+GL_PIXEL_MAP_A_TO_A_SIZE
+GL_PIXEL_MAP_B_TO_B_SIZE
+GL_PIXEL_MAP_G_TO_G_SIZE
+GL_PIXEL_MAP_I_TO_A_SIZE
+GL_PIXEL_MAP_I_TO_B_SIZE
+GL_PIXEL_MAP_I_TO_G_SIZE
+GL_PIXEL_MAP_I_TO_I_SIZE
+GL_PIXEL_MAP_I_TO_R_SIZE
+GL_PIXEL_MAP_R_TO_R_SIZE
+GL_PIXEL_MAP_S_TO_S_SIZE
+GL_POST_CONVOLUTION_COLOR_TABLE
+
+- add current list detection to snapshot and restore (at least for warnings):
+GL_LIST_MODE
+GL_LIST_INDEX
+
+- selection buffer save/restore? or at least a warning?
+GL_SELECTION_BUFFER_POINTER
+GL_SELECTION_BUFFER_SIZE
+
+- multisample test from OGL superbible traces/replays OK, except the replay is not multisampled
+
+- This OGL sample uses share lists and pbuffers:
+http://www.codesampler.com/linuxsrc.htm
+
+- the smooth OGLSB3 sample has window resize issues, it replays OK if you lock the window dimensions
+- OGLSB3 imaging sample: make sure we're saving/restoring all the funky old fashioned state it uses (color table, convolution, histogram, etc.)
+- operations OGLSG3 sample: need to lock window dimensions to replay, and on some frames the returned pixel data via glReadPixels() is different
+- the pyramid sample inits the default texture (i.e. no binding or genning at all), which doesn't trim or capture properly. a single glBindTexture() fixes the problem - should we support this ancient behavior?
+same for the toon sample
+- tunnel sample: window dimension must be locked
+- planets sample: name stack cannot be restored, stack underflow while paused in interactive mode, can't trim (all-black replay)
+- mark traces that have been optimized so they can't be used as keyframes in interactive mode (right now you just get mysterious replay errors)
+- add warning to tracer and replayer when the default object (like tex handle 0) is being initialized in old OGL SB 3rd edition samples
+- tracing without --vogl_debug should print a message when a non-whitelisted func is traced!
+- add regext to glige whitelist, and simple replay whitelist
+- replayer: unified/cleaned up glGetError handling, like the tracer's
+- possibly implement glArrayElement(), which will not be trivial (it's client side array madness)
+- support the matrix palette? http://www.opengl.org/registry/specs/ARB/matrix_palette.txt
+
+- make sure these states are being retrieved properly somewhere (vogl_general_context_state isn't glGet()'ing them)
+! GL_TRANSFORM_FEEDBACK_BUFFER_SIZE
+! GL_TRANSFORM_FEEDBACK_BUFFER_START
+! GL_UNIFORM_BUFFER_SIZE
+! GL_UNIFORM_BUFFER_START
+! GL_SHADER_STORAGE_BUFFER_SIZE
+! GL_SHADER_STORAGE_BUFFER_START
+! GL_ATOMIC_COUNTER_BUFFER_BINDING
+! GL_MAX_COMPUTE_WORK_GROUP_COUNT
+! GL_MAX_COMPUTE_WORK_GROUP_SIZE
+! GL_VERTEX_BINDING_DIVISOR
+! GL_VERTEX_BINDING_OFFSET
+! GL_VERTEX_BINDING_STRIDE
+
+- Set GLX error handler:
+http://tronche.com/gui/x/xlib/event-handling/protocol-errors/XSetErrorHandler.html
+https://www.opengl.org/discussion_boards/showthread.php/127616-obtaining-glX-errors
+
+
+- Print warning/error when the client tries to change the target of a default object, especially textures (from OGL SB3)
+- eliminate sscanf() usage everywhere!
+
+- investigate shutdown issue: 
+/dev/SuperBible-4/examples/projects/linux/chapt11/vbo
+(vogltrace) Error: vogl_check_context: OpenGL function "glDeleteBuffers" called without an active context!
+(vogltrace) Error: vogl_check_context: OpenGL function "glDeleteBuffers" called without an active context!
+investigate save/restore issue on this model's glass 
+~/dev/SuperBible-4/examples/projects/linux/chapt11/thundergl$
+
+shadowmap: scene appears mostly shadowed when paused, then sometimes renders normally - not sure why? I was messing with the bias during tracing
+might be tied to initial window dimensions? if I lock the fboshadow sample to 512x512 it plays back fine
+cd
+
+
+
+- when an error is suppressed or latched, print the actual error string not just thex
+
+
+- fboenvmap sample: something goes wrong in interactive mode when I pause - the env map stops updating when I unpause
+
+
+- hdrbloom sample: corruption during replay?
+OpenGL: GL_INVALID_OPERATION error generated. Invalid PBO operation. [source=API type=ERROR severity=HIGH id=1282]
+glreadpixels problem
+
+- pixbufobj: hit p and you get unable to find buffer handle blah blah blah errors during tracing
+glreadpixels problem
+
+- provide tracer option to NOT use async buffer readbacks for screenshots, because some apps misbehave and don't properly destroy their contexts
+
+- add:
+glFrameTerminatorGREMEDY
+glStringMarkerGREMEDY
+glXRender
+glXRenderLarge
+glXWaitGL
+glXWaitX
+glXCopyContext
+glXCreateGLXPixmap
+glXGetVisualConfigs
+glXDestroyGLXPixmap
+glXVendorPrivate
+glXVendorPrivateWithReply
+glXQueryServerString
+glXClientInfo
+glXGetDrawableAttributes
+glXChangeDrawableAttributes
+glDrawRangeElementsEXT
+glClientAttribDefaultEXT
+glPushClientAttribDefaultEXT
+glMatrixLoadfEXT
+glMatrixLoaddEXT
+glMatrixMultfEXT
+glMatrixMultdEXT
+glMatrixLoadIdentityEXT
+glMatrixRotatefEXT
+glMatrixRotatedEXT
+glMatrixScalefEXT
+glMatrixScaledEXT
+glMatrixTranslatefEXT
+glMatrixTranslatedEXT
+glMatrixFrustumEXT
+glMatrixOrthoEXT
+glMatrixPopEXT
+glMatrixPushEXT
+glMatrixLoadTransposefEXT
+glMatrixLoadTransposedEXT
+glMatrixMultTransposefEXT
+glMatrixMultTransposedEXT
+glTextureParameterfEXT
+glTextureParameterfvEXT
+glTextureParameteriEXT
+glTextureParameterivEXT
+glTextureImage1DEXT
+glTextureImage2DEXT
+glTextureSubImage1DEXT
+glTextureSubImage2DEXT
+glCopyTextureImage1DEXT
+glCopyTextureImage2DEXT
+glCopyTextureSubImage1DEXT
+glCopyTextureSubImage2DEXT
+glGetTextureImageEXT
+glGetTextureParameterfvEXT
+glGetTextureParameterivEXT
+glGetTextureLevelParameterfvEXT
+glGetTextureLevelParameterivEXT
+glTextureImage3DEXT
+glTextureSubImage3DEXT
+glCopyTextureSubImage3DEXT
+glMultiTexParameterfEXT
+glMultiTexParameterfvEXT
+glMultiTexParameteriEXT
+glMultiTexParameterivEXT
+glMultiTexImage1DEXT
+glMultiTexImage2DEXT
+glMultiTexSubImage1DEXT
+glMultiTexSubImage2DEXT
+glCopyMultiTexImage1DEXT
+glCopyMultiTexImage2DEXT
+glCopyMultiTexSubImage1DEXT
+glCopyMultiTexSubImage2DEXT
+glGetMultiTexImageEXT
+glGetMultiTexParameterfvEXT
+glGetMultiTexParameterivEXT
+glGetMultiTexLevelParameterfvEXT
+glGetMultiTexLevelParameterivEXT
+glMultiTexImage3DEXT
+glMultiTexSubImage3DEXT
+glCopyMultiTexSubImage3DEXT
+glMultiTexCoordPointerEXT
+glMultiTexEnvfEXT
+glMultiTexEnvfvEXT
+glMultiTexEnviEXT
+glMultiTexEnvivEXT
+glMultiTexGendEXT
+glMultiTexGendvEXT
+glMultiTexGenfEXT
+glMultiTexGenfvEXT
+glMultiTexGeniEXT
+glMultiTexGenivEXT
+glGetMultiTexEnvfvEXT
+glGetMultiTexEnvivEXT
+glGetMultiTexGendvEXT
+glGetMultiTexGenfvEXT
+glGetMultiTexGenivEXT
+glGetFloatIndexedvEXT
+glGetDoubleIndexedvEXT
+glGetPointerIndexedvEXT
+glCompressedTextureImage3DEXT
+glCompressedTextureImage2DEXT
+glCompressedTextureImage1DEXT
+glCompressedTextureSubImage3DEXT
+glCompressedTextureSubImage2DEXT
+glCompressedTextureSubImage1DEXT
+glGetCompressedTextureImageEXT
+glCompressedMultiTexImage3DEXT
+glCompressedMultiTexImage2DEXT
+glCompressedMultiTexImage1DEXT
+glCompressedMultiTexSubImage3DEXT
+glCompressedMultiTexSubImage2DEXT
+glCompressedMultiTexSubImage1DEXT
+glGetCompressedMultiTexImageEXT
+glNamedProgramStringEXT
+glNamedProgramLocalParameter4dEXT
+glNamedProgramLocalParameter4dvEXT
+glNamedProgramLocalParameter4fEXT
+glGetNamedProgramLocalParameterdvEXT
+glGetNamedProgramLocalParameterfvEXT
+glGetNamedProgramivEXT
+glGetNamedProgramStringEXT
+glGetNamedProgramLocalParameterIivEXT
+glGetNamedProgramLocalParameterIuivEXT
+glTextureParameterIivEXT
+glTextureParameterIuivEXT
+glGetTextureParameterIivEXT
+glGetTextureParameterIuivEXT
+glMultiTexParameterIivEXT
+glMultiTexParameterIuivEXT
+glGetMultiTexParameterIivEXT
+glGetMultiTexParameterIuivEXT
+glProgramUniform1fEXT
+glProgramUniform2fEXT
+glProgramUniform3fEXT
+glProgramUniform4fEXT
+glProgramUniform1iEXT
+glProgramUniform2iEXT
+glProgramUniform3iEXT
+glProgramUniform4iEXT
+glProgramUniform1fvEXT
+glProgramUniform2fvEXT
+glProgramUniform3fvEXT
+glProgramUniform4fvEXT
+glProgramUniform1ivEXT
+glProgramUniform2ivEXT
+glProgramUniform3ivEXT
+glProgramUniform4ivEXT
+glProgramUniformMatrix2fvEXT
+glProgramUniformMatrix3fvEXT
+glProgramUniformMatrix4fvEXT
+glProgramUniformMatrix2x3fvEXT
+glProgramUniformMatrix3x2fvEXT
+glProgramUniformMatrix2x4fvEXT
+glProgramUniformMatrix4x2fvEXT
+glProgramUniformMatrix3x4fvEXT
+glProgramUniformMatrix4x3fvEXT
+glProgramUniform1uiEXT
+glProgramUniform2uiEXT
+glProgramUniform3uiEXT
+glProgramUniform4uiEXT
+glProgramUniform1uivEXT
+glProgramUniform2uivEXT
+glProgramUniform3uivEXT
+glProgramUniform4uivEXT
+glNamedBufferDataEXT
+glNamedBufferSubDataEXT
+glMapNamedBufferEXT
+glUnmapNamedBufferEXT
+glMapNamedBufferRangeEXT
+glFlushMappedNamedBufferRangeEXT
+glNamedCopyBufferSubDataEXT
+glGetNamedBufferParameterivEXT
+glGetNamedBufferPointervEXT
+glGetNamedBufferSubDataEXT
+glTextureBufferEXT
+glMultiTexBufferEXT
+glNamedRenderbufferStorageEXT
+glGetNamedRenderbufferParameterivEXT
+glCheckNamedFramebufferStatusEXT
+glNamedFramebufferTexture1DEXT
+glNamedFramebufferTexture2DEXT
+glNamedFramebufferTexture3DEXT
+glNamedFramebufferRenderbufferEXT
+glGetNamedFramebufferAttachmentParameterivEXT
+glGenerateTextureMipmapEXT
+glGenerateMultiTexMipmapEXT
+glFramebufferDrawBufferEXT
+glFramebufferDrawBuffersEXT
+glFramebufferReadBufferEXT
+glGetFramebufferParameterivEXT
+glNamedRenderbufferStorageMultisampleEXT
+glNamedRenderbufferStorageMultisampleCoverageEXT
+glNamedFramebufferTextureEXT
+glNamedFramebufferTextureLayerEXT
+glNamedFramebufferTextureFaceEXT
+glTextureRenderbufferEXT
+glMultiTexRenderbufferEXT
+glProgramUniform1dEXT
+glProgramUniform2dEXT
+glProgramUniform3dEXT
+glProgramUniform4dEXT
+glProgramUniform1dvEXT
+glProgramUniform2dvEXT
+glProgramUniform3dvEXT
+glProgramUniform4dvEXT
+glProgramUniformMatrix2dvEXT
+glProgramUniformMatrix3dvEXT
+glProgramUniformMatrix4dvEXT
+glProgramUniformMatrix2x3dvEXT
+glProgramUniformMatrix2x4dvEXT
+glProgramUniformMatrix3x2dvEXT
+glProgramUniformMatrix3x4dvEXT
+glProgramUniformMatrix4x2dvEXT
+glProgramUniformMatrix4x3dvEXT
+glDepthBoundsEXT
+
+glCopyTexImage1DEXT
+glCopyTexImage2DEXT
+glCopyTexSubImage1DEXT
+glCopyTexSubImage2DEXT
+glCopyTexSubImage3DEXT
+
+glStencilOpSeparateATI
+glStencilFuncSeparateATI
+
+glGetFloati_v
+glGetDoublei_v
+
+glVertexP2ui
+glVertexP2uiv
+glVertexP3ui
+glVertexP3uiv
+glVertexP4ui
+glVertexP4uiv
+glTexCoordP4uiv
+glMultiTexCoordP1ui
+glMultiTexCoordP1uiv
+glMultiTexCoordP2ui
+glMultiTexCoordP2uiv
+glMultiTexCoordP3ui
+glMultiTexCoordP3uiv
+glMultiTexCoordP4ui
+glMultiTexCoordP4uiv
+glSecondaryColorP3ui
+glSecondaryColorP3uiv
+glVertexAttribP1ui
+glVertexAttribP1uiv
+glVertexAttribP2ui
+glVertexAttribP2uiv
+glVertexAttribP3ui
+glVertexAttribP3uiv
+glVertexAttribP4ui
+glVertexAttribP4uiv
+
+glGetUniformIndices
+glGetActiveUniformsiv
+glGetActiveUniformName
+glGetUniformBlockIndex
+glGetActiveUniformBlockiv
+glGetActiveUniformBlockName
+glUniformBlockBinding
+
+glTexStorage2DMultisample
+glTexStorage3DMultisample
+glTextureStorage2DMultisampleEXT
+glTextureStorage3DMultisampleEXT
+
+glTextureStorage1DEXT
+glTextureStorage2DEXT
+glTextureStorage3DEXT
+
+glGetMultisamplefv
+glSampleMaski
+
+glCompressedTexSubImage3DARB
+glCompressedTexSubImage2DARB
+glCompressedTexSubImage1DARB
+glGetCompressedTexImageARB
+
+glIsSync
+glWaitSync
+glGetInteger64v
+glGetSynciv
+
+glBindImageTexture
+
+--- Non-whitelisted funcs for partially supported category ARB_separate_shader_objects:
+glUseProgramStages
+glActiveShaderProgram
+glCreateShaderProgramv
+glBindProgramPipeline
+glDeleteProgramPipelines
+glGenProgramPipelines
+glIsProgramPipeline
+glGetProgramPipelineiv
+glProgramUniform1iv
+glProgramUniform1fv
+glProgramUniform1d
+glProgramUniform1dv
+glProgramUniform1uiv
+glProgramUniform2iv
+glProgramUniform2fv
+glProgramUniform2d
+glProgramUniform2dv
+glProgramUniform2uiv
+glProgramUniform3iv
+glProgramUniform3fv
+glProgramUniform3d
+glProgramUniform3dv
+glProgramUniform3uiv
+glProgramUniform4iv
+glProgramUniform4fv
+glProgramUniform4d
+glProgramUniform4dv
+glProgramUniform4uiv
+glProgramUniformMatrix2fv
+glProgramUniformMatrix3fv
+glProgramUniformMatrix4fv
+glProgramUniformMatrix2dv
+glProgramUniformMatrix3dv
+glProgramUniformMatrix4dv
+glProgramUniformMatrix2x3fv
+glProgramUniformMatrix3x2fv
+glProgramUniformMatrix2x4fv
+glProgramUniformMatrix4x2fv
+glProgramUniformMatrix3x4fv
+glProgramUniformMatrix4x3fv
+glProgramUniformMatrix2x3dv
+glProgramUniformMatrix3x2dv
+glProgramUniformMatrix2x4dv
+glProgramUniformMatrix4x2dv
+glProgramUniformMatrix3x4dv
+glProgramUniformMatrix4x3dv
+glValidateProgramPipeline
+glGetProgramPipelineInfoLog
+
+--- Non-whitelisted funcs for partially supported category ARB_sampler_objects:
+glIsSampler
+glGetSamplerParameteriv
+glGetSamplerParameterIiv
+glGetSamplerParameterfv
+glGetSamplerParameterIuiv
+
+--- Non-whitelisted funcs for unsupported category ARB_sample_shading:
+glMinSampleShadingARB
+
+--- Non-whitelisted funcs for unsupported category ARB_provoking_vertex:
+glProvokingVertex
+
+--- Non-whitelisted funcs for unsupported category ARB_program_interface_query:
+glGetProgramInterfaceiv
+glGetProgramResourceIndex
+glGetProgramResourceName
+glGetProgramResourceiv
+glGetProgramResourceLocation
+glGetProgramResourceLocationIndex
+
+--- Non-whitelisted funcs for unsupported category ARB_point_parameters:
+glPointParameterfARB
+glPointParameterfvARB
+
+--- Non-whitelisted funcs for unsupported category ARB_point_parameters:
+glPointParameterfARB
+glPointParameterfvARB
+
+--- Non-whitelisted funcs for unsupported category ARB_multisample:
+glSampleCoverageARB
+
+--- Non-whitelisted funcs for unsupported category ARB_multi_draw_indirect:
+glMultiDrawArraysIndirect
+glMultiDrawElementsIndirect
+
+--- Non-whitelisted funcs for unsupported category ARB_invalidate_subdata:
+glInvalidateTexSubImage
+glInvalidateTexImage
+glInvalidateBufferSubData
+glInvalidateBufferData
+glInvalidateFramebuffer
+glInvalidateSubFramebuffer
+
+--- Non-whitelisted funcs for unsupported category ARB_internalformat_query2:
+glGetInternalformati64v
+
+--- Non-whitelisted funcs for unsupported category ARB_internalformat_query:
+glGetInternalformativ
+
+--- Non-whitelisted funcs for unsupported category ARB_gpu_shader_fp64:
+glUniform1d
+glUniform2d
+glUniform3d
+glUniform4d
+glUniform1dv
+glUniform2dv
+glUniform3dv
+glUniform4dv
+glUniformMatrix2dv
+glUniformMatrix3dv
+glUniformMatrix4dv
+glUniformMatrix2x3dv
+glUniformMatrix2x4dv
+glUniformMatrix3x2dv
+glUniformMatrix3x4dv
+glUniformMatrix4x2dv
+glUniformMatrix4x3dv
+glGetUniformdv
+
+--- Non-whitelisted funcs for partially supported category ARB_geometry_shader4:
+glFramebufferTextureARB
+glFramebufferTextureLayerARB
+glFramebufferTextureFaceARB
+
+--- Non-whitelisted funcs for unsupported category ARB_framebuffer_no_attachments:
+glFramebufferParameteri
+glGetFramebufferParameteriv
+glNamedFramebufferParameteriEXT
+glGetNamedFramebufferParameterivEXT
+
+--- Non-whitelisted funcs for partially supported category ARB_draw_instanced:
+glDrawArraysInstancedARB
+
+--- Non-whitelisted funcs for unsupported category ARB_draw_indirect:
+glDrawArraysIndirect
+glDrawElementsIndirect
+
+--- Non-whitelisted funcs for unsupported category ARB_copy_image:
+glCopyImageSubData
+
+--- Non-whitelisted funcs for unsupported category ARB_copy_buffer:
+glCopyBufferSubData
+
+--- Non-whitelisted funcs for unsupported category ARB_compute_shader:
+glDispatchCompute
+glDispatchComputeIndirect
+
+--- Non-whitelisted funcs for unsupported category ARB_clear_buffer_object:
+glClearBufferData
+glClearBufferSubData
+glClearNamedBufferDataEXT
+glClearNamedBufferSubDataEXT
+
+--- Non-whitelisted funcs for unsupported category ARB_blend_func_extended:
+glBindFragDataLocationIndexed
+glGetFragDataIndex
+
+--- Non-whitelisted funcs for unsupported category ARB_base_instance:
+glDrawArraysInstancedBaseInstance
+glDrawElementsInstancedBaseInstance
+glDrawElementsInstancedBaseVertexBaseInstance
+
+--- Non-whitelisted funcs for unsupported category AMD_sparse_texture:
+glTexStorageSparseAMD
+glTextureStorageSparseAMD
+
+--- Non-whitelisted funcs for unsupported category AMD_sample_positions:
+glSetMultisamplefvAMD
+
+--- Non-whitelisted funcs for unsupported category AMD_multi_draw_indirect:
+glMultiDrawArraysIndirectAMD
+glMultiDrawElementsIndirectAMD
+
+--- Non-whitelisted funcs for unsupported category AMD_debug_output:
+glDebugMessageEnableAMD
+glDebugMessageInsertAMD
+glDebugMessageCallbackAMD
+glGetDebugMessageLogAMD
+
+--- Non-whitelisted funcs for partially supported category VERSION_4_0:
+glMinSampleShading
+
+- make sure glBindBufferRange and glBindBufferBase are snapshottable/restorable
+
+- store/restore the transform feedback varyings when snapshottting glTransformFeedbackVaryings
+
+- make sure glUniformBlockBinding can be saved/restored for programs
+
+- fix GL_UNIFORM_BUFFER_BINDING and  GL_TRANSFORM_FEEDBACK_BUFFER_BINDING so we save/restore the binding offsets/sizes
+
+- support remapping uniform block locations in vogl_program_state.cpp/.h
+right now, if the restore uniform block indices don't match then GL calls after restoring may fuck with the wrong uniform blocks..
+
+- support transform feedback save/restore: GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, etc.
+
+- investigate properly saving/restoring these indexed gets: 
+GL_VERTEX_BINDING_DIVISOR
+GL_VERTEX_BINDING_OFFSET
+GL_VERTEX_BINDING_STRIDE
+
+- add tracking to all glEnables, settextureparameters, etc. to get a summary of ALL changed shit during a replay
+
+- when glGetUniformBlockIndex is dumped, I can't read name text in json? 
+
+- Fix glget save/restore of GL_SHADER_STORAGE_BUFFER_BINDING, etc.
+fix: GL_MAX_COMPUTE_WORK_GROUP_COUNT
+fix: DEFINE_GL_GET(GL_VERTEX_BINDING_DIVISOR, 0x0043, 0x99)
+fix: DEFINE_GL_GET(GL_VERTEX_BINDING_OFFSET, 0x0043, 0x99)
+fix: DEFINE_GL_GET(GL_VERTEX_BINDING_STRIDE, 0x0043, 0x99)
+
+- support immutable textures for state restore:  "Support immutable textures"
+
+- on steamstorm, frame 1, the  call to glGetShaderInfoLog serializes a lot of data?
+      {
+         "func" : "glGetShaderInfoLog",
+         "thread_id" : "0x6AE4",
+         "context" : "0xA9C3D98",
+         "call_counter" : 760,
+         "crc32" : 1694730611,
+         "begin_rdtsc" : 1195040200320663,
+         "end_rdtsc" : 1195040200337628,
+         "gl_begin_rdtsc" : 1195040200322625,
+         "gl_end_rdtsc" : 1195040200324308,
+         "serialize_rdtsc" : 1195040200338687,
+         "rnd_check" : 56535,
+         "inv_rnd_check" : 9000,
+         "params" : {
+            "shader" : "0x5",
+            "bufSize" : 16384,
+            "length" : "0x0",
+            "infoLog" : {
+               "ptr" : "0x00000000FFCB895C",
+               "mem_size" : 16384,
+               "crc64" : "0xB91EC748BD035646",
+               
+               
+- on steelstorm: investigate why this happens when replaying trims
+Debug: vogl_gl_replayer::handle_marked_for_deleted_objects: Snapshot object type Shader trace handle 0x6 restore handle 0x4, was marked as deleted, then deleted after a full state restore, but the object which should still be referenced by state in the GL context fails the glIsProgram()/glIsShader()/etc. test
+               
+- when a shader or program fails to restore, don't just exit immediately but try to continue to help with manual shader debugging
+
+- make it so we can easily add new GL funcs without fucking up all previous traces
+
+- in a dumped trace, the internal format is decimal?
+         "func" : "glTexImage2D",
+         "thread_id" : "0x3929",
+         "context" : "0xC0CAD68",
+         "call_counter" : 942332,
+         "crc32" : 1225146760,
+         "begin_rdtsc" : 1216626688778208,
+         "end_rdtsc" : 1216626689100246,
+         "gl_begin_rdtsc" : 1216626688863279,
+         "gl_end_rdtsc" : 1216626689099835,
+         "serialize_rdtsc" : 1216626689103471,
+         "rnd_check" : 37096,
+         "inv_rnd_check" : 28439,
+         "params" : {
+            "target" : "GL_TEXTURE_2D",
+            "level" : 0,
+            "internalformat" : 6408,
+
+- implement indexed version of GL_COLOR_WRITEMASK, glColorMaski
+
+- when playing back full-stream P1 traces with the steam overlay, I'm seeing this on steam overlay texture handles:
+Error: vogl_gl_replayer::process_gl_entrypoint_packet: Replay's returned GLboolean differed from trace's! Replay: 1 Trace: 0
+Wtf?
+
+- recording a trace is SLOW on AMD drivers (but only while actually recording - why?)
+
+- glIsSampler is called during state snapshots - why? is it to cache deletes samplers that are still bound?
+
+- add a regex grep so we can ignore certain ARB debug callback messages, or just print them once, because both drivers can be super chatty
+
+- hook glDeleteShader: If shader has already been flagged for deletion by a call to glDeleteShader and it is not attached to any other program object, it will be deleted after it has been detached.
+
+- add glBindFragDataLocation saving/restoring to vogl_program_state
+
+- expose extensions for glFrameTerminatorGREMEDY and glStringMarkerGREMEDY during tracing
+
+- support these khr extensions:
+glDebugMessageControl
+glDebugMessageInsert
+glDebugMessageCallback
+glPushDebugGroup
+glPopDebugGroup
+glObjectLabel
+glObjectPtrLabel
+
+- add sharelist usage warning that's more easily noticed: (vogltrace) Warning: vogl_glXCreateContextAttribsARB: Share lists are not supported!
+
+- when the driver crashes during tracing, try to flush the final packet that's being composed so we can repro the crashes
+
+- support UNIFORM_BUFFER_EXT buffer type
+
+- sharelists:
+display lists
+buffers
+textures - glx spec: "a texture object will not be deleted until it is no longer bound to any rendering context"
+gl 2.1 ref: "if a texture that is currently bound is deleted, the binding reverts to 0 (the default texture)."
+from gl4.1 spec: "Automatic Unbinding of Deleted Objects
+When a buffer, texture, or renderbuffer object is deleted, it is unbound from any
+bind points it is bound to in the current context, as described for DeleteBuffers,
+DeleteTextures, and DeleteRenderbuffers. Bind points in other contexts are not
+affected."
+"glsl objects": shaders, programs
+query objects
+sync objects
+sampler objects
+renderbuffers
+transform feedback
+
+
+- support glDebugMessageCallback, glDebugMessageControl
+
+
+
+- vogl_gl_replayer::check_gl_error_internal: Should this check if any context is current?
+
+- Air combat: creates a lot of contexts which cause the replayer to pause on 1x1 windows
+fix this!
+
+- When objects are deleted in a sharegroup, add checks to ensure they aren't bound in other contexts.
+ACTC does this.
+
+- Add check when snapshotting during tracing that all handles in the general state are valid (in a shadow)
+- Modify remap_handle() method so it can return a failure status
+
+- In A Virus Named Tom fullstream paused: Debug:
+vogl_gl_replayer::handle_marked_for_deleted_objects (10059): Snapshot object type
+Shader trace handle 0x12 restore handle 0xC, was marked as deleted, then deleted
+after a full state restore, but the object which should still be referenced by
+state in the GL context fails the glIsProgram()/glIsShader()/etc. test
+
+- Debug Ultratron during tracing: it uses glXCreateWindow, glXDestroyWindow, and glxCreateNewContext()
+It fails to start during tracing, no idea why yet
+
+- War for the Underworld: Mono game, seems very unreliable to startup even when not tracing - with tracing it just sits there
+
+- Penumbra Black Plague: uses texture rectangles
+
+- The Cave full-stream replay is fine, but there's some texture corruption or something in interactive mode when snapshotted/restored
+
+- Fix FBO state snapshot serialization/deserialization so it prints the draw and read buffer GLenum's by name:
+  "Framebuffer" : [
+               {
+                  "handle" : 1,
+                  "has_been_bound" : true,
+                  "status" : "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT",
+                  "read_buffer" : 36064,
+                  "draw_buffers" : [ 36064, 0, 0, 0, 0, 0, 0, 0 ],
+                  "attachments" : [ ]
+               },
+
+- investigate why Shadowrun Returns and Doom3 crash at exit while tracing
+this is causing trace archives to be incomplete

@@ -1,0 +1,40 @@
+* official major release
++ official release but not expecting anyone to actually use it since it's really for me
+: i've shipped an indie game using it, possibly released unofficially
+- unfinished
+
+12/22/2011  01:35 AM           461,557 stb.h                   +   stb's C standard library additions
+04/02/2008  02:06 PM            10,640 stb_3dmodel.c               terrible low-level character animation lib
+06/22/2008  04:56 AM            37,017 stb_3d_linkedprog.h       - d3d-"effects"-style library for OpenGL
+03/10/2008  01:51 AM            37,817 stb_audio_mixer.h       :   crusty low-level sample-exact audio mixing lib
+09/03/2008  06:41 AM             8,452 stb_codegen.h             - beginnings of x86 codegen lib
+09/21/2011  02:15 PM           140,367 stb_crypto.h              - slow crypto library
+12/05/2011  04:05 AM            59,431 stb_csg.c                 - exact csg on 22/46-bit integer plane inputs
+02/17/2011  01:26 AM            11,684 stb_divide.h                portable 32-bit divide variants (round-to-0 or always-positive mod)
+03/04/2008  05:10 AM             4,349 stb_dsound.h            :   dsound wrapper for use with stb_audio_mixer.h
+12/31/2008  03:39 AM            15,852 stb_dxt.h               *   ryg's real-time DXT compression
+05/10/2008  01:44 AM               831 stb_dynarray.h              vector<> equivalent for C (from stb.h)
+08/03/2007  12:54 PM             5,089 stb_geom.h                - vertex hash for finding near-duplicate vertices
+08/19/2008  01:12 PM            39,003 stb_gl.h                :   convenience functions for things stb often does in GL
+03/07/2008  05:44 AM             2,461 stb_glext.h             :   lightweight GL-extension instantiator (windows only); features only not-IOCCC use of '#include __FILE__' that I know of
+03/28/2008  08:25 PM            76,558 stb_gl_program.h          - unfinished convenience wrappers for OpenGL frag/vertex *programs* (not *shaders*)
+02/24/2009  04:16 AM            29,501 stb_gr.h                    one of ten million 2D 32-bit RGBA software libraries I've written
+08/15/2011  10:45 AM           151,637 stb_image.c             *   the classic, loads ten million image formats (not the fastest or leanest)
+02/22/2012  02:24 PM            19,992 stb_image_write.h       *   writes PNGs, BMPs, TGAs
+08/20/2011  07:55 AM           171,919 stb_immediate_mode.h      - glBegin-style immediate mode API on top of any other 3D API
+03/04/2008  11:47 PM            48,982 stb_iprof.h               - update of iprof interactive profiler, still not thread-safe
+04/18/2008  01:07 AM            12,658 stb_jphys.h               - Jakobsen-style physics library
+04/04/2008  01:28 PM            23,835 stb_load_x.c                .X file loader for stb_3dmodel
+12/14/2011  06:24 AM             7,396 stb_perlin.h                PD perlin noise
+10/24/2010  02:14 PM            20,249 stb_plot.h                  2D plot-generating library (incomplete but usable)
+10/28/2009  11:29 PM            82,244 stb_query.h               - in-memory database (multiple indices, no joins)
+05/21/2011  10:13 AM            42,555 stb_sparse_array.h        - Judy-style data structure (cache-aware tree)
+05/07/2010  12:59 AM            28,621 stb_synth.h             :   trivial audio synth
+12/14/2011  12:40 PM            78,512 stb_truetype.h          *   truetype decoder/rasterizer
+05/11/2008  05:24 AM            23,870 stb_vec.h                   3D vectors and matrices
+04/01/2012  11:17 PM           366,068 stb_vm.h                  - virtual machine interpreter core
+04/01/2009  12:06 AM           187,100 stb_vorbis.c            *   ogg vorbis decoder
+05/21/2010  12:48 AM             4,506 stb_wav.h                   .wav file loader
+11/01/2008  02:18 PM            25,967 stb_wingraph.h          :   replaces WinMain and Windows events with platform-independent ones, creates OpenGL windows; never ported to other platforms.
+05/10/2008  01:43 AM             7,492 stb_wmesh.h                 winged-edge mesh data structure
+

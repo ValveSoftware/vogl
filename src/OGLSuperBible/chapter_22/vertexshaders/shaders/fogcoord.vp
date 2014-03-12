@@ -1,0 +1,71 @@
+!!ARBvp1.0
+
+# fogcoord.vs
+#
+# Generic vertex transformation,
+# diffuse and specular lighting,
+# per-vertex fogcoord
+
+ATTRIB iPos = vertex.position;             # input position
+ATTRIB iPrC = vertex.color.primary;        # input primary color
+ATTRIB iNrm = vertex.normal;               # input normal
+
+OUTPUT oPos = result.position;             # output position
+OUTPUT oPrC = result.color.primary;        # output primary color
+OUTPUT oFgC = result.fogcoord;             # output fog coordinate
+
+PARAM mvp[4] = { state.matrix.mvp };       # model-view * proj matrix
+PARAM mv[4] =  { state.matrix.modelview }; # model-view matrix
+# inverse transpose of model-view matrix:
+PARAM mvIT[4] = { state.matrix.modelview.invtrans }; 
+
+PARAM lightPos = program.local[0];         # light pos in eye space
+
+TEMP N, V, L, H, NdotL, NdotH;             # temporary registers
+TEMP diffuse, specular, fogCoord;
+
+DP4 oPos.x, iPos, mvp[0];                  # xform input pos by MVP
+DP4 oPos.y, iPos, mvp[1];
+DP4 oPos.z, iPos, mvp[2];
+DP4 oPos.w, iPos, mvp[3];
+
+DP4 V.x, iPos, mv[0];                      # xform input pos by MV
+DP4 V.y, iPos, mv[1];
+DP4 V.z, iPos, mv[2];
+DP4 V.w, iPos, mv[3];
+
+SUB L, lightPos, V;                        # vertex to light vector
+
+DP3 N.x, iNrm, mvIT[0];                    # xform norm to eye space
+DP3 N.y, iNrm, mvIT[1];
+DP3 N.z, iNrm, mvIT[2];
+
+DP3 N.w, N, N;                             # normalize normal
+RSQ N.w, N.w;
+MUL N, N, N.w;
+
+DP3 L.w, L, L;                             # normalize light vector
+RSQ L.w, L.w;
+MUL L, L, L.w;
+
+ADD H.xyz, L, {0, 0, 1};
+
+DP3 H.w, H, H;                             # normalize half-angle
+RSQ H.w, H.w;
+MUL H, H, H.w;
+
+DP3 NdotL, N, L;                           # N . L
+MAX NdotL, NdotL, 0.0;
+MUL diffuse, iPrC, NdotL;
+
+DP3 NdotH, N, H;                           # N . H
+MAX NdotH, NdotH, 0.0;
+POW specular, NdotH.x, 128.0.x;            # 128 is specular exponent
+
+ADD oPrC, diffuse, specular;               # sum the colors
+
+DP4 fogCoord.x, V, V;                      # fogCoord = |Ve|
+RSQ fogCoord.x, fogCoord.x;
+RCP oFgC.x, fogCoord.x;
+
+END

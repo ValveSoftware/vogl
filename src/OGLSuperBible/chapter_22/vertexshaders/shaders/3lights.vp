@@ -1,0 +1,127 @@
+!!ARBvp1.0
+
+# 3lights.vp
+#
+# Generic vertex transformation,
+# 3 colored lights
+
+ATTRIB iPos = vertex.position;              # input position
+ATTRIB iPrC = vertex.color.primary;         # input primary color
+ATTRIB iNrm = vertex.normal;                # input normal
+
+OUTPUT oPos = result.position;              # output position
+OUTPUT oPrC = result.color.primary;         # output primary color
+OUTPUT oTC0 = result.texcoord[1];           # output texcoord 1
+OUTPUT oTC1 = result.texcoord[2];           # output texcoord 2
+OUTPUT oTC2 = result.texcoord[3];           # output texcoord 3
+
+PARAM mvp[4] = { state.matrix.mvp };        # model-view * proj mat
+PARAM mv[4] =  { state.matrix.modelview };  # model-view matrix
+# inverse transpose of model-view matrix:
+PARAM mvIT[4] = { state.matrix.modelview.invtrans }; 
+
+PARAM lightCol0 = { 1.0, 0.25, 0.25, 1.0 }; # light 0 color
+PARAM lightCol1 = { 0.25, 1.0, 0.25, 1.0 }; # light 1 color
+PARAM lightCol2 = { 0.25, 0.25, 1.0, 1.0 }; # light 2 color
+PARAM lightPos0 = program.local[0];         # light pos 0 eye space
+PARAM lightPos1 = program.local[1];         # light pos 1 eye space
+PARAM lightPos2 = program.local[2];         # light pos 2 eye space
+
+TEMP N, V, L, H, NdotL, NdotH, finalColor;  # temporary registers
+ALIAS diffuse = NdotL;
+ALIAS specular = NdotH;
+
+DP4 oPos.x, iPos, mvp[0];                   # xform input pos by MVP
+DP4 oPos.y, iPos, mvp[1];
+DP4 oPos.z, iPos, mvp[2];
+DP4 oPos.w, iPos, mvp[3];
+
+DP4 V.x, iPos, mv[0];                       # xform input pos by MV
+DP4 V.y, iPos, mv[1];
+DP4 V.z, iPos, mv[2];
+DP4 V.w, iPos, mv[3];
+
+DP3 N.x, iNrm, mvIT[0];                     # xform norm to eye space
+DP3 N.y, iNrm, mvIT[1];
+DP3 N.z, iNrm, mvIT[2];
+
+DP3 N.w, N, N;                              # normalize normal
+RSQ N.w, N.w;
+MUL N, N, N.w;
+
+# LIGHT 0
+SUB L, lightPos0, V;                        # vertex to light vector
+
+DP3 L.w, L, L;                              # normalize light vector
+RSQ L.w, L.w;
+MUL L, L, L.w;
+
+ADD H.xyz, L, {0, 0, 1};
+
+DP3 H.w, H, H;                              # normalize half-angle
+RSQ H.w, H.w;
+MUL H, H, H.w;
+
+DP3 NdotL, N, L;                            # N . L0
+MAX NdotL, NdotL, 0.0;
+MUL diffuse, iPrC, NdotL;                   # priCol * N.L0
+
+# priCol * lightCol0 * N.L0
+MUL finalColor, diffuse, lightCol0;         
+
+DP3 NdotH, N, H;                            # N . H0
+MAX NdotH, NdotH, 0.0;
+MOV oTC0, {0.0, 0.0, 0.0, 1.0};
+MAD oTC0.x, NdotH, 8, {-7};                 # NdotH * 8 - 7 to tc 0
+
+# LIGHT 1
+SUB L, lightPos1, V;                        # vertex to light vector
+
+DP3 L.w, L, L;                              # normalize light vector
+RSQ L.w, L.w;
+MUL L, L, L.w;
+
+ADD H.xyz, L, {0, 0, 1};
+
+DP3 H.w, H, H;                              # normalize half-angle
+RSQ H.w, H.w;
+MUL H, H, H.w;
+
+DP3 NdotL, N, L;                            # N . L1
+MAX NdotL, NdotL, 0.0;
+MUL diffuse, iPrC, NdotL;                   # priCol * N.L1
+
+# priCol * lightCol0 * N.L1
+MAD finalColor, diffuse, lightCol1, finalColor;
+
+DP3 NdotH, N, H;                            # N . H1
+MAX NdotH, NdotH, 0.0;
+MOV oTC1, {0.0, 0.0, 0.0, 1.0};
+MAD oTC1.x, NdotH, 8, {-7};                 # NdotH * 8 - 7 to tc 1
+
+# LIGHT 2
+SUB L, lightPos2, V;                        # vertex to light vector
+
+DP3 L.w, L, L;                              # normalize light vector
+RSQ L.w, L.w;
+MUL L, L, L.w;
+
+ADD H.xyz, L, {0, 0, 1};
+
+DP3 H.w, H, H;                              # normalize half-angle
+RSQ H.w, H.w;
+MUL H, H, H.w;
+
+DP3 NdotL, N, L;                            # N . L2
+MAX NdotL, NdotL, 0.0;
+MUL diffuse, iPrC, NdotL;                   # priCol * N.L2
+
+# priCol * lightCol0 * N.L2
+MAD oPrC, diffuse, lightCol2, finalColor;   
+
+DP3 NdotH, N, H;                            # N . H2
+MAX NdotH, NdotH, 0.0;
+MOV oTC2, {0.0, 0.0, 0.0, 1.0};
+MAD oTC2.x, NdotH, 8, {-7};                 # NdotH * 8 - 7 to tc 2
+
+END

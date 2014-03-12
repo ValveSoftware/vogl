@@ -1,0 +1,10 @@
+Binary version of libedit3 compiled from
+http://www.thrysoee.dk/editline/
+The headers and binaries were moved to the libedit-3.1 directory
+
+Make sure you have these packages if you're trying to build chroot:
+
+sudo apt-get install libncurses5-dev
+sudo apt-get install groff-base
+
+Otherwise it will most likely build but crash when you try to use it...

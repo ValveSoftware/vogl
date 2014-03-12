@@ -1,0 +1,66 @@
+#version 420 core
+#extension GL_ARB_arrays_of_arrays : require
+
+#define POSITION		0
+#define COLOR			3
+#define FRAG_COLOR		0
+
+layout(vertices = 4) out;
+
+in gl_PerVertex
+{
+	vec4 gl_Position;
+	float gl_PointSize;
+	float gl_ClipDistance[];
+} gl_in[];
+
+struct vertexIn
+{
+	vec4 Color;
+};
+
+layout(location = 0) in vertexIn st_In[][2];
+
+in block
+{
+	vec4 Color;
+	mediump float Lumimance[2];
+} bl_In[]; 
+
+out gl_PerVertex
+{
+	vec4 gl_Position;
+	float gl_PointSize;
+	float gl_ClipDistance[];
+} gl_out[];
+
+struct vertexOut
+{
+	vec4 Color;
+};
+
+layout(location = 0) out vertexOut st_Out[][2];
+
+out block
+{
+	vec4 Color;
+} bl_Out[]; 
+
+void main()
+{
+	float Luminance = 0.0;
+	for(int i = 0; i < 2; ++i)
+		Luminance += bl_In[gl_InvocationID].Lumimance[i];
+
+	gl_TessLevelInner[0] = 16.0;
+	gl_TessLevelInner[1] = 16.0;
+	gl_TessLevelOuter[0] = 8.0;
+	gl_TessLevelOuter[1] = 8.0;
+	gl_TessLevelOuter[2] = 8.0;
+	gl_TessLevelOuter[3] = 8.0;
+	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+	st_Out[gl_InvocationID][0].Color = vec4(st_In[gl_InvocationID][0].Color);
+	st_Out[gl_InvocationID][1].Color = vec4(st_In[gl_InvocationID][1].Color);
+	bl_Out[gl_InvocationID].Color = bl_In[gl_InvocationID].Color * Luminance;
+}
+
