@@ -14,7 +14,7 @@ To build the vogl chroots (uses schroot), do the following:
 You should now be ready to build in your chroots. Something like any of these:
 
     vogl/bin/mkvogl.sh --release --amd64
-    vogl/bin/mkvogl.sh --debug--amd64 --i386 --clang34 --verbose
+    vogl/bin/mkvogl.sh --debug --amd64 --i386 --clang34 --verbose
     vogl/bin/mkvogl.sh --release --amd64 --i386 --gcc48 --CRNLIB_ENABLE_ASSERTS
 
 Note that you do _not_ have to use the chroots or mkvogl.sh to build. You could do your own cmake (cmake vogl/src) and go from there. It's up to you to get the dependencies correct though. Look at vogl/bin/chroot_configure.sh to see how the chroots are set up. The source for mkvogl is in vogl/bin/src/mkvogl.cpp - it's just a simple cpp wrapper around cmake.
