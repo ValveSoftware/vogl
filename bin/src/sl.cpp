@@ -265,39 +265,30 @@ main(int argc, char **argv)
     }
 
     // Get the full path to our executable. It should be running in vogl/bin/x86_64 (or i386).
-    char buf32[PATH_MAX];
-    char buf64[PATH_MAX];
-    if ((readlink("/proc/self/exe", buf32, sizeof(buf32)) <= 0))
+    char buf[PATH_MAX];
+    if ((readlink("/proc/self/exe", buf, sizeof(buf)) <= 0))
         errorf("ERROR: readlink failed '%s.'\n", strerror(errno));
 
     // Get just the directory name and relative path to libvogltrace.so.
-    std::string filedir = dirname(buf32);
-    snprintf(buf32, sizeof(buf32), "%s/../../vogl_build/bin/libvogltrace32.so", filedir.c_str());
-    snprintf(buf64, sizeof(buf64), "%s/../../vogl_build/bin/libvogltrace64.so", filedir.c_str());
+    std::string filedir = dirname(buf);
+    if (args.flags & F_AMD64)
+        snprintf(buf, sizeof(buf), "%s/../../vogl_build/bin/libvogltrace64.so", filedir.c_str());
+    else
+        snprintf(buf, sizeof(buf), "%s/../../vogl_build/bin/libvogltrace32.so", filedir.c_str());
 
     // Trim all the relative path parts.
-    char *vogltracepath32 = realpath(buf32, NULL);
-    char *vogltracepath64 = realpath(buf64, NULL);
-    if (!vogltracepath32)
-        errorf("ERROR: realpath %s failed '%s.'\n", buf32, strerror(errno));
-
-    if (!vogltracepath64)
-        errorf("ERROR: realpath %s failed '%s.'\n", buf64, strerror(errno));
+    char *vogltracepath = realpath(buf, NULL);
+    if (!vogltracepath)
+        errorf("ERROR: realpath %s failed '%s.'\n", buf, strerror(errno));
 
     // Make sure our libvogltrace.so exists.
-    if(access(vogltracepath32, F_OK) != 0)
-        errorf("ERROR: %s file does not exist.\n", vogltracepath32);
-
-    if(access(vogltracepath64, F_OK) != 0)
-        errorf("ERROR: %s file does not exist.\n", vogltracepath64);
+    if(access(vogltracepath, F_OK) != 0)
+        errorf("ERROR: %s file does not exist.\n", vogltracepath);
 
 
     // set up LD_PRELOAD string
     std::string LD_PRELOAD = "LD_PRELOAD=";
-    if (args.flags & F_AMD64)
-        LD_PRELOAD += vogltracepath64;
-    else
-        LD_PRELOAD += vogltracepath32;
+    LD_PRELOAD += vogltracepath;
         
     //LD_PRELOAD += ":";
     // LD_PRELOAD += vogltracepath64;
@@ -353,7 +344,6 @@ main(int argc, char **argv)
             system(system_cmd.c_str());
     }
 
-    free(vogltracepath32);
-    free(vogltracepath64);
+    free(vogltracepath);
     return 0;
 }
