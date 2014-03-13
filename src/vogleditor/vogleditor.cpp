@@ -119,7 +119,6 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pTrimButton(NULL),
    m_pStopButton(NULL),
    m_pTraceReader(NULL),
-   m_pTraceWriter(NULL),
    m_pApicallTreeModel(NULL)
 {
    ui->setupUi(this);
@@ -343,13 +342,6 @@ void VoglEditor::close_trace_file()
       m_pTraceReader->close();
       vogl_delete(m_pTraceReader);
       m_pTraceReader = NULL;
-
-      if (m_pTraceWriter != NULL)
-      {
-          m_pTraceWriter->close();
-          vogl_delete(m_pTraceWriter);
-          m_pTraceWriter = NULL;
-      }
 
       setWindowTitle(g_PROJECT_NAME);
 
@@ -952,10 +944,6 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
 
    vogl_ctypes trace_ctypes;
    trace_ctypes.init(m_pTraceReader->get_sof_packet().m_pointer_sizes);
-   m_pTraceWriter = vogl_new(vogl_trace_file_writer, &trace_ctypes);
-
-   dynamic_string traceSessionFilename = "vogleditor_session.bin";
-   m_pTraceWriter->open(traceSessionFilename.c_str());
 
    m_pApicallTreeModel = new vogleditor_QApiCallTreeModel(m_pTraceReader);
    ui->treeView->setModel(m_pApicallTreeModel);
