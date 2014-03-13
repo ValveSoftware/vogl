@@ -44,42 +44,44 @@ build_chroot()
       ;;
   esac
 
+  CHROOT_NAME=vogl_precise_${pkg}
+
   # install some packages
   echo -e "\n${Color_On}Installing debootstrap schroot p7zip-full...$Color_Off"
   sudo apt-get install -y debootstrap schroot p7zip-full
 
   # blow away existing directories and recreate empty ones
-  echo -e "\n${Color_On}Creating /var/chroots/vogl_precise_${pkg}..."  
-  sudo rm -rf "/var/chroots/vogl_precise_${pkg}"
-  sudo mkdir -p "/var/chroots/vogl_precise_${pkg}"
+  echo -e "\n${Color_On}Creating /var/chroots/${CHROOT_NAME}..."  
+  sudo rm -rf "/var/chroots/${CHROOT_NAME}"
+  sudo mkdir -p "/var/chroots/${CHROOT_NAME}"
 
   # Create our schroot .conf file
-  echo -e "\n${Color_On}Creating /etc/schroot/chroot.d/vogl_precise_${pkg}.conf...${Color_Off}" 
-  printf "[vogl_precise_${pkg}]\ndescription=Ubuntu 12.04 Precise for ${pkg}\ndirectory=/var/chroots/vogl_precise_${pkg}\npersonality=${personality}\nroot-users=${USER}\ntype=directory\n" | sudo tee /etc/schroot/chroot.d/vogl_precise_${pkg}.conf
+  echo -e "\n${Color_On}Creating /etc/schroot/chroot.d/${CHROOT_NAME}.conf...${Color_Off}" 
+  printf "[${CHROOT_NAME}]\ndescription=Ubuntu 12.04 Precise for ${pkg}\ndirectory=/var/chroots/${CHROOT_NAME}\npersonality=${personality}\nroot-users=${USER}\ntype=directory\n" | sudo tee /etc/schroot/chroot.d/${CHROOT_NAME}.conf
 
   # Create our chroot
   echo -e "\n${Color_On}Bootstrap the chroot...${Color_Off}" 
-  sudo debootstrap --arch=${pkg} precise /var/chroots/vogl_precise_${pkg} http://archive.ubuntu.com/ubuntu/
+  sudo debootstrap --arch=${pkg} precise /var/chroots/${CHROOT_NAME} http://archive.ubuntu.com/ubuntu/
 
   # Copy over proxy settings from host machine
   echo -e "\n${Color_On}Adding proxy info to chroot (if set)...${Color_Off}" 
-  env | grep -i "_proxy=" | grep -v PERSISTENT_HISTORY_LAST | xargs -i echo export {} | sudo tee /var/chroots/vogl_precise_${pkg}/etc/profile.d/radproj.sh
-  env | grep -i "_proxy=" | grep -v PERSISTENT_HISTORY_LAST | xargs -i echo export {} | sudo tee -a /var/chroots/vogl_precise_${pkg}/etc/environment
-  sudo rm -rf "/var/chroots/vogl_precise_${pkg}/etc/apt/apt.conf"
-  if [ -f /etc/apt/apt.conf ]; then sudo cp "/etc/apt/apt.conf" "/var/chroots/vogl_precise_${pkg}/etc/apt"; fi  
+  env | grep -i "_proxy=" | grep -v PERSISTENT_HISTORY_LAST | xargs -i echo export {} | sudo tee /var/chroots/${CHROOT_NAME}/etc/profile.d/radproj.sh
+  env | grep -i "_proxy=" | grep -v PERSISTENT_HISTORY_LAST | xargs -i echo export {} | sudo tee -a /var/chroots/${CHROOT_NAME}/etc/environment
+  sudo rm -rf "/var/chroots/${CHROOT_NAME}/etc/apt/apt.conf"
+  if [ -f /etc/apt/apt.conf ]; then sudo cp "/etc/apt/apt.conf" "/var/chroots/${CHROOT_NAME}/etc/apt"; fi  
 
   # Make sure that vogl_extbuild exists so schroot_configure.sh doesn't create it as root.
   mkdir -p "${SCRIPTPATH}/../vogl_extbuild"
 
   echo -e "\n${Color_On}Running chroot_configure.sh --packages...${Color_Off}" 
-  schroot --chroot vogl_precise_${pkg} -d ${SCRIPTPATH} --user root -- ./chroot_configure.sh --packages
+  schroot --chroot ${CHROOT_NAME} -d ${SCRIPTPATH} --user root -- ./chroot_configure.sh --packages
 
   echo -e "\n${Color_On}Allow sudo to run in chroot without prompting for password...${Color_Off}" 
-  echo -e "# Allow members of group sudo to execute any command\n%sudo   ALL= NOPASSWD: ALL\n" | sudo tee /var/chroots/vogl_precise_${pkg}/etc/sudoers.d/nopassword
-  sudo chmod 440 /var/chroots/vogl_precise_${pkg}/etc/sudoers.d/nopassword
+  echo -e "# Allow members of group sudo to execute any command\n%sudo   ALL= NOPASSWD: ALL\n" | sudo tee /var/chroots/${CHROOT_NAME}/etc/sudoers.d/nopassword
+  sudo chmod 440 /var/chroots/${CHROOT_NAME}/etc/sudoers.d/nopassword
 
   echo -e "\n${Color_On}Running chroot_configure.sh...${Color_Off}" 
-  schroot --chroot vogl_precise_${pkg} -d ${SCRIPTPATH} -- ./chroot_configure.sh
+  schroot --chroot ${CHROOT_NAME} -d ${SCRIPTPATH} -- ./chroot_configure.sh
 }
 
 tput setaf 3

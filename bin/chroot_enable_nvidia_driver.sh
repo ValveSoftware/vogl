@@ -43,6 +43,8 @@ enable_nvidia_chroot()
         ;;
     esac
 
+    CHROOT_NAME=vogl_precise_${pkg}
+
     # update-alternatives --query x86_64-linux-gnu_gl_conf | grep Value
     # driver_version=$(dpkg -l | fgrep "ii" | egrep -o 'nvidia\-[[:digit:]]{1,3}[^[:space:]]*')
     driver_version=$(update-alternatives --query x86_64-linux-gnu_gl_conf | grep Value | egrep -o 'nvidia\-[[:digit:]]{1,3}[^/]*')
@@ -60,42 +62,42 @@ enable_nvidia_chroot()
         exit 1;
     fi
 
-    if [ ! -d "/var/chroots/vogl_precise_${pkg}/usr/lib" ]; then
-        echo "Error: /var/chroots/vogl_precise_${pkg}/usr/lib does not exist.";
+    if [ ! -d "/var/chroots/${CHROOT_NAME}/usr/lib" ]; then
+        echo "Error: /var/chroots/${CHROOT_NAME}/usr/lib does not exist.";
         exit 1;
     fi
 
-    CMD="sudo cp -a /usr/${libdir}/${driver_version} /var/chroots/vogl_precise_${pkg}/usr/lib"
+    CMD="sudo cp -a /usr/${libdir}/${driver_version} /var/chroots/${CHROOT_NAME}/usr/lib"
     echo $CMD
     $CMD
 
     echo -e "\n${Color_On}Updating chroot usr/lib/${driver_version}/ld.so.conf file...${Color_Off}"
-    echo "/usr/lib/${driver_version}" | sudo tee /var/chroots/vogl_precise_${pkg}/usr/lib/${driver_version}/ld.so.conf
+    echo "/usr/lib/${driver_version}" | sudo tee /var/chroots/${CHROOT_NAME}/usr/lib/${driver_version}/ld.so.conf
 
     echo -e "\n${Color_On}Add gl link.${Color_Off}"
-    CMD="schroot -c vogl_precise_${pkg} --user root -- update-alternatives --install /etc/ld.so.conf.d/${plat}-linux-gnu_GL.conf ${plat}-linux-gnu_gl_conf /usr/lib/${driver_version}/ld.so.conf 50"
+    CMD="schroot -c ${CHROOT_NAME} --user root -- update-alternatives --install /etc/ld.so.conf.d/${plat}-linux-gnu_GL.conf ${plat}-linux-gnu_gl_conf /usr/lib/${driver_version}/ld.so.conf 50"
     echo $CMD
     $CMD
 
     echo -e "\n${Color_On}Set gl link.${Color_Off}"
-    CMD="schroot -c vogl_precise_${pkg} --user root -- update-alternatives --set ${plat}-linux-gnu_gl_conf /usr/lib/${driver_version}/ld.so.conf"
+    CMD="schroot -c ${CHROOT_NAME} --user root -- update-alternatives --set ${plat}-linux-gnu_gl_conf /usr/lib/${driver_version}/ld.so.conf"
     echo $CMD
     $CMD
 
     echo -e "\n${Color_On}Configure run time bindings.${Color_Off}"
-    CMD="schroot -c vogl_precise_${pkg} --user root -- ldconfig"
+    CMD="schroot -c ${CHROOT_NAME} --user root -- ldconfig"
     echo $CMD
     $CMD
 
     echo -e "\n${Color_On}adding DISPLAY=:0.0 to chroot etc/environment...${Color_Off}"
-    echo "export DISPLAY=:0.0" | sudo tee -a /var/chroots/vogl_precise_${pkg}/etc/environment
-    echo "export DISPLAY=:0.0" | sudo tee -a /var/chroots/vogl_precise_${pkg}/etc/profile.d/radproj.sh
+    echo "export DISPLAY=:0.0" | sudo tee -a /var/chroots/${CHROOT_NAME}/etc/environment
+    echo "export DISPLAY=:0.0" | sudo tee -a /var/chroots/${CHROOT_NAME}/etc/profile.d/radproj.sh
 
     echo -e "\n${Color_On}Install mesa-utils...${Color_Off}"
-    schroot -c vogl_precise_${pkg} --user root -- /usr/bin/apt-get install -y mesa-utils
+    schroot -c ${CHROOT_NAME} --user root -- /usr/bin/apt-get install -y mesa-utils
 
     echo -e "\n${Color_On}Testing for direct rendering:${Color_Off}"
-    schroot -c vogl_precise_${pkg} -- /usr/bin/glxinfo -display :0.0 | grep -i "direct rendering"
+    schroot -c ${CHROOT_NAME} -- /usr/bin/glxinfo -display :0.0 | grep -i "direct rendering"
 }
 
 
