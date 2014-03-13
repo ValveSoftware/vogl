@@ -13,9 +13,9 @@ include_directories(
     ${SRC_DIR}/extlib/loki/include/loki
     ${SRC_DIR}/libtelemetry
     ${CMAKE_CURRENT_BINARY_DIR}
-    /usr/local/Trolltech/Qt-4.8.5/include
-    /usr/local/Trolltech/Qt-4.8.5/include/QtCore
-    /usr/local/Trolltech/Qt-4.8.5/include/QtGui
+    ${QT_INCLUDE_DIR}
+    ${QT_QTCORE_INCLUDE_DIR}
+    ${QT_QTGUI_INCLUDE_DIR}
 )
 
 #include(${QT_USE_FILE})
