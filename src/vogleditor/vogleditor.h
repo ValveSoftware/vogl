@@ -60,6 +60,7 @@ class vogl_replay_window;
 class vogl_shader_state;
 class vogl_texture_state;
 class vogl_trace_file_reader;
+class vogl_trace_file_writer;
 class vogl_trace_packet;
 class vogl_gl_state_snapshot;
 class vogleditor_apiCallTimelineModel;
@@ -105,6 +106,10 @@ private slots:
 
    void on_program_edited(vogl_program_state* pNewProgramState);   
 
+   void on_actionSave_Session_triggered();
+
+   void on_actionOpen_Session_triggered();
+
 private:
    Ui::VoglEditor* ui;
 
@@ -132,6 +137,10 @@ private:
 
    void write_child_api_calls(vogleditor_apiCallTreeItem* pItem, FILE* pFile);
 
+   bool load_session_from_disk(QString sessionFile);
+   bool save_session_to_disk(QString sessionFile);
+   bool save_snapshot_to_disk(vogl_gl_state_snapshot* pSnapshot, dynamic_string filename, vogl_blob_manager *pBlob_manager);
+
    QString m_openFilename;
    QLabel* m_statusLabel;
    vogleditor_QFramebufferExplorer* m_framebufferExplorer;
@@ -151,6 +160,7 @@ private:
 
    vogleditor_traceReplayer m_traceReplayer;
    vogl_trace_file_reader* m_pTraceReader;
+   vogl_trace_file_writer* m_pTraceWriter;
    vogl::json_document m_backtraceDoc;
    vogl::hash_map<vogl::uint32, vogl::json_node*> m_backtraceToJsonMap;
 

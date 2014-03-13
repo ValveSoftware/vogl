@@ -71,6 +71,9 @@ public:
    vogleditor_apiCallTreeItem* find_prev_drawcall(vogleditor_apiCallTreeItem* start);
    vogleditor_apiCallTreeItem* find_next_drawcall(vogleditor_apiCallTreeItem* start);
 
+   vogleditor_apiCallTreeItem* find_call_number(uint64_t callNumber);
+   vogleditor_apiCallTreeItem* find_frame_number(uint64_t frameNumber);
+
 signals:
 
 public slots:
