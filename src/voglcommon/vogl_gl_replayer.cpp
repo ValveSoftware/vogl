@@ -10229,6 +10229,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
 
                 const vogl_trace_packet *pPrev_gl_packet = m_pCur_gl_packet;
 
+                m_pCur_gl_packet = &m_temp2_gl_packet;
+
                 vogl_gl_replayer::status_t status = process_gl_entrypoint_packet_internal(m_temp2_gl_packet);
 
                 m_pCur_gl_packet = pPrev_gl_packet;
