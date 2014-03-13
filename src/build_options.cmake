@@ -30,7 +30,7 @@ option(USE_TELEMETRY "Build with Telemetry" OFF)
 
 if( NOT BUILD_X64 )
   # If we're in our 64-bit chroot, default to 64-bit, else 32-bit
-  if( "$ENV{SCHROOT_CHROOT_NAME}" STREQUAL "vogl_precise_amd64" )
+  if( "$ENV{SCHROOT_CHROOT_NAME}" MATCHES "(.*)amd64(.*)" )
     set(BUILD_X64 "TRUE")
   else()
     set(BUILD_X64 "FALSE")
