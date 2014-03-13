@@ -1246,7 +1246,7 @@ void VoglEditor::reset_snapshot_ui()
 vogleditor_gl_state_snapshot* VoglEditor::findMostRecentSnapshot_helper(vogleditor_apiCallTreeItem* pItem, vogleditor_gl_state_snapshot*& pMostRecentSnapshot, const vogleditor_gl_state_snapshot* pCurSnapshot)
 {
     // check if this item has a snapshot shot
-    if (pItem->has_snapshot())
+    if (pItem->has_snapshot() && pItem->get_snapshot()->is_valid())
     {
         vogleditor_gl_state_snapshot* pTmp = pItem->get_snapshot();
         if (pTmp == pCurSnapshot)
@@ -1330,8 +1330,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
    // state viewer
    vogleditor_QStateTreeModel* pStateModel = new vogleditor_QStateTreeModel(NULL);
 
-   vogleditor_QApiCallTreeModel* pTreeModel = static_cast<vogleditor_QApiCallTreeModel*>(ui->treeView->model());
-   vogleditor_gl_state_snapshot* pBaseSnapshot = findMostRecentSnapshot(pTreeModel->root(), m_currentSnapshot);
+   vogleditor_gl_state_snapshot* pBaseSnapshot = findMostRecentSnapshot(m_pApicallTreeModel->root(), m_currentSnapshot);
    pStateModel->set_diff_base_snapshot(pBaseSnapshot);
 
    pStateModel->set_snapshot(pStateSnapshot);
