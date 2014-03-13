@@ -278,18 +278,28 @@ main(int argc, char **argv)
     // Trim all the relative path parts.
     char *vogltracepath32 = realpath(buf32, NULL);
     char *vogltracepath64 = realpath(buf64, NULL);
-    if (!vogltracepath32)
-        errorf("ERROR: realpath %s failed '%s.'\n", buf32, strerror(errno));
-
-    if (!vogltracepath64)
-        errorf("ERROR: realpath %s failed '%s.'\n", buf64, strerror(errno));
+    if (args.flags & F_AMD64)
+    {
+        if (!vogltracepath64)
+            errorf("ERROR: realpath %s failed '%s.'\n", buf64, strerror(errno));
+    }
+    else
+    {
+        if (!vogltracepath32)
+            errorf("ERROR: realpath %s failed '%s.'\n", buf32, strerror(errno));
+    }
 
     // Make sure our libvogltrace.so exists.
-    if(access(vogltracepath32, F_OK) != 0)
-        errorf("ERROR: %s file does not exist.\n", vogltracepath32);
-
-    if(access(vogltracepath64, F_OK) != 0)
-        errorf("ERROR: %s file does not exist.\n", vogltracepath64);
+    if (args.flags & F_AMD64)
+    {
+        if(access(vogltracepath64, F_OK) != 0)
+            errorf("ERROR: %s file does not exist.\n", vogltracepath64);
+    }
+    else
+    {
+        if(access(vogltracepath32, F_OK) != 0)
+            errorf("ERROR: %s file does not exist.\n", vogltracepath32);
+    }
 
 
     // set up LD_PRELOAD string
