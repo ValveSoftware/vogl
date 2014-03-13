@@ -196,7 +196,7 @@ bool vogleditor_traceReplayer::recursive_replay_apicallTreeItem(vogleditor_apiCa
         }
     }
 
-    if (bStatus && pItem->has_snapshot() && pItem->get_snapshot()->is_edited())
+    if (bStatus && pItem->has_snapshot() && pItem->get_snapshot()->is_edited() && pItem->get_snapshot()->is_valid())
     {
         bStatus = applying_snapshot_and_process_resize(pItem->get_snapshot()->get_snapshot());
     }

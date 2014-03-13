@@ -167,7 +167,7 @@ void vogleditor_QStateTreeModel::setupModelData(vogleditor_gl_state_snapshot* pS
 
         const vogl_context_desc& desc = pContext->get_context_desc();
         vogleditor_stateTreeContextItem* pContextItem = new vogleditor_stateTreeContextItem(tmp.sprintf("Context %p", (void*)desc.get_trace_context()), "", parent, *pContext);
-        if (m_pBaseSnapshot != NULL && m_pBaseSnapshot->get_contexts().size() > 0 && m_pBaseSnapshot->get_contexts().at(c) != NULL)
+        if (m_pBaseSnapshot != NULL && m_pBaseSnapshot->is_valid() && m_pBaseSnapshot->get_contexts().size() > 0 && m_pBaseSnapshot->get_contexts().at(c) != NULL)
         {
             // set the diff state to be the same state, so that there does not appear to be any diff's
             const vogl_context_snapshot* pDiffContext = m_pBaseSnapshot->get_contexts()[c];
