@@ -160,7 +160,6 @@ private:
 
    vogleditor_traceReplayer m_traceReplayer;
    vogl_trace_file_reader* m_pTraceReader;
-   vogl_trace_file_writer* m_pTraceWriter;
    vogl::json_document m_backtraceDoc;
    vogl::hash_map<vogl::uint32, vogl::json_node*> m_backtraceToJsonMap;
 
