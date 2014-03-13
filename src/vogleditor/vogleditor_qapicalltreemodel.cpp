@@ -454,10 +454,14 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_next_snapshot(vog
 {
     QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
 
-    if (iter.findNext(start) == false)
+    // if start is NULL, then search will begin from top, otherwise it will begin from the start item and search onwards
+    if (start != NULL)
     {
-        // the object wasn't found in the list, so just return the same item
-        return start;
+        if (iter.findNext(start) == false)
+        {
+            // the object wasn't found in the list, so just return the same item
+            return start;
+        }
     }
 
     // now the iterator is pointing to the desired start object in the list,
@@ -535,6 +539,52 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vog
             gl_entrypoint_id_t entrypointId = static_cast<gl_entrypoint_id_t>(pItem->apiCallItem()->getGLPacket()->m_entrypoint_id);
             if (vogl_is_draw_entrypoint(entrypointId) ||
                 vogl_is_clear_entrypoint(entrypointId))
+            {
+                pFound = iter.peekNext();
+                break;
+            }
+        }
+
+        iter.next();
+    }
+
+    return pFound;
+}
+
+vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_call_number(uint64_t callNumber)
+{
+    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+
+    vogleditor_apiCallTreeItem* pFound = NULL;
+    while (iter.hasNext())
+    {
+        vogleditor_apiCallTreeItem* pItem = iter.peekNext();
+        if (pItem->apiCallItem() != NULL)
+        {
+            if (pItem->apiCallItem()->globalCallIndex() == callNumber)
+            {
+                pFound = iter.peekNext();
+                break;
+            }
+        }
+
+        iter.next();
+    }
+
+    return pFound;
+}
+
+vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_frame_number(uint64_t frameNumber)
+{
+    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+
+    vogleditor_apiCallTreeItem* pFound = NULL;
+    while (iter.hasNext())
+    {
+        vogleditor_apiCallTreeItem* pItem = iter.peekNext();
+        if (pItem->frameItem() != NULL)
+        {
+            if (pItem->frameItem()->frameNumber() == frameNumber)
             {
                 pFound = iter.peekNext();
                 break;

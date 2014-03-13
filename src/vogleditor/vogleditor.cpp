@@ -45,6 +45,7 @@
 
 #include "vogl_texture_format.h"
 #include "vogl_trace_file_reader.h"
+#include "vogl_trace_file_writer.h"
 #include "vogleditor_qstatetreemodel.h"
 #include "vogleditor_statetreetextureitem.h"
 #include "vogleditor_statetreeprogramitem.h"
@@ -118,6 +119,7 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pTrimButton(NULL),
    m_pStopButton(NULL),
    m_pTraceReader(NULL),
+   m_pTraceWriter(NULL),
    m_pApicallTreeModel(NULL)
 {
    ui->setupUi(this);
@@ -339,7 +341,15 @@ void VoglEditor::close_trace_file()
    if (m_pTraceReader != NULL)
    {
       m_pTraceReader->close();
+      vogl_delete(m_pTraceReader);
       m_pTraceReader = NULL;
+
+      if (m_pTraceWriter != NULL)
+      {
+          m_pTraceWriter->close();
+          vogl_delete(m_pTraceWriter);
+          m_pTraceWriter = NULL;
+      }
 
       setWindowTitle(g_PROJECT_NAME);
 
@@ -387,8 +397,7 @@ void VoglEditor::on_actionExport_API_Calls_triggered()
     }
     suggestedName += "-ApiCalls.txt";
 
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Export API Calls"), suggestedName,
-            tr("Text (*.txt)"));
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Export API Calls"), suggestedName, tr("Text (*.txt)"));
 
     if (!fileName.isEmpty())
     {
@@ -404,6 +413,394 @@ void VoglEditor::on_actionExport_API_Calls_triggered()
         }
         vogl_fclose(pFile);
     }
+}
+
+static const unsigned int VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1 = 1;
+static const unsigned int VOGLEDITOR_SESSION_FILE_FORMAT_VERSION = VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1;
+
+bool VoglEditor::load_session_from_disk(QString sessionFile)
+{
+    // open the json doc
+    json_document sessionDoc;
+    if (!sessionDoc.deserialize_file(sessionFile.toStdString().c_str()))
+    {
+        return false;
+    }
+
+    // look for expected metadata
+    json_node* pMetadata = sessionDoc.get_root()->find_child_object("metadata");
+    if (pMetadata == NULL)
+    {
+        return false;
+    }
+
+    const json_value& rFormatVersion = pMetadata->find_value("session_file_format_version");
+    if (!rFormatVersion.is_valid())
+    {
+        return false;
+    }
+
+    if (rFormatVersion.as_uint32() != VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1)
+    {
+        return false;
+    }
+
+    // load base trace file
+    json_node* pBaseTraceFile = sessionDoc.get_root()->find_child_object("base_trace_file");
+    if (pBaseTraceFile == NULL)
+    {
+        return false;
+    }
+
+    const json_value& rBaseTraceFilePath = pBaseTraceFile->find_value("rel_path");
+    const json_value& rBaseTraceFileUuid = pBaseTraceFile->find_value("uuid");
+
+    if (!rBaseTraceFilePath.is_valid() || !rBaseTraceFileUuid.is_valid())
+    {
+        return false;
+    }
+
+    dynamic_string sessionPathName;
+    dynamic_string sessionFileName;
+    file_utils::split_path(sessionFile.toStdString().c_str(), sessionPathName, sessionFileName);
+
+    dynamic_string traceFilePath = sessionPathName;
+    traceFilePath.append(rBaseTraceFilePath.as_string());
+
+    if (!open_trace_file(traceFilePath))
+    {
+        return false;
+    }
+
+    // TODO: verify UUID of the loaded trace file
+
+    // load session data if it is available
+    json_node* pSessionData = sessionDoc.get_root()->find_child_object("session_data");
+    if (pSessionData != NULL)
+    {
+        const json_value& rSessionPath = pSessionData->find_value("rel_path");
+        if (!rSessionPath.is_valid())
+        {
+            return false;
+        }
+
+        dynamic_string sessionDataPath = sessionPathName;
+        sessionDataPath.append(rSessionPath.as_string());
+
+        vogl_loose_file_blob_manager file_blob_manager;
+        file_blob_manager.init(cBMFReadWrite, sessionDataPath.c_str());
+        vogl_blob_manager* pBlob_manager = static_cast<vogl_blob_manager*>(&file_blob_manager);
+
+        // load snapshots
+        const json_node* pSnapshots = pSessionData->find_child_array("snapshots");
+        for (unsigned int i = 0; i < pSnapshots->size(); i++)
+        {
+            const json_node* pSnapshotNode = pSnapshots->get_value_as_object(i);
+
+            const json_value& uuid = pSnapshotNode->find_value("uuid");
+            const json_value& isValid = pSnapshotNode->find_value("is_valid");
+            const json_value& isEdited = pSnapshotNode->find_value("is_edited");
+            const json_value& isOutdated = pSnapshotNode->find_value("is_outdated");
+            const json_value& frameNumber = pSnapshotNode->find_value("frame_number");
+            const json_value& callIndex = pSnapshotNode->find_value("call_index");
+            const json_value& path = pSnapshotNode->find_value("rel_path");
+
+            // make sure expected nodes are valid
+            if (!isValid.is_valid() || !isEdited.is_valid() || !isOutdated.is_valid())
+            {
+                return false;
+            }
+
+            vogl_gl_state_snapshot* pSnapshot = NULL;
+
+            if (path.is_valid() && isValid.as_bool() && uuid.is_valid())
+            {
+                dynamic_string snapshotPath = sessionDataPath;
+                snapshotPath.append(path.as_string());
+
+                // load the snapshot
+                json_document snapshotDoc;
+                if (!snapshotDoc.deserialize_file(snapshotPath.c_str()))
+                {
+                    return false;
+                }
+
+                // attempt to verify the snapshot file
+                json_node* pSnapshotRoot = snapshotDoc.get_root();
+                if (pSnapshotRoot == NULL)
+                {
+                    vogl_warning_printf("Invalid snapshot file at %s.", path.as_string_ptr());
+                    continue;
+                }
+
+                const json_value& snapshotUuid = pSnapshotRoot->find_value("uuid");
+                if (!snapshotUuid.is_valid())
+                {
+                    vogl_warning_printf("Invalid 'uuid' in snapshot file at %s.", path.as_string_ptr());
+                    continue;
+                }
+
+                if (snapshotUuid.as_string() != uuid.as_string())
+                {
+                    vogl_warning_printf("Mismatching 'uuid' between snapshot file at %s and that stored in the session file at %s.", path.as_string_ptr(), sessionFile.toStdString().c_str());
+                    continue;
+                }
+
+                vogl_ctypes trace_gl_ctypes(m_pTraceReader->get_sof_packet().m_pointer_sizes);
+                pSnapshot = vogl_new(vogl_gl_state_snapshot);
+                if (!pSnapshot->deserialize(*snapshotDoc.get_root(), *pBlob_manager, &trace_gl_ctypes))
+                {
+                    vogl_delete(pSnapshot);
+                    pSnapshot = NULL;
+                    vogl_warning_printf("Unable to deserialize the snapshot with uuid %s.", uuid.as_string_ptr());
+                    continue;
+                }
+            }
+
+            vogleditor_gl_state_snapshot* pContainer = vogl_new(vogleditor_gl_state_snapshot, pSnapshot);
+            pContainer->set_edited(isEdited.as_bool());
+            pContainer->set_outdated(isOutdated.as_bool());
+
+            if (callIndex.is_valid())
+            {
+                // the snapshot is associated with an api call
+                vogleditor_apiCallTreeItem* pItem = m_pApicallTreeModel->find_call_number(callIndex.as_uint64());
+                if (pItem != NULL)
+                {
+                    pItem->set_snapshot(pContainer);
+                }
+                else
+                {
+                    vogl_warning_printf("Unable to find API call index %" PRIu64 " to load the snapshot into.", callIndex.as_uint64());
+                    if (pSnapshot != NULL) { vogl_delete(pSnapshot); pSnapshot = NULL; }
+                    if (pContainer != NULL) { vogl_delete(pContainer); pContainer = NULL; }
+                }
+            }
+            else if (frameNumber.is_valid())
+            {
+                // the snapshot is associated with a frame.
+                // frame snapshots have the additional requirement that the snapshot itself MUST exist since
+                // we only save a frame snapshot if it is the inital frame and it has been edited.
+                // If we allow NULL snapshots, that we could accidently remove the initial snapshot that was loaded with the trace file.
+                if (pSnapshot != NULL)
+                {
+                    vogleditor_apiCallTreeItem* pItem = m_pApicallTreeModel->find_frame_number(frameNumber.as_uint64());
+                    if (pItem != NULL)
+                    {
+                        pItem->set_snapshot(pContainer);
+                    }
+                    else
+                    {
+                        vogl_warning_printf("Unable to find frame number %" PRIu64 " to load the snapshot into.", frameNumber.as_uint64());
+                        if (pSnapshot != NULL) { vogl_delete(pSnapshot); pSnapshot = NULL; }
+                        if (pContainer != NULL) { vogl_delete(pContainer); pContainer = NULL; }
+                    }
+                }
+            }
+            else
+            {
+                vogl_warning_printf("Session file contains invalid call or frame number for snapshot with uuid %s", uuid.as_string_ptr());
+                if (pSnapshot != NULL) { vogl_delete(pSnapshot); pSnapshot = NULL; }
+                if (pContainer != NULL) { vogl_delete(pContainer); pContainer = NULL; }
+            }
+        }
+    }
+
+    return true;
+}
+
+/*
+ * Below is a summary of the information that needs to be saved out in a session's json file so that we can reload the session and be fully-featured.
+ * Note that not all of this information is currently supported (either by VoglEditor or the save/load functionality).
+ *
+ * sample data structure for version 1:
+{
+   "metadata" : {
+      "session_file_format_version" : "0x1"  <- would need to be updated when organization of existing data is changed
+   },
+   "base_trace_file" : {
+      "path" : "../traces/trimmed4.bin",
+      "uuid" : [ 2761638124, 1361789091, 2623121922, 1789156619 ]
+   },
+   "session_data" : {
+      "path" : "/home/peterl/voglproj/vogl_build/traces/trimmed4-vogleditor-sessiondata/",
+      "snapshots" : [
+         {
+            "uuid" : "B346B680801ED2F5144E421DEA5EFDCC",
+            "is_valid" : true,
+            "is_edited" : false,
+            "is_outdated" : false,
+            "frame_number" : 0
+         },
+         {
+            "uuid" : "BC261B884088DBEADF376A03A489F2B9",
+            "is_valid" : true,
+            "is_edited" : false,
+            "is_outdated" : false,
+            "call_index" : 881069,
+            "path" : "/home/peterl/voglproj/vogl_build/traces/trimmed4-vogleditor-sessiondata/snapshot_call_881069.json"
+         },
+         {
+            "uuid" : "176DE3DEAA437B871FE122C84D5432E3",
+            "is_valid" : true,
+            "is_edited" : true,
+            "is_outdated" : false,
+            "call_index" : 881075,
+            "path" : "/home/peterl/voglproj/vogl_build/traces/trimmed4-vogleditor-sessiondata/snapshot_call_881075.json"
+         },
+         {
+            "is_valid" : false,
+            "is_edited" : false,
+            "is_outdated" : true,
+            "call_index" : 881080
+         }
+      ]
+   }
+}
+*/
+bool VoglEditor::save_session_to_disk(QString sessionFile)
+{
+    dynamic_string sessionPathName;
+    dynamic_string sessionFileName;
+    file_utils::split_path(sessionFile.toStdString().c_str(), sessionPathName, sessionFileName);
+
+    // modify the session file name to make a sessiondata folder
+    QString sessionDataFolder(sessionFileName.c_str());
+    int lastIndex = sessionDataFolder.lastIndexOf('.');
+    if (lastIndex != -1)
+    {
+        sessionDataFolder = sessionDataFolder.remove(lastIndex, sessionDataFolder.size() - lastIndex);
+    }
+    sessionDataFolder += "-sessiondata/";
+
+    dynamic_string sessionDataPath = sessionPathName;
+    sessionDataPath.append(sessionDataFolder.toStdString().c_str());
+    file_utils::create_directories(sessionDataPath, false);
+
+    vogl_loose_file_blob_manager file_blob_manager;
+    file_blob_manager.init(cBMFReadWrite, sessionDataPath.c_str());
+    vogl_blob_manager* pBlob_manager = static_cast<vogl_blob_manager*>(&file_blob_manager);
+
+    QCursor origCursor = this->cursor();
+    setCursor(Qt::WaitCursor);
+
+    json_document sessionDoc;
+    json_node& metadata = sessionDoc.get_root()->add_object("metadata");
+    metadata.add_key_value("session_file_format_version", to_hex_string(VOGLEDITOR_SESSION_FILE_FORMAT_VERSION));
+
+    // find relative path from session file to trace file
+    QDir relativeAppDir;
+    QString absoluteTracePath = relativeAppDir.absoluteFilePath(m_openFilename.toStdString().c_str());
+    QDir absoluteSessionFileDir(sessionPathName.c_str());
+    QString tracePathRelativeToSessionFile = absoluteSessionFileDir.relativeFilePath(absoluteTracePath);
+
+    json_node& baseTraceFile = sessionDoc.get_root()->add_object("base_trace_file");
+    baseTraceFile.add_key_value("rel_path", tracePathRelativeToSessionFile.toStdString().c_str());
+    json_node &uuid_array = baseTraceFile.add_array("uuid");
+    for (uint i = 0; i < VOGL_ARRAY_SIZE(m_pTraceReader->get_sof_packet().m_uuid); i++)
+    {
+        uuid_array.add_value(m_pTraceReader->get_sof_packet().m_uuid[i]);
+    }
+
+    json_node& sessionDataNode = sessionDoc.get_root()->add_object("session_data");
+    sessionDataNode.add_key_value("rel_path", sessionDataFolder.toStdString().c_str());
+    json_node& snapshotArray = sessionDataNode.add_array("snapshots");
+
+    vogleditor_apiCallTreeItem* pItem = m_pApicallTreeModel->find_next_snapshot(NULL);
+    vogleditor_apiCallTreeItem* pLastItem = NULL;
+    bool bSavedSuccessfully = true;
+    while (pItem != pLastItem && pItem != NULL)
+    {
+        dynamic_string filename;
+
+        json_node& snapshotNode = snapshotArray.add_object();
+        if (pItem->get_snapshot()->get_snapshot() != NULL)
+        {
+            dynamic_string strUUID;
+            snapshotNode.add_key_value("uuid", pItem->get_snapshot()->get_snapshot()->get_uuid().get_string(strUUID));
+        }
+        snapshotNode.add_key_value("is_valid", pItem->get_snapshot()->is_valid());
+        snapshotNode.add_key_value("is_edited", pItem->get_snapshot()->is_edited());
+        snapshotNode.add_key_value("is_outdated", pItem->get_snapshot()->is_outdated());
+
+        if (pItem->apiCallItem() != NULL)
+        {
+            uint64_t callIndex = pItem->apiCallItem()->globalCallIndex();
+            snapshotNode.add_key_value("call_index", callIndex);
+            if (pItem->get_snapshot()->get_snapshot() != NULL)
+            {
+                filename = filename.format("snapshot_call_%" PRIu64 ".json", callIndex);
+                snapshotNode.add_key_value("rel_path", filename);
+                dynamic_string filepath = sessionDataPath;
+                filepath.append(filename);
+                if (!save_snapshot_to_disk(pItem->get_snapshot()->get_snapshot(), filepath, pBlob_manager))
+                {
+                    bSavedSuccessfully = false;
+                    break;
+                }
+            }
+        }
+        else if (pItem->frameItem() != NULL)
+        {
+            // the first frame of a trim will have a snapshot.
+            // this should only be saved out if the snapshot has been edited
+            uint64_t frameNumber = pItem->frameItem()->frameNumber();
+            snapshotNode.add_key_value("frame_number", frameNumber);
+            if (pItem->get_snapshot()->is_edited())
+            {
+                filename = filename.format("snapshot_frame_%" PRIu64 ".json", frameNumber);
+                snapshotNode.add_key_value("rel_path", filename);
+                dynamic_string filepath = sessionDataPath;
+                filepath.append(filename);
+                if (!save_snapshot_to_disk(pItem->get_snapshot()->get_snapshot(), filepath, pBlob_manager))
+                {
+                    bSavedSuccessfully = false;
+                    break;
+                }
+            }
+        }
+
+        pLastItem = pItem;
+        pItem = m_pApicallTreeModel->find_next_snapshot(pLastItem);
+    }
+
+    if (bSavedSuccessfully)
+    {
+        bSavedSuccessfully = sessionDoc.serialize_to_file(sessionFile.toStdString().c_str());
+    }
+
+    setCursor(origCursor);
+
+    return bSavedSuccessfully;
+}
+
+bool VoglEditor::save_snapshot_to_disk(vogl_gl_state_snapshot *pSnapshot, dynamic_string filename, vogl_blob_manager *pBlob_manager)
+{
+    if (pSnapshot == NULL)
+    {
+        return false;
+    }
+
+    json_document doc;
+
+    vogl_ctypes trace_gl_ctypes(m_pTraceReader->get_sof_packet().m_pointer_sizes);
+
+    if (!pSnapshot->serialize(*doc.get_root(), *pBlob_manager, &trace_gl_ctypes))
+    {
+        vogl_error_printf("Failed serializing state snapshot document!\n");
+        return false;
+    }
+    else if (!doc.serialize_to_file(filename.get_ptr(), true))
+    {
+        vogl_error_printf("Failed writing state snapshot to file \"%s\"!\n", filename.get_ptr());
+        return false;
+    }
+    else
+    {
+        vogl_printf("Successfully wrote JSON snapshot to file \"%s\"\n", filename.get_ptr());
+    }
+
+    return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -553,6 +950,13 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
    close_trace_file();
    m_pTraceReader = tmpReader;
 
+   vogl_ctypes trace_ctypes;
+   trace_ctypes.init(m_pTraceReader->get_sof_packet().m_pointer_sizes);
+   m_pTraceWriter = vogl_new(vogl_trace_file_writer, &trace_ctypes);
+
+   dynamic_string traceSessionFilename = "vogleditor_session.bin";
+   m_pTraceWriter->open(traceSessionFilename.c_str());
+
    m_pApicallTreeModel = new vogleditor_QApiCallTreeModel(m_pTraceReader);
    ui->treeView->setModel(m_pApicallTreeModel);
 
@@ -583,6 +987,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
    ui->searchNextButton->setEnabled(true);
 
    ui->action_Close->setEnabled(true);
+   ui->actionSave_Session->setEnabled(true);
    ui->actionExport_API_Calls->setEnabled(true);
 
    ui->prevSnapshotButton->setEnabled(true);
@@ -799,6 +1204,7 @@ void VoglEditor::reset_tracefile_ui()
 {
     ui->action_Close->setEnabled(false);
     ui->actionExport_API_Calls->setEnabled(false);
+    ui->actionSave_Session->setEnabled(false);
 
     ui->prevSnapshotButton->setEnabled(false);
     ui->nextSnapshotButton->setEnabled(false);
@@ -1413,3 +1819,38 @@ void VoglEditor::recursive_update_snapshot_flags(vogleditor_apiCallTreeItem* pIt
 
 #undef VOGLEDITOR_DISABLE_TAB
 #undef VOGLEDITOR_ENABLE_TAB
+
+void VoglEditor::on_actionSave_Session_triggered()
+{
+    QString baseName = m_openFilename;
+
+    int lastIndex = baseName.lastIndexOf('.');
+    if (lastIndex != -1)
+    {
+        baseName = baseName.remove(lastIndex, baseName.size() - lastIndex);
+    }
+
+    QString suggestedName = baseName + "-vogleditor.json";
+
+    QString sessionFilename = QFileDialog::getSaveFileName(this, tr("Save Debug Session"), suggestedName, tr("JSON (*.json)"));
+
+    if (!save_session_to_disk(sessionFilename))
+    {
+        m_statusLabel->setText("ERROR: Failed to save session");
+    }
+}
+
+void VoglEditor::on_actionOpen_Session_triggered()
+{
+    QString sessionFilename = QFileDialog::getOpenFileName(this, tr("Load Debug Session"), QString(), tr("JSON (*.json)"));
+
+    QCursor origCursor = this->cursor();
+    setCursor(Qt::WaitCursor);
+
+    if (!load_session_from_disk(sessionFilename))
+    {
+        m_statusLabel->setText("ERROR: Failed to load session");
+    }
+
+    setCursor(origCursor);
+}
