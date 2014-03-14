@@ -105,7 +105,10 @@ else()
 endif()
 
 add_library(${PROJECT_NAME} ${SRC_LIST})
-target_link_libraries(${PROJECT_NAME} rt)
+target_link_libraries(${PROJECT_NAME}
+    pthread
+    rt
+    )
 
 build_options_finalize()
 
