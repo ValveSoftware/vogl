@@ -32,7 +32,7 @@ target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
     backtrace
     voglcommon
-    dl
+    ${CMAKE_DL_LIBS}
     X11
     pthread
     voglcore

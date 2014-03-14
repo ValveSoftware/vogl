@@ -51,11 +51,10 @@ target_link_libraries(${PROJECT_NAME}
     voglcommon
     voglcore
     pthread
-    dl
+    ${CMAKE_DL_LIBS}
     X11
     libturbojpeg.a
     rt
-    dl
     )
 
 build_options_finalize()

@@ -24,7 +24,7 @@ target_link_libraries(${PROJECT_NAME}
     pthread
     voglcore
     mainlib
-    dl
+    ${CMAKE_DL_LIBS}
     )
 
 build_options_finalize()
