@@ -151,13 +151,11 @@ target_link_libraries(${PROJECT_NAME}
 	${QT_QTCORE_LIBRARY} 
 	${QT_QTGUI_LIBRARY} 
 	${TELEMETRY_LIBRARY}
-	${CMAKE_THREAD_LIBS_INIT}
 	${X11_X11_LIB}
 	backtrace
 	voglcommon
     voglcore
-    X11
-    dl
+    ${CMAKE_DL_LIBS}
    )
 
 build_options_finalize()

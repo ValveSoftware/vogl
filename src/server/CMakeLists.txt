@@ -3,6 +3,10 @@ include("${SRC_DIR}/build_options.cmake")
 project(voglserver)
 
 find_package(Protobuf REQUIRED)
+find_package(Threads)
+if (NOT CMAKE_USE_PTHREADS_INIT)
+    message(ERROR "pthread not found")
+endif ()
 
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -41,7 +45,7 @@ add_executable(
 )
 
 target_link_libraries(${PROJECT_NAME}
-    pthread
+    ${CMAKE_THREAD_LIBS_INIT}
     rt
     libprotobuf.a)
 

@@ -3,6 +3,11 @@ cmake_minimum_required(VERSION 2.8)
 option(VOGLTRACE_NO_PUBLIC_EXPORTS "Don't define any public GL exports in libvogltraceXX.so, this .so will only be useful for manual loading" FALSE)
 
 include("${SRC_DIR}/build_options.cmake")
+find_package(Threads)
+if (NOT CMAKE_USE_PTHREADS_INIT)
+    message(ERROR "pthread not found")
+endif ()
+find_package(X11 REQUIRED)
 
 project(vogltrace)
 
@@ -50,12 +55,11 @@ target_link_libraries(${PROJECT_NAME}
     backtrace
     voglcommon
     voglcore
-    pthread
-    dl
-    X11
+    ${CMAKE_THREAD_LIBS_INIT}
+    ${CMAKE_DL_LIBS}
+    ${X11_X11_LIB}
     libturbojpeg.a
     rt
-    dl
     )
 
 build_options_finalize()

@@ -2,6 +2,7 @@ project(voglbench)
 cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
+find_package(X11 REQUIRED)
 
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -22,8 +23,8 @@ target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
     backtrace
     voglcommon
-    dl
-    X11
+    ${CMAKE_DL_LIBS}
+    ${X11_X11_LIB}
     voglcore
     rt
     )

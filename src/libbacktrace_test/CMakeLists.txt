@@ -2,6 +2,10 @@ project(libbacktrace_test)
 cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
+find_package(Threads)
+if (NOT CMAKE_USE_PTHREADS_INIT)
+    message(ERROR "pthread not found")
+endif ()
 
 # remove -rdynamic from our shared library (for testing realistic backtraces).
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS )
@@ -21,10 +25,10 @@ set(SRC_LIST
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 target_link_libraries(${PROJECT_NAME}
     backtrace
-    pthread
+    ${CMAKE_THREAD_LIBS_INIT}
     voglcore
     mainlib
-    dl
+    ${CMAKE_DL_LIBS}
     )
 
 build_options_finalize()

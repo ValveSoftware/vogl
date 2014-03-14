@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.8)
 project (OGLSuperBible)
 
 include("${SRC_DIR}/build_options.cmake")
+find_package(X11 REQUIRED)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/OGLSuperBible")
 
@@ -42,7 +43,13 @@ macro(DoSampleDir Dir)
 
             add_executable("${PROJECT_NAME}" ${SRC_LIST})
             target_link_libraries(${PROJECT_NAME}
-                sbcommon X11 GL m GLU glut)
+                sbcommon
+                ${X11_X11_LIB}
+                GL
+                m
+                GLU
+                glut
+                )
 
             # look for all .tga files in this sample directory
             file (GLOB textures "${sampledir}/*.tga")
