@@ -2,7 +2,12 @@ project(vogleditor)
 cmake_minimum_required(VERSION 2.8.9)
 
 include("${SRC_DIR}/build_options.cmake")
+
+if (NOT DEFINED ENV{QTDIR})
+set(ENV{QTDIR} /usr/local/Trolltech/Qt-4.8.5)
+endif()
 find_package(Qt4 REQUIRED)
+
 find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
 
