@@ -153,6 +153,8 @@ target_link_libraries(${PROJECT_NAME}
 	backtrace
 	voglcommon
     voglcore
+    X11
+    dl
    )
 
 build_options_finalize()
