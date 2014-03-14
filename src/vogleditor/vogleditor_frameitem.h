@@ -47,7 +47,7 @@ public:
    {
       for (int i = 0; i < m_apiCallList.size(); i++)
       {
-         delete m_apiCallList[i];
+         vogl_delete(m_apiCallList[i]);
          m_apiCallList[i] = NULL;
       }
       m_apiCallList.clear();
