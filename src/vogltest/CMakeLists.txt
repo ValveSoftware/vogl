@@ -29,7 +29,7 @@ target_link_libraries(${PROJECT_NAME}
     voglcore
     X11
     ${VOGLTEST_OPENGL_LIBRARY}
-    dl
+    ${CMAKE_DL_LIBS}
     )
 
 build_options_finalize()

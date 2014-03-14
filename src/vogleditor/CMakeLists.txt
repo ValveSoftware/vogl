@@ -157,7 +157,7 @@ target_link_libraries(${PROJECT_NAME}
 	voglcommon
     voglcore
     X11
-    dl
+    ${CMAKE_DL_LIBS}
    )
 
 build_options_finalize()
