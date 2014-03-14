@@ -2,6 +2,10 @@ project(voglreplay)
 cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
+find_package(Threads)
+if (NOT CMAKE_USE_PTHREADS_INIT)
+    message(ERROR "pthread not found")
+endif ()
 find_package(X11 REQUIRED)
 
 
@@ -35,7 +39,7 @@ target_link_libraries(${PROJECT_NAME}
     voglcommon
     ${CMAKE_DL_LIBS}
     ${X11_X11_LIB}
-    pthread
+    ${CMAKE_THREAD_LIBS_INIT}
     voglcore
     rt
     )
