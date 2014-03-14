@@ -149,12 +149,15 @@ configure_file (backtrace-supported.h.in backtrace-supported.h)
 
 configure_file (config.h.in.cmake config.h)
 
+find_path(LIBUNWIND_INCLUDE_DIR libunwind.h)
+
 include_directories (BEFORE
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 include_directories (
     auxincl
     ${SRC_DIR}/voglcore
+    ${LIBUNWIND_INCLUDE_DIR}
 )
 add_library (backtrace STATIC EXCLUDE_FROM_ALL
     ${BACKTRACE_FILE}
