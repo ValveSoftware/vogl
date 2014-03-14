@@ -2,6 +2,10 @@ project(voglcore)
 cmake_minimum_required(VERSION 2.8)
 
 option(VOGL_ENABLE_ASSERTS "Enable assertions in all builds (including release)" FALSE)
+find_package(Threads)
+if (NOT CMAKE_USE_PTHREADS_INIT)
+    message(ERROR "pthread not found")
+endif ()
 
 include("${SRC_DIR}/build_options.cmake")
 
@@ -106,7 +110,7 @@ endif()
 
 add_library(${PROJECT_NAME} ${SRC_LIST})
 target_link_libraries(${PROJECT_NAME}
-    pthread
+    ${CMAKE_THREAD_LIBS_INIT}
     rt
     )
 
