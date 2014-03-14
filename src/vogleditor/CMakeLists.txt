@@ -2,7 +2,6 @@ project(vogleditor)
 cmake_minimum_required(VERSION 2.8.9)
 
 include("${SRC_DIR}/build_options.cmake")
-set (QT_QMAKE_EXECUTABLE "/usr/local/Trolltech/Qt-4.8.5/bin/qmake")
 find_package(Qt4 REQUIRED)
 
 include_directories(
