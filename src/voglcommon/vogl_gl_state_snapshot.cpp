@@ -375,6 +375,23 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
                     vogl_error_printf("%s: GL program %u was snapshotted with a successful link status, but the link snapshot shadow doesn't contain this program!\n", VOGL_METHOD_NAME, handle);
                 }
             }
+            else if (state_type == cGLSTBuffer)
+            {
+                // Determine if this buffer has been mapped. I don't expect this array to be very big (typically empty) so a simple search is fine.
+                uint j;
+                for (j = 0; j < capture_params.m_mapped_buffers.size(); j++)
+                    if (capture_params.m_mapped_buffers[j].m_buffer == handle)
+                        break;
+
+                if (j < capture_params.m_mapped_buffers.size())
+                {
+                    const vogl_mapped_buffer_desc &map_desc = capture_params.m_mapped_buffers[j];
+
+                    vogl_buffer_state *pBuf_state = static_cast<vogl_buffer_state *>(p);
+
+                    pBuf_state->set_mapped_buffer_snapshot_state(map_desc);
+                }
+            }
 
             m_object_ptrs.push_back(p);
             total++;
@@ -702,7 +719,7 @@ bool vogl_gl_state_snapshot::capture_context(
             vogl_error_printf("%s: Failed snapshotting default framebuffer!\n", VOGL_METHOD_NAME);
         }
 
-        m_captured_default_framebuffer = false;
+        m_captured_default_framebuffer = true;
     }
 
     vogl_context_snapshot *pSnapshot = vogl_new(vogl_context_snapshot);

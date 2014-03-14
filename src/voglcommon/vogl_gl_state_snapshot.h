@@ -80,6 +80,33 @@ inline uint64_t vogl_sync_to_handle(GLsync sync)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// struct vogl_mapped_buffer_desc
+//----------------------------------------------------------------------------------------------------------------------
+struct vogl_mapped_buffer_desc
+{
+    // Handles and ptrs here are in the replay/GL domain
+    GLuint m_buffer;
+    GLenum m_target;
+    vogl_trace_ptr_value m_offset;
+    vogl_trace_ptr_value m_length;
+    GLbitfield m_access;
+    bool m_range;
+    void *m_pPtr;
+
+    vogl_mapped_buffer_desc()
+    {
+        clear();
+    }
+
+    void clear()
+    {
+        memset(this, 0, sizeof(*this));
+    }
+};
+
+typedef vogl::vector<vogl_mapped_buffer_desc> vogl_mapped_buffer_desc_vec;
+
+//----------------------------------------------------------------------------------------------------------------------
 // class vogl_capture_context_params
 // TODO: Rename this to vogl_context_state_shadow?
 //----------------------------------------------------------------------------------------------------------------------
@@ -133,6 +160,7 @@ public:
 
     // During replay: replay domain
     vogl_linked_program_state m_linked_programs;
+    vogl_mapped_buffer_desc_vec m_mapped_buffers;
 
     // During replay: These objects map from trace (non-inv) to replay (inv).
     // TODO: Transition ALL the above hash sets/maps to instances of vogl_handle_tracker.

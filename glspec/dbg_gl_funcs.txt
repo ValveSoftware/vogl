@@ -4220,14 +4220,14 @@ Name: "CopyBufferSubData", ParamNames: 5, Params: 5, Return: "void", Category: "
   Name: "size", Type: "BufferSize", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
 
 Name: "DrawElementsBaseVertex", ParamNames: 5, Params: 5, Return: "void", Category: "ARB_draw_elements_base_vertex", Version: "1.2", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
-  Name: "mode", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
+  Name: "mode", Type: "BeginMode", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "count", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "type", Type: "DrawElementsType", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "indices", Type: "Void", Direction: "in", Semantic: "array", ArraySize: "[COMPSIZE(count,type)]", Retained: 0
   Name: "basevertex", Type: "Int32", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
 
 Name: "DrawRangeElementsBaseVertex", ParamNames: 7, Params: 7, Return: "void", Category: "ARB_draw_elements_base_vertex", Version: "1.2", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
-  Name: "mode", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
+  Name: "mode", Type: "BeginMode", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "start", Type: "UInt32", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "end", Type: "UInt32", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "count", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
@@ -4236,7 +4236,7 @@ Name: "DrawRangeElementsBaseVertex", ParamNames: 7, Params: 7, Return: "void", C
   Name: "basevertex", Type: "Int32", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
 
 Name: "DrawElementsInstancedBaseVertex", ParamNames: 6, Params: 6, Return: "void", Category: "ARB_draw_elements_base_vertex", Version: "1.2", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
-  Name: "mode", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
+  Name: "mode", Type: "BeginMode", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "count", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "type", Type: "DrawElementsType", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "indices", Type: "Void", Direction: "in", Semantic: "array", ArraySize: "[COMPSIZE(count,type)]", Retained: 0
@@ -4244,7 +4244,7 @@ Name: "DrawElementsInstancedBaseVertex", ParamNames: 6, Params: 6, Return: "void
   Name: "basevertex", Type: "Int32", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
 
 Name: "MultiDrawElementsBaseVertex", ParamNames: 6, Params: 6, Return: "void", Category: "ARB_draw_elements_base_vertex", Version: "1.2", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
-  Name: "mode", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
+  Name: "mode", Type: "BeginMode", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "count", Type: "SizeI", Direction: "in", Semantic: "array", ArraySize: "[drawcount]", Retained: 0
   Name: "type", Type: "DrawElementsType", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "indices", Type: "ConstVoidPointer", Direction: "in", Semantic: "array", ArraySize: "[drawcount]", Retained: 0
@@ -4639,7 +4639,7 @@ Name: "DrawArraysIndirect", ParamNames: 2, Params: 2, Return: "void", Category: 
   Name: "indirect", Type: "Void", Direction: "in", Semantic: "array", ArraySize: "[]", Retained: 0
 
 Name: "DrawElementsIndirect", ParamNames: 3, Params: 3, Return: "void", Category: "ARB_draw_indirect", Version: "1.2", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
-  Name: "mode", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
+  Name: "mode", Type: "BeginMode", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "type", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "indirect", Type: "Void", Direction: "in", Semantic: "array", ArraySize: "[]", Retained: 0
 
@@ -5520,7 +5520,7 @@ Name: "DrawArraysInstancedBaseInstance", ParamNames: 5, Params: 5, Return: "void
   Name: "baseinstance", Type: "UInt32", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
 
 Name: "DrawElementsInstancedBaseInstance", ParamNames: 6, Params: 6, Return: "void", Category: "ARB_base_instance", Version: "4.2", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
-  Name: "mode", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
+  Name: "mode", Type: "BeginMode", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "count", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "type", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "indices", Type: "void", Direction: "in", Semantic: "array", ArraySize: "[count]", Retained: 0
@@ -5528,7 +5528,7 @@ Name: "DrawElementsInstancedBaseInstance", ParamNames: 6, Params: 6, Return: "vo
   Name: "baseinstance", Type: "UInt32", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
 
 Name: "DrawElementsInstancedBaseVertexBaseInstance", ParamNames: 7, Params: 7, Return: "void", Category: "ARB_base_instance", Version: "4.2", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
-  Name: "mode", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
+  Name: "mode", Type: "BeginMode", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "count", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "type", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "indices", Type: "void", Direction: "in", Semantic: "array", ArraySize: "[count]", Retained: 0
@@ -5887,7 +5887,7 @@ Name: "MultiDrawArraysIndirect", ParamNames: 4, Params: 4, Return: "void", Categ
   Name: "stride", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
 
 Name: "MultiDrawElementsIndirect", ParamNames: 5, Params: 5, Return: "void", Category: "ARB_multi_draw_indirect", Version: "4.3", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
-  Name: "mode", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
+  Name: "mode", Type: "BeginMode", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "type", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "indirect", Type: "void", Direction: "in", Semantic: "array", ArraySize: "[COMPSIZE(drawcount,stride)]", Retained: 0
   Name: "drawcount", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
@@ -12773,7 +12773,7 @@ Name: "MultiDrawArraysIndirectAMD", ParamNames: 4, Params: 4, Return: "void", Ca
   Name: "stride", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
 
 Name: "MultiDrawElementsIndirectAMD", ParamNames: 5, Params: 5, Return: "void", Category: "AMD_multi_draw_indirect", Version: "4.0", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
-  Name: "mode", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
+  Name: "mode", Type: "BeginMode", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "type", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "indirect", Type: "Void", Direction: "in", Semantic: "array", ArraySize: "[]", Retained: 0
   Name: "primcount", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0

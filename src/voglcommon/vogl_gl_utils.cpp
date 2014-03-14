@@ -478,6 +478,9 @@ size_t vogl_get_image_size(GLenum format, GLenum type, GLsizei width, GLsizei he
     GLint skip_pixels = vogl_get_gl_integer(GL_UNPACK_SKIP_PIXELS);
     GLint skip_images = vogl_get_gl_integer(GL_UNPACK_SKIP_IMAGES);
 
+    //printf("format: 0x%X type: 0x%X width: %i height: %i depth: %i alignment: %i row_length: %i image_height: %i skip_rows: %i skip_pixels: %i skip_images: %i\n",
+    //       format, type, (int)width, (int)height, (int)depth, alignment, row_length, image_height, skip_rows, skip_pixels, skip_images);
+
     if (row_length <= 0)
     {
         row_length = width;

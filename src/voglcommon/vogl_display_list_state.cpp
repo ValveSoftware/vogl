@@ -81,12 +81,11 @@ bool vogl_display_list::serialize(json_node &node, vogl_blob_manager &blob_manag
 {
     VOGL_FUNC_TRACER
 
-    if (!m_valid)
-        return false;
-
     node.add_key_value("handle", m_handle);
+    node.add_key_value("valid", m_valid);
     node.add_key_value("generating", m_generating);
     node.add_key_value("xfont", m_xfont);
+
     if (m_xfont)
     {
         node.add_key_value("xfont_glyph", m_xfont_glyph);
@@ -122,8 +121,10 @@ bool vogl_display_list::deserialize(const json_node &node, const vogl_blob_manag
     clear();
 
     m_handle = node.value_as_uint32("handle");
+    m_valid = node.value_as_bool("valid", true);
     m_generating = node.value_as_bool("generating");
     m_xfont = node.value_as_bool("xfont");
+
     if (m_xfont)
     {
         m_xfont_glyph = node.value_as_int("xfont_glyph");
@@ -157,8 +158,6 @@ bool vogl_display_list::deserialize(const json_node &node, const vogl_blob_manag
             }
         }
     }
-
-    m_valid = true;
 
     return true;
 }
@@ -229,11 +228,7 @@ bool vogl_display_list_state::serialize(json_node &node, vogl_blob_manager &blob
 
         for (vogl_display_list_map::const_iterator it = m_display_lists.begin(); it != m_display_lists.end(); ++it)
         {
-            if (!it->second.is_valid())
-            {
-                vogl_warning_printf("%s: Unable to serialize display list at GL handle %u. This list is probably still being composed.\n", VOGL_METHOD_NAME, it->second.get_handle());
-                continue;
-            }
+            // It's OK if the display list isn't valid yet, it might just have been genned and not used.
             if (!it->second.serialize(lists_node.add_object(uint_to_string(it->first)), blob_manager, pCtypes))
                 return false;
         }

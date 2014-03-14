@@ -344,17 +344,6 @@ private:
     };
     typedef vogl::hash_map<GLuint, glsl_program_state> glsl_program_hash_map;
 
-    struct mapped_buffer_desc
-    {
-        GLuint m_buffer;
-        GLenum m_target;
-        vogl_trace_ptr_value m_offset;
-        vogl_trace_ptr_value m_length;
-        GLbitfield m_access;
-        bool m_range;
-        void *m_pPtr;
-    };
-
     class context_state
     {
         VOGL_NO_COPY_OR_ASSIGNMENT_OP(context_state);
@@ -440,8 +429,6 @@ private:
 
         GLuint m_cur_replay_program;
         GLuint m_cur_trace_program;
-
-        vogl::vector<mapped_buffer_desc> m_mapped_buffers;
 
         vogl::vector<GLfloat> m_feedback_buffer;
         vogl::vector<GLuint> m_select_buffer;
