@@ -23,7 +23,6 @@ target_link_libraries(${PROJECT_NAME}
     backtrace
     voglcommon
     dl
-    pthread
     voglcore
     rt
     )
