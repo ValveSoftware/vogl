@@ -2,8 +2,9 @@ project(vogleditor)
 cmake_minimum_required(VERSION 2.8.9)
 
 include("${SRC_DIR}/build_options.cmake")
-set (QT_QMAKE_EXECUTABLE "/usr/local/Trolltech/Qt-4.8.5/bin/qmake")
 find_package(Qt4 REQUIRED)
+find_package(Threads REQUIRED)
+find_package(X11 REQUIRED)
 
 include_directories(
     ${SRC_DIR}
@@ -150,6 +151,8 @@ target_link_libraries(${PROJECT_NAME}
 	${QT_QTCORE_LIBRARY} 
 	${QT_QTGUI_LIBRARY} 
 	${TELEMETRY_LIBRARY}
+	${CMAKE_THREAD_LIBS_INIT}
+	${X11_X11_LIB}
 	backtrace
 	voglcommon
     voglcore
