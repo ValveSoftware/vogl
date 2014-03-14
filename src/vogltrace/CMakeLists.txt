@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 option(VOGLTRACE_NO_PUBLIC_EXPORTS "Don't define any public GL exports in libvogltraceXX.so, this .so will only be useful for manual loading" FALSE)
 
 include("${SRC_DIR}/build_options.cmake")
+find_package(X11 REQUIRED)
 
 project(vogltrace)
 
@@ -52,7 +53,7 @@ target_link_libraries(${PROJECT_NAME}
     voglcore
     pthread
     ${CMAKE_DL_LIBS}
-    X11
+    ${X11_X11_LIB}
     libturbojpeg.a
     rt
     )

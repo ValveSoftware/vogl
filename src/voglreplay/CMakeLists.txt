@@ -2,6 +2,7 @@ project(voglreplay)
 cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
+find_package(X11 REQUIRED)
 
 
 include_directories(
@@ -33,7 +34,7 @@ target_link_libraries(${PROJECT_NAME}
     backtrace
     voglcommon
     ${CMAKE_DL_LIBS}
-    X11
+    ${X11_X11_LIB}
     pthread
     voglcore
     rt
