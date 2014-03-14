@@ -173,15 +173,20 @@ bool vogleditor_traceReplayer::recursive_replay_apicallTreeItem(vogleditor_apiCa
                {
                   vogl_printf("Taking snapshot on API call # %" PRIu64 "\n", apiCallNumber);
 
-                  *ppNewSnapshot = vogl_new(vogleditor_gl_state_snapshot, m_pTraceReplayer->snapshot_state());
-
-                  if (*ppNewSnapshot == NULL)
+                  vogl_gl_state_snapshot* pNewSnapshot = m_pTraceReplayer->snapshot_state();
+                  if (pNewSnapshot == NULL)
                   {
-                     vogl_error_printf("Snapshot failed!\n");
+                      vogl_error_printf("Taking new snapshot failed!\n");
                   }
                   else
                   {
-                      vogl_printf("Snapshot succeeded\n");
+                      vogl_printf("Taking snapshot succeeded\n");
+                      *ppNewSnapshot = vogl_new(vogleditor_gl_state_snapshot, pNewSnapshot);
+                      if (*ppNewSnapshot == NULL)
+                      {
+                         vogl_error_printf("Allocating memory for snapshot container failed!\n");
+                         vogl_delete(pNewSnapshot);
+                      }
                   }
 
                   bStatus = false;
