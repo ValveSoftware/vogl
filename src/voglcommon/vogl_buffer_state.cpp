@@ -26,6 +26,7 @@
 // File: vogl_buffer_state.cpp
 #include "vogl_common.h"
 #include "vogl_buffer_state.h"
+#include "vogl_gl_state_snapshot.h"
 
 vogl_buffer_state::vogl_buffer_state()
     : m_snapshot_handle(0),
@@ -96,18 +97,18 @@ bool vogl_buffer_state::snapshot(const vogl_context_info &context_info, vogl_han
             return false;
         }
 
-        if (m_params.get_value<int>(GL_BUFFER_MAPPED) != 0)
-        {
-            vogl_error_printf("%s: Can't snapshot buffer %" PRIu64 " target %s while it's currently mapped\n", VOGL_METHOD_NAME,
-                             (uint64_t)handle, g_gl_enums.find_gl_name(target));
-            clear();
-            return false;
-        }
-
         int buf_size = m_params.get_value<int>(GL_BUFFER_SIZE);
         if (buf_size < 0)
         {
             vogl_error_printf("%s: Invalid buffer size, buffer %" PRIu64 " target %s size %i\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(target), buf_size);
+            clear();
+            return false;
+        }
+
+        if (m_params.get_value<int>(GL_BUFFER_MAPPED) != 0)
+        {
+            vogl_error_printf("%s: Can't snapshot buffer %" PRIu64 " target %s while it's currently mapped\n", VOGL_METHOD_NAME,
+                             (uint64_t)handle, g_gl_enums.find_gl_name(target));
             clear();
             return false;
         }
@@ -134,6 +135,20 @@ bool vogl_buffer_state::snapshot(const vogl_context_info &context_info, vogl_han
     m_is_valid = true;
 
     return true;
+}
+
+void vogl_buffer_state::set_mapped_buffer_snapshot_state(const vogl_mapped_buffer_desc &map_desc)
+{
+    VOGL_FUNC_TRACER
+
+    VOGL_ASSERT(map_desc.m_buffer == m_snapshot_handle);
+
+    m_is_mapped = true;
+
+    m_map_ofs = map_desc.m_offset;
+    m_map_size = map_desc.m_length;
+    m_map_access = map_desc.m_access;
+    m_map_range = map_desc.m_range;
 }
 
 bool vogl_buffer_state::restore(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint64 &handle) const
@@ -231,6 +246,12 @@ void vogl_buffer_state::clear()
     m_buffer_data.clear();
     m_params.clear();
     m_is_valid = false;
+
+    m_map_ofs = 0;
+    m_map_size = 0;
+    m_map_access = 0;
+    m_map_range = false;
+    m_is_mapped = false;
 }
 
 bool vogl_buffer_state::serialize(json_node &node, vogl_blob_manager &blob_manager) const
@@ -260,6 +281,12 @@ bool vogl_buffer_state::serialize(json_node &node, vogl_blob_manager &blob_manag
     node.add_key_value("handle", m_snapshot_handle);
     node.add_key_value("target", g_gl_enums.find_gl_name(m_target));
     node.add_key_value("buffer_data_blob_id", blob_id);
+
+    node.add_key_value("map_ofs", m_map_ofs);
+    node.add_key_value("map_size", m_map_size);
+    node.add_key_value("map_access", m_map_access);
+    node.add_key_value("map_range", m_map_range);
+    node.add_key_value("is_mapped", m_is_mapped);
 
     if (!m_params.serialize(node.add_object("params"), blob_manager))
         return false;
@@ -315,6 +342,12 @@ bool vogl_buffer_state::deserialize(const json_node &node, const vogl_blob_manag
         }
     }
 
+    m_map_ofs = node.value_as_uint64("map_ofs");
+    m_map_size = node.value_as_uint64("map_size");
+    m_map_access = node.value_as_uint32("map_access");
+    m_map_range = node.value_as_bool("map_range");
+    m_is_mapped = node.value_as_bool("is_mapped");
+
     m_is_valid = true;
 
     return true;
@@ -347,3 +380,28 @@ bool vogl_buffer_state::compare_restorable_state(const vogl_gl_object_state &rhs
 
     return true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

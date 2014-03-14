@@ -3080,48 +3080,82 @@ static inline bool vogl_func_is_nulled(gl_entrypoint_id_t id)
 
 //----------------------------------------------------------------------------------------------------------------------
 // Texture/image API's array size helper macros
+// TODO: For glTexImage3DEXT, glTexSubImage1DEXT, etc. - should these check the currently bound GL_PIXEL_UNPACK_BUFFER?
 //----------------------------------------------------------------------------------------------------------------------
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexImage1D_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexImage2D_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexImage3D_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, depth)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, depth)
+size_t vogl_calc_set_tex_image_serialize_size(vogl_context *pContext, GLenum format, GLenum type, GLsizei width, GLsizei height, GLsizei depth)
+{
+    if (pContext)
+    {
+        if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            return 0;
+    }
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage1D_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
+    return vogl_get_image_size(format, type, width, height, depth);
+}
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage2D_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
+size_t vogl_calc_get_tex_image_serialize_size(vogl_context *pContext, GLenum format, GLenum type, GLsizei width, GLsizei height, GLsizei depth)
+{
+    if (pContext)
+    {
+        if (vogl_get_bound_gl_buffer(GL_PIXEL_PACK_BUFFER))
+            return 0;
+    }
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage3D_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, depth)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, depth)
+    return vogl_get_image_size(format, type, width, height, depth);
+}
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, depth)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
+size_t vogl_calc_get_tex_target_serialize_size(vogl_context *pContext, GLenum target, GLint level, GLenum format, GLenum type)
+{
+    if (pContext)
+    {
+        if (vogl_get_bound_gl_buffer(GL_PIXEL_PACK_BUFFER))
+            return 0;
+    }
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureSubImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, depth)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureSubImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureSubImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
+    return vogl_get_tex_target_image_size(target, level, format, type);
+}
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, depth)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexImage1D_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexImage2D_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexImage3D_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, depth)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, depth)
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexSubImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, depth)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexSubImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexSubImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage1D_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glDrawPixels_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glConvolutionFilter1D_image(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glConvolutionFilter2D_image(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage2D_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, 1)
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glColorTable_table(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glColorSubTable_data(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, count, 1, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage3D_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, depth)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTexSubImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, depth)
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glBitmap_size(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(GL_COLOR_INDEX, GL_BITMAP, width, height, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glPolygonStipple_mask(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(GL_COLOR_INDEX, GL_BITMAP, 32, 32, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, depth)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glGetTexImage_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_tex_target_image_size(target, level, format, type)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureSubImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, depth)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureSubImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glTextureSubImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
+
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, depth)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
+
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexSubImage3DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, depth)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexSubImage2DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMultiTexSubImage1DEXT_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
+
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glDrawPixels_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glConvolutionFilter1D_image(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glConvolutionFilter2D_image(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, height, 1)
+
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glColorTable_table(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glColorSubTable_data(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, count, 1, 1)
+
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glBitmap_size(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, GL_COLOR_INDEX, GL_BITMAP, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glPolygonStipple_mask(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, GL_COLOR_INDEX, GL_BITMAP, 32, 32, 1)
+
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glGetTexImage_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_get_tex_target_serialize_size(pContext, target, level, format, type)
 
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glStringMarkerGREMEDY_string(e, c, rt, r, nu, ne, a, p) ((string) ? (!(len) ? (strlen(static_cast<const char *>(string)) + 1) : (len)) : 0)
 
@@ -3132,13 +3166,13 @@ static inline bool vogl_func_is_nulled(gl_entrypoint_id_t id)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glGetActiveAttrib_name(e, c, rt, r, nu, ne, a, p) ((name) ? (strlen((const char *)(name)) + 1) : -1)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glGetActiveAttribARB_name(e, c, rt, r, nu, ne, a, p) ((name) ? (strlen((const char *)(name)) + 1) : -1)
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glReadPixels_pixels(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glReadPixels_pixels(e, c, rt, r, nu, ne, a, p) vogl_calc_get_tex_image_serialize_size(pContext, format, type, width, height, 1)
 
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glBindFragDataLocationIndexed_name(e, c, rt, r, nu, ne, a, p) (name ? (strlen((const char *)(name)) + 1) : -1)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glBindFragDataLocation_name(e, c, rt, r, nu, ne, a, p) (name ? (strlen((const char *)(name)) + 1) : -1)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glBindFragDataLocationEXT_name(e, c, rt, r, nu, ne, a, p) (name ? (strlen((const char *)(name)) + 1) : -1)
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glBitmap_bitmap(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(GL_COLOR_INDEX, GL_BITMAP, width, height, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glBitmap_bitmap(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, GL_COLOR_INDEX, GL_BITMAP, width, height, 1)
 
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glGetActiveUniform_name(e, c, rt, r, nu, ne, a, p) ((name) ? ((length) ? (*(length) + 1) : (bufSize)) : -1)
 
@@ -3161,8 +3195,8 @@ static GLsizei vogl_compute_message_log_size_in_bytes(GLuint count, const GLsize
     return total_length;
 }
 
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glSeparableFilter2D_row(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, width, 1, 1)
-#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glSeparableFilter2D_column(e, c, rt, r, nu, ne, a, p) vogl_get_image_size(format, type, height, 1, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glSeparableFilter2D_row(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, width, 1, 1)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glSeparableFilter2D_column(e, c, rt, r, nu, ne, a, p) vogl_calc_set_tex_image_serialize_size(pContext, format, type, height, 1, 1)
 
 // TODO - These are all gets, so they aren't completely necessary for proper replaying because they have no side effects (except for possibly glError's).
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glGetUniformfv_params(e, c, rt, r, nu, ne, a, p) -1
@@ -6232,7 +6266,6 @@ static inline void vogl_multi_draw_arrays_helper(
 static void vogl_multi_draw_elements_helper(
     vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, const char *pFunc)
 {
-    // HACK HACK
     if (trace_serializer.is_in_begin())
     {
         if (vogl_uses_client_side_arrays(pContext, true))

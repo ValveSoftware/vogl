@@ -1350,6 +1350,9 @@ void vogl_gl_replayer::process_entrypoint_msg_print_detailed_context(eConsoleMes
 {
     VOGL_FUNC_TRACER
 
+    if (!m_pCur_gl_packet)
+        return;
+
     dump_packet_as_func_call(*m_pCur_gl_packet);
 
     if (!(m_flags & cGLReplayerDumpPacketsOnError))
@@ -1432,6 +1435,10 @@ void vogl_gl_replayer::process_entrypoint_error(const char *pFmt, ...)
 vogl_gl_replayer::status_t vogl_gl_replayer::switch_contexts(vogl_trace_context_ptr_value trace_context)
 {
     VOGL_FUNC_TRACER
+
+    // HACK HACK
+    //if (m_pCur_gl_packet->get_call_counter() == 25583)
+    //    vogl_debug_break();
 
     //vogl_trace_context_ptr_value trace_context = gl_packet.m_context_handle;
     if (trace_context == m_cur_trace_context)
@@ -4494,13 +4501,15 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLuint replay_id = it->second;
 
-                for (uint i = 0; i < get_shared_state()->m_mapped_buffers.size(); i++)
+                vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
+
+                for (uint i = 0; i < mapped_bufs.size(); i++)
                 {
-                    if (get_shared_state()->m_mapped_buffers[i].m_buffer == replay_id)
+                    if (mapped_bufs[i].m_buffer == replay_id)
                     {
                         process_entrypoint_warning("%s: glDeleteBuffers() called on mapped trace buffer %u GL buffer %u\n", VOGL_METHOD_NAME, trace_id, replay_id);
 
-                        get_shared_state()->m_mapped_buffers.erase_unordered(i);
+                        mapped_bufs.erase_unordered(i);
                         break;
                     }
                 }
@@ -7048,14 +7057,16 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             GLuint buffer = vogl_get_bound_gl_buffer(target);
             if (buffer)
             {
+                vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
+
                 uint i;
-                for (i = 0; i < get_shared_state()->m_mapped_buffers.size(); i++)
+                for (i = 0; i < mapped_bufs.size(); i++)
                 {
-                    if (get_shared_state()->m_mapped_buffers[i].m_buffer == buffer)
+                    if (mapped_bufs[i].m_buffer == buffer)
                     {
                         process_entrypoint_warning("%s: glBufferData() called on already mapped GL buffer %u, assuming GL will be unmapping it\n", VOGL_METHOD_NAME, buffer);
 
-                        get_shared_state()->m_mapped_buffers.erase_unordered(i);
+                        mapped_bufs.erase_unordered(i);
                         break;
                     }
                 }
@@ -7087,22 +7098,24 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLuint buffer = vogl_get_bound_gl_buffer(target);
 
+                vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
+
                 uint i;
-                for (i = 0; i < get_shared_state()->m_mapped_buffers.size(); i++)
+                for (i = 0; i < mapped_bufs.size(); i++)
                 {
-                    if (get_shared_state()->m_mapped_buffers[i].m_buffer == buffer)
+                    if (mapped_bufs[i].m_buffer == buffer)
                     {
                         process_entrypoint_error("%s: Buffer %u is already mapped\n", VOGL_METHOD_NAME, buffer);
                         return cStatusHardFailure;
                     }
                 }
 
-                if (i == get_shared_state()->m_mapped_buffers.size())
+                if (i == mapped_bufs.size())
                 {
                     GLint length = 0;
                     GL_ENTRYPOINT(glGetBufferParameteriv)(target, GL_BUFFER_SIZE, &length);
 
-                    mapped_buffer_desc m;
+                    vogl_mapped_buffer_desc m;
                     m.m_buffer = buffer;
                     m.m_target = target;
                     m.m_offset = 0;
@@ -7110,7 +7123,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     m.m_access = access;
                     m.m_range = false;
                     m.m_pPtr = pMap;
-                    get_shared_state()->m_mapped_buffers.push_back(m);
+                    mapped_bufs.push_back(m);
                 }
             }
 
@@ -7145,20 +7158,22 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     return cStatusHardFailure;
                 }
 
+                vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
+
                 GLuint buffer = vogl_get_bound_gl_buffer(target);
                 uint i;
-                for (i = 0; i < get_shared_state()->m_mapped_buffers.size(); i++)
+                for (i = 0; i < mapped_bufs.size(); i++)
                 {
-                    if (get_shared_state()->m_mapped_buffers[i].m_buffer == buffer)
+                    if (mapped_bufs[i].m_buffer == buffer)
                     {
                         process_entrypoint_error("%s: Buffer %u is already mapped\n", VOGL_METHOD_NAME, buffer);
                         return cStatusHardFailure;
                     }
                 }
 
-                if (i == get_shared_state()->m_mapped_buffers.size())
+                if (i == mapped_bufs.size())
                 {
-                    mapped_buffer_desc m;
+                    vogl_mapped_buffer_desc m;
                     m.m_buffer = buffer;
                     m.m_target = target;
                     m.m_offset = offset;
@@ -7166,7 +7181,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     m.m_access = access;
                     m.m_range = true;
                     m.m_pPtr = pMap;
-                    get_shared_state()->m_mapped_buffers.push_back(m);
+                    mapped_bufs.push_back(m);
                 }
             }
 
@@ -7188,17 +7203,19 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             // FIXME - must call GL even if !buffer
             if (buffer)
             {
+                vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
+
                 uint mapped_buffers_index;
-                for (mapped_buffers_index = 0; mapped_buffers_index < get_shared_state()->m_mapped_buffers.size(); mapped_buffers_index++)
-                    if (get_shared_state()->m_mapped_buffers[mapped_buffers_index].m_buffer == buffer)
+                for (mapped_buffers_index = 0; mapped_buffers_index < mapped_bufs.size(); mapped_buffers_index++)
+                    if (mapped_bufs[mapped_buffers_index].m_buffer == buffer)
                         break;
-                if (mapped_buffers_index == get_shared_state()->m_mapped_buffers.size())
+                if (mapped_buffers_index == mapped_bufs.size())
                 {
                     process_entrypoint_error("%s: Unable to find mapped buffer during unmap\n", VOGL_METHOD_NAME);
                     return cStatusHardFailure;
                 }
 
-                mapped_buffer_desc &map_desc = get_shared_state()->m_mapped_buffers[mapped_buffers_index];
+                vogl_mapped_buffer_desc &map_desc = mapped_bufs[mapped_buffers_index];
 
                 bool writable_map = false;
                 bool explicit_bit = false;
@@ -7264,7 +7281,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                 }
 
-                get_shared_state()->m_mapped_buffers.erase_unordered(mapped_buffers_index);
+                get_shared_state()->m_shadow_state.m_mapped_buffers.erase_unordered(mapped_buffers_index);
             }
 
             GLboolean replay_result;
@@ -8436,6 +8453,272 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             // TODO
             break;
         }
+        case VOGL_ENTRYPOINT_glBitmap:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glBitmap;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(6);
+                pTrace_bitmap = (const GLubyte *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glBitmap;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glColorSubTable:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glColorSubTable;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(5);
+                pTrace_data = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glColorSubTable;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glColorSubTableEXT:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glColorSubTableEXT;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(5);
+                pTrace_data = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glColorSubTableEXT;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glColorTable:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glColorTable;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(5);
+                pTrace_table = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glColorTable;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glColorTableEXT:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glColorTableEXT;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(5);
+                pTrace_table = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glColorTableEXT;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glConvolutionFilter1D:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glConvolutionFilter1D;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(5);
+                pTrace_image = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glConvolutionFilter1D;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glConvolutionFilter2D:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glConvolutionFilter2D;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(6);
+                pTrace_image = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glConvolutionFilter2D;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glDrawPixels:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glDrawPixels;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(4);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glDrawPixels;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glPolygonStipple:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glPolygonStipple;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(0);
+                pTrace_mask = (const GLubyte *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glPolygonStipple;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexImage1D:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexImage1D;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(7);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexImage1D;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexImage2D:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexImage2D;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(8);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexImage2D;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexImage3D:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexImage3D;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(9);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexImage3D;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexImage3DEXT:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexImage3DEXT;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(9);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexImage3DEXT;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexSubImage1D:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexSubImage1D;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(6);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexSubImage1D;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexSubImage1DEXT:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexSubImage1DEXT;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(6);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexSubImage1DEXT;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexSubImage2D:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexSubImage2D;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(8);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexSubImage2D;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexSubImage2DEXT:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexSubImage2DEXT;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(8);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexSubImage2DEXT;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexSubImage3D:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexSubImage3D;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(10);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexSubImage3D;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glTexSubImage3DEXT:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTexSubImage3DEXT;
+
+            if (vogl_get_bound_gl_buffer(GL_PIXEL_UNPACK_BUFFER))
+            {
+                vogl_trace_ptr_value ptr_val = trace_packet.get_param_ptr_value(10);
+                pTrace_pixels = (const GLvoid *)ptr_val;
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTexSubImage3DEXT;
+
+            break;
+        }
         case VOGL_ENTRYPOINT_glAreTexturesResident:
         case VOGL_ENTRYPOINT_glAreTexturesResidentEXT:
         case VOGL_ENTRYPOINT_glGetActiveAtomicCounterBufferiv:
@@ -9065,9 +9348,10 @@ uint64_t vogl_gl_replayer::replay_to_trace_handle_remapper::remap_handle(vogl_na
         }
     }
 
-    VOGL_ASSERT_ALWAYS;
-
+    // This is BAD.
     vogl_error_printf("%s: Failed remapping handle %" PRIu64 " in namespace %s. This is either a handle shadowing bug, or this object was deleted while it was still bound on another context or attached to an object.\n", VOGL_METHOD_NAME, replay_handle, vogl_get_namespace_name(handle_namespace));
+
+    VOGL_ASSERT_ALWAYS;
 
     return replay_handle;
 }
@@ -9315,11 +9599,6 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
                 pSnapshot->set_is_restorable(false);
             }
 
-            if (get_shared_state()->m_mapped_buffers.size())
-            {
-                vogl_warning_printf("%s: Trace context 0x%" PRIX64 " has %u currently mapped GL buffers, this scenario is not currently unsupported for state capturing. Capture will continue but will not be replayable.\n", VOGL_METHOD_NAME, cast_val_to_uint64(it->first), get_shared_state()->m_mapped_buffers.size());
-                pSnapshot->set_is_restorable(false);
-            }
 
             // Init the shadow state needed by the snapshot code.
             if (!m_pCur_context_state->is_root_context())
@@ -9405,13 +9684,74 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
                     GLenum target = arb_prog_it->second;
                     pShadow_state->m_arb_program_targets.insert(replay_handle, target);
                 }
-            }
-        }
+
+                // Deal with any currently mapped buffers.
+                vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
+
+                pShadow_state->m_mapped_buffers = mapped_bufs;
+
+                if (mapped_bufs.size())
+                {
+                    vogl_warning_printf("%s: %u buffer(s) are currently mapped, these will be temporarily unmapped in order to snapshot them and then remapped\n", VOGL_METHOD_NAME, m_pCur_context_state->m_shadow_state.m_mapped_buffers.size());
+
+                    for (uint i = 0; i < mapped_bufs.size(); i++)
+                    {
+                        vogl_mapped_buffer_desc &desc = mapped_bufs[i];
+
+                        GLuint prev_handle = vogl_get_bound_gl_buffer(desc.m_target);
+
+                        GL_ENTRYPOINT(glBindBuffer)(desc.m_target, desc.m_buffer);
+                        VOGL_CHECK_GL_ERROR;
+
+                        GL_ENTRYPOINT(glUnmapBuffer)(desc.m_target);
+                        VOGL_CHECK_GL_ERROR;
+
+                        desc.m_pPtr = NULL;
+
+                        GL_ENTRYPOINT(glBindBuffer)(desc.m_target, prev_handle);
+                        VOGL_CHECK_GL_ERROR;
+                    }
+                }
+
+            } // if (!m_pCur_context_state->is_root_context())
+
+        } // if (pContext_state->m_has_been_made_current)
 
         if (!pSnapshot->capture_context(pContext_state->m_context_desc, pContext_state->m_context_info, m_replay_to_trace_remapper, *pShadow_state))
         {
             vogl_error_printf("%s: Failed capturing trace context 0x%" PRIX64 ", capture failed\n", VOGL_METHOD_NAME, static_cast<uint64_t>(it->first));
             break;
+        }
+
+        if ((pContext_state->m_has_been_made_current) && (m_pCur_context_state->is_root_context()))
+        {
+            vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
+
+            // Now remap any mapped buffers
+            for (uint i = 0; i < mapped_bufs.size(); i++)
+            {
+                vogl_mapped_buffer_desc &desc = mapped_bufs[i];
+
+                GLuint prev_handle = vogl_get_bound_gl_buffer(desc.m_target);
+
+                GL_ENTRYPOINT(glBindBuffer)(desc.m_target, desc.m_buffer);
+                VOGL_CHECK_GL_ERROR;
+
+                if (desc.m_range)
+                {
+                    desc.m_pPtr = GL_ENTRYPOINT(glMapBufferRange)(desc.m_target, static_cast<GLintptr>(desc.m_offset), static_cast<GLsizeiptr>(desc.m_length), desc.m_access);
+                    VOGL_CHECK_GL_ERROR;
+                }
+                else
+                {
+                    desc.m_pPtr = GL_ENTRYPOINT(glMapBuffer)(desc.m_target, desc.m_access);
+                    VOGL_CHECK_GL_ERROR;
+                }
+
+                GL_ENTRYPOINT(glBindBuffer)(desc.m_target, prev_handle);
+                VOGL_CHECK_GL_ERROR;
+
+            }
         }
     }
 
@@ -10058,6 +10398,46 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
 
                 break;
             }
+            case cGLSTBuffer:
+            {
+                const vogl_buffer_state *pBuf = static_cast<const vogl_buffer_state *>(pState_obj);
+
+                // Check if the buffer was mapped during the snapshot, if so remap it and record the ptr in the replayer's context shadow.
+                if (pBuf->get_is_mapped())
+                {
+                    vogl_mapped_buffer_desc map_desc;
+                    map_desc.m_buffer = static_cast<GLuint>(restore_handle);
+                    map_desc.m_target = pBuf->get_target();
+                    map_desc.m_offset = pBuf->get_map_ofs();
+                    map_desc.m_length = pBuf->get_map_size();
+                    map_desc.m_access = pBuf->get_map_access();
+                    map_desc.m_range = pBuf->get_is_map_range();
+
+                    GLuint prev_handle = vogl_get_bound_gl_buffer(map_desc.m_target);
+
+                    GL_ENTRYPOINT(glBindBuffer)(map_desc.m_target, map_desc.m_buffer);
+                    VOGL_CHECK_GL_ERROR;
+
+                    if (map_desc.m_range)
+                    {
+                        map_desc.m_pPtr = GL_ENTRYPOINT(glMapBufferRange)(map_desc.m_target, static_cast<GLintptr>(map_desc.m_offset), static_cast<GLintptr>(map_desc.m_length), map_desc.m_access);
+                        VOGL_CHECK_GL_ERROR;
+                    }
+                    else
+                    {
+                        map_desc.m_pPtr = GL_ENTRYPOINT(glMapBuffer)(map_desc.m_target, map_desc.m_access);
+                        VOGL_CHECK_GL_ERROR;
+                    }
+
+                    GL_ENTRYPOINT(glBindBuffer)(map_desc.m_target, prev_handle);
+                    VOGL_CHECK_GL_ERROR;
+
+                    vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
+                    mapped_bufs.push_back(map_desc);
+                }
+
+                break;
+            }
             default:
                 break;
         }
@@ -10162,98 +10542,95 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
             continue;
         }
 
-        if (!disp_list.is_valid())
-        {
-            VOGL_ASSERT_ALWAYS;
-            continue;
-        }
-
         GLuint replay_handle = GL_ENTRYPOINT(glGenLists)(1);
         if (check_gl_error() || !replay_handle)
             goto handle_failure;
 
-        if (disp_list.is_xfont())
+        if (disp_list.is_valid())
         {
-            XFontStruct *pXFont = xfont_cache.get_or_create(disp_list.get_xfont_name().get_ptr());
-            if (!pXFont)
+            if (disp_list.is_xfont())
             {
-                vogl_error_printf("%s: Unable to load XFont \"%s\", can't recreate trace display list %u!\n", VOGL_METHOD_NAME, disp_list.get_xfont_name().get_ptr(), trace_handle);
+                XFontStruct *pXFont = xfont_cache.get_or_create(disp_list.get_xfont_name().get_ptr());
+                if (!pXFont)
+                {
+                    vogl_error_printf("%s: Unable to load XFont \"%s\", can't recreate trace display list %u!\n", VOGL_METHOD_NAME, disp_list.get_xfont_name().get_ptr(), trace_handle);
+                }
+                else
+                {
+                    GL_ENTRYPOINT(glXUseXFont)(pXFont->fid, disp_list.get_xfont_glyph(), 1, replay_handle);
+                }
             }
             else
             {
-                GL_ENTRYPOINT(glXUseXFont)(pXFont->fid, disp_list.get_xfont_glyph(), 1, replay_handle);
-            }
-        }
-        else
-        {
-            GL_ENTRYPOINT(glNewList)(replay_handle, GL_COMPILE);
+                GL_ENTRYPOINT(glNewList)(replay_handle, GL_COMPILE);
 
-            if (check_gl_error() || !replay_handle)
-            {
-                GL_ENTRYPOINT(glDeleteLists)(replay_handle, 1);
+                if (check_gl_error() || !replay_handle)
+                {
+                    GL_ENTRYPOINT(glDeleteLists)(replay_handle, 1);
+                    check_gl_error();
+
+                    goto handle_failure;
+                }
+
+                const vogl_trace_packet_array &packets = disp_list.get_packets();
+
+                for (uint packet_index = 0; packet_index < packets.size(); packet_index++)
+                {
+                    if (packets.get_packet_type(packet_index) != cTSPTGLEntrypoint)
+                    {
+                        vogl_error_printf("%s: Unexpected display list packet type %u, packet index %u, can't fully recreate trace display list %u!\n", VOGL_METHOD_NAME, packets.get_packet_type(packet_index), packet_index, trace_handle);
+                        continue;
+                    }
+
+                    const uint8_vec &packet_buf = packets.get_packet_buf(packet_index);
+
+                    if (!m_temp2_gl_packet.deserialize(packet_buf, true))
+                    {
+                        vogl_error_printf("%s: Failed deserializing display list at packet index %u, can't fully recreate trace display list %u!\n", VOGL_METHOD_NAME, packet_index, trace_handle);
+                        continue;
+                    }
+
+                    vogl_trace_gl_entrypoint_packet &gl_entrypoint_packet = m_temp2_gl_packet.get_entrypoint_packet();
+
+                    gl_entrypoint_packet.m_context_handle = m_cur_trace_context;
+
+                    if (m_flags & cGLReplayerDebugMode)
+                        dump_trace_gl_packet_debug_info(gl_entrypoint_packet);
+
+                    int64_t prev_parsed_call_counter = m_last_parsed_call_counter;
+                    int64_t prev_processed_call_counter = m_last_processed_call_counter;
+                    m_last_parsed_call_counter = gl_entrypoint_packet.m_call_counter;
+                    m_last_processed_call_counter = gl_entrypoint_packet.m_call_counter;
+                    bool prev_at_frame_boundary = m_at_frame_boundary;
+
+                    const vogl_trace_packet *pPrev_gl_packet = m_pCur_gl_packet;
+
+                    m_pCur_gl_packet = &m_temp2_gl_packet;
+
+                    vogl_gl_replayer::status_t status = process_gl_entrypoint_packet_internal(m_temp2_gl_packet);
+
+                    m_pCur_gl_packet = pPrev_gl_packet;
+
+                    m_last_parsed_call_counter = prev_parsed_call_counter;
+                    m_last_processed_call_counter = prev_processed_call_counter;
+                    m_at_frame_boundary = prev_at_frame_boundary;
+
+                    if (status != cStatusOK)
+                    {
+                        vogl_error_printf("%s: Failed recreating display list at packet index %u, can't fully recreate trace display list %u!\n", VOGL_METHOD_NAME, packet_index, trace_handle);
+                        continue;
+                    }
+                }
+
+                // TODO: Set context state because we're currently generating a display list!
+                if (disp_list.is_generating())
+                {
+                    VOGL_ASSERT_ALWAYS;
+                }
+
+                GL_ENTRYPOINT(glEndList)();
                 check_gl_error();
-
-                goto handle_failure;
             }
-
-            const vogl_trace_packet_array &packets = disp_list.get_packets();
-
-            for (uint packet_index = 0; packet_index < packets.size(); packet_index++)
-            {
-                if (packets.get_packet_type(packet_index) != cTSPTGLEntrypoint)
-                {
-                    vogl_error_printf("%s: Unexpected display list packet type %u, packet index %u, can't fully recreate trace display list %u!\n", VOGL_METHOD_NAME, packets.get_packet_type(packet_index), packet_index, trace_handle);
-                    continue;
-                }
-
-                const uint8_vec &packet_buf = packets.get_packet_buf(packet_index);
-
-                if (!m_temp2_gl_packet.deserialize(packet_buf, true))
-                {
-                    vogl_error_printf("%s: Failed deserializing display list at packet index %u, can't fully recreate trace display list %u!\n", VOGL_METHOD_NAME, packet_index, trace_handle);
-                    continue;
-                }
-
-                vogl_trace_gl_entrypoint_packet &gl_entrypoint_packet = m_temp2_gl_packet.get_entrypoint_packet();
-
-                gl_entrypoint_packet.m_context_handle = m_cur_trace_context;
-
-                if (m_flags & cGLReplayerDebugMode)
-                    dump_trace_gl_packet_debug_info(gl_entrypoint_packet);
-
-                int64_t prev_parsed_call_counter = m_last_parsed_call_counter;
-                int64_t prev_processed_call_counter = m_last_processed_call_counter;
-                m_last_parsed_call_counter = gl_entrypoint_packet.m_call_counter;
-                m_last_processed_call_counter = gl_entrypoint_packet.m_call_counter;
-                bool prev_at_frame_boundary = m_at_frame_boundary;
-
-                const vogl_trace_packet *pPrev_gl_packet = m_pCur_gl_packet;
-
-                m_pCur_gl_packet = &m_temp2_gl_packet;
-
-                vogl_gl_replayer::status_t status = process_gl_entrypoint_packet_internal(m_temp2_gl_packet);
-
-                m_pCur_gl_packet = pPrev_gl_packet;
-
-                m_last_parsed_call_counter = prev_parsed_call_counter;
-                m_last_processed_call_counter = prev_processed_call_counter;
-                m_at_frame_boundary = prev_at_frame_boundary;
-
-                if (status != cStatusOK)
-                {
-                    vogl_error_printf("%s: Failed recreating display list at packet index %u, can't fully recreate trace display list %u!\n", VOGL_METHOD_NAME, packet_index, trace_handle);
-                    continue;
-                }
-            }
-
-            // TODO: Set context state because we're currently generating a display list!
-            if (disp_list.is_generating())
-            {
-                VOGL_ASSERT_ALWAYS;
-            }
-
-            GL_ENTRYPOINT(glEndList)();
-            check_gl_error();
         }
 
         get_shared_state()->m_lists.insert(trace_handle, replay_handle);
@@ -11163,5 +11540,13 @@ bool vogl_gl_replayer::write_trim_file(uint flags, const dynamic_string &trim_fi
         }
     }
 
-    return write_trim_file_internal(trim_packets, trim_filename, trace_reader, (flags & cWriteTrimFileOptimizeSnapshot) != 0, pSnapshot_id);
+    if (!write_trim_file_internal(trim_packets, trim_filename, trace_reader, (flags & cWriteTrimFileOptimizeSnapshot) != 0, pSnapshot_id))
+    {
+        console::warning("%s: Trim file write failed, deleting invalid trim trace file %s\n", VOGL_METHOD_NAME, trim_filename.get_ptr());
+
+        file_utils::delete_file(trim_filename.get_ptr());
+        return false;
+    }
+
+    return true;
 }

@@ -140,6 +140,12 @@ glColorTable
 glColorTableEXT
 glColorTableParameterfv
 glColorTableParameteriv
+glCombinerInputNV
+glCombinerOutputNV
+glCombinerParameterfNV
+glCombinerParameterfvNV
+glCombinerParameteriNV
+glCombinerParameterivNV
 glCompileShader
 glCompileShaderARB
 glCompressedTexImage1D
@@ -268,6 +274,7 @@ glEvalPoint1
 glEvalPoint2
 glFeedbackBuffer
 glFenceSync
+glFinalCombinerInputNV
 glFinish
 glFlush
 glFlushMappedBufferRange

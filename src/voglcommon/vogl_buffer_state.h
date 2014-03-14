@@ -34,6 +34,8 @@
 #include "vogl_blob_manager.h"
 #include "vogl_vec.h"
 
+struct vogl_mapped_buffer_desc;
+
 class vogl_buffer_state : public vogl_gl_object_state
 {
 public:
@@ -50,6 +52,8 @@ public:
     }
 
     virtual bool snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint64 handle, GLenum target);
+
+    void set_mapped_buffer_snapshot_state(const vogl_mapped_buffer_desc &map_desc);
 
     virtual bool restore(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint64 &handle) const;
 
@@ -86,6 +90,14 @@ public:
         return m_params;
     }
 
+    // Whether or not the buffer was currently mapped when it was snapshotted. Note we don't actually support snapshotting the buffer
+    // while it's mapped (we unmap it first), this data comes from the replayer's shadow. We also don't restore it in a mapped state, that's up to the caller.
+    bool get_is_map_range() const { return m_map_range; }
+    bool get_is_mapped() const { return m_is_mapped; }
+    uint64_t get_map_ofs() const { return m_map_ofs; }
+    uint64_t get_map_size() const { return m_map_size; }
+    uint get_map_access() const { return m_map_access; }
+
 private:
     GLuint m_snapshot_handle;
     GLenum m_target;
@@ -93,6 +105,12 @@ private:
     uint8_vec m_buffer_data;
 
     vogl_state_vector m_params;
+
+    uint64_t m_map_ofs;
+    uint64_t m_map_size;
+    uint m_map_access;
+    bool m_map_range;
+    bool m_is_mapped;
 
     bool m_is_valid;
 };

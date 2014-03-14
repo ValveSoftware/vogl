@@ -3,7 +3,6 @@ glActiveStencilFaceEXT
 glActiveTexture
 glActiveTextureARB
 glAlphaFunc
-glBitmap
 glBlendColor
 glBlendColorEXT
 glBlendEquation
@@ -88,10 +87,6 @@ glColorP3ui
 glColorP3uiv
 glColorP4ui
 glColorP4uiv
-glColorSubTable
-glColorSubTableEXT
-glColorTable
-glColorTableEXT
 glColorTableParameterfv
 glColorTableParameteriv
 glCombinerInputNV
@@ -112,8 +107,6 @@ glCompressedTexSubImage2D
 glCompressedTexSubImage2DARB
 glCompressedTexSubImage3D
 glCompressedTexSubImage3DARB
-glConvolutionFilter1D
-glConvolutionFilter2D
 glConvolutionParameterf
 glConvolutionParameterfv
 glConvolutionParameteri
@@ -151,7 +144,6 @@ glDisableVertexAttribArrayARB
 glDrawBuffer
 glDrawBuffers
 glDrawBuffersARB
-glDrawPixels
 glEdgeFlag
 glEdgeFlagv
 glEnable
@@ -347,7 +339,6 @@ glPointSize
 glPolygonMode
 glPolygonOffset
 glPolygonOffsetEXT
-glPolygonStipple
 glPopAttrib
 glPopClientAttrib
 glPopMatrix
@@ -484,12 +475,8 @@ glTexGenf
 glTexGenfv
 glTexGeni
 glTexGeniv
-glTexImage1D
-glTexImage2D
 glTexImage2DMultisample
 glTexImage2DMultisampleCoverageNV
-glTexImage3D
-glTexImage3DEXT
 glTexImage3DMultisample
 glTexImage3DMultisampleCoverageNV
 glTexParameterf
@@ -505,12 +492,6 @@ glTexStorage2D
 glTexStorage2DMultisample
 glTexStorage3D
 glTexStorage3DMultisample
-glTexSubImage1D
-glTexSubImage1DEXT
-glTexSubImage2D
-glTexSubImage2DEXT
-glTexSubImage3D
-glTexSubImage3DEXT
 glTextureStorage1DEXT
 glTextureStorage2DEXT
 glTextureStorage2DMultisampleEXT
