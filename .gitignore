@@ -4,3 +4,5 @@ bin/i386/mkvogl
 bin/i386/steamlauncher
 vogl_build/*
 vogl_extbuild/*
+
+*~
