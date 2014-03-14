@@ -40,10 +40,10 @@ class vogleditor_frameItem;
 class vogleditor_apiCallItem : public vogleditor_snapshotItem
 {
 public:
-   vogleditor_apiCallItem(vogleditor_frameItem* pFrame, vogl_trace_packet& tracePacket, const vogl_trace_gl_entrypoint_packet& glPacket)
+   vogleditor_apiCallItem(vogleditor_frameItem* pFrame, vogl_trace_packet* pTracePacket, const vogl_trace_gl_entrypoint_packet& glPacket)
        : m_pParentFrame(pFrame),
         m_glPacket(glPacket),
-        m_tracePacket(tracePacket),
+        m_pTracePacket(pTracePacket),
         m_globalCallIndex(glPacket.m_call_counter),
         m_begin_rdtsc(glPacket.m_packet_begin_rdtsc),
         m_end_rdtsc(glPacket.m_packet_end_rdtsc),
@@ -57,6 +57,11 @@ public:
 
    ~vogleditor_apiCallItem()
    {
+       if (m_pTracePacket != NULL)
+       {
+           vogl_delete(m_pTracePacket);
+           m_pTracePacket = NULL;
+       }
    }
 
    inline vogleditor_frameItem* frame() const
@@ -91,7 +96,7 @@ public:
 
    vogl_trace_packet* getTracePacket()
    {
-      return &m_tracePacket;
+      return m_pTracePacket;
    }
 
    inline uint64_t backtraceHashIndex() const
@@ -102,7 +107,7 @@ public:
 private:
    vogleditor_frameItem* m_pParentFrame;
    const vogl_trace_gl_entrypoint_packet m_glPacket;
-   vogl_trace_packet m_tracePacket;
+   vogl_trace_packet* m_pTracePacket;
 
    uint64_t m_globalCallIndex;
    uint64_t m_begin_rdtsc;

@@ -72,8 +72,6 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
 
    m_trace_ctypes.init(pTrace_reader->get_sof_packet().m_pointer_sizes);
 
-   vogl_trace_packet trace_packet(&m_trace_ctypes);
-
    for ( ; ; )
    {
       vogl_trace_file_reader::trace_file_reader_status_t read_status = pTrace_reader->read_next_packet();
@@ -97,7 +95,9 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
 
       if (pTrace_reader->get_packet_type() == cTSPTGLEntrypoint)
       {
-         if (!trace_packet.deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
+         vogl_trace_packet* pTrace_packet = vogl_new(vogl_trace_packet, &m_trace_ctypes);
+
+         if (!pTrace_packet->deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
          {
             console::error("%s: Failed parsing GL entrypoint packet\n", VOGL_FUNCTION_NAME);
             break;
@@ -111,12 +111,12 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
             // Check if this is a state snapshot.
             // This is entirely optional since the client is designed to dynamically get new snapshots
             // if they don't exist.
-            GLuint cmd = trace_packet.get_param_value<GLuint>(0);
-            GLuint size = trace_packet.get_param_value<GLuint>(1); VOGL_NOTE_UNUSED(size);
+            GLuint cmd = pTrace_packet->get_param_value<GLuint>(0);
+            GLuint size = pTrace_packet->get_param_value<GLuint>(1); VOGL_NOTE_UNUSED(size);
 
             if (cmd == cITCRKeyValueMap)
             {
-               key_value_map &kvm = trace_packet.get_key_value_map();
+               key_value_map &kvm = pTrace_packet->get_key_value_map();
 
                dynamic_string cmd_type(kvm.get_string("command_type"));
                if (cmd_type == "state_snapshot")
@@ -172,23 +172,23 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
          // format parameters
          funcCall.append("( ");
          dynamic_string paramStr;
-         for (uint param_index = 0; param_index < trace_packet.total_params(); param_index++)
+         for (uint param_index = 0; param_index < pTrace_packet->total_params(); param_index++)
          {
             if (param_index != 0)
                funcCall.append(", ");
 
             paramStr.clear();
-            trace_packet.pretty_print_param(paramStr, param_index, false);
+            pTrace_packet->pretty_print_param(paramStr, param_index, false);
 
             funcCall.append(paramStr.c_str());
          }
          funcCall.append(" )");
 
-         if (trace_packet.has_return_value())
+         if (pTrace_packet->has_return_value())
          {
             funcCall.append(" = ");
             paramStr.clear();
-            trace_packet.pretty_print_return_value(paramStr, false);
+            pTrace_packet->pretty_print_return_value(paramStr, false);
             funcCall.append(paramStr.c_str());
          }
 
@@ -197,7 +197,7 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
          if (pCurFrame == NULL)
          {
             pCurFrame = new vogleditor_frameItem(total_swaps);
-            vogleditor_apiCallTreeItem* pNewFrameNode = new vogleditor_apiCallTreeItem(pCurFrame, pCurParent);
+            vogleditor_apiCallTreeItem* pNewFrameNode = vogl_new(vogleditor_apiCallTreeItem, pCurFrame, pCurParent);
             pCurParent->appendChild(pNewFrameNode);
             m_itemList.append(pNewFrameNode);
 
@@ -212,7 +212,7 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
          }
 
          // make item and node for the api call
-         vogleditor_apiCallItem* pCallItem = new vogleditor_apiCallItem(pCurFrame, trace_packet, *pGL_packet);
+         vogleditor_apiCallItem* pCallItem = vogl_new(vogleditor_apiCallItem, pCurFrame, pTrace_packet, *pGL_packet);
          pCurFrame->appendCall(pCallItem);
 
          if (pPendingSnapshot != NULL)
@@ -221,7 +221,7 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
             pPendingSnapshot = NULL;
          }
 
-         vogleditor_apiCallTreeItem* item = new vogleditor_apiCallTreeItem(funcCall, pCallItem, pCurParent);
+         vogleditor_apiCallTreeItem* item = vogl_new(vogleditor_apiCallTreeItem, funcCall, pCallItem, pCurParent);
          pCurParent->appendChild(item);
          m_itemList.append(item);
 
