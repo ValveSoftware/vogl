@@ -66,6 +66,10 @@ The directory structure for vogl currently looks like this:
 
 ## Useful Links ##
 
+Vogl Wiki
+
+* https://github.com/ValveSoftware/vogl/wiki
+
 OpenGL documentation/references
 
 * 4.x: http://www.opengl.org/sdk/docs/man/
