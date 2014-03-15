@@ -56,6 +56,10 @@ The directory structure for vogl currently looks like this:
                 i386/   ; external projects untar'd & built here
                 x86_64/ ;
 
+## QtCreator tagging and building ##
+
+  See qtcreator/qtcreator.md file: [qtcreator.md](qtcreator/qtcreator.md)
+
 ## Vogl Dev List ##
 
     http://lists.voglproj.com/listinfo.cgi/dev-voglproj.com
