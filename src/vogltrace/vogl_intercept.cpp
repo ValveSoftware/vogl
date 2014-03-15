@@ -1243,6 +1243,8 @@ public:
     {
         return m_context_info.get_max_texture_coords();
     }
+
+    // compat only - will be 0 in core
     inline GLuint get_max_texture_units() const
     {
         return m_context_info.get_max_texture_units();
