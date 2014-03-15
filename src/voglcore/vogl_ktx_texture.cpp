@@ -962,12 +962,14 @@ namespace vogl
         if ((get_num_faces() == 6) && ((m_header.m_pixelDepth) || (!m_header.m_pixelHeight)))
             return false;
 
+#if 0
         if (m_header.m_numberOfMipmapLevels)
         {
             const uint max_mipmap_dimension = 1U << (m_header.m_numberOfMipmapLevels - 1U);
             if (max_mipmap_dimension > (VOGL_MAX(VOGL_MAX(m_header.m_pixelWidth, m_header.m_pixelHeight), m_header.m_pixelDepth)))
                 return false;
         }
+#endif
 
         return true;
     }

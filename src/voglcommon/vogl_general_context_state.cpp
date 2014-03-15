@@ -278,10 +278,13 @@ public:
         m_can_use_glGetPointerv = (GL_ENTRYPOINT(glGetPointerv) != NULL) && !context_info.is_core_profile();
 
         m_max_texture_units = 0;
-        GL_ENTRYPOINT(glGetIntegerv)(GL_MAX_TEXTURE_UNITS, &m_max_texture_units);
-
         m_max_texture_coords = 0;
-        GL_ENTRYPOINT(glGetIntegerv)(GL_MAX_TEXTURE_COORDS, &m_max_texture_coords);
+
+        if (!context_info.is_core_profile())
+        {
+            GL_ENTRYPOINT(glGetIntegerv)(GL_MAX_TEXTURE_UNITS, &m_max_texture_units);
+            GL_ENTRYPOINT(glGetIntegerv)(GL_MAX_TEXTURE_COORDS, &m_max_texture_coords);
+        }
 
         m_max_combined_texture_coords = 0;
         GL_ENTRYPOINT(glGetIntegerv)(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &m_max_combined_texture_coords);
@@ -294,6 +297,8 @@ public:
 
         m_max_vertex_attribs = 0;
         GL_ENTRYPOINT(glGetIntegerv)(GL_MAX_VERTEX_ATTRIBS, &m_max_vertex_attribs);
+
+        VOGL_CHECK_GL_ERROR;
     }
 
     bool m_can_use_glGetBooleani_v;
@@ -941,7 +946,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
 #endif
 
     GLint prev_client_active_texture = 0;
-    GL_ENTRYPOINT(glGetIntegerv)(GL_CLIENT_ACTIVE_TEXTURE, &prev_client_active_texture);
+    if (!context_info.is_core_profile())
+    {
+        GL_ENTRYPOINT(glGetIntegerv)(GL_CLIENT_ACTIVE_TEXTURE, &prev_client_active_texture);
+    }
 
     GLint prev_active_texture = 0;
     GL_ENTRYPOINT(glGetIntegerv)(GL_ACTIVE_TEXTURE, &prev_active_texture);

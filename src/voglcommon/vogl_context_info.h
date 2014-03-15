@@ -335,10 +335,13 @@ public:
     {
         return m_max_vertex_attribs;
     }
+
+    // compat only - will be 0 in core
     uint get_max_texture_coords() const
     {
         return m_max_texture_coords;
     }
+    // compat only - will be 0 in core
     uint get_max_texture_units() const
     {
         return m_max_texture_units;

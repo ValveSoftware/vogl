@@ -399,15 +399,30 @@ void vogl_context_info::init_context_limits()
     VOGL_CHECK_GL_ERROR;
 
     m_max_vertex_attribs = vogl_get_gl_integer(GL_MAX_VERTEX_ATTRIBS);
-    m_max_texture_coords = vogl_get_gl_integer(GL_MAX_TEXTURE_COORDS);
-    m_max_texture_units = vogl_get_gl_integer(GL_MAX_TEXTURE_UNITS);
-    m_max_texture_image_units = vogl_get_gl_integer(GL_MAX_TEXTURE_IMAGE_UNITS);
-    m_max_combined_texture_coords = vogl_get_gl_integer(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
-    m_max_draw_buffers = (get_version() >= VOGL_GL_VERSION_2_0) ? vogl_get_gl_integer(GL_MAX_DRAW_BUFFERS) : 0;
-    m_max_lights = is_core_profile() ? 0 : vogl_get_gl_integer(GL_MAX_LIGHTS);
-    m_max_uniform_buffer_bindings = vogl_get_gl_integer(GL_MAX_UNIFORM_BUFFER_BINDINGS);
-    m_max_transform_feedback_separate_attribs = (get_version() >= VOGL_GL_VERSION_3_0) ? vogl_get_gl_integer(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS) : 0;
+    VOGL_CHECK_GL_ERROR;
 
+    m_max_texture_coords = is_core_profile() ? 0 : vogl_get_gl_integer(GL_MAX_TEXTURE_COORDS);
+    VOGL_CHECK_GL_ERROR;
+
+    m_max_texture_units = is_core_profile() ? 0 : vogl_get_gl_integer(GL_MAX_TEXTURE_UNITS);
+    VOGL_CHECK_GL_ERROR;
+
+    m_max_texture_image_units = vogl_get_gl_integer(GL_MAX_TEXTURE_IMAGE_UNITS);
+    VOGL_CHECK_GL_ERROR;
+
+    m_max_combined_texture_coords = vogl_get_gl_integer(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+    VOGL_CHECK_GL_ERROR;
+
+    m_max_draw_buffers = (get_version() >= VOGL_GL_VERSION_2_0) ? vogl_get_gl_integer(GL_MAX_DRAW_BUFFERS) : 0;
+    VOGL_CHECK_GL_ERROR;
+
+    m_max_lights = is_core_profile() ? 0 : vogl_get_gl_integer(GL_MAX_LIGHTS);
+    VOGL_CHECK_GL_ERROR;
+
+    m_max_uniform_buffer_bindings = vogl_get_gl_integer(GL_MAX_UNIFORM_BUFFER_BINDINGS);
+    VOGL_CHECK_GL_ERROR;
+
+    m_max_transform_feedback_separate_attribs = (get_version() >= VOGL_GL_VERSION_3_0) ? vogl_get_gl_integer(GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS) : 0;
     VOGL_CHECK_GL_ERROR;
 
     if (!is_core_profile() && supports_extension("GL_ARB_vertex_program") && GL_ENTRYPOINT(glGetProgramivARB))

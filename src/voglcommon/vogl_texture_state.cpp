@@ -381,6 +381,22 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     GLenum image_fmt = pInternal_tex_fmt->m_optimum_get_image_fmt;
     GLenum image_type = pInternal_tex_fmt->m_optimum_get_image_type;
 
+#if 0
+    // OK, I can't retrive the default framebuffer's depth/stencil buffer on AMD - all I get is INVALID_OPERATION. Crap. This works fine on NV though.
+    // This workaround didn't work.
+    if (internal_fmt == GL_DEPTH_STENCIL)
+    {
+        if (GL_ENTRYPOINT(glGetInternalformativ) && context_info.supports_extension("GL_ARB_internalformat_query"))
+        {
+            GL_ENTRYPOINT(glGetInternalformativ)(GL_TEXTURE_2D, internal_fmt, GL_GET_TEXTURE_IMAGE_FORMAT, sizeof(image_fmt), (GLint *)&image_fmt);
+            VOGL_CHECK_GL_ERROR;
+
+            GL_ENTRYPOINT(glGetInternalformativ)(GL_TEXTURE_2D, internal_fmt, GL_GET_TEXTURE_IMAGE_TYPE, sizeof(image_type), (GLint *)&image_type);
+            VOGL_CHECK_GL_ERROR;
+        }
+    }
+#endif
+
     uint num_faces = 1;
 
     GLenum ktx_image_fmt = GL_NONE, ktx_image_type = GL_NONE;
@@ -768,7 +784,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                 {
                     VOGL_ASSERT(!size_in_bytes);
 
-                    size_t size_in_bytes64 = vogl_get_image_size(pInternal_tex_fmt->m_optimum_get_image_fmt, pInternal_tex_fmt->m_optimum_get_image_type, level_width, level_height, level_depth);
+                    size_t size_in_bytes64 = vogl_get_image_size(image_fmt, image_type, level_width, level_height, level_depth);
                     if (!size_in_bytes64)
                     {
                         vogl_error_printf("%s: Failed computing image size of face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
@@ -827,7 +843,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                     }
                     else
                     {
-                        GL_ENTRYPOINT(glGetTexImage)(get_target, level, pInternal_tex_fmt->m_optimum_get_image_fmt, pInternal_tex_fmt->m_optimum_get_image_type, temp_img.get_ptr());
+                        GL_ENTRYPOINT(glGetTexImage)(get_target, level, image_fmt, image_type, temp_img.get_ptr());
                     }
 
                     if (vogl_check_gl_error())
