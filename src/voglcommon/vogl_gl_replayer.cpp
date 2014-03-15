@@ -4008,7 +4008,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 // (typically pointers to fixed size buffers, or params directly controlling the size of buffers).
 #define VOGL_SIMPLE_REPLAY_FUNC_BEGIN(name, num_params) \
     case VOGL_ENTRYPOINT_##name:                        \
-    { GL_ENTRYPOINT(name)(
+    { if (!GL_ENTRYPOINT(name)) { process_entrypoint_error("vogl_gl_replayer::process_gl_entrypoint_packet_internal: Can't call NULL GL entrypoint %s (maybe a missing extension?)\n", #name); } else \
+    GL_ENTRYPOINT(name)(
 #define VOGL_SIMPLE_REPLAY_FUNC_PARAM_VALUE(type, index) trace_packet.get_param_value<type>(index)
 #define VOGL_SIMPLE_REPLAY_FUNC_PARAM_SEPERATOR ,
 #define VOGL_SIMPLE_REPLAY_FUNC_PARAM_CLIENT_MEMORY(type, index) trace_packet.get_param_client_memory<type>(index)
