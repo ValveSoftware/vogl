@@ -119,6 +119,7 @@ if [[ -n "$DO_PACKAGES" ]]; then
     apt_get_install -y libglu1-mesa-dev
     apt_get_install -y freeglut3-dev
 
+    apt_get_install -y libtinyxml-dev
     #  Install zip tools
     apt_get_install -y zip
 
