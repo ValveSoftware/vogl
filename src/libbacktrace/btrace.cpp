@@ -75,7 +75,7 @@ btrace_glinfo& btrace_get_glinfo()
 int
 btrace_get(uintptr_t *addrs, size_t count_addrs, uint32_t addrs_to_skip)
 {
-#if 1
+#ifdef CMAKE_HAS_UPDATED_LIBUNWIND
     return unw_backtrace_skip((void **)addrs, (int)count_addrs, addrs_to_skip);
 #else
     size_t count = 0;

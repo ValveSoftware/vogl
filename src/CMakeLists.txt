@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 2.8)
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
+option(HAS_UPDATED_LIBUNWIND "Build using unw_backtrace_skip" FALSE)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+find_package(LibLZMA REQUIRED)
+find_package(TinyXML REQUIRED)
+
 message("")
 message("cmake options:")
 message("  -DCMAKE_BUILD_TYPE=[debug|release]: Build debug or release.")
@@ -14,6 +21,7 @@ message("  -DBUILD_X64=[On|Off]: Build 32 or 64-bit.")
 message("  -DCLANG_ANALYZE=[On|Off]: Do clang analyze build (will not link).")
 message("  -DCLANG_EVERYTHING=[On|Off]: Do clang build with -Weverything.")
 message("  -DUSE_TELEMETRY=[On|Off]: Build with Telemetry.")
+message("  -DHAS_UPDATED_LIBUNWIND=[On|Off]: Build using unw_backtrace_skip (from valve patched libunwind)")
 message("")
 
 #
@@ -32,7 +40,8 @@ add_subdirectory(voglserver)
 add_subdirectory(voglcmd)
 add_subdirectory(glxspheres)
 add_subdirectory(vogleditor)
-
 add_subdirectory(libbacktrace)
 add_subdirectory(libbacktrace_test)
 
+add_subdirectory(libbacktrace)
+add_subdirectory(libbacktrace_test)
