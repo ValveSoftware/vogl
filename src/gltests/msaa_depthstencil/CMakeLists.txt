@@ -5,7 +5,7 @@ include("${SRC_DIR}/build_options.cmake")
 
 aux_source_directory(. SRC_LIST)
 
-add_definitions("-Wno-unused-variable")
+add_definitions("-Wno-unused-variable -std=c99")
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 
