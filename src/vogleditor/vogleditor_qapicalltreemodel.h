@@ -61,7 +61,7 @@ public:
       return m_rootItem;
    }
 
-   QModelIndexList find_search_matches(const QString searchText);
+   void set_highlight_search_string(const QString searchString);
    QModelIndex find_prev_search_result(vogleditor_apiCallTreeItem* start, const QString searchText);
    QModelIndex find_next_search_result(vogleditor_apiCallTreeItem* start, const QString searchText);
 
@@ -82,6 +82,7 @@ private:
    vogleditor_apiCallTreeItem* m_rootItem;
    vogl_ctypes m_trace_ctypes;
    QLinkedList<vogleditor_apiCallTreeItem*> m_itemList;
+   QString m_searchString;
 
    void setupModelData(vogl_trace_file_reader* pTrace_reader, vogleditor_apiCallTreeItem* parent);
 
