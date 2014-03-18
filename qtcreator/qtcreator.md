@@ -22,7 +22,7 @@ You should now be able to click in bottom left "Type to locate" control (or hit 
  * Mouse over the "Make: make" step and click the 'x' to delete it.
  * Click <Add Build Step>, and select "Custom Process Step".
 
-    <b>Command:</b> /home/mikesart/dev/voglproj/vogl/bin/mkvogl.sh  
+    <b>Command:</b> %{buildDir}/../bin/mkvogl.sh  
     <b>Arguments:</b> --amd64 --debug 3>&1 1>&2 2>&3  
 
 * Now select "Choose Build / Build Project..." or (Ctrl+B)
@@ -34,7 +34,7 @@ You should now be able to click in bottom left "Type to locate" control (or hit 
  * Mouse over the "Make: make clean" step and click the 'x' to delete it.
  * Click "Add Clean Step", select "Custom Process Step".
 
-    <b>Command:</b> /home/mikesart/dev/voglproj/vogl/bin/mkvogl.sh  
+    <b>Command:</b> %{buildDir}/../bin/mkvogl.sh  
     <b>Arguments:</b> --amd64 --debug --cleanonly  
 
 
@@ -45,9 +45,9 @@ You should now be able to click in bottom left "Type to locate" control (or hit 
  * Click "Add"; select "Clone selected"; follow steps below
 
 * Repeat the steps above for the remaining build configurations:
- * <b>amd64_release":</b> Arguments: --amd64 --release --verbose 3>&1 1>&2 2>&3
- * <b>i386_debug:</b> Arguments: --i386 --debug --verbose 3>&1 1>&2 2>&3
- * <b>i386_release":</b> Arguments: --i386 --release --verbose 3>&1 1>&2 2>&3
+ * <b>"amd64_release":</b> Arguments: --amd64 --release --verbose 3>&1 1>&2 2>&3
+ * <b>"i386_debug":</b> Arguments: --i386 --debug --verbose 3>&1 1>&2 2>&3
+ * <b>"i386_release":</b> Arguments: --i386 --release --verbose 3>&1 1>&2 2>&3
 
 
-Not that you can use the "--usemake" flag with mkvolg.sh if you don't want to use Ninja. If you do this, remove the "3>&1 1>&2 2>&3" redirections also.
+Note that you can use the "--usemake" flag with mkvolg.sh if you don't want to use Ninja. If you do this, remove the "3>&1 1>&2 2>&3" redirections also.
