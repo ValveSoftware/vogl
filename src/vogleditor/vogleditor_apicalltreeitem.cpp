@@ -35,7 +35,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_QApiCallTreeMo
  : m_parentItem(NULL),
    m_pApiCallItem(NULL),
    m_pFrameItem(NULL),
-   m_pModel(pModel)
+   m_pModel(pModel),
+   m_localRowIndex(0)
 {
     m_columnData[VOGL_ACTC_APICALL] = "API Call";
     m_columnData[VOGL_ACTC_INDEX] = "Index";
@@ -51,7 +52,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_frameItem* fra
  : m_parentItem(parent),
    m_pApiCallItem(NULL),
    m_pFrameItem(frameItem),
-   m_pModel(NULL)
+   m_pModel(NULL),
+   m_localRowIndex(0)
 {
    if (frameItem != NULL)
    {
@@ -71,7 +73,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(QString nodeText, vogledi
  : m_parentItem(parent),
    m_pApiCallItem(apiCallItem),
    m_pFrameItem(NULL),
-   m_pModel(NULL)
+   m_pModel(NULL),
+   m_localRowIndex(0)
 {
    m_columnData[VOGL_ACTC_APICALL] = nodeText;
 
@@ -122,7 +125,8 @@ vogleditor_apiCallTreeItem* vogleditor_apiCallTreeItem::parent() const
 
 void vogleditor_apiCallTreeItem::appendChild(vogleditor_apiCallTreeItem* pChild)
 {
-   m_childItems.append(pChild);
+    pChild->m_localRowIndex = m_childItems.size();
+    m_childItems.append(pChild);
 }
 
 int vogleditor_apiCallTreeItem::childCount() const
@@ -252,8 +256,5 @@ QVariant vogleditor_apiCallTreeItem::columnData(int column, int role) const
 int vogleditor_apiCallTreeItem::row() const
 {
    // note, this is just the row within the current level of the hierarchy
-   if (m_parentItem)
-      return m_parentItem->m_childItems.indexOf(const_cast<vogleditor_apiCallTreeItem*>(this));
-
-   return 0;
+   return m_localRowIndex;
 }
