@@ -93,6 +93,7 @@ private:
    vogleditor_apiCallItem* m_pApiCallItem;
    vogleditor_frameItem* m_pFrameItem;
    vogleditor_QApiCallTreeModel* m_pModel;
+   int m_localRowIndex;
 };
 
 #endif // VOGLEDITOR_APICALLTREEITEM_H
