@@ -312,9 +312,23 @@ QVariant vogleditor_QApiCallTreeModel::data(const QModelIndex &index, int role) 
     if (!index.isValid())
         return QVariant();
 
-    vogleditor_apiCallTreeItem *item = static_cast<vogleditor_apiCallTreeItem*>(index.internalPointer());
+    vogleditor_apiCallTreeItem* pItem = static_cast<vogleditor_apiCallTreeItem*>(index.internalPointer());
 
-    return item->columnData(index.column(), role);
+    // highlight the API call cell if it has a substring which matches the searchString
+    if (role == Qt::BackgroundRole && index.column() == VOGL_ACTC_APICALL)
+    {
+        if (!m_searchString.isEmpty())
+        {
+            QVariant data = pItem->columnData(VOGL_ACTC_APICALL, Qt::DisplayRole);
+            QString string = data.toString();
+            if (string.contains(m_searchString, Qt::CaseInsensitive))
+            {
+                return QColor(Qt::yellow);
+            }
+        }
+    }
+
+    return pItem->columnData(index.column(), role);
 }
 
 Qt::ItemFlags vogleditor_QApiCallTreeModel::flags(const QModelIndex &index) const
@@ -334,44 +348,35 @@ QVariant vogleditor_QApiCallTreeModel::headerData(int section, Qt::Orientation o
     return QVariant();
 }
 
-QModelIndexList vogleditor_QApiCallTreeModel::find_search_matches(const QString searchText)
+void vogleditor_QApiCallTreeModel::set_highlight_search_string(const QString searchString)
 {
-    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
-
-    QModelIndexList matches;
-    // iterate through all items and find matching text
-    while (iter.hasNext())
-    {
-        vogleditor_apiCallTreeItem* pItem = iter.peekNext();
-        QVariant data = pItem->columnData(VOGL_ACTC_APICALL, Qt::DisplayRole);
-        QString string = data.toString();
-        if (string.contains(searchText, Qt::CaseInsensitive))
-        {
-            matches.push_back(indexOf(pItem));
-        }
-
-        iter.next();
-    }
-
-    return matches;
+    m_searchString = searchString;
 }
 
 QModelIndex vogleditor_QApiCallTreeModel::find_prev_search_result(vogleditor_apiCallTreeItem* start, const QString searchText)
 {
     QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
 
-    if (iter.findNext(start) == false)
+    if (start != NULL)
     {
-        // the object wasn't found in the list, so just return the same item
-        return indexOf(start);
-    }
+        if (iter.findNext(start) == false)
+        {
+            // the object wasn't found in the list, so return a default (invalid) item
+            return QModelIndex();
+        }
 
-    // need to back up past the current item
-    iter.previous();
+        // need to back up past the current item
+        iter.previous();
+    }
+    else
+    {
+        // set the iterator to the back so that searching starts from the end of the list
+        iter.toBack();
+    }
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the prev item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = start;
+    vogleditor_apiCallTreeItem* pFound = NULL;
     while (iter.hasPrevious())
     {
         vogleditor_apiCallTreeItem* pItem = iter.peekPrevious();
@@ -391,18 +396,20 @@ QModelIndex vogleditor_QApiCallTreeModel::find_prev_search_result(vogleditor_api
 
 QModelIndex vogleditor_QApiCallTreeModel::find_next_search_result(vogleditor_apiCallTreeItem* start, const QString searchText)
 {
-
     QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
 
-    if (iter.findNext(start) == false)
+    if (start != NULL)
     {
-        // the object wasn't found in the list, so just return the same item
-        return indexOf(start);
+        if (iter.findNext(start) == false)
+        {
+            // the object wasn't found in the list, so return a default (invalid) item
+            return QModelIndex();
+        }
     }
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the next item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = start;
+    vogleditor_apiCallTreeItem* pFound = NULL;
     while (iter.hasNext())
     {
         vogleditor_apiCallTreeItem* pItem = iter.peekNext();
@@ -424,18 +431,26 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_prev_snapshot(vog
 {
     QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
 
-    if (iter.findNext(start) == false)
+    if (start != NULL)
     {
-        // the object wasn't found in the list, so just return the same item
-        return start;
-    }
+        if (iter.findNext(start) == false)
+        {
+            // the object wasn't found in the list
+            return NULL;
+        }
 
-    // need to back up past the current item
-    iter.previous();
+        // need to back up past the current item
+        iter.previous();
+    }
+    else
+    {
+        // set the iterator to the back so that searching starts from the end of the list
+        iter.toBack();
+    }
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the prev item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = start;
+    vogleditor_apiCallTreeItem* pFound = NULL;
     while (iter.hasPrevious())
     {
         if (iter.peekPrevious()->has_snapshot())
@@ -459,14 +474,14 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_next_snapshot(vog
     {
         if (iter.findNext(start) == false)
         {
-            // the object wasn't found in the list, so just return the same item
-            return start;
+            // the object wasn't found in the list
+            return NULL;
         }
     }
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the next item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = start;
+    vogleditor_apiCallTreeItem* pFound = NULL;
     while (iter.hasNext())
     {
         if (iter.peekNext()->has_snapshot())
@@ -486,18 +501,26 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_prev_drawcall(vog
 {
     QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
 
-    if (iter.findNext(start) == false)
+    if (start != NULL)
     {
-        // the object wasn't found in the list, so just return the same item
-        return start;
-    }
+        if (iter.findNext(start) == false)
+        {
+            // the object wasn't found in the list
+            return NULL;
+        }
 
-    // need to back up past the current item
-    iter.previous();
+        // need to back up past the current item
+        iter.previous();
+    }
+    else
+    {
+        // set the iterator to the back so that searching starts from the end of the list
+        iter.toBack();
+    }
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the prev item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = start;
+    vogleditor_apiCallTreeItem* pFound = NULL;
     while (iter.hasPrevious())
     {
         vogleditor_apiCallTreeItem* pItem = iter.peekPrevious();
@@ -524,13 +547,13 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vog
 
     if (iter.findNext(start) == false)
     {
-        // the object wasn't found in the list, so just return the same item
-        return start;
+        // the object wasn't found in the list
+        return NULL;
     }
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the next item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = start;
+    vogleditor_apiCallTreeItem* pFound = NULL;
     while (iter.hasNext())
     {
         vogleditor_apiCallTreeItem* pItem = iter.peekNext();

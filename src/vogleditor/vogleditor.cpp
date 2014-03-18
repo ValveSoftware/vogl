@@ -132,6 +132,9 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_statusLabel->setBaseSize(150, 12);
    ui->statusBar->addWidget(m_statusLabel, 1);
 
+   // cache the original background color of the search text box
+   m_searchTextboxBackgroundColor = ui->searchTextBox->palette().base().color();
+
    // setup framebuffer tab
    QGridLayout* framebufferTab_layout = new QGridLayout;
    m_framebufferExplorer = new vogleditor_QFramebufferExplorer(ui->framebufferTab);
@@ -348,7 +351,6 @@ void VoglEditor::close_trace_file()
       m_openFilename.clear();
       m_backtraceToJsonMap.clear();
       m_backtraceDoc.clear();
-      m_searchApicallResults.clear();
 
       reset_tracefile_ui();
 
@@ -1632,71 +1634,23 @@ void VoglEditor::selectApicallModelIndex(QModelIndex index, bool scrollTo, bool 
     {
         ui->treeView->setCurrentIndex(index);
     }
-
-    if (m_searchApicallResults.size() > 0 && !ui->searchTextBox->text().isEmpty())
-    {
-        QItemSelectionModel* pSelection = ui->treeView->selectionModel();
-        for (int i = 0; i < m_searchApicallResults.size(); i++)
-        {
-            pSelection->select(m_searchApicallResults[i], QItemSelectionModel::Select | QItemSelectionModel::Rows);
-        }
-        ui->treeView->setSelectionModel(pSelection);
-    }
 }
 
 void VoglEditor::on_searchTextBox_textChanged(const QString &searchText)
 {
-    QModelIndex curSearchIndex = ui->treeView->currentIndex();
-    if (curSearchIndex.isValid() == false)
-    {
-        return;
-    }
+    QPalette palette(ui->searchTextBox->palette());
+    palette.setColor(QPalette::Base, m_searchTextboxBackgroundColor);
+    ui->searchTextBox->setPalette(palette);
 
-    // store original background color of the search text box so that it can be turned to red and later restored.
-    static const QColor sOriginalTextBoxBackground = ui->searchTextBox->palette().base().color();
-
-    // clear previous items
-    QItemSelectionModel* pSelection = ui->treeView->selectionModel();
-    if (pSelection != NULL)
-    {
-        for (int i = 0; i < m_searchApicallResults.size(); i++)
-        {
-            pSelection->select(m_searchApicallResults[i], QItemSelectionModel::Clear | QItemSelectionModel::Rows);
-        }
-        ui->treeView->setSelectionModel(pSelection);
-    }
-
-    // find new matches
-    m_searchApicallResults.clear();
     if (m_pApicallTreeModel != NULL)
     {
-        m_searchApicallResults = m_pApicallTreeModel->find_search_matches(searchText);
+        m_pApicallTreeModel->set_highlight_search_string(searchText);
     }
 
-    // if there are matches, restore the textbox background to its original color
-    if (m_searchApicallResults.size() > 0)
-    {
-        QPalette palette(ui->searchTextBox->palette());
-        palette.setColor(QPalette::Base, sOriginalTextBoxBackground);
-        ui->searchTextBox->setPalette(palette);
-    }
-
-    // select new items
-    if (!searchText.isEmpty())
-    {
-        if (m_searchApicallResults.size() > 0)
-        {
-            // scroll to the first result, but don't select it
-            selectApicallModelIndex(m_searchApicallResults[0], true, false);
-        }
-        else
-        {
-            // no items were found, so set the textbox background to red
-            QPalette palette(ui->searchTextBox->palette());
-            palette.setColor(QPalette::Base, Qt::red);
-            ui->searchTextBox->setPalette(palette);
-        }
-    }
+    // need to briefly give the treeview focus so that it properly redraws and highlights the matching rows
+    // then return focus to the search textbox so that typed keys are not lost
+    ui->treeView->setFocus();
+    ui->searchTextBox->setFocus();
 }
 
 void VoglEditor::on_searchNextButton_clicked()
@@ -1704,7 +1658,11 @@ void VoglEditor::on_searchNextButton_clicked()
     if (m_pApicallTreeModel != NULL)
     {
         QModelIndex index = m_pApicallTreeModel->find_next_search_result(m_pCurrentCallTreeItem, ui->searchTextBox->text());
-        selectApicallModelIndex(index, true, true);
+        if (index.isValid())
+        {
+            selectApicallModelIndex(index, true, true);
+            ui->treeView->setFocus();
+        }
     }
 }
 
@@ -1713,7 +1671,11 @@ void VoglEditor::on_searchPrevButton_clicked()
     if (m_pApicallTreeModel != NULL)
     {
         QModelIndex index = m_pApicallTreeModel->find_prev_search_result(m_pCurrentCallTreeItem, ui->searchTextBox->text());
-        selectApicallModelIndex(index, true, true);
+        if (index.isValid())
+        {
+            selectApicallModelIndex(index, true, true);
+            ui->treeView->setFocus();
+        }
     }
 }
 
@@ -1722,8 +1684,11 @@ void VoglEditor::on_prevSnapshotButton_clicked()
     if (m_pApicallTreeModel != NULL)
     {
         vogleditor_apiCallTreeItem* pPrevItemWithSnapshot = m_pApicallTreeModel->find_prev_snapshot(m_pCurrentCallTreeItem);
-        selectApicallModelIndex(m_pApicallTreeModel->indexOf(pPrevItemWithSnapshot), true, true);
-        ui->treeView->setFocus();
+        if (pPrevItemWithSnapshot != NULL)
+        {
+            selectApicallModelIndex(m_pApicallTreeModel->indexOf(pPrevItemWithSnapshot), true, true);
+            ui->treeView->setFocus();
+        }
     }
 }
 
@@ -1732,8 +1697,11 @@ void VoglEditor::on_nextSnapshotButton_clicked()
     if (m_pApicallTreeModel != NULL)
     {
         vogleditor_apiCallTreeItem* pNextItemWithSnapshot = m_pApicallTreeModel->find_next_snapshot(m_pCurrentCallTreeItem);
-        selectApicallModelIndex(m_pApicallTreeModel->indexOf(pNextItemWithSnapshot), true, true);
-        ui->treeView->setFocus();
+        if (pNextItemWithSnapshot != NULL)
+        {
+            selectApicallModelIndex(m_pApicallTreeModel->indexOf(pNextItemWithSnapshot), true, true);
+            ui->treeView->setFocus();
+        }
     }
 }
 
@@ -1742,8 +1710,11 @@ void VoglEditor::on_prevDrawcallButton_clicked()
     if (m_pApicallTreeModel != NULL)
     {
         vogleditor_apiCallTreeItem* pPrevItem = m_pApicallTreeModel->find_prev_drawcall(m_pCurrentCallTreeItem);
-        selectApicallModelIndex(m_pApicallTreeModel->indexOf(pPrevItem), true, true);
-        ui->treeView->setFocus();
+        if (pPrevItem != NULL)
+        {
+            selectApicallModelIndex(m_pApicallTreeModel->indexOf(pPrevItem), true, true);
+            ui->treeView->setFocus();
+        }
     }
 }
 
@@ -1752,11 +1723,13 @@ void VoglEditor::on_nextDrawcallButton_clicked()
     if (m_pApicallTreeModel != NULL)
     {
         vogleditor_apiCallTreeItem* pNextItem = m_pApicallTreeModel->find_next_drawcall(m_pCurrentCallTreeItem);
-        selectApicallModelIndex(m_pApicallTreeModel->indexOf(pNextItem), true, true);
-        ui->treeView->setFocus();
+        if (pNextItem != NULL)
+        {
+            selectApicallModelIndex(m_pApicallTreeModel->indexOf(pNextItem), true, true);
+            ui->treeView->setFocus();
+        }
     }
 }
-
 
 void VoglEditor::on_program_edited(vogl_program_state* pNewProgramState)
 {
@@ -1840,4 +1813,24 @@ void VoglEditor::on_actionOpen_Session_triggered()
     }
 
     setCursor(origCursor);
+}
+
+void VoglEditor::on_searchTextBox_returnPressed()
+{
+    if (m_pApicallTreeModel != NULL)
+    {
+        QModelIndex index = m_pApicallTreeModel->find_next_search_result(m_pCurrentCallTreeItem, ui->searchTextBox->text());
+        if (index.isValid())
+        {
+            // a valid item was found, scroll to it and select it
+            selectApicallModelIndex(index, true, true);
+        }
+        else
+        {
+            // no items were found, so set the textbox background to red (it will get cleared to the original color if the user edits the search text)
+            QPalette palette(ui->searchTextBox->palette());
+            palette.setColor(QPalette::Base, Qt::red);
+            ui->searchTextBox->setPalette(palette);
+        }
+    }
 }
