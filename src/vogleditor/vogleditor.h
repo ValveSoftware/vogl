@@ -110,6 +110,8 @@ private slots:
 
    void on_actionOpen_Session_triggered();
 
+   void on_searchTextBox_returnPressed();
+
 private:
    Ui::VoglEditor* ui;
 
@@ -166,8 +168,7 @@ private:
    vogleditor_apiCallTimelineModel* m_pTimelineModel;
 
    vogleditor_QApiCallTreeModel* m_pApicallTreeModel;
-
-   QModelIndexList m_searchApicallResults;
+   QColor m_searchTextboxBackgroundColor;
 };
 
 #endif // VOGLEDITOR_H
