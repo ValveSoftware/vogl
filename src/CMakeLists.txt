@@ -5,6 +5,12 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 option(BUILD_GL_TESTS "Build OpenGL tests" TRUE)
 option(BUILD_GL_SAMPLES "Build various OpenGL samples" TRUE)
+option(HAS_UPDATED_LIBUNWIND "Build using unw_backtrace_skip" FALSE)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
+find_package(LibLZMA REQUIRED)
+find_package(TinyXML REQUIRED)
 
 message("")
 message("cmake options:")
@@ -19,6 +25,7 @@ message("  -DCLANG_EVERYTHING=[On|Off]: Do clang build with -Weverything.")
 message("  -DUSE_TELEMETRY=[On|Off]: Build with Telemetry.")
 message("  -DBUILD_GL_TESTS=[On|Off]: Build OpenGL tests.")
 message("  -DBUILD_GL_SAMPLES=[On|Off]: Build OpenGL samples.")
+message("  -DHAS_UPDATED_LIBUNWIND=[On|Off]: Build using unw_backtrace_skip (from valve patched libunwind)")
 message("")
 
 #
@@ -37,6 +44,8 @@ add_subdirectory(voglserver)
 add_subdirectory(voglcmd)
 add_subdirectory(glxspheres)
 add_subdirectory(vogleditor)
+add_subdirectory(libbacktrace)
+add_subdirectory(libbacktrace_test)
 
 if (BUILD_GL_TESTS)
     message("Building OpenGL tests (BUILD_GL_TESTS=TRUE)")
@@ -52,7 +61,3 @@ if (BUILD_GL_SAMPLES)
 else()
     message("Not building OpenGL samples (BUILD_GL_SAMPLES=FALSE)")
 endif()
-
-add_subdirectory(libbacktrace)
-add_subdirectory(libbacktrace_test)
-

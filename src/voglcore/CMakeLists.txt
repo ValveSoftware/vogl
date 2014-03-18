@@ -10,7 +10,8 @@ endif ()
 include("${SRC_DIR}/build_options.cmake")
 
 include_directories(
-   "${PROJECT_SOURCE_DIR}/../inc"
+    ${LZMA_INCLUDE_DIR}
+    ${LZMADEC_INCLUDE_DIR}
    "${SRC_DIR}/chromiumlib"
 )
 
@@ -66,23 +67,6 @@ set(SRC_LIST
    vogl_applauncher.cpp
    vogl_etc.cpp
    vogl_rg_etc1.cpp
-
-   lzma_7zBuf2.cpp
-   lzma_7zBuf.cpp
-   lzma_7zCrc.cpp
-   lzma_7zFile.cpp
-   lzma_7zStream.cpp
-   lzma_Alloc.cpp
-   lzma_Bcj2.cpp
-   lzma_Bra86.cpp
-   lzma_Bra.cpp
-   lzma_BraIA64.cpp
-   lzma_LzFind.cpp
-   # lzma_LzFindMt.cpp
-   lzma_LzmaDec.cpp
-   lzma_LzmaEnc.cpp
-   lzma_LzmaLib.cpp
-   # lzma_Threads.cpp
    rmalloc.c
    regex/debug.c
    regex/regcomp.c
@@ -113,6 +97,8 @@ add_library(${PROJECT_NAME} ${SRC_LIST})
 target_link_libraries(${PROJECT_NAME}
     ${CMAKE_THREAD_LIBS_INIT}
     rt
+    ${LZMA_LIBRARIES}
+    ${LZMADEC_LIBRARIES}
     )
 
 build_options_finalize()

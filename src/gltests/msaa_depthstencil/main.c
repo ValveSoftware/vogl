@@ -190,6 +190,7 @@ int main( int argc , char* args[] )
     }
 
     float f = 0.0f;
+    typedef unsigned int uint;
     uint s = 0;
 
     while( running )

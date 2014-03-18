@@ -129,6 +129,12 @@ if [[ -n "$DO_PACKAGES" ]]; then
     apt_get_install -y libncurses5-dev
     apt_get_install -y libgpm-dev
 
+    #  Install tinyxml
+    apt_get_install -y libtinyxml-dev
+
+    #  Install lzma
+    apt_get_install -y liblzma-dev
+
     #  Install readline
     apt_get_install -y libreadline6-dev
 
