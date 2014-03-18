@@ -119,7 +119,6 @@ if [[ -n "$DO_PACKAGES" ]]; then
     apt_get_install -y libglu1-mesa-dev
     apt_get_install -y freeglut3-dev
 
-    apt_get_install -y libtinyxml-dev
     #  Install zip tools
     apt_get_install -y zip
 
@@ -129,6 +128,12 @@ if [[ -n "$DO_PACKAGES" ]]; then
     #  Install ncurses and friends
     apt_get_install -y libncurses5-dev
     apt_get_install -y libgpm-dev
+
+    #  Install tinyxml
+    apt_get_install -y libtinyxml-dev
+
+    #  Install lzma
+    apt_get_install -y liblzma-dev
 
     #  Install readline
     apt_get_install -y libreadline6-dev
