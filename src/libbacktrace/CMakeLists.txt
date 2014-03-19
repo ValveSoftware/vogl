@@ -159,6 +159,7 @@ include_directories (
     ${SRC_DIR}/voglcore
     ${LIBUNWIND_INCLUDE_DIR}
 )
+
 add_library (backtrace STATIC EXCLUDE_FROM_ALL
     ${BACKTRACE_FILE}
     ${FORMAT_FILE}
@@ -173,10 +174,16 @@ add_library (backtrace STATIC EXCLUDE_FROM_ALL
     btrace.cpp
     libelftc_dem_gnu3.c
 )
+
+if(HAS_UPDATED_LIBUNWIND)
+  add_definitions(-DCMAKE_HAS_UPDATED_LIBUNWIND)
+endif(HAS_UPDATED_LIBUNWIND)
+
+
 target_link_libraries(backtrace voglcore)
 
-find_library(LIBUNWIND_LIBRARY libunwind.a)
-target_link_libraries(backtrace ${LIBUNWIND_LIBRARY})
+find_library(LIBUNWIND_LIBRARY NAMES unwind libunwind REQUIRE)
+target_link_libraries(backtrace ${LIBUNWIND_LIBRARY} ${LIBLZMA_LIBRARIES})
 
 set_target_properties (backtrace PROPERTIES
     COMPILE_FLAGS "${CMAKE_SHARED_LIBRARY_C_FLAGS}"
