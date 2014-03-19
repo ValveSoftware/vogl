@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 # cpy_inc_files.sh
 #
