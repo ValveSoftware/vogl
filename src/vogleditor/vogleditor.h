@@ -67,6 +67,7 @@ class vogleditor_apiCallTimelineModel;
 class vogleditor_apiCallTreeItem;
 class vogleditor_gl_state_snapshot;
 class vogleditor_QApiCallTreeModel;
+class vogleditor_QStateTreeModel;
 
 class VoglEditor : public QMainWindow
 {
@@ -144,13 +145,19 @@ private:
    bool save_snapshot_to_disk(vogl_gl_state_snapshot* pSnapshot, dynamic_string filename, vogl_blob_manager *pBlob_manager);
 
    QString m_openFilename;
-   QLabel* m_statusLabel;
-   vogleditor_QFramebufferExplorer* m_framebufferExplorer;
-   vogleditor_QTextureExplorer* m_textureExplorer;
-   vogleditor_QTextureExplorer* m_renderbufferExplorer;
-   vogleditor_QProgramExplorer* m_programExplorer;
-   vogleditor_QShaderExplorer* m_shaderExplorer;
+   QLabel* m_pStatusLabel;
+   vogleditor_QFramebufferExplorer* m_pFramebufferExplorer;
+   vogleditor_QTextureExplorer* m_pTextureExplorer;
+   vogleditor_QTextureExplorer* m_pRenderbufferExplorer;
+   vogleditor_QProgramExplorer* m_pProgramExplorer;
+   vogleditor_QShaderExplorer* m_pShaderExplorer;
    vogleditor_QTimelineView* m_timeline;
+
+   QGridLayout* m_pFramebufferTab_layout;
+   QGridLayout* m_pTextureTab_layout;
+   QGridLayout* m_pRenderbufferTab_layout;
+   QGridLayout* m_pProgramTab_layout;
+   QGridLayout* m_pShaderTab_layout;
 
    vogleditor_gl_state_snapshot* m_currentSnapshot;
    vogleditor_apiCallTreeItem* m_pCurrentCallTreeItem;
@@ -166,8 +173,9 @@ private:
    vogl::hash_map<vogl::uint32, vogl::json_node*> m_backtraceToJsonMap;
 
    vogleditor_apiCallTimelineModel* m_pTimelineModel;
+   vogleditor_QApiCallTreeModel* m_pApiCallTreeModel;
+   vogleditor_QStateTreeModel* m_pStateTreeModel;
 
-   vogleditor_QApiCallTreeModel* m_pApicallTreeModel;
    QColor m_searchTextboxBackgroundColor;
 };
 

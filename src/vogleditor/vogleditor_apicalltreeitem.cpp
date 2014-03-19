@@ -99,19 +99,19 @@ vogleditor_apiCallTreeItem::~vogleditor_apiCallTreeItem()
 {
    if (m_pFrameItem != NULL)
    {
-      delete m_pFrameItem;
+      vogl_delete(m_pFrameItem);
       m_pFrameItem = NULL;
    }
 
    if (m_pApiCallItem != NULL)
    {
-      delete m_pApiCallItem;
+      vogl_delete(m_pApiCallItem);
       m_pApiCallItem = NULL;
    }
 
    for (int i = 0; i < m_childItems.size(); i++)
    {
-      delete m_childItems[i];
+      vogl_delete(m_childItems[i]);
       m_childItems[i] = NULL;
    }
 
