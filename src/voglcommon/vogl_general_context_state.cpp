@@ -2630,8 +2630,10 @@ bool vogl_polygon_stipple_state::snapshot(const vogl_context_info &context_info)
 
     clear();
 
-    GL_ENTRYPOINT(glGetPolygonStipple)(reinterpret_cast<GLubyte *>(m_pattern));
+    vogl_scoped_state_saver pixelstore_state_saver(cGSTPixelStore);
+    vogl_reset_pixel_store_states();
 
+    GL_ENTRYPOINT(glGetPolygonStipple)(m_pattern);
     VOGL_CHECK_GL_ERROR;
 
     m_valid = true;
@@ -2650,8 +2652,10 @@ bool vogl_polygon_stipple_state::restore(const vogl_context_info &context_info) 
 
     VOGL_CHECK_GL_ERROR;
 
-    GL_ENTRYPOINT(glPolygonStipple)(reinterpret_cast<const GLubyte *>(m_pattern));
+    vogl_scoped_state_saver pixelstore_state_saver(cGSTPixelStore);
+    vogl_reset_pixel_store_states();
 
+    GL_ENTRYPOINT(glPolygonStipple)(m_pattern);
     VOGL_CHECK_GL_ERROR;
 
     return true;
@@ -2675,7 +2679,7 @@ bool vogl_polygon_stipple_state::serialize(json_node &node, vogl_blob_manager &b
         return false;
 
     json_node &arr_node = node.add_array("pattern");
-    for (uint i = 0; i < 32; i++)
+    for (uint i = 0; i < VOGL_ARRAY_SIZE(m_pattern); i++)
         arr_node.add_value(m_pattern[i]);
 
     return true;
@@ -2693,11 +2697,19 @@ bool vogl_polygon_stipple_state::deserialize(const json_node &node, const vogl_b
     if (!pArr_node)
         return false;
 
-    if ((pArr_node->size() != 32) || (!pArr_node->are_all_children_values()))
+    if (!pArr_node->are_all_children_values())
         return false;
 
-    for (uint i = 0; i < 32; i++)
-        m_pattern[i] = pArr_node->value_as_uint32(i);
+    // An earlier version wrote the wrong size, so ignore that data.
+    if (pArr_node->size() == VOGL_ARRAY_SIZE(m_pattern))
+    {
+        for (uint i = 0; i < VOGL_ARRAY_SIZE(m_pattern); i++)
+            m_pattern[i] = static_cast<uint8>(pArr_node->value_as_uint32(i));
+    }
+    else
+    {
+        vogl_warning_printf("%s: Polygon stipple data is not valid in this older trace file so it's being ignored - please recapture (sorry)\n", VOGL_METHOD_NAME);
+    }
 
     m_valid = true;
 
@@ -2709,8 +2721,9 @@ uint vogl_polygon_stipple_state::get_num_pattern_rows() const
     return 32;
 }
 
-uint32 vogl_polygon_stipple_state::get_pattern_row(uint rowIndex) const
+uint32 vogl_polygon_stipple_state::get_pattern_row(uint row_index) const
 {
-    VOGL_ASSERT(rowIndex < 32);
-    return m_pattern[rowIndex];
+    VOGL_ASSERT(row_index < 32);
+
+    return m_pattern[4 * row_index] | (m_pattern[4 * row_index + 1] << 8U) | (m_pattern[4 * row_index + 2] << 16U) | (m_pattern[4 * row_index + 3] << 24U);
 }
