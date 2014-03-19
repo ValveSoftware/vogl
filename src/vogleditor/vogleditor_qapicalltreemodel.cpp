@@ -34,7 +34,7 @@
 vogleditor_QApiCallTreeModel::vogleditor_QApiCallTreeModel(vogl_trace_file_reader* reader, QObject *parent)
     : QAbstractItemModel(parent)
 {
-    m_rootItem = new vogleditor_apiCallTreeItem(this);
+    m_rootItem = vogl_new(vogleditor_apiCallTreeItem, this);
     setupModelData(reader, m_rootItem);
 }
 
@@ -42,7 +42,7 @@ vogleditor_QApiCallTreeModel::~vogleditor_QApiCallTreeModel()
 {
    if (m_rootItem != NULL)
    {
-      delete m_rootItem;
+      vogl_delete(m_rootItem);
       m_rootItem = NULL;
    }
 
@@ -196,7 +196,7 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
          // and append it to the parent
          if (pCurFrame == NULL)
          {
-            pCurFrame = new vogleditor_frameItem(total_swaps);
+            pCurFrame = vogl_new(vogleditor_frameItem, total_swaps);
             vogleditor_apiCallTreeItem* pNewFrameNode = vogl_new(vogleditor_apiCallTreeItem, pCurFrame, pCurParent);
             pCurParent->appendChild(pNewFrameNode);
             m_itemList.append(pNewFrameNode);
