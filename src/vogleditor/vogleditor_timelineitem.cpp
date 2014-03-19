@@ -52,13 +52,19 @@ vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogledi
 
 vogleditor_timelineItem::~vogleditor_timelineItem()
 {
+    for (int i = 0; i < m_childItems.size(); i++)
+    {
+        delete m_childItems[i];
+        m_childItems[i] = NULL;
+    }
+    m_childItems.clear();
 }
 
 void vogleditor_timelineItem::appendChild(vogleditor_timelineItem* child)
 {
-    childItems.append(child);
+    m_childItems.append(child);
 
-    if (childItems.size() == 1)
+    if (m_childItems.size() == 1)
     {
         // just added the first child, so overwrite the current maxChildDuration
         m_maxChildDuration = child->getMaxChildDuration();
@@ -72,12 +78,12 @@ void vogleditor_timelineItem::appendChild(vogleditor_timelineItem* child)
 
 vogleditor_timelineItem* vogleditor_timelineItem::child(int row)
 {
-   return childItems[row];
+   return m_childItems[row];
 }
 
 int vogleditor_timelineItem::childCount() const
 {
-   return childItems.size();
+   return m_childItems.size();
 }
 
 vogleditor_timelineItem* vogleditor_timelineItem::parent()
