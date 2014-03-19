@@ -96,11 +96,11 @@ public:
     bool deserialize(const json_node &node, const vogl_blob_manager &blob_manager);
 
     uint get_num_pattern_rows() const;
-    uint32 get_pattern_row(uint rowIndex) const;
+    uint32 get_pattern_row(uint row_index) const;
 
 private:
     bool m_valid;
-    uint32 m_pattern[32];
+    uint8 m_pattern[32 * 4];
 };
 
 #endif // VOGL_BASIC_CONTEXT_STATE_H
