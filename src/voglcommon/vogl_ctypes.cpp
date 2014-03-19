@@ -145,6 +145,10 @@ void vogl_ctypes::change_pointer_sizes(uint trace_ptr_size)
 //DEF_LONG_TYPE(VOGL_CURSOR);
 #undef DEF_LONG_TYPE
 
+    // Special case the XVisualInfo struct because its size differs between 32-bit and 64-bit - argh this sucks and we need a MUCH cleaner way of handling this.
+    // In practice this only fixes an assertion, because the packets always describe the exact length of objects.
+    m_vogl_ctype_descs[VOGL_XVISUALINFO].m_size = (trace_ptr_size == 8) ? 64 : 40;
+
 #if 1
     // sanity check
     for (uint ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
