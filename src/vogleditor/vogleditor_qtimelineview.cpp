@@ -56,6 +56,15 @@ vogleditor_QTimelineView::~vogleditor_QTimelineView()
 
 void vogleditor_QTimelineView::paintEvent(QPaintEvent *event)
 {
+    // Don't bother drawing if the rect is too small.
+    // For some reason this is happening at unexpected times.
+    int rectHeight = event->rect().height();
+    int rectWidth = event->rect().width();
+    if (rectHeight < 100 || rectWidth < 100)
+    {
+        return;
+    }
+
     QPainter painter;
     painter.begin(this);
     paint(&painter, event);
@@ -112,8 +121,17 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
 
     if (m_pPixmap != NULL)
     {
-        if (m_pPixmap->height() != event->rect().height() ||
-            m_pPixmap->width() != event->rect().width())
+        int rectHeight = event->rect().height();
+        int rectWidth = event->rect().width();
+        int pmHeight = m_pPixmap->height();
+        int pmWidth = m_pPixmap->width();
+
+        float widthPctDelta = (float)(rectWidth - pmWidth) / (float)pmWidth;
+        float heightPctDelta = (float)(rectHeight - pmHeight) / (float)pmHeight;
+
+        // If the resize is of a 'signficant' amount, then delete the pixmap so that it will be regenerated at the new size.
+        if (fabs(widthPctDelta) > 0.2 ||
+            fabs(heightPctDelta) > 0.2)
         {
             deletePixmap();
         }
@@ -143,14 +161,15 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
         pixmapPainter.setBrush(m_triangleBrush);
         pixmapPainter.setPen(m_trianglePen);
 
+        float minimumOffset = 0;
         for (int c = 0; c < numChildren; c++)
         {
             vogleditor_timelineItem* pChild = m_pModel->get_root_item()->child(c);
-            drawTimelineItem(&pixmapPainter, pChild, height);
+            drawTimelineItem(&pixmapPainter, pChild, height, minimumOffset);
         }
     }
 
-    painter->drawPixmap(event->rect(), *m_pPixmap, event->rect());
+    painter->drawPixmap(event->rect(), *m_pPixmap, m_pPixmap->rect());
 
     // translate drawing to vertical center of rect
     // everything will have a small gap on the left and right sides
@@ -187,9 +206,9 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
 float vogleditor_QTimelineView::scaleDurationHorizontally(float value)
 {
    float scaled = value * m_horizontalScale;
-   if (scaled <= 0)
+   if (scaled <= m_horizontalScale)
    {
-      scaled = 1;
+      scaled = m_horizontalScale;
    }
 
    return scaled;
@@ -204,7 +223,7 @@ float vogleditor_QTimelineView::scalePositionHorizontally(float value)
    return offset;
 }
 
-void vogleditor_QTimelineView::drawTimelineItem(QPainter* painter, vogleditor_timelineItem *pItem, int height)
+void vogleditor_QTimelineView::drawTimelineItem(QPainter* painter, vogleditor_timelineItem *pItem, int height, float& minimumOffset)
 {
    float duration = pItem->getDuration();
    if (duration < 0)
@@ -223,25 +242,44 @@ void vogleditor_QTimelineView::drawTimelineItem(QPainter* painter, vogleditor_ti
    }
    else
    {
-      float durationRatio = duration / m_maxItemDuration;
-      int intensity = std::min(255, (int)(durationRatio * 255.0f));
-      //   painter->setBrush(*(pItem->getBrush()));
-      QColor color(intensity, 255-intensity, 0);
-      painter->setBrush(QBrush(color));
-      painter->setPen(color);
-      QRectF rect;
-      rect.setLeft(scalePositionHorizontally(pItem->getBeginTime()));
-      rect.setTop(-height/2);
-      rect.setWidth(scaleDurationHorizontally(duration));
-      rect.setHeight(height);
-      painter->drawRect(rect);
+       // only draw if the item will extend beyond the minimum offset
+       float leftOffset = scalePositionHorizontally(pItem->getBeginTime());
+       float scaledWidth = scaleDurationHorizontally(duration);
+       if (minimumOffset < leftOffset + scaledWidth)
+       {
+           float durationRatio = duration / m_maxItemDuration;
+           int intensity = std::min(255, (int)(durationRatio * 255.0f));
+           //   painter->setBrush(*(pItem->getBrush()));
+           QColor color(intensity, 255-intensity, 0);
+           painter->setBrush(QBrush(color));
+           painter->setPen(color);
 
-      // now draw all children
-      int numChildren = pItem->childCount();
-      for (int c = 0; c < numChildren; c++)
-      {
-         drawTimelineItem(painter, pItem->child(c), height-1);
-      }
+           // Clamp the item so that it is 1 pixel wide.
+           // This is intentionally being done before updating the minimum offset
+           // so that small items after the current item will not be drawn
+           if (scaledWidth < 1)
+           {
+               scaledWidth = 1;
+           }
+
+           // update minimum offset
+           minimumOffset = leftOffset + scaledWidth;
+
+           // draw the colored box that represents this item
+           QRectF rect;
+           rect.setLeft(leftOffset);
+           rect.setTop(-height/2);
+           rect.setWidth(scaledWidth);
+           rect.setHeight(height);
+           painter->drawRect(rect);
+
+           // now draw all children
+           int numChildren = pItem->childCount();
+           for (int c = 0; c < numChildren; c++)
+           {
+               drawTimelineItem(painter, pItem->child(c), height-1, minimumOffset);
+           }
+       }
    }
 
    painter->restore();

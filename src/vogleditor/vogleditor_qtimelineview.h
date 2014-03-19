@@ -101,7 +101,7 @@ private:
    QPixmap* m_pPixmap;
 
    void drawBaseTimeline(QPainter* painter, const QRect& rect, int gap);
-   void drawTimelineItem(QPainter* painter, vogleditor_timelineItem* pItem, int height);
+   void drawTimelineItem(QPainter* painter, vogleditor_timelineItem* pItem, int height, float &minimumOffset);
 
    float scaleDurationHorizontally(float value);
    float scalePositionHorizontally(float value);

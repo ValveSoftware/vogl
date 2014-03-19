@@ -88,7 +88,7 @@ private:
     bool m_isSpan;
     float m_maxChildDuration;
 
-    QList<vogleditor_timelineItem*> childItems;
+    QList<vogleditor_timelineItem*> m_childItems;
 
     vogleditor_timelineItem* m_parentItem;
     vogleditor_frameItem* m_pFrameItem;
