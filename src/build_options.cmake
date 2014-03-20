@@ -10,7 +10,8 @@
 #
 cmake_minimum_required(VERSION 2.8)
 
-option(BUILD_X64 "build 64-bit" FALSE)
+set(BUILD_X64 "" CACHE STRING "whether to perform 64-bit build: ON or OFF overrides default detection")
+
 option(CMAKE_VERBOSE "Verbose CMake" FALSE)
 if( CMAKE_VERBOSE )
     SET(CMAKE_VERBOSE_MAKEFILE ON)
@@ -28,14 +29,14 @@ option(CLANG_ANALYZE "Do clang analyze build" OFF)
 option(CLANG_EVERYTHING "Do clang build with -Weverything" OFF)
 option(USE_TELEMETRY "Build with Telemetry" OFF)
 
-if( NOT BUILD_X64 )
-  # If we're in our 64-bit chroot, default to 64-bit, else 32-bit
-  if( "$ENV{SCHROOT_CHROOT_NAME}" MATCHES "(.*)amd64(.*)" )
+# Unless user specifies BUILD_X64 explicitly, assume native target
+if( BUILD_X64 STREQUAL "" )
+  if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
     set(BUILD_X64 "TRUE")
   else()
     set(BUILD_X64 "FALSE")
   endif()
-endif( NOT BUILD_X64 )
+endif( BUILD_X64 STREQUAL "" )
 
 # Generate bitness suffix to use
 if (BUILD_X64)
