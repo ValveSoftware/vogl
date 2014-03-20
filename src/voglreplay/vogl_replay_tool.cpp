@@ -126,12 +126,12 @@ static command_line_param_desc g_command_line_param_descs[] =
         // find specific
         { "find_func", 1, false, "Find: Limit the find to only the specified function name POSIX regex pattern" },
         { "find_param", 1, false, "Find: The parameter value to find, hex, decimal integers, or GL enum strings OK" },
-        { "find_namespace", 1, false, "Find: Optionally limits -handle to only parameters using the specified handle namespace: invalid, GLhandleARB, GLframebuffer, GLtexture, GLrenderbuffer, GLquery, GLsampler, GLprogramARB, GLprogram, GLarray, GLlist, GLlocation, GLlocationARB, GLfence, GLsync, GLpipeline, GLshader, GLbuffer, GLfeedback, GLarrayAPPLE, GLfragmentShaderATI" },
-        { "find_param_name", 1, false, "Find: Optionally limits the find to only params with the specified name (specify \"return\" to limit search to only return values)" },
-        { "find_frame_low", 1, false, "Find: Optionally limit the find to frames beginning at the specified frame index" },
-        { "find_frame_high", 1, false, "Find: Optionally limit the find to frames up to and including the specified frame index" },
-        { "find_call_low", 1, false, "Find: Optionally limit the find to GL calls beginning at the specified call index" },
-        { "find_call_high", 1, false, "Find: Optionally limit the find to GL calls up to and including the specified call index" },
+        { "find_namespace", 1, false, "Find: Limits --find_param to only parameters using the specified handle namespace: invalid, GLhandleARB, GLframebuffer, GLtexture, GLrenderbuffer, GLquery, GLsampler, GLprogramARB, GLprogram, GLarray, GLlist, GLlocation, GLlocationARB, GLfence, GLsync, GLpipeline, GLshader, GLbuffer, GLfeedback, GLarrayAPPLE, GLfragmentShaderATI" },
+        { "find_param_name", 1, false, "Find: Limits the find to only params with the specified name (specify \"return\" to limit search to only return values)" },
+        { "find_frame_low", 1, false, "Find: Limit the find to frames beginning at the specified frame index" },
+        { "find_frame_high", 1, false, "Find: Limit the find to frames up to and including the specified frame index" },
+        { "find_call_low", 1, false, "Find: Limit the find to GL calls beginning at the specified call index" },
+        { "find_call_high", 1, false, "Find: Limit the find to GL calls up to and including the specified call index" },
 
         // compare_hash_files specific
         { "sum_compare_threshold", 1, false, "compare_hash_files: Only report mismatches greater than the specified threshold, use with --sum_hashing" },

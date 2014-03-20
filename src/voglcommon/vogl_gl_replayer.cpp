@@ -1266,7 +1266,10 @@ GLint vogl_gl_replayer::determine_uniform_replay_location(GLuint trace_program, 
 {
     VOGL_FUNC_TRACER
 
-    GLint replay_location = trace_location;
+    // Seems better to return -1 when we can't find the uniform (which can happen if the driver optimizes the program differently vs. tracing).
+    // Otherwise, we can pass an invalid handle down to the driver and this will crash AMD's fglrx.
+    //GLint replay_location = trace_location;
+    GLint replay_location = -1;
 
     glsl_program_hash_map::iterator it = get_shared_state()->m_glsl_program_hash_map.find(trace_program);
     if (it == get_shared_state()->m_glsl_program_hash_map.end())

@@ -293,149 +293,157 @@ bool vogl_renderbuffer_state::snapshot(const vogl_context_info &context_info, vo
     if (!m_desc.snapshot(context_info))
         return false;
 
-    vogl_scoped_state_saver framebuffer_state_saver(cGSTReadBuffer, cGSTDrawBuffer);
-    vogl_scoped_binding_state orig_framebuffers(GL_DRAW_FRAMEBUFFER, GL_READ_FRAMEBUFFER, GL_TEXTURE_2D, GL_TEXTURE_2D_MULTISAMPLE);
-
-    const GLenum tex_target = (m_desc.m_samples > 1) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
-
-    bool capture_status = false;
-
-    GLenum internal_fmt = m_desc.m_internal_format;
-    const vogl_internal_tex_format *pInternal_tex_fmt = vogl_find_internal_texture_format(internal_fmt);
-    if ((pInternal_tex_fmt) && (pInternal_tex_fmt->m_optimum_get_image_fmt != GL_NONE) && (pInternal_tex_fmt->m_optimum_get_image_type != GL_NONE))
+    if ((!m_desc.m_width) || (!m_desc.m_height) || (!m_desc.m_internal_format))
     {
-        // Create texture
-        GLuint tex_handle = 0;
-        GL_ENTRYPOINT(glGenTextures)(1, &tex_handle);
-        VOGL_CHECK_GL_ERROR;
-
-        GL_ENTRYPOINT(glBindTexture)(tex_target, tex_handle);
-        VOGL_CHECK_GL_ERROR;
-
-        if (m_desc.m_samples > 1)
-        {
-            GL_ENTRYPOINT(glTexImage2DMultisample)(tex_target,
-                m_desc.m_samples,
-                internal_fmt,
-                m_desc.m_width,
-                m_desc.m_height,
-                GL_TRUE);
-        }
-        else
-        {
-            GL_ENTRYPOINT(glTexImage2D)(tex_target,
-                0,
-                internal_fmt,
-                m_desc.m_width,
-                m_desc.m_height,
-                0,
-                pInternal_tex_fmt->m_optimum_get_image_fmt,
-                pInternal_tex_fmt->m_optimum_get_image_type,
-                NULL);
-        }
-
-        if (!vogl_check_gl_error_internal())
-        {
-            GL_ENTRYPOINT(glTexParameteri)(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
-            VOGL_CHECK_GL_ERROR;
-
-            GLenum attachment = GL_COLOR_ATTACHMENT0;
-            GLenum draw_and_read_buf = GL_COLOR_ATTACHMENT0;
-            GLenum blit_type = GL_COLOR_BUFFER_BIT;
-
-            if ((m_desc.m_depth_size) && (m_desc.m_stencil_size))
-            {
-                attachment = GL_DEPTH_STENCIL_ATTACHMENT;
-                draw_and_read_buf = GL_NONE;
-                blit_type = GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
-            }
-            else if (m_desc.m_depth_size)
-            {
-                attachment = GL_DEPTH_ATTACHMENT;
-                draw_and_read_buf = GL_NONE;
-                blit_type = GL_DEPTH_BUFFER_BIT;
-            }
-            else if (m_desc.m_stencil_size)
-            {
-                attachment = GL_STENCIL_ATTACHMENT;
-                draw_and_read_buf = GL_NONE;
-                blit_type = GL_STENCIL_BUFFER_BIT;
-            }
-
-            GLuint src_fbo_handle = 0, dst_fbo_handle = 0;
-
-            // Source FBO
-            GL_ENTRYPOINT(glGenFramebuffers)(1, &src_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, src_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glFramebufferRenderbuffer)(GL_READ_FRAMEBUFFER, attachment, GL_RENDERBUFFER, m_snapshot_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glReadBuffer)(draw_and_read_buf);
-            VOGL_CHECK_GL_ERROR;
-
-            // Dest FBO
-            GL_ENTRYPOINT(glGenFramebuffers)(1, &dst_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, dst_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glFramebufferTexture2D)(GL_DRAW_FRAMEBUFFER, attachment, tex_target, tex_handle, 0);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glDrawBuffers)(1, &draw_and_read_buf);
-            VOGL_CHECK_GL_ERROR;
-
-            GLenum read_status = GL_ENTRYPOINT(glCheckFramebufferStatus)(GL_READ_FRAMEBUFFER);
-            VOGL_CHECK_GL_ERROR;
-
-            GLenum draw_status = GL_ENTRYPOINT(glCheckFramebufferStatus)(GL_DRAW_FRAMEBUFFER);
-            VOGL_CHECK_GL_ERROR;
-
-            if ((read_status == GL_FRAMEBUFFER_COMPLETE) && (draw_status == GL_FRAMEBUFFER_COMPLETE))
-            {
-                GL_ENTRYPOINT(glBlitFramebuffer)(
-                    0, 0, m_desc.m_width, m_desc.m_height,
-                    0, 0, m_desc.m_width, m_desc.m_height,
-                    blit_type,
-                    GL_NEAREST);
-
-                if (!vogl_check_gl_error_internal())
-                {
-                    vogl_handle_remapper def_handle_remapper;
-                    if (m_texture.snapshot(context_info, def_handle_remapper, tex_handle, tex_target))
-                        capture_status = true;
-                }
-            }
-
-            // Delete FBO
-            GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, 0);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glDeleteFramebuffers)(1, &dst_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, 0);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glDeleteFramebuffers)(1, &src_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-        }
-
-        GL_ENTRYPOINT(glBindTexture)(tex_target, 0);
-        VOGL_CHECK_GL_ERROR;
-
-        GL_ENTRYPOINT(glDeleteTextures)(1, &tex_handle);
-        VOGL_CHECK_GL_ERROR;
+        // Renderbuffer was only genned - no need to spit out warning
+        //vogl_warning_printf("%s: Unable to retrieve description renderbuffer %" PRIu64 "\n", VOGL_METHOD_NAME, static_cast<uint64_t>(handle));
     }
-
-    if (!capture_status)
+    else
     {
-        vogl_error_printf("%s: Failed blitting renderbuffer data to texture for renderbuffer %" PRIu64 "\n", VOGL_METHOD_NAME, static_cast<uint64_t>(handle));
+        vogl_scoped_state_saver framebuffer_state_saver(cGSTReadBuffer, cGSTDrawBuffer);
+        vogl_scoped_binding_state orig_framebuffers(GL_DRAW_FRAMEBUFFER, GL_READ_FRAMEBUFFER, GL_TEXTURE_2D, GL_TEXTURE_2D_MULTISAMPLE);
+
+        const GLenum tex_target = (m_desc.m_samples > 1) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
+
+        bool capture_status = false;
+
+        GLenum internal_fmt = m_desc.m_internal_format;
+        const vogl_internal_tex_format *pInternal_tex_fmt = vogl_find_internal_texture_format(internal_fmt);
+        if ((pInternal_tex_fmt) && (pInternal_tex_fmt->m_optimum_get_image_fmt != GL_NONE) && (pInternal_tex_fmt->m_optimum_get_image_type != GL_NONE))
+        {
+            // Create texture
+            GLuint tex_handle = 0;
+            GL_ENTRYPOINT(glGenTextures)(1, &tex_handle);
+            VOGL_CHECK_GL_ERROR;
+
+            GL_ENTRYPOINT(glBindTexture)(tex_target, tex_handle);
+            VOGL_CHECK_GL_ERROR;
+
+            if (m_desc.m_samples > 1)
+            {
+                GL_ENTRYPOINT(glTexImage2DMultisample)(tex_target,
+                    m_desc.m_samples,
+                    internal_fmt,
+                    m_desc.m_width,
+                    m_desc.m_height,
+                    GL_TRUE);
+            }
+            else
+            {
+                GL_ENTRYPOINT(glTexImage2D)(tex_target,
+                    0,
+                    internal_fmt,
+                    m_desc.m_width,
+                    m_desc.m_height,
+                    0,
+                    pInternal_tex_fmt->m_optimum_get_image_fmt,
+                    pInternal_tex_fmt->m_optimum_get_image_type,
+                    NULL);
+            }
+
+            if (!vogl_check_gl_error_internal())
+            {
+                GL_ENTRYPOINT(glTexParameteri)(tex_target, GL_TEXTURE_MAX_LEVEL, 0);
+                VOGL_CHECK_GL_ERROR;
+
+                GLenum attachment = GL_COLOR_ATTACHMENT0;
+                GLenum draw_and_read_buf = GL_COLOR_ATTACHMENT0;
+                GLenum blit_type = GL_COLOR_BUFFER_BIT;
+
+                if ((m_desc.m_depth_size) && (m_desc.m_stencil_size))
+                {
+                    attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+                    draw_and_read_buf = GL_NONE;
+                    blit_type = GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+                }
+                else if (m_desc.m_depth_size)
+                {
+                    attachment = GL_DEPTH_ATTACHMENT;
+                    draw_and_read_buf = GL_NONE;
+                    blit_type = GL_DEPTH_BUFFER_BIT;
+                }
+                else if (m_desc.m_stencil_size)
+                {
+                    attachment = GL_STENCIL_ATTACHMENT;
+                    draw_and_read_buf = GL_NONE;
+                    blit_type = GL_STENCIL_BUFFER_BIT;
+                }
+
+                GLuint src_fbo_handle = 0, dst_fbo_handle = 0;
+
+                // Source FBO
+                GL_ENTRYPOINT(glGenFramebuffers)(1, &src_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, src_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glFramebufferRenderbuffer)(GL_READ_FRAMEBUFFER, attachment, GL_RENDERBUFFER, m_snapshot_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glReadBuffer)(draw_and_read_buf);
+                VOGL_CHECK_GL_ERROR;
+
+                // Dest FBO
+                GL_ENTRYPOINT(glGenFramebuffers)(1, &dst_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, dst_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glFramebufferTexture2D)(GL_DRAW_FRAMEBUFFER, attachment, tex_target, tex_handle, 0);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glDrawBuffers)(1, &draw_and_read_buf);
+                VOGL_CHECK_GL_ERROR;
+
+                GLenum read_status = GL_ENTRYPOINT(glCheckFramebufferStatus)(GL_READ_FRAMEBUFFER);
+                VOGL_CHECK_GL_ERROR;
+
+                GLenum draw_status = GL_ENTRYPOINT(glCheckFramebufferStatus)(GL_DRAW_FRAMEBUFFER);
+                VOGL_CHECK_GL_ERROR;
+
+                if ((read_status == GL_FRAMEBUFFER_COMPLETE) && (draw_status == GL_FRAMEBUFFER_COMPLETE))
+                {
+                    GL_ENTRYPOINT(glBlitFramebuffer)(
+                        0, 0, m_desc.m_width, m_desc.m_height,
+                        0, 0, m_desc.m_width, m_desc.m_height,
+                        blit_type,
+                        GL_NEAREST);
+
+                    if (!vogl_check_gl_error_internal())
+                    {
+                        vogl_handle_remapper def_handle_remapper;
+                        if (m_texture.snapshot(context_info, def_handle_remapper, tex_handle, tex_target))
+                            capture_status = true;
+                    }
+                }
+
+                // Delete FBO
+                GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, 0);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glDeleteFramebuffers)(1, &dst_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, 0);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glDeleteFramebuffers)(1, &src_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+            }
+
+            GL_ENTRYPOINT(glBindTexture)(tex_target, 0);
+            VOGL_CHECK_GL_ERROR;
+
+            GL_ENTRYPOINT(glDeleteTextures)(1, &tex_handle);
+            VOGL_CHECK_GL_ERROR;
+        }
+
+        if (!capture_status)
+        {
+            vogl_error_printf("%s: Failed blitting renderbuffer data to texture for renderbuffer %" PRIu64 "\n", VOGL_METHOD_NAME, static_cast<uint64_t>(handle));
+        }
     }
 
     m_is_valid = true;
@@ -474,149 +482,152 @@ bool vogl_renderbuffer_state::restore(const vogl_context_info &context_info, vog
     if (vogl_check_gl_error())
         goto handle_error;
 
-    if (!m_desc.restore(context_info))
-        goto handle_error;
-
-    if (m_texture.is_valid())
+    if ((m_desc.m_width) && (m_desc.m_height) && (m_desc.m_internal_format))
     {
-        GLenum attachment = GL_COLOR_ATTACHMENT0;
-        GLenum draw_and_read_buf = GL_COLOR_ATTACHMENT0;
-        GLenum blit_type = GL_COLOR_BUFFER_BIT;
+        if (!m_desc.restore(context_info))
+            goto handle_error;
 
-        if ((m_desc.m_depth_size) && (m_desc.m_stencil_size))
+        if (m_texture.is_valid())
         {
-            attachment = GL_DEPTH_STENCIL_ATTACHMENT;
-            draw_and_read_buf = GL_NONE;
-            blit_type = GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
-        }
-        else if (m_desc.m_depth_size)
-        {
-            attachment = GL_DEPTH_ATTACHMENT;
-            draw_and_read_buf = GL_NONE;
-            blit_type = GL_DEPTH_BUFFER_BIT;
-        }
-        else if (m_desc.m_stencil_size)
-        {
-            attachment = GL_STENCIL_ATTACHMENT;
-            draw_and_read_buf = GL_NONE;
-            blit_type = GL_STENCIL_BUFFER_BIT;
-        }
+            GLenum attachment = GL_COLOR_ATTACHMENT0;
+            GLenum draw_and_read_buf = GL_COLOR_ATTACHMENT0;
+            GLenum blit_type = GL_COLOR_BUFFER_BIT;
 
-        bool restore_status = false;
-
-        GLuint64 tex_handle64 = 0;
-        vogl_handle_remapper def_handle_remapper;
-        if (m_texture.restore(context_info, def_handle_remapper, tex_handle64))
-        {
-            GLuint tex_handle = static_cast<GLuint>(tex_handle64);
-
-            const GLenum tex_target = (m_desc.m_samples > 1) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
-
-            GLuint src_fbo_handle = 0, dst_fbo_handle = 0;
-
-            // Source FBO
-            GL_ENTRYPOINT(glGenFramebuffers)(1, &src_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, src_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glFramebufferTexture2D)(GL_READ_FRAMEBUFFER, attachment, tex_target, tex_handle, 0);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glReadBuffer)(draw_and_read_buf);
-            VOGL_CHECK_GL_ERROR;
-
-            // Dest FBO
-            GL_ENTRYPOINT(glGenFramebuffers)(1, &dst_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, dst_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glFramebufferRenderbuffer)(GL_DRAW_FRAMEBUFFER, attachment, GL_RENDERBUFFER, static_cast<GLuint>(handle));
-            VOGL_CHECK_GL_ERROR;
-
-            GL_ENTRYPOINT(glDrawBuffers)(1, &draw_and_read_buf);
-            VOGL_CHECK_GL_ERROR;
-
-            GLenum read_status = GL_ENTRYPOINT(glCheckFramebufferStatus)(GL_READ_FRAMEBUFFER);
-            VOGL_CHECK_GL_ERROR;
-
-            GLenum draw_status = GL_ENTRYPOINT(glCheckFramebufferStatus)(GL_DRAW_FRAMEBUFFER);
-            VOGL_CHECK_GL_ERROR;
-
-            if ((read_status = GL_FRAMEBUFFER_COMPLETE) && (draw_status == GL_FRAMEBUFFER_COMPLETE))
+            if ((m_desc.m_depth_size) && (m_desc.m_stencil_size))
             {
-#if 0
-                // HACK HACK HACK
-                if (m_texture.get_num_samples() > 1)
-                {
-                    uint base_level = m_texture.get_params().get_value<GLenum>(GL_TEXTURE_BASE_LEVEL);
-
-                    if (base_level < m_texture.get_num_levels())
-                    {
-                        const vogl_state_vector &state_vec = m_texture.get_level_params(0, base_level);
-
-                        uint clear_mask = 0;
-                        if (state_vec.get_value<GLenum>(GL_TEXTURE_DEPTH_SIZE))
-                        {
-                            clear_mask |= GL_DEPTH_BUFFER_BIT;
-                        }
-                        if (state_vec.get_value<GLenum>(GL_TEXTURE_STENCIL_SIZE))
-                        {
-                            clear_mask |= GL_STENCIL_BUFFER_BIT;
-                        }
-                        if (state_vec.get_value<GLenum>(GL_TEXTURE_RED_SIZE) + state_vec.get_value<GLenum>(GL_TEXTURE_GREEN_SIZE) + state_vec.get_value<GLenum>(GL_TEXTURE_BLUE_SIZE) + state_vec.get_value<GLenum>(GL_TEXTURE_ALPHA_SIZE) +
-                            state_vec.get_value<GLenum>(GL_TEXTURE_INTENSITY_SIZE) + state_vec.get_value<GLenum>(GL_TEXTURE_LUMINANCE_SIZE))
-                        {
-                            clear_mask |= GL_COLOR_BUFFER_BIT;
-                        }
-
-                        GL_ENTRYPOINT(glClearColor)(1.0f, 0.0f, 1.0f, 1.0f);
-                        GL_ENTRYPOINT(glClearDepth)(.5f);
-                        GL_ENTRYPOINT(glClearStencil)(128);
-                        GL_ENTRYPOINT(glClear)(clear_mask);
-
-                        VOGL_CHECK_GL_ERROR;
-                    }
-                }
-                else
-#endif
-                {
-                    GL_ENTRYPOINT(glBlitFramebuffer)(
-                        0, 0, m_desc.m_width, m_desc.m_height,
-                        0, 0, m_desc.m_width, m_desc.m_height,
-                        blit_type,
-                        GL_NEAREST);
-
-                    if (!vogl_check_gl_error_internal())
-                    {
-                        restore_status = true;
-                    }
-                }
+                attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+                draw_and_read_buf = GL_NONE;
+                blit_type = GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+            }
+            else if (m_desc.m_depth_size)
+            {
+                attachment = GL_DEPTH_ATTACHMENT;
+                draw_and_read_buf = GL_NONE;
+                blit_type = GL_DEPTH_BUFFER_BIT;
+            }
+            else if (m_desc.m_stencil_size)
+            {
+                attachment = GL_STENCIL_ATTACHMENT;
+                draw_and_read_buf = GL_NONE;
+                blit_type = GL_STENCIL_BUFFER_BIT;
             }
 
-            // Delete FBO
-            GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, 0);
-            VOGL_CHECK_GL_ERROR;
+            bool restore_status = false;
 
-            GL_ENTRYPOINT(glDeleteFramebuffers)(1, &dst_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
+            GLuint64 tex_handle64 = 0;
+            vogl_handle_remapper def_handle_remapper;
+            if (m_texture.restore(context_info, def_handle_remapper, tex_handle64))
+            {
+                GLuint tex_handle = static_cast<GLuint>(tex_handle64);
 
-            GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, 0);
-            VOGL_CHECK_GL_ERROR;
+                const GLenum tex_target = (m_desc.m_samples > 1) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
-            GL_ENTRYPOINT(glDeleteFramebuffers)(1, &src_fbo_handle);
-            VOGL_CHECK_GL_ERROR;
+                GLuint src_fbo_handle = 0, dst_fbo_handle = 0;
 
-            GL_ENTRYPOINT(glDeleteTextures)(1, &tex_handle);
-            VOGL_CHECK_GL_ERROR;
-        }
+                // Source FBO
+                GL_ENTRYPOINT(glGenFramebuffers)(1, &src_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
 
-        if (!restore_status)
-        {
-            vogl_error_printf("%s: Failed restoring contents of renderbuffer %u\n", VOGL_METHOD_NAME, static_cast<GLuint>(handle));
+                GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, src_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glFramebufferTexture2D)(GL_READ_FRAMEBUFFER, attachment, tex_target, tex_handle, 0);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glReadBuffer)(draw_and_read_buf);
+                VOGL_CHECK_GL_ERROR;
+
+                // Dest FBO
+                GL_ENTRYPOINT(glGenFramebuffers)(1, &dst_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, dst_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glFramebufferRenderbuffer)(GL_DRAW_FRAMEBUFFER, attachment, GL_RENDERBUFFER, static_cast<GLuint>(handle));
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glDrawBuffers)(1, &draw_and_read_buf);
+                VOGL_CHECK_GL_ERROR;
+
+                GLenum read_status = GL_ENTRYPOINT(glCheckFramebufferStatus)(GL_READ_FRAMEBUFFER);
+                VOGL_CHECK_GL_ERROR;
+
+                GLenum draw_status = GL_ENTRYPOINT(glCheckFramebufferStatus)(GL_DRAW_FRAMEBUFFER);
+                VOGL_CHECK_GL_ERROR;
+
+                if ((read_status = GL_FRAMEBUFFER_COMPLETE) && (draw_status == GL_FRAMEBUFFER_COMPLETE))
+                {
+    #if 0
+                    // HACK HACK HACK
+                    if (m_texture.get_num_samples() > 1)
+                    {
+                        uint base_level = m_texture.get_params().get_value<GLenum>(GL_TEXTURE_BASE_LEVEL);
+
+                        if (base_level < m_texture.get_num_levels())
+                        {
+                            const vogl_state_vector &state_vec = m_texture.get_level_params(0, base_level);
+
+                            uint clear_mask = 0;
+                            if (state_vec.get_value<GLenum>(GL_TEXTURE_DEPTH_SIZE))
+                            {
+                                clear_mask |= GL_DEPTH_BUFFER_BIT;
+                            }
+                            if (state_vec.get_value<GLenum>(GL_TEXTURE_STENCIL_SIZE))
+                            {
+                                clear_mask |= GL_STENCIL_BUFFER_BIT;
+                            }
+                            if (state_vec.get_value<GLenum>(GL_TEXTURE_RED_SIZE) + state_vec.get_value<GLenum>(GL_TEXTURE_GREEN_SIZE) + state_vec.get_value<GLenum>(GL_TEXTURE_BLUE_SIZE) + state_vec.get_value<GLenum>(GL_TEXTURE_ALPHA_SIZE) +
+                                state_vec.get_value<GLenum>(GL_TEXTURE_INTENSITY_SIZE) + state_vec.get_value<GLenum>(GL_TEXTURE_LUMINANCE_SIZE))
+                            {
+                                clear_mask |= GL_COLOR_BUFFER_BIT;
+                            }
+
+                            GL_ENTRYPOINT(glClearColor)(1.0f, 0.0f, 1.0f, 1.0f);
+                            GL_ENTRYPOINT(glClearDepth)(.5f);
+                            GL_ENTRYPOINT(glClearStencil)(128);
+                            GL_ENTRYPOINT(glClear)(clear_mask);
+
+                            VOGL_CHECK_GL_ERROR;
+                        }
+                    }
+                    else
+    #endif
+                    {
+                        GL_ENTRYPOINT(glBlitFramebuffer)(
+                            0, 0, m_desc.m_width, m_desc.m_height,
+                            0, 0, m_desc.m_width, m_desc.m_height,
+                            blit_type,
+                            GL_NEAREST);
+
+                        if (!vogl_check_gl_error_internal())
+                        {
+                            restore_status = true;
+                        }
+                    }
+                }
+
+                // Delete FBO
+                GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, 0);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glDeleteFramebuffers)(1, &dst_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, 0);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glDeleteFramebuffers)(1, &src_fbo_handle);
+                VOGL_CHECK_GL_ERROR;
+
+                GL_ENTRYPOINT(glDeleteTextures)(1, &tex_handle);
+                VOGL_CHECK_GL_ERROR;
+            }
+
+            if (!restore_status)
+            {
+                vogl_error_printf("%s: Failed restoring contents of renderbuffer %u\n", VOGL_METHOD_NAME, static_cast<GLuint>(handle));
+            }
         }
     }
 
