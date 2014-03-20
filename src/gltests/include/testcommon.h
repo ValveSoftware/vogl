@@ -6,6 +6,8 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
+#include <assert.h>
+
 void CompileShader(GLuint shader, char* shaderName)
 {
     glCompileShader(shader);
