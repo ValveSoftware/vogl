@@ -51,3 +51,19 @@ You should now be able to click in bottom left "Type to locate" control (or hit 
 
 
 Note that you can use the "--usemake" flag with mkvolg.sh if you don't want to use Ninja. If you do this, remove the "3>&1 1>&2 2>&3" redirections also.
+
+### Launching and Debugging projects ###
+
+The default 'Run configuration' called "VoglProj" that QtCreator adds will not be associated with any binary and therefore cannot be executed. The directions below show how to launch the 64-bit vogleditor.
+
+* Within the <Projects> tab, switch to the "Run" settings
+ * Under "Run", "Run configuration:" click "Add", select "Custom Executable"
+ * Click "Rename..." and customize this run configuration with an appropriate name (eg, "vogleditor64")
+ * For the <b>Executable:</b>, enter: %{buildDir}/../vogl_build/bin/vogleditor64
+ * For the <b>Arguments:</b>, you may optionally enter a path to a trace file
+ * <b>Run in terminal</b> does not need to be enabled for vogleditor, but is useful (required?) for other binaries
+
+* Hit [F5] to start debugging
+
+This approach allows you to configure mutliple run configurations that (for example) each launch the vogleditor64 with a different trace file as a parameter, or you can have another configuration that launches vogleditor32, or voglreplay64 with parameters to debug why a replay or trim is not working properly.
+
