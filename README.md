@@ -34,7 +34,7 @@ You should now have something like the following in your temp directory:
 
 or
 
-    vogl/vogl_build/bin/vogleditor64 ; and then open the trace file...
+    vogl/vogl_build/bin/vogleditor64 /tmp/vogltrace.glxspheres64.2014_01_20-16_19_34.bin
 
 ## Directory structure ##
 
