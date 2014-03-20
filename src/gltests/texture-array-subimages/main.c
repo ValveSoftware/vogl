@@ -49,9 +49,7 @@ int main( /* int argc, char* args[] */ )
     }
 
     SDL_GLContext maincontext = SDL_GL_CreateContext(window); /* Our opengl context handle */
-    #ifndef NDEBUG
     assert(maincontext != NULL);
-    #endif
     SDL_GL_SetSwapInterval(1);
 
     GLint tex0Pixels[] = { 0xFF0000FF, 0xFF0000FF, 0xFF0000FF, 0xFF0000FF };
