@@ -6,9 +6,7 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 
-#ifndef NDEBUG
 #include <assert.h>
-#endif
 
 void CompileShader(GLuint shader, char* shaderName)
 {
