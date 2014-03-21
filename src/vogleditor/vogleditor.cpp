@@ -27,6 +27,7 @@
 #include <QHBoxLayout>
 #include <QItemSelection>
 #include <QPalette>
+#include <QProcess>
 #include <QSortFilterProxyModel>
 #include <QSpacerItem>
 #include <QToolButton>
@@ -52,6 +53,7 @@
 #include "vogleditor_statetreeshaderitem.h"
 #include "vogleditor_statetreeframebufferitem.h"
 #include "vogleditor_qtextureexplorer.h"
+#include "vogleditor_qtrimdialog.h"
 
 #define VOGLEDITOR_DISABLE_TAB(tab) ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(tab), false);
 #define VOGLEDITOR_ENABLE_TAB(tab) ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(tab), true);
@@ -119,10 +121,9 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pShaderTab_layout(NULL),
    m_currentSnapshot(NULL),
    m_pCurrentCallTreeItem(NULL),
+   m_pVoglReplayProcess(new QProcess()),
    m_pPlayButton(NULL),
-   m_pPauseButton(NULL),
    m_pTrimButton(NULL),
-   m_pStopButton(NULL),
    m_pTraceReader(NULL),
    m_pTimelineModel(NULL),
    m_pApiCallTreeModel(NULL),
@@ -180,35 +181,18 @@ VoglEditor::VoglEditor(QWidget *parent) :
 
    // add buttons to toolbar
    m_pPlayButton = new QToolButton(ui->mainToolBar);
-   m_pPlayButton->setText("Play trace");
+   m_pPlayButton->setText("Play Trace");
    m_pPlayButton->setEnabled(false);
 
-   m_pPauseButton = new QToolButton(ui->mainToolBar);
-   m_pPauseButton->setText("Pause");
-   m_pPauseButton->setEnabled(false);
-
    m_pTrimButton = new QToolButton(ui->mainToolBar);
-   m_pTrimButton->setText("Trim");
+   m_pTrimButton->setText("Trim Trace");
    m_pTrimButton->setEnabled(false);
 
-   m_pStopButton = new QToolButton(ui->mainToolBar);
-   m_pStopButton->setText("Stop");
-   m_pStopButton->setEnabled(false);
-
-   // Temporarily hide the other buttons (until asyncronous playback is supported)
-   m_pPauseButton->setVisible(false);
-   m_pTrimButton->setVisible(false);
-   m_pStopButton->setVisible(false);
-
    ui->mainToolBar->addWidget(m_pPlayButton);
-   ui->mainToolBar->addWidget(m_pPauseButton);
    ui->mainToolBar->addWidget(m_pTrimButton);
-   ui->mainToolBar->addWidget(m_pStopButton);
 
    connect(m_pPlayButton, SIGNAL(clicked()), this, SLOT(playCurrentTraceFile()));
-   connect(m_pPauseButton, SIGNAL(clicked()), this, SLOT(pauseCurrentTraceFile()));
    connect(m_pTrimButton, SIGNAL(clicked()), this, SLOT(trimCurrentTraceFile()));
-   connect(m_pStopButton, SIGNAL(clicked()), this, SLOT(stopCurrentTraceFile()));
 
    connect(m_pProgramExplorer, SIGNAL(program_edited(vogl_program_state*)), this, SLOT(on_program_edited(vogl_program_state*)));
 
@@ -262,22 +246,10 @@ VoglEditor::~VoglEditor()
        m_pPlayButton = NULL;
    }
 
-   if (m_pPauseButton != NULL)
-   {
-       delete m_pPauseButton;
-       m_pPauseButton = NULL;
-   }
-
    if (m_pTrimButton != NULL)
    {
        delete m_pTrimButton;
        m_pTrimButton = NULL;
-   }
-
-   if (m_pStopButton != NULL)
-   {
-       delete m_pStopButton;
-       m_pStopButton = NULL;
    }
 
    if (m_pFramebufferTab_layout != NULL)
@@ -315,6 +287,12 @@ VoglEditor::~VoglEditor()
        delete m_pStateTreeModel;
        m_pStateTreeModel = NULL;
    }
+
+   if (m_pVoglReplayProcess != NULL)
+   {
+       delete m_pVoglReplayProcess;
+       m_pVoglReplayProcess = NULL;
+   }
 }
 
 void VoglEditor::playCurrentTraceFile()
@@ -324,18 +302,14 @@ void VoglEditor::playCurrentTraceFile()
 
     // update UI
     m_pPlayButton->setEnabled(false);
-    m_pPauseButton->setEnabled(true);
-    m_pTrimButton->setEnabled(true);
-    m_pStopButton->setEnabled(true);
+    m_pTrimButton->setEnabled(false);
     m_pStatusLabel->clear();
 
     if (m_traceReplayer.replay(m_pTraceReader, m_pApiCallTreeModel->root(), NULL, 0, true))
     {
         // replay was successful
         m_pPlayButton->setEnabled(true);
-        m_pPauseButton->setEnabled(false);
-        m_pTrimButton->setEnabled(false);
-        m_pStopButton->setEnabled(false);
+        m_pTrimButton->setEnabled(true);
     }
     else
     {
@@ -345,50 +319,79 @@ void VoglEditor::playCurrentTraceFile()
     setCursor(origCursor);
 }
 
-void VoglEditor::pauseCurrentTraceFile()
-{
-    if (m_traceReplayer.pause())
-    {
-       // update UI
-       m_pPlayButton->setEnabled(true);
-       m_pPauseButton->setEnabled(false);
-       m_pTrimButton->setEnabled(true);
-       m_pStopButton->setEnabled(true);
-       m_pStatusLabel->clear();
-    }
-    else
-    {
-        m_pStatusLabel->setText("Failed to pause the trace replay.");
-    }
-}
-
 void VoglEditor::trimCurrentTraceFile()
 {
-    if (m_traceReplayer.trim())
-    {
-        m_pStatusLabel->clear();
-    }
-    else
-    {
-        m_pStatusLabel->setText("Failed to trim the trace replay.");
-    }
+    trim_trace_file(m_openFilename, static_cast<uint>(m_pTraceReader->get_max_frame_index()), 200);
 }
 
-void VoglEditor::stopCurrentTraceFile()
+/// \return True if the new trim file is now open in the editor
+/// \return False if there was an error, or the user elected NOT to open the new trim file
+bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxAllowedTrimLen)
 {
-    if (m_traceReplayer.stop())
+    // open a dialog to gather parameters for the replayer
+    vogleditor_QTrimDialog trimDialog(filename, maxFrameIndex, maxAllowedTrimLen, this);
+    int code = trimDialog.exec();
+
+    if (code == QDialog::Rejected)
     {
-        // update UI
-        m_pPlayButton->setEnabled(true);
-        m_pPauseButton->setEnabled(false);
-        m_pTrimButton->setEnabled(false);
-        m_pStopButton->setEnabled(false);
-        m_pStatusLabel->clear();
+        return false;
+    }
+
+    QStringList arguments;
+    arguments << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
+
+#ifdef __i386__
+    int procRetValue = m_pVoglReplayProcess->execute("./voglreplay32", arguments);
+#else
+    int procRetValue = m_pVoglReplayProcess->execute("./voglreplay64", arguments);
+#endif
+
+    bool bCompleted = false;
+    if (procRetValue == -2)
+    {
+        // proc failed to starts
+        m_pStatusLabel->setText("Error: voglreplay could not be executed.");
+    }
+    else if (procRetValue == -1)
+    {
+        // proc crashed
+        m_pStatusLabel->setText("Error: voglreplay aborted unexpectedly.");
+    }
+    else if (procRetValue == 0)
+    {
+        // success
+        bCompleted = true;
     }
     else
     {
-        m_pStatusLabel->setText("Failed to stop the trace replay.");
+        // some other return value
+        bCompleted = false;
     }
+
+    if (bCompleted)
+    {
+        int ret = QMessageBox::warning(this, tr(g_PROJECT_NAME.toStdString().c_str()), tr("Would you like to load the new trimmed trace file?"),
+                             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+        if (ret == QMessageBox::Yes)
+        {
+            close_trace_file();
+            if (open_trace_file(trimDialog.trim_file().toStdString().c_str()))
+            {
+                m_pStatusLabel->clear();
+                return true;
+            }
+            else
+            {
+                QMessageBox::critical(this, tr("Error"), tr("Could not open trace file."));
+            }
+        }
+    }
+    else
+    {
+        QMessageBox::critical(this, tr("Error"), tr("Failed to trim the trace file."));
+    }
+    return false;
 }
 
 void VoglEditor::on_actionE_xit_triggered()
@@ -406,7 +409,7 @@ void VoglEditor::on_action_Open_triggered()
       filename.set(fileName.toStdString().c_str());
 
       if (open_trace_file(filename) == false) {
-          QMessageBox::critical(this, tr("Error"), tr("Could not open file"));
+          QMessageBox::critical(this, tr("Error"), tr("Could not open trace file."));
           return;
       }
    }
@@ -1024,6 +1027,29 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
        m_pStatusLabel->clear();
    }
 
+   if (tmpReader->get_max_frame_index() > 200)
+   {
+       int ret = QMessageBox::warning(this, tr(g_PROJECT_NAME.toStdString().c_str()), tr("The loaded trace file has many frames and debugging may be difficult.\nWould you like to trim the trace?"),
+                            QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+       if (ret == QMessageBox::Yes)
+       {
+           if (trim_trace_file(filename.c_str(), static_cast<uint>(tmpReader->get_max_frame_index()), 200))
+           {
+               // user decided to open the new trim file, and the UI should already be updated
+               // clean up here and return
+               vogl_delete(tmpReader);
+               this->setCursor(origCursor);
+               return true;
+           }
+           else
+           {
+               // either there was an error, or the user decided NOT to open the trim file,
+               // so continue to load the original file
+           }
+       }
+   }
+
    // now that we know the new trace file can be opened,
    // close the old one, and update the trace reader
    close_trace_file();
@@ -1130,9 +1156,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
 
    // update toolbar
    m_pPlayButton->setEnabled(true);
-   m_pPauseButton->setEnabled(false);
-   m_pTrimButton->setEnabled(false);
-   m_pStopButton->setEnabled(false);
+   m_pTrimButton->setEnabled(true);
 
    // timeline
    m_pTimelineModel = new vogleditor_apiCallTimelineModel(m_pApiCallTreeModel->root());
@@ -1292,9 +1316,7 @@ void VoglEditor::reset_tracefile_ui()
 
     m_pStatusLabel->clear();
     m_pPlayButton->setEnabled(false);
-    m_pPauseButton->setEnabled(false);
     m_pTrimButton->setEnabled(false);
-    m_pStopButton->setEnabled(false);
 
     VOGLEDITOR_DISABLE_TAB(ui->machineInfoTab);
 

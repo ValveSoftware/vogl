@@ -51,6 +51,7 @@ class vogleditor_QTextureExplorer;
 
 class QItemSelection;
 class QModelIndex;
+class QProcess;
 class QSortFilterProxyModel;
 class QToolButton;
 class vogl_context_snapshot;
@@ -91,9 +92,9 @@ private slots:
    void on_treeView_clicked(const QModelIndex& index);
 
    void playCurrentTraceFile();
-   void pauseCurrentTraceFile();
    void trimCurrentTraceFile();
-   void stopCurrentTraceFile();
+
+   bool trim_trace_file(QString filename, uint maxFrameIndex, uint maxAllowedTrimLen);
 
    void on_stateTreeView_clicked(const QModelIndex &index);
 
@@ -162,10 +163,9 @@ private:
    vogleditor_gl_state_snapshot* m_currentSnapshot;
    vogleditor_apiCallTreeItem* m_pCurrentCallTreeItem;
 
+   QProcess* m_pVoglReplayProcess;
    QToolButton* m_pPlayButton;
-   QToolButton* m_pPauseButton;
    QToolButton* m_pTrimButton;
-   QToolButton* m_pStopButton;
 
    vogleditor_traceReplayer m_traceReplayer;
    vogl_trace_file_reader* m_pTraceReader;
