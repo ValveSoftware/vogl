@@ -28,7 +28,7 @@
 #include "vogl_general_context_state.h"
 #include "vogl_console.h"
 
-#include "gl_pname_defs.inc"
+#include "gl_pname_defs.h"
 
 // TODO: Indexed versions of glGet's
 // TODO: Add GL4 types

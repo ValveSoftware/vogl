@@ -33,7 +33,7 @@
 #include "vogl_backtrace.h"
 
 #define VOGL_DECLARE_PNAME_DEF_TABLE
-#include "gl_pname_defs.inc"
+#include "gl_pname_defs.h"
 
 #define VOGL_NAMESPACES_IMPLEMENTATION
 #include "vogl_namespaces.h"
