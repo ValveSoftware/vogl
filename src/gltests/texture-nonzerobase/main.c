@@ -48,8 +48,8 @@ int main( /* int argc, char* args[] */ )
         return 1;
     }
 
-    SDL_GLContext maincontext; /* Our opengl context handle */
-    maincontext = SDL_GL_CreateContext(window);
+    SDL_GLContext maincontext = SDL_GL_CreateContext(window); /* Our opengl context handle */
+    assert(maincontext != NULL);
     SDL_GL_SetSwapInterval(1);
 
     GLint level5Pixels[] = { 0xFF00FFFF, 0xFF00FF00, 0xFFFF0000, 0xFF000000 };
