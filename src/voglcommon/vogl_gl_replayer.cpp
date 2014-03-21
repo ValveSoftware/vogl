@@ -3991,7 +3991,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         if (!vogl_display_list_state::is_call_listable(entrypoint_id, trace_packet))
         {
             if (!g_vogl_entrypoint_descs[entrypoint_id].m_whitelisted_for_displaylists)
-                process_entrypoint_error("%s: Failed serializing trace packet into display list shadow! Call is not listable.\n", VOGL_FUNCTION_NAME);
+                process_entrypoint_error("%s: Failed serializing trace packet into display list shadow! Call is not whitelisted for display list usage by vogl.\n", VOGL_FUNCTION_NAME);
             else
                 process_entrypoint_warning("%s: Failed serializing trace packet into display list shadow! Call with these parameters is not listable.\n", VOGL_FUNCTION_NAME);
         }
