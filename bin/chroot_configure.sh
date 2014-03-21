@@ -108,6 +108,8 @@ if [[ -n "$DO_PACKAGES" ]]; then
     apt_get_install --force-yes -y build-essential
     apt_get_install --force-yes -y gcc-4.8 g++-4.8
 
+    apt_get_install -y pkg-config
+
     #  Install the X11 package
     apt_get_install -y libx11-dev
 
