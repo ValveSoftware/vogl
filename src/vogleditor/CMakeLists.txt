@@ -15,7 +15,7 @@ include_directories(
     ${SRC_DIR}
     ${SRC_DIR}/voglcore
     ${SRC_DIR}/voglcommon
-    ${SRC_DIR}/voglinc
+    ${CMAKE_BINARY_DIR}/voglinc
     ${SRC_DIR}/extlib/loki/include/loki
     ${SRC_DIR}/libtelemetry
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -150,6 +150,8 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADER_LIST}
         ${QT_GEN_FORM_HEADER_LIST}
         ${QT_GEN_RESOURCE_RCC_LIST}
    )
+
+add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
 target_link_libraries(${PROJECT_NAME}
 	${QT_QTMAIN_LIBRARY} 

@@ -37,7 +37,7 @@ include_directories(
     ${SRC_DIR}/libbacktrace
     ${SRC_DIR}/extlib/loki/include/loki
     ${SRC_DIR}/voglcommon
-    ${SRC_DIR}/voglinc
+    ${CMAKE_BINARY_DIR}/voglinc
     ${SRC_DIR}/voglcore
     ${SRC_DIR}/libtelemetry
     )
@@ -47,6 +47,7 @@ add_shared_linker_flag("-Wl,-Bsymbolic")
 add_shared_linker_flag("-Wl,--version-script=${PROJECT_SOURCE_DIR}/libvogltrace_linker_script.txt")
 
 add_library(${PROJECT_NAME} SHARED ${SRC_LIST})
+add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
 target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
