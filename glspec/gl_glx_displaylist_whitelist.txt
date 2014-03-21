@@ -91,3 +91,5 @@ glTextureSubImage[1-2]DEXT
 glTranslate[f|d]
 glVertex[2|3|4][f|d|i|s]v?
 glViewport
+glTexGen[i|f|d]
+glMaterial[f|i]v?
