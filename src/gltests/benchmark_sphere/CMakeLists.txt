@@ -12,8 +12,7 @@ add_definitions("-Wno-unused-variable")
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 
 target_link_libraries(${PROJECT_NAME}
-    ${OPENGL_LIBRARY}
-    GLU
+    ${OPENGL_LIBRARIES}
     ${X11_X11_LIB}
     )
 

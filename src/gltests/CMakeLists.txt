@@ -2,6 +2,9 @@
 cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
+include(FindPkgConfig)
+pkg_search_module(SDL2 REQUIRED sdl2)
+find_package(OpenGL REQUIRED)
 
 # Add the gltest/include directory
 include_directories(
