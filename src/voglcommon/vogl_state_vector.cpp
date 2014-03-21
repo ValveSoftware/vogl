@@ -26,7 +26,7 @@
 // File: vogl_state_vector.cpp
 #include "vogl_state_vector.h"
 #include "vogl_sort.h"
-#include "gl_pname_defs.inc"
+#include "gl_pname_defs.h"
 #include "vogl_growable_array.h"
 
 #define VOGL_CONTEXT_STATE_DEBUG 0

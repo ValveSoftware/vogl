@@ -6,7 +6,7 @@ include("${SRC_DIR}/build_options.cmake")
 include_directories(
     ${SRC_DIR}/extlib/loki/include/loki
     ${SRC_DIR}/voglcommon
-    ${SRC_DIR}/voglinc
+    ${CMAKE_BINARY_DIR}/voglinc
     ${SRC_DIR}/voglcore
     ${SRC_DIR}/libtelemetry
     ${SRC_DIR}/libbacktrace
@@ -69,6 +69,7 @@ endif()
 add_compiler_flag("-fPIC")
 
 add_library(${PROJECT_NAME} ${SRC_LIST})
+add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 target_link_libraries(${PROJECT_NAME} backtrace)
 
 build_options_finalize()
