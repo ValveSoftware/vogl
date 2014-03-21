@@ -53,6 +53,7 @@ set(SRC_LIST
     vogleditor_qtextureexplorer.cpp
     vogleditor_qtextureviewer.cpp
     vogleditor_qtimelineview.cpp
+    vogleditor_qtrimdialog.cpp
     vogleditor_statetreearbprogramitem.cpp
     vogleditor_statetreearbprogramenvitem.cpp
     vogleditor_statetreebufferitem.cpp
@@ -91,6 +92,7 @@ set(UI_HEADER_LIST
     vogleditor_qtextureviewer.h
     vogleditor_qtextureexplorer.h
     vogleditor_qtimelineview.h
+    vogleditor_qtrimdialog.h
    )
 
 # these are for non-QOBJECT headers
@@ -134,6 +136,7 @@ set(FORM_LIST
     vogleditor_qprogramexplorer.ui
     vogleditor_qshaderexplorer.ui
     vogleditor_qtextureexplorer.ui
+    vogleditor_qtrimdialog.ui
    )
 
 set(RESOURCE_LIST
