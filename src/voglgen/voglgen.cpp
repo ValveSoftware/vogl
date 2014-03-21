@@ -63,6 +63,7 @@ static command_line_param_desc g_command_line_param_descs[] =
         { "ctype_regex", 1, false, NULL },
         { "namespace_regex", 1, false, NULL },
         { "srcdir", 1, false, NULL },
+        { "specdir", 1, false, NULL },
     };
 
 //-----------------------------------------------------------------------------------------------------------------------
@@ -2019,7 +2020,14 @@ public:
     bool init()
     {
         // TODO: I'm going to move the "glspec" dir from under bin to raddebugger/glspec (or whatever)
-        if (!file_utils::does_file_exist("gl.spec"))
+        dynamic_string specdir;
+
+        if (g_command_line_params.get_value_as_string(specdir, "specdir"))
+        {
+            file_utils::change_directory(specdir.c_str());
+            console::warning("Changing current directory to %s\n", specdir.c_str());
+        }
+        else if (!file_utils::does_file_exist("gl.spec"))
         {
             if (file_utils::does_file_exist("glspec/gl.spec"))
             {
