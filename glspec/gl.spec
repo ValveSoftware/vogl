@@ -15495,12 +15495,12 @@ GetDebugMessageLog(count, bufsize, sources, types, ids, severities, lengths, mes
 	return		UInt32
 	param		count		UInt32 in value
 	param		bufsize		SizeI in value
-	param		sources		GLenum out array [COMPSIZE(count)]
-	param		types		GLenum out array [COMPSIZE(count)]
-	param		ids		UInt32 out array [COMPSIZE(count)]
-	param		severities	GLenum out array [COMPSIZE(count)]
-	param		lengths		SizeI out array [COMPSIZE(count)]
-	param		messageLog	Char out array [COMPSIZE(bufsize)]
+	param		sources		GLenum out array [count]
+	param		types		GLenum out array [count]
+	param		ids		UInt32 out array [count]
+	param		severities	GLenum out array [count]
+	param		lengths		SizeI out array [count]
+	param		messageLog	Char out array [bufsize]
 	category	KHR_debug
 	dlflags		notlistable
 	version		4.3

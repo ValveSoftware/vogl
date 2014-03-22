@@ -58,7 +58,6 @@ glCreateProgramObjectARB
 glCreateShader
 glCreateShaderObjectARB
 glDebugMessageCallbackARB
-glDebugMessageControlARB
 glDebugMessageInsertARB
 glDeleteBuffers
 glDeleteBuffersARB
@@ -192,7 +191,6 @@ glGetConvolutionParameterfvEXT
 glGetConvolutionParameteriv
 glGetConvolutionParameterivEXT
 glGetConvolutionParameterxvOES
-glGetDebugMessageLog
 glGetDebugMessageLogAMD
 glGetDebugMessageLogARB
 glGetDetailTexFuncSGIS
@@ -322,11 +320,9 @@ glGetnUniformivARB
 glGetnUniformuivARB
 glGetObjectBufferfvATI
 glGetObjectBufferivATI
-glGetObjectLabel
 glGetObjectParameterfvARB
 glGetObjectParameterivAPPLE
 glGetObjectParameterivARB
-glGetObjectPtrLabel
 glGetOcclusionQueryivNV
 glGetOcclusionQueryuivNV
 glGetPathColorGenfvNV
@@ -730,3 +726,10 @@ glXSwapIntervalSGI
 glXUseXFont
 glXWaitGL
 glXWaitX
+glDebugMessageInsert
+glDebugMessageCallback
+glObjectLabel
+glObjectPtrLabel
+glGetObjectLabel
+glGetObjectPtrLabel
+glGetDebugMessageLog

@@ -1500,6 +1500,32 @@ void vogl_gl_replayer::debug_callback_arb(GLenum source, GLenum type, GLuint id,
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// vogl_replayer::debug_callback
+//----------------------------------------------------------------------------------------------------------------------
+void vogl_gl_replayer::debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param)
+{
+    VOGL_FUNC_TRACER
+
+    VOGL_NOTE_UNUSED(length);
+
+    char final_message[4096];
+
+    context_state *pContext_state = (context_state *)(pUser_param);
+
+    vogl_format_debug_output_arb(final_message, sizeof(final_message), source, type, id, severity, reinterpret_cast<const char *>(message));
+
+    if (pContext_state)
+    {
+        vogl_warning_printf("%s: Trace context: 0x%" PRIX64 ", Replay context 0x%" PRIX64 ", Last trace call counter: %" PRIu64 "\n%s\n", VOGL_FUNCTION_NAME,
+                           cast_val_to_uint64(pContext_state->m_trace_context), cast_val_to_uint64(pContext_state->m_replay_context), cast_val_to_uint64(pContext_state->m_last_call_counter), final_message);
+    }
+    else
+    {
+        vogl_warning_printf("%s: %s\n", VOGL_FUNCTION_NAME, final_message);
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 // vogl_replayer::is_extension_supported
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::is_extension_supported(const char *pExt)
@@ -8449,14 +8475,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             // TODO - we need to hook up this extension to the tracer
             break;
         }
-        case VOGL_ENTRYPOINT_glDebugMessageCallbackARB:
-        case VOGL_ENTRYPOINT_glGetDebugMessageLogARB:
-        case VOGL_ENTRYPOINT_glDebugMessageControlARB:
-        case VOGL_ENTRYPOINT_glDebugMessageInsertARB:
-        {
-            // TODO
-            break;
-        }
         case VOGL_ENTRYPOINT_glBitmap:
         {
             VOGL_REPLAY_LOAD_PARAMS_HELPER_glBitmap;
@@ -8723,6 +8741,126 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+        case VOGL_ENTRYPOINT_glDebugMessageInsert:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glDebugMessageInsert;
+
+            VOGL_REPLAY_CALL_GL_HELPER_glDebugMessageInsert;
+            break;
+        }
+        case VOGL_ENTRYPOINT_glDebugMessageInsertARB:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glDebugMessageInsertARB;
+
+            VOGL_REPLAY_CALL_GL_HELPER_glDebugMessageInsertARB;
+            break;
+        }
+        case VOGL_ENTRYPOINT_glDebugMessageCallbackARB:
+        {
+            GL_ENTRYPOINT(glDebugMessageCallbackARB)(debug_callback_arb, (GLvoid *)m_pCur_context_state);
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glDebugMessageCallback:
+        {
+            GL_ENTRYPOINT(glDebugMessageCallback)(debug_callback, (GLvoid *)m_pCur_context_state);
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glObjectLabel:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glObjectLabel;
+
+            switch (identifier)
+            {
+                case GL_BUFFER:
+                {
+                    name = map_handle(get_shared_state()->m_buffers, name);
+                    break;
+                }
+                case GL_SHADER:
+                case GL_PROGRAM:
+                {
+                    name = map_handle(get_shared_state()->m_shadow_state.m_objs, name);
+                    break;
+                }
+                case GL_VERTEX_ARRAY:
+                {
+                    name = map_handle(get_shared_state()->m_vertex_array_objects, name);
+                    break;
+                }
+                case GL_QUERY:
+                {
+                    name = map_handle(get_shared_state()->m_queries, name);
+                    break;
+                }
+                case GL_SAMPLER:
+                {
+                    name = map_handle(get_shared_state()->m_sampler_objects, name);
+                    break;
+                }
+                case GL_TEXTURE:
+                {
+                    name = map_handle(get_shared_state()->m_shadow_state.m_textures, name);
+                    break;
+                }
+                case GL_RENDERBUFFER:
+                {
+                    name = map_handle(get_shared_state()->m_shadow_state.m_rbos, name);
+                    break;
+                }
+                case GL_FRAMEBUFFER:
+                {
+                    name = map_handle(get_shared_state()->m_framebuffers, name);
+                    break;
+                }
+                case GL_DISPLAY_LIST:
+                {
+                    name = map_handle(get_shared_state()->m_lists, name);
+                    break;
+                }
+                case GL_TRANSFORM_FEEDBACK: // TODO: Investigate this more
+                case GL_PROGRAM_PIPELINE: // TODO: We don't support program pipelines yet
+                default:
+                {
+                    process_entrypoint_error("%s: Unsupported object identifier 0x%X\n", VOGL_METHOD_NAME, identifier);
+                    return cStatusSoftFailure;
+                }
+            }
+
+            VOGL_REPLAY_CALL_GL_HELPER_glObjectLabel;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glObjectPtrLabel:
+        {
+            vogl_sync_ptr_value trace_sync = trace_packet.get_param_ptr_value(0);
+            GLsizei length = trace_packet.get_param_value<GLsizei>(1);
+            const GLchar *pTrace_label = reinterpret_cast<const GLchar *>(trace_packet.get_param_client_memory_ptr(2));
+            GLsync replay_sync = NULL;
+
+            if (trace_sync)
+            {
+                gl_sync_hash_map::const_iterator it = get_shared_state()->m_syncs.find(trace_sync);
+                if (it == get_shared_state()->m_syncs.end())
+                {
+                    process_entrypoint_error("%s: Failed remapping trace sync value 0x%" PRIx64 "\n", VOGL_METHOD_NAME, static_cast<uint64_t>(trace_sync));
+                    return cStatusSoftFailure;
+                }
+                else
+                {
+                    replay_sync = it->second;
+                }
+            }
+
+            GL_ENTRYPOINT(glObjectPtrLabel)(replay_sync, length, pTrace_label);
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glGetDebugMessageLogARB:
+        case VOGL_ENTRYPOINT_glGetObjectLabel:
+        case VOGL_ENTRYPOINT_glGetObjectPtrLabel:
+        case VOGL_ENTRYPOINT_glGetDebugMessageLog:
         case VOGL_ENTRYPOINT_glAreTexturesResident:
         case VOGL_ENTRYPOINT_glAreTexturesResidentEXT:
         case VOGL_ENTRYPOINT_glGetActiveAtomicCounterBufferiv:
@@ -8774,7 +8912,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_glGetConvolutionParameteriv:
         case VOGL_ENTRYPOINT_glGetConvolutionParameterivEXT:
         case VOGL_ENTRYPOINT_glGetConvolutionParameterxvOES:
-        case VOGL_ENTRYPOINT_glGetDebugMessageLog:
+
         case VOGL_ENTRYPOINT_glGetDebugMessageLogAMD:
         case VOGL_ENTRYPOINT_glGetDetailTexFuncSGIS:
         case VOGL_ENTRYPOINT_glGetDoubleIndexedvEXT:
@@ -8876,10 +9014,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_glGetNamedStringivARB:
         case VOGL_ENTRYPOINT_glGetObjectBufferfvATI:
         case VOGL_ENTRYPOINT_glGetObjectBufferivATI:
-        case VOGL_ENTRYPOINT_glGetObjectLabel:
         case VOGL_ENTRYPOINT_glGetObjectParameterfvARB:
         case VOGL_ENTRYPOINT_glGetObjectParameterivAPPLE:
-        case VOGL_ENTRYPOINT_glGetObjectPtrLabel:
         case VOGL_ENTRYPOINT_glGetOcclusionQueryivNV:
         case VOGL_ENTRYPOINT_glGetOcclusionQueryuivNV:
         case VOGL_ENTRYPOINT_glGetPathColorGenfvNV:

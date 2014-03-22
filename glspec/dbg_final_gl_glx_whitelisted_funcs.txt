@@ -184,8 +184,11 @@ glCreateShaderObjectARB
 glCullFace
 glCullParameterdvEXT
 glCullParameterfvEXT
+glDebugMessageCallback
 glDebugMessageCallbackARB
+glDebugMessageControl
 glDebugMessageControlARB
+glDebugMessageInsert
 glDebugMessageInsertARB
 glDeleteBuffers
 glDeleteBuffersARB
@@ -882,6 +885,8 @@ glNormalP3ui
 glNormalP3uiv
 glNormalPointer
 glNormalPointerEXT
+glObjectLabel
+glObjectPtrLabel
 glOrtho
 glPassThrough
 glPixelMapfv
@@ -907,6 +912,7 @@ glPolygonOffsetEXT
 glPolygonStipple
 glPopAttrib
 glPopClientAttrib
+glPopDebugGroup
 glPopMatrix
 glPopName
 glPrimitiveRestartIndex
@@ -964,6 +970,7 @@ glProvokingVertex
 glProvokingVertexEXT
 glPushAttrib
 glPushClientAttrib
+glPushDebugGroup
 glPushMatrix
 glPushName
 glQueryCounter
