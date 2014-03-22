@@ -19,6 +19,8 @@ You should now be ready to build in your chroots. Something like any of these:
 
 Note that you do _not_ have to use the chroots or mkvogl.sh to build. You could do your own cmake (cmake vogl/src) and go from there. It's up to you to get the dependencies correct though. Look at vogl/bin/chroot_configure.sh to see how the chroots are set up. The source for mkvogl is in vogl/bin/src/mkvogl.cpp - it's just a simple cpp wrapper around cmake.
 
+If you do use the chroots, do not build from within an encrypted home folder, as files in an encrypted home folder will not be visible from within the chroot, causing the build script to fail.
+
 ## Capturing ##
 
     vogl/bin/steamlauncher.sh --gameid vogl/vogl_build/bin/glxspheres32
