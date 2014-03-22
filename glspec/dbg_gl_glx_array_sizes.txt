@@ -9,7 +9,6 @@
 [COMPSIZE(attribute)]
 [COMPSIZE(buf,length)]
 [COMPSIZE(buffer)]
-[COMPSIZE(bufsize)]
 [COMPSIZE(count)]
 [COMPSIZE(count,type)]
 [COMPSIZE(drawcount,stride)]

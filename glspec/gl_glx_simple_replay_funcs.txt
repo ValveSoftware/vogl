@@ -648,3 +648,7 @@ glWindowPos3s
 glWindowPos3sARB
 glWindowPos3sv
 glWindowPos3svARB
+glPopDebugGroup
+glDebugMessageControl
+glDebugMessageControlARB
+glPushDebugGroup

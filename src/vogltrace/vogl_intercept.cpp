@@ -3080,6 +3080,12 @@ static inline bool vogl_func_is_nulled(gl_entrypoint_id_t id)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMap2f_points(e, c, rt, r, nu, ne, a, p) vogl_determine_glMap2_size(target, ustride, uorder, vstride, vorder)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glMap2d_points(e, c, rt, r, nu, ne, a, p) vogl_determine_glMap2_size(target, ustride, uorder, vstride, vorder)
 
+// KHR_debug
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glDebugMessageInsert_buf(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (buf ? strlen((const char *)buf) : 0 ) : length)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glPushDebugGroup_message(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (message ? strlen((const char *)message) : 0 ) : length)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glObjectLabel_label(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (label ? strlen((const char *)label) : 0 ) : length)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glObjectPtrLabel_label(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (label ? strlen((const char *)label) : 0 ) : length)
+
 //----------------------------------------------------------------------------------------------------------------------
 // Texture/image API's array size helper macros
 // TODO: For glTexImage3DEXT, glTexSubImage1DEXT, etc. - should these check the currently bound GL_PIXEL_UNPACK_BUFFER?

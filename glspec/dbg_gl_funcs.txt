@@ -5640,12 +5640,12 @@ Name: "DebugMessageCallback", ParamNames: 2, Params: 2, Return: "void", Category
 Name: "GetDebugMessageLog", ParamNames: 8, Params: 8, Return: "UInt32", Category: "KHR_debug", Version: "4.3", Profile: "", Deprecated: "", Lib: "gl" notlistable: 1
   Name: "count", Type: "UInt32", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
   Name: "bufsize", Type: "SizeI", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
-  Name: "sources", Type: "GLenum", Direction: "out", Semantic: "array", ArraySize: "[COMPSIZE(count)]", Retained: 0
-  Name: "types", Type: "GLenum", Direction: "out", Semantic: "array", ArraySize: "[COMPSIZE(count)]", Retained: 0
-  Name: "ids", Type: "UInt32", Direction: "out", Semantic: "array", ArraySize: "[COMPSIZE(count)]", Retained: 0
-  Name: "severities", Type: "GLenum", Direction: "out", Semantic: "array", ArraySize: "[COMPSIZE(count)]", Retained: 0
-  Name: "lengths", Type: "SizeI", Direction: "out", Semantic: "array", ArraySize: "[COMPSIZE(count)]", Retained: 0
-  Name: "messageLog", Type: "Char", Direction: "out", Semantic: "array", ArraySize: "[COMPSIZE(bufsize)]", Retained: 0
+  Name: "sources", Type: "GLenum", Direction: "out", Semantic: "array", ArraySize: "[count]", Retained: 0
+  Name: "types", Type: "GLenum", Direction: "out", Semantic: "array", ArraySize: "[count]", Retained: 0
+  Name: "ids", Type: "UInt32", Direction: "out", Semantic: "array", ArraySize: "[count]", Retained: 0
+  Name: "severities", Type: "GLenum", Direction: "out", Semantic: "array", ArraySize: "[count]", Retained: 0
+  Name: "lengths", Type: "SizeI", Direction: "out", Semantic: "array", ArraySize: "[count]", Retained: 0
+  Name: "messageLog", Type: "Char", Direction: "out", Semantic: "array", ArraySize: "[bufsize]", Retained: 0
 
 Name: "PushDebugGroup", ParamNames: 4, Params: 4, Return: "void", Category: "KHR_debug", Version: "4.3", Profile: "", Deprecated: "", Lib: "gl" notlistable: 0
   Name: "source", Type: "GLenum", Direction: "in", Semantic: "value", ArraySize: "", Retained: 0
