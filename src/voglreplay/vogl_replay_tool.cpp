@@ -78,8 +78,9 @@ static command_line_param_desc g_command_line_param_descs[] =
         { "compare_hash_files", 0, false, "Compare two files containing CRC's or per-component sums (presumably written using dump_backbuffer_hashes)" },
 
         // replay specific
-        { "width", 1, false, "Replay: Set initial window width (default is 1024)" },
-        { "height", 1, false, "Replay: Set initial window height (default is 768)" },
+        { "width", 1, false, "Replay: Set replay window's initial width (default is 1024)" },
+        { "height", 1, false, "Replay: Set replay window's initial height (default is 768)" },
+        { "msaa", 1, false, "Replay: Set replay window's multisamples (default is 0)." },
         { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
         { "trim_file", 1, false, "Replay: Create a trimmed trace file during replay, must also specify -trim_frame" },
         { "trim_frame", 1, false, "Replay: Frame index to begin trim, 0=beginning of trace, 1=first API call after first swap, etc." },
@@ -661,7 +662,7 @@ static bool tool_replay_mode()
     // TODO: This will create a window with default attributes, which seems fine for the majority of traces.
     // Unfortunately, some GL call streams *don't* want an alpha channel, or depth, or stencil etc. in the default framebuffer so this may become a problem.
     // Also, this design only supports a single window, which is going to be a problem with multiple window traces.
-    if (!window.open(g_command_line_params.get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params.get_value_as_int("height", 0, 768, 1, 65535)))
+    if (!window.open(g_command_line_params.get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params.get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params.get_value_as_int("msaa", 0, 0, 0, 65535)))
     {
         vogl_error_printf("%s: Failed initializing replay window\n", VOGL_FUNCTION_NAME);
         return false;

@@ -44,7 +44,7 @@ public:
         return (m_width > 0) && (m_dpy != NULL);
     }
 
-    bool open(int width, int height);
+    bool open(int width, int height, int samples = 1);
 
     void set_title(const char *pTitle);
 
