@@ -59,7 +59,6 @@ set(SRC_LIST
    vogl_utils.cpp
    vogl_value.cpp
    vogl_vector.cpp
-   vogl_applauncher.cpp
    vogl_etc.cpp
    vogl_rg_etc1.cpp
 

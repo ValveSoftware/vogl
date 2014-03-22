@@ -45,7 +45,6 @@
 #include "vogl_core.h"
 #include "vogl_json.h"
 #include "vogl_file_utils.h"
-#include "vogl_applauncher.h"
 
 // our demangle routine from libelftc_dem_gnu3.c (from libcxxrt)
 extern "C" char * __cxa_demangle_gnu3(const char *org);
