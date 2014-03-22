@@ -44,7 +44,7 @@ vogl_replay_window::~vogl_replay_window()
     close();
 }
 
-bool vogl_replay_window::open(int width, int height)
+bool vogl_replay_window::open(int width, int height, int samples)
 {
     VOGL_FUNC_TRACER
 
@@ -54,20 +54,28 @@ bool vogl_replay_window::open(int width, int height)
         return false;
 
     // TODO: These attribs (especially the sizes) should be passed in by the caller!
-    static int fbAttribs[] =
-        {
-            GLX_RENDER_TYPE, GLX_RGBA_BIT,
-            GLX_X_RENDERABLE, True,
-            GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-            GLX_DOUBLEBUFFER, True,
-            GLX_RED_SIZE, 8,
-            GLX_BLUE_SIZE, 8,
-            GLX_GREEN_SIZE, 8,
-            GLX_ALPHA_SIZE, 8,
-            GLX_DEPTH_SIZE, 24,
-            GLX_STENCIL_SIZE, 8,
-            0
-        };
+    int fbAttribs[64];
+
+    int *pAttribs = fbAttribs;
+
+    *pAttribs++ = GLX_RENDER_TYPE;      *pAttribs++ = GLX_RGBA_BIT;
+    *pAttribs++ = GLX_X_RENDERABLE;     *pAttribs++ = True;
+    *pAttribs++ = GLX_DRAWABLE_TYPE;    *pAttribs++ = GLX_WINDOW_BIT;
+    *pAttribs++ = GLX_DOUBLEBUFFER;     *pAttribs++ = True;
+    *pAttribs++ = GLX_RED_SIZE;         *pAttribs++ = 8;
+    *pAttribs++ = GLX_BLUE_SIZE;        *pAttribs++ = 8;
+    *pAttribs++ = GLX_GREEN_SIZE;       *pAttribs++ = 8;
+    *pAttribs++ = GLX_ALPHA_SIZE;       *pAttribs++ = 8;
+    *pAttribs++ = GLX_DEPTH_SIZE;       *pAttribs++ = 24;
+    *pAttribs++ = GLX_STENCIL_SIZE;     *pAttribs++ = 8;
+
+    if (samples > 1)
+    {
+        *pAttribs++ = GLX_SAMPLE_BUFFERS; *pAttribs++ = 1;
+        *pAttribs++ = GLX_SAMPLES;        *pAttribs++ = samples;
+    }
+
+    *pAttribs++ = 0;
 
     // Tell X we are going to use the display
     m_dpy = XOpenDisplay(NULL);
