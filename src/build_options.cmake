@@ -94,7 +94,7 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
           "-Wno-padded"
           "-Wno-variadic-macros"
           )
-  elseif ()
+  elseif (CLANG_ANALYZE)
       set(CMAKE_CXX_FLAGS_LIST ${CMAKE_CXX_FLAGS_LIST}
           "--analyze"
           "-ferror-limit=0"         # Don't ever stop emitting diagnostics
