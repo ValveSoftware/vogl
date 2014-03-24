@@ -48,6 +48,7 @@
 #include "vogl_trace_file_reader.h"
 #include "vogl_trace_file_writer.h"
 #include "vogleditor_qstatetreemodel.h"
+#include "vogleditor_settings.h"
 #include "vogleditor_statetreetextureitem.h"
 #include "vogleditor_statetreeprogramitem.h"
 #include "vogleditor_statetreeshaderitem.h"
@@ -63,6 +64,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 static void *g_actual_libgl_module_handle;
 static QString g_PROJECT_NAME = "Vogl Editor";
+static vogleditor_settings g_settings;
+static const char* g_SETTINGS_FILE = "./vogleditor_settings.json";
 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_proc_address_helper
@@ -136,6 +139,15 @@ VoglEditor::VoglEditor(QWidget *parent) :
       vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
    }
 
+   // load the settings file. This will only succeed if the file already exists
+   g_settings.load(g_SETTINGS_FILE);
+
+   // always save/resave the file wiill either be created or so that new settings will be added
+   g_settings.save(g_SETTINGS_FILE);
+
+   this->move(g_settings.window_position_left(), g_settings.window_position_top());
+   this->resize(g_settings.window_size_width(), g_settings.window_size_height());
+
    m_pStatusLabel = new QLabel(ui->statusBar);
    m_pStatusLabel->setBaseSize(150, 12);
    ui->statusBar->addWidget(m_pStatusLabel, 1);
@@ -201,98 +213,105 @@ VoglEditor::VoglEditor(QWidget *parent) :
 
 VoglEditor::~VoglEditor()
 {
-   close_trace_file();
-   delete ui;
+    // update any settings and save the settings file
+    g_settings.set_window_position_left(this->x());
+    g_settings.set_window_position_top(this->y());
+    g_settings.set_window_size_width(this->width());
+    g_settings.set_window_size_height(this->height());
+    g_settings.save(g_SETTINGS_FILE);
 
-   if (m_pStatusLabel != NULL)
-   {
-       delete m_pStatusLabel;
-       m_pStatusLabel = NULL;
-   }
+    close_trace_file();
+    delete ui;
 
-   if (m_pFramebufferExplorer != NULL)
-   {
-       delete m_pFramebufferExplorer;
-       m_pFramebufferExplorer = NULL;
-   }
+    if (m_pStatusLabel != NULL)
+    {
+        delete m_pStatusLabel;
+        m_pStatusLabel = NULL;
+    }
 
-   if (m_pTextureExplorer != NULL)
-   {
-       delete m_pTextureExplorer;
-       m_pTextureExplorer = NULL;
-   }
+    if (m_pFramebufferExplorer != NULL)
+    {
+        delete m_pFramebufferExplorer;
+        m_pFramebufferExplorer = NULL;
+    }
 
-   if (m_pRenderbufferExplorer != NULL)
-   {
-       delete m_pRenderbufferExplorer;
-       m_pRenderbufferExplorer = NULL;
-   }
+    if (m_pTextureExplorer != NULL)
+    {
+        delete m_pTextureExplorer;
+        m_pTextureExplorer = NULL;
+    }
 
-   if (m_pProgramExplorer != NULL)
-   {
-       delete m_pProgramExplorer;
-       m_pProgramExplorer = NULL;
-   }
+    if (m_pRenderbufferExplorer != NULL)
+    {
+        delete m_pRenderbufferExplorer;
+        m_pRenderbufferExplorer = NULL;
+    }
 
-   if (m_pShaderExplorer != NULL)
-   {
-       delete m_pShaderExplorer;
-       m_pShaderExplorer = NULL;
-   }
+    if (m_pProgramExplorer != NULL)
+    {
+        delete m_pProgramExplorer;
+        m_pProgramExplorer = NULL;
+    }
 
-   if (m_pPlayButton != NULL)
-   {
-       delete m_pPlayButton;
-       m_pPlayButton = NULL;
-   }
+    if (m_pShaderExplorer != NULL)
+    {
+        delete m_pShaderExplorer;
+        m_pShaderExplorer = NULL;
+    }
 
-   if (m_pTrimButton != NULL)
-   {
-       delete m_pTrimButton;
-       m_pTrimButton = NULL;
-   }
+    if (m_pPlayButton != NULL)
+    {
+        delete m_pPlayButton;
+        m_pPlayButton = NULL;
+    }
 
-   if (m_pFramebufferTab_layout != NULL)
-   {
-       delete m_pFramebufferTab_layout;
-       m_pFramebufferTab_layout = NULL;
-   }
+    if (m_pTrimButton != NULL)
+    {
+        delete m_pTrimButton;
+        m_pTrimButton = NULL;
+    }
 
-   if (m_pTextureTab_layout != NULL)
-   {
-       delete m_pTextureTab_layout;
-       m_pTextureTab_layout = NULL;
-   }
+    if (m_pFramebufferTab_layout != NULL)
+    {
+        delete m_pFramebufferTab_layout;
+        m_pFramebufferTab_layout = NULL;
+    }
 
-   if (m_pRenderbufferTab_layout != NULL)
-   {
-       delete m_pRenderbufferTab_layout;
-       m_pRenderbufferTab_layout = NULL;
-   }
+    if (m_pTextureTab_layout != NULL)
+    {
+        delete m_pTextureTab_layout;
+        m_pTextureTab_layout = NULL;
+    }
 
-   if (m_pProgramTab_layout != NULL)
-   {
-       delete m_pProgramTab_layout;
-       m_pProgramTab_layout = NULL;
-   }
+    if (m_pRenderbufferTab_layout != NULL)
+    {
+        delete m_pRenderbufferTab_layout;
+        m_pRenderbufferTab_layout = NULL;
+    }
 
-   if (m_pShaderTab_layout != NULL)
-   {
-       delete m_pShaderTab_layout;
-       m_pShaderTab_layout = NULL;
-   }
+    if (m_pProgramTab_layout != NULL)
+    {
+        delete m_pProgramTab_layout;
+        m_pProgramTab_layout = NULL;
+    }
 
-   if (m_pStateTreeModel != NULL)
-   {
-       delete m_pStateTreeModel;
-       m_pStateTreeModel = NULL;
-   }
+    if (m_pShaderTab_layout != NULL)
+    {
+        delete m_pShaderTab_layout;
+        m_pShaderTab_layout = NULL;
+    }
 
-   if (m_pVoglReplayProcess != NULL)
-   {
-       delete m_pVoglReplayProcess;
-       m_pVoglReplayProcess = NULL;
-   }
+    if (m_pStateTreeModel != NULL)
+    {
+        delete m_pStateTreeModel;
+        m_pStateTreeModel = NULL;
+    }
+
+    if (m_pVoglReplayProcess != NULL)
+    {
+        delete m_pVoglReplayProcess;
+        m_pVoglReplayProcess = NULL;
+    }
 }
 
 void VoglEditor::playCurrentTraceFile()
@@ -321,7 +340,7 @@ void VoglEditor::playCurrentTraceFile()
 
 void VoglEditor::trimCurrentTraceFile()
 {
-    trim_trace_file(m_openFilename, static_cast<uint>(m_pTraceReader->get_max_frame_index()), 200);
+    trim_trace_file(m_openFilename, static_cast<uint>(m_pTraceReader->get_max_frame_index()), g_settings.trim_large_trace_prompt_size());
 }
 
 /// \return True if the new trim file is now open in the editor
@@ -1027,14 +1046,14 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
        m_pStatusLabel->clear();
    }
 
-   if (tmpReader->get_max_frame_index() > 200)
+   if (tmpReader->get_max_frame_index() > g_settings.trim_large_trace_prompt_size())
    {
        int ret = QMessageBox::warning(this, tr(g_PROJECT_NAME.toStdString().c_str()), tr("The loaded trace file has many frames and debugging may be difficult.\nWould you like to trim the trace?"),
                             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
        if (ret == QMessageBox::Yes)
        {
-           if (trim_trace_file(filename.c_str(), static_cast<uint>(tmpReader->get_max_frame_index()), 200))
+           if (trim_trace_file(filename.c_str(), static_cast<uint>(tmpReader->get_max_frame_index()), g_settings.trim_large_trace_prompt_size()))
            {
                // user decided to open the new trim file, and the UI should already be updated
                // clean up here and return
