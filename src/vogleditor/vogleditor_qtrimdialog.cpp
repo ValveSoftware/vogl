@@ -1,6 +1,7 @@
 #include "vogleditor_qtrimdialog.h"
 #include "ui_vogleditor_qtrimdialog.h"
 #include <QFileDialog>
+#include <QMessageBox>
 
 vogleditor_QTrimDialog::vogleditor_QTrimDialog(QString parentTraceFile, uint maxFrameIndex, uint maxTrimLength, QWidget *parent) :
     QDialog(parent),
@@ -24,21 +25,53 @@ vogleditor_QTrimDialog::~vogleditor_QTrimDialog()
     delete ui;
 }
 
-void vogleditor_QTrimDialog::on_buttonBox_accepted()
+void vogleditor_QTrimDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
-    // verify all input
-    bool bValidFrame = false;
-    uint tmpFrame = ui->trimFrameLineEdit->text().toUInt(&bValidFrame);
-    bValidFrame = bValidFrame && (tmpFrame <= m_maxFrameIndex);
-
-    bool bValidLen = false;
-    uint tmpLen = ui->trimLenLineEdit->text().toUInt(&bValidLen);
-    bValidLen = bValidLen && (tmpLen > 0 && tmpLen < m_maxTrimLength);
-
-    bool bValidFile = (ui->trimFrameLineEdit->text().isEmpty() == false);
-
-    if (bValidFrame && bValidLen && bValidFile)
+    if (button == ui->buttonBox->button(QDialogButtonBox::Ok))
     {
+        // validate the trim start frame
+        bool bValidFrame = false;
+        uint tmpFrame = ui->trimFrameLineEdit->text().toUInt(&bValidFrame);
+        bValidFrame = bValidFrame && (tmpFrame <= m_maxFrameIndex);
+
+        if (!bValidFrame)
+        {
+            QMessageBox::warning(this, tr("Invalid Trim Frame"), tr("Please enter a valid frame number at which to start the trim."),
+                                 QMessageBox::Ok, QMessageBox::Ok);
+            ui->trimFrameLineEdit->setFocus();
+            return;
+        }
+
+        // validate the trim length
+        bool bValidLen = false;
+        uint tmpLen = ui->trimLenLineEdit->text().toUInt(&bValidLen);
+        bValidLen = bValidLen && (tmpLen > 0 && tmpLen <= m_maxTrimLength);
+
+        if (!bValidLen)
+        {
+            QMessageBox::warning(this, tr("Invalid Trim Count"), tr("Please enter a valid nubmer of frames to trim."),
+                                 QMessageBox::Ok, QMessageBox::Ok);
+            ui->trimLenLineEdit->setFocus();
+            return;
+        }
+
+        // validate the filename
+        QFile file(ui->trimFileLineEdit->text());
+        if (file.exists())
+        {
+            QString message = ui->trimFileLineEdit->text();
+            message += " already exits.\nWould you like to overwrite it?";
+            int ret = QMessageBox::warning(this, tr("File Already Exists"), tr(message.toStdString().c_str()),
+                                 QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+            if (ret == QMessageBox::No)
+            {
+                // return so that the user can update the path
+                ui->trimFileLineEdit->setFocus();
+                return;
+            }
+        }
+
         m_trim_frame = ui->trimFrameLineEdit->text();
         m_trim_len = ui->trimLenLineEdit->text();
         m_trim_file = ui->trimFileLineEdit->text();

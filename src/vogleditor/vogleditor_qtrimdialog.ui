@@ -38,7 +38,7 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>trim_frame:</string>
+        <string>trim_frame</string>
        </property>
       </widget>
      </item>
@@ -161,22 +161,6 @@
  </widget>
  <resources/>
  <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>vogleditor_QTrimDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>

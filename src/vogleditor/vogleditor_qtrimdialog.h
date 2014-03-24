@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QString>
 
+class QAbstractButton;
+
 namespace Ui {
 class vogleditor_QTrimDialog;
 }
@@ -32,7 +34,7 @@ public:
     }
 
 private slots:
-    void on_buttonBox_accepted();
+    void on_buttonBox_clicked(QAbstractButton *button);
 
     void on_buttonBox_rejected();
 
