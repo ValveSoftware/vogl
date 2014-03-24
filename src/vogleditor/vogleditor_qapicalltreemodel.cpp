@@ -528,7 +528,9 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_prev_drawcall(vog
         {
             gl_entrypoint_id_t entrypointId = static_cast<gl_entrypoint_id_t>(pItem->apiCallItem()->getGLPacket()->m_entrypoint_id);
             if (vogl_is_draw_entrypoint(entrypointId) ||
-                vogl_is_clear_entrypoint(entrypointId))
+                vogl_is_clear_entrypoint(entrypointId) ||
+                (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
+                (entrypointId == VOGL_ENTRYPOINT_glEnd))
             {
                 pFound = iter.peekPrevious();
                 break;
@@ -561,7 +563,9 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vog
         {
             gl_entrypoint_id_t entrypointId = static_cast<gl_entrypoint_id_t>(pItem->apiCallItem()->getGLPacket()->m_entrypoint_id);
             if (vogl_is_draw_entrypoint(entrypointId) ||
-                vogl_is_clear_entrypoint(entrypointId))
+                vogl_is_clear_entrypoint(entrypointId) ||
+                (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
+                (entrypointId == VOGL_ENTRYPOINT_glEnd))
             {
                 pFound = iter.peekNext();
                 break;
