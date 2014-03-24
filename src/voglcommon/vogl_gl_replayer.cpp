@@ -7487,51 +7487,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
-        case VOGL_ENTRYPOINT_glReadPixels:
-        {
-// TODO: This is causing huge stalls when replaying metro, not sure why. Also, the # of traced bytes is zero in metro.
-#if 0
-		if (!benchmark_mode())
-		{
-            GLint x = trace_packet.get_param_value<GLint>(0);
-            GLint y = trace_packet.get_param_value<GLint>(1);
-            GLsizei width = trace_packet.get_param_value<GLsizei>(2);
-            GLsizei height = trace_packet.get_param_value<GLsizei>(3);
-            GLenum format = trace_packet.get_param_value<GLenum>(4);
-            GLenum type = trace_packet.get_param_value<GLenum>(5);
-            const GLvoid *trace_data = trace_packet.get_param_client_memory<const GLvoid>(6);
-            uint trace_data_size = trace_packet.get_param_client_memory_data_size(6);
-
-			size_t replay_data_size = vogl_get_image_size(format, type, width, height, 1);
-			if (replay_data_size != trace_data_size)
-			{
-				process_entrypoint_warning("%s: Unexpected trace data size, got %u expected %" PRIu64 "\n", VOGL_METHOD_NAME, trace_data_size, (uint64_t)replay_data_size);
-			}
-			else if (!trace_data)
-			{
-				process_entrypoint_warning("%s: Trace data is missing from packet\n", VOGL_METHOD_NAME);
-			}
-
-			if (replay_data_size > cUINT32_MAX)
-			{
-				process_entrypoint_error("%s: Replay data size is too large (%" PRIu64 ")!\n", VOGL_METHOD_NAME, (uint64_t)replay_data_size);
-				return cStatusHardFailure;
-			}
-
-			vogl::vector<uint8> data(static_cast<uint>(replay_data_size));
-			GL_ENTRYPOINT(glReadPixels)(x, y, width, height, format, type, data.get_ptr());
-
-			if ((trace_data_size == replay_data_size) && (trace_data_size) && (trace_data))
-			{
-				if (memcmp(data.get_ptr(), trace_data, trace_data_size) != 0)
-				{
-					process_entrypoint_error("%s: Replay's returned pixel data differed from trace's!\n", VOGL_METHOD_NAME);
-				}
-			}
-		}
-#endif
-            break;
-        }
         case VOGL_ENTRYPOINT_glGetTexLevelParameterfv:
         {
             if (!benchmark_mode())
@@ -8857,6 +8812,123 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+        case VOGL_ENTRYPOINT_glReadPixels:
+        {
+            GLint x = trace_packet.get_param_value<GLint>(0);
+            GLint y = trace_packet.get_param_value<GLint>(1);
+            GLsizei width = trace_packet.get_param_value<GLsizei>(2);
+            GLsizei height = trace_packet.get_param_value<GLsizei>(3);
+            GLenum format = trace_packet.get_param_value<GLenum>(4);
+            GLenum type = trace_packet.get_param_value<GLenum>(5);
+
+            GLuint pixel_pack_buf = vogl_get_bound_gl_buffer(GL_PIXEL_PACK_BUFFER);
+            if (pixel_pack_buf)
+            {
+                GL_ENTRYPOINT(glReadPixels)(x, y, width, height, format, type, reinterpret_cast<GLvoid *>(trace_packet.get_param_ptr_value(6)));
+            }
+            else
+            {
+                const GLvoid *trace_data = trace_packet.get_param_client_memory<const GLvoid>(6);
+                uint trace_data_size = trace_packet.get_param_client_memory_data_size(6);
+
+                size_t replay_data_size = vogl_get_image_size(format, type, width, height, 1);
+                if (replay_data_size != trace_data_size)
+                {
+                    process_entrypoint_warning("%s: Unexpected trace data size, got %u expected %" PRIu64 "\n", VOGL_METHOD_NAME, trace_data_size, (uint64_t)replay_data_size);
+                }
+                else if (!trace_data)
+                {
+                    process_entrypoint_warning("%s: Trace data is missing from packet\n", VOGL_METHOD_NAME);
+                }
+
+                if (replay_data_size > cUINT32_MAX)
+                {
+                    process_entrypoint_error("%s: Replay data size is too large (%" PRIu64 ")!\n", VOGL_METHOD_NAME, (uint64_t)replay_data_size);
+                    return cStatusHardFailure;
+                }
+
+                vogl::vector<uint8> data(static_cast<uint>(replay_data_size));
+                GL_ENTRYPOINT(glReadPixels)(x, y, width, height, format, type, data.get_ptr());
+
+                if ((trace_data_size == replay_data_size) && (trace_data_size) && (trace_data))
+                {
+                    if (memcmp(data.get_ptr(), trace_data, trace_data_size) != 0)
+                    {
+                        process_entrypoint_error("%s: Replay's returned pixel data differed from trace's!\n", VOGL_METHOD_NAME);
+                    }
+                }
+                else
+                {
+                    process_entrypoint_warning("%s: Replay's computed glReadPixels image size differs from traces (%u vs %u)!\n", VOGL_METHOD_NAME, static_cast<uint>(trace_data_size), static_cast<uint>(replay_data_size));
+                }
+            }
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glGetTexImage:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glGetTexImage;
+
+            GLuint pixel_pack_buf = vogl_get_bound_gl_buffer(GL_PIXEL_PACK_BUFFER);
+            if (pixel_pack_buf)
+            {
+                GLvoid *pReplay_pixels = reinterpret_cast<GLvoid *>(trace_packet.get_param_ptr_value(4));
+
+                VOGL_REPLAY_CALL_GL_HELPER_glGetTexImage;
+            }
+            else
+            {
+                uint trace_data_size = trace_packet.get_param_client_memory_data_size(4);
+
+                size_t replay_data_size = vogl_get_tex_target_image_size(target, level, format, type);
+
+                if (replay_data_size > cUINT32_MAX)
+                {
+                    process_entrypoint_error("%s: Replay data size is too large (%" PRIu64 ")!\n", VOGL_METHOD_NAME, (uint64_t)replay_data_size);
+                    return cStatusHardFailure;
+                }
+
+                uint8_vec data(static_cast<uint>(replay_data_size));
+
+                GLvoid *pReplay_pixels = data.get_ptr();
+
+                VOGL_REPLAY_CALL_GL_HELPER_glGetTexImage;
+
+                if ((trace_data_size == replay_data_size) && (trace_data_size) && (pTrace_pixels))
+                {
+                    if (memcmp(data.get_ptr(), pTrace_pixels, trace_data_size) != 0)
+                    {
+                        process_entrypoint_error("%s: Replay's returned pixel data differed from trace's!\n", VOGL_METHOD_NAME);
+                    }
+                }
+                else
+                {
+                    process_entrypoint_warning("%s: Replay's computed glGetTexImage() image size differs from traces (%u vs %u)!\n", VOGL_METHOD_NAME, static_cast<uint>(trace_data_size), static_cast<uint>(replay_data_size));
+                }
+            }
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glGetCompressedTexImage:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glGetCompressedTexImage
+
+            VOGL_NOTE_UNUSED(pTrace_img);
+
+            GLuint pixel_pack_buf = vogl_get_bound_gl_buffer(GL_PIXEL_PACK_BUFFER);
+            if (pixel_pack_buf)
+            {
+                GLvoid *pReplay_img = reinterpret_cast<GLvoid *>(trace_packet.get_param_ptr_value(2));
+
+                VOGL_REPLAY_CALL_GL_HELPER_glGetCompressedTexImage;
+            }
+            else
+            {
+                // TODO: Implement non-pixel pack buffer path, compare for divergence
+            }
+
+            break;
+        }
         case VOGL_ENTRYPOINT_glGetDebugMessageLogARB:
         case VOGL_ENTRYPOINT_glGetObjectLabel:
         case VOGL_ENTRYPOINT_glGetObjectPtrLabel:
@@ -8902,7 +8974,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_glGetCombinerOutputParameterivNV:
         case VOGL_ENTRYPOINT_glGetCombinerStageParameterfvNV:
         case VOGL_ENTRYPOINT_glGetCompressedMultiTexImageEXT:
-        case VOGL_ENTRYPOINT_glGetCompressedTexImage:
         case VOGL_ENTRYPOINT_glGetCompressedTexImageARB:
         case VOGL_ENTRYPOINT_glGetCompressedTextureImageEXT:
         case VOGL_ENTRYPOINT_glGetConvolutionFilter:
@@ -8912,7 +8983,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_glGetConvolutionParameteriv:
         case VOGL_ENTRYPOINT_glGetConvolutionParameterivEXT:
         case VOGL_ENTRYPOINT_glGetConvolutionParameterxvOES:
-
         case VOGL_ENTRYPOINT_glGetDebugMessageLogAMD:
         case VOGL_ENTRYPOINT_glGetDetailTexFuncSGIS:
         case VOGL_ENTRYPOINT_glGetDoubleIndexedvEXT:
@@ -9097,7 +9167,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_glGetTexEnvxvOES:
         case VOGL_ENTRYPOINT_glGetTexFilterFuncSGIS:
         case VOGL_ENTRYPOINT_glGetTexGenxvOES:
-        case VOGL_ENTRYPOINT_glGetTexImage:
         case VOGL_ENTRYPOINT_glGetTexLevelParameterxvOES:
         case VOGL_ENTRYPOINT_glGetTexParameterIivEXT:
         case VOGL_ENTRYPOINT_glGetTexParameterIuivEXT:
