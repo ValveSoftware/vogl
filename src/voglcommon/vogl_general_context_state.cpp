@@ -337,6 +337,9 @@ bool vogl_general_context_state::restore_buffer_binding(GLenum binding_enum, GLe
     {
         buffer = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, buffer));
 
+        GL_ENTRYPOINT(glBindBuffer)(set_enum, 0);
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glBindBuffer)(set_enum, buffer);
         VOGL_CHECK_GL_ERROR;
 
@@ -1836,8 +1839,6 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     ADD_PROCESSED_STATE(GL_ELEMENT_ARRAY_BUFFER_BINDING, 0);
 
     // restore transform feedback targets
-    restore_buffer_binding(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, GL_TRANSFORM_FEEDBACK_BUFFER, remapper);
-    ADD_PROCESSED_STATE(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, 0);
     for (uint i = 0; i < context_info.get_max_transform_feedback_separate_attribs(); i++)
     {
         restore_buffer_binding_range(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, GL_TRANSFORM_FEEDBACK_BUFFER_START, GL_TRANSFORM_FEEDBACK_BUFFER_SIZE, GL_TRANSFORM_FEEDBACK_BUFFER, i, true, remapper);
@@ -1846,9 +1847,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
         ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_TRANSFORM_FEEDBACK_BUFFER_SIZE, i);
     }
 
+    restore_buffer_binding(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, GL_TRANSFORM_FEEDBACK_BUFFER, remapper);
+    ADD_PROCESSED_STATE(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, 0);
+
     // restore uniform buffer binding target, and the indexed variants
-    restore_buffer_binding(GL_UNIFORM_BUFFER_BINDING, GL_UNIFORM_BUFFER, remapper);
-    ADD_PROCESSED_STATE(GL_UNIFORM_BUFFER_BINDING, 0);
     for (uint i = 0; i < context_info.get_max_uniform_buffer_bindings(); i++)
     {
         restore_buffer_binding_range(GL_UNIFORM_BUFFER_BINDING, GL_UNIFORM_BUFFER_START, GL_UNIFORM_BUFFER_SIZE, GL_UNIFORM_BUFFER, i, true, remapper);
@@ -1856,6 +1858,9 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
         ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_UNIFORM_BUFFER_START, i);
         ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_UNIFORM_BUFFER_SIZE, i);
     }
+
+    restore_buffer_binding(GL_UNIFORM_BUFFER_BINDING, GL_UNIFORM_BUFFER, remapper);
+    ADD_PROCESSED_STATE(GL_UNIFORM_BUFFER_BINDING, 0);
 
     // TODO: these GL4 guys have indexed and offset/size variants
     restore_buffer_binding(GL_ATOMIC_COUNTER_BUFFER_BINDING, GL_ATOMIC_COUNTER_BUFFER, remapper);
@@ -2303,6 +2308,9 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     //----------------------------------------
+
+    GL_ENTRYPOINT(glBindBuffer)(GL_ARRAY_BUFFER, 0);
+    VOGL_CHECK_GL_ERROR;
 
     GL_ENTRYPOINT(glBindBuffer)(GL_ARRAY_BUFFER, prev_array_buffer_binding);
     VOGL_CHECK_GL_ERROR;

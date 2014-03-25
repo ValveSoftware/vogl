@@ -1272,10 +1272,10 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
         }
     }
 
-    // TODO: Support immutable textures, incomplete textures, etc. Lots more to do here.
+    // TODO: Support immutable textures
     if (is_immutable_format)
     {
-        vogl_warning_printf("%s: TODO: Support immutable textures\n", VOGL_METHOD_NAME);
+        vogl_warning_printf_once("%s: TODO: Support immutable textures (texture will be created non-immutable)\n", VOGL_METHOD_NAME);
     }
 
     for (face = 0; face < num_faces; face++)
