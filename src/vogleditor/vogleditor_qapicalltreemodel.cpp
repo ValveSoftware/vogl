@@ -235,6 +235,16 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
             // reset the CurFrame so that a new frame node will be created on the next api call
             pCurFrame = NULL;
          }
+         else if (entrypoint_id == VOGL_ENTRYPOINT_glBegin)
+         {
+             // items in the glBegin/glEnd block will be nested, including the glEnd
+             pCurParent = item;
+         }
+         else if (entrypoint_id == VOGL_ENTRYPOINT_glEnd)
+         {
+             // move the parent back one level of the hierarchy, to its own parent
+             pCurParent = pCurParent->parent();
+         }
       }
 
       if (pTrace_reader->get_packet_type() == cTSPTEOF)
