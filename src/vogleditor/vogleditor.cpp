@@ -389,7 +389,7 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
 
     if (bCompleted)
     {
-        int ret = QMessageBox::warning(this, tr(g_PROJECT_NAME.toStdString().c_str()), tr("Would you like to load the new trimmed trace file?"),
+        int ret = QMessageBox::warning(this, tr("Trim Trace"), tr("Would you like to load the new trimmed trace file?"),
                              QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
         if (ret == QMessageBox::Yes)
