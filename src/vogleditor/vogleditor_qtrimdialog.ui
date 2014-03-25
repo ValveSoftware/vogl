@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>430</width>
+    <width>434</width>
     <height>154</height>
    </rect>
   </property>
@@ -38,7 +38,7 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>trim_frame</string>
+        <string>Trim Frame:</string>
        </property>
       </widget>
      </item>
@@ -58,7 +58,7 @@
      <item>
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>trim_len:</string>
+        <string>Trim Length:</string>
        </property>
       </widget>
      </item>
@@ -82,7 +82,7 @@
      <item>
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>trim_file:</string>
+        <string>Trim File:</string>
        </property>
       </widget>
      </item>
