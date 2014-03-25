@@ -1862,6 +1862,25 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     restore_buffer_binding(GL_UNIFORM_BUFFER_BINDING, GL_UNIFORM_BUFFER, remapper);
     ADD_PROCESSED_STATE(GL_UNIFORM_BUFFER_BINDING, 0);
 
+    // Restore indexed blending state (we've already restored the global state, which sets all the indexed states)
+    for (uint i = 0; i < context_info.get_max_draw_buffers(); i++)
+    {
+        GLint enabled = 0;
+        if (get(GL_BLEND, i, &enabled, 1, true))
+        {
+            if (enabled)
+            {
+                GL_ENTRYPOINT(glEnablei)(GL_BLEND, i);
+                VOGL_CHECK_GL_ERROR;
+            }
+            else
+            {
+                GL_ENTRYPOINT(glDisablei)(GL_BLEND, i);
+                VOGL_CHECK_GL_ERROR;
+            }
+        }
+    }
+
     // TODO: these GL4 guys have indexed and offset/size variants
     restore_buffer_binding(GL_ATOMIC_COUNTER_BUFFER_BINDING, GL_ATOMIC_COUNTER_BUFFER, remapper);
     ADD_PROCESSED_STATE(GL_ATOMIC_COUNTER_BUFFER_BINDING, 0);

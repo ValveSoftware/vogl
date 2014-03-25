@@ -191,7 +191,7 @@ struct gl_pname_def_t
 		 { "glGet",	'B',	1,	"GL_DITHER",  0x0BD0},
 		 { "glGet",	'E',	1,	"GL_BLEND_DST",  0x0BE0},
 		 { "glGet",	'E',	1,	"GL_BLEND_SRC",  0x0BE1},
-		 { "glGet",	'B',	1,	"GL_BLEND",  0x0BE2},
+		 { "glGet,glGetI",	'B',	1,	"GL_BLEND",  0x0BE2},
 		 { "glGet",	'E',	1,	"GL_LOGIC_OP_MODE",  0x0BF0},
 		 { "glGet",	'B',	1,	"GL_INDEX_LOGIC_OP",  0x0BF1},
 		 { "glGet",	'B',	1,	"GL_COLOR_LOGIC_OP",  0x0BF2},
