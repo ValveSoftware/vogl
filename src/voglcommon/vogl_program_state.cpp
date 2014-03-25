@@ -779,7 +779,7 @@ bool vogl_program_state::restore_uniforms(uint32 handle32, const vogl_context_in
         const GLint restore_location = restore_uniform.m_base_location;
 
         for (uint i = 0; i < array_size; i++)
-            remapper.declare_location(m_snapshot_handle, handle32, restore_uniform.m_base_location + i, restore_location + i);
+            remapper.declare_location(m_snapshot_handle, handle32, trace_uniform.m_base_location + i, restore_location + i);
 
         if (array_size)
         {

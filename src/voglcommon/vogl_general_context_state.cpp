@@ -333,7 +333,7 @@ bool vogl_general_context_state::restore_buffer_binding(GLenum binding_enum, GLe
     VOGL_FUNC_TRACER
 
     uint buffer = 0;
-    if (get(binding_enum, 0, &buffer))
+    if (get(binding_enum, 0, &buffer, 1, false))
     {
         buffer = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, buffer));
 
@@ -355,9 +355,9 @@ bool vogl_general_context_state::restore_buffer_binding_range(GLenum binding_enu
 
     uint64_t start, size = 0;
     uint buffer = 0;
-    if (get(binding_enum, index, &buffer, indexed_variant) &&
-        get(start_enum, index, &start, indexed_variant) &&
-        get(size_enum, index, &size, indexed_variant))
+    if (get(binding_enum, index, &buffer, 1, indexed_variant) &&
+        get(start_enum, index, &start, 1, indexed_variant) &&
+        get(size_enum, index, &size, 1, indexed_variant))
     {
         if (buffer)
         {

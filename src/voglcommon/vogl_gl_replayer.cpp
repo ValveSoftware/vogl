@@ -10446,6 +10446,8 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::delete_handle_and_object
 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_replayer::trace_to_replay_handle_remapper::declare_location
+// from_location - trace location
+// to_location - replay/GL location
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::trace_to_replay_handle_remapper::declare_location(uint32 from_program_handle, uint32 to_program_handle, int32 from_location, int32 to_location)
 {

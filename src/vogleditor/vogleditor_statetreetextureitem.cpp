@@ -23,9 +23,9 @@ vogleditor_stateTreeTextureItem::vogleditor_stateTreeTextureItem(QString name, Q
 #define STR_INT1(val) tmp.sprintf("%d", val[0])
 
 
-#define GET_INT(name, num) if (m_pTexture->get_params().get<int>(name, 0, iVals, num)) { vogleditor_stateTreeStateVecIntItem* pItem = new vogleditor_stateTreeStateVecIntItem(#name, name, 0, m_pTexture->get_params(), iVals, num, false, this); m_diffableItems.push_back(pItem); this->appendChild(pItem); }
-#define GET_ENUM(name, num) if (m_pTexture->get_params().get<int>(name, 0, iVals, num)) { vogleditor_stateTreeStateVecEnumItem* pItem = new vogleditor_stateTreeStateVecEnumItem(#name, name, 0, m_pTexture->get_params(), iVals, num, false, this); m_diffableItems.push_back(pItem); this->appendChild(pItem); }
-#define GET_FLOAT(name, num) if (m_pTexture->get_params().get<float>(name, 0, fVals, num)) { vogleditor_stateTreeStateVecFloatItem* pItem = new vogleditor_stateTreeStateVecFloatItem(#name, name, 0, m_pTexture->get_params(), fVals, num, false, this); m_diffableItems.push_back(pItem); this->appendChild(pItem); }
+#define GET_INT(name, num) memset(iVals, 0, sizeof(iVals)); if (m_pTexture->get_params().get<int>(name, 0, iVals, num)) { vogleditor_stateTreeStateVecIntItem* pItem = new vogleditor_stateTreeStateVecIntItem(#name, name, 0, m_pTexture->get_params(), iVals, num, false, this); m_diffableItems.push_back(pItem); this->appendChild(pItem); }
+#define GET_ENUM(name, num) memset(iVals, 0, sizeof(iVals)); if (m_pTexture->get_params().get<int>(name, 0, iVals, num)) { vogleditor_stateTreeStateVecEnumItem* pItem = new vogleditor_stateTreeStateVecEnumItem(#name, name, 0, m_pTexture->get_params(), iVals, num, false, this); m_diffableItems.push_back(pItem); this->appendChild(pItem); }
+#define GET_FLOAT(name, num) memset(fVals, 0, sizeof(fVals)); if (m_pTexture->get_params().get<float>(name, 0, fVals, num)) { vogleditor_stateTreeStateVecFloatItem* pItem = new vogleditor_stateTreeStateVecFloatItem(#name, name, 0, m_pTexture->get_params(), fVals, num, false, this); m_diffableItems.push_back(pItem); this->appendChild(pItem); }
                   GET_INT(GL_TEXTURE_BASE_LEVEL, 1);
                   int base_level = iVals[0];
                   GET_INT(GL_TEXTURE_MAX_LEVEL, 1);
