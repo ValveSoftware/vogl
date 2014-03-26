@@ -54,6 +54,7 @@ set(SRC_LIST
     vogleditor_qtextureviewer.cpp
     vogleditor_qtimelineview.cpp
     vogleditor_qtrimdialog.cpp
+    vogleditor_output.cpp
     vogleditor_settings.cpp
     vogleditor_statetreearbprogramitem.cpp
     vogleditor_statetreearbprogramenvitem.cpp
@@ -104,6 +105,7 @@ set(HEADER_LIST
     vogleditor_apicalltreeitem.h
     vogleditor_frameitem.h
     vogleditor_gl_state_snapshot.h
+    vogleditor_output.h
     vogleditor_settings.h
     vogleditor_snapshotitem.h
     vogleditor_statetreearbprogramitem.h

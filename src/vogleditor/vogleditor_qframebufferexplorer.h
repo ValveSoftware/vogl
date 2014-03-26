@@ -53,7 +53,7 @@ private:
 
 private slots:
     void selectedFramebufferIndexChanged(int index);
-    void on_zoomFactorChanged(double zoomFactor);
+    void slot_zoomFactorChanged(double zoomFactor);
 };
 
 #endif // VOGLEDITOR_QFRAMEBUFFEREXPLORER_H

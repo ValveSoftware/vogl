@@ -14,7 +14,7 @@
    <string>Vogl Editor</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QGridLayout" name="gridLayout">
+   <layout class="QGridLayout" name="gridLayout_3">
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter_3">
       <property name="sizePolicy">
@@ -233,22 +233,8 @@
              <enum>QTabWidget::Rounded</enum>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
-            <widget class="QWidget" name="machineInfoTab">
-             <attribute name="title">
-              <string>Machine Info</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_5">
-              <item>
-               <widget class="QTextBrowser" name="machineInfoText">
-                <property name="lineWrapMode">
-                 <enum>QTextEdit::NoWrap</enum>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
             <widget class="QWidget" name="stateTab">
              <attribute name="title">
               <string>State</string>
@@ -297,7 +283,7 @@
         </widget>
        </widget>
       </widget>
-      <widget class="QTextBrowser" name="backtraceText">
+      <widget class="QTabWidget" name="bottomTabWidget">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -310,9 +296,71 @@
          <height>100</height>
         </size>
        </property>
-       <property name="lineWrapMode">
-        <enum>QTextEdit::NoWrap</enum>
+       <property name="tabPosition">
+        <enum>QTabWidget::North</enum>
        </property>
+       <property name="tabShape">
+        <enum>QTabWidget::Rounded</enum>
+       </property>
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="outputTab">
+        <attribute name="title">
+         <string>Output</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="0">
+          <widget class="QTextEdit" name="outputTextEdit">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="machineInfoTab">
+        <attribute name="title">
+         <string>Machine Info</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="QTextBrowser" name="machineInfoText">
+           <property name="lineWrapMode">
+            <enum>QTextEdit::NoWrap</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+        <zorder>machineInfoText</zorder>
+        <zorder>machineInfoText</zorder>
+       </widget>
+       <widget class="QWidget" name="callStackTab">
+        <attribute name="title">
+         <string>Call Stack</string>
+        </attribute>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QTextBrowser" name="backtraceText">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>100</height>
+            </size>
+           </property>
+           <property name="baseSize">
+            <size>
+             <width>0</width>
+             <height>100</height>
+            </size>
+           </property>
+           <property name="lineWrapMode">
+            <enum>QTextEdit::NoWrap</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>

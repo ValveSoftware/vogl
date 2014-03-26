@@ -87,7 +87,7 @@ private slots:
    void on_actionE_xit_triggered();
    void on_actionExport_API_Calls_triggered();
 
-   void on_treeView_currentChanged(const QModelIndex & current, const QModelIndex & previous);
+   void slot_treeView_currentChanged(const QModelIndex & current, const QModelIndex & previous);
 
    void on_treeView_clicked(const QModelIndex& index);
 
@@ -106,13 +106,16 @@ private slots:
    void on_prevDrawcallButton_clicked();
    void on_nextDrawcallButton_clicked();
 
-   void on_program_edited(vogl_program_state* pNewProgramState);   
+   void slot_program_edited(vogl_program_state* pNewProgramState);
 
    void on_actionSave_Session_triggered();
 
    void on_actionOpen_Session_triggered();
 
    void on_searchTextBox_returnPressed();
+
+   void slot_readReplayStandardOutput();
+   void slot_readReplayStandardError();
 
 private:
    Ui::VoglEditor* ui;
@@ -146,7 +149,6 @@ private:
    bool save_snapshot_to_disk(vogl_gl_state_snapshot* pSnapshot, dynamic_string filename, vogl_blob_manager *pBlob_manager);
 
    QString m_openFilename;
-   QLabel* m_pStatusLabel;
    vogleditor_QFramebufferExplorer* m_pFramebufferExplorer;
    vogleditor_QTextureExplorer* m_pTextureExplorer;
    vogleditor_QTextureExplorer* m_pRenderbufferExplorer;

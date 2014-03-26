@@ -316,7 +316,7 @@ void vogleditor_QFramebufferExplorer::selectedFramebufferIndexChanged(int index)
             (*iter)->setFixedHeight((*iter)->get_preferred_height());
             ++viewerIndex;
 
-            connect(*iter, SIGNAL(zoomFactorChanged(double)), this, SLOT(on_zoomFactorChanged(double)));
+            connect(*iter, SIGNAL(zoomFactorChanged(double)), this, SLOT(slot_zoomFactorChanged(double)));
         }
     }
 
@@ -335,7 +335,7 @@ void vogleditor_QFramebufferExplorer::selectedFramebufferIndexChanged(int index)
             m_depthExplorer->set_texture_objects(depthVec);
             m_depthExplorer->set_active_texture(depthVec[0]->get_snapshot_handle());
         }
-        connect(m_depthExplorer, SIGNAL(zoomFactorChanged(double)), this, SLOT(on_zoomFactorChanged(double)));
+        connect(m_depthExplorer, SIGNAL(zoomFactorChanged(double)), this, SLOT(slot_zoomFactorChanged(double)));
         m_depthExplorer->setMinimumHeight(m_depthExplorer->get_preferred_height());
     }
 
@@ -354,7 +354,7 @@ void vogleditor_QFramebufferExplorer::selectedFramebufferIndexChanged(int index)
             m_stencilExplorer->set_texture_objects(stencilVec);
             m_stencilExplorer->set_active_texture(stencilVec[0]->get_snapshot_handle());
         }
-        connect(m_stencilExplorer, SIGNAL(zoomFactorChanged(double)), this, SLOT(on_zoomFactorChanged(double)));
+        connect(m_stencilExplorer, SIGNAL(zoomFactorChanged(double)), this, SLOT(slot_zoomFactorChanged(double)));
         m_stencilExplorer->setMinimumHeight(m_stencilExplorer->get_preferred_height());
     }
 }
@@ -403,7 +403,7 @@ vogl_renderbuffer_state* vogleditor_QFramebufferExplorer::get_renderbuffer_attac
     return pRenderbufferState;
 }
 
-void vogleditor_QFramebufferExplorer::on_zoomFactorChanged(double zoomFactor)
+void vogleditor_QFramebufferExplorer::slot_zoomFactorChanged(double zoomFactor)
 {
     VOGL_NOTE_UNUSED(zoomFactor);
 
