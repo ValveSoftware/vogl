@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
-option(HAS_UPDATED_LIBUNWIND "Build using unw_backtrace_skip" FALSE)
+option(HAS_UPDATED_LIBUNWIND "Build using unw_backtrace_skip" TRUE)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -40,8 +40,5 @@ add_subdirectory(voglserver)
 add_subdirectory(voglcmd)
 add_subdirectory(glxspheres)
 add_subdirectory(vogleditor)
-add_subdirectory(libbacktrace)
-add_subdirectory(libbacktrace_test)
-
 add_subdirectory(libbacktrace)
 add_subdirectory(libbacktrace_test)
