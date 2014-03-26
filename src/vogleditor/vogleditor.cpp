@@ -47,17 +47,21 @@
 #include "vogl_texture_format.h"
 #include "vogl_trace_file_reader.h"
 #include "vogl_trace_file_writer.h"
-#include "vogleditor_qstatetreemodel.h"
+#include "vogleditor_output.h"
 #include "vogleditor_settings.h"
 #include "vogleditor_statetreetextureitem.h"
 #include "vogleditor_statetreeprogramitem.h"
 #include "vogleditor_statetreeshaderitem.h"
 #include "vogleditor_statetreeframebufferitem.h"
+#include "vogleditor_qstatetreemodel.h"
 #include "vogleditor_qtextureexplorer.h"
 #include "vogleditor_qtrimdialog.h"
 
-#define VOGLEDITOR_DISABLE_TAB(tab) ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(tab), false);
-#define VOGLEDITOR_ENABLE_TAB(tab) ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(tab), true);
+#define VOGLEDITOR_DISABLE_STATE_TAB(tab) ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(tab), false);
+#define VOGLEDITOR_ENABLE_STATE_TAB(tab) ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(tab), true);
+
+#define VOGLEDITOR_DISABLE_BOTTOM_TAB(tab) ui->bottomTabWidget->setTabEnabled(ui->bottomTabWidget->indexOf(tab), false);
+#define VOGLEDITOR_ENABLE_BOTTOM_TAB(tab) ui->bottomTabWidget->setTabEnabled(ui->bottomTabWidget->indexOf(tab), true);
 
 //----------------------------------------------------------------------------------------------------------------------
 // globals
@@ -110,7 +114,6 @@ static bool load_gl()
 VoglEditor::VoglEditor(QWidget *parent) :
    QMainWindow(parent),
    ui(new Ui::VoglEditor),
-   m_pStatusLabel(NULL),
    m_pFramebufferExplorer(NULL),
    m_pTextureExplorer(NULL),
    m_pRenderbufferExplorer(NULL),
@@ -148,9 +151,8 @@ VoglEditor::VoglEditor(QWidget *parent) :
    this->move(g_settings.window_position_left(), g_settings.window_position_top());
    this->resize(g_settings.window_size_width(), g_settings.window_size_height());
 
-   m_pStatusLabel = new QLabel(ui->statusBar);
-   m_pStatusLabel->setBaseSize(150, 12);
-   ui->statusBar->addWidget(m_pStatusLabel, 1);
+   vogleditor_output_init(ui->outputTextEdit);
+   vogleditor_output_message("Welcome to VoglEditor!");
 
    // cache the original background color of the search text box
    m_searchTextboxBackgroundColor = ui->searchTextBox->palette().base().color();
@@ -206,7 +208,10 @@ VoglEditor::VoglEditor(QWidget *parent) :
    connect(m_pPlayButton, SIGNAL(clicked()), this, SLOT(playCurrentTraceFile()));
    connect(m_pTrimButton, SIGNAL(clicked()), this, SLOT(trimCurrentTraceFile()));
 
-   connect(m_pProgramExplorer, SIGNAL(program_edited(vogl_program_state*)), this, SLOT(on_program_edited(vogl_program_state*)));
+   connect(m_pProgramExplorer, SIGNAL(program_edited(vogl_program_state*)), this, SLOT(slot_program_edited(vogl_program_state*)));
+
+   connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slot_readReplayStandardOutput()));
+   connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardError()), this, SLOT(slot_readReplayStandardError()));
 
    reset_tracefile_ui();
 }
@@ -222,12 +227,7 @@ VoglEditor::~VoglEditor()
 
     close_trace_file();
     delete ui;
-
-    if (m_pStatusLabel != NULL)
-    {
-        delete m_pStatusLabel;
-        m_pStatusLabel = NULL;
-    }
+    vogleditor_output_deinit();
 
     if (m_pFramebufferExplorer != NULL)
     {
@@ -322,7 +322,6 @@ void VoglEditor::playCurrentTraceFile()
     // update UI
     m_pPlayButton->setEnabled(false);
     m_pTrimButton->setEnabled(false);
-    m_pStatusLabel->clear();
 
     if (m_traceReplayer.replay(m_pTraceReader, m_pApiCallTreeModel->root(), NULL, 0, true))
     {
@@ -332,7 +331,7 @@ void VoglEditor::playCurrentTraceFile()
     }
     else
     {
-        m_pStatusLabel->setText("Failed to replay the trace.");
+        vogleditor_output_error("Failed to replay the trace.");
     }
 
     setCursor(origCursor);
@@ -360,21 +359,41 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
     arguments << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
 
 #ifdef __i386__
-    int procRetValue = m_pVoglReplayProcess->execute("./voglreplay32", arguments);
+    QString executable = "./voglreplay32";
 #else
-    int procRetValue = m_pVoglReplayProcess->execute("./voglreplay64", arguments);
+    QString executable = "./voglreplay64";
 #endif
+
+    QString cmdLine = executable + " " + arguments.join(" ");
+
+    vogleditor_output_message("Trimming trace file");
+    vogleditor_output_message(cmdLine.toStdString().c_str());
+    m_pVoglReplayProcess->start(executable, arguments);
+    if (m_pVoglReplayProcess->waitForStarted() == false)
+    {
+        vogleditor_output_error("voglreplay could not be executed.");
+        return false;
+    }
+
+    // This is a bad idea as it will wait forever,
+    // but if the replay is taking forever then we have bigger problems.
+    if(m_pVoglReplayProcess->waitForFinished(-1))
+    {
+        vogleditor_output_message("Trim Completed!");
+    }
+
+    int procRetValue = m_pVoglReplayProcess->exitCode();
 
     bool bCompleted = false;
     if (procRetValue == -2)
     {
         // proc failed to starts
-        m_pStatusLabel->setText("Error: voglreplay could not be executed.");
+        vogleditor_output_error("voglreplay could not be executed.");
     }
     else if (procRetValue == -1)
     {
         // proc crashed
-        m_pStatusLabel->setText("Error: voglreplay aborted unexpectedly.");
+        vogleditor_output_error("voglreplay aborted unexpectedly.");
     }
     else if (procRetValue == 0)
     {
@@ -397,17 +416,18 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
             close_trace_file();
             if (open_trace_file(trimDialog.trim_file().toStdString().c_str()))
             {
-                m_pStatusLabel->clear();
                 return true;
             }
             else
             {
+                vogleditor_output_error("Could not open trace file.");
                 QMessageBox::critical(this, tr("Error"), tr("Could not open trace file."));
             }
         }
     }
     else
     {
+        vogleditor_output_error("Failed to trim the trace file.");
         QMessageBox::critical(this, tr("Error"), tr("Failed to trim the trace file."));
     }
     return false;
@@ -421,7 +441,7 @@ void VoglEditor::on_actionE_xit_triggered()
 void VoglEditor::on_action_Open_triggered()
 {
    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QString(),
-           tr("GLI Binary Files (*.bin);;JSON Files (*.json)"));
+           tr("VOGL Binary Files (*.bin);;VOGL JSON Files (*.json)"));
 
    if (!fileName.isEmpty()) {
       vogl::dynamic_string filename;
@@ -443,6 +463,8 @@ void VoglEditor::close_trace_file()
 {
    if (m_pTraceReader != NULL)
    {
+      vogleditor_output_message("Closing trace file.");
+      vogleditor_output_message("-------------------");
       m_pTraceReader->close();
       vogl_delete(m_pTraceReader);
       m_pTraceReader = NULL;
@@ -1020,7 +1042,6 @@ vogl_gl_state_snapshot* VoglEditor::read_state_snapshot_from_trace(vogl_trace_fi
    return pSnapshot;
 }
 
-
 bool VoglEditor::open_trace_file(dynamic_string filename)
 {
    QCursor origCursor = this->cursor();
@@ -1032,18 +1053,21 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
 
    dynamic_string actual_keyframe_filename;
 
+   vogleditor_output_message("*********************");
+   vogleditor_output_message("Opening trace file...");
+   vogleditor_output_message(filename.c_str());
+
    vogl_trace_file_reader* tmpReader = vogl_open_trace_file(filename, actual_keyframe_filename, NULL);
 
    if (tmpReader == NULL)
    {
-      m_pStatusLabel->setText("Failed to open: ");
-      m_pStatusLabel->setText(m_pStatusLabel->text().append(filename.c_str()));
+      vogleditor_output_error("Unable to open trace file.");
       this->setCursor(origCursor);
       return false;
    }
    else
    {
-       m_pStatusLabel->clear();
+       vogleditor_output_message("... success!");
    }
 
    if (tmpReader->get_max_frame_index() > g_settings.trim_large_trace_prompt_size())
@@ -1065,6 +1089,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
            {
                // either there was an error, or the user decided NOT to open the trim file,
                // so continue to load the original file
+               vogleditor_output_warning("Large trace files may be difficult to debug.");
            }
        }
    }
@@ -1082,8 +1107,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
 
    if (ui->treeView->selectionModel() != NULL)
    {
-      //connect(ui->treeView->selectionModel(), SIGNAL(selectionChanged(const QItemSelection&, const QItemSelection&)), this, SLOT(on_treeView_selectionChanged(const QItemSelection&, const QItemSelection&)));
-      connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(on_treeView_currentChanged(const QModelIndex &, const QModelIndex &)));
+      connect(ui->treeView->selectionModel(), SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)), this, SLOT(slot_treeView_currentChanged(const QModelIndex &, const QModelIndex &)));
    }
 
    if (m_pApiCallTreeModel->hasChildren())
@@ -1147,20 +1171,22 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
             }
         }
 
-        QList<int> backtraceSplitterSizes = ui->splitter_3->sizes();
-        int backtraceSplitterTotalSize = backtraceSplitterSizes[0] + backtraceSplitterSizes[1];
-        QList<int> newBacktraceSplitterSizes;
-        if (!bBacktraceVisible)
+        if (bBacktraceVisible)
         {
-            newBacktraceSplitterSizes.append(backtraceSplitterTotalSize);
-            newBacktraceSplitterSizes.append(0);
-            ui->splitter_3->setSizes(newBacktraceSplitterSizes);
+            if (ui->bottomTabWidget->indexOf(ui->callStackTab) == -1)
+            {
+                // unhide the tab
+                ui->bottomTabWidget->insertTab(1, ui->callStackTab, "Call Stack");
+                VOGLEDITOR_ENABLE_BOTTOM_TAB(ui->callStackTab);
+            }
+            else
+            {
+                VOGLEDITOR_ENABLE_BOTTOM_TAB(ui->callStackTab);
+            }
         }
         else
         {
-            newBacktraceSplitterSizes << (backtraceSplitterTotalSize * 0.75)
-                                      << (backtraceSplitterTotalSize * 0.25);
-            ui->splitter_3->setSizes(newBacktraceSplitterSizes);
+            ui->bottomTabWidget->removeTab(ui->bottomTabWidget->indexOf(ui->callStackTab));
         }
 
         // machine info
@@ -1272,6 +1298,10 @@ void VoglEditor::displayMachineInfoHelper(QString prefix, const QString& section
 void VoglEditor::displayMachineInfo()
 {
     VOGL_ASSERT(m_pTraceReader != NULL);
+    if (m_pTraceReader == NULL)
+    {
+        return;
+    }
 
     bool bMachineInfoVisible = false;
     if (m_pTraceReader->get_archive_blob_manager().does_exist(VOGL_TRACE_ARCHIVE_MACHINE_INFO_FILENAME))
@@ -1302,19 +1332,20 @@ void VoglEditor::displayMachineInfo()
 
     if (bMachineInfoVisible)
     {
-        if (ui->tabWidget->indexOf(ui->machineInfoTab) == -1)
+        if (ui->bottomTabWidget->indexOf(ui->machineInfoTab) == -1)
         {
             // unhide the tab
-            ui->tabWidget->insertTab(0, ui->machineInfoTab, "Machine Info");
+            ui->bottomTabWidget->insertTab(1, ui->machineInfoTab, "Machine Info");
+            VOGLEDITOR_ENABLE_BOTTOM_TAB(ui->machineInfoTab);
         }
         else
         {
-            VOGLEDITOR_ENABLE_TAB(ui->machineInfoTab);
+            VOGLEDITOR_ENABLE_BOTTOM_TAB(ui->machineInfoTab);
         }
     }
     else
     {
-        ui->tabWidget->removeTab(ui->tabWidget->indexOf(ui->machineInfoTab));
+        ui->bottomTabWidget->removeTab(ui->bottomTabWidget->indexOf(ui->machineInfoTab));
     }
 }
 
@@ -1333,11 +1364,11 @@ void VoglEditor::reset_tracefile_ui()
     ui->searchPrevButton->setEnabled(false);
     ui->searchNextButton->setEnabled(false);
 
-    m_pStatusLabel->clear();
     m_pPlayButton->setEnabled(false);
     m_pTrimButton->setEnabled(false);
 
-    VOGLEDITOR_DISABLE_TAB(ui->machineInfoTab);
+    VOGLEDITOR_DISABLE_BOTTOM_TAB(ui->machineInfoTab);
+    VOGLEDITOR_DISABLE_BOTTOM_TAB(ui->callStackTab);
 
     reset_snapshot_ui();
 }
@@ -1356,12 +1387,12 @@ void VoglEditor::reset_snapshot_ui()
 
     QWidget* pCurrentTab = ui->tabWidget->currentWidget();
 
-    VOGLEDITOR_DISABLE_TAB(ui->stateTab);
-    VOGLEDITOR_DISABLE_TAB(ui->framebufferTab);
-    VOGLEDITOR_DISABLE_TAB(ui->programTab);
-    VOGLEDITOR_DISABLE_TAB(ui->shaderTab);
-    VOGLEDITOR_DISABLE_TAB(ui->textureTab);
-    VOGLEDITOR_DISABLE_TAB(ui->renderbufferTab);
+    VOGLEDITOR_DISABLE_STATE_TAB(ui->stateTab);
+    VOGLEDITOR_DISABLE_STATE_TAB(ui->framebufferTab);
+    VOGLEDITOR_DISABLE_STATE_TAB(ui->programTab);
+    VOGLEDITOR_DISABLE_STATE_TAB(ui->shaderTab);
+    VOGLEDITOR_DISABLE_STATE_TAB(ui->textureTab);
+    VOGLEDITOR_DISABLE_STATE_TAB(ui->renderbufferTab);
 
     ui->tabWidget->setCurrentWidget(pCurrentTab);
 }
@@ -1471,7 +1502,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
    ui->stateTreeView->expandToDepth(1);
    ui->stateTreeView->setColumnWidth(0, ui->stateTreeView->width() * 0.5);
 
-   VOGLEDITOR_ENABLE_TAB(ui->stateTab);
+   VOGLEDITOR_ENABLE_STATE_TAB(ui->stateTab);
 
    if (pStateSnapshot->get_contexts().size() > 0)
    {
@@ -1496,7 +1527,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
            vogl_gl_object_state_ptr_vec renderbufferObjects;
            pContext->get_all_objects_of_category(cGLSTRenderbuffer, renderbufferObjects);
            m_pRenderbufferExplorer->set_texture_objects(renderbufferObjects);
-           if (renderbufferObjects.size() > 0) { VOGLEDITOR_ENABLE_TAB(ui->renderbufferTab); }
+           if (renderbufferObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->renderbufferTab); }
 
            // framebuffer
            vogl_gl_object_state_ptr_vec framebufferObjects;
@@ -1511,7 +1542,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
            m_pProgramExplorer->set_program_objects(programObjects);
            GLuint64 curProgram = pContext->get_general_state().get_value<GLuint64>(GL_CURRENT_PROGRAM);
            m_pProgramExplorer->set_active_program(curProgram);
-           if (programObjects.size() > 0) { VOGLEDITOR_ENABLE_TAB(ui->programTab); }
+           if (programObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->programTab); }
 
            // shaders
            vogl_gl_object_state_ptr_vec shaderObjects;
@@ -1533,7 +1564,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
                    }
                }
            }
-           if (shaderObjects.size() > 0) { VOGLEDITOR_ENABLE_TAB(ui->shaderTab); }
+           if (shaderObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->shaderTab); }
        }
    }
 
@@ -1636,7 +1667,7 @@ void VoglEditor::displayFramebuffer(GLuint64 framebufferHandle, bool bBringTabTo
 
     if (bDisplayedFBO)
     {
-        VOGLEDITOR_ENABLE_TAB(ui->framebufferTab);
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->framebufferTab);
         if (bBringTabToFront)
         {
             ui->tabWidget->setCurrentWidget(ui->framebufferTab);
@@ -1650,7 +1681,7 @@ bool VoglEditor::displayTexture(GLuint64 textureHandle, bool bBringTabToFront)
 
     if (bDisplayedTexture)
     {
-        VOGLEDITOR_ENABLE_TAB(ui->textureTab);
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->textureTab);
         if (bBringTabToFront)
         {
             ui->tabWidget->setCurrentWidget(ui->textureTab);
@@ -1660,7 +1691,7 @@ bool VoglEditor::displayTexture(GLuint64 textureHandle, bool bBringTabToFront)
     return bDisplayedTexture;
 }
 
-void VoglEditor::on_treeView_currentChanged(const QModelIndex & current, const QModelIndex & previous)
+void VoglEditor::slot_treeView_currentChanged(const QModelIndex & current, const QModelIndex & previous)
 {
     VOGL_NOTE_UNUSED(previous);
     onApiCallSelected(current, false);
@@ -1861,7 +1892,7 @@ void VoglEditor::on_nextDrawcallButton_clicked()
     }
 }
 
-void VoglEditor::on_program_edited(vogl_program_state* pNewProgramState)
+void VoglEditor::slot_program_edited(vogl_program_state* pNewProgramState)
 {
     VOGL_NOTE_UNUSED(pNewProgramState);
 
@@ -1907,8 +1938,11 @@ void VoglEditor::recursive_update_snapshot_flags(vogleditor_apiCallTreeItem* pIt
     }
 }
 
-#undef VOGLEDITOR_DISABLE_TAB
-#undef VOGLEDITOR_ENABLE_TAB
+#undef VOGLEDITOR_DISABLE_STATE_TAB
+#undef VOGLEDITOR_ENABLE_STATE_TAB
+
+#undef VOGLEDITOR_DISABLE_BOTTOM_TAB
+#undef VOGLEDITOR_ENABLE_BOTTOM_TAB
 
 void VoglEditor::on_actionSave_Session_triggered()
 {
@@ -1926,7 +1960,7 @@ void VoglEditor::on_actionSave_Session_triggered()
 
     if (!save_session_to_disk(sessionFilename))
     {
-        m_pStatusLabel->setText("ERROR: Failed to save session");
+        vogleditor_output_error("Failed to save session.");
     }
 }
 
@@ -1939,7 +1973,7 @@ void VoglEditor::on_actionOpen_Session_triggered()
 
     if (!load_session_from_disk(sessionFilename))
     {
-        m_pStatusLabel->setText("ERROR: Failed to load session");
+        vogleditor_output_error("Failed to load session.");
     }
 
     setCursor(origCursor);
@@ -1962,5 +1996,33 @@ void VoglEditor::on_searchTextBox_returnPressed()
             palette.setColor(QPalette::Base, Qt::red);
             ui->searchTextBox->setPalette(palette);
         }
+    }
+}
+
+void VoglEditor::slot_readReplayStandardOutput()
+{
+    m_pVoglReplayProcess->setReadChannel(QProcess::StandardOutput);
+    while (m_pVoglReplayProcess->canReadLine())
+    {
+        QByteArray output = m_pVoglReplayProcess->readLine();
+        if (output.endsWith("\n"))
+        {
+            output.remove(output.size() - 1, 1);
+        }
+        vogleditor_output_message(output.constData());
+    }
+}
+
+void VoglEditor::slot_readReplayStandardError()
+{
+    m_pVoglReplayProcess->setReadChannel(QProcess::StandardError);
+    while (m_pVoglReplayProcess->canReadLine())
+    {
+        QByteArray output = m_pVoglReplayProcess->readLine();
+        if (output.endsWith("\n"))
+        {
+            output.remove(output.size() - 1, 1);
+        }
+        vogleditor_output_error(output.constData());
     }
 }
