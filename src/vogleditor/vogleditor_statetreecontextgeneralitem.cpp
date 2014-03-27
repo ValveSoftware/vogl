@@ -71,6 +71,11 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
     float fVals[16];
     int iVals[16];
     bool bVals[4];
+
+    memset(fVals, 0, sizeof(fVals));
+    memset(iVals, 0, sizeof(iVals));
+    memset(bVals, 0, sizeof(bVals));
+
     QString tmp;
 
 #define GET_PTR(name, num) if (generalState.get<int>(name, 0, iVals, num)) { vogleditor_stateTreeStateVecPtrItem* pPtrItem = new vogleditor_stateTreeStateVecPtrItem(#name, name, 0, generalState, iVals, num, false, this); this->m_diffableItems.push_back(pPtrItem); this->appendChild(pPtrItem); }
@@ -95,6 +100,14 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
             pNode->appendChild(pIntItem); }\
     } pNode->setValue(tmp.sprintf("[%d]", pNode->childCount())); this->appendChild(pNode);}
 
+#define GET_INDEXED_BOOL(name, num, totalIndices) if (totalIndices > 0) {vogleditor_stateTreeItem* pNode = new vogleditor_stateTreeItem(#name, "", this);\
+    for (int i = 0; i < totalIndices; i++) {\
+        if (generalState.get<bool>(name, i, bVals, num, true)) {\
+            vogleditor_stateTreeStateVecBoolItem* pBoolItem = new vogleditor_stateTreeStateVecBoolItem(STR_INT(i), name, i, generalState, &(bVals[i]), num, true, pNode);\
+            this->m_diffableItems.push_back(pBoolItem);\
+            pNode->appendChild(pBoolItem); }\
+    } pNode->setValue(tmp.sprintf("[%d]", pNode->childCount())); this->appendChild(pNode);}
+
     // Start of version 1.0 - 2.1
     GET_INT(GL_ACCUM_ALPHA_BITS, 1);
     GET_INT(GL_ACCUM_BLUE_BITS, 1);
@@ -117,6 +130,8 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
     GET_INT(GL_AUX_BUFFERS, 1);
 
     GET_BOOL(GL_BLEND, 1);
+    int maxDrawBuffers = info.get_max_draw_buffers();
+    GET_INDEXED_BOOL(GL_BLEND, 1, maxDrawBuffers);
     GET_FLOAT(GL_BLEND_COLOR, 4);
     GET_ENUM(GL_BLEND_DST, 1);
     GET_ENUM(GL_BLEND_DST_ALPHA, 1);
@@ -698,4 +713,5 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
 #undef GET_FLOAT
 #undef GET_MATRIX
 #undef GET_INDEXED_INT
+#undef GET_INDEXED_BOOL
 }

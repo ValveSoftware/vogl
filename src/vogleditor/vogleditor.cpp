@@ -323,16 +323,10 @@ void VoglEditor::playCurrentTraceFile()
     m_pPlayButton->setEnabled(false);
     m_pTrimButton->setEnabled(false);
 
-    if (m_traceReplayer.replay(m_pTraceReader, m_pApiCallTreeModel->root(), NULL, 0, true))
-    {
-        // replay was successful
-        m_pPlayButton->setEnabled(true);
-        m_pTrimButton->setEnabled(true);
-    }
-    else
-    {
-        vogleditor_output_error("Failed to replay the trace.");
-    }
+    m_traceReplayer.replay(m_pTraceReader, m_pApiCallTreeModel->root(), NULL, 0, true);
+
+    m_pPlayButton->setEnabled(true);
+    m_pTrimButton->setEnabled(true);
 
     setCursor(origCursor);
 }
@@ -1522,6 +1516,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
                GLuint cur2DBinding = pContext->get_general_state().get_value<GLuint>(GL_TEXTURE_2D_BINDING_EXT, curActiveTextureUnit - GL_TEXTURE0);
                displayTexture(cur2DBinding, false);
            }
+           if (textureObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->textureTab); }
 
            // renderbuffers
            vogl_gl_object_state_ptr_vec renderbufferObjects;
@@ -1535,6 +1530,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
            m_pFramebufferExplorer->set_framebuffer_objects(framebufferObjects, *pContext, pStateSnapshot->get_default_framebuffer());
            GLuint64 curDrawFramebuffer = pContext->get_general_state().get_value<GLuint64>(GL_DRAW_FRAMEBUFFER_BINDING);
            displayFramebuffer(curDrawFramebuffer, false);
+           if (framebufferObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->framebufferTab); }
 
            // programs
            vogl_gl_object_state_ptr_vec programObjects;

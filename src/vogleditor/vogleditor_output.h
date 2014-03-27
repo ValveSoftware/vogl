@@ -19,7 +19,7 @@ private:
     QTextEdit* m_pTextEdit;
 };
 
-static vogleditor_output gs_OUTPUT;
+extern vogleditor_output gs_OUTPUT;
 
 static void vogleditor_output_init(QTextEdit* pTextEdit) { gs_OUTPUT.init(pTextEdit); }
 static void vogleditor_output_message(const char* pMessage) { gs_OUTPUT.message(pMessage); }
