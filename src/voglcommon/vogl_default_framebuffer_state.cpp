@@ -124,6 +124,24 @@ bool vogl_default_framebuffer_state::snapshot(const vogl_context_info &context_i
     GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, 0);
     VOGL_CHECK_GL_ERROR;
 
+    vogl_scoped_binding_state orig_bindings(GL_PIXEL_PACK_BUFFER, GL_PIXEL_UNPACK_BUFFER);
+
+    GL_ENTRYPOINT(glBindBuffer)(GL_PIXEL_PACK_BUFFER, 0);
+    VOGL_CHECK_GL_ERROR;
+
+    GL_ENTRYPOINT(glBindBuffer)(GL_PIXEL_UNPACK_BUFFER, 0);
+    VOGL_CHECK_GL_ERROR;
+
+    vogl_scoped_state_saver pixelstore_state_saver(cGSTPixelStore);
+
+    vogl_scoped_state_saver pixeltransfer_state_saver;
+    if (!context_info.is_core_profile())
+        pixeltransfer_state_saver.save(cGSTPixelTransfer);
+
+    vogl_reset_pixel_store_states();
+    if (!context_info.is_core_profile())
+        vogl_reset_pixel_transfer_states();
+
     // TODO: Test multisampled default framebuffers
     const GLenum tex_target = (fb_attribs.m_samples > 1) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
