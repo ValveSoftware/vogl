@@ -44,6 +44,8 @@
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_INT_MAGIC 0x12345678
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_FLOAT_MAGIC -999999.0f
 
+#define VOGL_CLEAR_UNINITIALIZED_BUFS 0
+
 //----------------------------------------------------------------------------------------------------------------------
 // glInterleavedArrays helper table
 //----------------------------------------------------------------------------------------------------------------------
@@ -7079,6 +7081,15 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 return cStatusHardFailure;
             }
 
+#if VOGL_CLEAR_UNINITIALIZED_BUFS
+            uint8_vec temp_vec;
+            if ((!data) && (size))
+            {
+                temp_vec.resize(static_cast<uint32>(size));
+                data = temp_vec.get_ptr();
+            }
+#endif
+
             if (entrypoint_id == VOGL_ENTRYPOINT_glBufferData)
                 g_vogl_actual_gl_entrypoints.m_glBufferData(target, static_cast<GLsizeiptr>(size), data, usage);
             else
@@ -10629,14 +10640,15 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
                     GL_ENTRYPOINT(glBindBuffer)(map_desc.m_target, map_desc.m_buffer);
                     VOGL_CHECK_GL_ERROR;
 
+                    uint access = map_desc.m_access & ~(GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
                     if (map_desc.m_range)
                     {
-                        map_desc.m_pPtr = GL_ENTRYPOINT(glMapBufferRange)(map_desc.m_target, static_cast<GLintptr>(map_desc.m_offset), static_cast<GLintptr>(map_desc.m_length), map_desc.m_access);
+                        map_desc.m_pPtr = GL_ENTRYPOINT(glMapBufferRange)(map_desc.m_target, static_cast<GLintptr>(map_desc.m_offset), static_cast<GLintptr>(map_desc.m_length), access);
                         VOGL_CHECK_GL_ERROR;
                     }
                     else
                     {
-                        map_desc.m_pPtr = GL_ENTRYPOINT(glMapBuffer)(map_desc.m_target, map_desc.m_access);
+                        map_desc.m_pPtr = GL_ENTRYPOINT(glMapBuffer)(map_desc.m_target, access);
                         VOGL_CHECK_GL_ERROR;
                     }
 
