@@ -1,6 +1,11 @@
 vogl
 =============
 
+## NOTE ##
+
+This is a source only branch of vogl. We're going to let it cook for a couple weeks and it will be moved over to vogl.
+WARNING: History has been re-written to remove the larger binaries...
+
 ## Warning ##
 
 This project is alpha^2 right now. If you are up for suffering through a bit of pain with early releases, please continue on - we'd love to have your help...
