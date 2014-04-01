@@ -133,6 +133,9 @@ private:
    void reset_snapshot_ui();
 
    void update_ui_for_snapshot(vogleditor_gl_state_snapshot *pStateSnapshot);
+
+   void update_ui_for_context(vogl_context_snapshot* pContext, vogleditor_gl_state_snapshot *pStateSnapshot);
+
    void displayMachineInfoHelper(QString prefix, const QString& sectionKeyStr, const vogl::json_value& value, QString& rMachineInfoStr);
    void displayMachineInfo();
    void recursive_update_snapshot_flags(vogleditor_apiCallTreeItem* pItem, bool& bFoundEditedSnapshot);

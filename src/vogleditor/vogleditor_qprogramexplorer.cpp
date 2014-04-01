@@ -2,6 +2,7 @@
 #include "ui_vogleditor_qprogramexplorer.h"
 
 #include "vogl_gl_object.h"
+#include "vogl_gl_state_snapshot.h"
 #include "vogl_program_state.h"
 
 Q_DECLARE_METATYPE(vogl_program_state*);
@@ -29,10 +30,25 @@ void vogleditor_QProgramExplorer::clear()
     ui->shaderTextEdit->clear();
 }
 
-void vogleditor_QProgramExplorer::set_program_objects(vogl_gl_object_state_ptr_vec objects)
+uint vogleditor_QProgramExplorer::set_program_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
 {
     clear();
-    m_objects = objects;
+
+    uint programCount = 0;
+    for (uint c = 0; c < sharingContexts.size(); c++)
+    {
+        vogl_gl_object_state_ptr_vec programObjects;
+        sharingContexts[c]->get_all_objects_of_category(cGLSTProgram, programObjects);
+
+        programCount += add_program_objects(programObjects);
+    }
+
+    return programCount;
+}
+
+uint vogleditor_QProgramExplorer::add_program_objects(vogl_gl_object_state_ptr_vec objects)
+{
+    m_objects.append(objects);
 
     for (vogl_gl_object_state_ptr_vec::iterator iter = objects.begin(); iter != objects.end(); iter++)
     {
@@ -50,6 +66,8 @@ void vogleditor_QProgramExplorer::set_program_objects(vogl_gl_object_state_ptr_v
             VOGL_ASSERT(!"Unhandled object type in vogleditor_QProgramExplorer");
         }
     }
+
+    return objects.size();
 }
 
 bool vogleditor_QProgramExplorer::set_active_program(unsigned long long programHandle)

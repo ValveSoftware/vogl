@@ -7,6 +7,7 @@
 #include "vogleditor_qtextureviewer.h"
 
 class vogl_gl_object_state;
+class vogl_context_snapshot;
 typedef vogl::vector<vogl_gl_object_state *> vogl_gl_object_state_ptr_vec;
 
 class vogl_texture_state;
@@ -23,8 +24,10 @@ public:
     explicit vogleditor_QTextureExplorer(QWidget *parent = 0);
     ~vogleditor_QTextureExplorer();
 
-    void set_texture_objects(vogl_gl_object_state_ptr_vec objects);
-    void add_texture_object(vogl_texture_state& textureState, vogl::dynamic_string bufferType);
+    uint set_texture_objects(vogl::vector<vogl_context_snapshot*> sharingContexts);
+    uint set_renderbuffer_objects(vogl::vector<vogl_context_snapshot*> sharingContexts);
+    uint set_texture_objects(vogl_gl_object_state_ptr_vec objects);
+    uint add_texture_object(vogl_texture_state& textureState, vogl::dynamic_string bufferType);
 
     bool set_active_texture(unsigned long long textureHandle);
 
@@ -38,6 +41,8 @@ private:
     Ui::vogleditor_QTextureExplorer *ui;
     vogl_gl_object_state_ptr_vec m_objects;
     QTextureViewer m_textureViewer;
+
+    uint add_texture_objects(vogl_gl_object_state_ptr_vec objects);
 
 private slots:
     void selectedTextureIndexChanged(int index);

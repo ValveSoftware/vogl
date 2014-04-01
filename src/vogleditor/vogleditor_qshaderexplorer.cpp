@@ -2,6 +2,7 @@
 #include "ui_vogleditor_qshaderexplorer.h"
 
 #include "vogl_gl_object.h"
+#include "vogl_gl_state_snapshot.h"
 #include "vogl_shader_state.h"
 
 Q_DECLARE_METATYPE(vogl_shader_state*);
@@ -24,10 +25,25 @@ void vogleditor_QShaderExplorer::clear()
     ui->shaderTextEdit->clear();
 }
 
-void vogleditor_QShaderExplorer::set_shader_objects(vogl_gl_object_state_ptr_vec objects)
+uint vogleditor_QShaderExplorer::set_shader_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
 {
     clear();
-    m_objects = objects;
+
+    uint shaderCount = 0;
+    for (uint c = 0; c < sharingContexts.size(); c++)
+    {
+        vogl_gl_object_state_ptr_vec shaderObjects;
+        sharingContexts[c]->get_all_objects_of_category(cGLSTShader, shaderObjects);
+
+        shaderCount += add_shader_objects(shaderObjects);
+    }
+
+    return shaderCount;
+}
+
+uint vogleditor_QShaderExplorer::add_shader_objects(vogl_gl_object_state_ptr_vec objects)
+{
+    m_objects.append(objects);
 
     for (vogl_gl_object_state_ptr_vec::iterator iter = objects.begin(); iter != objects.end(); iter++)
     {
@@ -45,6 +61,8 @@ void vogleditor_QShaderExplorer::set_shader_objects(vogl_gl_object_state_ptr_vec
             VOGL_ASSERT(!"Unhandled object type in vogleditor_QShaderExplorer");
         }
     }
+
+    return m_objects.size();
 }
 
 

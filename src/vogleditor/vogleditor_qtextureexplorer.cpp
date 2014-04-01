@@ -2,6 +2,7 @@
 #include "ui_vogleditor_qtextureexplorer.h"
 
 #include "vogl_gl_object.h"
+#include "vogl_gl_state_snapshot.h"
 #include "vogl_texture_state.h"
 #include "vogl_renderbuffer_state.h"
 #include <QColorDialog>
@@ -49,11 +50,14 @@ vogleditor_QTextureExplorer::vogleditor_QTextureExplorer(QWidget *parent) :
 
 vogleditor_QTextureExplorer::~vogleditor_QTextureExplorer()
 {
+    clear();
     delete ui;
 }
 
 void vogleditor_QTextureExplorer::clear()
 {
+    m_objects.clear();
+
     ui->textureObjectListbox->clear();
 
     m_textureViewer.clear();
@@ -71,13 +75,56 @@ unsigned int vogleditor_QTextureExplorer::get_preferred_height() const
     return m_textureViewer.get_preferred_height() + ui->textureObjectListbox->height() * 2 + 50;
 }
 
-void vogleditor_QTextureExplorer::set_texture_objects(vogl_gl_object_state_ptr_vec objects)
+uint vogleditor_QTextureExplorer::set_texture_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
 {
     clear();
-    m_objects = objects;
 
-    for (vogl_gl_object_state_ptr_vec::iterator iter = objects.begin(); iter != objects.end(); iter++)
+    uint textureCount = 0;
+
+    for (uint c = 0; c < sharingContexts.size(); c++)
     {
+        vogl_gl_object_state_ptr_vec textureObjects;
+        sharingContexts[c]->get_all_objects_of_category(cGLSTTexture, textureObjects);
+
+        textureCount += add_texture_objects(textureObjects);
+    }
+
+    return textureCount;
+}
+
+uint vogleditor_QTextureExplorer::set_renderbuffer_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
+{
+    clear();
+
+    uint textureCount = 0;
+
+    for (uint c = 0; c < sharingContexts.size(); c++)
+    {
+        vogl_gl_object_state_ptr_vec renderbufferObjects;
+        sharingContexts[c]->get_all_objects_of_category(cGLSTRenderbuffer, renderbufferObjects);
+
+        textureCount += add_texture_objects(renderbufferObjects);
+    }
+
+    return textureCount;
+}
+
+uint vogleditor_QTextureExplorer::set_texture_objects(vogl_gl_object_state_ptr_vec textureObjects)
+{
+    clear();
+
+    return add_texture_objects(textureObjects);
+}
+
+uint vogleditor_QTextureExplorer::add_texture_objects(vogl_gl_object_state_ptr_vec textureObjects)
+{
+    uint textureCount = 0;
+
+    for (vogl_gl_object_state_ptr_vec::iterator iter = textureObjects.begin(); iter != textureObjects.end(); iter++)
+    {
+        ++textureCount;
+        m_objects.push_back(*iter);
+
         if ((*iter)->get_type() == cGLSTTexture)
         {
             vogl_texture_state* pTexState = static_cast<vogl_texture_state*>(*iter);
@@ -101,9 +148,11 @@ void vogleditor_QTextureExplorer::set_texture_objects(vogl_gl_object_state_ptr_v
             VOGL_ASSERT(!"Unhandled object type in TextureExplorer");
         }
     }
+
+    return textureCount;
 }
 
-void vogleditor_QTextureExplorer::add_texture_object(vogl_texture_state& textureState, vogl::dynamic_string bufferType)
+uint vogleditor_QTextureExplorer::add_texture_object(vogl_texture_state& textureState, vogl::dynamic_string bufferType)
 {
     m_objects.push_back(&textureState);
 
@@ -111,6 +160,7 @@ void vogleditor_QTextureExplorer::add_texture_object(vogl_texture_state& texture
     valueStr = valueStr.sprintf("%s (%u x %u) %s", bufferType.c_str(), textureState.get_texture().get_width(), textureState.get_texture().get_height(), g_gl_enums.find_name(textureState.get_texture().get_ogl_internal_fmt()));
 
     ui->textureObjectListbox->addItem(valueStr, QVariant::fromValue((vogl_gl_object_state*)&textureState));
+    return 1;
 }
 
 bool vogleditor_QTextureExplorer::set_active_texture(unsigned long long textureHandle)

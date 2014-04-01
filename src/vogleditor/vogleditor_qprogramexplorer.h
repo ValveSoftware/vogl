@@ -5,6 +5,7 @@
 
 #include "vogl_core.h"
 
+class vogl_context_snapshot;
 class vogl_gl_object_state;
 class vogl_program_state;
 typedef vogl::vector<vogl_gl_object_state *> vogl_gl_object_state_ptr_vec;
@@ -23,7 +24,7 @@ public:
 
     void clear();
 
-    void set_program_objects(vogl_gl_object_state_ptr_vec objects);
+    uint set_program_objects(vogl::vector<vogl_context_snapshot*> sharingContexts);
 
     bool set_active_program(unsigned long long programHandle);
 
@@ -39,6 +40,8 @@ private slots:
 private:
     Ui::vogleditor_QProgramExplorer *ui;
     vogl_gl_object_state_ptr_vec m_objects;
+
+    uint add_program_objects(vogl_gl_object_state_ptr_vec objects);
 
 signals:
     void program_edited(vogl_program_state* pNewProgramState);

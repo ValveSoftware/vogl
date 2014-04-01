@@ -1504,67 +1504,102 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
        if (curContextHandle != 0)
        {
            vogl_context_snapshot* pContext = pStateSnapshot->get_context(curContextHandle);
-
-           // textures
-           vogl_gl_object_state_ptr_vec textureObjects;
-           pContext->get_all_objects_of_category(cGLSTTexture, textureObjects);
-           m_pTextureExplorer->set_texture_objects(textureObjects);
-
-           GLuint curActiveTextureUnit = pContext->get_general_state().get_value<GLuint>(GL_ACTIVE_TEXTURE);
-           if (curActiveTextureUnit >= GL_TEXTURE0 && curActiveTextureUnit < (GL_TEXTURE0 + pContext->get_context_info().get_max_texture_image_units()))
-           {
-               GLuint cur2DBinding = pContext->get_general_state().get_value<GLuint>(GL_TEXTURE_2D_BINDING_EXT, curActiveTextureUnit - GL_TEXTURE0);
-               displayTexture(cur2DBinding, false);
-           }
-           if (textureObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->textureTab); }
-
-           // renderbuffers
-           vogl_gl_object_state_ptr_vec renderbufferObjects;
-           pContext->get_all_objects_of_category(cGLSTRenderbuffer, renderbufferObjects);
-           m_pRenderbufferExplorer->set_texture_objects(renderbufferObjects);
-           if (renderbufferObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->renderbufferTab); }
-
-           // framebuffer
-           vogl_gl_object_state_ptr_vec framebufferObjects;
-           pContext->get_all_objects_of_category(cGLSTFramebuffer, framebufferObjects);
-           m_pFramebufferExplorer->set_framebuffer_objects(framebufferObjects, *pContext, pStateSnapshot->get_default_framebuffer());
-           GLuint64 curDrawFramebuffer = pContext->get_general_state().get_value<GLuint64>(GL_DRAW_FRAMEBUFFER_BINDING);
-           displayFramebuffer(curDrawFramebuffer, false);
-           if (framebufferObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->framebufferTab); }
-
-           // programs
-           vogl_gl_object_state_ptr_vec programObjects;
-           pContext->get_all_objects_of_category(cGLSTProgram, programObjects);
-           m_pProgramExplorer->set_program_objects(programObjects);
-           GLuint64 curProgram = pContext->get_general_state().get_value<GLuint64>(GL_CURRENT_PROGRAM);
-           m_pProgramExplorer->set_active_program(curProgram);
-           if (programObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->programTab); }
-
-           // shaders
-           vogl_gl_object_state_ptr_vec shaderObjects;
-           pContext->get_all_objects_of_category(cGLSTShader, shaderObjects);
-           m_pShaderExplorer->set_shader_objects(shaderObjects);
-           if (curProgram != 0)
-           {
-               for (vogl_gl_object_state_ptr_vec::iterator iter = programObjects.begin(); iter != programObjects.end(); iter++)
-               {
-                   if ((*iter)->get_snapshot_handle() == curProgram)
-                   {
-                       vogl_program_state* pProgramState = static_cast<vogl_program_state*>(*iter);
-                       if (pProgramState->get_attached_shaders().size() > 0)
-                       {
-                           uint curShader = pProgramState->get_attached_shaders()[0];
-                           m_pShaderExplorer->set_active_shader(curShader);
-                       }
-                       break;
-                   }
-               }
-           }
-           if (shaderObjects.size() > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->shaderTab); }
+           update_ui_for_context(pContext, pStateSnapshot);
        }
    }
 
    this->setCursor(origCursor);
+}
+
+void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogleditor_gl_state_snapshot* pStateSnapshot)
+{
+    // vogl stores all the created objects in the deepest context, so need to find that context to populate the UI
+    vogl::vector<vogl_context_snapshot*> sharingContexts;
+    sharingContexts.push_back(pContext);
+    vogl_context_snapshot* pRootContext = pContext;
+    vogl_context_snapshot* pTmpContext = NULL;
+    while (pRootContext->get_context_desc().get_trace_share_context() != 0)
+    {
+        pTmpContext = pStateSnapshot->get_context(pRootContext->get_context_desc().get_trace_share_context());
+        VOGL_ASSERT(pTmpContext != NULL);
+        if (pTmpContext == NULL)
+        {
+            // this is a bug
+            break;
+        }
+
+        // update the root context
+        pRootContext = pTmpContext;
+    }
+
+    // add the root context if it is new (ie, not equal the supplied context)
+    if (pRootContext != pContext)
+    {
+        sharingContexts.push_back(pRootContext);
+    }
+
+    // textures
+    m_pTextureExplorer->clear();
+    uint textureCount = m_pTextureExplorer->set_texture_objects(sharingContexts);
+
+    GLuint curActiveTextureUnit = pContext->get_general_state().get_value<GLuint>(GL_ACTIVE_TEXTURE);
+    if (curActiveTextureUnit >= GL_TEXTURE0 && curActiveTextureUnit < (GL_TEXTURE0 + pContext->get_context_info().get_max_texture_image_units()))
+    {
+        GLuint cur2DBinding = pContext->get_general_state().get_value<GLuint>(GL_TEXTURE_2D_BINDING_EXT, curActiveTextureUnit - GL_TEXTURE0);
+        displayTexture(cur2DBinding, false);
+    }
+    if (textureCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->textureTab); }
+
+    // renderbuffers
+    m_pRenderbufferExplorer->clear();
+    int renderbufferCount = m_pRenderbufferExplorer->set_renderbuffer_objects(sharingContexts);
+    if (renderbufferCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->renderbufferTab); }
+
+    // framebuffer
+    m_pFramebufferExplorer->clear();
+    uint framebufferCount = m_pFramebufferExplorer->set_framebuffer_objects(pContext, sharingContexts, &(pStateSnapshot->get_default_framebuffer()));
+    GLuint64 curDrawFramebuffer = pContext->get_general_state().get_value<GLuint64>(GL_DRAW_FRAMEBUFFER_BINDING);
+    displayFramebuffer(curDrawFramebuffer, false);
+    if (framebufferCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->framebufferTab); }
+
+    // programs
+    m_pProgramExplorer->clear();
+    uint programCount = m_pProgramExplorer->set_program_objects(sharingContexts);
+    GLuint64 curProgram = pContext->get_general_state().get_value<GLuint64>(GL_CURRENT_PROGRAM);
+    m_pProgramExplorer->set_active_program(curProgram);
+    if (programCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->programTab); }
+
+    // shaders
+    m_pShaderExplorer->clear();
+    uint shaderCount = m_pShaderExplorer->set_shader_objects(sharingContexts);
+    if (curProgram != 0)
+    {
+        bool bFound = false;
+        for (uint c = 0; c < sharingContexts.size(); c++)
+        {
+            vogl_gl_object_state_ptr_vec programObjects;
+            sharingContexts[c]->get_all_objects_of_category(cGLSTProgram, programObjects);
+            for (vogl_gl_object_state_ptr_vec::iterator iter = programObjects.begin(); iter != programObjects.end(); iter++)
+            {
+                if ((*iter)->get_snapshot_handle() == curProgram)
+                {
+                    vogl_program_state* pProgramState = static_cast<vogl_program_state*>(*iter);
+                    if (pProgramState->get_attached_shaders().size() > 0)
+                    {
+                        uint curShader = pProgramState->get_attached_shaders()[0];
+                        m_pShaderExplorer->set_active_shader(curShader);
+                    }
+
+                    bFound = true;
+                    break;
+                }
+            }
+
+            if (bFound)
+                break;
+        }
+    }
+    if (shaderCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->shaderTab); }
 }
 
 void VoglEditor::on_stateTreeView_clicked(const QModelIndex &index)

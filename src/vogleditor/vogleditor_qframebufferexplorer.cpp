@@ -42,6 +42,7 @@ vogleditor_QFramebufferExplorer::vogleditor_QFramebufferExplorer(QWidget *parent
 
 vogleditor_QFramebufferExplorer::~vogleditor_QFramebufferExplorer()
 {
+    clear();
     delete ui;
 
     delete m_colorExplorerLayout;
@@ -57,6 +58,8 @@ vogleditor_QFramebufferExplorer::~vogleditor_QFramebufferExplorer()
 
 void vogleditor_QFramebufferExplorer::clear()
 {
+    m_objects.clear();
+    m_sharing_contexts.clear();
     ui->framebufferObjectListbox->clear();
 
     clearViewers();
@@ -78,20 +81,46 @@ void vogleditor_QFramebufferExplorer::clearViewers()
     m_viewers.clear();
 }
 
-void vogleditor_QFramebufferExplorer::set_framebuffer_objects(vogl_gl_object_state_ptr_vec objects, vogl_context_snapshot& context, vogl_default_framebuffer_state& defaultFramebufferState)
+uint vogleditor_QFramebufferExplorer::set_framebuffer_objects(vogl_context_snapshot* pContext, vogl::vector<vogl_context_snapshot*> sharingContexts, vogl_default_framebuffer_state* pDefaultFramebufferState)
 {
     clear();
 
-    m_context = &context;
-    m_objects = objects;
-    m_pDefaultFramebufferState = &defaultFramebufferState;
+    m_sharing_contexts = sharingContexts;
 
-    // add default framebuffer
-    vogl_framebuffer_container defaultContainer;
-    defaultContainer.index = 0;
-    defaultContainer.pFBOState = NULL;
-    defaultContainer.pDefaultFBState = m_pDefaultFramebufferState;
-    ui->framebufferObjectListbox->addItem("Framebuffer 0 - (default framebuffer)", QVariant::fromValue(defaultContainer));
+    uint framebufferCount = 0;
+
+    framebufferCount += set_default_framebuffer(pDefaultFramebufferState);
+
+    // framebuffers are not shared state objects, but they can reference shared objects,
+    // so only add the framebuffers from the main context
+    vogl_gl_object_state_ptr_vec framebufferObjects;
+    pContext->get_all_objects_of_category(cGLSTFramebuffer, framebufferObjects);
+    framebufferCount += add_framebuffer_objects(sharingContexts, framebufferObjects);
+
+    return framebufferCount;
+}
+
+uint vogleditor_QFramebufferExplorer::set_default_framebuffer(vogl_default_framebuffer_state* pDefaultFramebufferState)
+{
+    int numAdded = 0;
+    if (pDefaultFramebufferState != NULL)
+    {
+        m_pDefaultFramebufferState = pDefaultFramebufferState;
+
+        // add default framebuffer
+        vogl_framebuffer_container defaultContainer;
+        defaultContainer.index = 0;
+        defaultContainer.pFBOState = NULL;
+        defaultContainer.pDefaultFBState = m_pDefaultFramebufferState;
+        ui->framebufferObjectListbox->addItem("Framebuffer 0 - (default framebuffer)", QVariant::fromValue(defaultContainer));
+        numAdded = 1;
+    }
+    return numAdded;
+}
+
+uint vogleditor_QFramebufferExplorer::add_framebuffer_objects(vogl::vector<vogl_context_snapshot*> sharingContexts, vogl_gl_object_state_ptr_vec objects)
+{
+    m_objects.append(objects);
 
     // add framebuffer objects
     QString valueStr;
@@ -106,20 +135,28 @@ void vogleditor_QFramebufferExplorer::set_framebuffer_objects(vogl_gl_object_sta
             const vogl_framebuffer_attachment* pAttachment = &(pState->get_attachments().begin()->second);
             if (pAttachment->get_type() == GL_TEXTURE)
             {
-                vogl_texture_state* pTexState = this->get_texture_attachment(NULL, pAttachment->get_handle());
-                if (pTexState != NULL)
+                for (uint c = 0; c < sharingContexts.size(); c++)
                 {
-                    width = pTexState->get_texture().get_width();
-                    height = pTexState->get_texture().get_height();
+                    vogl_texture_state* pTexState = this->get_texture_attachment(*(sharingContexts[c]), pAttachment->get_handle());
+                    if (pTexState != NULL)
+                    {
+                        width = pTexState->get_texture().get_width();
+                        height = pTexState->get_texture().get_height();
+                        break;
+                    }
                 }
             }
             else if (pAttachment->get_type() == GL_RENDERBUFFER)
             {
-                vogl_renderbuffer_state* pRbState = this->get_renderbuffer_attachment(NULL, pAttachment->get_handle());
-                if (pRbState != NULL)
+                for (uint c = 0; c < sharingContexts.size(); c++)
                 {
-                    width = pRbState->get_texture().get_texture().get_width();
-                    height = pRbState->get_texture().get_texture().get_height();
+                    vogl_renderbuffer_state* pRbState = this->get_renderbuffer_attachment(*(sharingContexts[c]), pAttachment->get_handle());
+                    if (pRbState != NULL)
+                    {
+                        width = pRbState->get_texture().get_texture().get_width();
+                        height = pRbState->get_texture().get_texture().get_height();
+                        break;
+                    }
                 }
             }
 
@@ -130,13 +167,15 @@ void vogleditor_QFramebufferExplorer::set_framebuffer_objects(vogl_gl_object_sta
             valueStr = valueStr.sprintf("Framebuffer %" PRIu64 " - %d attachments", pState->get_snapshot_handle(), pState->get_attachments().size());
         }
 
-        vogl_framebuffer_container defaultContainer;
-        defaultContainer.index = 0;
-        defaultContainer.pFBOState = pState;
-        defaultContainer.pDefaultFBState = NULL;
+        vogl_framebuffer_container container;
+        container.index = ui->framebufferObjectListbox->count();
+        container.pFBOState = pState;
+        container.pDefaultFBState = NULL;
 
-        ui->framebufferObjectListbox->addItem(valueStr, QVariant::fromValue(defaultContainer));
+        ui->framebufferObjectListbox->addItem(valueStr, QVariant::fromValue(container));
     }
+
+    return objects.size();
 }
 
 bool vogleditor_QFramebufferExplorer::set_active_framebuffer(unsigned long long framebufferHandle)
@@ -150,18 +189,16 @@ bool vogleditor_QFramebufferExplorer::set_active_framebuffer(unsigned long long 
     }
     else
     {
-        int index = 1;
-        for (vogl_gl_object_state_ptr_vec::iterator iter = m_objects.begin(); iter != m_objects.end(); iter++)
+        for (int index = 0; index < ui->framebufferObjectListbox->count(); index++)
         {
-            vogl_framebuffer_state* pState = static_cast<vogl_framebuffer_state*>(*iter);
-            if (pState->get_snapshot_handle() == framebufferHandle)
+            vogl_framebuffer_container container = ui->framebufferObjectListbox->itemData(index).value<vogl_framebuffer_container>();
+            vogl_framebuffer_state* pState = container.pFBOState;
+            if (pState != NULL && pState->get_snapshot_handle() == framebufferHandle)
             {
                 ui->framebufferObjectListbox->setCurrentIndex(index);
                 bDisplayedFramebuffer = true;
                 break;
             }
-
-            ++index;
         }
     }
     return bDisplayedFramebuffer;
@@ -226,59 +263,61 @@ void vogleditor_QFramebufferExplorer::selectedFramebufferIndexChanged(int index)
         vogl_framebuffer_state* pState = container.pFBOState;
         if (pState != NULL)
         {
-            vogl_gl_object_state_ptr_vec textureVec;
-            m_context->get_all_objects_of_category(cGLSTTexture, textureVec);
-
-            vogl_gl_object_state_ptr_vec renderbufferVec;
-            m_context->get_all_objects_of_category(cGLSTRenderbuffer, renderbufferVec);
-
             const vogl_framebuffer_state::GLenum_to_attachment_map& rAttachments = pState->get_attachments();
             for (vogl_framebuffer_state::GLenum_to_attachment_map::const_iterator iter = rAttachments.begin(); iter != rAttachments.end(); iter++)
             {
                 const vogl_framebuffer_attachment* pAttachment = &(iter->second);
                 if (pAttachment->get_type() == GL_TEXTURE)
                 {
-                    vogl_texture_state* pTexState = this->get_texture_attachment(&textureVec, pAttachment->get_handle());
-                    if (pTexState != NULL)
+                    for (uint c = 0; c < m_sharing_contexts.size(); c++)
                     {
-                        if (iter->first == GL_DEPTH_ATTACHMENT ||
-                            iter->first == GL_DEPTH)
+                        vogl_texture_state* pTexState = this->get_texture_attachment(*(m_sharing_contexts[c]), pAttachment->get_handle());
+                        if (pTexState != NULL)
                         {
-                            depthVec.push_back(pTexState);
-                        }
-                        else if (iter->first == GL_STENCIL_ATTACHMENT ||
-                                 iter->first == GL_STENCIL)
-                        {
-                            stencilVec.push_back(pTexState);
-                        }
-                        else
-                        {
-                            colorVec.push_back(pTexState);
+                            if (iter->first == GL_DEPTH_ATTACHMENT ||
+                                iter->first == GL_DEPTH)
+                            {
+                                depthVec.push_back(pTexState);
+                            }
+                            else if (iter->first == GL_STENCIL_ATTACHMENT ||
+                                     iter->first == GL_STENCIL)
+                            {
+                                stencilVec.push_back(pTexState);
+                            }
+                            else
+                            {
+                                colorVec.push_back(pTexState);
 
-                            ADD_COLOR_BUFFER_VIEWER
+                                ADD_COLOR_BUFFER_VIEWER
+                            }
+                            break;
                         }
                     }
                 }
                 else if (pAttachment->get_type() == GL_RENDERBUFFER)
                 {
-                    vogl_renderbuffer_state* pRbState = this->get_renderbuffer_attachment(&renderbufferVec, pAttachment->get_handle());
-                    if (pRbState != NULL)
+                    for (uint c = 0; c < m_sharing_contexts.size(); c++)
                     {
-                        if (iter->first == GL_DEPTH_ATTACHMENT ||
-                            iter->first == GL_DEPTH)
+                        vogl_renderbuffer_state* pRbState = this->get_renderbuffer_attachment(*(m_sharing_contexts[c]), pAttachment->get_handle());
+                        if (pRbState != NULL)
                         {
-                            depthVec.push_back(pRbState);
-                        }
-                        else if (iter->first == GL_STENCIL_ATTACHMENT ||
-                                 iter->first == GL_STENCIL)
-                        {
-                            stencilVec.push_back(pRbState);
-                        }
-                        else
-                        {
-                            colorVec.push_back(pRbState);
+                            if (iter->first == GL_DEPTH_ATTACHMENT ||
+                                iter->first == GL_DEPTH)
+                            {
+                                depthVec.push_back(pRbState);
+                            }
+                            else if (iter->first == GL_STENCIL_ATTACHMENT ||
+                                     iter->first == GL_STENCIL)
+                            {
+                                stencilVec.push_back(pRbState);
+                            }
+                            else
+                            {
+                                colorVec.push_back(pRbState);
 
-                            ADD_COLOR_BUFFER_VIEWER
+                                ADD_COLOR_BUFFER_VIEWER
+                            }
+                            break;
                         }
                     }
                 }
@@ -359,17 +398,13 @@ void vogleditor_QFramebufferExplorer::selectedFramebufferIndexChanged(int index)
     }
 }
 
-vogl_texture_state* vogleditor_QFramebufferExplorer::get_texture_attachment(vogl_gl_object_state_ptr_vec* pObjectVec, unsigned int handle)
+vogl_texture_state* vogleditor_QFramebufferExplorer::get_texture_attachment(vogl_context_snapshot& context, unsigned int handle)
 {
     vogl_gl_object_state_ptr_vec textureVec;
-    if (pObjectVec == NULL)
-    {
-        m_context->get_all_objects_of_category(cGLSTTexture, textureVec);
-        pObjectVec = &textureVec;
-    }
+    context.get_all_objects_of_category(cGLSTTexture, textureVec);
 
     vogl_texture_state* pTexState = NULL;
-    for (vogl_gl_object_state_ptr_vec::iterator texIter = pObjectVec->begin(); texIter != pObjectVec->end(); texIter++)
+    for (vogl_gl_object_state_ptr_vec::iterator texIter = textureVec.begin(); texIter != textureVec.end(); texIter++)
     {
         if ((*texIter)->get_snapshot_handle() == handle)
         {
@@ -381,17 +416,13 @@ vogl_texture_state* vogleditor_QFramebufferExplorer::get_texture_attachment(vogl
     return pTexState;
 }
 
-vogl_renderbuffer_state* vogleditor_QFramebufferExplorer::get_renderbuffer_attachment(vogl_gl_object_state_ptr_vec* pObjectVec, unsigned int handle)
+vogl_renderbuffer_state* vogleditor_QFramebufferExplorer::get_renderbuffer_attachment(vogl_context_snapshot& context, unsigned int handle)
 {
     vogl_gl_object_state_ptr_vec renderbufferVec;
-    if (pObjectVec == NULL)
-    {
-        m_context->get_all_objects_of_category(cGLSTRenderbuffer, renderbufferVec);
-        pObjectVec = &renderbufferVec;
-    }
+    context.get_all_objects_of_category(cGLSTRenderbuffer, renderbufferVec);
 
     vogl_renderbuffer_state* pRenderbufferState = NULL;
-    for (vogl_gl_object_state_ptr_vec::iterator texIter = pObjectVec->begin(); texIter != pObjectVec->end(); texIter++)
+    for (vogl_gl_object_state_ptr_vec::iterator texIter = renderbufferVec.begin(); texIter != renderbufferVec.end(); texIter++)
     {
         if ((*texIter)->get_snapshot_handle() == handle)
         {

@@ -29,7 +29,7 @@ public:
     explicit vogleditor_QFramebufferExplorer(QWidget *parent = 0);
     ~vogleditor_QFramebufferExplorer();
 
-    void set_framebuffer_objects(vogl_gl_object_state_ptr_vec objects, vogl_context_snapshot& context, vogl_default_framebuffer_state& defaultFramebufferState);
+    uint set_framebuffer_objects(vogl_context_snapshot* pContext, vogl::vector<vogl_context_snapshot*> sharingContexts, vogl_default_framebuffer_state *pDefaultFramebufferState);
 
     bool set_active_framebuffer(unsigned long long framebufferHandle);
 
@@ -44,12 +44,16 @@ private:
     QVBoxLayout* m_stencilExplorerLayout;
     vogleditor_QTextureExplorer* m_depthExplorer;
     vogleditor_QTextureExplorer* m_stencilExplorer;
-    vogl_context_snapshot* m_context;
+    vogl::vector<vogl_context_snapshot*> m_sharing_contexts;
     vogl_default_framebuffer_state* m_pDefaultFramebufferState;
 
     void clearViewers();
-    vogl_texture_state* get_texture_attachment(vogl_gl_object_state_ptr_vec* pObjectVec, unsigned int handle);
-    vogl_renderbuffer_state* get_renderbuffer_attachment(vogl_gl_object_state_ptr_vec* pObjectVec, unsigned int handle);
+
+    uint set_default_framebuffer(vogl_default_framebuffer_state* pDefaultFramebufferState);
+    uint add_framebuffer_objects(vogl::vector<vogl_context_snapshot*> sharingContexts, vogl_gl_object_state_ptr_vec objects);
+
+    vogl_texture_state* get_texture_attachment(vogl_context_snapshot& context, unsigned int handle);
+    vogl_renderbuffer_state* get_renderbuffer_attachment(vogl_context_snapshot &context, unsigned int handle);
 
 private slots:
     void selectedFramebufferIndexChanged(int index);
