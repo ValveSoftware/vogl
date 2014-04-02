@@ -46,6 +46,7 @@ private:
     vogleditor_QTextureExplorer* m_stencilExplorer;
     vogl::vector<vogl_context_snapshot*> m_sharing_contexts;
     vogl_default_framebuffer_state* m_pDefaultFramebufferState;
+    bool m_bDelayZoomFactorChanged;
 
     void clearViewers();
 

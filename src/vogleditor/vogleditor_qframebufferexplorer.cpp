@@ -19,7 +19,8 @@ Q_DECLARE_METATYPE(vogl_framebuffer_container);
 vogleditor_QFramebufferExplorer::vogleditor_QFramebufferExplorer(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::vogleditor_QFramebufferExplorer),
-    m_pDefaultFramebufferState(NULL)
+    m_pDefaultFramebufferState(NULL),
+    m_bDelayZoomFactorChanged(false)
 {
     ui->setupUi(this);
 
@@ -213,6 +214,9 @@ void vogleditor_QFramebufferExplorer::selectedFramebufferIndexChanged(int index)
         return;
     }
 
+    // Delay resizing the window until after all the attachments are displayed.
+    m_bDelayZoomFactorChanged = true;
+
     vogl_gl_object_state_ptr_vec colorVec;
     vogl_gl_object_state_ptr_vec depthVec;
     vogl_gl_object_state_ptr_vec stencilVec;
@@ -341,22 +345,20 @@ void vogleditor_QFramebufferExplorer::selectedFramebufferIndexChanged(int index)
         uint viewerIndex = 0;
         for (vogleditor_QTextureExplorer** iter = m_viewers.begin(); iter != m_viewers.end(); iter++)
         {
+            connect(*iter, SIGNAL(zoomFactorChanged(double)), this, SLOT(slot_zoomFactorChanged(double)));
             (*iter)->set_zoom_factor(0.2);
 
-            // use index which was passed in as parameter
+            // specifically compare index which was passed in as parameter
             if (index != 0)
             {
                 (*iter)->set_texture_objects(colorVec);
                 (*iter)->set_active_texture(colorVec[viewerIndex]->get_snapshot_handle());
             }
 
-            // for better visibility, adjust height based on combined preferred heights
-            totalHeight += (*iter)->get_preferred_height();
-            (*iter)->setFixedHeight((*iter)->get_preferred_height());
             ++viewerIndex;
-
-            connect(*iter, SIGNAL(zoomFactorChanged(double)), this, SLOT(slot_zoomFactorChanged(double)));
         }
+
+        ui->colorBufferGroupBox->setMinimumHeight(totalHeight);
     }
 
     if (depthVec.size() == 0)
@@ -367,15 +369,15 @@ void vogleditor_QFramebufferExplorer::selectedFramebufferIndexChanged(int index)
     else
     {
         m_depthExplorer->setVisible(true);
+        connect(m_depthExplorer, SIGNAL(zoomFactorChanged(double)), this, SLOT(slot_zoomFactorChanged(double)));
         m_depthExplorer->set_zoom_factor(0.2);
-        // use index which was passed in as parameter
+
+        // specifically compare index which was passed in as parameter
         if (index != 0)
         {
             m_depthExplorer->set_texture_objects(depthVec);
             m_depthExplorer->set_active_texture(depthVec[0]->get_snapshot_handle());
         }
-        connect(m_depthExplorer, SIGNAL(zoomFactorChanged(double)), this, SLOT(slot_zoomFactorChanged(double)));
-        m_depthExplorer->setMinimumHeight(m_depthExplorer->get_preferred_height());
     }
 
     if (stencilVec.size() == 0)
@@ -386,16 +388,20 @@ void vogleditor_QFramebufferExplorer::selectedFramebufferIndexChanged(int index)
     else
     {
         m_stencilExplorer->setVisible(true);
+        connect(m_stencilExplorer, SIGNAL(zoomFactorChanged(double)), this, SLOT(slot_zoomFactorChanged(double)));
         m_stencilExplorer->set_zoom_factor(0.2);
-        // use index which was passed in as parameter
+
+        // specifically compare index which was passed in as parameter
         if (index != 0)
         {
             m_stencilExplorer->set_texture_objects(stencilVec);
             m_stencilExplorer->set_active_texture(stencilVec[0]->get_snapshot_handle());
         }
-        connect(m_stencilExplorer, SIGNAL(zoomFactorChanged(double)), this, SLOT(slot_zoomFactorChanged(double)));
-        m_stencilExplorer->setMinimumHeight(m_stencilExplorer->get_preferred_height());
     }
+
+    // reset the flag and manually invoke the callback so that the window is displayed correctly.
+    m_bDelayZoomFactorChanged = false;
+    slot_zoomFactorChanged(0.2);
 }
 
 vogl_texture_state* vogleditor_QFramebufferExplorer::get_texture_attachment(vogl_context_snapshot& context, unsigned int handle)
@@ -438,14 +444,29 @@ void vogleditor_QFramebufferExplorer::slot_zoomFactorChanged(double zoomFactor)
 {
     VOGL_NOTE_UNUSED(zoomFactor);
 
+    if (m_bDelayZoomFactorChanged)
+    {
+        // The explorer has flagged that it should not react to the zoom factor changing.
+        // It's probably setting up a bunch of buffers to be displayed.
+        return;
+    }
+
     uint totalHeight = 0;
     for (vogleditor_QTextureExplorer** iter = m_viewers.begin(); iter != m_viewers.end(); iter++)
     {
         // for better visibility, adjust height based on combined preferred heights
-        totalHeight += (*iter)->get_preferred_height();
-        (*iter)->setFixedHeight((*iter)->get_preferred_height());
+        uint texture_pref_height = (*iter)->get_preferred_height();
+        (*iter)->setFixedHeight(texture_pref_height);
+        totalHeight += texture_pref_height + m_colorExplorerLayout->spacing() + 5;
     }
 
-    m_depthExplorer->setMinimumHeight(m_depthExplorer->get_preferred_height());
-    m_stencilExplorer->setMinimumHeight(m_stencilExplorer->get_preferred_height());
+    ui->colorBufferGroupBox->setMinimumHeight(totalHeight);
+
+    uint depth_pref_height = m_depthExplorer->get_preferred_height();
+    m_depthExplorer->setMinimumHeight(depth_pref_height);
+    ui->depthBufferGroupBox->setMinimumHeight(depth_pref_height + 30);
+
+    uint stencil_pref_height = m_stencilExplorer->get_preferred_height();
+    m_stencilExplorer->setMinimumHeight(stencil_pref_height);
+    ui->stencilBufferGroupBox->setMinimumHeight(stencil_pref_height + 30);
 }
