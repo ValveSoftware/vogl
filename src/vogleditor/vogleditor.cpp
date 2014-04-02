@@ -32,6 +32,7 @@
 #include <QSpacerItem>
 #include <QToolButton>
 #include <QMessageBox>
+#include <QCoreApplication>
 
 #include "ui_vogleditor.h"
 #include "vogleditor.h"
@@ -353,10 +354,11 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
     QStringList arguments;
     arguments << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
 
+    QDir appDirectory(QCoreApplication::applicationDirPath());
 #ifdef __i386__
-    QString executable = "./voglreplay32";
+    QString executable = appDirectory.absoluteFilePath("./voglreplay32");
 #else
-    QString executable = "./voglreplay64";
+    QString executable = appDirectory.absoluteFilePath("./voglreplay64");
 #endif
 
     QString cmdLine = executable + " " + arguments.join(" ");
@@ -1083,9 +1085,19 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
            else
            {
                // either there was an error, or the user decided NOT to open the trim file,
-               // so continue to load the original file
-               vogleditor_output_warning("Large trace files may be difficult to debug.");
+               // by the time the user gets to this point, it really doesn't feel like the original file should be opened, so just clean up and return
+               vogl_delete(tmpReader);
+               this->setCursor(origCursor);
+               vogleditor_output_error("Trimmed trace file will not be opened.");
+               vogleditor_output_message("-------------------");
+               return false;
            }
+       }
+       else
+       {
+           // either there was an error, or the user decided NOT to open the trim file,
+           // so continue to load the original file
+           vogleditor_output_warning("Large trace files may be difficult to debug.");
        }
    }
 
