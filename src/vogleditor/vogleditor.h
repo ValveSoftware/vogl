@@ -117,6 +117,8 @@ private slots:
    void slot_readReplayStandardOutput();
    void slot_readReplayStandardError();
 
+   void on_contextComboBox_currentIndexChanged(int index);
+
 private:
    Ui::VoglEditor* ui;
 
@@ -182,6 +184,7 @@ private:
    vogleditor_QStateTreeModel* m_pStateTreeModel;
 
    QColor m_searchTextboxBackgroundColor;
+   bool m_bDelayUpdateUIForContext;
 };
 
 #endif // VOGLEDITOR_H

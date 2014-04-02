@@ -65,6 +65,8 @@ public:
 
     void appendChild(vogleditor_stateTreeItem* pChild);
 
+    void transferChildren(vogleditor_stateTreeItem* pNewParent);
+
     int childCount() const;
 
     vogleditor_stateTreeItem* child(int index) const;

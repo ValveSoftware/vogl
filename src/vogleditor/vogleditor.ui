@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
+    <width>1025</width>
     <height>768</height>
    </rect>
   </property>
@@ -220,7 +220,10 @@
          </layout>
         </widget>
         <widget class="QWidget" name="layoutWidget">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QComboBox" name="contextComboBox"/>
+          </item>
           <item>
            <widget class="QTabWidget" name="tabWidget">
             <property name="sizePolicy">
@@ -332,8 +335,6 @@
           </widget>
          </item>
         </layout>
-        <zorder>machineInfoText</zorder>
-        <zorder>machineInfoText</zorder>
        </widget>
        <widget class="QWidget" name="callStackTab">
         <attribute name="title">
@@ -371,7 +372,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1024</width>
+     <width>1025</width>
      <height>20</height>
     </rect>
    </property>

@@ -133,7 +133,8 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pTraceReader(NULL),
    m_pTimelineModel(NULL),
    m_pApiCallTreeModel(NULL),
-   m_pStateTreeModel(NULL)
+   m_pStateTreeModel(NULL),
+   m_bDelayUpdateUIForContext(false)
 {
    ui->setupUi(this);
 
@@ -1480,32 +1481,56 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
    QCursor origCursor = this->cursor();
    this->setCursor(Qt::WaitCursor);
 
-   // state viewer
-   if (m_pStateTreeModel != NULL)
+   const vogl_context_snapshot_ptr_vec contexts = pStateSnapshot->get_contexts();
+   if (contexts.size() > 0)
    {
-       delete m_pStateTreeModel;
-   }
-   m_pStateTreeModel = new vogleditor_QStateTreeModel(NULL);
+       vogl_trace_ptr_value currentContextHandle = pStateSnapshot->get_cur_trace_context();
 
-   vogleditor_gl_state_snapshot* pBaseSnapshot = findMostRecentSnapshot(m_pApiCallTreeModel->root(), m_currentSnapshot);
-   m_pStateTreeModel->set_diff_base_snapshot(pBaseSnapshot);
-
-   m_pStateTreeModel->set_snapshot(pStateSnapshot);
-
-   ui->stateTreeView->setModel(m_pStateTreeModel);
-   ui->stateTreeView->expandToDepth(1);
-   ui->stateTreeView->setColumnWidth(0, ui->stateTreeView->width() * 0.5);
-
-   VOGLEDITOR_ENABLE_STATE_TAB(ui->stateTab);
-
-   if (pStateSnapshot->get_contexts().size() > 0)
-   {
-       vogl_trace_ptr_value curContextHandle = pStateSnapshot->get_cur_trace_context();
-       if (curContextHandle != 0)
+       ui->contextComboBox->clear();
+       m_bDelayUpdateUIForContext = true;
+       uint indexOfCurrentContext = 0;
+       for (uint i = 0; i < contexts.size(); i++)
        {
-           vogl_context_snapshot* pContext = pStateSnapshot->get_context(curContextHandle);
-           update_ui_for_context(pContext, pStateSnapshot);
+           vogl_context_snapshot* pContext = contexts[i];
+           vogl_trace_ptr_value contextHandle = pContext->get_context_desc().get_trace_context();
+           vogl_trace_ptr_value sharedContextHandle = pContext->get_context_desc().get_trace_share_context();
+
+           bool bIsCurrent = contextHandle == currentContextHandle;
+           QString additionalInfo;
+           if (bIsCurrent)
+           {
+               indexOfCurrentContext = i;
+               additionalInfo = " - (current)";
+           }
+
+           bool bSharesAContext = pContext->get_context_desc().get_trace_share_context() != 0;
+           if (bSharesAContext)
+           {
+               QString tmp;
+               additionalInfo.append(tmp.sprintf(" - shares context %p", (void*)sharedContextHandle));
+
+               // loop and add nested shared contexts
+               sharedContextHandle = pStateSnapshot->get_context(sharedContextHandle)->get_context_desc().get_trace_share_context();
+               while (sharedContextHandle != 0)
+               {
+                   additionalInfo.append(tmp.sprintf(", %p", (void*)sharedContextHandle));
+                   sharedContextHandle = pStateSnapshot->get_context(sharedContextHandle)->get_context_desc().get_trace_share_context();
+               }
+           }
+
+           QString contextTitle;
+           contextTitle.sprintf("Context %p%s", (void*)contextHandle, additionalInfo.toStdString().c_str());
+           ui->contextComboBox->addItem(contextTitle, QVariant::fromValue(contextHandle));
        }
+
+       m_bDelayUpdateUIForContext = false;
+       ui->contextComboBox->setEnabled(true);
+       ui->contextComboBox->setCurrentIndex(-1);
+       ui->contextComboBox->setCurrentIndex(indexOfCurrentContext);
+   }
+   else
+   {
+       ui->contextComboBox->setEnabled(false);
    }
 
    this->setCursor(origCursor);
@@ -1513,6 +1538,27 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
 
 void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogleditor_gl_state_snapshot* pStateSnapshot)
 {
+    if (m_bDelayUpdateUIForContext)
+    {
+        // update should not be processed right now
+        return;
+    }
+
+    vogleditor_gl_state_snapshot* pBaseSnapshot = findMostRecentSnapshot(m_pApiCallTreeModel->root(), m_currentSnapshot);
+
+    // state viewer
+    if (m_pStateTreeModel != NULL)
+    {
+        delete m_pStateTreeModel;
+    }
+    m_pStateTreeModel = new vogleditor_QStateTreeModel(pStateSnapshot, pContext, pBaseSnapshot, NULL);
+
+    ui->stateTreeView->setModel(m_pStateTreeModel);
+    ui->stateTreeView->expandToDepth(0);
+    ui->stateTreeView->setColumnWidth(0, ui->stateTreeView->width() * 0.5);
+
+    VOGLEDITOR_ENABLE_STATE_TAB(ui->stateTab);
+
     // vogl stores all the created objects in the deepest context, so need to find that context to populate the UI
     vogl::vector<vogl_context_snapshot*> sharingContexts;
     sharingContexts.push_back(pContext);
@@ -2055,5 +2101,15 @@ void VoglEditor::slot_readReplayStandardError()
             output.remove(output.size() - 1, 1);
         }
         vogleditor_output_error(output.constData());
+    }
+}
+
+void VoglEditor::on_contextComboBox_currentIndexChanged(int index)
+{
+    vogl_trace_ptr_value contextHandle = ui->contextComboBox->itemData(index).value<vogl_trace_ptr_value>();
+    if (contextHandle != 0)
+    {
+        vogl_context_snapshot* pContext = m_currentSnapshot->get_context(contextHandle);
+        update_ui_for_context(pContext, m_currentSnapshot);
     }
 }

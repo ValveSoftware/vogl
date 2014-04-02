@@ -34,31 +34,24 @@
 vogleditor_QStateTreeModel::vogleditor_QStateTreeModel( QObject* parent)
    : QAbstractItemModel(parent),
      m_pSnapshot(NULL),
-     m_pBaseSnapshot(NULL),
-     m_pCurrentContextItem(NULL)
-{
-   m_ColumnTitles << "State";
-   m_ColumnTitles << "Value";
-
-   m_rootItem = new vogleditor_stateTreeItem(m_ColumnTitles, this);
-}
-
-void vogleditor_QStateTreeModel::set_snapshot(vogleditor_gl_state_snapshot *pSnapshot)
-{
-    m_pSnapshot = pSnapshot;
-    setupModelData(m_pSnapshot, m_rootItem);
-}
-
-vogleditor_QStateTreeModel::vogleditor_QStateTreeModel(vogleditor_gl_state_snapshot* pSnapshot, QObject* parent)
-   : QAbstractItemModel(parent),
-     m_pSnapshot(pSnapshot),
      m_pBaseSnapshot(NULL)
 {
    m_ColumnTitles << "State";
    m_ColumnTitles << "Value";
 
    m_rootItem = new vogleditor_stateTreeItem(m_ColumnTitles, this);
-   setupModelData(m_pSnapshot, m_rootItem);
+}
+
+vogleditor_QStateTreeModel::vogleditor_QStateTreeModel(vogleditor_gl_state_snapshot* pSnapshot, vogl_context_snapshot* pContext, vogleditor_gl_state_snapshot *pDiffBaseSnapshot, QObject* parent)
+   : QAbstractItemModel(parent),
+     m_pSnapshot(pSnapshot),
+     m_pBaseSnapshot(pDiffBaseSnapshot)
+{
+   m_ColumnTitles << "State";
+   m_ColumnTitles << "Value";
+
+   m_rootItem = new vogleditor_stateTreeItem(m_ColumnTitles, this);
+   setupModelData(m_pSnapshot, pContext, m_rootItem);
 }
 
 vogleditor_QStateTreeModel::~vogleditor_QStateTreeModel()
@@ -151,45 +144,19 @@ vogleditor_gl_state_snapshot* vogleditor_QStateTreeModel::get_snapshot() const
    return m_pSnapshot;
 }
 
-void vogleditor_QStateTreeModel::set_diff_base_snapshot(const vogleditor_gl_state_snapshot *pDiffBaseSnapshot)
-{
-    m_pBaseSnapshot = pDiffBaseSnapshot;
-}
-
-void vogleditor_QStateTreeModel::setupModelData(vogleditor_gl_state_snapshot* pSnapshot, vogleditor_stateTreeItem* parent)
+void vogleditor_QStateTreeModel::setupModelData(vogleditor_gl_state_snapshot* pSnapshot, vogl_context_snapshot* pContext, vogleditor_stateTreeItem* parent)
 {
     QString tmp;
 
-    vogl_context_snapshot_ptr_vec contexts = pSnapshot->get_contexts();
-    for (uint c = 0; c < contexts.size(); c++)
+    const vogl_context_desc& desc = pContext->get_context_desc();
+    vogleditor_stateTreeContextItem* pContextItem = new vogleditor_stateTreeContextItem(tmp.sprintf("Context %p", (void*)desc.get_trace_context()), "", parent, *pContext);
+    if (m_pBaseSnapshot != NULL && m_pBaseSnapshot->is_valid() && m_pBaseSnapshot->get_contexts().size() > 0 && m_pBaseSnapshot->get_context(desc.get_trace_context()) != NULL)
     {
-        vogl_context_snapshot* pContext = contexts[c];
-
-        const vogl_context_desc& desc = pContext->get_context_desc();
-        vogleditor_stateTreeContextItem* pContextItem = new vogleditor_stateTreeContextItem(tmp.sprintf("Context %p", (void*)desc.get_trace_context()), "", parent, *pContext);
-        if (m_pBaseSnapshot != NULL && m_pBaseSnapshot->is_valid() && m_pBaseSnapshot->get_contexts().size() > 0 && m_pBaseSnapshot->get_contexts().at(c) != NULL)
-        {
-            // set the diff state to be the same state, so that there does not appear to be any diff's
-            const vogl_context_snapshot* pDiffContext = m_pBaseSnapshot->get_contexts()[c];
-            pContextItem->set_diff_base_state(pDiffContext);
-
-            // if this is the current context, store it
-            if (pContext->get_context_desc().get_trace_context() == pSnapshot->get_cur_trace_context())
-            {
-                m_pCurrentContextItem = pContextItem;
-            }
-        }
-
-        parent->appendChild(pContextItem);
+        // set the diff state to be the same state, so that there does not appear to be any diff's
+        const vogl_context_snapshot* pDiffContext = m_pBaseSnapshot->get_context(desc.get_trace_context());
+        pContextItem->set_diff_base_state(pDiffContext);
     }
-}
 
-vogl::vector<vogleditor_stateTreeProgramItem*> vogleditor_QStateTreeModel::get_program_objects()
-{
-    vogl::vector<vogleditor_stateTreeProgramItem*> programs;
-    if (m_pCurrentContextItem != NULL)
-    {
-        programs = m_pCurrentContextItem->get_program_objects();
-    }
-    return programs;
+    pContextItem->transferChildren(parent);
+    delete pContextItem;
 }

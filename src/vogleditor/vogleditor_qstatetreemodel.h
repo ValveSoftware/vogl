@@ -42,7 +42,7 @@ class vogleditor_QStateTreeModel : public QAbstractItemModel
 
 public:
    vogleditor_QStateTreeModel(QObject* parent);
-   vogleditor_QStateTreeModel(vogleditor_gl_state_snapshot* pSnapshot, QObject* parent);
+   vogleditor_QStateTreeModel(vogleditor_gl_state_snapshot* pSnapshot, vogl_context_snapshot *pContext, vogleditor_gl_state_snapshot* pDiffBaseSnapshot, QObject* parent);
 
    virtual ~vogleditor_QStateTreeModel();
 
@@ -64,21 +64,15 @@ public:
 
    vogleditor_stateTreeItem* root() const;
 
-   void set_snapshot(vogleditor_gl_state_snapshot* pSnapshot);
    vogleditor_gl_state_snapshot* get_snapshot() const;
-
-   void set_diff_base_snapshot(const vogleditor_gl_state_snapshot* pBaseSnapshot);
-
-   vogl::vector<vogleditor_stateTreeProgramItem*> get_program_objects();
 
 private:
    vogleditor_stateTreeItem* m_rootItem;
    QList<QVariant> m_ColumnTitles;
    vogleditor_gl_state_snapshot* m_pSnapshot;
    const vogleditor_gl_state_snapshot* m_pBaseSnapshot;
-   vogleditor_stateTreeContextItem* m_pCurrentContextItem;
 
-   void setupModelData(vogleditor_gl_state_snapshot *pSnapshot, vogleditor_stateTreeItem* parent);
+   void setupModelData(vogleditor_gl_state_snapshot *pSnapshot, vogl_context_snapshot *pContext, vogleditor_stateTreeItem* parent);
 };
 
 #endif // VOGLEDITOR_QSTATETREEMODEL_H

@@ -194,7 +194,7 @@ QString vogleditor_stateTreeItem::getValueFromPtrs(const int* values, uint count
     }
     else if (count == 1)
     {
-        tmp = tmp.sprintf("%p", (void*)(*values));
+        tmp = tmp.sprintf("0x%08x", *values);
     }
     else
     {
@@ -208,6 +208,20 @@ void vogleditor_stateTreeItem::appendChild(vogleditor_stateTreeItem* pChild)
 {
    m_childItems.append(pChild);
 }
+
+void vogleditor_stateTreeItem::transferChildren(vogleditor_stateTreeItem* pNewParent)
+{
+    // transfer the children to the new parent, then clear our list of children
+    pNewParent->m_childItems = this->m_childItems;
+
+    for (int i = 0; i < pNewParent->m_childItems.size(); i++)
+    {
+        pNewParent->m_childItems[i]->m_parentItem = pNewParent;
+    }
+
+    m_childItems.clear();
+}
+
 
 int vogleditor_stateTreeItem::childCount() const
 {

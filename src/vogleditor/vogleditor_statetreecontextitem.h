@@ -302,11 +302,6 @@ public:
 
     void set_diff_base_state(const vogl_context_snapshot* pBaseState);
 
-    vogl::vector<vogleditor_stateTreeProgramItem*> get_program_objects()
-    {
-        return m_programItems;
-    }
-
 private:
     vogl_context_snapshot* m_pState;
     const vogl_context_snapshot* m_pDiffBaseState;
