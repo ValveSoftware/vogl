@@ -1462,13 +1462,23 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     // color mask
-    // TODO: Implement indexed version
     bool color_mask[4];
     if (get(GL_COLOR_WRITEMASK, 0, color_mask, 4))
     {
         GL_ENTRYPOINT(glColorMask)(color_mask[0], color_mask[1], color_mask[2], color_mask[3]);
         VOGL_CHECK_GL_ERROR;
         ADD_PROCESSED_STATE(GL_COLOR_WRITEMASK, 0);
+    }
+
+    // Restore indexed color masks (we've already restored the global state, which sets all the indexed states)
+    for (uint i = 0; i < context_info.get_max_draw_buffers(); i++)
+    {
+        if (get(GL_COLOR_WRITEMASK, i, color_mask, 4, true))
+        {
+            GL_ENTRYPOINT(glColorMaski)(i, color_mask[0], color_mask[1], color_mask[2], color_mask[3]);
+            VOGL_CHECK_GL_ERROR;
+            ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_COLOR_WRITEMASK, i);
+        }
     }
 
     // cull face mode
@@ -1878,6 +1888,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 GL_ENTRYPOINT(glDisablei)(GL_BLEND, i);
                 VOGL_CHECK_GL_ERROR;
             }
+            ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_BLEND, i);
         }
     }
 

@@ -44,8 +44,6 @@
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_INT_MAGIC 0x12345678
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_FLOAT_MAGIC -999999.0f
 
-#define VOGL_CLEAR_UNINITIALIZED_BUFS 0
-
 //----------------------------------------------------------------------------------------------------------------------
 // glInterleavedArrays helper table
 //----------------------------------------------------------------------------------------------------------------------
@@ -1440,10 +1438,6 @@ void vogl_gl_replayer::process_entrypoint_error(const char *pFmt, ...)
 vogl_gl_replayer::status_t vogl_gl_replayer::switch_contexts(vogl_trace_context_ptr_value trace_context)
 {
     VOGL_FUNC_TRACER
-
-    // HACK HACK
-    //if (m_pCur_gl_packet->get_call_counter() == 25583)
-    //    vogl_debug_break();
 
     //vogl_trace_context_ptr_value trace_context = gl_packet.m_context_handle;
     if (trace_context == m_cur_trace_context)
@@ -2926,7 +2920,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::post_draw_call()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_gl_replayer::dump_framebuffer
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_gl_replayer::dump_framebuffer(uint width, uint height, GLuint read_framebuffer, GLenum read_buffer, GLenum internal_format, uint orig_samples, GLuint replay_texture, GLuint replay_rbo)
+bool vogl_gl_replayer::dump_framebuffer(
+        uint width, uint height, GLuint read_framebuffer, GLenum read_buffer, GLenum internal_format, uint orig_samples, GLuint replay_texture, GLuint replay_rbo,
+        int channel_to_write, bool force_rgb, GLuint fmt, GLuint type, const char *pFilename_suffix)
 {
     VOGL_FUNC_TRACER
 
@@ -2952,9 +2948,13 @@ bool vogl_gl_replayer::dump_framebuffer(uint width, uint height, GLuint read_fra
             vogl_error_printf("%s: Failed finding GL handle %u in RBO handle shadow!\n", VOGL_METHOD_NAME, replay_rbo);
     }
 
-    m_screenshot_buffer.resize(width * height * 3);
+    uint image_fmt_size = vogl_get_image_format_size_in_bytes(fmt, type);
+    const uint total_pixels = width * height;
 
-    bool success = vogl_copy_buffer_to_image(m_screenshot_buffer.get_ptr(), m_screenshot_buffer.size(), width, height, GL_RGB, GL_UNSIGNED_BYTE, false, read_framebuffer, read_buffer, 0);
+    m_screenshot_buffer.resize(width * height * image_fmt_size);
+
+    //bool success = vogl_copy_buffer_to_image(m_screenshot_buffer.get_ptr(), m_screenshot_buffer.size(), width, height, GL_RGB, GL_UNSIGNED_BYTE, false, read_framebuffer, read_buffer, 0);
+    bool success = vogl_copy_buffer_to_image(m_screenshot_buffer.get_ptr(), m_screenshot_buffer.size(), width, height, fmt, type, false, read_framebuffer, read_buffer, 0);
 
     if (!success)
     {
@@ -2962,14 +2962,65 @@ bool vogl_gl_replayer::dump_framebuffer(uint width, uint height, GLuint read_fra
         return false;
     }
 
-    size_t png_size = 0;
-    void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(m_screenshot_buffer.get_ptr(), width, height, 3, &png_size, 1, true);
+    uint8 *pImage_data = m_screenshot_buffer.get_ptr();
+    uint image_data_bpp = image_fmt_size;
 
-    dynamic_string screenshot_filename(cVarArg, "%s_GLCTR%08llu_%s_FR%06u_DCTR%05llu_W%04i_H%04i_FBO%04u_%s",
+    if (channel_to_write >= 0)
+    {
+        VOGL_ASSERT(channel_to_write < static_cast<int>(image_fmt_size));
+
+        m_screenshot_buffer2.resize(width * height);
+
+        for (uint i = 0; i < total_pixels; i++)
+            m_screenshot_buffer2[i] = m_screenshot_buffer[image_fmt_size * i + channel_to_write];
+
+        pImage_data = m_screenshot_buffer2.get_ptr();
+        image_data_bpp = 1;
+
+        m_screenshot_buffer2.swap(m_screenshot_buffer);
+    }
+
+    if ((force_rgb) && (image_data_bpp != 3))
+    {
+        m_screenshot_buffer2.resize(width * height * 3);
+        m_screenshot_buffer2.set_all(0);
+
+        for (uint i = 0; i < total_pixels; i++)
+        {
+            if (image_data_bpp == 1)
+            {
+                uint8 c = pImage_data[i * image_data_bpp];
+                memset(&m_screenshot_buffer2[i * 3], c, 3);
+            }
+            else
+            {
+                memcpy(&m_screenshot_buffer2[i * 3], &pImage_data[i * image_data_bpp], math::minimum(3U, image_data_bpp));
+            }
+        }
+
+        pImage_data = m_screenshot_buffer2.get_ptr();
+        image_data_bpp = 3;
+
+        m_screenshot_buffer2.swap(m_screenshot_buffer);
+    }
+
+    if ((image_data_bpp < 1) || (image_data_bpp > 4))
+    {
+        VOGL_ASSERT_ALWAYS;
+        return false;
+    }
+
+    size_t png_size = 0;
+    void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(pImage_data, width, height, image_data_bpp, &png_size, 1, true);
+
+    // FIXME:
+    // Removing frame # for now so diffing two directories full of screenshots from different traces is easier. Once we add the original frame # in trims this can be fixed.
+    //dynamic_string screenshot_filename(cVarArg, "%s_GLCTR%08llu_%s_FR%06u_DCTR%05llu_W%04i_H%04i_FBO%04u_%s",
+    dynamic_string screenshot_filename(cVarArg, "%s_GLCTR%08llu_%s_DCTR%05llu_W%04i_H%04i_FBO%04u_%s",
                                        m_dump_framebuffer_on_draw_prefix.get_ptr(),
                                        (unsigned long long)m_pCur_gl_packet->get_call_counter(),
                                        g_vogl_entrypoint_descs[m_pCur_gl_packet->get_entrypoint_id()].m_pName,
-                                       m_frame_index,
+                                       //m_frame_index,
                                        (unsigned long long)m_frame_draw_counter,
                                        width, height,
                                        trace_read_framebuffer,
@@ -2983,10 +3034,23 @@ bool vogl_gl_replayer::dump_framebuffer(uint width, uint height, GLuint read_fra
 
     if (orig_samples != 0)
         screenshot_filename += dynamic_string(cVarArg, "_MSAA%u", orig_samples);
+
     if (replay_texture)
-        screenshot_filename += dynamic_string(cVarArg, "_TEX%04u", replay_texture);
+    {
+        GLuint trace_texture = 0;
+        get_shared_state()->m_shadow_state.m_textures.map_inv_handle_to_handle(replay_texture, trace_texture);
+        screenshot_filename += dynamic_string(cVarArg, "_TEX%04u", trace_texture);
+    }
+
     if (replay_rbo)
-        screenshot_filename += dynamic_string(cVarArg, "_RBO%04u", replay_rbo);
+    {
+        GLuint trace_rbo = 0;
+        get_shared_state()->m_shadow_state.m_rbos.map_inv_handle_to_handle(replay_rbo, trace_rbo);
+        screenshot_filename += dynamic_string(cVarArg, "_RBO%04u", trace_rbo);
+    }
+
+    if (pFilename_suffix)
+        screenshot_filename += pFilename_suffix;
 
     screenshot_filename += ".png";
 
@@ -3032,8 +3096,14 @@ void vogl_gl_replayer::dump_current_framebuffer()
     if (!draw_framebuffer_binding)
     {
         for (uint i = 0; i < max_draw_buffers; i++)
+        {
             if (draw_buffers[i] != GL_NONE)
-                dump_framebuffer(m_pWindow->get_width(), m_pWindow->get_height(), 0, draw_buffers[i], GL_NONE, 0, 0, 0);
+            {
+                dump_framebuffer(m_pWindow->get_width(), m_pWindow->get_height(), 0, draw_buffers[i], GL_NONE, 0, 0, 0, -1, false, GL_RGB, GL_UNSIGNED_BYTE, "");
+                dump_framebuffer(m_pWindow->get_width(), m_pWindow->get_height(), 0, draw_buffers[i], GL_NONE, 0, 0, 0, -1, true, GL_ALPHA, GL_UNSIGNED_BYTE, "_A");
+            }
+        }
+
         return;
     }
 
@@ -3079,6 +3149,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
             uint height = rbo_state.get_desc().get_int_or_default(GL_RENDERBUFFER_HEIGHT);
             uint samples = rbo_state.get_desc().get_int_or_default(GL_RENDERBUFFER_SAMPLES);
             GLenum internal_format = rbo_state.get_desc().get_int_or_default(GL_RENDERBUFFER_INTERNAL_FORMAT);
+            const vogl_internal_tex_format *pFmt = vogl_find_internal_texture_format(internal_format);
 
             if ((!width) || (!height) || (!internal_format))
             {
@@ -3137,7 +3208,14 @@ void vogl_gl_replayer::dump_current_framebuffer()
                     GL_ENTRYPOINT(glBlitFramebuffer)(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
                     if (!check_gl_error())
-                        dump_framebuffer(width, height, temp_fbo, GL_COLOR_ATTACHMENT0, internal_format, samples, 0, rbo_handle);
+                    {
+                        dump_framebuffer(width, height, temp_fbo, GL_COLOR_ATTACHMENT0, internal_format, samples, 0, rbo_handle, -1, false, GL_RGB, GL_UNSIGNED_BYTE, "");
+
+                        if ((pFmt) && (pFmt->m_comp_sizes[3]))
+                        {
+                            dump_framebuffer(width, height, temp_fbo, GL_COLOR_ATTACHMENT0, internal_format, samples, 0, rbo_handle, -1, true, GL_ALPHA, GL_UNSIGNED_BYTE, "_A");
+                        }
+                    }
                     else
                     {
                         process_entrypoint_warning("%s: Failed downsampling FBO %u color attachment %u's RBO %u to temporary RBO\n", VOGL_METHOD_NAME, draw_framebuffer_binding, i, rbo_handle);
@@ -3158,7 +3236,12 @@ void vogl_gl_replayer::dump_current_framebuffer()
             }
             else
             {
-                dump_framebuffer(width, height, draw_framebuffer_binding, draw_buffers[i], internal_format, 0, 0, rbo_handle);
+                dump_framebuffer(width, height, draw_framebuffer_binding, draw_buffers[i], internal_format, 0, 0, rbo_handle, -1, false, GL_RGB, GL_UNSIGNED_BYTE, "");
+
+                if ((pFmt) && (pFmt->m_comp_sizes[3]))
+                {
+                    dump_framebuffer(width, height, draw_framebuffer_binding, draw_buffers[i], internal_format, 0, 0, rbo_handle, -1, true, GL_ALPHA, GL_UNSIGNED_BYTE, "_A");
+                }
             }
         }
         else if (pAttachment->get_type() == GL_TEXTURE)
@@ -3216,6 +3299,8 @@ void vogl_gl_replayer::dump_current_framebuffer()
                 }
             }
 
+            const vogl_internal_tex_format *pFmt = vogl_find_internal_texture_format(internal_format);
+
             if ((!width) || (!height))
             {
                 process_entrypoint_warning("%s: Unable to determine FBO %u color attachment %u's texture %u's dimensions\n", VOGL_METHOD_NAME, draw_framebuffer_binding, i, tex_handle);
@@ -3224,11 +3309,17 @@ void vogl_gl_replayer::dump_current_framebuffer()
 
             if (samples > 1)
             {
+                // TODO: We have the code to do this now, just need to hook it up.
                 process_entrypoint_warning("%s: Can't dump multisample texture FBO attachments yet\n", VOGL_METHOD_NAME);
                 continue;
             }
 
-            dump_framebuffer(width, height, draw_framebuffer_binding, draw_buffers[i], internal_format, 0, tex_handle, 0);
+            dump_framebuffer(width, height, draw_framebuffer_binding, draw_buffers[i], internal_format, 0, tex_handle, 0, -1, false, GL_RGB, GL_UNSIGNED_BYTE, "");
+
+            if ((pFmt) && (pFmt->m_comp_sizes[3]))
+            {
+                dump_framebuffer(width, height, draw_framebuffer_binding, draw_buffers[i], internal_format, 0, tex_handle, 0, -1, true, GL_ALPHA, GL_UNSIGNED_BYTE, "_A");
+            }
         }
     }
 }
@@ -7081,19 +7172,26 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 return cStatusHardFailure;
             }
 
-#if VOGL_CLEAR_UNINITIALIZED_BUFS
             uint8_vec temp_vec;
-            if ((!data) && (size))
+            if (m_flags & cGLReplayerClearUnintializedBuffers)
             {
-                temp_vec.resize(static_cast<uint32>(size));
-                data = temp_vec.get_ptr();
+                if ((!data) && (size))
+                {
+                    temp_vec.resize(static_cast<uint32>(size));
+                    data = temp_vec.get_ptr();
+                }
             }
-#endif
 
             if (entrypoint_id == VOGL_ENTRYPOINT_glBufferData)
                 g_vogl_actual_gl_entrypoints.m_glBufferData(target, static_cast<GLsizeiptr>(size), data, usage);
             else
                 g_vogl_actual_gl_entrypoints.m_glBufferDataARB(target, static_cast<GLsizeiptrARB>(size), data, usage);
+
+            if (check_gl_error())
+            {
+                process_entrypoint_error("%s: glBufferData() failed\n", VOGL_METHOD_NAME);
+                return cStatusGLError;
+            }
 
             GLuint buffer = vogl_get_bound_gl_buffer(target);
             if (buffer)

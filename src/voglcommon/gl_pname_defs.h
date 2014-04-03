@@ -203,7 +203,7 @@ struct gl_pname_def_t
 		 { "glGet",	'I',	1,	"GL_INDEX_CLEAR_VALUE",  0x0C20},
 		 { "glGet",	'I',	1,	"GL_INDEX_WRITEMASK",  0x0C21},
 		 { "glGet",	'F',	4,	"GL_COLOR_CLEAR_VALUE",  0x0C22},
-		 { "glGet",	'B',	4,	"GL_COLOR_WRITEMASK",  0x0C23},
+         { "glGet,glGetI",	'B',	4,	"GL_COLOR_WRITEMASK",  0x0C23},
 		 { "glGet",	'B',	1,	"GL_INDEX_MODE",  0x0C30},
 		 { "glGet",	'B',	1,	"GL_RGBA_MODE",  0x0C31},
 		 { "glGet",	'B',	1,	"GL_DOUBLEBUFFER",  0x0C32},

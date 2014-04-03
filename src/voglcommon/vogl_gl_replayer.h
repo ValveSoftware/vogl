@@ -64,7 +64,8 @@ enum vogl_gl_replayer_flags
     cGLReplayerDumpScreenshots = 0x00001000,
     cGLReplayerHashBackbuffer = 0x00002000,
     cGLReplayerDumpBackbufferHashes = 0x00004000,
-    cGLReplayerSumHashing = 0x00008000
+    cGLReplayerSumHashing = 0x00008000,
+    cGLReplayerClearUnintializedBuffers = 0x00010000
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -291,7 +292,8 @@ private:
 
     status_t post_draw_call();
 
-    bool dump_framebuffer(uint width, uint height, GLuint read_framebuffer, GLenum read_buffer, GLenum internal_format, uint orig_samples, GLuint replay_texture, GLuint replay_rbo);
+    bool dump_framebuffer(uint width, uint height, GLuint read_framebuffer, GLenum read_buffer, GLenum internal_format, uint orig_samples, GLuint replay_texture, GLuint replay_rbo,
+                          int channel_to_write, bool force_rgb, GLuint fmt, GLuint type, const char *pFilename_suffix);
     void dump_current_framebuffer();
     void dump_current_shaders();
 
@@ -466,6 +468,7 @@ private:
     uint8_vec m_client_side_texcoord_data[VOGL_MAX_SUPPORTED_GL_TEXCOORD_ARRAYS];
 
     uint8_vec m_screenshot_buffer;
+    uint8_vec m_screenshot_buffer2;
 
     vogl::vector<uint8> m_index_data;
 

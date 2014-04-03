@@ -108,6 +108,7 @@ static command_line_param_desc g_command_line_param_descs[] =
         { "dump_framebuffer_on_draw_frame", 1, false, "Replay: Limit dumping framebuffer PNG files" },
         { "dump_framebuffer_on_draw_first_gl_call", 1, false, "Replay: Limit dumping framebuffer PNG files" },
         { "dump_framebuffer_on_draw_last_gl_call", 1, false, "Replay: Limit dumping framebuffer PNG files" },
+        { "clear_uninitialized_bufs", 0, false, "glBufferData(): Ensure buffers are unitialized to all-zeros when data param is NULL" },
         { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
         { "pause_on_exit", 0, false, "Replay: Wait for a keypress on exit" },
         { "debug_test_snapshot_serialization", 0, false, "Interactive Replay Mode: Immediately serialize/deserialize state snapshots after taking them" },
@@ -615,6 +616,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
               { "dump_backbuffer_hashes", cGLReplayerDumpBackbufferHashes },
               { "sum_hashing", cGLReplayerSumHashing },
               { "dump_framebuffer_on_draw", cGLReplayerDumpFramebufferOnDraws },
+              { "clear_uninitialized_bufs", cGLReplayerClearUnintializedBuffers },
           };
 
     for (uint i = 0; i < sizeof(s_replayer_command_line_params) / sizeof(s_replayer_command_line_params[0]); i++)
