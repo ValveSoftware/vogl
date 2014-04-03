@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 include("${SRC_DIR}/build_options.cmake")
 
 set(SRC_LIST voglgen.cpp)
-set(SPEC_DIR "${CMAKE_SOURCE_DIR}/../glspec")
+set(SPEC_DIR "${CMAKE_SOURCE_DIR}/glspec")
 
 add_definitions(-DTIXML_USE_STL)
 
@@ -25,7 +25,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${PROJECT_NAME} --specdir ${SPEC_DIR}
                    COMMAND mkdir -p "${CMAKE_BINARY_DIR}/voglinc/"
                    COMMAND mv "${SPEC_DIR}/*.inc" "${CMAKE_BINARY_DIR}/voglinc/"
-                   COMMAND mv "${SPEC_DIR}/libvogltrace_linker_script.txt" "${CMAKE_SOURCE_DIR}/vogltrace/")
+                   COMMAND mv "${SPEC_DIR}/libvogltrace_linker_script.txt" "${CMAKE_SOURCE_DIR}/src/vogltrace/")
 add_custom_target(voglgen_make_inc DEPENDS ${PROJECT_NAME})
 
 build_options_finalize()
