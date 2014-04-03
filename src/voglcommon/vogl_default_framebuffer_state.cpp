@@ -291,7 +291,7 @@ bool vogl_default_framebuffer_state::snapshot(const vogl_context_info &context_i
     return true;
 }
 
-bool vogl_default_framebuffer_state::restore(const vogl_context_info &context_info) const
+bool vogl_default_framebuffer_state::restore(const vogl_context_info &context_info, bool restore_front_buffer) const
 {
     VOGL_NOTE_UNUSED(context_info);
 
@@ -311,6 +311,9 @@ bool vogl_default_framebuffer_state::restore(const vogl_context_info &context_in
 
     for (uint i = 0; i < cDefFramebufferTotal; i++)
     {
+        if ((!restore_front_buffer) && ((i == cDefFramebufferFrontLeft) || (i == cDefFramebufferFrontRight)))
+            continue;
+
         if (!m_textures[i].is_valid())
             continue;
 

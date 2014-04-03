@@ -65,7 +65,8 @@ enum vogl_gl_replayer_flags
     cGLReplayerHashBackbuffer = 0x00002000,
     cGLReplayerDumpBackbufferHashes = 0x00004000,
     cGLReplayerSumHashing = 0x00008000,
-    cGLReplayerClearUnintializedBuffers = 0x00010000
+    cGLReplayerClearUnintializedBuffers = 0x00010000,
+    cGLReplayerDisableRestoreFrontBuffer = 0x00020000
 };
 
 //----------------------------------------------------------------------------------------------------------------------

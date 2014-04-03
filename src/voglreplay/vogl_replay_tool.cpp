@@ -124,6 +124,7 @@ static command_line_param_desc g_command_line_param_descs[] =
         { "loop_len", 1, false, "Replay: loop mode's loop length" },
         { "loop_count", 1, false, "Replay: loop mode's loop count" },
         { "draw_kill_max_thresh", 1, false, "Replay: Enable draw kill mode during looping to visualize order of draws, sets the max # of draws before counter resets to 0" },
+        { "disable_frontbuffer_restore", 0, false, "Replay: Do not restore the front buffer's contents when restoring a state snapshot" },
 
         // find specific
         { "find_func", 1, false, "Find: Limit the find to only the specified function name POSIX regex pattern" },
@@ -617,6 +618,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
               { "sum_hashing", cGLReplayerSumHashing },
               { "dump_framebuffer_on_draw", cGLReplayerDumpFramebufferOnDraws },
               { "clear_uninitialized_bufs", cGLReplayerClearUnintializedBuffers },
+              { "disable_frontbuffer_restore", cGLReplayerDisableRestoreFrontBuffer },
           };
 
     for (uint i = 0; i < sizeof(s_replayer_command_line_params) / sizeof(s_replayer_command_line_params[0]); i++)

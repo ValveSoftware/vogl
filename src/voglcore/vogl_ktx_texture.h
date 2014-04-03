@@ -250,6 +250,7 @@ namespace vogl
         bool init_2D_array(uint width, uint height, uint num_mips, uint array_size, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
         bool init_3D(uint width, uint height, uint depth, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
         bool init_cubemap(uint dim, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
+        bool init_cubemap_array(uint dim, uint num_mips, uint array_size, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
 
         bool check_header() const;
         bool consistency_check() const;

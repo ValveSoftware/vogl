@@ -88,7 +88,18 @@ bool vogl_replay_window::open(int width, int height, int samples)
     // Get a new fb config that meets our attrib requirements
 
     m_pFB_configs = GL_ENTRYPOINT(glXChooseFBConfig)(m_dpy, DefaultScreen(m_dpy), fbAttribs, &m_num_fb_configs);
+    if ((!m_pFB_configs) || (!m_num_fb_configs))
+    {
+        console::error("%s: glXChooseFBConfig() failed!\n", VOGL_METHOD_NAME);
+        return false;
+    }
+
     XVisualInfo *pVisual_info = GL_ENTRYPOINT(glXGetVisualFromFBConfig)(m_dpy, m_pFB_configs[0]);
+    if (!pVisual_info)
+    {
+        console::error("%s: glXGetVisualFromFBConfig() failed!\n", VOGL_METHOD_NAME);
+        return false;
+    }
 
     // Now create an X window
     XSetWindowAttributes winAttribs;

@@ -951,6 +951,25 @@ namespace vogl
         return true;
     }
 
+    bool ktx_texture::init_cubemap_array(uint dim, uint num_mips, uint array_size, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type)
+    {
+        clear();
+
+        m_header.m_pixelWidth = dim;
+        m_header.m_pixelHeight = dim;
+        m_header.m_numberOfMipmapLevels = num_mips;
+        m_header.m_numberOfArrayElements = array_size;
+        m_header.m_glInternalFormat = ogl_internal_fmt;
+        m_header.m_glFormat = ogl_fmt;
+        m_header.m_glType = ogl_type;
+        m_header.m_numberOfFaces = 6;
+
+        if (!compute_pixel_info())
+            return false;
+
+        return true;
+    }
+
     bool ktx_texture::check_header() const
     {
         if (((get_num_faces() != 1) && (get_num_faces() != 6)) || (!m_header.m_pixelWidth))

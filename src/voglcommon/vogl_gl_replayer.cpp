@@ -9038,6 +9038,38 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+        case VOGL_ENTRYPOINT_glBindImageTexture:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glBindImageTexture;
+
+            GLuint trace_texture = texture;
+            map_handle(get_shared_state()->m_shadow_state.m_textures, trace_texture, texture);
+
+            VOGL_REPLAY_CALL_GL_HELPER_glBindImageTexture;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glCopyImageSubData:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glCopyImageSubData
+
+            GLuint trace_src_name = srcName;
+            GLuint trace_dst_name = dstName;
+
+            if (srcTarget == GL_RENDERBUFFER)
+                map_handle(get_shared_state()->m_shadow_state.m_rbos, trace_src_name, srcName);
+            else
+                map_handle(get_shared_state()->m_shadow_state.m_textures, trace_src_name, srcName);
+
+            if (dstTarget == GL_RENDERBUFFER)
+                map_handle(get_shared_state()->m_shadow_state.m_rbos, trace_dst_name, dstName);
+            else
+                map_handle(get_shared_state()->m_shadow_state.m_textures, trace_dst_name, dstName);
+
+            VOGL_REPLAY_CALL_GL_HELPER_glCopyImageSubData;
+
+            break;
+        }
         case VOGL_ENTRYPOINT_glGetDebugMessageLogARB:
         case VOGL_ENTRYPOINT_glGetObjectLabel:
         case VOGL_ENTRYPOINT_glGetObjectPtrLabel:
@@ -11458,7 +11490,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
                 {
                     restored_default_framebuffer = true;
 
-                    if (!snapshot.get_default_framebuffer().restore(m_pCur_context_state->m_context_info))
+                    if (!snapshot.get_default_framebuffer().restore(m_pCur_context_state->m_context_info, (m_flags & cGLReplayerDisableRestoreFrontBuffer) == 0))
                     {
                         vogl_warning_printf("%s: Failed restoring default framebuffer!\n", VOGL_METHOD_NAME);
                     }

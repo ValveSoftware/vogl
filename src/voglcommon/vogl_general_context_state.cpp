@@ -1172,6 +1172,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 case GL_COLOR_WRITEMASK:
                 case GL_DEPTH_WRITEMASK:
                 case GL_SAMPLE_COVERAGE_INVERT:
+                case GL_IMAGE_BINDING_LAYERED:
                 {
                     // handled below
                     break;
@@ -2309,6 +2310,45 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     ADD_PROCESSED_STATE(GL_CURRENT_RASTER_INDEX, 0);
     //ADD_PROCESSED_STATE(GL_CURRENT_RASTER_SECONDARY_COLOR, 0); // can't retrieve on AMD's v13 drivers
 
+    // Image bindings
+    GLint max_image_units = 0;
+    GL_ENTRYPOINT(glGetIntegerv)(GL_MAX_IMAGE_UNITS, &max_image_units);
+    VOGL_CHECK_GL_ERROR;
+
+    for (int i = 0; i < max_image_units; i++)
+    {
+        GLuint trace_binding = 0;
+        if (!get(GL_IMAGE_BINDING_NAME, i, &trace_binding, 1, true))
+            continue;
+
+        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_NAME, i);
+
+        GLuint replay_binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, trace_binding));
+
+        int level = 0;
+        get(GL_IMAGE_BINDING_LEVEL, i, &level, 1, true);
+        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_LEVEL, i);
+
+        bool layered = false;
+        get(GL_IMAGE_BINDING_LAYERED, i, &layered, 1, true);
+        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_LAYERED, i);
+
+        GLint layer = 0;
+        get(GL_IMAGE_BINDING_LAYER, i, &layer, 1, true);
+        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_LAYER, i);
+
+        GLenum access = 0;
+        get(GL_IMAGE_BINDING_ACCESS, i, &access, 1, true);
+        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_ACCESS, i);
+
+        GLenum format = GL_NONE;
+        get(GL_IMAGE_BINDING_FORMAT, i, &format, 1, true);
+        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_FORMAT, i);
+
+        GL_ENTRYPOINT(glBindImageTexture)(i, replay_binding, level, layered, layer, access, format);
+        VOGL_CHECK_GL_ERROR;
+    }
+
     // TODO: pixel maps?
 
     //----------------------------------------
@@ -2617,6 +2657,7 @@ bool vogl_general_context_state::remap_handles(vogl_handle_remapper &remapper)
             case GL_TEXTURE_BINDING_1D:
             case GL_TEXTURE_BINDING_2D:
             case GL_TEXTURE_BINDING_3D:
+            case GL_IMAGE_BINDING_NAME:
                 handle_namespace = VOGL_NAMESPACE_TEXTURES;
                 break;
         }

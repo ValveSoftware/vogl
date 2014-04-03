@@ -109,7 +109,7 @@ public:
     ~vogl_default_framebuffer_state();
 
     bool snapshot(const vogl_context_info &context_info, const vogl_default_framebuffer_attribs &fb_attribs);
-    bool restore(const vogl_context_info &context_info) const;
+    bool restore(const vogl_context_info &context_info, bool restore_front_buffer) const;
 
     void clear();
 

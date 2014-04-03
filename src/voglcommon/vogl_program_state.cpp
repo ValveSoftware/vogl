@@ -933,6 +933,10 @@ bool vogl_program_state::restore_uniforms(uint32 handle32, const vogl_context_in
                 case GL_SAMPLER_BUFFER:
                 case GL_SAMPLER_2D_RECT:
                 case GL_SAMPLER_2D_RECT_SHADOW:
+                case GL_SAMPLER_CUBE_MAP_ARRAY:
+                case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
+                case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
+                case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
                 case GL_INT_SAMPLER_1D:
                 case GL_INT_SAMPLER_2D:
                 case GL_INT_SAMPLER_3D:

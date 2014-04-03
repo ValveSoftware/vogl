@@ -652,3 +652,5 @@ glPopDebugGroup
 glDebugMessageControl
 glDebugMessageControlARB
 glPushDebugGroup
+glDispatchCompute
+glDispatchComputeIndirect

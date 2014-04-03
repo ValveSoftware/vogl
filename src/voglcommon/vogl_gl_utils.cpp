@@ -1879,6 +1879,11 @@ int vogl_gl_get_uniform_size_in_GLints(GLenum type)
         case GL_SAMPLER_BUFFER:
         case GL_SAMPLER_2D_RECT:
         case GL_SAMPLER_2D_RECT_SHADOW:
+        case GL_SAMPLER_CUBE_MAP_ARRAY:
+        case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
+        case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
+        case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
+
         case GL_INT_SAMPLER_1D:
         case GL_INT_SAMPLER_2D:
         case GL_INT_SAMPLER_3D:
@@ -2086,6 +2091,10 @@ int vogl_gl_get_uniform_base_type(GLenum type)
         case GL_SAMPLER_BUFFER:
         case GL_SAMPLER_2D_RECT:
         case GL_SAMPLER_2D_RECT_SHADOW:
+        case GL_SAMPLER_CUBE_MAP_ARRAY:
+        case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
+        case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
+        case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
         case GL_INT_SAMPLER_1D:
         case GL_INT_SAMPLER_2D:
         case GL_INT_SAMPLER_3D:
