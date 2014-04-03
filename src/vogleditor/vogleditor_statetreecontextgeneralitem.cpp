@@ -108,7 +108,6 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
             pNode->appendChild(pBoolItem); }\
     } pNode->setValue(tmp.sprintf("[%d]", pNode->childCount())); this->appendChild(pNode);}
 
-    // Start of version 1.0 - 2.1
     GET_INT(GL_ACCUM_ALPHA_BITS, 1);
     GET_INT(GL_ACCUM_BLUE_BITS, 1);
     GET_INT(GL_ACCUM_GREEN_BITS, 1);
@@ -172,6 +171,7 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
     GET_BOOL(GL_COLOR_SUM_ARB, 1);
     GET_BOOL(GL_COLOR_TABLE, 1);
     GET_BOOL(GL_COLOR_WRITEMASK, 4);
+    GET_INDEXED_BOOL(GL_COLOR_WRITEMASK, 4, maxDrawBuffers);
 
     GET_INT(GL_NUM_COMPRESSED_TEXTURE_FORMATS, 1);
 
