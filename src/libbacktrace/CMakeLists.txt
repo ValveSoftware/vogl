@@ -138,6 +138,9 @@ check_function_exists (strnlen HAVE_DECL_STRNLEN)
 
 check_function_exists (getexecname HAVE_GETEXECNAME)
 
+include (CheckLibraryExists)
+check_library_exists (unwind unw_backtrace_skip "" HAVE_UNW_BACKTRACE_SKIP)
+
 include (CheckIncludeFile)
 check_include_file (dwarf.h HAVE_DWARF_H)
 if (NOT HAVE_DWARF_H)
@@ -174,11 +177,6 @@ add_library (backtrace STATIC EXCLUDE_FROM_ALL
     btrace.cpp
     libelftc_dem_gnu3.c
 )
-
-if(HAS_UPDATED_LIBUNWIND)
-  add_definitions(-DCMAKE_HAS_UPDATED_LIBUNWIND)
-endif(HAS_UPDATED_LIBUNWIND)
-
 
 target_link_libraries(backtrace voglcore)
 
