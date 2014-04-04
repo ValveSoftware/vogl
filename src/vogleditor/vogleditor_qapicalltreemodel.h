@@ -27,14 +27,12 @@
 #define VOGLEDITOR_QAPICALLTREEMODEL_H
 
 #include <QAbstractItemModel>
-#include <QColor>
-#include <QList>
 #include <QLinkedList>
-#include <QVariant>
 
-#include "vogleditor_frameitem.h"
-#include "vogleditor_apicalltreeitem.h"
+#include "vogl_common.h"
 
+class QVariant;
+class vogleditor_apiCallTreeItem;
 class vogl_trace_file_reader;
 struct vogl_trace_gl_entrypoint_packet;
 

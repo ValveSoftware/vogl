@@ -1,3 +1,5 @@
+#include <QVBoxLayout>
+
 #include "vogleditor_qframebufferexplorer.h"
 #include "ui_vogleditor_qframebufferexplorer.h"
 

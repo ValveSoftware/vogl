@@ -23,6 +23,8 @@
  *
  **************************************************************************/
 
+#include <QColor>
+
 #include "vogleditor_qapicalltreemodel.h"
 
 #include "vogl_common.h"
@@ -30,6 +32,8 @@
 #include "vogl_trace_packet.h"
 #include "vogl_trace_stream_types.h"
 #include "vogleditor_gl_state_snapshot.h"
+#include "vogleditor_frameitem.h"
+#include "vogleditor_apicalltreeitem.h"
 
 vogleditor_QApiCallTreeModel::vogleditor_QApiCallTreeModel(vogl_trace_file_reader* reader, QObject *parent)
     : QAbstractItemModel(parent)

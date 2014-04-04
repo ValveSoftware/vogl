@@ -28,11 +28,11 @@
 
 #include <QAbstractItemModel>
 #include <QList>
-#include <QVariant>
 
-#include "vogleditor_statetreeitem.h"
 #include "vogleditor_gl_state_snapshot.h"
 
+class QVariant;
+class vogleditor_stateTreeItem;
 class vogleditor_stateTreeProgramItem;
 class vogleditor_stateTreeContextItem;
 

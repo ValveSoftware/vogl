@@ -23,8 +23,12 @@
  *
  **************************************************************************/
 
+#include <QColor>
+
+#include "vogleditor_apicalltreeitem.h"
 #include "vogleditor_qapicalltreemodel.h"
 
+#include "vogleditor_frameitem.h"
 #include "vogl_common.h"
 #include "vogl_trace_file_reader.h"
 #include "vogl_trace_packet.h"

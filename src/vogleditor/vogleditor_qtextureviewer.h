@@ -34,7 +34,6 @@ class QPaintEvent;
 QT_END_NAMESPACE
 
 #include <QBrush>
-#include <QFont>
 #include <QPen>
 
 #include "vogl_core.h"

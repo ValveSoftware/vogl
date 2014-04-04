@@ -24,6 +24,10 @@
  **************************************************************************/
 
 #include "vogleditor_apicalltimelinemodel.h"
+#include "vogleditor_timelineitem.h"
+#include "vogleditor_qapicalltreemodel.h"
+#include "vogleditor_apicalltreeitem.h"
+#include "vogleditor_frameitem.h"
 
 vogleditor_apiCallTimelineModel::vogleditor_apiCallTimelineModel(vogleditor_apiCallTreeItem* pRootApiCall) :
    m_pRootApiCall(pRootApiCall),

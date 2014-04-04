@@ -24,6 +24,7 @@
  **************************************************************************/
 
 #include "vogleditor_timelinemodel.h"
+#include "vogleditor_timelineitem.h"
 
 vogleditor_timelineModel::vogleditor_timelineModel()
    : m_rootItem(NULL)

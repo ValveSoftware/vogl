@@ -12,7 +12,14 @@
 #include "vogleditor_statetreesyncitem.h"
 #include "vogleditor_statetreetexenvitem.h"
 #include "vogleditor_statetreevertexarrayitem.h"
-#include "vogl_gl_state_snapshot.h"
+#include "vogl_sync_object.h"
+#include "vogleditor_statetreetexenvitem.h"
+#include "vogleditor_statetreesampleritem.h"
+#include "vogleditor_statetreetextureitem.h"
+#include "vogleditor_statetreelightitem.h"
+#include "vogleditor_statetreecontextgeneralitem.h"
+#include "vogleditor_statetreecontextinfoitem.h"
+#include "vogleditor_statetreebufferitem.h"
 
 struct vogl_gl_object_state_handle_less_than
 {

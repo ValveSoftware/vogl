@@ -1,4 +1,6 @@
 #include "vogleditor_statetreearbprogramitem.h"
+#include "vogl_arb_program_state.h"
+
 
 //=============================================================================
 

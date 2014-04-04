@@ -2,9 +2,9 @@
 #define VOGLEDITOR_STATETREECONTEXTGENERALITEM_H
 
 #include "vogleditor_statetreeitem.h"
-
-#include "vogl_state_vector.h"
 #include "vogl_general_context_state.h"
+
+class vogl_state_vector;
 
 class vogleditor_stateTreeContextGeneralCompressTextureFormatItem : public vogleditor_stateTreeDatatypeItem<int>
 {

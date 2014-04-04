@@ -27,7 +27,9 @@
 #define VOGLEDITOR_APICALLTIMELINEMODEL_H
 
 #include "vogleditor_timelinemodel.h"
-#include "vogleditor_qapicalltreemodel.h"
+#include <stdint.h>
+
+class vogleditor_apiCallTreeItem;
 
 class vogleditor_apiCallTimelineModel : public vogleditor_timelineModel
 {
