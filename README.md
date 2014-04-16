@@ -3,6 +3,8 @@ vogl
 
 ## NOTE ##
 
+April 16, 2014. Note Update. Vogl_src has been pushed and history overwritten. I'm currently updating READMEs and all that.
+
 This is a source only branch of vogl. We're going to let it cook for a couple weeks and it will be moved over to replace the vogl repository.
 **WARNING**: History has been re-written to remove the larger binaries...
 
