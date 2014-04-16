@@ -1,69 +1,58 @@
 vogl
 =============
 
-## NOTE ##
+#### NOTE ####
 
-April 16, 2014. Note Update. Vogl_src has been pushed and history overwritten. I'm currently updating READMEs and all that.
+April 16, 2014: Vogl history has been completely and utterly trounced. The original repository had an entire chroot build system that most folks weren't interested in. A few contributors (thanks Carl & Sir Anthony) took the time to build a much smaller source only vogl repository which we've replaced the original one with.
 
-This is a source only branch of vogl. We're going to let it cook for a couple weeks and it will be moved over to replace the vogl repository.
-**WARNING**: History has been re-written to remove the larger binaries...
+A separate chroot repository (which will build this source repository) is now here:
+
+https://bitbucket.org/raddebugger/vogl_chroot
 
 ## Warning ##
 
-This project is alpha^2 right now. If you are up for suffering through a bit of pain with early releases, please continue on - we'd love to have your help...
+This project is alpha^2. If you are up for suffering through a bit of pain with early releases, please jump in - we'd love to have your help...
 
-## Build ##
+## Dependencies ##
 
-To build the vogl chroots (uses schroot), do the following:
+The chroot configuration script should be a good reference for vogl dependencies. It is located here:
 
-    vogl/bin/chroot_build.sh --i386 --amd64
+https://bitbucket.org/raddebugger/vogl_chroot/src/3b278d4a40d936e75554a194f8eb24a42f4464b1/bin/chroot_configure.sh?at=master
 
-You should now be ready to build in your chroots. Something like any of these:
+## Get Source and Build ##
 
-    vogl/bin/mkvogl.sh --release --amd64
-    vogl/bin/mkvogl.sh --debug --amd64 --i386 --clang34 --verbose
-    vogl/bin/mkvogl.sh --release --amd64 --i386 --gcc48 --CRNLIB_ENABLE_ASSERTS
+```
+git clone https://github.com/ValveSoftware/vogl.git  
+mkdir -p vogl/vogl_build/bin/release64 && cd $_  
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_X64=On ../../..  
+make -j 10
+```
 
-Note that you do _not_ have to use the chroots or mkvogl.sh to build. You could do your own cmake (cmake vogl/src) and go from there. It's up to you to get the dependencies correct though. Look at vogl/bin/chroot_configure.sh to see how the chroots are set up. The source for mkvogl is in vogl/bin/src/mkvogl.cpp - it's just a simple cpp wrapper around cmake.
+The binaries are placed in the vogl/vogl_build/bin directory.
 
-If you do use the chroots, do not build from within an encrypted home folder, as files in an encrypted home folder will not be visible from within the chroot, causing the build script to fail.
+For debug builds, use "-DCMAKE_BUILD_TYPE=Debug"  
+For 32-bit builds, use "-DBUILD_X64=On"  
 
 ## Capturing ##
 
-    vogl/bin/steamlauncher.sh --gameid vogl/vogl_build/bin/glxspheres32
-    vogl/bin/steamlauncher.sh --gameid vogl/vogl_build/bin/glxspheres64 --amd64
+```
+cd vogl_build/bin  
+VOGL_CMD_LINE="--vogl_tracefile vogltrace.glxspheres64.bin" LD_PRELOAD=$(readlink -f libvogltrace64.so) ./glxspheres64  
+```
 
-You should now have something like the following in your temp directory:
+For capturing Steam games, please see the steamlauncher.sh script in the chroot repository:
 
-    /tmp/vogltrace.glxspheres64.2014_01_20-16_19_34.bin
+https://bitbucket.org/raddebugger/vogl_chroot/src/3b278d4a40d936e75554a194f8eb24a42f4464b1/bin/src/sl.cpp?at=master
+
+We are currently working on making it much easier to launch and profile Steam apps.
 
 ## Replay ##
 
-    vogl/vogl_build/bin/voglreplay64 /tmp/vogltrace.glxspheres64.2014_01_20-16_19_34.bin
+```
+./voglreplay64 vogltrace.glxspheres64.bin
+```
 
-or
-
-    vogl/vogl_build/bin/vogleditor64 /tmp/vogltrace.glxspheres64.2014_01_20-16_19_34.bin
-
-## Directory structure ##
-
-The directory structure for vogl currently looks like this:
-
-        vogl/
-            bin/
-                chroot_build.sh ; script to build/rebuild chroots
-                chroot_configure.sh ; script to build libs to chroots (used by chroot_build.sh)
-                gligen_run.sh ; run vogl_build/bin64/gligen.sh (put in glspec)
-                gligen_copy_inc_files.sh ; copy glspec/*.inc
-                set_compiler.sh ; switch chroot default compiler
-            external/ ; external source (libunwind, etc.)
-            glspec/
-            src/ ; vogl source
-            vogl_build/
-                bin/ ; destination for binaries
-            vogl_extbuild/
-                i386/   ; external projects untar'd & built here
-                x86_64/ ;
+or launch `vogleditor64` and open trace file.
 
 ## QtCreator tagging and building ##
 
@@ -71,7 +60,7 @@ The directory structure for vogl currently looks like this:
 
 ## Vogl Dev List ##
 
-    http://lists.voglproj.com/listinfo.cgi/dev-voglproj.com
+  http://lists.voglproj.com/listinfo.cgi/dev-voglproj.com
 
 ## Useful Links ##
 
@@ -90,4 +79,3 @@ Specifications:
 * 4.0: http://www.opengl.org/registry/doc/glspec40.core.20100311.pdf
 * 3.3: http://www.opengl.org/registry/doc/glspec33.core.20100311.withchanges.pdf
 * 2.1: http://www.opengl.org/documentation/specs/version2.1/glspec21.pdf
-
