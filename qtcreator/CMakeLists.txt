@@ -52,10 +52,6 @@ endmacro()
 RemoveSrcFiles("/[.]git/")
 RemoveSrcFiles("/[.]hg/")
 
-#RemoveSrcFiles("/src/OGLSuperBible/")
-#RemoveSrcFiles("/src/OGLSamples_GTruc/")
-#RemoveSrcFiles(".~")
-
 # Spew out all files we've found.
 set(dir_list "")
 set(count 0)

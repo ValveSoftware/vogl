@@ -49,16 +49,22 @@ add_shared_linker_flag("-Wl,--version-script=${PROJECT_SOURCE_DIR}/libvogltrace_
 add_library(${PROJECT_NAME} SHARED ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
+find_library(LibJpegTurbo_LIBRARY
+    NAMES libturbojpeg.so libturbojpeg.so.0 turbojpeg.dll libturbojpeg.dylib
+    PATHS /opt/libjpeg-turbo/lib
+  )
+
 target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
-    backtrace
+    backtracevogl
     voglcommon
     voglcore
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_DL_LIBS}
     ${X11_LIBRARIES}
     rt
-    turbojpeg
+    # turbojpeg
+    ${LibJpegTurbo_LIBRARY}
     )
 
 build_options_finalize()

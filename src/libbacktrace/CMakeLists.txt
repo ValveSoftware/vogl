@@ -31,7 +31,7 @@
 
 cmake_minimum_required (VERSION 2.8)
 
-project (libbacktrace)
+project (libbacktracevogl)
 
 set (BACKTRACE_SUPPORTED 1)
 
@@ -42,6 +42,7 @@ check_symbol_exists (_Unwind_GetIPInfo unwind.h HAVE_GETIPINFO)
 if (HAVE_BACKTRACE)
     set (BACKTRACE_FILE backtrace.c simple.c)
 else ()
+    message("WARNING: No unwind.h, setting BACKTRACE_SUPPORTED=0")
     set (BACKTRACE_FILE nounwind.c)
     set (BACKTRACE_SUPPORTED 0)
 endif ()
@@ -144,6 +145,7 @@ check_library_exists (unwind unw_backtrace_skip "" HAVE_UNW_BACKTRACE_SKIP)
 include (CheckIncludeFile)
 check_include_file (dwarf.h HAVE_DWARF_H)
 if (NOT HAVE_DWARF_H)
+    message("WARNING: No dwarf.h, setting BACKTRACE_SUPPORTED=0")
     set (FORMAT_FILE unknown.c)
     set (BACKTRACE_SUPPORTED 0)
 endif ()
@@ -163,7 +165,7 @@ include_directories (
     ${LIBUNWIND_INCLUDE_DIR}
 )
 
-add_library (backtrace STATIC EXCLUDE_FROM_ALL
+add_library (backtracevogl STATIC EXCLUDE_FROM_ALL
     ${BACKTRACE_FILE}
     ${FORMAT_FILE}
     ${VIEW_FILE}
@@ -178,12 +180,12 @@ add_library (backtrace STATIC EXCLUDE_FROM_ALL
     libelftc_dem_gnu3.c
 )
 
-target_link_libraries(backtrace voglcore)
+target_link_libraries(backtracevogl voglcore)
 
 find_library(LIBUNWIND_LIBRARY NAMES unwind libunwind REQUIRE)
-target_link_libraries(backtrace ${LIBUNWIND_LIBRARY} ${LIBLZMA_LIBRARIES})
+target_link_libraries(backtracevogl ${LIBUNWIND_LIBRARY} ${LIBLZMA_LIBRARIES})
 
-set_target_properties (backtrace PROPERTIES
+set_target_properties (backtracevogl PROPERTIES
     COMPILE_FLAGS "${CMAKE_SHARED_LIBRARY_C_FLAGS}"
 )
 
@@ -192,6 +194,6 @@ if (ENABLE_LIBBACKTRACE_TEST)
     enable_testing ()
     add_executable (btest btest.c)
     set_property (SOURCE btest.c PROPERTY COMPILE_FLAGS "-g")
-    target_link_libraries (btest backtrace)
+    target_link_libraries (btest backtracevogl)
     add_test (test-libbacktrace btest)
 endif ()

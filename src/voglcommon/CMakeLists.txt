@@ -70,7 +70,7 @@ add_compiler_flag("-fPIC")
 
 add_library(${PROJECT_NAME} ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
-target_link_libraries(${PROJECT_NAME} backtrace)
+target_link_libraries(${PROJECT_NAME} backtracevogl)
 
 build_options_finalize()
 

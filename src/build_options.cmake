@@ -244,7 +244,12 @@ string(REPLACE ";" " " CMAKE_EXE_LINKER_FLAGS     "${CMAKE_EXE_LINK_FLAGS_LIST}"
 # Linker flags (shared)
 string(REPLACE ";" " " CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINK_FLAGS_LIST}")
 
-set(RADPROJ_BUILD_DIR ${CMAKE_SOURCE_DIR}/vogl_build)
+# If building from inside chroot project, use vogl_build there.
+if(EXISTS "${CMAKE_SOURCE_DIR}/../bin/chroot_build.sh")
+    set(RADPROJ_BUILD_DIR ${CMAKE_SOURCE_DIR}/../vogl_build)
+else()
+    set(RADPROJ_BUILD_DIR ${CMAKE_SOURCE_DIR}/vogl_build)
+endif()
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${RADPROJ_BUILD_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RADPROJ_BUILD_DIR}/bin)
 

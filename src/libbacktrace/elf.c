@@ -1241,6 +1241,7 @@ backtrace_initialize (struct backtrace_state *state, const char *filename,
 
   return 1;
 }
+
 static void
 elf_get_uuid_error_callback(void *data, const char *msg, int errnum)
 {

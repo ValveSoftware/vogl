@@ -166,7 +166,7 @@ target_link_libraries(${PROJECT_NAME}
 	${QT_QTGUI_LIBRARY} 
 	${TELEMETRY_LIBRARY}
 	${X11_X11_LIB}
-	backtrace
+	backtracevogl
 	voglcommon
     voglcore
     ${CMAKE_DL_LIBS}

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/src/cmake/Modules/")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SRC_DIR}/cmake/Modules/")
 
 find_package(LibLZMA REQUIRED)
 find_package(TinyXML REQUIRED)

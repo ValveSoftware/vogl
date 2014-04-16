@@ -21,7 +21,7 @@ add_executable(${PROJECT_NAME} ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
 target_link_libraries(${PROJECT_NAME}
-    backtrace
+    backtracevogl
     voglcommon
     ${CMAKE_DL_LIBS}
     voglcore
