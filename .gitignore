@@ -3,6 +3,7 @@ CMakeFiles/
 Makefile
 cmake_install.cmake
 qtcreator/VoglProj.cbp
+qtcreator/CMakeLists.txt.user
 src/libbacktrace/backtrace-supported.h
 src/libbacktrace/config.h
 src/libbacktrace/libbacktrace.a
