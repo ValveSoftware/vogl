@@ -13,6 +13,14 @@ set(VOGL_DIR
     "${CMAKE_CURRENT_SOURCE_DIR}/../bin"
     "${CMAKE_CURRENT_SOURCE_DIR}/../glspec")
 
+# Check for vogl_chroot project right above us.
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../bin/mkvogl.sh")
+    set(VOGL_DIR
+        ${VOGL_DIR}
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../bin"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../tests")
+endif()
+
 message("VOGL_DIR is ${VOGL_DIR}")
 message("CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 

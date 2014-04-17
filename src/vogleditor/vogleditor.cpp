@@ -24,12 +24,8 @@
  **************************************************************************/
 
 #include <QFileDialog>
-#include <QHBoxLayout>
-#include <QItemSelection>
 #include <QPalette>
 #include <QProcess>
-#include <QSortFilterProxyModel>
-#include <QSpacerItem>
 #include <QToolButton>
 #include <QMessageBox>
 #include <QCoreApplication>
@@ -40,14 +36,8 @@
 #include "vogleditor_qapicalltreemodel.h"
 #include "vogleditor_apicalltimelinemodel.h"
 
-#include "vogl_platform.h"
-#include "vogl_assert.h"
 #include "vogl_file_utils.h"
-#include "vogl_find_files.h"
 
-#include "vogl_texture_format.h"
-#include "vogl_trace_file_reader.h"
-#include "vogl_trace_file_writer.h"
 #include "vogleditor_output.h"
 #include "vogleditor_settings.h"
 #include "vogleditor_statetreetextureitem.h"
@@ -55,8 +45,13 @@
 #include "vogleditor_statetreeshaderitem.h"
 #include "vogleditor_statetreeframebufferitem.h"
 #include "vogleditor_qstatetreemodel.h"
-#include "vogleditor_qtextureexplorer.h"
 #include "vogleditor_qtrimdialog.h"
+#include "vogleditor_qframebufferexplorer.h"
+#include "vogleditor_qprogramexplorer.h"
+#include "vogleditor_qshaderexplorer.h"
+#include "vogleditor_qtimelineview.h"
+#include "vogleditor_apicalltreeitem.h"
+#include "vogleditor_frameitem.h"
 
 #define VOGLEDITOR_DISABLE_STATE_TAB(tab) ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(tab), false);
 #define VOGLEDITOR_ENABLE_STATE_TAB(tab) ui->tabWidget->setTabEnabled(ui->tabWidget->indexOf(tab), true);

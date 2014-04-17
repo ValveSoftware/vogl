@@ -1983,6 +1983,10 @@ class vogl_gen
     vogl::vector<uint> custom_array_size_macro_indices;
     dynamic_string_array custom_array_size_macro_names;
 
+    dynamic_string_array gl_ext_func_deleted;
+    dynamic_string_array new_ctype_from_ptr;
+    dynamic_string_array simple_gl_replay_func;
+
     struct gl_get
     {
         gl_get()
@@ -2106,7 +2110,7 @@ public:
         {
             if (m_glxext_funcs[j].m_name.ends_with("SGIX"))
             {
-                console::message("deleting glxext func %s\n", m_glxext_funcs[j].m_name.get_ptr());
+                gl_ext_func_deleted.push_back(m_glxext_funcs[j].m_name);
 
                 m_glxext_funcs.get_funcs_vec().erase_unordered(j);
                 j--;
@@ -2233,7 +2237,7 @@ public:
                         ctype_without_const_definition.remove(const_ofs, 5);
                     ctype_without_const_definition.trim();
 
-                    printf("Introducing new ctype from ptr to pointee: %s %s\n", ctype_without_const.get_ptr(), ctype_without_const_definition.get_ptr());
+                    new_ctype_from_ptr.push_back(ctype_without_const + ":" + ctype_without_const_definition);
 
                     m_unique_ctype_enums.insert(std::make_pair(ctype_without_const, ctype_without_const_definition));
                 }
@@ -2275,6 +2279,37 @@ public:
         create_array_size_macros("gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_gl_so_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
+
+        //$ TODO: Why are some of these console::messages, printf, and console::printf?
+        if (g_command_line_params.get_value_as_bool("verbose"))
+        {
+            // console::message("deleting glxext func %s\n", m_glxext_funcs[j].m_name.get_ptr());
+            if (gl_ext_func_deleted.size())
+            {
+                console::message("\nDeleted glxext funcs: ");
+                for (uint i = 0; i < gl_ext_func_deleted.size(); i++)
+                    console::message("%s ", gl_ext_func_deleted[i].get_ptr());
+                console::message("\n");
+            }
+            
+            // printf("Introducing new ctype from ptr to pointee: %s %s\n", ctype_without_const.get_ptr(), ctype_without_const_definition.get_ptr());
+            if (new_ctype_from_ptr.size())
+            {
+                printf("\nNew ctype from ptr to pointee: ");
+                for (uint i = 0; i < new_ctype_from_ptr.size(); i++)
+                    printf("%s ", new_ctype_from_ptr[i].get_ptr());
+                printf("\n");
+            }
+            
+            // console::printf("Adding simple GL replay func %s to func whitelist\n", full_func_name.get_ptr());
+            if (simple_gl_replay_func.size())
+            {
+                console::printf("\nAdded simple GL replay func to func whitelist: ");
+                for (uint i = 0; i < simple_gl_replay_func.size(); i++)
+                    console::printf("%s ", simple_gl_replay_func[i].get_ptr());
+                console::printf("\n");
+            }
+        }
 
         // -- Cross reference the GL spec vs. XML files, for validation
         if (!validate_functions(m_gl_xml_functions, m_all_gl_funcs, m_apitrace_gl_func_specs, m_gl_typemap, m_glx_typemap))
@@ -4145,7 +4180,7 @@ local:
 
             if (whitelisted_funcs.find(full_func_name) < 0)
             {
-                console::printf("Adding simple GL replay func %s to func whitelist\n", full_func_name.get_ptr());
+                simple_gl_replay_func.push_back(full_func_name);
                 whitelisted_funcs.push_back(full_func_name);
             }
             else

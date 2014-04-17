@@ -29,7 +29,9 @@
 #include <QList>
 #include <QVariant>
 
-#include "vogleditor_frameitem.h"
+class vogleditor_frameItem;
+class vogleditor_apiCallItem;
+class vogleditor_gl_state_snapshot;
 
 class vogl_trace_file_reader;
 struct vogl_trace_gl_entrypoint_packet;

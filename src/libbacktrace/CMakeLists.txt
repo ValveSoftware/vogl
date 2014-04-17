@@ -35,9 +35,18 @@ project (libbacktracevogl)
 
 set (BACKTRACE_SUPPORTED 1)
 
-include (CheckSymbolExists)
-check_symbol_exists (_Unwind_Backtrace unwind.h HAVE_BACKTRACE)
-check_symbol_exists (_Unwind_GetIPInfo unwind.h HAVE_GETIPINFO)
+if (true)
+    # When unwind.h is in /usr/local/include, check_symbol_exists() is failing. But
+    #  these functions are in the Linux Standard Base Core Spec and should just exist
+    #  for Linux, yes?  I'm assuming that's the case for now and using them.
+    #  (Otherwise stack tracing won't work anyway).
+    set (HAVE_BACKTRACE 1)
+    set (HAVE_GETIPINFO 1)
+else()
+    include (CheckSymbolExists)
+    check_symbol_exists (_Unwind_Backtrace unwind.h HAVE_BACKTRACE)
+    check_symbol_exists (_Unwind_GetIPInfo unwind.h HAVE_GETIPINFO)
+endif()
 
 if (HAVE_BACKTRACE)
     set (BACKTRACE_FILE backtrace.c simple.c)

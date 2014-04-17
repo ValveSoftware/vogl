@@ -28,17 +28,8 @@
 
 #include <QMainWindow>
 #include <QString>
-#include <QLabel>
-#include <QModelIndexList>
 
-#include "vogl_dynamic_string.h"
-#include "vogl_hash_map.h"
-#include "vogl_json.h"
-#include "vogleditor_qframebufferexplorer.h"
-#include "vogleditor_qprogramexplorer.h"
-#include "vogleditor_qshaderexplorer.h"
 #include "vogleditor_qtextureexplorer.h"
-#include "vogleditor_qtimelineview.h"
 #include "vogleditor_tracereplayer.h"
 
 namespace Ui {
@@ -47,28 +38,19 @@ class VoglEditor;
 
 typedef uint64_t GLuint64;
 
-class vogleditor_QTextureExplorer;
+class QGridLayout;
 
-class QItemSelection;
 class QModelIndex;
 class QProcess;
-class QSortFilterProxyModel;
 class QToolButton;
-class vogl_context_snapshot;
-class vogl_framebuffer_state;
 class vogl_program_state;
-class vogl_replay_window;
-class vogl_shader_state;
-class vogl_texture_state;
-class vogl_trace_file_reader;
-class vogl_trace_file_writer;
-class vogl_trace_packet;
-class vogl_gl_state_snapshot;
 class vogleditor_apiCallTimelineModel;
-class vogleditor_apiCallTreeItem;
-class vogleditor_gl_state_snapshot;
 class vogleditor_QApiCallTreeModel;
 class vogleditor_QStateTreeModel;
+class vogleditor_QProgramExplorer;
+class vogleditor_QFramebufferExplorer;
+class vogleditor_QTimelineView;
+class vogleditor_QShaderExplorer;
 
 class VoglEditor : public QMainWindow
 {

@@ -1,5 +1,6 @@
 
 #include "vogleditor_apicalltreeitem.h"
+#include "vogleditor_apicallitem.h"
 
 #include "vogleditor_tracereplayer.h"
 

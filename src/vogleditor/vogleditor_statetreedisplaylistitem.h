@@ -2,7 +2,8 @@
 #define VOGLEDITOR_STATETREEDISPLAYLISTITEM_H
 
 #include "vogleditor_statetreeitem.h"
-#include "vogl_display_list_state.h"
+
+class vogl_display_list_state;
 
 class vogleditor_stateTreeDisplaylistItem: public vogleditor_stateTreeItem
 {

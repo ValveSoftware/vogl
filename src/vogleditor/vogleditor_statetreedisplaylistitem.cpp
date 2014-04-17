@@ -1,4 +1,6 @@
 #include "vogleditor_statetreedisplaylistitem.h"
+#include "vogl_display_list_state.h"
+
 
 
 vogleditor_stateTreeDisplaylistItem::vogleditor_stateTreeDisplaylistItem(QString name, QString value, vogleditor_stateTreeItem* parentNode, vogl_display_list_state* pState)

@@ -2,27 +2,26 @@
 #define VOGLEDITOR_STATETREECONTEXTITEM_H
 
 #include "vogleditor_statetreeitem.h"
-#include "vogleditor_statetreearbprogramitem.h"
-#include "vogleditor_statetreearbprogramenvitem.h"
-#include "vogleditor_statetreebufferitem.h"
-#include "vogleditor_statetreecontextinfoitem.h"
-#include "vogleditor_statetreecontextgeneralitem.h"
-#include "vogleditor_statetreeframebufferitem.h"
-#include "vogleditor_statetreelightitem.h"
-#include "vogleditor_statetreepolygonstippleitem.h"
-#include "vogleditor_statetreeprogramitem.h"
-#include "vogleditor_statetreequeryitem.h"
-#include "vogleditor_statetreerenderbufferitem.h"
-#include "vogleditor_statetreesampleritem.h"
-#include "vogleditor_statetreeshaderitem.h"
-#include "vogleditor_statetreesyncitem.h"
-#include "vogleditor_statetreetexenvitem.h"
-#include "vogleditor_statetreetextureitem.h"
-#include "vogleditor_statetreematrixitem.h"
-#include "vogleditor_statetreevertexarrayitem.h"
-
 #include "vogl_gl_state_snapshot.h"
-#include "vogl_sync_object.h"
+
+class vogleditor_stateTreeArbProgramItem;
+class vogleditor_stateTreeArbProgramEnvItem;
+class vogleditor_stateTreeBufferItem;
+class vogleditor_stateTreeContextInfoItem;
+class vogleditor_stateTreeContextGeneralItem;
+class vogleditor_stateTreeFramebufferItem;
+class vogleditor_stateTreeLightItem;
+class vogleditor_stateTreePolygonStippleItem;
+class vogleditor_stateTreeProgramItem;
+class vogleditor_stateTreeQueryItem;
+class vogleditor_stateTreeRenderbufferItem;
+class vogleditor_stateTreeSamplerItem;
+class vogleditor_stateTreeShaderItem;
+class vogleditor_stateTreeSyncItem;
+class vogleditor_stateTreeTextureItem;
+class vogleditor_stateTreeMatrixStackItem;
+class vogleditor_stateTreeVertexArrayItem;
+class vogleditor_stateTreeTexEnvItem;
 
 class vogleditor_stateTreeContextAttributesItem : public vogleditor_stateTreeItem
 {

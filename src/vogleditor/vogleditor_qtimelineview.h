@@ -38,6 +38,7 @@ QT_END_NAMESPACE
 #include <QPen>
 
 #include "vogleditor_timelinemodel.h"
+#include "vogleditor_timelineitem.h"
 
 class vogleditor_QTimelineView : public QWidget
 {

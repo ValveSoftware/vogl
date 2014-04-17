@@ -30,7 +30,7 @@
 #include <QVariant>
 #include <QAbstractItemModel>
 
-#include "vogleditor_timelineitem.h"
+class vogleditor_timelineItem;
 
 class vogleditor_timelineModel
 {

@@ -23,24 +23,17 @@
  *
  **************************************************************************/
 
-#include "vogleditor_timelinemodel.h"
-#include "vogleditor_timelineitem.h"
+#if defined(__GNUC__)
+  #define GCC_DIAGNOSTIC_STR(s)       #s
+  #define GCC_DIAGNOSTIC_JOINSTR(x,y) GCC_DIAGNOSTIC_STR(x ## y)
+  #define GCC_DIAGNOSTIC_DO_PRAGMA(x) _Pragma (#x)
+  #define GCC_DIAGNOSTIC_PRAGMA(x)    GCC_DIAGNOSTIC_DO_PRAGMA(GCC diagnostic x)
 
-vogleditor_timelineModel::vogleditor_timelineModel()
-   : m_rootItem(NULL)
-{
-}
-
-vogleditor_timelineModel::~vogleditor_timelineModel()
-{
-   if (m_rootItem != NULL)
-   {
-      delete m_rootItem;
-      m_rootItem = NULL;
-   }
-}
-
-vogleditor_timelineItem* vogleditor_timelineModel::get_root_item()
-{
-    return m_rootItem;
-}
+  #define GCC_DIAGNOSTIC_PUSH()       GCC_DIAGNOSTIC_PRAGMA(push)
+  #define GCC_DIAGNOSTIC_IGNORED(x)   GCC_DIAGNOSTIC_PRAGMA(ignored GCC_DIAGNOSTIC_JOINSTR(-W,x))
+  #define GCC_DIAGNOSTIC_POP()        GCC_DIAGNOSTIC_PRAGMA(pop)
+#else
+  #define GCC_DIAGNOSTIC_PUSH()
+  #define GCC_DIAGNOSTIC_IGNORED(x)
+  #define GCC_DIAGNOSTIC_POP()
+#endif

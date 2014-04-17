@@ -2,10 +2,9 @@
 #define VOGLEDITOR_QFRAMEBUFFEREXPLORER_H
 
 #include <QWidget>
-#include <QVBoxLayout>
-
 #include "vogl_core.h"
 
+class QVBoxLayout;
 class QTextureViewer;
 class vogleditor_QTextureExplorer;
 class vogl_context_snapshot;

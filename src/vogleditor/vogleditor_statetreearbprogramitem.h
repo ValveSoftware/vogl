@@ -2,7 +2,8 @@
 #define VOGLEDITOR_STATETREEARBPROGRAMITEM_H
 
 #include "vogleditor_statetreeitem.h"
-#include "vogl_arb_program_state.h"
+
+class vogl_arb_program_state;
 
 class vogleditor_stateTreeArbProgramDiffableItem : public vogleditor_stateTreeItem
 {

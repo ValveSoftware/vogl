@@ -28,14 +28,11 @@
 
 #include <QList>
 
-// external classes (could be predeclared)
-#include "vogl_common.h"
-#include "vogl_trace_packet.h"
-
 #include "vogleditor_snapshotitem.h"
 
 // predeclared classes
 class vogleditor_frameItem;
+class vogl_trace_packet;
 
 class vogleditor_apiCallItem : public vogleditor_snapshotItem
 {

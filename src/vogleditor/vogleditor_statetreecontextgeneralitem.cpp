@@ -1,5 +1,6 @@
 #include "vogleditor_statetreecontextgeneralitem.h"
 #include "vogl_general_context_state.h"
+#include "vogl_state_vector.h"
 
 vogleditor_stateTreeContextGeneralCompressTextureFormatItem::vogleditor_stateTreeContextGeneralCompressTextureFormatItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int formatEnum, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent)
    : vogleditor_stateTreeDatatypeItem<int>(glenumName, name, index, stateVec, numComponents, isIndexed, parent),

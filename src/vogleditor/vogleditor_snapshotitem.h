@@ -26,8 +26,6 @@
 #ifndef VOGLEDITOR_SNAPSHOTITEM_H
 #define VOGLEDITOR_SNAPSHOTITEM_H
 
-#include <QList>
-
 // external classes (could be predeclared)
 #include "vogl_common.h"
 #include "vogleditor_gl_state_snapshot.h"
