@@ -2280,29 +2280,35 @@ public:
         create_array_size_macros("glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
 
-        // console::message("deleting glxext func %s\n", m_glxext_funcs[j].m_name.get_ptr());
-        if (gl_ext_func_deleted.size())
+        //$ TODO: Why are some of these console::messages, printf, and console::printf?
+        if (g_command_line_params.get_value_as_bool("verbose"))
         {
-            console::message("\nDeleted glxext funcs: ");
-            for (uint i = 0; i < gl_ext_func_deleted.size(); i++)
-                console::message("%s ", gl_ext_func_deleted[i].get_ptr());
-            console::message("\n");
-        }
-        // printf("Introducing new ctype from ptr to pointee: %s %s\n", ctype_without_const.get_ptr(), ctype_without_const_definition.get_ptr());
-        if (new_ctype_from_ptr.size())
-        {
-            printf("\nNew ctype from ptr to pointee: ");
-            for (uint i = 0; i < new_ctype_from_ptr.size(); i++)
-                printf("%s ", new_ctype_from_ptr[i].get_ptr());
-            printf("\n");
-        }
-        // console::printf("Adding simple GL replay func %s to func whitelist\n", full_func_name.get_ptr());
-        if (simple_gl_replay_func.size())
-        {
-            console::printf("\nAdded simple GL replay func to func whitelist: ");
-            for (uint i = 0; i < simple_gl_replay_func.size(); i++)
-                console::printf("%s ", simple_gl_replay_func[i].get_ptr());
-            console::printf("\n");
+            // console::message("deleting glxext func %s\n", m_glxext_funcs[j].m_name.get_ptr());
+            if (gl_ext_func_deleted.size())
+            {
+                console::message("\nDeleted glxext funcs: ");
+                for (uint i = 0; i < gl_ext_func_deleted.size(); i++)
+                    console::message("%s ", gl_ext_func_deleted[i].get_ptr());
+                console::message("\n");
+            }
+            
+            // printf("Introducing new ctype from ptr to pointee: %s %s\n", ctype_without_const.get_ptr(), ctype_without_const_definition.get_ptr());
+            if (new_ctype_from_ptr.size())
+            {
+                printf("\nNew ctype from ptr to pointee: ");
+                for (uint i = 0; i < new_ctype_from_ptr.size(); i++)
+                    printf("%s ", new_ctype_from_ptr[i].get_ptr());
+                printf("\n");
+            }
+            
+            // console::printf("Adding simple GL replay func %s to func whitelist\n", full_func_name.get_ptr());
+            if (simple_gl_replay_func.size())
+            {
+                console::printf("\nAdded simple GL replay func to func whitelist: ");
+                for (uint i = 0; i < simple_gl_replay_func.size(); i++)
+                    console::printf("%s ", simple_gl_replay_func[i].get_ptr());
+                console::printf("\n");
+            }
         }
 
         // -- Cross reference the GL spec vs. XML files, for validation
