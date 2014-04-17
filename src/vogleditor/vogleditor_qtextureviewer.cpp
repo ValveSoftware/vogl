@@ -123,7 +123,7 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
 
     uint mipWidth = 0;
     uint mipHeight = 0;
-    uint mipDepth = 0;
+    //$ uint mipDepth = 0;
     drawWidth = drawWidth >> m_baseMipLevel;
     drawHeight = drawHeight >> m_baseMipLevel;
 
@@ -141,7 +141,7 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
 
             mipWidth = image->get_width();
             mipHeight = image->get_height();
-            mipDepth = 1;
+            //$ mipDepth = 1;
             unsigned char tmp = 0;
             unsigned int pixelsSize = image->get_total_pixels();
              vogl::color_quad_u8* pTmpPixels = new vogl::color_quad_u8[pixelsSize];

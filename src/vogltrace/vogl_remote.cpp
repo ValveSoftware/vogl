@@ -584,6 +584,10 @@ void send_status_to_client(const char *message)
     //  Prepare message to send
 
     ec = ToClientMsgReq(g_procname, 0, message, &cbBuff, &pbBuff);
+    if (0 != ec)
+    {
+        syslog(VOGL_INFO, "ToClientMsgReq error: %d\n", ec);
+    }
 
     (void)g_clientChannelMgr->SendData(cbBuff, pbBuff);
 

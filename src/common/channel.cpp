@@ -171,7 +171,9 @@ channel::acceptConnection()
     int noNagle = 1; //  Turn off nagle
     int reuseaddress = 1;  // Do not reuse addresses
     struct sockaddr_in serv_addr;
+#ifdef NOTYET
     bool fFirstTime = false;
+#endif
 
     if (0 == m_listenSocket)
     {
@@ -238,7 +240,9 @@ channel::acceptConnection()
             goto out;
         }
 
+#ifdef NOTYET
         fFirstTime = true;
+#endif
     }
 
     if (0 == m_socket)
