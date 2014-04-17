@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
 find_package(X11 REQUIRED)
-find_package(GLU REQUIRED)
+find_package(OpenGL REQUIRED)
 
 set(glxsphere_SRC glxspheres.c)
 
