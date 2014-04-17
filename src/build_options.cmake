@@ -60,9 +60,15 @@ add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES)
 # support for inttypes.h macros
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS)
 
-set(CMAKE_CXX_FLAGS_LIST "-g -Wall -Wextra")
-set(CMAKE_CXX_FLAGS_RELEASE_LIST "-g -O2 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG")
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_LIST "/DEBUG /W3 /D_CRT_SECURE_NO_WARNINGS=1 /DWIN32 /D_WIN32")
+    set(CMAKE_CXX_FLAGS_RELEASE_LIST "/O2 /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_DEBUG_LIST "/Od /D_DEBUG")
+else()
+    set(CMAKE_CXX_FLAGS_LIST "-g -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS_RELEASE_LIST "-g -O2 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG")
+endif()
 
 #if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 #   if ( NOT BUILD_X64 )
@@ -112,8 +118,11 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   endif()
 endif()
 
-if (NOT BUILD_X64)
-    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -m32")
+if (MSVC)
+else()
+    if (NOT BUILD_X64)
+        set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -m32")
+    endif()
 endif()
 
 function(add_compiler_flag flag)
@@ -158,17 +167,24 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
    endif()
 endif()
 
-set(CMAKE_CXX_FLAGS_LIST
-    ${CMAKE_CXX_FLAGS_LIST}
-    "-fno-omit-frame-pointer"
-    ${MARCH_STR}
-    # "-msse2 -mfpmath=sse" # To build with SSE instruction sets
-    "-Wno-unused-parameter -Wno-unused-function"
-    "-fno-strict-aliasing" # DO NOT remove this, we have lots of code that will fail in obscure ways otherwise because it was developed with MSVC first.
-    "-fno-math-errno"
-	"-fvisibility=hidden"
-    # "-fno-exceptions" # Exceptions are enabled by default for c++ files, disabled for c files.
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_LIST
+        ${CMAKE_CXX_FLAGS_LIST}
+        "/EHsc" # Need exceptions
     )
+else()
+    set(CMAKE_CXX_FLAGS_LIST
+        ${CMAKE_CXX_FLAGS_LIST}
+        "-fno-omit-frame-pointer"
+        ${MARCH_STR}
+        # "-msse2 -mfpmath=sse" # To build with SSE instruction sets
+        "-Wno-unused-parameter -Wno-unused-function"
+        "-fno-strict-aliasing" # DO NOT remove this, we have lots of code that will fail in obscure ways otherwise because it was developed with MSVC first.
+        "-fno-math-errno"
+    	"-fvisibility=hidden"
+        # "-fno-exceptions" # Exceptions are enabled by default for c++ files, disabled for c files.
+    )
+endif()
 
 if (CMAKE_COMPILER_IS_GNUCC)
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
@@ -184,15 +200,18 @@ if (GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
     )
 endif()
 
-if (WITH_HARDENING)
-    # http://gcc.gnu.org/ml/gcc-patches/2004-09/msg02055.html
-    add_definitions(-D_FORTIFY_SOURCE=2 -fpic)
-    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-        # During program load, several ELF memory sections need to be written to by the
-        # linker, but can be turned read-only before turning over control to the
-        # program. This prevents some GOT (and .dtors) overwrite attacks, but at least
-        # the part of the GOT used by the dynamic linker (.got.plt) is still vulnerable.
-        add_definitions(-pie -z now -z relro)
+if (MSVC)
+else()
+    if (WITH_HARDENING)
+        # http://gcc.gnu.org/ml/gcc-patches/2004-09/msg02055.html
+        add_definitions(-D_FORTIFY_SOURCE=2 -fpic)
+        if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+            # During program load, several ELF memory sections need to be written to by the
+            # linker, but can be turned read-only before turning over control to the
+            # program. This prevents some GOT (and .dtors) overwrite attacks, but at least
+            # the part of the GOT used by the dynamic linker (.got.plt) is still vulnerable.
+            add_definitions(-pie -z now -z relro)
+        endif()
     endif()
 endif()
 
@@ -301,3 +320,14 @@ function(build_options_finalize)
     endif()
 endfunction()
 
+if (GCC)
+    add_compiler_flag("-DCOMPILER_GCC=1")
+elseif (MINGW)
+    add_compiler_flag("-DCOMPILER_MINGW=1")
+elseif (MSVC)
+    add_compiler_flag("-DCOMPILER_MSVC=1")
+    add_compiler_flag("-DPLATFORM_32BIT=1")
+    add_compiler_flag("-DPLATFORM_WINDOWS=1")
+elseif (CLANG)
+    add_compiler_flag("-DCOMPILER_CLANG=1")
+endif()

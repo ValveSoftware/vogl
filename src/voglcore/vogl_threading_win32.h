@@ -433,7 +433,7 @@ namespace vogl
     template <typename S, typename T>
     inline bool task_pool::queue_object_task(S *pObject, T pObject_method, uint64_t data, void *pData_ptr)
     {
-        object_task<S> *pTask = vogl_new<object_task<S> >(pObject, pObject_method, cObjectTaskFlagDeleteAfterExecution);
+        object_task<S> *pTask = vogl_new(object_task<S>, pObject, pObject_method, cObjectTaskFlagDeleteAfterExecution);
         if (!pTask)
             return false;
         return queue_task(pTask, data, pData_ptr);

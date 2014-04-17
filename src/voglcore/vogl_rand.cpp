@@ -40,8 +40,10 @@
 #include "vogl_image_utils.h"
 
 // TODO: Linux specific, needed by the seed_from_urand() method
-#include <unistd.h>
-#include <sys/syscall.h>
+#if PLATFORM_LINUX
+	#include <unistd.h>
+	#include <sys/syscall.h>
+#endif
 
 #define znew (z = 36969 * (z & 65535) + (z >> 16))
 #define wnew (w = 18000 * (w & 65535) + (w >> 16))

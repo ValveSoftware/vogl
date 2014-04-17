@@ -2652,7 +2652,7 @@ namespace vogl
     void json_node::serialize(dynamic_string &str, bool formatted, uint cur_index, uint max_line_len) const
     {
         vogl::vector<char> buf;
-        serialize(buf, formatted, cur_index, max_line_len);
+        serialize(buf, formatted, cur_index, true, max_line_len);
 
         // FIXME: Pass along string ownership once dynamic_string supports non-pow2 sized buffers
         str.set_from_buf(buf.get_ptr(), vogl_strlen(buf.get_ptr()));

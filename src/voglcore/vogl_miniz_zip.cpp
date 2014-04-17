@@ -234,7 +234,7 @@ struct mz_zip_internal_state_tag
     mz_zip_array m_sorted_central_dir_offsets;
 
     // The flags passed in when the archive is initially opened.
-    uint m_init_flags;
+    vogl::uint m_init_flags;
 
     // MZ_TRUE if the archive has a zip64 end of central directory headers, etc.
     mz_bool m_zip64;
@@ -1247,7 +1247,7 @@ static mz_bool mz_zip_locate_file_binary_search(mz_zip_archive *pZip, const char
     const mz_zip_array *pCentral_dir_offsets = &pState->m_central_dir_offsets;
     const mz_zip_array *pCentral_dir = &pState->m_central_dir;
     mz_uint32 *pIndices = &MZ_ZIP_ARRAY_ELEMENT(&pState->m_sorted_central_dir_offsets, mz_uint32, 0);
-    const uint size = pZip->m_total_files;
+    const vogl::uint size = pZip->m_total_files;
     const mz_uint filename_len = (mz_uint)strlen(pFilename);
 
     if (pIndex)
@@ -1262,7 +1262,7 @@ static mz_bool mz_zip_locate_file_binary_search(mz_zip_archive *pZip, const char
         while (l <= h)
         {
             mz_int64 m = l + ((h - l) >> 1);
-            uint file_index = pIndices[(uint)m];
+            vogl::uint file_index = pIndices[(vogl::uint)m];
 
             int comp = mz_zip_filename_compare(pCentral_dir, pCentral_dir_offsets, file_index, pFilename, filename_len);
             if (!comp)
@@ -2080,7 +2080,7 @@ mz_bool mz_zip_validate_archive(mz_zip_archive *pZip, mz_uint flags)
             return mz_zip_set_error(pZip, MZ_ZIP_ARCHIVE_TOO_LARGE);
     }
 
-    for (uint i = 0; i < pZip->m_total_files; i++)
+    for (vogl::uint i = 0; i < pZip->m_total_files; i++)
     {
         if (MZ_ZIP_FLAG_VALIDATE_LOCATE_FILE_FLAG & flags)
         {
@@ -3201,7 +3201,7 @@ mz_bool mz_zip_writer_add_file(mz_zip_archive *pZip, const char *pArchive_name, 
 }
 #endif // #ifndef MINIZ_NO_STDIO
 
-static mz_bool mz_zip_writer_update_zip64_extension_block(mz_zip_array *pNew_ext, mz_zip_archive *pZip, const mz_uint8 *pExt, uint ext_len, mz_uint64 *pComp_size, mz_uint64 *pUncomp_size, mz_uint64 *pLocal_header_ofs, mz_uint32 *pDisk_start)
+static mz_bool mz_zip_writer_update_zip64_extension_block(mz_zip_array *pNew_ext, mz_zip_archive *pZip, const mz_uint8 *pExt, vogl::uint ext_len, mz_uint64 *pComp_size, mz_uint64 *pUncomp_size, mz_uint64 *pLocal_header_ofs, mz_uint32 *pDisk_start)
 {
     // + 64 should be enough for any new zip64 data
     if (!mz_zip_array_reserve(pZip, pNew_ext, ext_len + 64, MZ_FALSE))

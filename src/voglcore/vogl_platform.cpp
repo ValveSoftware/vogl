@@ -296,13 +296,14 @@ namespace vogl
 {
 
 #ifdef VOGL_USE_WIN32_API
+#include <Dbghelp.h>
 
-    dynamic_string demangle(const char *pMangled)
+	dynamic_string demangle(const char *pMangled)
     {
-        // TODO
-        console::debug("TODO: %s\n", VOGL_FUNCTION_NAME);
+		char buffer[1024];
+		UnDecorateSymbolName(pMangled, buffer, ARRAYSIZE(buffer), UNDNAME_NAME_ONLY);
 
-        return dynamic_string(pMangled);
+		return dynamic_string(buffer);
     }
 
 #else

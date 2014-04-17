@@ -31,10 +31,12 @@
 #include "vogl_core.h"
 
 #include <sys/types.h>
-#include <sys/mman.h>
-#include <err.h>
-#include <fcntl.h>
-#include <unistd.h>
+#ifdef PLATFORM_LINUX
+	#include <sys/mman.h>
+	#include <err.h>
+	#include <fcntl.h>
+	#include <unistd.h>
+#endif
 
 #include "stb_malloc.h"
 

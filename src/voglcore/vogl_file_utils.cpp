@@ -38,6 +38,7 @@
 
 #ifdef WIN32
 #include <direct.h>
+#include <io.h>
 #endif
 
 #ifdef __GNUC__
@@ -712,44 +713,46 @@ namespace vogl
         return p;
     }
 
-    bool file_utils::read_proc_file(const char *filename, vogl::growable_array<char, 2048> &data)
-    {
-        bool ret = false;
-        uint file_length = 0;
-        int nbytes = data.cMaxFixedElements;
+	#if VOGL_HAS_PROC_FILESYSTEM
+		bool file_utils::read_proc_file(const char *filename, vogl::growable_array<char, 2048> &data)
+		{
+			bool ret = false;
+			uint file_length = 0;
+			int nbytes = data.cMaxFixedElements;
     
-        int fd = open(filename, O_RDONLY);
-        if (fd != -1)
-        {
-            for (;;)
-            {
-                // Make sure we've got enough room to read in another nbytes.
-                data.resize(file_length + nbytes);
+			int fd = open(filename, O_RDONLY);
+			if (fd != -1)
+			{
+				for (;;)
+				{
+					// Make sure we've got enough room to read in another nbytes.
+					data.resize(file_length + nbytes);
     
-                // Try to read in nbytes. read returns 0:end of file, -1:error.
-                ssize_t length = read(fd, data.get_ptr() + file_length, nbytes);
-                if (length < 0)
-                    break;
+					// Try to read in nbytes. read returns 0:end of file, -1:error.
+					ssize_t length = read(fd, data.get_ptr() + file_length, nbytes);
+					if (length < 0)
+						break;
     
-                file_length += length;
-                if (length != nbytes)
-                {
-                    ret = true;
-                    break;
-                }
-            }
+					file_length += length;
+					if (length != nbytes)
+					{
+						ret = true;
+						break;
+					}
+				}
     
-            close(fd);
-        }
+				close(fd);
+			}
     
-        // Trim trailing whitespace.
-        while ((file_length > 0) && vogl::vogl_isspace(data[file_length - 1]))
-            file_length--;
+			// Trim trailing whitespace.
+			while ((file_length > 0) && vogl::vogl_isspace(data[file_length - 1]))
+				file_length--;
     
-        data.resize(file_length + 1);
-        data[file_length] = 0;
-        return ret;
-    }
+			data.resize(file_length + 1);
+			data[file_length] = 0;
+			return ret;
+		}
+	#endif
 
     bool file_utils::write_buf_to_file(const char *pPath, const void *pData, size_t data_size)
     {
@@ -900,23 +903,30 @@ namespace vogl
 
     bool file_utils::change_directory(const char *pPath)
     {
-        return chdir(pPath) == 0;
+        return _chdir(pPath) == 0;
     }
 
-    // TODO: Windows version
-    char *file_utils::get_exec_filename(char *pPath, size_t dest_len)
-    {
-        ssize_t s = readlink("/proc/self/exe", pPath, dest_len);
-        if (s >= 0)
-        {
-            pPath[s] = '\0';
-            return pPath;
-        }
+	char *file_utils::get_exec_filename(char *pPath, size_t dest_len)
+	{
+	#if VOGL_HAS_PROC_FILESYSTEM
+		ssize_t s = readlink("/proc/self/exe", pPath, dest_len);
+		if (s >= 0)
+		{
+			pPath[s] = '\0';
+			return pPath;
+		}
 
-        VOGL_VERIFY(0);
-        pPath[0] = '\0';
+		VOGL_VERIFY(0);
+		pPath[0] = '\0';
 
-        return pPath;
-    }
+		return pPath;
+	#elif VOGL_USE_WIN32_API
+		DWORD result = GetModuleFileNameA(0, pPath, dest_len);
+		VOGL_VERIFY(result != 0);
+		return pPath;
+	#else
+		VOGL_ASSUME(!"Implement get_exec_filename for this platform.");
+	#endif
+	}
 
 } // namespace vogl

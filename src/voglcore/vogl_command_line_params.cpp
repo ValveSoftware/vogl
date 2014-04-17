@@ -62,7 +62,7 @@ namespace vogl
 
 #ifdef VOGL_USE_WIN32_API
         dynamic_string cmd_line;
-        split_command_line_params(get_command_line(), params);
+        split_command_line_params(get_command_line().c_str(), params);
 #elif defined(VOGL_USE_LINUX_API)
         pid_t proc_id = getpid();
 

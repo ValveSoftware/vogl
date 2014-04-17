@@ -74,6 +74,10 @@ namespace vogl
 #ifdef VOGL_USE_WIN32_API
     void colorized_console::set_default_color()
     {
+		HANDLE cons = GetStdHandle(STD_OUTPUT_HANDLE);
+		if (INVALID_HANDLE_VALUE == cons)
+			return;
+
         DWORD attr = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
         SetConsoleTextAttribute(cons, (WORD)attr);
     }

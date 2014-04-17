@@ -34,6 +34,14 @@
 #define VOGL_MALLOC_DEBUGGING 0
 #endif
 
+#if defined(COMPILER_GCC)
+#	define VOGL_NORETURN __attribute__((noreturn))
+#elif defined(COMPILER_MSVC)
+#	define VOGL_NORETURN __declspec(noreturn)
+#else
+#	error("Need VOGL_NORETURN definition for this compiler")
+#endif
+
 #ifndef VOGL_MIN_ALLOC_ALIGNMENT
 // malloc() is 8 bytes for glibc in 32-bit, and 16 in 64-bit
 // must be at least sizeof(uint32) * 2
@@ -79,7 +87,7 @@ namespace vogl
 
     size_t vogl_msize(void *p);
 
-    __attribute__((noreturn)) void vogl_mem_error(const char *pMsg, const char *pFile_line);
+	VOGL_NORETURN void vogl_mem_error(const char *pMsg, const char *pFile_line);
 
     // C++ new/delete wrappers that automatically pass in the file/line
     template <typename T>
@@ -196,8 +204,6 @@ namespace vogl
         return new (static_cast<void *>(p)) T(init0, init1, init2, init3, init4, init5, init6, init7, init8, init9, init10, init11, init12, init13);
     }
 
-#define vogl_new(type, ...) vogl::vogl_tracked_new<type>(VOGL_MALLOC_FILE_LEN_STRING, ##__VA_ARGS__)
-
     template <typename T>
     inline void vogl_tracked_delete(const char *pFile_line, T *p)
     {
@@ -210,8 +216,6 @@ namespace vogl
             vogl_tracked_free(pFile_line, p);
         }
     }
-
-#define vogl_delete(p) vogl::vogl_tracked_delete(VOGL_MALLOC_FILE_LEN_STRING, p)
 
     // num is (obviously) limited to cUINT32_MAX, but the total allocated size in bytes can be > than this on x64
     template <typename T>
@@ -245,9 +249,6 @@ namespace vogl
         return p;
     }
 
-// num is limited to cUINT32_MAX
-#define vogl_new_array(type, num) vogl::vogl_tracked_new_array<type>(VOGL_MALLOC_FILE_LEN_STRING, num)
-
     template <typename T>
     inline void vogl_tracked_delete_array(const char *pFile_line, T *p)
     {
@@ -273,8 +274,6 @@ namespace vogl
             }
         }
     }
-
-#define vogl_delete_array(p) vogl::vogl_tracked_delete_array(VOGL_MALLOC_FILE_LEN_STRING, p)
 
     // Returns the actual size of the allocated block pointed to by p in BYTES, not objects.
     // p must have been allocated using vogl_new_array.
@@ -306,6 +305,15 @@ namespace vogl
     }
 
 } // namespace vogl
+
+// These need to be outside of the namespace. The reason is that Visual Studio (as of 2013) will treat the define as part of the 
+// namespace, but GCC and others do not. 
+#define vogl_new(type, ...) vogl::vogl_tracked_new<type>(VOGL_MALLOC_FILE_LEN_STRING, ##__VA_ARGS__)
+#define vogl_delete(p) vogl::vogl_tracked_delete(VOGL_MALLOC_FILE_LEN_STRING, p)
+
+// num is limited to cUINT32_MAX
+#define vogl_new_array(type, num) vogl::vogl_tracked_new_array<type>(VOGL_MALLOC_FILE_LEN_STRING, num)
+#define vogl_delete_array(p) vogl::vogl_tracked_delete_array(VOGL_MALLOC_FILE_LEN_STRING, p)
 
 #define VOGL_DEFINE_NEW_DELETE                                               \
     void *operator new(size_t size)                                            \

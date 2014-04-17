@@ -1122,7 +1122,7 @@ namespace vogl
             {
                 if (m_pJSONDoc->is_node())
                     return false;
-                val.set(m_pJSONDoc->as_double());
+				val.set(m_pJSONDoc->as_float());
                 break;
             }
             default:

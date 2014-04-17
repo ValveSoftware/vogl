@@ -29,7 +29,7 @@
 
 #include "vogl_core.h"
 
-#if defined(_M_IX86) && defined(_MSC_VER)
+#if defined(_M_IX86) && defined(COMPILER_MSVC)
 #include <intrin.h>
 #pragma intrinsic(__emulu)
 unsigned __int64 __emulu(unsigned int a, unsigned int b);
@@ -538,7 +538,7 @@ namespace vogl
 
         inline uint count_leading_zero_bits64(uint64_t v)
         {
-#if defined(_M_IX86) && defined(_MSC_VER)
+#if defined(PLATFORM_64BITS) && defined(COMPILER_MSVC)
             return __lzcnt64(v);
 #elif defined(__GNUC__)
             return v ? __builtin_clzll(v) : 64;
