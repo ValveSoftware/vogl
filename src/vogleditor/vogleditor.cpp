@@ -194,6 +194,8 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_timeline->setMinimumHeight(100);
    ui->verticalLayout->addWidget(m_timeline);
    ui->verticalLayout->removeWidget(ui->timelineViewPlaceholder);
+   delete ui->timelineViewPlaceholder;
+   ui->timelineViewPlaceholder = NULL;
 
    // add buttons to toolbar
    m_pPlayButton = new QToolButton(ui->mainToolBar);
