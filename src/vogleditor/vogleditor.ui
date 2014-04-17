@@ -36,8 +36,8 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
-       <widget class="QWidget" name="layoutWidget">
-        <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
+       <widget class="QWidget" name="timelineLayoutWidget">
+        <layout class="QVBoxLayout" name="timelineLayout" stretch="0">
          <property name="spacing">
           <number>6</number>
          </property>
@@ -62,10 +62,10 @@
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
-        <widget class="QWidget" name="layoutWidget">
+        <widget class="QWidget" name="traceNavigationLayoutWidget">
          <layout class="QHBoxLayout" name="horizontalLayout" stretch="0">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+           <layout class="QVBoxLayout" name="traceNavigationLayout" stretch="0,0">
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_4">
               <item>
@@ -219,8 +219,8 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="layoutWidget">
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+        <widget class="QWidget" name="snapshotLayoutWidget">
+         <layout class="QVBoxLayout" name="snapshotLayout">
           <item>
            <widget class="QComboBox" name="contextComboBox"/>
           </item>

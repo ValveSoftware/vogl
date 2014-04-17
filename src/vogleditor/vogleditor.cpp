@@ -187,8 +187,8 @@ VoglEditor::VoglEditor(QWidget *parent) :
    // setup timeline
    m_timeline = new vogleditor_QTimelineView();
    m_timeline->setMinimumHeight(100);
-   ui->verticalLayout->addWidget(m_timeline);
-   ui->verticalLayout->removeWidget(ui->timelineViewPlaceholder);
+   ui->timelineLayout->addWidget(m_timeline);
+   ui->timelineLayout->removeWidget(ui->timelineViewPlaceholder);
    delete ui->timelineViewPlaceholder;
    ui->timelineViewPlaceholder = NULL;
 
