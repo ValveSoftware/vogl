@@ -419,7 +419,7 @@ static bool tool_replay_mode()
     Atom wmDeleteMessage = XInternAtom(window.get_display(), "WM_DELETE_WINDOW", False);
     XSetWMProtocols(window.get_display(), window.get_xwindow(), &wmDeleteMessage, 1);
 
-    Bool win_mapped = false;
+    // Bool win_mapped = false;
 
     vogl_gl_state_snapshot *pSnapshot = NULL;
     int64_t snapshot_loop_start_frame = -1;
@@ -485,9 +485,8 @@ static bool tool_replay_mode()
                 }
                 case UnmapNotify:
                 {
-                    //printf("UnmapNotify\n");
-
-                    win_mapped = false;
+                    // printf("UnmapNotify\n");
+                    // win_mapped = false;
 
                     keys_down.reset();
 
@@ -495,9 +494,8 @@ static bool tool_replay_mode()
                 }
                 case MapNotify:
                 {
-                    //printf("MapNotify\n");
-
-                    win_mapped = true;
+                    // printf("MapNotify\n");
+                    // win_mapped = true;
 
                     keys_down.reset();
 

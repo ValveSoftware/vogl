@@ -46,6 +46,11 @@
 #include "cclass.h"
 #include "cname.h"
 
+#include "../vogl_warnings.h"
+
+GCC_DIAGNOSTIC_PUSH()
+GCC_DIAGNOSTIC_IGNORED(unused-value)
+
 /*
  * parse structure, passed up and down to avoid global variables and
  * other clumsinesses
