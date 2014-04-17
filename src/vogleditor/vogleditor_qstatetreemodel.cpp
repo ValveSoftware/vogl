@@ -112,8 +112,8 @@ int vogleditor_QStateTreeModel::rowCount(const QModelIndex& parent) const
 
 int vogleditor_QStateTreeModel::columnCount(const QModelIndex& parent) const
 {
-   VOGL_NOTE_UNUSED(parent);
-   return m_ColumnTitles.size();
+    VOGL_NOTE_UNUSED(parent);
+    return m_ColumnTitles.size();
 }
 
 QVariant vogleditor_QStateTreeModel::data(const QModelIndex& index, int role) const
@@ -146,6 +146,8 @@ vogleditor_gl_state_snapshot* vogleditor_QStateTreeModel::get_snapshot() const
 
 void vogleditor_QStateTreeModel::setupModelData(vogleditor_gl_state_snapshot* pSnapshot, vogl_context_snapshot* pContext, vogleditor_stateTreeItem* parent)
 {
+    VOGL_NOTE_UNUSED(pSnapshot);
+
     QString tmp;
 
     const vogl_context_desc& desc = pContext->get_context_desc();
