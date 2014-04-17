@@ -126,6 +126,12 @@ public:
        if (m_pKtxTexture != NULL)
        {
            height += (m_pKtxTexture->get_height() * m_zoomFactor);
+
+           // is it a cubemap?
+           if (m_pKtxTexture->get_num_faces() == 6)
+           {
+               height *= 3;
+           }
        }
        return height;
    }
