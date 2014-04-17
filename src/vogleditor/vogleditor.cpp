@@ -1389,6 +1389,8 @@ void VoglEditor::reset_snapshot_ui()
     m_pRenderbufferExplorer->clear();
     m_pProgramExplorer->clear();
     m_pShaderExplorer->clear();
+    ui->contextComboBox->clear();
+    ui->contextComboBox->setEnabled(false);
 
     ui->stateTreeView->setModel(NULL);
 
@@ -2118,10 +2120,13 @@ void VoglEditor::slot_readReplayStandardError()
 
 void VoglEditor::on_contextComboBox_currentIndexChanged(int index)
 {
-    vogl_trace_ptr_value contextHandle = ui->contextComboBox->itemData(index).value<vogl_trace_ptr_value>();
-    if (contextHandle != 0)
+    if (m_currentSnapshot != NULL)
     {
-        vogl_context_snapshot* pContext = m_currentSnapshot->get_context(contextHandle);
-        update_ui_for_context(pContext, m_currentSnapshot);
+        vogl_trace_ptr_value contextHandle = ui->contextComboBox->itemData(index).value<vogl_trace_ptr_value>();
+        if (contextHandle != 0)
+        {
+            vogl_context_snapshot* pContext = m_currentSnapshot->get_context(contextHandle);
+            update_ui_for_context(pContext, m_currentSnapshot);
+        }
     }
 }
