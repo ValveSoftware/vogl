@@ -946,10 +946,10 @@ namespace vogl
 
                 if (!is_empty_type<typename T::referent_type>::cValue)
                 {
-                    json_value &val = element.add("value");
-                    json_serialize(it->second, val);
-                    if (val.is_node())
-                        val.get_node_ptr()->set_parent(&arr_node);
+                    json_value &val2 = element.add("value");
+                    json_serialize(it->second, val2);
+                    if (val2.is_node())
+                        val2.get_node_ptr()->set_parent(&arr_node);
                 }
             }
         }

@@ -1154,24 +1154,24 @@ namespace vogl
                         if (!n)
                             JSON_BD_FAIL();
 
-                        uint l = *pSrc++;
+                        uint l2 = *pSrc++;
                         n--;
 
                         if (c == 'S')
                         {
                             if (n < 3)
                                 JSON_BD_FAIL();
-                            l = (l << 24) | (pSrc[0] << 16) | (pSrc[1] << 8) | pSrc[2];
+                            l2 = (l2 << 24) | (pSrc[0] << 16) | (pSrc[1] << 8) | pSrc[2];
                             pSrc += 3;
                             n -= 3;
                         }
 
-                        if (n < l)
+                        if (n < l2)
                             JSON_BD_FAIL();
 
-                        pNode->get_key(idx).set_from_buf(pSrc, l);
+                        pNode->get_key(idx).set_from_buf(pSrc, l2);
 
-                        pSrc += l;
+                        pSrc += l2;
                     }
 
                     if (!pNode->get_value(idx).binary_deserialize(pSrc, pBuf_end, pNode, depth + 1))
@@ -1476,11 +1476,11 @@ namespace vogl
                     for (uint i = 0; i < 4; i++)
                     {
                         u <<= 4;
-                        int c = vogl_tolower(pStr.get_and_advance());
-                        if ((c >= 'a') && (c <= 'f'))
-                            u += c - 'a' + 10;
-                        else if ((c >= '0') && (c <= '9'))
-                            u += c - '0';
+                        int c2 = vogl_tolower(pStr.get_and_advance());
+                        if ((c2 >= 'a') && (c2 <= 'f'))
+                            u += c2 - 'a' + 10;
+                        else if ((c2 >= '0') && (c2 <= '9'))
+                            u += c2 - '0';
                         else
                         {
                             error_info.set_error(pStr.get_cur_line(), "Invalid Unicode escape");
@@ -2835,14 +2835,14 @@ namespace vogl
                 uint len = pKey->get_len();
                 if (len <= 254)
                 {
-                    uint8 *pDst = buf.enlarge(2 + len);
+                    pDst = buf.enlarge(2 + len);
                     pDst[0] = 's';
                     pDst[1] = static_cast<uint8>(len);
                     memcpy(pDst + 2, pKey->get_ptr(), len);
                 }
                 else
                 {
-                    uint8 *pDst = buf.enlarge(5 + len);
+                    pDst = buf.enlarge(5 + len);
                     pDst[0] = 'S';
                     pDst[1] = static_cast<uint8>(len >> 24);
                     pDst[2] = static_cast<uint8>(len >> 16);
