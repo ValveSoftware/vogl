@@ -166,7 +166,7 @@ namespace vogl
             comment_str.reserve(512);
             uint l = g_thread_safe_random.urand_inclusive(0, 300);
 
-            for (uint i = 0; i < l; i++)
+            for (uint i2 = 0; i2 < l; i2++)
                 comment_str.append_char((char)g_thread_safe_random.urand_inclusive(32, 127));
 
             if (add_from_mem)
@@ -394,8 +394,8 @@ namespace vogl
                         FAIL;
 
                     printf("Validating with 7z:\n");
-                    int result = system(dynamic_string(cVarArg, "7z t \"%s\"", temp_filename.get_ptr()).get_ptr());
-                    if (result)
+                    int result2 = system(dynamic_string(cVarArg, "7z t \"%s\"", temp_filename.get_ptr()).get_ptr());
+                    if (result2)
                         FAIL;
 
                     printf("Ok\n");

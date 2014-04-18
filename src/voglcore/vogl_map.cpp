@@ -166,9 +166,9 @@ namespace vogl
             z.get_unique_keys(uk);
 
             int_map tst;
-            for (uint i = 0; i < uk.size(); i++)
+            for (uint i2 = 0; i2 < uk.size(); i2++)
             {
-                if (!tst.insert(uk[i]).second)
+                if (!tst.insert(uk[i2]).second)
                     return false;
             }
             if (!tst.debug_check())
