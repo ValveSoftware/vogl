@@ -37,3 +37,11 @@
   #define GCC_DIAGNOSTIC_IGNORED(x)
   #define GCC_DIAGNOSTIC_POP()
 #endif
+
+#ifndef CLANG_ANALYZER_NORETURN
+  #if __has_feature(attribute_analyzer_noreturn)
+    #define CLANG_ANALYZER_NORETURN __attribute__((analyzer_noreturn))
+  #else
+    #define CLANG_ANALYZER_NORETURN
+  #endif
+#endif

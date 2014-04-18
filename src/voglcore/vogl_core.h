@@ -93,7 +93,7 @@
 // first_index is the first param to check, specify 0 to just check the format string for consistency
 #define VOGL_ATTRIBUTE_PRINTF(string_index, first_index)
 
-#define VOGL_NOTE_UNUSED(x) (void) x
+#define VOGL_NOTE_UNUSED(x) (void)(x)
 
 #elif defined(__GNUC__) && !defined(VOGL_ANSI_CPLUSPLUS)
 // GCC x86 or x64, pthreads for threading and GCC built-ins for atomic ops.
@@ -242,6 +242,7 @@
 #endif
 #endif
 
+#include "vogl_warnings.h"
 #include "vogl_types.h"
 #include "vogl_assert.h"
 #include "vogl_platform.h"
