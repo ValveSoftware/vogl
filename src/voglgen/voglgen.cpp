@@ -645,10 +645,10 @@ public:
         const TiXmlElement *pLibrary = pLibraries->FirstChildElement();
         while (pLibrary)
         {
-            const char *pName = pLibrary->Attribute("name");
-            if (pName)
+            const char *pName2 = pLibrary->Attribute("name");
+            if (pName2)
             {
-                if (!parse_gl_xml_function_defs(pFilename, pName, pLibrary->FirstChildElement()))
+                if (!parse_gl_xml_function_defs(pFilename, pName2, pLibrary->FirstChildElement()))
                     return false;
             }
 
