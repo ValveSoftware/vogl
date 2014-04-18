@@ -542,7 +542,7 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
 
                         uint8_vec snapshot_data;
                         {
-                            timed_scope ts("get_multi_blob_manager().get");
+                            timed_scope ts2("get_multi_blob_manager().get");
                             if (!pTrace_reader->get_multi_blob_manager().get(id, snapshot_data) || (snapshot_data.is_empty()))
                             {
                                 vogl_error_printf("%s: Failed reading snapshot blob data \"%s\"!\n", VOGL_FUNCTION_NAME, id.get_ptr());
@@ -554,7 +554,7 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
 
                         json_document doc;
                         {
-                            timed_scope ts("doc.binary_deserialize");
+                            timed_scope ts2("doc.binary_deserialize");
                             if (!doc.binary_deserialize(snapshot_data) || (!doc.get_root()))
                             {
                                 vogl_error_printf("%s: Failed deserializing JSON snapshot blob data \"%s\"!\n", VOGL_FUNCTION_NAME, id.get_ptr());
@@ -564,7 +564,7 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
 
                         pSnapshot = vogl_new(vogl_gl_state_snapshot);
 
-                        timed_scope ts("pSnapshot->deserialize");
+                        timed_scope ts2("pSnapshot->deserialize");
                         if (!pSnapshot->deserialize(*doc.get_root(), pTrace_reader->get_multi_blob_manager(), &trace_gl_ctypes))
                         {
                             vogl_delete(pSnapshot);
