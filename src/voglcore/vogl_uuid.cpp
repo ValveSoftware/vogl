@@ -125,17 +125,17 @@ namespace vogl
 
             // Grab some bits from /dev/urandom (not /dev/random - it may block for a long time)
             {
-                const uint N = 64;
-                char buf[N];
+                const uint N2 = 64;
+                char buf2[N2];
                 FILE *fp = vogl_fopen("/dev/urandom", "rb");
                 gen.update_obj_bits(fp);
                 if (fp)
                 {
-                    size_t n = fread(buf, 1, N, fp);
+                    size_t n = fread(buf2, 1, N2, fp);
                     VOGL_NOTE_UNUSED(n);
                     vogl_fclose(fp);
 
-                    gen.update(buf, sizeof(buf));
+                    gen.update(buf2, sizeof(buf2));
                 }
             }
 
