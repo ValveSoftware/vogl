@@ -65,7 +65,7 @@ set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG")
 
 if (NOT VOGL_BUILDING_SAMPLES)
     # Samples have tons of shadowing issues. Only add this flag for regular vogl projects.
-    # set(CMAKE_CXX_FLAGS_LIST ${CMAKE_CXX_FLAGS_LIST} "-Wshadow")
+    set(CMAKE_CXX_FLAGS_LIST ${CMAKE_CXX_FLAGS_LIST} "-Wshadow")
 endif()
 
 set(OPENGL_LIBRARY "GL")
