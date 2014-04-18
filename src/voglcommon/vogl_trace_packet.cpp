@@ -1829,10 +1829,10 @@ bool vogl_trace_packet::json_deserialize_param(
 
                 for (uint val_iter = 0; val_iter < num_vals; val_iter++)
                 {
-                    const json_value &val = pValues->get_value(val_iter);
+                    const json_value &val2 = pValues->get_value(val_iter);
 
                     uint64_t param_data;
-                    if (!convert_json_value_to_ctype_data(param_data, val, pointee_ctype, "values", -1, VOGL_VALUE_PARAM, false, *pValues, pDocument_filename))
+                    if (!convert_json_value_to_ctype_data(param_data, val2, pointee_ctype, "values", -1, VOGL_VALUE_PARAM, false, *pValues, pDocument_filename))
                         return false;
 
                     memcpy(blob.get_ptr() + val_iter * pointee_ctype_size, &param_data, pointee_ctype_size);

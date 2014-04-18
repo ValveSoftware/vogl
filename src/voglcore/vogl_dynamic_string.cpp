@@ -1525,8 +1525,8 @@ namespace vogl
 
                 CHECK(k.get_len() == i);
 
-                for (uint i = 0; i < k.get_len(); i++)
-                    CHECK(k[i] == (char)fill_char);
+                for (uint i2 = 0; i2 < k.get_len(); i2++)
+                    CHECK(k[i2] == (char)fill_char);
 
                 //if ((t & 4095) == 4095)
                 printf("%3.3f%%\n", t * 100.0f / N);

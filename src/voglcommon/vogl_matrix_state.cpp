@@ -348,14 +348,14 @@ bool vogl_matrix_state::deserialize(const json_node &node, const vogl_blob_manag
         matrix_vec &matrices = m_matrices[matrix_key(matrix, index)];
         matrices.resize(pMatrices->size());
 
-        for (uint i = 0; i < matrices.size(); i++)
+        for (uint i2 = 0; i2 < matrices.size(); i2++)
         {
-            const json_node *pMatrix = pMatrices->get_value_as_array(i);
+            const json_node *pMatrix = pMatrices->get_value_as_array(i2);
             if ((!pMatrix) || (!pMatrix->is_array()) || (pMatrix->size() != 4 * 4))
                 return false;
 
             for (uint j = 0; j < 4 * 4; j++)
-                matrices[i].get_ptr()[j] = pMatrix->value_as_double(j);
+                matrices[i2].get_ptr()[j] = pMatrix->value_as_double(j);
         }
     }
 
