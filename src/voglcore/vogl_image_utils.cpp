@@ -570,12 +570,12 @@ namespace vogl
                         {
                             if (linear)
                             {
-                                int c = (int)(255.0f * pOutput_samples[x] + .5f);
-                                if (c < 0)
-                                    c = 0;
-                                else if (c > 255)
-                                    c = 255;
-                                (*pDst)[comp_index] = (unsigned char)c;
+                                int c2 = (int)(255.0f * pOutput_samples[x] + .5f);
+                                if (c2 < 0)
+                                    c2 = 0;
+                                else if (c2 > 255)
+                                    c2 = 255;
+                                (*pDst)[comp_index] = (unsigned char)c2;
                             }
                             else
                             {
@@ -855,7 +855,7 @@ namespace vogl
 
                 for (uint x = 0; x < dst_width; x++)
                 {
-                    color_quad_u8 dst(0, 0, 0, 255);
+                    color_quad_u8 dst2(0, 0, 0, 255);
 
                     for (uint c = 0; c < params.m_num_comps; c++)
                     {
@@ -864,12 +864,12 @@ namespace vogl
 
                         if ((!params.m_srgb) || (comp_index == 3))
                         {
-                            int c = static_cast<int>(255.0f * v + .5f);
-                            if (c < 0)
-                                c = 0;
-                            else if (c > 255)
-                                c = 255;
-                            dst[comp_index] = (unsigned char)c;
+                            int c2 = static_cast<int>(255.0f * v + .5f);
+                            if (c2 < 0)
+                                c2 = 0;
+                            else if (c2 > 255)
+                                c2 = 255;
+                            dst2[comp_index] = (unsigned char)c2;
                         }
                         else
                         {
@@ -878,11 +878,11 @@ namespace vogl
                                 j = 0;
                             else if (j >= linear_to_srgb_table_size)
                                 j = linear_to_srgb_table_size - 1;
-                            dst[comp_index] = linear_to_srgb[j];
+                            dst2[comp_index] = linear_to_srgb[j];
                         }
                     }
 
-                    *pDst++ = dst;
+                    *pDst++ = dst2;
 
                     pSrc += resampler_comps;
                 }
@@ -1323,10 +1323,10 @@ namespace vogl
                         }
                         case image_utils::cConversion_Y_To_RGB:
                         {
-                            uint8 y = static_cast<uint8>(src.get_luma());
-                            dst.r = y;
-                            dst.g = y;
-                            dst.b = y;
+                            uint8 y2 = static_cast<uint8>(src.get_luma());
+                            dst.r = y2;
+                            dst.g = y2;
+                            dst.b = y2;
                             dst.a = src.a;
                             break;
                         }
@@ -1340,10 +1340,10 @@ namespace vogl
                         }
                         case image_utils::cConversion_To_Y:
                         {
-                            uint8 y = static_cast<uint8>(src.get_luma());
-                            dst.r = y;
-                            dst.g = y;
-                            dst.b = y;
+                            uint8 y2 = static_cast<uint8>(src.get_luma());
+                            dst.r = y2;
+                            dst.g = y2;
+                            dst.b = y2;
                             dst.a = src.a;
                             break;
                         }
@@ -1654,9 +1654,9 @@ namespace vogl
                         l2 *= 2;
                         float u1 = 1.0;
                         float u2 = 0.0;
-                        for (int j = 0; j < l1; j++)
+                        for (int j2 = 0; j2 < l1; j2++)
                         {
-                            for (int i = j; i < n; i += l2)
+                            for (int i = j2; i < n; i += l2)
                             {
                                 int i1 = i + l1;
                                 float t1 = u1 * GRe[C * m * x + C * i1 + c] - u2 * GIm[C * m * x + C * i1 + c];
@@ -1693,9 +1693,9 @@ namespace vogl
                         l2 *= 2;
                         float u1 = 1.0;
                         float u2 = 0.0;
-                        for (int j = 0; j < l1; j++)
+                        for (int j2 = 0; j2 < l1; j2++)
                         {
-                            for (int i = j; i < n; i += l2)
+                            for (int i = j2; i < n; i += l2)
                             {
                                 int i1 = i + l1;
                                 float t1 = u1 * GRe[C * m * i1 + C * y + c] - u2 * GIm[C * m * i1 + C * y + c];

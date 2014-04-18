@@ -420,7 +420,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_window_resize(bool 
         if (pApplied_snapshot)
             *pApplied_snapshot = true;
 
-        status_t status = process_applying_pending_snapshot();
+        status = process_applying_pending_snapshot();
         if (status != cStatusOK)
             return status;
     }
@@ -2817,15 +2817,15 @@ void vogl_gl_replayer::handle_link_program(gl_entrypoint_id_t entrypoint_id)
             if (trace_array_size > 1)
             {
                 dynamic_string element_name;
-                for (int i = 0; i < trace_array_size; i++)
+                for (int j = 0; j < trace_array_size; j++)
                 {
                     element_name = pName;
                     int start_bracket_ofs = element_name.find_right('[');
                     if (start_bracket_ofs >= 0)
                         element_name.left(start_bracket_ofs);
-                    element_name.format_append("[%u]", i);
+                    element_name.format_append("[%u]", j);
 
-                    GLint element_trace_loc = trace_loc + i;
+                    GLint element_trace_loc = trace_loc + j;
                     GLint element_replay_loc;
                     if (entrypoint_id == VOGL_ENTRYPOINT_glLinkProgramARB)
                         element_replay_loc = GL_ENTRYPOINT(glGetUniformLocationARB)(replay_handle, reinterpret_cast<const GLcharARB *>(element_name.get_ptr()));
@@ -3037,16 +3037,16 @@ bool vogl_gl_replayer::dump_framebuffer(
 
     if (replay_texture)
     {
-        GLuint trace_texture = 0;
-        get_shared_state()->m_shadow_state.m_textures.map_inv_handle_to_handle(replay_texture, trace_texture);
-        screenshot_filename += dynamic_string(cVarArg, "_TEX%04u", trace_texture);
+        GLuint trace_texture2 = 0;
+        get_shared_state()->m_shadow_state.m_textures.map_inv_handle_to_handle(replay_texture, trace_texture2);
+        screenshot_filename += dynamic_string(cVarArg, "_TEX%04u", trace_texture2);
     }
 
     if (replay_rbo)
     {
-        GLuint trace_rbo = 0;
-        get_shared_state()->m_shadow_state.m_rbos.map_inv_handle_to_handle(replay_rbo, trace_rbo);
-        screenshot_filename += dynamic_string(cVarArg, "_RBO%04u", trace_rbo);
+        GLuint trace_rbo2 = 0;
+        get_shared_state()->m_shadow_state.m_rbos.map_inv_handle_to_handle(replay_rbo, trace_rbo2);
+        screenshot_filename += dynamic_string(cVarArg, "_RBO%04u", trace_rbo2);
     }
 
     if (pFilename_suffix)
@@ -3769,8 +3769,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_glXQueryVersion:
         {
             int major = 0, minor = 0;
-            Bool status = GL_ENTRYPOINT(glXQueryVersion)(m_pWindow->get_display(), &major, &minor);
-            process_entrypoint_message("%s: glXQueryVersion returned major %u minor %u status %u, trace recorded major %u minor %u status %u\n", VOGL_METHOD_NAME, major, minor, status,
+            Bool status2 = GL_ENTRYPOINT(glXQueryVersion)(m_pWindow->get_display(), &major, &minor);
+            process_entrypoint_message("%s: glXQueryVersion returned major %u minor %u status %u, trace recorded major %u minor %u status %u\n", VOGL_METHOD_NAME, major, minor, status2,
                                        *trace_packet.get_param_client_memory<int>(1),
                                        *trace_packet.get_param_client_memory<int>(2),
                                        trace_packet.get_return_value<Bool>());
@@ -11539,7 +11539,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
         if (!context_state.get_context_info().is_valid())
             continue;
 
-        status_t status = switch_contexts(context_state.get_context_desc().get_trace_context());
+        status = switch_contexts(context_state.get_context_desc().get_trace_context());
         if (status != cStatusOK)
         {
             vogl_error_printf("%s: Failed switching to trace context 0x%" PRIX64 ", capture failed\n", VOGL_METHOD_NAME, cast_val_to_uint64(context_state.get_context_desc().get_trace_context()));

@@ -169,8 +169,8 @@ namespace vogl
                 if ((r == ave_r) && (g == ave_g) && (b == ave_b))
                     continue;
 
-                uint low_color = (ryg_dxt::OMatch5[r][0] << 11) | (ryg_dxt::OMatch6[g][0] << 5) | ryg_dxt::OMatch5[b][0];
-                uint high_color = (ryg_dxt::OMatch5[r][1] << 11) | (ryg_dxt::OMatch6[g][1] << 5) | ryg_dxt::OMatch5[b][1];
+                low_color = (ryg_dxt::OMatch5[r][0] << 11) | (ryg_dxt::OMatch6[g][0] << 5) | ryg_dxt::OMatch5[b][0];
+                high_color = (ryg_dxt::OMatch5[r][1] << 11) | (ryg_dxt::OMatch6[g][1] << 5) | ryg_dxt::OMatch5[b][1];
                 improved |= evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
 
                 if ((m_pParams->m_use_alpha_blocks) && (m_best_solution.m_error))
@@ -600,12 +600,12 @@ namespace vogl
                         if (trial_error < error_to_beat)
                         {
                             color_quad_u8 l(dxt1_block::unpack_color(m_best_solution.m_coords.m_low_color, false));
-                            color_quad_u8 h(dxt1_block::unpack_color(m_best_solution.m_coords.m_high_color, false));
+                            color_quad_u8 h2(dxt1_block::unpack_color(m_best_solution.m_coords.m_high_color, false));
                             l[comp_index] = static_cast<uint8>(o);
-                            h[comp_index] = static_cast<uint8>(p);
+                            h2[comp_index] = static_cast<uint8>(p);
 
                             bool better = evaluate_solution(
-                                dxt1_solution_coordinates(dxt1_block::pack_color(l, false), dxt1_block::pack_color(h, false)),
+                                dxt1_solution_coordinates(dxt1_block::pack_color(l, false), dxt1_block::pack_color(h2, false)),
                                 true, &m_best_solution);
                             VOGL_NOTE_UNUSED(better);
 
@@ -614,7 +614,7 @@ namespace vogl
 #if 0
 							printf("comp: %u, orig: %u %u, new: %u %u, orig_error: %u, new_error: %u\n", comp_index,
 							       orig_l[comp_index], orig_h[comp_index],
-							       l[comp_index], h[comp_index],
+							       l[comp_index], h2[comp_index],
 							       orig_error, m_best_solution.m_error);
 #endif
                                 if (!m_best_solution.m_error)

@@ -1796,11 +1796,11 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
         {
             const vogl_program_transform_feedback_varying &varying = m_varyings[i];
 
-            json_node &node = varyings_array.add_object();
-            node.add_key_value("index", varying.m_index);
-            node.add_key_value("name", varying.m_name);
-            node.add_key_value("size", varying.m_size);
-            node.add_key_value("type", g_gl_enums.find_gl_name(varying.m_type));
+            json_node &node2 = varyings_array.add_object();
+            node2.add_key_value("index", varying.m_index);
+            node2.add_key_value("name", varying.m_name);
+            node2.add_key_value("size", varying.m_size);
+            node2.add_key_value("type", g_gl_enums.find_gl_name(varying.m_type));
         }
     }
 

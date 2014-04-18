@@ -127,7 +127,7 @@ namespace vogl
                 VOGL_HASHMAP_VERIFY(it->second == (v ^ 0xdeadbeef));
             }
 
-            for (uint t = 0; t < 2; t++)
+            for (uint t2 = 0; t2 < 2; t2++)
             {
                 const uint nd = r0.irand(1, q.size() + 1);
                 for (uint i = 0; i < nd; i++)
