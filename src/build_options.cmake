@@ -25,7 +25,6 @@ option(WITH_ASAN "Enable address sanitizer" OFF) # gcc4.8+, clang 3.1+
 #option(WITH_MSAN "Enable memory sanitizer" OFF)
 #option(WITH_TSAN "Enable thread sanitizer" OFF)
 option(WITH_HARDENING "Enable hardening: Compile-time protection against static sized buffer overflows" OFF)
-option(CLANG_EVERYTHING "Do clang build with -Weverything" OFF)
 option(USE_TELEMETRY "Build with Telemetry" OFF)
 
 # Unless user specifies BUILD_X64 explicitly, assume native target
@@ -63,9 +62,11 @@ set(CMAKE_CXX_FLAGS_LIST "-g -Wall -Wextra")
 set(CMAKE_CXX_FLAGS_RELEASE_LIST "-g -O2 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG")
 
+set(CLANG_EVERYTHING 0)
 if (NOT VOGL_BUILDING_SAMPLES)
     # Samples have tons of shadowing issues. Only add this flag for regular vogl projects.
     set(CMAKE_CXX_FLAGS_LIST ${CMAKE_CXX_FLAGS_LIST} "-Wshadow")
+    set(CLANG_EVERYTHING 1)
 endif()
 
 set(OPENGL_LIBRARY "GL")
@@ -83,12 +84,39 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 
   if (CLANG_EVERYTHING)
       set(CMAKE_CXX_FLAGS_LIST ${CMAKE_CXX_FLAGS_LIST}
-          "-pedantic"               # Warn on language extensions
+          # "-pedantic"             # Warn on language extensions
           "-Weverything"            # Enable all warnings
           "-fdiagnostics-show-category=name"
           "-Wno-unused-macros"
           "-Wno-padded"
           "-Wno-variadic-macros"
+          "-Wno-missing-variable-declarations"
+          "-Wno-missing-prototypes"
+          "-Wno-pedantic"
+          "-Wno-sign-conversion"
+          "-Wno-conversion"
+          "-Wno-global-constructors"
+          "-Wno-cast-align"
+          "-Wno-exit-time-destructors"
+          "-Wno-documentation-deprecated-sync"
+          "-Wno-documentation-unknown-command"
+
+          # TODO: Would be great to start enabling some of these warnings...
+          "-Wno-undef"
+          "-Wno-undefined-reinterpret-cast"
+          "-Wno-incompatible-pointer-types-discards-qualifiers"
+          "-Wno-switch-enum"
+          "-Wno-duplicate-enum"
+          "-Wno-float-equal"
+          "-Wno-header-hygiene"
+          "-Wno-unreachable-code"
+          "-Wno-weak-vtables"
+          "-Wno-extra-semi"
+          "-Wno-disabled-macro-expansion"
+          "-Wno-format-nonliteral"
+          "-Wno-packed"
+          "-Wno-covered-switch-default"
+          "-Wno-shift-sign-overflow"
           )
   endif()
 

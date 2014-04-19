@@ -16,7 +16,6 @@ message("  -DVOGLTRACE_NO_PUBLIC_EXPORTS='${VOGLTRACE_NO_PUBLIC_EXPORTS}': Don't
 message("  -DVOGL_ENABLE_ASSERTS='${VOGL_ENABLE_ASSERTS}': Enable assertions in all voglcore builds (including release). (On|Off)")
 message("  -DCMAKE_VERBOSE='${CMAKE_VERBOSE}': Spew cmake project options. (On|Off)")
 message("  -DBUILD_X64='${BUILD_X64}': Build 32 or 64-bit. (On|Off)")
-message("  -DCLANG_EVERYTHING='${CLANG_EVERYTHING}': Do clang build with -Weverything. (On|Off)")
 message("  -DUSE_TELEMETRY='${USE_TELEMETRY}': Build with Telemetry. (On|Off)")
 message("")
 

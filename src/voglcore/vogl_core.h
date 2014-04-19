@@ -122,7 +122,6 @@
 #define VOGL_RESTRICT
 
 #ifdef __clang__
-#include "../extlib/clang_warnings/clang_warnings.h"
 // FIXME - clang interprets forceinline in a subtly different way vs. gcc/MSVS, which causes multiple func definitions
 #define VOGL_FORCE_INLINE inline
 #else
