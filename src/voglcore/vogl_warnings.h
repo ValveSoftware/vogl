@@ -38,7 +38,11 @@
   #define GCC_DIAGNOSTIC_POP()
 #endif
 
-#ifndef CLANG_ANALYZER_NORETURN
+#if !defined(__clang__) && !defined(__has_feature)
+  #define __has_feature(_x) 0
+#endif
+
+#if !defined(CLANG_ANALYZER_NORETURN)
   #if __has_feature(attribute_analyzer_noreturn)
     #define CLANG_ANALYZER_NORETURN __attribute__((analyzer_noreturn))
   #else
