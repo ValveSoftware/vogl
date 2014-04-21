@@ -35,6 +35,7 @@ project (libbacktracevogl)
 
 set (BACKTRACE_SUPPORTED 1)
 
+include (CheckSymbolExists)
 if (true)
     # When unwind.h is in /usr/local/include, check_symbol_exists() is failing. But
     #  these functions are in the Linux Standard Base Core Spec and should just exist
@@ -43,7 +44,6 @@ if (true)
     set (HAVE_BACKTRACE 1)
     set (HAVE_GETIPINFO 1)
 else()
-    include (CheckSymbolExists)
     check_symbol_exists (_Unwind_Backtrace unwind.h HAVE_BACKTRACE)
     check_symbol_exists (_Unwind_GetIPInfo unwind.h HAVE_GETIPINFO)
 endif()
@@ -148,8 +148,11 @@ check_function_exists (strnlen HAVE_DECL_STRNLEN)
 
 check_function_exists (getexecname HAVE_GETEXECNAME)
 
+find_library(LIBUNWIND_LIBRARY NAMES unwind libunwind REQUIRE)
+
 include (CheckLibraryExists)
-check_library_exists (unwind unw_backtrace_skip "" HAVE_UNW_BACKTRACE_SKIP)
+set(CMAKE_REQUIRED_LIBRARIES ${LIBLZMA_LIBRARIES})
+check_library_exists (${LIBUNWIND_LIBRARY} unw_backtrace_skip "" HAVE_UNW_BACKTRACE_SKIP)
 
 include (CheckIncludeFile)
 check_include_file (dwarf.h HAVE_DWARF_H)
@@ -191,7 +194,6 @@ add_library (backtracevogl STATIC EXCLUDE_FROM_ALL
 
 target_link_libraries(backtracevogl voglcore)
 
-find_library(LIBUNWIND_LIBRARY NAMES unwind libunwind REQUIRE)
 target_link_libraries(backtracevogl ${LIBUNWIND_LIBRARY} ${LIBLZMA_LIBRARIES})
 
 set_target_properties (backtracevogl PROPERTIES
