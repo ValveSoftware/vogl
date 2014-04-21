@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 2.8)
 
 option(VOGL_ENABLE_ASSERTS "Enable assertions in all builds (including release)" FALSE)
 find_package(Threads)
-if (NOT CMAKE_USE_PTHREADS_INIT)
+if (NOT CMAKE_USE_PTHREADS_INIT AND NOT WIN32_PTHREADS_INCLUDE_PATH)
     message(ERROR "pthread not found")
-endif ()
+endif()
 
 include("${SRC_DIR}/build_options.cmake")
 
@@ -14,6 +14,10 @@ include_directories(
     ${LZMADEC_INCLUDE_DIR}
    "${SRC_DIR}/chromiumlib"
 )
+
+if (MSVC)
+    include_directories("${WIN32_PTHREADS_INCLUDE_PATH}")
+endif()
 
 file( GLOB_RECURSE HDRS *.[h|inl] )
 
@@ -53,6 +57,7 @@ set(SRC_LIST
     vogl_mipmapped_texture.cpp
     vogl_pixel_format.cpp
     vogl_platform.cpp
+    vogl_port.cpp
     vogl_rand.cpp
     vogl_resample_filters.cpp
     vogl_resampler.cpp
@@ -86,9 +91,22 @@ set(SRC_LIST
     vogl_object_pool.cpp
 )
 
-if(MSVC)
-else()
+if (!MSVC)
     add_compiler_flag("-fPIC")
+endif()
+
+if (WIN32)
+    set(SRC_LIST
+        ${SRC_LIST}
+        vogl_port_windows.cpp
+    )
+elseif (POSIX)
+    set(SRC_LIST
+        ${SRC_LIST}
+        vogl_port_posix.cpp
+    )
+else()
+    message(ERROR "Need to add a vogl_port_PLATFORM.cpp file for this platform.")
 endif()
 
 if (VOGL_ENABLE_ASSERTS)

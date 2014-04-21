@@ -29,8 +29,7 @@
 Igor Pavlov
 Public domain */
 
-#ifndef __CPUARCH_H
-#define __CPUARCH_H
+#pragma once
 
 /*
 LITTLE_ENDIAN_UNALIGN means:
@@ -74,7 +73,7 @@ about these properties of platform.
 
 #endif
 
-#if defined(LITTLE_ENDIAN_UNALIGN) && defined(_WIN64) && (_MSC_VER >= 1300)
+#if defined(LITTLE_ENDIAN_UNALIGN) && defined(PLATFORM_64BIT) && (_MSC_VER >= 1300)
 
 #pragma intrinsic(_byteswap_ulong)
 #pragma intrinsic(_byteswap_uint64)
@@ -95,4 +94,3 @@ about these properties of platform.
 
 #define GetBe16(p) (((UInt16)((const Byte *)(p))[0] << 8) | ((const Byte *)(p))[1])
 
-#endif

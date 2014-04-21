@@ -84,8 +84,7 @@
 
    ===================================================================== */
 
-#ifndef R_MALLOC_H
-#define R_MALLOC_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -225,4 +224,3 @@ size_t Rmalloc_usable_size(void *p, const char *file);
 }
 #endif
 
-#endif /* !R_MALLOC_H */

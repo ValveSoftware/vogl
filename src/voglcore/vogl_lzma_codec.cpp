@@ -80,7 +80,7 @@ namespace vogl
                                         -1, /* 0 <= lp <= 4, default = 0  */
                                         -1, /* 0 <= pb <= 4, default = 2  */
                                         -1, /* 5 <= fb <= 273, default = 32 */
-#ifdef WIN32
+#if defined(PLATFORM_WINDOWS)
                                         (g_number_of_processors > 1) ? 2 : 1
 #else
                                         1

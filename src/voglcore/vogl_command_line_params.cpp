@@ -31,7 +31,7 @@
 #include "vogl_cfile_stream.h"
 #include "vogl_strutils.h"
 
-#ifdef WIN32
+#ifdef PLATFORM_WINDOWS
 #define VOGL_CMD_LINE_ALLOW_SLASH_PARAMS 1
 #endif
 

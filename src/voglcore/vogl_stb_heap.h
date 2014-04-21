@@ -25,8 +25,7 @@
  **************************************************************************/
 
 // File: vogl_stb_heap.h
-#ifndef VOGL_STB_HEAP_H
-#define VOGL_STB_HEAP_H
+#pragma once
 
 #include "vogl_core.h"
 
@@ -156,5 +155,3 @@ private:
 };
 
 VOGL_NAMESPACE_END(vogl)
-
-#endif // VOGL_STB_HEAP_H

@@ -27,8 +27,7 @@
 /* LzFindMt.h -- multithreaded Match finder for LZ algorithms
 2008-10-04 : Igor Pavlov : Public domain */
 
-#ifndef __LZFINDMT_H
-#define __LZFINDMT_H
+#pragma once
 
 #include "lzma_Threads.h"
 #include "lzma_LzFind.h"
@@ -124,4 +123,3 @@ namespace vogl
     void MatchFinderMt_ReleaseStream(CMatchFinderMt *p);
 }
 
-#endif

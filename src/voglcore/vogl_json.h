@@ -28,12 +28,7 @@
 //
 // TODO: Ensure UBJ format is compatible with the latest specification. I'm using the spec from late 2011.
 //
-#ifndef VOGL_JSON_H
-#define VOGL_JSON_H
-
-#ifdef WIN32
 #pragma once
-#endif
 
 #include "vogl_core.h"
 #include "vogl_strutils.h"
@@ -702,5 +697,3 @@ namespace vogl
 } // namespace vogl
 
 #include "vogl_json.inl"
-
-#endif // VOGL_JSON_DOC_H

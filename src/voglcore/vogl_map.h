@@ -59,8 +59,7 @@
 //
 // Item memory overhead: ~13 bytes avg overhead in 32-bit builds, ~26 bytes for 64-bit builds.
 // Min overhead is sizeof(uint32)+sizeof(void*)*2 per element.
-#ifndef VOGL_MAP_H
-#define VOGL_MAP_H
+#pragma once
 
 #include "vogl_core.h"
 #include "vogl_rand.h"
@@ -1587,5 +1586,3 @@ namespace std
         a.swap(b);
     }
 }
-
-#endif // #ifndef VOGL_MAP_H

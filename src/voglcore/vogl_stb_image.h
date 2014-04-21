@@ -23,9 +23,7 @@
  * THE SOFTWARE.
  *
  **************************************************************************/
-
-#ifndef STBI_INCLUDE_STB_IMAGE_H
-#define STBI_INCLUDE_STB_IMAGE_H
+#pragma once
 
 #include "vogl_core.h"
 
@@ -148,11 +146,11 @@ namespace vogl
     // (you must include the appropriate extension in the filename).
     // returns TRUE on success, FALSE if couldn't open file, error writing file
     extern int stbi_write_bmp(char const *filename, int x, int y, int comp, const void *data);
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
     extern int stbi_write_bmp_w(wchar_t const *filename, int x, int y, int comp, const void *data);
 #endif
     extern int stbi_write_tga(char const *filename, int x, int y, int comp, const void *data);
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
     extern int stbi_write_tga_w(wchar_t const *filename, int x, int y, int comp, const void *data);
 #endif
 #endif
@@ -162,7 +160,7 @@ namespace vogl
 // load image by filename, open file, or memory buffer
 #ifndef STBI_NO_STDIO
     extern stbi_uc *stbi_load(char const *filename, int *x, int *y, int *comp, int req_comp);
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
     extern stbi_uc *stbi_load_w(wchar_t const *filename, int *x, int *y, int *comp, int req_comp);
 #endif
     extern stbi_uc *stbi_load_from_file(FILE *f, int *x, int *y, int *comp, int req_comp);
@@ -323,4 +321,3 @@ namespace vogl
 //
 //
 ////   end header file   /////////////////////////////////////////////////////
-#endif // STBI_INCLUDE_STB_IMAGE_H

@@ -252,12 +252,7 @@ namespace vogl
 
         va_list args;
         va_start(args, pFmt);
-#ifdef _MSC_VER
-        int l = _vsnprintf_s(str, sizeof(str), pFmt, args);
-#else
-        int l = vsnprintf(str, sizeof(str), pFmt, args);
-        str[sizeof(str) - 1] = '\0';
-#endif
+        int l = vogl_vsprintf_s(str, sizeof(str), pFmt, args);
         va_end(args);
 
         char *p = m_buf.try_enlarge(l);

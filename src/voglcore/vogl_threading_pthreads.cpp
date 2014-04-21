@@ -9,7 +9,8 @@
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * furnished to do so, subject to the follo
+ g conditions:
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
@@ -28,20 +29,22 @@
 #include "vogl_core.h"
 #include "vogl_threading_pthreads.h"
 #include "vogl_timer.h"
+#include "vogl_port.h"
 
 #if VOGL_USE_PTHREADS_API
 
-#ifdef WIN32
-#pragma comment(lib, "../ext/libpthread/lib/pthreadVC2.lib")
-#include "vogl_winhdr.h"
+#if defined(PLATFORM_WINDOWS)
+    #pragma message("Bad library include here?")
+    #pragma comment(lib, "../ext/libpthread/lib/pthreadVC2.lib")
+    #include "vogl_winhdr.h"
 #endif
 
-#ifdef __GNUC__
-#include <sys/sysinfo.h>
+#if defined(COMPILER_GCC)
+    #include <sys/sysinfo.h>
 #endif
 
-#ifdef WIN32
-#include <process.h>
+#if defined(PLATFORM_WINDOWS)
+    #include <process.h>
 #endif
 
 namespace vogl
@@ -50,38 +53,37 @@ namespace vogl
 
     void vogl_threading_init()
     {
-#ifdef WIN32
-        SYSTEM_INFO g_system_info;
-        GetSystemInfo(&g_system_info);
-        g_number_of_processors = math::maximum<uint>(1U, g_system_info.dwNumberOfProcessors);
-#elif defined(__GNUC__)
-        g_number_of_processors = math::maximum<int>(1, get_nprocs());
-#else
-        g_number_of_processors = 1;
-#endif
+        #if defined(COMPILER_MSVC)
+            SYSTEM_INFO g_system_info;
+            GetSystemInfo(&g_system_info);
+            g_number_of_processors = math::maximum<uint>(1U, g_system_info.dwNumberOfProcessors);
+        #elif defined(COMPILER_GCC)
+            g_number_of_processors = math::maximum<int>(1, get_nprocs());
+        #else
+            g_number_of_processors = 1;
+        #endif
     }
 
     vogl_thread_id_t vogl_get_current_thread_id()
     {
-        // FIXME: Not portable
-        return static_cast<vogl_thread_id_t>(pthread_self());
+        return plat_posix_gettid();
     }
 
     void vogl_sleep(unsigned int milliseconds)
     {
-#ifdef WIN32
-        struct timespec interval;
-        interval.tv_sec = milliseconds / 1000;
-        interval.tv_nsec = (milliseconds % 1000) * 1000000L;
-        pthread_delay_np(&interval);
-#else
-        while (milliseconds)
-        {
-            int msecs_to_sleep = VOGL_MIN(milliseconds, 1000);
-            usleep(msecs_to_sleep * 1000);
-            milliseconds -= msecs_to_sleep;
-        }
-#endif
+        #if defined(PLATFORM_WINDOWS)
+            struct timespec interval;
+            interval.tv_sec = milliseconds / 1000;
+            interval.tv_nsec = (milliseconds % 1000) * 1000000L;
+            pthread_delay_np(&interval);
+        #else
+            while (milliseconds)
+            {
+                int msecs_to_sleep = VOGL_MIN(milliseconds, 1000);
+                usleep(msecs_to_sleep * 1000);
+                milliseconds -= msecs_to_sleep;
+            }
+        #endif
     }
 
     mutex::mutex(unsigned int spin_count, bool recursive)
@@ -172,23 +174,7 @@ namespace vogl
     {
         VOGL_ASSERT(releaseCount >= 1);
 
-        int status = 0;
-#ifdef WIN32
-        if (1 == releaseCount)
-            status = sem_post(&m_sem);
-        else
-            status = sem_post_multiple(&m_sem, releaseCount);
-#else
-        while (releaseCount > 0)
-        {
-            status = sem_post(&m_sem);
-            if (status)
-                break;
-            releaseCount--;
-        }
-#endif
-
-        if (status)
+        if (plat_sem_post(&m_sem, releaseCount))
         {
             VOGL_FAIL("semaphore: sem_post() or sem_post_multiple() failed");
         }
@@ -198,18 +184,7 @@ namespace vogl
     {
         VOGL_ASSERT(releaseCount >= 1);
 
-#ifdef WIN32
-        if (1 == releaseCount)
-            sem_post(&m_sem);
-        else
-            sem_post_multiple(&m_sem, releaseCount);
-#else
-        while (releaseCount > 0)
-        {
-            sem_post(&m_sem);
-            releaseCount--;
-        }
-#endif
+        plat_try_sem_post(&m_sem, releaseCount);
     }
 
     bool semaphore::wait(uint32 milliseconds)

@@ -46,6 +46,12 @@
 #include "cclass.h"
 #include "cname.h"
 
+#ifdef COMPILER_MSVC
+    #define STATIC_INLINE static __inline
+#else
+    #define STATIC_INLINE static inline
+#endif
+
 /*
  * parse structure, passed up and down to avoid global variables and
  * other clumsinesses
@@ -106,32 +112,32 @@ static int vogl_never = 0; /* for use in asserts; shuts lint up */
 #endif
 
 // Attempt to work around locale issues, not sure if I've got them all here.
-static inline int regcomp_isdigit(int c)
+STATIC_INLINE int regcomp_isdigit(int c)
 {
     return (c >= '0') && (c <= '9');
 }
 
-static inline int regcomp_islower(int c)
+STATIC_INLINE int regcomp_islower(int c)
 {
     return (c >= 'a') && (c <= 'z');
 }
 
-static inline int regcomp_isupper(int c)
+STATIC_INLINE int regcomp_isupper(int c)
 {
     return (c >= 'A') && (c <= 'Z');
 }
 
-static inline int regcomp_isalpha(int c)
+STATIC_INLINE int regcomp_isalpha(int c)
 {
     return regcomp_islower(c) || regcomp_isupper(c);
 }
 
-static inline int regcomp_toupper(int c)
+STATIC_INLINE int regcomp_toupper(int c)
 {
     return ((c >= 'a') && (c <= 'z')) ? (c - 'a' + 'A') : c;
 }
 
-static inline int regcomp_tolower(int c)
+STATIC_INLINE int regcomp_tolower(int c)
 {
     return ((c >= 'A') && (c <= 'Z')) ? (c - 'A' + 'a') : c;
 }

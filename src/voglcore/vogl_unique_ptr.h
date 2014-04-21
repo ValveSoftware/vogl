@@ -25,8 +25,7 @@
  **************************************************************************/
 
 // File: vogl_unique_ptr.h
-#ifndef VOGL_UNIQUE_PTR_H
-#define VOGL_UNIQUE_PTR_H
+#pragma once
 
 #include "vogl_core.h"
 
@@ -157,5 +156,3 @@ namespace std
         a.swap(b);
     }
 }
-
-#endif // VOGL_UNIQUE_PTR_H

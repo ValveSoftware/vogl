@@ -25,11 +25,7 @@
  **************************************************************************/
 
 // File: vogl_ktx_texture.h
-#ifndef _KTX_TEXTURE_H_
-#define _KTX_TEXTURE_H_
-#ifdef _MSC_VER
 #pragma once
-#endif
 
 #include "vogl_core.h"
 #include "vogl_data_stream_serializer.h"
@@ -470,5 +466,3 @@ namespace vogl
     };
 
 } // namespace vogl
-
-#endif // #ifndef _KTX_TEXTURE_H_

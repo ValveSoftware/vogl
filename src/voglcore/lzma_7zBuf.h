@@ -26,9 +26,7 @@
 
 /* 7zBuf.h -- Byte Buffer
 2008-10-04 : Igor Pavlov : Public domain */
-
-#ifndef __7Z_BUF_H
-#define __7Z_BUF_H
+#pragma once
 
 #include "lzma_Types.h"
 
@@ -58,4 +56,3 @@ namespace vogl
     void DynBuf_Free(CDynBuf *p, ISzAlloc *alloc);
 }
 
-#endif

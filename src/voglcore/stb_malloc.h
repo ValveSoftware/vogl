@@ -173,8 +173,7 @@
 //
 // Implementation information appears after the header section.
 
-#ifndef INCLUDE_STB_MALLOC_H
-#define INCLUDE_STB_MALLOC_H
+#pragma once
 
 // #define STBM_MUTEX_HANDLE to be the datatype of a pointer
 // to a mutex or else the code will not be thread-safe
@@ -429,4 +428,3 @@ STBM__API void stbm_debug_iterate(stbm_heap *heap, stbm_debug_iterate_func *call
 }
 #endif
 
-#endif //INCLUDE_STB_MALLOC_H

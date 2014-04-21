@@ -144,7 +144,7 @@ namespace vogl
             return result;
         }
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
         template <>
         static inline parameter_type clamp(int v)
         {

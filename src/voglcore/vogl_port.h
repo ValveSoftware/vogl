@@ -24,37 +24,39 @@
  *
  **************************************************************************/
 
-/* Alloc.h -- Memory allocation functions
-2008-03-13
-Igor Pavlov
-Public domain */
-
+// File: vogl_port.h
+// Purpose: This file contains the prototypes for functions that one platform or the other expect
+// The guts of those functions live in the platform-specific CPP files.
 #pragma once
 
-#include <stddef.h>
+#include "vogl_core.h"
 
-namespace vogl
-{
+// Get the thread id for this thread.
+pid_t plat_gettid();
 
-    void *MyAlloc(size_t size);
-    void MyFree(void *address);
+// Get the posix thread id (which may be the same as above--but they're different in source so different here)
+uint64_t plat_posix_gettid();
 
-#ifdef _WIN32
+// Get the process id for this process.
+pid_t plat_getpid();
 
-    void SetLargePageSize();
+// Get the process id of the parent process.
+pid_t plat_getppid();
 
-    void *MidAlloc(size_t size);
-    void MidFree(void *address);
-    void *BigAlloc(size_t size);
-    void BigFree(void *address);
+// Provides out_array_length uint32s of random data from a secure service (/dev/urandom, crypto apis, etc).
+size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length);
 
-#else
+// Virtual memory handling
+#define PLAT_READ 0x01
+#define PLAT_WRITE 0x02
 
-#define MidAlloc(size) MyAlloc(size)
-#define MidFree(address) MyFree(address)
-#define BigAlloc(size) MyAlloc(size)
-#define BigFree(address) MyFree(address)
+// Returns the size of a virtual page of memory.
+vogl::int32 plat_get_virtual_page_size();
 
+void* plat_virtual_alloc(size_t size_requested, vogl::uint32 access_flags, size_t* out_size_provided);
+void plat_virtual_free(void* free_addr, size_t size);
+
+#if VOGL_USE_PTHREADS_API
+    int plat_sem_post(sem_t* sem, vogl::uint32 release_count);
+    void plat_try_sem_post(sem_t* sem, vogl::uint32 release_count);
 #endif
-}
-

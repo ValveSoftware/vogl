@@ -36,6 +36,7 @@
 #include "vogl_hash.h"
 #include "vogl_md5.h"
 #include "vogl_bigint128.h"
+#include "vogl_port.h"
 
 #include "vogl_image_utils.h"
 
@@ -254,18 +255,12 @@ namespace vogl
     {
         const uint N = 4;
         uint32 buf[N] = { 0xABCDEF, 0x12345678, 0xFFFECABC, 0xABCDDEF0 };
-        FILE *fp = vogl_fopen("/dev/urandom", "rb");
-        if (fp)
-        {
-            size_t n = fread(buf, 1, sizeof(buf), fp);
-            VOGL_NOTE_UNUSED(n);
-            vogl_fclose(fp);
-        }
+        plat_rand_s(buf, VOGL_ARRAY_SIZE(buf));
 
         // Hash thread, process ID's, etc. for good measure, or in case the call failed, or to make this easier to port. (we can just leave out the /dev/urandom read)
-        pid_t tid = (pid_t)syscall(SYS_gettid);
-        pid_t pid = getpid();
-        pid_t ppid = getppid();
+        pid_t tid = plat_gettid(); 
+        pid_t pid = plat_getpid();
+        pid_t ppid = plat_getppid();
 
         buf[0] ^= static_cast<uint32>(time(NULL));
         buf[1] ^= static_cast<uint32>(utils::RDTSC()) ^ static_cast<uint32>(ppid);
@@ -325,7 +320,7 @@ namespace vogl
 
     static inline uint umul32_return_high(uint32 range, uint32 rnd)
     {
-#if defined(_M_IX86) && defined(_MSC_VER)
+#if defined(PLATFORM_32BIT) && defined(COMPILER_MSVC)
         //uint32 rnd_range = static_cast<uint32>(__emulu(range, rnd) >> 32U);
         uint32 x[2];
         *reinterpret_cast<uint64_t *>(x) = __emulu(range, rnd);

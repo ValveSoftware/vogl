@@ -26,8 +26,6 @@
 
 // File: vogl_miniz_common.h
 #pragma once
-#ifndef VOGL_MINIZ_COMMON_H
-#define VOGL_MINIZ_COMMON_H
 
 #include "vogl_core.h"
 
@@ -61,12 +59,12 @@
 
 #define MZ_READ_LE64(p) (((mz_uint64)MZ_READ_LE32(p)) | (((mz_uint64)MZ_READ_LE32((const mz_uint8 *)(p) + sizeof(mz_uint32))) << 32U))
 
-#ifdef _MSC_VER
-#define MZ_FORCEINLINE __forceinline
-#elif defined(__GNUC__)
-#define MZ_FORCEINLINE inline __attribute__((__always_inline__))
+#ifdef COMPILER_MSVC
+    #define MZ_FORCEINLINE __forceinline
+#elif defined(COMPILER_GCCLIKE)
+    #define MZ_FORCEINLINE inline __attribute__((__always_inline__))
 #else
-#define MZ_FORCEINLINE inline
+    #define MZ_FORCEINLINE inline
 #endif
 
 #ifdef __cplusplus
@@ -84,4 +82,3 @@ extern void *miniz_def_realloc_func(void *opaque, void *address, size_t items, s
 }
 #endif
 
-#endif // VOGL_MINIZ_COMMON_H

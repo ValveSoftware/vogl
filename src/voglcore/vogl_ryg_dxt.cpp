@@ -30,7 +30,7 @@
 #include "vogl_ryg_types.hpp"
 #include "vogl_ryg_dxt.hpp"
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
 #pragma warning(disable : 4244) // conversion from 'a' to 'b', possible loss of data
 #endif
 

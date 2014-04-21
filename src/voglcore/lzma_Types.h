@@ -27,8 +27,7 @@
 /* Types.h -- Basic types
 2008-11-23 : Igor Pavlov : Public domain */
 
-#ifndef __7Z_TYPES_H
-#define __7Z_TYPES_H
+#pragma once
 
 #include <stddef.h>
 
@@ -97,7 +96,7 @@ namespace vogl
 
 #else
 
-#if defined(_MSC_VER) || defined(__BORLANDC__)
+#if defined(COMPILER_MSVC) || defined(__BORLANDC__)
     typedef __int64 Int64;
     typedef unsigned __int64 UInt64;
 #else
@@ -239,4 +238,3 @@ namespace vogl
 #define IAlloc_Free(p, a) (p)->Free((p), a)
 }
 
-#endif

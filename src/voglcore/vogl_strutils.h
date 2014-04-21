@@ -29,7 +29,7 @@
 
 #include "vogl_core.h"
 
-#ifdef WIN32
+#ifdef PLATFORM_WINDOWS
 #define VOGL_PATH_SEPERATOR_CHAR '\\'
 #else
 #define VOGL_PATH_SEPERATOR_CHAR '/'
