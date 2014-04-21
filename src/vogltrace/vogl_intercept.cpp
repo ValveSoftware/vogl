@@ -153,6 +153,7 @@ static command_line_param_desc g_command_line_param_descs[] =
         { "vogl_disable_gl_program_binary", 0, false, NULL },
         { "vogl_func_tracing", 0, false, NULL },
         { "vogl_backtrace_all_calls", 0, false, NULL },
+        { "vogl_backtrace_no_calls", 0, false, NULL },
         { "vogl_exit_after_x_frames", 1, false, NULL },
         { "vogl_traceport", 1, false, NULL },
     };
@@ -166,6 +167,7 @@ bool g_dump_gl_shaders_flag;
 bool g_disable_gl_program_binary_flag;
 bool g_null_mode;
 bool g_backtrace_all_calls;
+bool g_backtrace_no_calls;
 static bool g_disable_client_side_array_tracing;
 
 static bool g_flush_files_after_each_call;
@@ -688,6 +690,7 @@ static void vogl_init_command_line_params()
     g_gather_statistics = g_command_line_params.get_value_as_bool("vogl_dump_stats");
     g_null_mode = g_command_line_params.get_value_as_bool("vogl_null_mode");
     g_backtrace_all_calls = g_command_line_params.get_value_as_bool("vogl_backtrace_all_calls");
+    g_backtrace_no_calls = g_command_line_params.get_value_as_bool("vogl_backtrace_no_calls");
     g_disable_client_side_array_tracing = g_command_line_params.get_value_as_bool("vogl_disable_client_side_array_tracing");
 
     if (g_command_line_params.get_value_as_bool("vogl_dump_gl_full"))
@@ -2986,10 +2989,18 @@ inline bool vogl_entrypoint_serializer::begin(gl_entrypoint_id_t id, vogl_contex
 
     m_packet.begin_construction(id, context_id, g_vogl_trace_writer.get_next_gl_call_counter(), thread_id, utils::RDTSC());
 
-    if ((g_backtrace_all_calls) && (g_vogl_trace_writer.is_opened()))
+    if (!g_backtrace_no_calls)
     {
-        // Take a backtrace and store its hashtable index into the packet.
-        m_packet.set_backtrace_hash_index(vogl_backtrace(1));
+        bool do_backtrace = g_backtrace_all_calls ||
+                vogl_is_make_current_entrypoint(id) ||
+                vogl_is_swap_buffers_entrypoint(id) ||
+                vogl_is_clear_entrypoint(id) ||
+                vogl_is_draw_entrypoint(id);
+        if (do_backtrace && g_vogl_trace_writer.is_opened())
+        {
+            // Take a backtrace and store its hashtable index into the packet.
+            m_packet.set_backtrace_hash_index(vogl_backtrace(1));
+        }
     }
 
     return true;
