@@ -25,16 +25,19 @@
  **************************************************************************/
 
 // File: vogl_port_posix.cpp
-#include "vogl_port.h"
 
 #if !defined(PLATFORM_POSIX)
     #error "vogl_port_posix should not be compiled on non-POSIX platforms."
 #endif
 
+#include "vogl_port.h"
+#include <unistd.h>
+#include <sys/mman.h>
+#include <sys/syscall.h>
 
 pid_t plat_gettid()
 {
-    return reinterpret_cast<pid_t>(syscall(SYS_gettid));
+    return static_cast<pid_t>(syscall(SYS_gettid));
 }
 
 uint64_t plat_posix_gettid()
@@ -93,11 +96,11 @@ static int get_prot_from_access(vogl::uint32 access_flags)
 }
 
 
-void* plat_virtual_alloc(size_t size_requested, vogl::uint32 access_flags, size_t* out_size_provided);
+void* plat_virtual_alloc(size_t size_requested, vogl::uint32 access_flags, size_t* out_size_provided)
 {
     const int prot = get_prot_from_access(access_flags);
     const int flags = MAP_ANON | MAP_SHARED;
-    void *p = mmap(NULL, size_requested, prot_flags, flags, -1, 0);
+    void *p = mmap(NULL, size_requested, prot, flags, -1, 0);
 
     if ((!p) || (p == MAP_FAILED))
     {
@@ -113,14 +116,14 @@ void* plat_virtual_alloc(size_t size_requested, vogl::uint32 access_flags, size_
         abort();
     }
 
-    *size_provided = size_requested;
+    *out_size_provided = size_requested;
 
     return p;
 }
 
 void plat_virtual_free(void* free_addr, size_t size)
 {
-    int res = munmap(ptr, size);
+    int res = munmap(free_addr, size);
     if (res != 0)
     {
         uint e = errno;
@@ -129,7 +132,7 @@ void plat_virtual_free(void* free_addr, size_t size)
         char *pError_desc = strerror(e);
 
         char buf[256];
-        sprintf(buf, "%s: munmap() ptr 0x%" PRIxPTR " size 0x%" PRIxPTR " failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_NAME, (uintptr_t)ptr, size, pError_desc, e);
+        sprintf(buf, "%s: munmap() free_addr 0x%" PRIxPTR " size 0x%" PRIxPTR " failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_NAME, (uintptr_t)free_addr, size, pError_desc, e);
 
         write(STDERR_FILENO, buf, strlen(buf));
         abort();
@@ -151,12 +154,14 @@ void plat_virtual_free(void* free_addr, size_t size)
         return status;
     }
 
-    void plat_try_sem_post(sem_t* sem, vogl::uint32 release_count);
+    void plat_try_sem_post(sem_t* sem, vogl::uint32 release_count)
     {
-        while (releaseCount > 0)
+        while (release_count > 0)
         {
-            sem_post(&m_sem);
-            releaseCount--;
+            sem_post(sem);
+            release_count--;
         }
     }
 #endif
+
+

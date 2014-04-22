@@ -34,7 +34,7 @@
 #define VOGL_MALLOC_DEBUGGING 0
 #endif
 
-#if defined(COMPILER_GCC)
+#if defined(COMPILER_GCCLIKE)
 #	define VOGL_NORETURN __attribute__((noreturn))
 #elif defined(COMPILER_MSVC)
 #	define VOGL_NORETURN __declspec(noreturn)

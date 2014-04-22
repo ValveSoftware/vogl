@@ -911,7 +911,11 @@ namespace vogl
 
     bool file_utils::change_directory(const char *pPath)
     {
-        return _chdir(pPath) == 0;
+        #if defined(COMPILER_GCCLIKE)
+            return chdir(pPath) == 0;
+        #else
+            return _chdir(pPath) == 0;
+        #endif
     }
 
 	char *file_utils::get_exec_filename(char *pPath, size_t dest_len)

@@ -100,13 +100,13 @@ if (WIN32)
         ${SRC_LIST}
         vogl_port_windows.cpp
     )
-elseif (POSIX)
+elseif (UNIX)
     set(SRC_LIST
         ${SRC_LIST}
         vogl_port_posix.cpp
     )
 else()
-    message(ERROR "Need to add a vogl_port_PLATFORM.cpp file for this platform.")
+    message(FATAL_ERROR "Need to add a vogl_port_PLATFORM.cpp file for this platform.")
 endif()
 
 if (VOGL_ENABLE_ASSERTS)

@@ -40,7 +40,7 @@
 // There is also PLATFORM_POSIX, which indicates this is a POSIX environment (LINUX OR OSX is true).
 // There is also COMPILER_GCCLIKE, which indicates that __GNUC__ is defined, which may mean CLANG, GCC or MINGW. 
 
-#if !(defined(COMPLIER_CLANG) || defined(COMPILER_GCC) || defined(COMPILER_MINGW) || defined(COMPILER_MSVC))
+#if !(defined(COMPILER_CLANG) || defined(COMPILER_GCC) || defined(COMPILER_MINGW) || defined(COMPILER_MSVC))
     #error "Compiler wasn't set, or a new compiler has been added!"
 #endif
 
@@ -130,7 +130,7 @@
         #define VOGL_USE_LINUX_API 1
     #endif
 
-    #if defined(PLATFORM_64BIT) defined(_WIN64) || defined(__MINGW64__) || defined(_LP64) || defined(__LP64__)
+    #if defined(PLATFORM_64BIT) || defined(__MINGW64__) || defined(_LP64) || defined(__LP64__)
         #define VOGL_PLATFORM_PC_X64 1
         #define VOGL_64BIT_POINTERS 1
         #define VOGL_CPU_HAS_64BIT_REGISTERS 1
