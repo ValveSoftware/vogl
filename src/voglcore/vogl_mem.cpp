@@ -108,7 +108,7 @@ static void *sys_alloc(void *user_context, size_t size_requested, size_t *size_p
 
     size_requested = (size_requested + g_page_size - 1) & (~(g_page_size - 1));
 
-    return plat_virtual_alloc(PLAT_READ | PLAT_WRITE, size_requested, size_provided);
+    return plat_virtual_alloc(size_requested, PLAT_READ | PLAT_WRITE, size_provided);
 }
 
 static void sys_free(void *user_context, void *ptr, size_t size)

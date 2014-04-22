@@ -92,9 +92,9 @@ namespace vogl
         static bool read_file_to_vec(const char *pPath, uint8_vec &data);
 
         // Does not use ftell when reading file (ftell doesn't work on virtual /proc files)
-		#if VOGL_HAS_PROC_FILESYSTEM
-			static bool read_proc_file(const char *pPath, vogl::growable_array<char, 2048> &data);
-		#endif
+        #if VOGL_HAS_PROC_FILESYSTEM
+            static bool read_proc_file(const char *pPath, vogl::growable_array<char, 2048> &data);
+        #endif
 
         static bool write_buf_to_file(const char *pPath, const void *pData, size_t data_size);
         static bool write_vec_to_file(const char *pPath, const uint8_vec &data);

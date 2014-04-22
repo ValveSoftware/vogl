@@ -91,7 +91,7 @@ set(SRC_LIST
     vogl_object_pool.cpp
 )
 
-if (!MSVC)
+if (NOT MSVC)
     add_compiler_flag("-fPIC")
 endif()
 

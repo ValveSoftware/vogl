@@ -92,8 +92,8 @@ namespace vogl
 		{
 			uint a = a32;
 			uint b = uint32(b16) << 16 | c16;
-			uint c = (*(uint32*)d8_8[0]);
-			uint d = (*(uint32*)d8_8[4]);
+			uint c = (*(uint32*)(&d8_8[0]));
+			uint d = (*(uint32*)(&d8_8[4]));
 
 			init(a, b, c, d);
 		}
