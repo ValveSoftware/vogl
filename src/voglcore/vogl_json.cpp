@@ -1690,7 +1690,8 @@ namespace vogl
             if ((c == 'e') || (c == 'E'))
             {
                 pStr.advance_in_line_no_end_check(1);
-                char c = pStr.get_char();
+
+                c = pStr.get_char();
                 if (c == '-')
                 {
                     escalesign = -1;

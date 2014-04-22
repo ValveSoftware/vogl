@@ -1212,6 +1212,7 @@ static bool tool_replay_mode()
                     }
                     else
                     {
+                        //$ TODO WSHADOW: This declaration shadows declaration towards top of function.
                         vogl_loose_file_blob_manager trim_file_blob_manager;
                         trim_file_blob_manager.init(cBMFReadWrite, trim_name.get_ptr());
 

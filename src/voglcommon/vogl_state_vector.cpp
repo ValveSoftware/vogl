@@ -1030,6 +1030,7 @@ bool vogl_state_data::deserialize(const json_node &node)
                     return false;
                 }
 
+                //$ TODO WSHADOW: gl_enum shadows gl_enum at top of function.
                 uint64_t gl_enum = 0;
                 if ((pStr[0] == '0') && (pStr[1] == 'x'))
                     gl_enum = string_to_uint64(pStr, gl_enums::cUnknownEnum);
@@ -1236,6 +1237,7 @@ bool vogl_state_vector::operator==(const vogl_state_vector &rhs) const
         }
 
         const vogl_state_data &lhs = lhs_it->second;
+        //$ TODO WSHADOW: rhs shadows passed in rhs.
         const vogl_state_data &rhs = rhs_it->second;
 
         if (lhs.get_id() != rhs.get_id())

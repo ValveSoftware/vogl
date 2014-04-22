@@ -2919,6 +2919,7 @@ namespace jpgd
     void jpeg_decoder::decode_scan(pDecode_block_func decode_block_func)
     {
         int mcu_row, mcu_col, mcu_block;
+        //$ TODO WSHADOW: m_block_y_mcu should be block_y_mcu?
         int block_x_mcu[JPGD_MAX_COMPONENTS], m_block_y_mcu[JPGD_MAX_COMPONENTS];
 
         memset(m_block_y_mcu, 0, sizeof(m_block_y_mcu));

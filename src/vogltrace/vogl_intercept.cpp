@@ -6091,6 +6091,7 @@ static void vogl_serialize_client_side_arrays_helper(
                 if (!ptr)
                     continue;
 
+                //$ TODO WSHADOW: type shadows type passed into function.
                 GLint type = GL_BOOL;
                 if (desc.m_get_type)
                 {

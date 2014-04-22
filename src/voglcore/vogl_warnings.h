@@ -49,3 +49,11 @@
     #define CLANG_ANALYZER_NORETURN
   #endif
 #endif
+
+#ifdef _MSC_VER
+#define VOGL_NORETURN __declspec(noreturn)
+#elif defined(__GNUC__)
+#define VOGL_NORETURN __attribute__((noreturn))
+#else
+#define VOGL_NORETURN
+#endif

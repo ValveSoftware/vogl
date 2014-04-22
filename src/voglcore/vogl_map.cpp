@@ -248,11 +248,11 @@ namespace vogl
         typedef vogl::map<int, int> int_to_int_map;
 
         {
-            int_to_int_map blah(10);
+            int_to_int_map blah3(10);
 
             int_to_int_map::const_iterator it0;
-            int_to_int_map::const_iterator it1(blah.begin());
-            int_to_int_map::iterator it2(blah.begin());
+            int_to_int_map::const_iterator it1(blah3.begin());
+            int_to_int_map::iterator it2(blah3.begin());
 
             it1 = it2;
             //it2 = it1;
@@ -271,64 +271,64 @@ namespace vogl
             int_to_int_map::const_iterator it4(it2);
             VOGL_NOTE_UNUSED(it4);
 
-            blah.insert_multi(0, 100);
-            blah.insert_multi(0, 101);
-            blah.insert_multi(1, 200);
+            blah3.insert_multi(0, 100);
+            blah3.insert_multi(0, 101);
+            blah3.insert_multi(1, 200);
 
-            if (blah.count(0) != 2)
+            if (blah3.count(0) != 2)
                 return false;
 
             vogl::vector<int> iv;
-            blah.get_values(0, iv);
+            blah3.get_values(0, iv);
             if (iv.size() != 2)
                 return false;
             if ((iv[0] != 101) || (iv[1] != 100))
                 return false;
 
             printf("-----\n");
-            for (int_to_int_map::const_iterator it = blah.begin(); it != blah.end(); ++it)
+            for (int_to_int_map::const_iterator it = blah3.begin(); it != blah3.end(); ++it)
                 printf("%i %i\n", it->first, it->second);
             printf("-----\n");
 
             printf("-----\n");
-            for (int_to_int_map::iterator it = blah.begin(); it != blah.end(); ++it)
+            for (int_to_int_map::iterator it = blah3.begin(); it != blah3.end(); ++it)
                 printf("%i %i\n", it->first, it->second);
             printf("-----\n");
 
-            bool status = blah.debug_check();
+            bool status = blah3.debug_check();
             if (!status)
                 return false;
 
-            //blah.erase(0);
-            blah.erase(blah.begin());
-            blah.erase(1);
+            //blah3.erase(0);
+            blah3.erase(blah3.begin());
+            blah3.erase(1);
 
             printf("-----\n");
-            for (int_to_int_map::const_iterator it = blah.begin(); it != blah.end(); ++it)
+            for (int_to_int_map::const_iterator it = blah3.begin(); it != blah3.end(); ++it)
                 printf("%i %i\n", it->first, it->second);
             printf("-----\n");
 
-            status = blah.debug_check();
+            status = blah3.debug_check();
             if (!status)
                 return false;
 
-            int_to_int_map blah2(blah);
+            int_to_int_map blah4(blah3);
 
-            status = blah2.debug_check();
+            status = blah4.debug_check();
             if (!status)
                 return false;
 
-            blah2.clear();
-            status = blah2.debug_check();
+            blah4.clear();
+            status = blah4.debug_check();
             if (!status)
                 return false;
 
-            blah2 = blah;
-            status = blah2.debug_check();
+            blah4 = blah4;
+            status = blah4.debug_check();
             if (!status)
                 return false;
 
-            blah2.print_debug_info();
+            blah4.print_debug_info();
         }
 
         {

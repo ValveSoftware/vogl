@@ -59,17 +59,17 @@ bool vogl_matrix_state::save_matrix_stack(const vogl_context_info &context_info,
             vogl::vector<matrix44D> matrices;
             for (;;)
             {
-                matrix44D matrix;
-                GL_ENTRYPOINT(glGetDoublev)(matrix_get, matrix.get_ptr());
+                matrix44D mat;
+                GL_ENTRYPOINT(glGetDoublev)(matrix_get, mat.get_ptr());
                 if (vogl_check_gl_error())
                     return false;
 
-                matrices.push_back(matrix);
+                matrices.push_back(mat);
 
                 GL_ENTRYPOINT(glPopMatrix)();
                 bool failed_popping = vogl_check_gl_error();
 
-                GL_ENTRYPOINT(glGetDoublev)(matrix_get, matrix.get_ptr());
+                GL_ENTRYPOINT(glGetDoublev)(matrix_get, mat.get_ptr());
                 // AMD fails with a stack underflow on the get, not the pop - at least during tracing?
                 if (vogl_check_gl_error())
                     failed_popping = true;

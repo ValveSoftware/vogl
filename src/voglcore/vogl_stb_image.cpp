@@ -1308,7 +1308,7 @@ namespace vogl
                 while (L > 0)
                 {
                     uint8 *v;
-                    int sizes[16], i, m = 0;
+                    int sizes[16], i, m2 = 0;
                     int q = get8(&z->s);
                     int tc = q >> 4;
                     int th = q & 15;
@@ -1317,7 +1317,7 @@ namespace vogl
                     for (i = 0; i < 16; ++i)
                     {
                         sizes[i] = get8(&z->s);
-                        m += sizes[i];
+                        m2 += sizes[i];
                     }
                     L -= 17;
                     if (tc == 0)
@@ -1332,9 +1332,9 @@ namespace vogl
                             return 0;
                         v = z->huff_ac[th].values;
                     }
-                    for (i = 0; i < m; ++i)
+                    for (i = 0; i < m2; ++i)
                         v[i] = get8u(&z->s);
-                    L -= m;
+                    L -= m2;
                 }
                 return L == 0;
         }
@@ -1977,7 +1977,7 @@ namespace vogl
                 z->value[c] = (uint16)i;
                 if (s <= ZFAST_BITS)
                 {
-                    int k = bit_reverse(next_code[s], s);
+                    k = bit_reverse(next_code[s], s);
                     while (k < (1 << ZFAST_BITS))
                     {
                         z->fast[k] = (uint16)c;
