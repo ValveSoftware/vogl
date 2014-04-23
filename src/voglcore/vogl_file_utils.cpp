@@ -31,6 +31,7 @@
 #include "vogl_strutils.h"
 #include "vogl_cfile_stream.h"
 #include "vogl_console.h"
+#include "vogl_port.h"
 
 #ifdef VOGL_USE_WIN32_API
     #include "vogl_winhdr.h"
@@ -911,11 +912,7 @@ namespace vogl
 
     bool file_utils::change_directory(const char *pPath)
     {
-        #if defined(COMPILER_GCCLIKE)
-            return chdir(pPath) == 0;
-        #else
-            return _chdir(pPath) == 0;
-        #endif
+        return plat_chdir(pPath) == 0;
     }
 
 	char *file_utils::get_exec_filename(char *pPath, size_t dest_len)

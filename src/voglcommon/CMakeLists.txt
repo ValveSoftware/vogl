@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
 
+require_pthreads()
+
 include_directories(
     ${SRC_DIR}/extlib/loki/include/loki
     ${SRC_DIR}/voglcommon

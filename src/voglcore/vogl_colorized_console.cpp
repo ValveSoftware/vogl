@@ -113,7 +113,7 @@ namespace vogl
         if (INVALID_HANDLE_VALUE != cons)
             SetConsoleTextAttribute(cons, (WORD)attr);
 
-        puts(pMsg);
+        fputs(pMsg, stdout);
 
         if (INVALID_HANDLE_VALUE != cons)
             SetConsoleTextAttribute(cons, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE);

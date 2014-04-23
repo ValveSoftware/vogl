@@ -2,22 +2,16 @@ project(voglcore)
 cmake_minimum_required(VERSION 2.8)
 
 option(VOGL_ENABLE_ASSERTS "Enable assertions in all builds (including release)" FALSE)
-find_package(Threads)
-if (NOT CMAKE_USE_PTHREADS_INIT AND NOT WIN32_PTHREADS_INCLUDE_PATH)
-    message(ERROR "pthread not found")
-endif()
 
 include("${SRC_DIR}/build_options.cmake")
+
+require_pthreads()
 
 include_directories(
     ${LZMA_INCLUDE_DIR}
     ${LZMADEC_INCLUDE_DIR}
    "${SRC_DIR}/chromiumlib"
 )
-
-if (MSVC)
-    include_directories("${WIN32_PTHREADS_INCLUDE_PATH}")
-endif()
 
 file( GLOB_RECURSE HDRS *.[h|inl] )
 
@@ -91,10 +85,12 @@ set(SRC_LIST
     vogl_object_pool.cpp
 )
 
+# Platform specific compile flags.
 if (NOT MSVC)
     add_compiler_flag("-fPIC")
 endif()
 
+# Platform specific source files.
 if (WIN32)
     set(SRC_LIST
         ${SRC_LIST}
@@ -109,6 +105,15 @@ else()
     message(FATAL_ERROR "Need to add a vogl_port_PLATFORM.cpp file for this platform.")
 endif()
 
+# Platform specific libary defines.
+if (WIN32)
+	set( LIBRT "" )
+elseif (UNIX)
+	set( LIBRT rt )
+else()
+    message(FATAL_ERROR "Need to determine what the library name for 'rt' is for non-windows, non-unix platforms (or if it's even needed).")
+endif()
+
 if (VOGL_ENABLE_ASSERTS)
     message("Forcing assertions to be enabled (VOGL_ENABLE_ASSERTS=TRUE)")
     add_compiler_flag("-DVOGL_ENABLE_ASSERTIONS_IN_ALL_BUILDS=1")
@@ -119,7 +124,7 @@ endif()
 add_library(${PROJECT_NAME} ${SRC_LIST})
 target_link_libraries(${PROJECT_NAME}
     ${CMAKE_THREAD_LIBS_INIT}
-    rt
+    ${LIBRT}
     ${LZMA_LIBRARIES}
     ${LZMADEC_LIBRARIES}
 )

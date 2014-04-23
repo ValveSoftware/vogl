@@ -35,6 +35,23 @@
 #include <sys/mman.h>
 #include <sys/syscall.h>
 
+int plat_chdir(const char* path)
+{
+    return chdir(path);
+}
+
+char* plat_getcwd(char *buffer, int maxlen)
+{
+    return getcwd(buffer, maxlen);
+}
+
+// Tests for the existence of the specified path, returns true if it exists and false otherwise.
+bool plat_fexist(const char* path)
+{
+    return _access(path, F_OK) == 0;
+}
+
+
 pid_t plat_gettid()
 {
     return static_cast<pid_t>(syscall(SYS_gettid));

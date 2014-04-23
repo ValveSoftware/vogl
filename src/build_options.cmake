@@ -43,12 +43,13 @@ if (BUILD_X64 AND MSVC)
     set(BUILD_X64 "FALSE")
 endif()
 
-# Generate bitness suffix to use
+# Generate bitness suffix to use, but make sure to include the existing suffix (.exe) 
+# for platforms that need it (ie, Windows)
 if (BUILD_X64)
-    set(CMAKE_EXECUTABLE_SUFFIX 64)
+    set(CMAKE_EXECUTABLE_SUFFIX "64${CMAKE_EXECUTABLE_SUFFIX}")
     set(CMAKE_SHARED_LIBRARY_SUFFIX "64.so")
 else()
-    set(CMAKE_EXECUTABLE_SUFFIX 32)
+    set(CMAKE_EXECUTABLE_SUFFIX "32${CMAKE_EXECUTABLE_SUFFIX}")
     set(CMAKE_SHARED_LIBRARY_SUFFIX "32.so")
 endif()
 
@@ -134,6 +135,17 @@ function(add_compiler_flag flag)
     set(CMAKE_C_FLAGS    "${CMAKE_C_FLAGS}   ${flag}" PARENT_SCOPE)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE)
 endfunction()
+
+function(add_compiler_flag_debug flag)
+    set(CMAKE_C_FLAGS_DEBUG    "${CMAKE_C_FLAGS_DEBUG}   ${flag}" PARENT_SCOPE)
+    set(CMAKE_CXX_FLAGS_DEBUG  "${CMAKE_CXX_FLAGS_DEBUG} ${flag}" PARENT_SCOPE)
+endfunction()
+
+function(add_compiler_flag_release flag)
+    set(CMAKE_C_FLAGS_RELEASE    "${CMAKE_C_FLAGS_RELEASE}   ${flag}" PARENT_SCOPE)
+    set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} ${flag}" PARENT_SCOPE)
+endfunction()
+
 
 function(add_linker_flag flag)
     set(CMAKE_EXE_LINKER_FLAGS   "${CMAKE_EXE_LINKER_FLAGS} ${flag}" PARENT_SCOPE)
@@ -246,13 +258,17 @@ endif (WITH_ASAN)
 #endif (WITH_TSAN)
 #message(STATUS "Tsan is: ${WITH_TSAN} ${SANITIZER_LIBRARY}")
 
-set(CMAKE_EXE_LINK_FLAGS_LIST
-    "-Wl,--no-undefined"
-    # "-lmcheck"
-    )
-set(CMAKE_SHARED_LINK_FLAGS_LIST
-    "-Wl,--no-undefined"
-    )
+
+if (NOT MSVC)
+	set(CMAKE_EXE_LINK_FLAGS_LIST
+		"-Wl,--no-undefined"
+		# "-lmcheck"
+	)
+
+	set(CMAKE_SHARED_LINK_FLAGS_LIST
+		"-Wl,--no-undefined"
+	)
+endif()
 
 # Compiler flags
 string(REPLACE ";" " " CMAKE_C_FLAGS              "${CMAKE_CXX_FLAGS_LIST}")
@@ -325,6 +341,18 @@ function(build_options_finalize)
     endif()
 endfunction()
 
+function(require_pthreads)
+    find_package(Threads)
+    if (NOT CMAKE_USE_PTHREADS_INIT AND NOT WIN32_PTHREADS_INCLUDE_PATH)
+        message(FATAL_ERROR "pthread not found")
+    endif()
+
+	if (MSVC)
+		include_directories("${WIN32_PTHREADS_INCLUDE_PATH}")
+	endif()
+endfunction()
+
+# What compiler toolchain are we building on?
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     add_compiler_flag("-DCOMPILER_GCC=1")
     add_compiler_flag("-DCOMPILER_GCCLIKE=1")
@@ -341,6 +369,7 @@ else()
     message(FATAL_ERROR "Compiler unset, build will fail--stopping at CMake time.")
 endif()
 
+# What OS will we be running on?
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_compiler_flag("-DPLATFORM_OSX=1")
     add_compiler_flag("-DPLATFORM_POSIX=1")
@@ -353,8 +382,30 @@ else()
     message(FATAL_ERROR "Platform unset, build will fail--stopping at CMake time.")
 endif()
 
+# What bittedness are we building?
 if (BUILD_X64)
     add_compiler_flag("-DPLATFORM_64BIT=1")
 else()
     add_compiler_flag("-DPLATFORM_32BIT=1")
+endif()
+
+# Compiler flags for windows.
+if (MSVC)
+    # Multithreaded compilation is a big time saver.
+    add_compiler_flag("/MP")
+
+    # In debug, we use the DLL debug runtime.
+    add_compiler_flag_debug("/MDd")
+
+    # And in release we use the DLL release runtime
+    add_compiler_flag_release("/MD")
+
+    # In debug, get debug information suitable for Edit and Continue
+    add_compiler_flag_debug("/ZI")
+
+    # In release, still generate debug information (because not having it is dumb)
+    add_compiler_flag_release("/Zi")
+
+    # And tell the linker to always generate the file for us.
+    add_linker_flag("/DEBUG")
 endif()

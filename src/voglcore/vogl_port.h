@@ -31,6 +31,15 @@
 
 #include "vogl_core.h"
 
+// Change the working directory, return 0 on success and -1 on failure.
+int plat_chdir(const char* path);
+
+// Get the cwd, store into buffer. Retun buffer on success or NULL on error.
+char* plat_getcwd(char *buffer, int maxlen);
+
+// Tests for the existence of the specified path, returns true if it exists and false otherwise.
+bool plat_fexist(const char* path);
+
 // Get the thread id for this thread.
 pid_t plat_gettid();
 

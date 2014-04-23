@@ -2,10 +2,8 @@ project(libbacktrace_test)
 cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
-find_package(Threads)
-if (NOT CMAKE_USE_PTHREADS_INIT)
-    message(ERROR "pthread not found")
-endif ()
+
+require_pthreads()
 
 # remove -rdynamic from our shared library (for testing realistic backtraces).
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS )

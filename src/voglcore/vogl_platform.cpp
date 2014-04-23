@@ -60,7 +60,7 @@ void vogl_debug_break_if_debugging(void)
     }
 }
 
-bool vogl_is_debugger_present(void)
+bool vogl_is_debugger_present(bool force_check)
 {
 #if VOGL_ASSUME_DEBUGGER_IS_ALWAYS_PRESENT
     return true;
@@ -168,6 +168,11 @@ void vogl_output_debug_string(const char *p)
 // --------------------------------- Process signal/exception handling
 
 #ifdef VOGL_USE_WIN32_API
+vogl_exception_callback_t vogl_set_exception_callback(vogl_exception_callback_t callback)
+{
+    #pragma message("Windows: TODO: Review set_exception_callback; currently does nothing.")
+    return callback;
+}
 
 #else // !defined(VOGL_USE_WIN32_API)
 
@@ -296,7 +301,11 @@ namespace vogl
 {
 
 #ifdef VOGL_USE_WIN32_API
+
 #include <Dbghelp.h>
+
+#pragma message("Windows: TODO: Consider dynamic load of Dbghelp on first use, rather than linking against the library here.")
+#pragma comment(lib, "Dbghelp.lib")
 
 	dynamic_string demangle(const char *pMangled)
     {

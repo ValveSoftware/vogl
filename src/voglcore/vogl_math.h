@@ -491,7 +491,15 @@ namespace vogl
         inline uint count_leading_zero_bits(uint v)
         {
             #if defined(COMPILER_MSVC)
-                return __lzcnt(v);
+                // BitScanReverse doesn't return the count of leading 0s, it returns the LSB-based index of the first 1 bit found. 
+                // Since we want the number of 0s, we subtract bitcount(uint) - 1 - _BitScanReverse value.
+                // When fed a 0, BSR will return an 0 (and in that case we return that there are 32 leading 0s). 
+                unsigned long lz = 0;
+                if (_BitScanReverse(&lz, v)) {
+                    return 31 - lz;
+                }
+
+                return 32;
             #elif defined(COMPILER_GCCLIKE)
                 return v ? __builtin_clz(v) : 32;
             #else
@@ -538,8 +546,16 @@ namespace vogl
 
         inline uint count_leading_zero_bits64(uint64_t v)
         {
+            // BitScanReverse64 doesn't return the count of leading 0s, it returns the LSB-based index of the first 1 bit found. 
+            // Since we want the number of 0s, we subtract bitcount(uint) - 1 - _BitScanReverse value.
+            // When fed a 0, BSR will return an 0 (and in that case we return that there are 32 leading 0s). 
             #if defined(PLATFORM_64BITS) && defined(COMPILER_MSVC)
-                return __lzcnt64(v);
+                unsigned long lz = 64;
+                if (_BitScanReverse64(&lz, v)) {
+                    return uint64(lz);
+                }
+
+                return 64;
             #elif defined(COMPILER_GCCLIKE)
                 return v ? __builtin_clzll(v) : 64;
             #else

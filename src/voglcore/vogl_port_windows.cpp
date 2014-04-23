@@ -27,6 +27,7 @@
 // File: vogl_port_windows.cpp
 #include "vogl_port.h"
 #include <io.h>
+#include <direct.h>
 
 #if !defined(PLATFORM_WINDOWS)
     #error "vogl_port_windows should not be compiled on non-windows platforms."
@@ -35,6 +36,21 @@
 #if !defined(VOGL_USE_WIN32_API)
     #error "Many functions in this file require the Win32 API."
 #endif
+
+int plat_chdir(const char* path)
+{
+    return _chdir(path);
+}
+
+char* plat_getcwd(char *buffer, int maxlen)
+{
+    return _getcwd(buffer, maxlen);
+}
+
+bool plat_fexist(const char* path)
+{
+    return _access(path, 00) == 0;
+}
 
 pid_t plat_gettid()
 {
@@ -135,7 +151,7 @@ void plat_virtual_free(void* free_addr, size_t size)
 {
     VOGL_NOTE_UNUSED(size);
 
-    if (VirtualFree(free_addr, 0, MEM_DECOMMIT | MEM_RELEASE) == FALSE)
+    if (VirtualFree(free_addr, 0, MEM_RELEASE) == FALSE)
     {
         VOGL_VERIFY(!"Failed to deallocate a system page. A debug session is needed.");
         char buf[256];

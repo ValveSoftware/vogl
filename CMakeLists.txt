@@ -14,8 +14,9 @@ endif()
 
 if (NOT WIN32)
     find_package(LibLZMA REQUIRED)
-    find_package(TinyXML REQUIRED)
 endif()
+
+find_package(TinyXML)
 
 message("")
 message("cmake options:")
@@ -34,19 +35,21 @@ message("")
 #  Components to build
 #
 
-### All of these must be uncommented to ship.
+### All of these must be included eventually.
+add_subdirectory(src/voglcore) # 1
+add_subdirectory(src/voglgen) # 2
 
-add_subdirectory(src/voglcore)
-add_subdirectory(src/voglgen)
-add_subdirectory(src/voglcommon)
-add_subdirectory(src/voglreplay)
-add_subdirectory(src/voglbench)
-add_subdirectory(src/voglsyms)
-add_subdirectory(src/vogltrace)
-add_subdirectory(src/vogltest)
-add_subdirectory(src/voglserver)
-add_subdirectory(src/voglcmd)
-add_subdirectory(src/glxspheres)
-add_subdirectory(src/vogleditor)
-add_subdirectory(src/libbacktrace)
-add_subdirectory(src/libbacktrace_test)
+if (!WIN32)
+    add_subdirectory(src/voglcommon) # 3
+    add_subdirectory(src/voglreplay) # 4
+    add_subdirectory(src/voglbench) # 5
+    add_subdirectory(src/voglsyms) # 6
+    add_subdirectory(src/vogltrace) # 7
+    add_subdirectory(src/vogltest) # 8
+    add_subdirectory(src/voglserver) # 9
+    add_subdirectory(src/voglcmd) # 10 
+    add_subdirectory(src/glxspheres) # 11 -- Probably linux only.
+    add_subdirectory(src/vogleditor) # 12
+    add_subdirectory(src/libbacktrace) # 13
+    add_subdirectory(src/libbacktrace_test) # 14
+endif()

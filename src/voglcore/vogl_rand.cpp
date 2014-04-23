@@ -767,7 +767,7 @@ namespace vogl
             uint b = 0;
             for (uint i = 0; i < 32; i++)
                 b = (b << 1) | m_r.get_bit();
-            return (static_cast<double>(b) * limit) / (static_cast<double>(cUINT32_MAX) + 1.0f);
+            return static_cast<int>((static_cast<double>(b) * limit) / (static_cast<double>(cUINT32_MAX) + 1.0f));
         }
         random &m_r;
     };
