@@ -10,7 +10,7 @@ qtcreator/rules.ninja
 
 src/libbacktrace/backtrace-supported.h
 src/libbacktrace/config.h
-src/libbacktrace/libbacktrace.a
+src/libbacktrace/libbacktracevogl.a
 src/voglcore/libvoglcore.a
 src/voglcommon/libvoglcommon.a
 src/vogleditor/moc_vogleditor*
