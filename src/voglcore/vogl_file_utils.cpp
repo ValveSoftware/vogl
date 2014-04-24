@@ -940,32 +940,4 @@ namespace vogl
 	#endif
 	}
 
-    file_utils::scoped_path::scoped_path() { }
-    file_utils::scoped_path::~scoped_path()
-    {
-        if (m_restore_path.get_len() == 0)
-            return;
-        if (!file_utils::change_directory(m_restore_path.c_str())) {
-            console::error("Unable to restore directory to previous path (%s). This is almost definitely the problem you are looking for.", m_restore_path.c_str());
-        }
-    }
-
-    bool file_utils::scoped_path::change_directory(const char *pPath)
-    {
-        char buffer[1024];
-            
-        if (m_restore_path.get_len() == 0)
-        {
-            plat_getcwd(buffer, ARRAYSIZE(buffer));
-            m_restore_path = buffer;
-        }
-
-        return file_utils::change_directory(pPath);
-    }
-
-    bool file_utils::scoped_path::change_directory(const dynamic_string &path)
-    {
-        return change_directory(path.c_str());
-    }
-
 } // namespace vogl

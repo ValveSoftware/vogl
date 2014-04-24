@@ -51,6 +51,8 @@
 
 using namespace vogl;
 
+FILE *fopen_and_log_generic(const dynamic_string& outDirectory, const char* filename, const char* mode);
+
 //-------------------------------------------------------------------------------------------------------------------------------
 // Command line options
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -1864,7 +1866,7 @@ public:
         }
     }
 
-    bool dump_to_definition_macro_file(const char *pFilename, const char *pPrefix) const
+    bool dump_to_definition_macro_file(const dynamic_string& outDirName, const char *pFilename, const char *pPrefix) const
     {
         gl_string_map unique_enums;
         for (gl_enum_def_vec_map::const_iterator enum_it = m_enums.begin(); enum_it != m_enums.end(); ++enum_it)
@@ -1873,14 +1875,9 @@ public:
                 unique_enums.insert(std::make_pair(enum_it->second[i].m_name, enum_it->second[i].m_def));
         }
 
-        console::info("--- Generating \"%s\":\n", pFilename);
-
-        FILE *pFile = vogl_fopen(pFilename, "w");
+        FILE *pFile = fopen_and_log_generic(outDirName, pFilename, "w");
         if (!pFile)
-        {
-            console::error("%s: Failed creating file \"%s\"!\n", VOGL_METHOD_NAME, pFilename);
             return false;
-        }
 
         for (gl_string_map::const_iterator it = unique_enums.begin(); it != unique_enums.end(); ++it)
             vogl_fprintf(pFile, "#define %s_%s %s\n", pPrefix, it->first.get_ptr(), it->second.get_ptr());
@@ -1889,16 +1886,11 @@ public:
         return true;
     }
 
-    bool dump_to_description_macro_file(const char *pFilename, const char *pPrefix, const gl_types &gl_typemap, const gl_types &alt_gl_typemap) const
+    bool dump_to_description_macro_file(const dynamic_string& outDirName, const char *pFilename, const char *pPrefix, const gl_types &gl_typemap, const gl_types &alt_gl_typemap) const
     {
-        console::info("--- Generating \"%s\":\n", pFilename);
-
-        FILE *pFile = vogl_fopen(pFilename, "w");
+        FILE *pFile = fopen_and_log_generic(outDirName, pFilename, "w");
         if (!pFile)
-        {
-            console::error("%s: Failed creating file \"%s\"!\n", VOGL_METHOD_NAME, pFilename);
             return false;
-        }
 
         for (gl_enum_def_vec_map::const_iterator enum_it = m_enums.begin(); enum_it != m_enums.end(); ++enum_it)
         {
@@ -2487,6 +2479,9 @@ public:
 
     bool dump_debug_files() const
     {
+        console::message("TODO: Where would be the best place to dump debug files? For now they still go to cwd.");
+        dynamic_string out_debug_dir = ".";
+
         m_gl_enumerations.dump_to_text_file("dbg_enums.txt");
         m_glx_enumerations.dump_to_text_file("dbg_glx_enums.txt");
         m_glx_ext_enumerations.dump_to_text_file("dbg_glx_ext_enums.txt");
@@ -2508,7 +2503,7 @@ public:
         // Write a simple macro file line this:
         //GL_FUNC(OpenGL,true,GLenum,glGetError,(void),())
         //GL_FUNC_VOID(OpenGL,true,glActiveTexture,(GLenum a),(a))
-        pFile = fopen_and_log("dbg_gl_glx_simple_func_macros.txt", "w");
+        pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_simple_func_macros.txt", "w");
         for (uint i = 0; i < m_all_gl_funcs.size(); i++)
         {
             const gl_function_def &def = m_all_gl_funcs[i];
@@ -2519,12 +2514,12 @@ public:
         }
         fclose(pFile);
 
-        pFile = fopen_and_log("dbg_gl_glx_types.txt", "w");
+        pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_types.txt", "w");
         for (gl_string_set::const_iterator it = m_all_gl_ctypes.begin(); it != m_all_gl_ctypes.end(); ++it)
             vogl_fprintf(pFile, "%s\n", it->get_ptr());
         vogl_fclose(pFile);
 
-        pFile = fopen_and_log("dbg_gl_glx_array_sizes.txt", "w");
+        pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_array_sizes.txt", "w");
         for (gl_string_set::const_iterator it = m_all_array_sizes.begin(); it != m_all_array_sizes.end(); ++it)
             vogl_fprintf(pFile, "%s\n", it->get_ptr());
         vogl_fclose(pFile);
@@ -2589,56 +2584,33 @@ public:
         return true;
     }
 
-    static FILE *fopen_and_log(const char *pFilename, const char *pMode)
-    {
-        FILE *pFile = vogl_fopen(pFilename, pMode);
-        if (!pFile)
-        {
-            console::error("Failed opening file \"%s\" for mode %s\n", pFilename, pMode);
-            return NULL;
-        }
-
-        console::info("--- Generating \"%s\":\n", pFilename);
-        return pFile;
-    }
-
     bool generate() const
     {
-        // This will ensure that the caller is back in the directory they were working in before.
-        file_utils::scoped_path auto_out_inc_dir;
-
         dynamic_string out_inc_dir;
         g_command_line_params.get_value_as_string(out_inc_dir, "outinc", 0, ".");
-        // Create and ignore failure to create, we'll fail if we can't chdir to the location.
+        // Create and ignore failure to create, we'll fail if we can't write to the location.
         file_utils::create_directories(out_inc_dir, false);
-        
-        if (!auto_out_inc_dir.change_directory(out_inc_dir)) 
-        {
-            console::error("Unable to chdir to '%s', check permissions.\n", out_inc_dir.c_str());
-            return false;
-        }
 
-        if (!m_gl_enumerations.dump_to_definition_macro_file("gl_enums.inc", "GL"))
+        if (!m_gl_enumerations.dump_to_definition_macro_file(out_inc_dir, "gl_enums.inc", "GL"))
             return false;
-        if (!m_glx_enumerations.dump_to_definition_macro_file("glx_enums.inc", "GLX"))
+        if (!m_glx_enumerations.dump_to_definition_macro_file(out_inc_dir, "glx_enums.inc", "GLX"))
             return false;
-        if (!m_glx_ext_enumerations.dump_to_definition_macro_file("glx_ext_enums.inc", "GLX"))
+        if (!m_glx_ext_enumerations.dump_to_definition_macro_file(out_inc_dir, "glx_ext_enums.inc", "GLX"))
             return false;
 
-        if (!m_gl_enumerations.dump_to_description_macro_file("gl_enum_desc.inc", "GL", m_gl_typemap, m_glx_typemap))
+        if (!m_gl_enumerations.dump_to_description_macro_file(out_inc_dir, "gl_enum_desc.inc", "GL", m_gl_typemap, m_glx_typemap))
             return false;
-        if (!m_glx_enumerations.dump_to_description_macro_file("glx_enum_desc.inc", "GLX", m_glx_typemap, m_gl_typemap))
+        if (!m_glx_enumerations.dump_to_description_macro_file(out_inc_dir, "glx_enum_desc.inc", "GLX", m_glx_typemap, m_gl_typemap))
             return false;
-        if (!m_glx_ext_enumerations.dump_to_description_macro_file("glx_ext_desc.inc", "GLX", m_glx_typemap, m_gl_typemap))
+        if (!m_glx_ext_enumerations.dump_to_description_macro_file(out_inc_dir, "glx_ext_desc.inc", "GLX", m_glx_typemap, m_gl_typemap))
             return false;
 
         // -- Generate the gl_glx_protos.inc include file
-        FILE *pFile = fopen_and_log("gl_glx_protos.inc", "w");
+        
+        FILE *pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_protos.inc", "w");
         if (!pFile)
-        {
-            console::error("Failed creating file gl_glx_protos.inc!\n");
             return false;
-        }
+
         dump_func_proto_macros(pFile, "gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_gl_so_function_exports);
         dump_func_proto_macros(pFile, "glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports);
         dump_func_proto_macros(pFile, "glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports);
@@ -2651,31 +2623,35 @@ public:
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_ctypes.inc include file
-        pFile = fopen_and_log("gl_glx_ctypes.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_ctypes.inc", "w");
+        if (!pFile)
+            return false;
+
         vogl_fprintf(pFile, "DEF_TYPE(VOGL_INVALID_CTYPE, int)\n");
         for (gl_string_map::const_iterator it = m_unique_ctype_enums.begin(); it != m_unique_ctype_enums.end(); ++it)
             vogl_fprintf(pFile, "DEF_TYPE(%s, %s)\n", it->first.get_ptr(), it->second.get_ptr());
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_ctypes_ptr_to_pointee.inc include file
-        pFile = fopen_and_log("gl_glx_ctypes_ptr_to_pointee.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_ctypes_ptr_to_pointee.inc", "w");
+        if (!pFile)
+            return false;
+
         for (gl_string_map::const_iterator it = m_pointee_types.begin(); it != m_pointee_types.end(); ++it)
             vogl_fprintf(pFile, "DEF_PTR_TO_POINTEE_TYPE(%s, %s)\n", it->first.get_ptr(), it->second.get_ptr());
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_simple_replay_funcs.inc simple replay funcs file, and update the whitelist
-        generate_simple_replay_funcs(m_all_gl_funcs, m_unique_ctype_enums, m_pointee_types, m_whitelisted_funcs);
+        generate_simple_replay_funcs(out_inc_dir, m_all_gl_funcs, m_unique_ctype_enums, m_pointee_types, m_whitelisted_funcs);
 
         // -- Generate replayer helper macros
-        generate_replay_func_load_macros(m_all_gl_funcs, m_unique_ctype_enums, m_pointee_types, m_whitelisted_funcs);
+        generate_replay_func_load_macros(out_inc_dir, m_all_gl_funcs, m_unique_ctype_enums, m_pointee_types, m_whitelisted_funcs);
 
         // -- Generate the gl_glx_func_defs.inc include file
-        pFile = fopen_and_log("gl_glx_func_defs.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_func_defs.inc", "w");
         if (!pFile)
-        {
-            console::error("Failed creating file gl_glx_func_defs.inc!\n");
             return false;
-        }
+
         dump_inc_file_header(pFile);
         dump_func_def_macros(pFile, "gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs);
         dump_func_def_macros(pFile, "glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs);
@@ -2684,12 +2660,10 @@ public:
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_func_return_param_array_size_macros.inc include file
-        pFile = fopen_and_log("gl_glx_func_return_param_array_size_macros.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_func_return_param_array_size_macros.inc", "w");
         if (!pFile)
-        {
-            console::error("Failed creating file gl_glx_func_return_param_array_size_macros.inc!\n");
             return false;
-        }
+
         for (uint i = 0; i < custom_return_param_array_size_macros.size(); i++)
         {
             dynamic_string macro_name(custom_return_param_array_size_macros[i]);
@@ -2715,7 +2689,10 @@ public:
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_func_descs.inc include file
-        pFile = fopen_and_log("gl_glx_func_descs.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_func_descs.inc", "w");
+        if (!pFile)
+            return false;
+
         dump_inc_file_header(pFile);
         dump_func_desc_macros(pFile, "gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_apitrace_gl_func_specs, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
         dump_func_desc_macros(pFile, "glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_apitrace_gl_func_specs, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
@@ -2723,13 +2700,19 @@ public:
         dump_function_def_undef_macros(pFile);
         vogl_fclose(pFile);
 
-        pFile = fopen_and_log("gl_glx_categories.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_categories.inc", "w");
+        if (!pFile)
+            return false;
+
         for (gl_string_set::const_iterator it = m_all_gl_categories.begin(); it != m_all_gl_categories.end(); ++it)
             vogl_fprintf(pFile, "DEF_CATEGORY(%s)\n", it->get_ptr());
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_array_size_macros.inc include file
-        pFile = fopen_and_log("gl_glx_array_size_macros.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_array_size_macros.inc", "w");
+        if (!pFile)
+            return false;
+
         for (gl_string_set::const_iterator it = custom_array_size_macros.begin(); it != custom_array_size_macros.end(); ++it)
         {
             dynamic_string macro_name(it->get_ptr());
@@ -2741,7 +2724,10 @@ public:
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_array_size_macros_validator.inc include file
-        pFile = fopen_and_log("gl_glx_array_size_macros_validator.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_array_size_macros_validator.inc", "w");
+        if (!pFile)
+            return false;
+
         for (uint i = 0; i < custom_array_size_macro_indices.size(); i++)
         {
             uint j = custom_array_size_macro_indices[i];
@@ -2762,7 +2748,10 @@ public:
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_custom_return_param_array_size_macro_validator.inc include file
-        pFile = fopen_and_log("gl_glx_custom_return_param_array_size_macro_validator.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_custom_return_param_array_size_macro_validator.inc", "w");
+        if (!pFile)
+            return false;
+
         for (uint i = 0; i < custom_return_param_array_size_macros.size(); i++)
         {
             dynamic_string macro_name(custom_return_param_array_size_macros[i]);
@@ -2779,7 +2768,10 @@ public:
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_custom_func_handler_validator.inc include file
-        pFile = fopen_and_log("gl_glx_custom_func_handler_validator.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_custom_func_handler_validator.inc", "w");
+        if (!pFile)
+            return false;
+
         for (uint i = 0; i < m_all_gl_funcs.size(); i++)
         {
             vogl_fprintf(pFile, "#ifdef DEF_FUNCTION_CUSTOM_HANDLER_%s%s\n", g_lib_api_prefixes[m_all_gl_funcs[i].m_lib], m_all_gl_funcs[i].m_name.get_ptr());
@@ -2791,7 +2783,10 @@ public:
         vogl_fclose(pFile);
 
         // -- Generate the gl_glx_array_size_macro_func_param_indices.inc include file
-        pFile = fopen_and_log("gl_glx_array_size_macro_func_param_indices.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_array_size_macro_func_param_indices.inc", "w");
+        if (!pFile)
+            return false;
+
         for (uint i = 0; i < custom_array_size_macro_indices.size(); i++)
         {
             if (i)
@@ -2803,7 +2798,7 @@ public:
         vogl_fprintf(pFile, "\n");
         vogl_fclose(pFile);
 
-        if (!generate_gl_gets_inc_file())
+        if (!generate_gl_gets_inc_file(out_inc_dir))
             return false;
 
         if (!generate_libvogltrace_export_script())
@@ -2880,36 +2875,34 @@ local:
 			*;
 		};
 #endif
-        file_utils::scoped_path auto_out_linker_dir;
-        dynamic_string out_linker_dir;
-        g_command_line_params.get_value_as_string(out_linker_dir, "outlinker", 0, ".");
-        file_utils::create_directories(out_linker_dir, false);
-        if (!auto_out_linker_dir.change_directory(out_linker_dir))
-        {
-            console::error("Unable to chdir to '%s' to write linker file, this is fatal.", out_linker_dir.c_str());
-            return false;
-        }
-
-        const char *pFilename = "libvogltrace_linker_script.txt";
-        cfile_stream export_script(pFilename, cDataStreamWritable);
-
-        console::info("--- Generating \"%s\":\n", pFilename);
-
-        export_script.puts("{\n");
-        export_script.puts("  global:\n");
-
-        for (uint i = 0; i < m_gl_so_function_exports.size(); i++)
-            export_script.printf("    %s;\n", m_gl_so_function_exports[i].get_ptr());
-
+        // Read these first, before we change the working directory.
         dynamic_string_array nongenerated_exports;
         file_utils::read_text_file("gl_glx_nongenerated_so_export_list.txt", nongenerated_exports, file_utils::cRTFPrintWarningMessages);
 
-        for (uint i = 0; i < nongenerated_exports.size(); i++)
-            export_script.printf("    %s;\n", nongenerated_exports[i].get_ptr());
+        dynamic_string out_linker_dir;
+        g_command_line_params.get_value_as_string(out_linker_dir, "outlinker", 0, ".");
+        file_utils::create_directories(out_linker_dir, false);
 
-        export_script.puts("  local:\n");
-        export_script.puts("    *;\n");
-        export_script.puts("};\n");
+        // Convert this to use naked pfiles like everything else--to support writing native line endings.
+        // cfile_stream really only works with binary files, and we want to have the \n->\r\n translation happen for us.
+        const char* pFilename = "libvogltrace_linker_script.txt";
+        FILE* pFile = fopen_and_log_generic(out_linker_dir, "libvogltrace_linker_script.txt", "w");
+        if (!pFile) 
+            return false;
+            
+        fputs("{\n", pFile);
+        fputs("  global:\n", pFile);
+
+        for (uint i = 0; i < m_gl_so_function_exports.size(); i++)
+            fprintf(pFile, "    %s;\n", m_gl_so_function_exports[i].get_ptr());
+
+        for (uint i = 0; i < nongenerated_exports.size(); i++)
+            fprintf(pFile, "    %s;\n", nongenerated_exports[i].get_ptr());
+
+        fputs("  local:\n", pFile);
+        fputs("    *;\n", pFile);
+        fputs("};\n", pFile);
+        fclose(pFile);
 
         return true;
     }
@@ -2917,19 +2910,12 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     // generate_gl_gets_inc_file
     //-----------------------------------------------------------------------------------------------------------------------
-    bool generate_gl_gets_inc_file() const
+    bool generate_gl_gets_inc_file(const dynamic_string& out_inc_dir) const
     {
         // Note: I used this to generate our first gl_gets.inc file, which then had to be hand edited.
-        const char *pFilename = "gl_gets_approx.inc";
-        cfile_stream gl_gets_inc(pFilename, cDataStreamWritable);
-
-        if (!gl_gets_inc.is_opened())
-        {
-            console::error("Failed creating file %s!\n", pFilename);
+        FILE* pFile = fopen_and_log_generic(out_inc_dir, "gl_gets_approx.inc", "w");
+        if (!pFile)
             return false;
-        }
-
-        console::info("--- Generating \"%s\":\n", pFilename);
 
         vogl::vector<gl_get> sorted_gets;
         for (gl_get_hash_map::const_iterator it = m_gl_gets.begin(); it != m_gl_gets.end(); ++it)
@@ -2942,12 +2928,13 @@ local:
         {
             if ((prev_min_vers != static_cast<int>(sorted_gets[i].m_min_vers)) || (prev_max_vers != static_cast<int>(sorted_gets[i].m_max_vers)))
             {
-                gl_gets_inc.printf("// Start of version %u.%u - %u.%u\n", sorted_gets[i].m_min_vers >> 4, sorted_gets[i].m_min_vers & 0xF, sorted_gets[i].m_max_vers >> 4, sorted_gets[i].m_max_vers & 0xF);
+                fprintf(pFile, "// Start of version %u.%u - %u.%u\n", sorted_gets[i].m_min_vers >> 4, sorted_gets[i].m_min_vers & 0xF, sorted_gets[i].m_max_vers >> 4, sorted_gets[i].m_max_vers & 0xF);
                 prev_min_vers = sorted_gets[i].m_min_vers;
                 prev_max_vers = sorted_gets[i].m_max_vers;
             }
-            gl_gets_inc.printf("DEFINE_GL_GET(%s, 0x%04X, 0x%04X)\n", sorted_gets[i].m_name.get_ptr(), sorted_gets[i].m_min_vers, sorted_gets[i].m_max_vers);
+            fprintf(pFile, "DEFINE_GL_GET(%s, 0x%04X, 0x%04X)\n", sorted_gets[i].m_name.get_ptr(), sorted_gets[i].m_min_vers, sorted_gets[i].m_max_vers);
         }
+        vogl_fclose(pFile);
 
         return true;
     }
@@ -4229,18 +4216,13 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     // generate_simple_replay_funcs
     //-----------------------------------------------------------------------------------------------------------------------
-    bool generate_simple_replay_funcs(const gl_function_specs &gl_funcs, const gl_string_map &unique_ctype_enums, const gl_string_map &pointee_types, const dynamic_string_array &whitelisted_funcs) const
+    bool generate_simple_replay_funcs(const dynamic_string& out_dir, const gl_function_specs &gl_funcs, const gl_string_map &unique_ctype_enums, const gl_string_map &pointee_types, const dynamic_string_array &whitelisted_funcs) const
     {
         dynamic_string_array new_whitelisted_funcs(whitelisted_funcs);
 
-        console::info("--- Generating \"gl_glx_simple_replay_funcs.inc\":\n");
-
-        FILE *pFile = vogl_fopen("gl_glx_simple_replay_funcs.inc", "w");
+        FILE *pFile = fopen_and_log_generic(out_dir, "gl_glx_simple_replay_funcs.inc", "w");
         if (!pFile)
-        {
-            console::error("Failed creating file gl_glx_simple_replay_funcs.inc\n");
             return false;
-        }
 
         dump_inc_file_header(pFile);
 
@@ -4321,21 +4303,18 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     // generate_replay_func_load_macros
     //-----------------------------------------------------------------------------------------------------------------------
-    bool generate_replay_func_load_macros(const gl_function_specs &gl_funcs, const gl_string_map &unique_ctype_enums, const gl_string_map &pointee_types, const dynamic_string_array &whitelisted_funcs) const
+    bool generate_replay_func_load_macros(const dynamic_string& out_dir, const gl_function_specs &gl_funcs, const gl_string_map &unique_ctype_enums, const gl_string_map &pointee_types, const dynamic_string_array &whitelisted_funcs) const
     {
         VOGL_NOTE_UNUSED(unique_ctype_enums);
         VOGL_NOTE_UNUSED(pointee_types);
 
         dynamic_string_array new_whitelisted_funcs(whitelisted_funcs);
 
-        console::info("--- Generating \"gl_glx_replay_helper_macros.inc\":\n");
+        
 
-        FILE *pFile = vogl_fopen("gl_glx_replay_helper_macros.inc", "w");
+        FILE *pFile = fopen_and_log_generic(out_dir, "gl_glx_replay_helper_macros.inc", "w");
         if (!pFile)
-        {
-            console::error("Failed creating file gl_glx_replay_helper_macros\n");
             return false;
-        }
 
         dump_inc_file_header(pFile);
 
@@ -4573,6 +4552,9 @@ static int main_internal(int argc, char *argv[])
                 }
             }
         }
+
+        // If we generated any errors, report a non-zero exit code.
+        status = status && console::get_total_messages(cErrorConsoleMessage) == 0;
     }
 
     if (!status)
@@ -4590,7 +4572,7 @@ static int main_internal(int argc, char *argv[])
 
     vogl_print_heap_stats();
 
-    return status ? EXIT_SUCCESS : EXIT_FAILURE;
+    return exit_status;
 }
 
 //-----------------------------------------------------------------------------------------------------------------------
@@ -4607,6 +4589,23 @@ static void pause_and_wait(void)
         if (vogl_getch() != -1)
             break;
     }
+}
+
+//-----------------------------------------------------------------------------------------------------------------------
+// fopen_and_log_generic
+//-----------------------------------------------------------------------------------------------------------------------
+FILE *fopen_and_log_generic(const dynamic_string& outDirectory, const char* filename, const char* mode)
+{
+    dynamic_string final_path;
+    file_utils::combine_path(final_path, outDirectory.c_str(), filename);
+
+    FILE* retfile = vogl_fopen(final_path.c_str(), mode);
+    if (retfile)
+        console::info("--- Generating \"%s\":\n", final_path.c_str());
+    else
+        console::error("Failed opening file \"%s\" for mode \"%s\"!", final_path.c_str(), mode);
+
+    return retfile;
 }
 
 //-----------------------------------------------------------------------------------------------------------------------
