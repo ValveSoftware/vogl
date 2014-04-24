@@ -2310,9 +2310,9 @@ namespace vogl
             {
                 vogl_delete(pMip);
 
-                for (uint f = 0; f < faces.size(); f++)
-                    for (uint l = 0; l < faces[f].size(); l++)
-                        vogl_delete(faces[f][l]);
+                for (uint f2 = 0; f2 < faces.size(); f2++)
+                    for (uint l = 0; l < faces[f2].size(); l++)
+                        vogl_delete(faces[f2][l]);
 
                 return false;
             }
@@ -2398,9 +2398,9 @@ namespace vogl
                     {
                         vogl_delete(pMip);
 
-                        for (uint f = 0; f < faces.size(); f++)
-                            for (uint l = 0; l < faces[f].size(); l++)
-                                vogl_delete(faces[f][l]);
+                        for (uint f2 = 0; f2 < faces.size(); f2++)
+                            for (uint l2 = 0; l2 < faces[f2].size(); l2++)
+                                vogl_delete(faces[f2][l2]);
 
                         return false;
                     }

@@ -224,10 +224,10 @@ static bool dump_compiler_info(vogl_trace_file_reader *pTrace_reader, dynamic_st
                     const json_node *pNode = value.get_node_ptr();
 
                     // glinfo, uname, etc.
-                    for (uint i = 0; i < pNode->size(); i++)
+                    for (uint j = 0; j < pNode->size(); j++)
                     {
-                        dynamic_string key = pNode->get_key(i);
-                        const vogl::json_value &val = pNode->get_value(i);
+                        dynamic_string key = pNode->get_key(j);
+                        const vogl::json_value &val = pNode->get_value(j);
                         dynamic_string str = val.as_string();
 
                         vogl_printf("  %s: %s\n", key.c_str(), str.c_str());
@@ -281,10 +281,10 @@ static bool dump_machine_info(vogl_trace_file_reader *pTrace_reader, vector<btra
 
                     if (is_module_list)
                     {
-                        for (uint i = 0; i < pNode->size(); i++)
+                        for (uint j = 0; j < pNode->size(); j++)
                         {
-                            dynamic_string key = pNode->get_key(i);
-                            const vogl::json_value &val = pNode->get_value(i);
+                            dynamic_string key = pNode->get_key(j);
+                            const vogl::json_value &val = pNode->get_value(j);
 
                             // key is filename, addr_base, addr_size, uuid, is_exe
                             if (val.is_array())
@@ -322,10 +322,10 @@ static bool dump_machine_info(vogl_trace_file_reader *pTrace_reader, vector<btra
                     else if (value.is_node())
                     {
                         // glinfo, uname, etc.
-                        for (uint i = 0; i < pNode->size(); i++)
+                        for (uint j = 0; j < pNode->size(); j++)
                         {
-                            dynamic_string key = pNode->get_key(i);
-                            const vogl::json_value &val = pNode->get_value(i);
+                            dynamic_string key = pNode->get_key(j);
+                            const vogl::json_value &val = pNode->get_value(j);
 
                             dynamic_string str = val.as_string();
 
@@ -336,8 +336,8 @@ static bool dump_machine_info(vogl_trace_file_reader *pTrace_reader, vector<btra
                                 vogl_printf("%s\n", key.c_str());
                                 for (uint element = 0; element < pNode2->size(); element++)
                                 {
-                                    dynamic_string str = pNode2->get_value(element).as_string();
-                                    vogl_printf("  %s\n", str.c_str());
+                                    dynamic_string str2 = pNode2->get_value(element).as_string();
+                                    vogl_printf("  %s\n", str2.c_str());
                                 }
                             }
                             else
@@ -389,9 +389,9 @@ static bool get_backtrace_map_addrs(vogl_trace_file_reader *pTrace_reader, vecto
                     pChild->get_value_as_uint32("index", addr_data.index);
                     pChild->get_value_as_uint32("count", addr_data.count);
 
-                    for (uint i = 0; i < pAddrs->size(); i++)
+                    for (uint j = 0; j < pAddrs->size(); j++)
                     {
-                        uintptr_t addr = (uintptr_t)pAddrs->get_value(i).as_uint64();
+                        uintptr_t addr = (uintptr_t)pAddrs->get_value(j).as_uint64();
                         addr_data.addrs.push_back(addr);
                     }
 

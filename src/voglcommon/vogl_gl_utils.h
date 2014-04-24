@@ -390,12 +390,12 @@ bool vogl_check_gl_error_internal(bool suppress_error_message = false, const cha
 #define vogl_check_gl_error() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(false, __FILE__, __LINE__, __PRETTY_FUNCTION__) : false)
 #define vogl_check_gl_error_suppress_message() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(true, __FILE__, __LINE__, __PRETTY_FUNCTION__) : false)
 
-#define VOGL_CHECK_GL_ERROR                         \
-    do                                             \
-    {                                              \
-        bool prev_gl_error = vogl_check_gl_error(); \
-        VOGL_ASSERT(!prev_gl_error);             \
-        VOGL_NOTE_UNUSED(prev_gl_error);         \
+#define VOGL_CHECK_GL_ERROR                          \
+    do                                               \
+    {                                                \
+        bool _prev_gl_error = vogl_check_gl_error(); \
+        VOGL_ASSERT(!_prev_gl_error);                \
+        VOGL_NOTE_UNUSED(_prev_gl_error);            \
     } while (0)
 
 void vogl_enable_gl_get_error();

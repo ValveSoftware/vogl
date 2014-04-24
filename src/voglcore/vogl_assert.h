@@ -33,8 +33,8 @@ const unsigned int VOGL_FAIL_EXCEPTION_CODE = 256U;
 void vogl_enable_fail_exceptions(bool enabled);
 
 // TODO: Add an optional message argument.
-void vogl_assert(const char *pExp, const char *pFile, unsigned line);
-void vogl_fail(const char *pExp, const char *pFile, unsigned line);
+void vogl_assert(const char *pExp, const char *pFile, unsigned line) CLANG_ANALYZER_NORETURN;
+void vogl_fail(const char *pExp, const char *pFile, unsigned line) CLANG_ANALYZER_NORETURN;
 
 // Assertions are usually only enabled in debug builds.
 #if defined(NDEBUG) && !VOGL_ENABLE_ASSERTIONS_IN_ALL_BUILDS

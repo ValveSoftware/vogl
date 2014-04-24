@@ -1368,11 +1368,11 @@ namespace vogl
                         z = (__uint128_t)x / (__uint128_t)y;
                         __int128 m = (__uint128_t)x % (__uint128_t)y;
 
-                        bigint128 r;
-                        VOGL_VERIFY(bigint128::unsigned_divide(bx, by, bz, r));
+                        bigint128 r2;
+                        VOGL_VERIFY(bigint128::unsigned_divide(bx, by, bz, r2));
 
-                        BIGINT128_CHECK((uint64_t)m == r.get_qword(0));
-                        BIGINT128_CHECK((uint64_t)(m >> 64) == r.get_qword(1));
+                        BIGINT128_CHECK((uint64_t)m == r2.get_qword(0));
+                        BIGINT128_CHECK((uint64_t)(m >> 64) == r2.get_qword(1));
                     }
                     break;
                 }
@@ -1383,13 +1383,13 @@ namespace vogl
                         z = x / y;
                         __int128 m = x % y;
 
-                        bigint128 r;
-                        VOGL_VERIFY(bigint128::signed_divide(bx, by, bz, r));
-                        bigint128 nr(-r);
+                        bigint128 r2;
+                        VOGL_VERIFY(bigint128::signed_divide(bx, by, bz, r2));
+                        bigint128 nr(-r2);
                         VOGL_NOTE_UNUSED(nr);
 
-                        BIGINT128_CHECK((uint64_t)m == r.get_qword(0));
-                        BIGINT128_CHECK((uint64_t)(m >> 64) == r.get_qword(1));
+                        BIGINT128_CHECK((uint64_t)m == r2.get_qword(0));
+                        BIGINT128_CHECK((uint64_t)(m >> 64) == r2.get_qword(1));
                     }
                     break;
                 }

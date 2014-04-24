@@ -37,3 +37,23 @@
   #define GCC_DIAGNOSTIC_IGNORED(x)
   #define GCC_DIAGNOSTIC_POP()
 #endif
+
+#if !defined(__clang__) && !defined(__has_feature)
+  #define __has_feature(_x) 0
+#endif
+
+#if !defined(CLANG_ANALYZER_NORETURN)
+  #if __has_feature(attribute_analyzer_noreturn)
+    #define CLANG_ANALYZER_NORETURN __attribute__((analyzer_noreturn))
+  #else
+    #define CLANG_ANALYZER_NORETURN
+  #endif
+#endif
+
+#ifdef _MSC_VER
+#define VOGL_NORETURN __declspec(noreturn)
+#elif defined(__GNUC__)
+#define VOGL_NORETURN __attribute__((noreturn))
+#else
+#define VOGL_NORETURN
+#endif

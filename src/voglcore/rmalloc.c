@@ -150,6 +150,14 @@
 #define RM_NEED_PROTOTYPES /* but we want to compare prototypes */
 #include "rmalloc.h"
 
+#ifdef _MSC_VER
+#define RMALLOC_NORETURN __declspec(noreturn)
+#elif defined(__GNUC__)
+#define RMALLOC_NORETURN __attribute__((noreturn))
+#else
+#define RMALLOC_NORETURN
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -434,7 +442,7 @@ void Rmalloc_set_callbacks(rmalloc_malloc_func_t pMalloc, rmalloc_free_func_t pF
 
 	   Purpose: 	Signal handler für fatal signals (SIGBUS, SIGSEGV)
 	   ============================================================================= */
-static void FatalSignal(int signum)
+RMALLOC_NORETURN static void FatalSignal(int signum)
 {
     /* --- jump to a save place --- */
     longjmp(errorbuf, signum);

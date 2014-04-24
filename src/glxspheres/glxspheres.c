@@ -488,7 +488,7 @@ bailout:
 
 Atom protoatom = 0, deleteatom = 0;
 
-int event_loop(Display *dpy)
+int event_loop(Display *_dpy)
 {
     while (1)
     {
@@ -498,11 +498,11 @@ int event_loop(Display *dpy)
         {
             XEvent event;
             if (interactive)
-                XNextEvent(dpy, &event);
+                XNextEvent(_dpy, &event);
             else
             {
-                if (XPending(dpy) > 0)
-                    XNextEvent(dpy, &event);
+                if (XPending(_dpy) > 0)
+                    XNextEvent(_dpy, &event);
                 else
                     break;
             }
@@ -542,7 +542,7 @@ int event_loop(Display *dpy)
             }
             if (interactive)
             {
-                if (XPending(dpy) <= 0)
+                if (XPending(_dpy) <= 0)
                     break;
             }
         }

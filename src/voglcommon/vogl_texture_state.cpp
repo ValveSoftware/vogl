@@ -108,11 +108,11 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
     if (m_target == GL_TEXTURE_BUFFER)
     {
-        GLint handle = 0;
-        GL_ENTRYPOINT(glGetIntegerv)(GL_TEXTURE_BUFFER_DATA_STORE_BINDING_ARB, &handle);
+        GLint handle2 = 0;
+        GL_ENTRYPOINT(glGetIntegerv)(GL_TEXTURE_BUFFER_DATA_STORE_BINDING_ARB, &handle2);
         VOGL_CHECK_GL_ERROR;
 
-        m_buffer = handle;
+        m_buffer = handle2;
 
         GLint format = 0;
         GL_ENTRYPOINT(glGetIntegerv)(GL_TEXTURE_BUFFER_FORMAT_ARB, &format);
@@ -629,6 +629,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
             vogl_state_vector level_params;
 
+            //$ TODO WSHADOW: this shadows any_gl_error declaration at top of function.
             bool any_gl_errors = false;
 
 // TODO: Check for core vs. compat profiles and not query the old stuff
@@ -1416,6 +1417,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                         GL_ENTRYPOINT(glGenTextures)(1, &temp_color_texture);
                         VOGL_CHECK_GL_ERROR;
 
+                        //$ TODO WSHADOW: shadows src_target declared on line 1361 - this one can die I believe.
                         const GLenum src_target = (m_target == GL_TEXTURE_2D_MULTISAMPLE_ARRAY) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
 
                         GL_ENTRYPOINT(glBindTexture)(src_target, temp_color_texture);
@@ -1447,6 +1449,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                             VOGL_CHECK_GL_ERROR;
                         }
 
+                        //$ TODO WSHADOW: status already declared above. This declaration should die?
                         bool status = splitter.copy_color_sample_to_stencil(temp_color_texture, sample_index, m_target, static_cast<uint32>(handle));
 
                         GL_ENTRYPOINT(glBindTexture)(src_target, 0);

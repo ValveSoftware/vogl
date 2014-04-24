@@ -59,17 +59,17 @@ bool vogl_matrix_state::save_matrix_stack(const vogl_context_info &context_info,
             vogl::vector<matrix44D> matrices;
             for (;;)
             {
-                matrix44D matrix;
-                GL_ENTRYPOINT(glGetDoublev)(matrix_get, matrix.get_ptr());
+                matrix44D mat;
+                GL_ENTRYPOINT(glGetDoublev)(matrix_get, mat.get_ptr());
                 if (vogl_check_gl_error())
                     return false;
 
-                matrices.push_back(matrix);
+                matrices.push_back(mat);
 
                 GL_ENTRYPOINT(glPopMatrix)();
                 bool failed_popping = vogl_check_gl_error();
 
-                GL_ENTRYPOINT(glGetDoublev)(matrix_get, matrix.get_ptr());
+                GL_ENTRYPOINT(glGetDoublev)(matrix_get, mat.get_ptr());
                 // AMD fails with a stack underflow on the get, not the pop - at least during tracing?
                 if (vogl_check_gl_error())
                     failed_popping = true;
@@ -348,14 +348,14 @@ bool vogl_matrix_state::deserialize(const json_node &node, const vogl_blob_manag
         matrix_vec &matrices = m_matrices[matrix_key(matrix, index)];
         matrices.resize(pMatrices->size());
 
-        for (uint i = 0; i < matrices.size(); i++)
+        for (uint i2 = 0; i2 < matrices.size(); i2++)
         {
-            const json_node *pMatrix = pMatrices->get_value_as_array(i);
+            const json_node *pMatrix = pMatrices->get_value_as_array(i2);
             if ((!pMatrix) || (!pMatrix->is_array()) || (pMatrix->size() != 4 * 4))
                 return false;
 
             for (uint j = 0; j < 4 * 4; j++)
-                matrices[i].get_ptr()[j] = pMatrix->value_as_double(j);
+                matrices[i2].get_ptr()[j] = pMatrix->value_as_double(j);
         }
     }
 

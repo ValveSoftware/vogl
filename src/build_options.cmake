@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 2.8)
 set(BUILD_X64 "" CACHE STRING "whether to perform 64-bit build: ON or OFF overrides default detection")
 
 option(CMAKE_VERBOSE "Verbose CMake" FALSE)
-if( CMAKE_VERBOSE )
+if (CMAKE_VERBOSE)
     SET(CMAKE_VERBOSE_MAKEFILE ON)
 endif()
 
@@ -25,18 +25,16 @@ option(WITH_ASAN "Enable address sanitizer" OFF) # gcc4.8+, clang 3.1+
 #option(WITH_MSAN "Enable memory sanitizer" OFF)
 #option(WITH_TSAN "Enable thread sanitizer" OFF)
 option(WITH_HARDENING "Enable hardening: Compile-time protection against static sized buffer overflows" OFF)
-option(CLANG_ANALYZE "Do clang analyze build" OFF)
-option(CLANG_EVERYTHING "Do clang build with -Weverything" OFF)
 option(USE_TELEMETRY "Build with Telemetry" OFF)
 
 # Unless user specifies BUILD_X64 explicitly, assume native target
-if( BUILD_X64 STREQUAL "" )
-  if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+if (BUILD_X64 STREQUAL "")
+  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
     set(BUILD_X64 "TRUE")
   else()
     set(BUILD_X64 "FALSE")
   endif()
-endif( BUILD_X64 STREQUAL "" )
+endif()
 
 if (BUILD_X64 AND MSVC)
     # TODO: I don't know how to get a 64-bit build generated from MSVC yet.
@@ -54,8 +52,8 @@ else()
 endif()
 
 # Default to release build
-if( NOT CMAKE_BUILD_TYPE )
-    set( CMAKE_BUILD_TYPE Release )
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
 endif()
 
 # Make sure we're using 64-bit versions of stat, fopen, etc.
@@ -76,52 +74,63 @@ else()
     set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG")
 endif()
 
-#if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-#   if ( NOT BUILD_X64 )
-#      # Fix startup crash in dlopen_notify_callback (called indirectly from our dlopen() function) when tracing glxspheres on my AMD dev box (x86 release only)
-#      # Also fixes tracing Q3 Arena using release tracer
-#      add_definitions("-mstack-alignment=8")
-#   endif()
-#endif()
+set(CLANG_EVERYTHING 0)
+if (NOT VOGL_BUILDING_SAMPLES)
+    # Samples have tons of shadowing issues. Only add this flag for regular vogl projects.
+    set(CLANG_EVERYTHING 1)
+endif()
 
 set(OPENGL_LIBRARY "GL")
 
-if( USE_TELEMETRY )
+if (USE_TELEMETRY)
   add_definitions("-DUSE_TELEMETRY")
 endif()
 
-# clang doesn't print colored diagnostics when invoked from Ninja
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+
+  # clang doesn't print colored diagnostics when invoked from Ninja
   if (UNIX AND CMAKE_GENERATOR STREQUAL "Ninja")
       add_definitions ("-fcolor-diagnostics")
   endif()
-endif()
 
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
   if (CLANG_EVERYTHING)
       set(CMAKE_CXX_FLAGS_LIST ${CMAKE_CXX_FLAGS_LIST}
-          "-pedantic"               # Warn on language extensions
-          "-fdiagnostics-show-name" # Enable display of diagnostic name
+          # "-pedantic"             # Warn on language extensions
           "-Weverything"            # Enable all warnings
+          "-fdiagnostics-show-category=name"
           "-Wno-unused-macros"
           "-Wno-padded"
           "-Wno-variadic-macros"
-          )
-  elseif (CLANG_ANALYZE)
-      set(CMAKE_CXX_FLAGS_LIST ${CMAKE_CXX_FLAGS_LIST}
-          "--analyze"
-          "-ferror-limit=0"         # Don't ever stop emitting diagnostics
-          "-fshow-column"           # Print column number in diagnostic.
-          "-fcaret-diagnostics"     # Print source line and ranges from source code in diagnostic
-          "-pedantic"               # Warn on language extensions
-          "-fdiagnostics-show-name" # Enable display of diagnostic name
-          "-Weverything"            # Enable all warnings
-          "-Wno-unused-macros"
-          "-Wno-padded"
-          "-Wno-variadic-macros"
-          # "-Wno-missing-prototypes"
+          "-Wno-missing-variable-declarations"
+          "-Wno-missing-prototypes"
+          "-Wno-pedantic"
+          "-Wno-sign-conversion"
+          "-Wno-conversion"
+          "-Wno-global-constructors"
+          "-Wno-cast-align"
+          "-Wno-exit-time-destructors"
+          "-Wno-documentation-deprecated-sync"
+          "-Wno-documentation-unknown-command"
+
+          # TODO: Would be great to start enabling some of these warnings...
+          "-Wno-undef"
+          "-Wno-undefined-reinterpret-cast"
+          "-Wno-incompatible-pointer-types-discards-qualifiers"
+          "-Wno-switch-enum"
+          "-Wno-duplicate-enum"
+          "-Wno-float-equal"
+          "-Wno-header-hygiene"
+          "-Wno-unreachable-code"
+          "-Wno-weak-vtables"
+          "-Wno-extra-semi"
+          "-Wno-disabled-macro-expansion"
+          "-Wno-format-nonliteral"
+          "-Wno-packed"
+          "-Wno-covered-switch-default"
+          "-Wno-shift-sign-overflow"
           )
   endif()
+
 endif()
 
 if (MSVC)
@@ -244,18 +253,18 @@ if (WITH_ASAN)
     set(CMAKE_EXE_LINK_FLAGS_LIST "${CMAKE_EXE_LINK_FLAGS_LIST} -fsanitize=address")
     set(CMAKE_SHARED_LINK_FLAGS_LIST "${CMAKE_SHARED_LINK_FLAGS_LIST} -fsanitize=address")
     link_libraries(asan)
-endif (WITH_ASAN)
+endif()
 
 #if (WITH_MSAN)
 #    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -fpic -fsanitize-memory-track-origins -fsanitize=memory" )
 #    set(SANITIZER_LIBRARY "-lmsan -ldl")
-#endif (WITH_MSAN)
+#endif()
 #message(STATUS "Msan is: ${WITH_MSAN} ${SANITIZER_LIBRARY}")
 #
 #if (WITH_TSAN)
 #    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -fpic -fsanitize=thread" )
 #    set(SANITIZER_LIBRARY "-ltsan -ldl")
-#endif (WITH_TSAN)
+#endif()
 #message(STATUS "Tsan is: ${WITH_TSAN} ${SANITIZER_LIBRARY}")
 
 
@@ -285,7 +294,7 @@ string(REPLACE ";" " " CMAKE_EXE_LINKER_FLAGS     "${CMAKE_EXE_LINK_FLAGS_LIST}"
 string(REPLACE ";" " " CMAKE_SHARED_LINKER_FLAGS  "${CMAKE_SHARED_LINK_FLAGS_LIST}")
 
 # If building from inside chroot project, use vogl_build there.
-if(EXISTS "${CMAKE_SOURCE_DIR}/../bin/chroot_build.sh")
+if (EXISTS "${CMAKE_SOURCE_DIR}/../bin/chroot_build.sh")
     set(RADPROJ_BUILD_DIR ${CMAKE_SOURCE_DIR}/../vogl_build)
 else()
     set(RADPROJ_BUILD_DIR ${CMAKE_SOURCE_DIR}/vogl_build)
@@ -295,10 +304,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RADPROJ_BUILD_DIR}/bin)
 
 # Telemetry setup
 function(telemetry_init)
-  if( USE_TELEMETRY )
+  if (USE_TELEMETRY)
     include_directories("${SRC_DIR}/telemetry/include")
 
-    if( BUILD_X64 )
+    if (BUILD_X64)
         find_library(RAD_TELEMETRY_LIBRARY libTelemetryX64.link.a HINTS ${SRC_DIR}/telemetry/lib)
         find_library(RAD_TELEMETRY_SO libTelemetryX64.so HINTS ${SRC_DIR}/telemetry/redist)
     else()
@@ -315,7 +324,7 @@ else()
 endif()
 
 function(build_options_finalize)
-    if( CMAKE_VERBOSE )
+    if (CMAKE_VERBOSE)
         message("  CMAKE_PROJECT_NAME: ${CMAKE_PROJECT_NAME}")
         message("  PROJECT_NAME: ${PROJECT_NAME}")
         message("  BUILD_X64: ${BUILD_X64}")

@@ -370,6 +370,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                     GLuint trace_handle = attachment_obj.get_handle();
                     if (trace_handle)
                     {
+                        //$ TODO WSHADOW: this handle shadows high level handle. This looks like a bug.
                         GLuint handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_RENDER_BUFFERS, trace_handle));
                         if (!handle)
                             goto handle_error;
@@ -385,6 +386,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                     GLuint trace_handle = attachment_obj.get_handle();
                     if (trace_handle)
                     {
+                        //$ TODO WSHADOW: this handle shadows high level handle. This looks like a bug.
                         GLuint handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, trace_handle));
                         if (!handle)
                             goto handle_error;

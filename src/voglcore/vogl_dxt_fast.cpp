@@ -471,9 +471,9 @@ namespace vogl
                             {
                                 const color_quad_u8 &p = pBlock[i];
 
-                                int e = v[pSelectors[i]] - p[axis];
+                                int e2 = v[pSelectors[i]] - p[axis];
 
-                                axis_error += e * e;
+                                axis_error += e2 * e2;
 
                                 if (axis_error >= total_error[axis])
                                     break;
@@ -499,19 +499,19 @@ namespace vogl
 
                                 for (uint i = 0; i < n; i++)
                                 {
-                                    const color_quad_u8 &a = pBlock[i];
+                                    const color_quad_u8 &a2 = pBlock[i];
 
                                     const uint s = pSelectors[i];
                                     const color_quad_u8 &b = color[s];
 
-                                    int e = a[0] - b[0];
-                                    total_error[0] += e * e;
+                                    int e2 = a2[0] - b[0];
+                                    total_error[0] += e2 * e2;
 
-                                    e = a[1] - b[1];
-                                    total_error[1] += e * e;
+                                    e2 = a2[1] - b[1];
+                                    total_error[1] += e2 * e2;
 
-                                    e = a[2] - b[2];
-                                    total_error[2] += e * e;
+                                    e2 = a2[2] - b[2];
+                                    total_error[2] += e2 * e2;
                                 }
 
                                 trial_optimized = true;
@@ -614,24 +614,24 @@ namespace vogl
                 {
                     for (uint j = 0; j < num_trials; j++)
                     {
-                        uint l = probe_low[i];
+                        uint l2 = probe_low[i];
                         uint h = probe_high[j];
-                        if (l < h)
-                            utils::swap(l, h);
+                        if (l2 < h)
+                            utils::swap(l2, h);
 
-                        uint c = l | (h << 16);
-                        c = fast_hash(&c, sizeof(c));
-                        uint64_t mask = 1ULL << (c & 63);
-                        uint ofs = (c >> 6) & 3;
+                        uint c2 = l2 | (h << 16);
+                        c2 = fast_hash(&c2, sizeof(c2));
+                        uint64_t mask = 1ULL << (c2 & 63);
+                        uint ofs = (c2 >> 6) & 3;
                         if (hash[ofs] & mask)
                             continue;
 
                         hash[ofs] |= mask;
 
-                        uint64_t new_error = determine_error(n, pBlock, l, h, cur_error);
+                        uint64_t new_error = determine_error(n, pBlock, l2, h, cur_error);
                         if (new_error < cur_error)
                         {
-                            best_l = l;
+                            best_l = l2;
                             best_h = h;
                             cur_error = new_error;
                         }
@@ -653,8 +653,8 @@ namespace vogl
                 {
                     improved = true;
 
-                    uint64_t cur_error = determine_error(n, pBlock, low16, high16, cUINT64_MAX);
-                    if (!cur_error)
+                    uint64_t cur_error2 = determine_error(n, pBlock, low16, high16, cUINT64_MAX);
+                    if (!cur_error2)
                         return;
                 }
 

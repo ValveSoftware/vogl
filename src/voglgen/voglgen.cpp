@@ -652,10 +652,10 @@ public:
         const TiXmlElement *pLibrary = pLibraries->FirstChildElement();
         while (pLibrary)
         {
-            const char *pName = pLibrary->Attribute("name");
-            if (pName)
+            const char *pName2 = pLibrary->Attribute("name");
+            if (pName2)
             {
-                if (!parse_gl_xml_function_defs(pFilename, pName, pLibrary->FirstChildElement()))
+                if (!parse_gl_xml_function_defs(pFilename, pName2, pLibrary->FirstChildElement()))
                     return false;
             }
 
@@ -1221,17 +1221,17 @@ public:
                 else if (!params.begins_with("("))
                     return parse_apitrace_gl_param_info_error(param_info_file, line_index);
 
-                int first_paren = params.find_left("(");
-                if (first_paren < 0)
+                int first_paren2 = params.find_left("(");
+                if (first_paren2 < 0)
                     return parse_apitrace_gl_param_info_error(param_info_file, line_index);
 
-                int param_end_ofs = find_matching_paren(params, first_paren);
+                int param_end_ofs = find_matching_paren(params, first_paren2);
                 if (param_end_ofs < 0)
                     return parse_apitrace_gl_param_info_error(param_info_file, line_index);
 
                 dynamic_string cur_param;
                 cur_param = params;
-                cur_param.substring(first_paren + 1, param_end_ofs);
+                cur_param.substring(first_paren2 + 1, param_end_ofs);
 
                 params.right(param_end_ofs + 1).trim();
                 if (params.begins_with(","))
@@ -3299,7 +3299,7 @@ local:
     // TODO: use funcs_with_custom_array_size_macros[] vs. scanning for DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_
     //-----------------------------------------------------------------------------------------------------------------------
     void create_array_size_macros(const char *pFunc_prefix, const gl_function_specs &gl_funcs, const gl_types &typemap, const gl_types &alt_typemap, const dynamic_string_array &sorted_gl_so_function_exports,
-                                  gl_string_set &custom_array_size_macros, vogl::vector<uint> &custom_array_size_macro_indices, dynamic_string_array &custom_array_size_macro_names, uint &cur_func_id) const
+                                  gl_string_set &_custom_array_size_macros, vogl::vector<uint> &_custom_array_size_macro_indices, dynamic_string_array &_custom_array_size_macro_names, uint &cur_func_id) const
     {
         VOGL_NOTE_UNUSED(typemap);
         VOGL_NOTE_UNUSED(alt_typemap);
@@ -3319,7 +3319,7 @@ local:
                     dynamic_string array_size_macro(func_param_translate_array_size(pFunc_prefix, func, param, func_proto));
                     if (array_size_macro.begins_with("DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_"))
                     {
-                        custom_array_size_macros.insert(array_size_macro);
+                        _custom_array_size_macros.insert(array_size_macro);
 
                         // oh god this is ugly
                         dynamic_string macro_name(array_size_macro);
@@ -3327,8 +3327,8 @@ local:
                         if (n >= 0)
                             macro_name.truncate(n);
 
-                        custom_array_size_macro_indices.push_back((cur_func_id << 16) | param_index);
-                        custom_array_size_macro_names.push_back(macro_name);
+                        _custom_array_size_macro_indices.push_back((cur_func_id << 16) | param_index);
+                        _custom_array_size_macro_names.push_back(macro_name);
                     }
                 }
             }
@@ -3343,9 +3343,9 @@ local:
     bool process_func_defs(const char *pFunc_prefix, const gl_function_specs &gl_funcs, const gl_types &typemap, const gl_types &alt_typemap, const dynamic_string_array &sorted_gl_so_function_exports,
                            const dynamic_string_array &whitelisted_funcs,
                            const dynamic_string_array &nullable_funcs,
-                           dynamic_string_array &funcs_with_custom_array_size_macros,
-                           dynamic_string_array &custom_return_param_array_size_macros,
-                           dynamic_string_array &funcs_with_return_param_array_size_macros)
+                           dynamic_string_array &_funcs_with_custom_array_size_macros,
+                           dynamic_string_array &_custom_return_param_array_size_macros,
+                           dynamic_string_array &_funcs_with_return_param_array_size_macros)
     {
         VOGL_NOTE_UNUSED(typemap);
         VOGL_NOTE_UNUSED(alt_typemap);
@@ -3388,13 +3388,13 @@ local:
             {
                 dynamic_string return_param_compute_array_size_macro_name(cVarArg, "DEF_FUNCTION_RETURN_PARAM_COMPUTE_ARRAY_SIZE_FUNC_%s(%s)", full_func_name.get_ptr(), func_params.get_ptr());
 
-                custom_return_param_array_size_macros.push_back(return_param_compute_array_size_macro_name);
-                funcs_with_return_param_array_size_macros.push_back(full_func_name);
+                _custom_return_param_array_size_macros.push_back(return_param_compute_array_size_macro_name);
+                _funcs_with_return_param_array_size_macros.push_back(full_func_name);
             }
 
             if (func_has_custom_array_size_macros)
             {
-                funcs_with_custom_array_size_macros.push_back(full_func_name);
+                _funcs_with_custom_array_size_macros.push_back(full_func_name);
             }
         }
 

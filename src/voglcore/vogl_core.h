@@ -99,6 +99,7 @@
 
     // We use the windows pthreads api.
     #define VOGL_USE_PTHREADS_API 1
+    #define VOGL_NOTE_UNUSED(x) (void)(x)
 
     #define VOGL_USE_UNALIGNED_INT_LOADS 1
     #define VOGL_RESTRICT __restrict
@@ -120,8 +121,6 @@
     // for gcc/clang: string_index is the param index of the format string, 1 is the first param for static funcs, 2 for member funcs
     // first_index is the first param to check, specify 0 to just check the format string for consistency
     #define VOGL_ATTRIBUTE_PRINTF(string_index, first_index)
-
-    #define VOGL_NOTE_UNUSED(x) (void) x
 
 #elif (defined(COMPILER_GCC) || defined(COMPILER_CLANG)) && !defined(VOGL_ANSI_CPLUSPLUS)
     // GCC x86 or x64, pthreads for threading and GCC built-ins for atomic ops.
@@ -151,7 +150,7 @@
 
     #if defined(COMPILER_CLANG)
         #include "../extlib/clang_warnings/clang_warnings.h"
-    // FIXME - clang interprets forceinline in a subtly different way vs. gcc/MSVS, which causes multiple func definitions
+        // FIXME - clang interprets forceinline in a subtly different way vs. gcc/MSVS, which causes multiple func definitions
         #define VOGL_FORCE_INLINE inline
     #else
         #define VOGL_FORCE_INLINE inline __attribute__((__always_inline__, __gnu_inline__))
@@ -286,6 +285,7 @@
 #error "Specify whether target platform has PROC filesystem or not."
 #endif
 
+#include "vogl_warnings.h"
 #include "vogl_types.h"
 #include "vogl_assert.h"
 #include "vogl_platform.h"

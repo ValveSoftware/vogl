@@ -174,9 +174,9 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
 
                 for (uint face = 0; face < m_mipmappedTexture.get_num_faces(); face++)
                 {
-                    vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(face, mip);
-                    vogl::image_u8* image = mipLevel->get_image();
-                    vogl::color_quad_u8* pPixels = image->get_pixels();
+                    vogl::mip_level* mipLevel2 = m_mipmappedTexture.get_level(face, mip);
+                    vogl::image_u8* image2 = mipLevel2->get_image();
+                    vogl::color_quad_u8* pPixels = image2->get_pixels();
 
                     // calculate write location to start of face
                     vogl::color_quad_u8* writeLoc = pTmpPixels + cubeCrossStride*faceRowOffset[face] + faceColOffset[face];
