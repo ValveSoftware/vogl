@@ -247,15 +247,17 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
          else if (entrypoint_id == VOGL_ENTRYPOINT_glEnd)
          {
              // move the parent back one level of the hierarchy, to its own parent
-             pCurParent = pCurParent->parent();
+             // (but not past Frame parent [e.g., unpaired "glEnd" operation])
+             if (pCurParent->parent() != parent)
+                 pCurParent = pCurParent->parent();
          }
       }
 
       if (pTrace_reader->get_packet_type() == cTSPTEOF)
       {
-         //found_eof_packet = true;
-         vogl_printf("Found trace file EOF packet on swap %" PRIu64 "\n", total_swaps);
-         break;
+          //found_eof_packet = true;
+          vogl_printf("Found trace file EOF packet on swap %" PRIu64 "\n", total_swaps);
+          break;
       }
    }
 }
