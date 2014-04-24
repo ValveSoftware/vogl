@@ -66,6 +66,9 @@ static command_line_param_desc g_command_line_param_descs[] =
         { "namespace_regex", 1, false, NULL },
         { "srcdir", 1, false, NULL },
         { "specdir", 1, false, NULL },
+        { "outinc", 1, false, NULL },
+        { "outlinker", 1, false, NULL },
+
     };
 
 //-----------------------------------------------------------------------------------------------------------------------
@@ -2601,6 +2604,20 @@ public:
 
     bool generate() const
     {
+        // This will ensure that the caller is back in the directory they were working in before.
+        file_utils::scoped_path auto_out_inc_dir;
+
+        dynamic_string out_inc_dir;
+        g_command_line_params.get_value_as_string(out_inc_dir, "outinc", 0, ".");
+        // Create and ignore failure to create, we'll fail if we can't chdir to the location.
+        file_utils::create_directories(out_inc_dir, false);
+        
+        if (!auto_out_inc_dir.change_directory(out_inc_dir)) 
+        {
+            console::error("Unable to chdir to '%s', check permissions.\n", out_inc_dir.c_str());
+            return false;
+        }
+
         if (!m_gl_enumerations.dump_to_definition_macro_file("gl_enums.inc", "GL"))
             return false;
         if (!m_glx_enumerations.dump_to_definition_macro_file("glx_enums.inc", "GLX"))
@@ -2863,6 +2880,15 @@ local:
 			*;
 		};
 #endif
+        file_utils::scoped_path auto_out_linker_dir;
+        dynamic_string out_linker_dir;
+        g_command_line_params.get_value_as_string(out_linker_dir, "outlinker", 0, ".");
+        file_utils::create_directories(out_linker_dir, false);
+        if (!auto_out_linker_dir.change_directory(out_linker_dir))
+        {
+            console::error("Unable to chdir to '%s' to write linker file, this is fatal.", out_linker_dir.c_str());
+            return false;
+        }
 
         const char *pFilename = "libvogltrace_linker_script.txt";
         cfile_stream export_script(pFilename, cDataStreamWritable);
