@@ -38,7 +38,7 @@ message("")
 add_subdirectory(src/voglcore) # 1
 add_subdirectory(src/voglgen) # 2
 
-if (!WIN32)
+if (NOT WIN32)
     add_subdirectory(src/voglcommon) # 3
     add_subdirectory(src/voglreplay) # 4
     add_subdirectory(src/voglbench) # 5

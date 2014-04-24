@@ -106,7 +106,7 @@ namespace vogl
         }
 
         virtual uint read(void *pBuf, uint len) = 0;
-        virtual uint peek(char *out_char) = 0;
+        inline virtual uint peek(char *out_char) { VOGL_VERIFY(!"peek not implemented for this class."); return 0; }
         uint64_t read64(void *pBuf, uint64_t len);
 
         virtual uint64_t skip(uint64_t len);

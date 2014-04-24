@@ -356,9 +356,13 @@ function(require_pthreads)
         message(FATAL_ERROR "pthread not found")
     endif()
 
-	if (MSVC)
-		include_directories("${WIN32_PTHREADS_INCLUDE_PATH}")
-	endif()
+    if (MSVC)
+        include_directories("${WIN32_PTHREADS_INCLUDE_PATH}")
+    else()
+        # Export the variable to the parent scope so the linker knows where to find the library.
+        set(CMAKE_THREAD_LIBS_INIT ${CMAKE_THREAD_LIBS_INIT} PARENT_SCOPE)
+    endif()
+
 endfunction()
 
 # What compiler toolchain are we building on?
