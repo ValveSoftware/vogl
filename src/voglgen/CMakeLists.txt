@@ -43,14 +43,11 @@ target_link_libraries(${PROJECT_NAME}
 
 # Generate stuff and copy it. Generator must handle copying internally in the future.
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-					COMMAND ${PROJECT_NAME} --specdir ${SPEC_DIR} --outinc "${CMAKE_BINARY_DIR}/voglinc/" --outlinker "${SRC_DIR}/vogltrace/"
-#					COMMAND mkdir -p "${CMAKE_BINARY_DIR}/voglinc/"
-#					COMMAND mv "${SPEC_DIR}/*.inc" "${CMAKE_BINARY_DIR}/voglinc/"
-#					COMMAND mv "${SPEC_DIR}/libvogltrace_linker_script.txt" "${SRC_DIR}/vogltrace/"
-)
-
 add_custom_target(voglgen_make_inc DEPENDS ${PROJECT_NAME})
+
+add_custom_command(TARGET voglgen_make_inc POST_BUILD
+                   COMMAND ${PROJECT_NAME} --specdir ${SPEC_DIR} --outinc "${CMAKE_BINARY_DIR}/voglinc" --outlinker "${SRC_DIR}/vogltrace"
+)
 
 build_options_finalize()
 

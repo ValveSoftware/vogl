@@ -148,6 +148,19 @@ namespace vogl
             return len;
         }
 
+        virtual uint peek(char *pBuf)
+        {
+            if ((!m_opened) || (!is_readable()))
+                return -1;
+
+            uint64_t bytes_left = m_size - m_ofs;
+            if (bytes_left == 0)
+                return 0;
+
+            (*pBuf) = m_pBuf[m_ofs];
+            return 1;
+        }
+
         virtual uint write(const void *pBuf, uint len)
         {
             VOGL_ASSERT(len <= 0x7FFFFFFF);
@@ -216,8 +229,6 @@ namespace vogl
                 return false;
 
             m_ofs = static_cast<size_t>(new_ofs);
-
-            post_seek();
 
             return true;
         }

@@ -128,6 +128,19 @@ namespace vogl
 
         static char *get_exec_filename(char *pPath, size_t dest_len);
 
+        // This structure will change to the path specified in one of the calls to change_directory, 
+        // and will restore back to the previous path at destruction time.
+        struct scoped_path
+        {
+            scoped_path();
+            ~scoped_path();
+
+            bool change_directory(const char *pPath);
+            bool change_directory(const dynamic_string &path);
+
+            dynamic_string m_restore_path;
+        };
+
     }; // struct file_utils
 
 } // namespace vogl

@@ -63,7 +63,6 @@ namespace vogl
         {
             m_opened = false;
             m_error = false;
-            m_got_cr = false;
             return true;
         }
 
@@ -107,6 +106,7 @@ namespace vogl
         }
 
         virtual uint read(void *pBuf, uint len) = 0;
+        virtual uint peek(char *out_char) = 0;
         uint64_t read64(void *pBuf, uint64_t len);
 
         virtual uint64_t skip(uint64_t len);
@@ -142,6 +142,13 @@ namespace vogl
         {
             return write(&c, 1) == 1;
         }
+        inline int peek_byte()
+        {
+            char c;
+            if (peek(&c) != 1)
+                return -1;
+            return c;
+        }
 
         bool read_line(dynamic_string &str);
         bool printf(const char *p, ...) VOGL_ATTRIBUTE_PRINTF(2, 3);
@@ -175,7 +182,6 @@ namespace vogl
         attribs_t m_attribs;
         bool m_opened : 1;
         bool m_error : 1;
-        bool m_got_cr : 1;
 
         inline void set_error()
         {
@@ -184,11 +190,6 @@ namespace vogl
         inline void clear_error()
         {
             m_error = false;
-        }
-
-        inline void post_seek()
-        {
-            m_got_cr = false;
         }
     };
 
