@@ -46,18 +46,16 @@
 #include "cclass.h"
 #include "cname.h"
 
-<<<<<<< HEAD
 #include "../vogl_warnings.h"
 
 GCC_DIAGNOSTIC_PUSH()
 GCC_DIAGNOSTIC_IGNORED(unused-value)
-=======
+
 #ifdef COMPILER_MSVC
     #define STATIC_INLINE static __inline
 #else
     #define STATIC_INLINE static inline
 #endif
->>>>>>> mcjohn
 
 /*
  * parse structure, passed up and down to avoid global variables and
