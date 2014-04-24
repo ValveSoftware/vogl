@@ -48,7 +48,7 @@ char* plat_getcwd(char *buffer, int maxlen)
 // Tests for the existence of the specified path, returns true if it exists and false otherwise.
 bool plat_fexist(const char* path)
 {
-    return _access(path, F_OK) == 0;
+    return access(path, F_OK) == 0;
 }
 
 

@@ -2885,7 +2885,6 @@ local:
 
         // Convert this to use naked pfiles like everything else--to support writing native line endings.
         // cfile_stream really only works with binary files, and we want to have the \n->\r\n translation happen for us.
-        const char* pFilename = "libvogltrace_linker_script.txt";
         FILE* pFile = fopen_and_log_generic(out_linker_dir, "libvogltrace_linker_script.txt", "w");
         if (!pFile) 
             return false;
@@ -4611,7 +4610,6 @@ FILE *fopen_and_log_generic(const dynamic_string& outDirectory, const char* file
 //-----------------------------------------------------------------------------------------------------------------------
 // main
 //-----------------------------------------------------------------------------------------------------------------------
-#include <intrin.h>
 int main(int argc, char *argv[])
 {
     int status = EXIT_FAILURE;
