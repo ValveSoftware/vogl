@@ -29,11 +29,11 @@
 
 #include "vogl_core.h"
 
-#if defined(_M_IX86) && defined(_MSC_VER)
+#if defined(_M_IX86) && defined(COMPILER_MSVC)
 #include <intrin.h>
 #pragma intrinsic(__emulu)
 unsigned __int64 __emulu(unsigned int a, unsigned int b);
-//#elif defined(__GNUC__)
+//#elif defined(COMPILER_GCCLIKE)
 //#include <xmmintrin.h>
 #endif
 
@@ -490,114 +490,130 @@ namespace vogl
 
         inline uint count_leading_zero_bits(uint v)
         {
-#if defined(_M_IX86) && defined(_MSC_VER)
-            return __lzcnt(v);
-#elif defined(__GNUC__)
-            return v ? __builtin_clz(v) : 32;
-#else
-            uint temp;
-            uint result = 32U;
+            #if defined(COMPILER_MSVC)
+                // BitScanReverse doesn't return the count of leading 0s, it returns the LSB-based index of the first 1 bit found. 
+                // Since we want the number of 0s, we subtract bitcount(uint) - 1 - _BitScanReverse value.
+                // When fed a 0, BSR will return an 0 (and in that case we return that there are 32 leading 0s). 
+                unsigned long lz = 0;
+                if (_BitScanReverse(&lz, v)) {
+                    return 31 - lz;
+                }
 
-            temp = (v >> 16U);
-            if (temp)
-            {
-                result -= 16U;
-                v = temp;
-            }
-            temp = (v >> 8U);
-            if (temp)
-            {
-                result -= 8U;
-                v = temp;
-            }
-            temp = (v >> 4U);
-            if (temp)
-            {
-                result -= 4U;
-                v = temp;
-            }
-            temp = (v >> 2U);
-            if (temp)
-            {
-                result -= 2U;
-                v = temp;
-            }
-            temp = (v >> 1U);
-            if (temp)
-            {
-                result -= 1U;
-                v = temp;
-            }
+                return 32;
+            #elif defined(COMPILER_GCCLIKE)
+                return v ? __builtin_clz(v) : 32;
+            #else
+                uint temp;
+                uint result = 32U;
 
-            if (v & 1U)
-                result--;
+                temp = (v >> 16U);
+                if (temp)
+                {
+                    result -= 16U;
+                    v = temp;
+                }
+                temp = (v >> 8U);
+                if (temp)
+                {
+                    result -= 8U;
+                    v = temp;
+                }
+                temp = (v >> 4U);
+                if (temp)
+                {
+                    result -= 4U;
+                    v = temp;
+                }
+                temp = (v >> 2U);
+                if (temp)
+                {
+                    result -= 2U;
+                    v = temp;
+                }
+                temp = (v >> 1U);
+                if (temp)
+                {
+                    result -= 1U;
+                    v = temp;
+                }
 
-            return result;
-#endif
+                if (v & 1U)
+                    result--;
+
+                return result;
+            #endif
         }
 
         inline uint count_leading_zero_bits64(uint64_t v)
         {
-#if defined(_M_IX86) && defined(_MSC_VER)
-            return __lzcnt64(v);
-#elif defined(__GNUC__)
-            return v ? __builtin_clzll(v) : 64;
-#else
-            uint64_t temp;
-            uint result = 64U;
+            // BitScanReverse64 doesn't return the count of leading 0s, it returns the LSB-based index of the first 1 bit found. 
+            // Since we want the number of 0s, we subtract bitcount(uint) - 1 - _BitScanReverse value.
+            // When fed a 0, BSR will return an 0 (and in that case we return that there are 32 leading 0s). 
+            #if defined(PLATFORM_64BITS) && defined(COMPILER_MSVC)
+                unsigned long lz = 64;
+                if (_BitScanReverse64(&lz, v)) {
+                    return uint64(lz);
+                }
 
-            temp = (v >> 32U);
-            if (temp)
-            {
-                result -= 32U;
-                v = temp;
-            }
-            temp = (v >> 16U);
-            if (temp)
-            {
-                result -= 16U;
-                v = temp;
-            }
-            temp = (v >> 8U);
-            if (temp)
-            {
-                result -= 8U;
-                v = temp;
-            }
-            temp = (v >> 4U);
-            if (temp)
-            {
-                result -= 4U;
-                v = temp;
-            }
-            temp = (v >> 2U);
-            if (temp)
-            {
-                result -= 2U;
-                v = temp;
-            }
-            temp = (v >> 1U);
-            if (temp)
-            {
-                result -= 1U;
-                v = temp;
-            }
+                return 64;
+            #elif defined(COMPILER_GCCLIKE)
+                return v ? __builtin_clzll(v) : 64;
+            #else
+                uint64_t temp;
+                uint result = 64U;
 
-            if (v & 1U)
-                result--;
+                temp = (v >> 32U);
+                if (temp)
+                {
+                    result -= 32U;
+                    v = temp;
+                }
+                temp = (v >> 16U);
+                if (temp)
+                {
+                    result -= 16U;
+                    v = temp;
+                }
+                temp = (v >> 8U);
+                if (temp)
+                {
+                    result -= 8U;
+                    v = temp;
+                }
+                temp = (v >> 4U);
+                if (temp)
+                {
+                    result -= 4U;
+                    v = temp;
+                }
+                temp = (v >> 2U);
+                if (temp)
+                {
+                    result -= 2U;
+                    v = temp;
+                }
+                temp = (v >> 1U);
+                if (temp)
+                {
+                    result -= 1U;
+                    v = temp;
+                }
 
-            return result;
-#endif
+                if (v & 1U)
+                    result--;
+
+                return result;
+            #endif
         }
 
         // Returns 64-bit result of a * b
         inline uint64_t emulu(uint32 a, uint32 b)
         {
-#if defined(_M_IX86) && defined(_MSC_VER)
-            return __emulu(a, b);
-#else
-            return static_cast<uint64_t>(a) * static_cast<uint64_t>(b);
-#endif
+            #if defined(_M_IX86) && defined(COMPILER_MSVC)
+                return __emulu(a, b);
+            #else
+                return static_cast<uint64_t>(a) * static_cast<uint64_t>(b);
+            #endif
         }
 
         double compute_entropy(const uint8 *p, uint n);

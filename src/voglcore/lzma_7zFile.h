@@ -27,8 +27,7 @@
 /* 7zFile.h -- File IO
 2008-11-22 : Igor Pavlov : Public domain */
 
-#ifndef __7Z_FILE_H
-#define __7Z_FILE_H
+#pragma once
 
 #ifdef _WIN32
 #define USE_WINDOWS_FILE
@@ -97,4 +96,3 @@ namespace vogl
     void FileOutStream_CreateVTable(CFileOutStream *p);
 }
 
-#endif

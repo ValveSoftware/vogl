@@ -31,7 +31,7 @@
 #include "vogl_cfile_stream.h"
 #include "vogl_strutils.h"
 
-#ifdef WIN32
+#ifdef PLATFORM_WINDOWS
 #define VOGL_CMD_LINE_ALLOW_SLASH_PARAMS 1
 #endif
 
@@ -62,7 +62,7 @@ namespace vogl
 
 #ifdef VOGL_USE_WIN32_API
         dynamic_string cmd_line;
-        split_command_line_params(get_command_line(), params);
+        split_command_line_params(get_command_line().c_str(), params);
 #elif defined(VOGL_USE_LINUX_API)
         pid_t proc_id = getpid();
 

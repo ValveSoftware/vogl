@@ -27,8 +27,7 @@
 /* Bcj2.h -- Converter for x86 code (BCJ2)
 2008-10-04 : Igor Pavlov : Public domain */
 
-#ifndef __BCJ2_H
-#define __BCJ2_H
+#pragma once
 
 #include "lzma_Types.h"
 
@@ -57,4 +56,3 @@ Returns:
         Byte *outBuf, SizeT outSize);
 }
 
-#endif

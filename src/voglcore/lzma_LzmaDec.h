@@ -27,8 +27,7 @@
 /* LzmaDec.h -- LZMA Decoder
 2008-10-04 : Igor Pavlov : Public domain */
 
-#ifndef __LZMADEC_H
-#define __LZMADEC_H
+#pragma once
 
 #include "lzma_Types.h"
 
@@ -248,4 +247,3 @@ Returns:
                     ELzmaStatus *status, ISzAlloc *alloc);
 }
 
-#endif

@@ -26,8 +26,7 @@
 
 // File: vogl_mergesort.h
 // This isn't very fast, and requires extra storage, but it's a reasonably fast stable sort with no degenerate cases.
-#ifndef VOGL_MERGESORT_H
-#define VOGL_MERGESORT_H
+#pragma once
 
 #include "vogl_core.h"
 
@@ -212,4 +211,3 @@ namespace vogl
 
 } // namespace vogl
 
-#endif // VOGL_MERGESORT_H

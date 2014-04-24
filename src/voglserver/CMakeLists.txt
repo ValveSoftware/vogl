@@ -3,10 +3,8 @@ include("${SRC_DIR}/build_options.cmake")
 project(voglserver)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-find_package(Threads)
-if (NOT CMAKE_USE_PTHREADS_INIT)
-    message(ERROR "pthread not found")
-endif ()
+
+require_pthreads()
 
 set(MySources 
     server.cpp 

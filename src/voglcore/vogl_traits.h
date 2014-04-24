@@ -198,7 +198,7 @@ namespace vogl
     VOGL_DEFINE_BUILT_IN_TYPE(unsigned int)
     VOGL_DEFINE_BUILT_IN_TYPE(long)
     VOGL_DEFINE_BUILT_IN_TYPE(unsigned long)
-#ifdef __GNUC__
+#if defined(COMPILER_GCCLIKE)
     VOGL_DEFINE_BUILT_IN_TYPE(long long)
     VOGL_DEFINE_BUILT_IN_TYPE(unsigned long long)
 #else

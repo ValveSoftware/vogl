@@ -161,10 +161,10 @@
 int /* 0 success, REG_NOMATCH failure */
     vogl_regexec(preg, string, nmatch, pmatch, eflags)
     const regex_t *preg;
-const char *string;
-size_t nmatch;
-regmatch_t pmatch[];
-int eflags;
+	const char *string;
+	size_t nmatch;
+	regmatch_t pmatch[];
+	int eflags;
 {
     register struct re_guts *g = preg->re_g;
 #ifdef REDEBUG
@@ -172,9 +172,6 @@ int eflags;
 #else
 #define GOODFLAGS(f) ((f) & (REG_NOTBOL | REG_NOTEOL | REG_STARTEND))
 #endif
-
-    // Make sure off_t is ALWAYS 64-bits, because that's how the C++ code that calls this gets compiled.
-    CASSERT(sizeof(off_t) == sizeof(unsigned long long), regexec_c);
 
     if (preg->re_magic != MAGIC1 || g->magic != MAGIC2)
         return (REG_BADPAT);

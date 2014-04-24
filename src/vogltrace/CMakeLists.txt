@@ -4,10 +4,9 @@ project(vogltrace)
 option(VOGLTRACE_NO_PUBLIC_EXPORTS "Don't define any public GL exports in libvogltraceXX.so, this .so will only be useful for manual loading" FALSE)
 
 include("${SRC_DIR}/build_options.cmake")
-find_package(Threads)
-if (NOT CMAKE_USE_PTHREADS_INIT)
-    message(ERROR "pthread not found")
-endif ()
+
+require_pthreads()
+
 find_package(X11 REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

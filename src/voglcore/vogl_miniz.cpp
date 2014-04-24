@@ -2664,7 +2664,7 @@ mz_uint tdefl_create_comp_flags_from_zip_params(int level, int window_bits, int 
 }
 #endif //MINIZ_NO_ZLIB_APIS
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
 #pragma warning(push)
 #pragma warning(disable : 4204) // nonstandard extension used : non-constant aggregate initializer (also supported by GNU C and C99, so no big deal)
 #endif
@@ -2741,7 +2741,7 @@ void *tdefl_write_image_to_png_file_in_memory(const void *pImage, int w, int h, 
     return tdefl_write_image_to_png_file_in_memory_ex(pImage, w, h, num_chans, pLen_out, 6, MZ_FALSE);
 }
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
 #pragma warning(pop)
 #endif
 

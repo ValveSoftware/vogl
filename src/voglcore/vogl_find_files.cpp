@@ -31,11 +31,11 @@
 #include "vogl_strutils.h"
 
 #ifdef VOGL_USE_WIN32_API
-#include "vogl_winhdr.h"
+    #include "vogl_winhdr.h"
 
-#elif defined(__GNUC__)
-#include <fnmatch.h>
-#include <dirent.h>
+#elif defined(COMPILER_GCCLIKE)
+    #include <fnmatch.h>
+    #include <dirent.h>
 #endif
 
 namespace vogl
@@ -206,7 +206,7 @@ namespace vogl
 
         return true;
     }
-#elif defined(__GNUC__)
+#elif defined(COMPILER_GCCLIKE)
     bool find_files::find(const char *pBasepath, const char *pFilespec, uint flags)
     {
         m_files.resize(0);

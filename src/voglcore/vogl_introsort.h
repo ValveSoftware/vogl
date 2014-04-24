@@ -39,8 +39,7 @@
 // eliminated the dependence on std::make_heap/sort_heap.
 // Most importantly, the original pivot code was subtly flawed (way too many swaps).
 // It's within +- ~1% of glibc's std::sort on int arrays.
-#ifndef VOGL_INTROSORT_H
-#define VOGL_INTROSORT_H
+#pragma once
 
 #include "vogl_core.h"
 
@@ -339,4 +338,3 @@ namespace vogl
 
 } // namespace vogl
 
-#endif // VOGL_INTROSORT_H

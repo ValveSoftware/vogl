@@ -40,7 +40,7 @@ extern "C" {
 #else
 #include <sys/stat.h>
 
-#if defined(_MSC_VER) || defined(__MINGW64__)
+#if defined(COMPILER_MSVC) || defined(COMPILER_MINGW)
 static FILE *mz_fopen(const char *pFilename, const char *pMode)
 {
     FILE *pFile = NULL;
@@ -98,9 +98,9 @@ static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)
 #define MZ_FFLUSH fflush
 #define MZ_FREOPEN(f, m, s) freopen(f, m, s)
 #define MZ_DELETE_FILE remove
-#elif defined(__GNUC__) && _LARGEFILE64_SOURCE
-#ifndef MINIZ_NO_TIME
-#include <utime.h>
+#elif defined(COMPILER_GCCLIKE) && _LARGEFILE64_SOURCE
+    #ifndef MINIZ_NO_TIME
+    #include <utime.h>
 #endif
 #define MZ_FOPEN(f, m) fopen64(f, m)
 #define MZ_FCLOSE fclose
@@ -129,7 +129,7 @@ static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)
 #define MZ_FFLUSH fflush
 #define MZ_FREOPEN(f, m, s) freopen(f, m, s)
 #define MZ_DELETE_FILE remove
-#endif // #ifdef _MSC_VER
+#endif // #ifdef COMPILER_MSVC
 #endif // #ifdef MINIZ_NO_STDIO
 
 #define MZ_TOLOWER(c) ((((c) >= 'A') && ((c) <= 'Z')) ? ((c) - 'A' + 'a') : (c))
@@ -234,7 +234,7 @@ struct mz_zip_internal_state_tag
     mz_zip_array m_sorted_central_dir_offsets;
 
     // The flags passed in when the archive is initially opened.
-    uint m_init_flags;
+    vogl::uint m_init_flags;
 
     // MZ_TRUE if the archive has a zip64 end of central directory headers, etc.
     mz_bool m_zip64;
@@ -348,7 +348,7 @@ static MZ_TIME_T mz_zip_dos_to_time_t(int dos_time, int dos_date)
 
 static void mz_zip_time_t_to_dos_time(MZ_TIME_T time, mz_uint16 *pDOS_time, mz_uint16 *pDOS_date)
 {
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
     struct tm tm_struct;
     struct tm *tm = &tm_struct;
     errno_t err = localtime_s(tm, &time);
@@ -360,7 +360,7 @@ static void mz_zip_time_t_to_dos_time(MZ_TIME_T time, mz_uint16 *pDOS_time, mz_u
     }
 #else
     struct tm *tm = localtime(&time);
-#endif // #ifdef_MSC_VER
+#endif // #ifdef COMPILER_MSVC
 
     *pDOS_time = (mz_uint16)(((tm->tm_hour) << 11) + ((tm->tm_min) << 5) + ((tm->tm_sec) >> 1));
     *pDOS_date = (mz_uint16)(((tm->tm_year + 1900 - 1980) << 9) + ((tm->tm_mon + 1) << 5) + tm->tm_mday);
@@ -1247,7 +1247,7 @@ static mz_bool mz_zip_locate_file_binary_search(mz_zip_archive *pZip, const char
     const mz_zip_array *pCentral_dir_offsets = &pState->m_central_dir_offsets;
     const mz_zip_array *pCentral_dir = &pState->m_central_dir;
     mz_uint32 *pIndices = &MZ_ZIP_ARRAY_ELEMENT(&pState->m_sorted_central_dir_offsets, mz_uint32, 0);
-    const uint size = pZip->m_total_files;
+    const vogl::uint size = pZip->m_total_files;
     const mz_uint filename_len = (mz_uint)strlen(pFilename);
 
     if (pIndex)
@@ -1262,7 +1262,7 @@ static mz_bool mz_zip_locate_file_binary_search(mz_zip_archive *pZip, const char
         while (l <= h)
         {
             mz_int64 m = l + ((h - l) >> 1);
-            uint file_index = pIndices[(uint)m];
+            vogl::uint file_index = pIndices[(vogl::uint)m];
 
             int comp = mz_zip_filename_compare(pCentral_dir, pCentral_dir_offsets, file_index, pFilename, filename_len);
             if (!comp)
@@ -2080,7 +2080,7 @@ mz_bool mz_zip_validate_archive(mz_zip_archive *pZip, mz_uint flags)
             return mz_zip_set_error(pZip, MZ_ZIP_ARCHIVE_TOO_LARGE);
     }
 
-    for (uint i = 0; i < pZip->m_total_files; i++)
+    for (vogl::uint i = 0; i < pZip->m_total_files; i++)
     {
         if (MZ_ZIP_FLAG_VALIDATE_LOCATE_FILE_FLAG & flags)
         {
@@ -3201,7 +3201,7 @@ mz_bool mz_zip_writer_add_file(mz_zip_archive *pZip, const char *pArchive_name, 
 }
 #endif // #ifndef MINIZ_NO_STDIO
 
-static mz_bool mz_zip_writer_update_zip64_extension_block(mz_zip_array *pNew_ext, mz_zip_archive *pZip, const mz_uint8 *pExt, uint ext_len, mz_uint64 *pComp_size, mz_uint64 *pUncomp_size, mz_uint64 *pLocal_header_ofs, mz_uint32 *pDisk_start)
+static mz_bool mz_zip_writer_update_zip64_extension_block(mz_zip_array *pNew_ext, mz_zip_archive *pZip, const mz_uint8 *pExt, vogl::uint ext_len, mz_uint64 *pComp_size, mz_uint64 *pUncomp_size, mz_uint64 *pLocal_header_ofs, mz_uint32 *pDisk_start)
 {
     // + 64 should be enough for any new zip64 data
     if (!mz_zip_array_reserve(pZip, pNew_ext, ext_len + 64, MZ_FALSE))

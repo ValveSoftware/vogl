@@ -27,10 +27,9 @@
 // File: vogl.h
 //
 // Important: If compiling with gcc, be sure strict aliasing is disabled: -fno-strict-aliasing
-#ifndef VOGL_H
-#define VOGL_H
+#pragma once
 
-#ifdef _MSC_VER
+#if defined(COMPILER_MSVC)
 #pragma warning (disable: 4127) //  conditional expression is constant
 #endif
 
@@ -525,6 +524,4 @@ const char* vogl_get_file_type_ext(vogl_file_type file_type);
 
 // Converts a vogl_format to a string.
 const char* vogl_get_format_string(vogl_format fmt);
-
-#endif // VOGL_H
 

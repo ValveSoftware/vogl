@@ -25,8 +25,7 @@
  **************************************************************************/
 
 // File: vogl_backtrace.h
-#ifndef VOGL_BACKTRACE_H
-#define VOGL_BACKTRACE_H
+#pragma once
 
 #include "vogl_core.h"
 
@@ -35,4 +34,3 @@ namespace vogl
     bool get_printable_backtrace(dynamic_string_array &string_vec);
 } // namespace vogl
 
-#endif // VOGL_BACKTRACE_H

@@ -41,7 +41,7 @@
 #include <assert.h>
 #define JPGD_ASSERT(x) assert(x)
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
 #pragma warning(disable : 4611) // warning C4611: interaction between '_setjmp' and C++ object destruction is non-portable
 #endif
 
@@ -3121,19 +3121,14 @@ namespace jpgd
         close();
     }
 
-    bool jpeg_decoder_file_stream::open(const char *Pfilename)
+    bool jpeg_decoder_file_stream::open(const char *pFilename)
     {
         close();
 
         m_eof_flag = false;
         m_error_flag = false;
 
-#if defined(_MSC_VER)
-        m_pFile = NULL;
-        fopen_s(&m_pFile, Pfilename, "rb");
-#else
-        m_pFile = fopen(Pfilename, "rb");
-#endif
+        vogl_fopen_s(&m_pFile, pFilename, "rb");
         return m_pFile != NULL;
     }
 

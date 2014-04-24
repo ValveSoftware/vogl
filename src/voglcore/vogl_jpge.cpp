@@ -1185,11 +1185,7 @@ namespace jpge
         bool open(const char *pFilename)
         {
             close();
-#ifdef _MSC_VER
-            fopen_s(&m_pFile, pFilename, "wb");
-#else
-            m_pFile = fopen(pFilename, "wb");
-#endif
+            vogl_fopen_s(&m_pFile, pFilename, "wb");
             m_bStatus = (m_pFile != NULL);
             return m_bStatus;
         }

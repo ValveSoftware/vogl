@@ -181,9 +181,6 @@
 */
 #pragma once
 
-#ifndef MINIZ_HEADER_INCLUDED
-#define MINIZ_HEADER_INCLUDED
-
 #include "vogl_miniz_common.h"
 
 // Defines to completely disable specific portions of miniz.c:
@@ -539,12 +536,12 @@ typedef int mz_bool;
 #define MZ_TRUE (1)
 
 // Works around MSVC's spammy "warning C4127: conditional expression is constant" message.
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
 #define MZ_MACRO_END while (0, 0)
 #else
 #define MZ_MACRO_END while (0)
 #endif
-#endif
+
 
 // ------------------- Low-level Decompression API Definitions
 
@@ -836,5 +833,3 @@ mz_uint tdefl_create_comp_flags_from_zip_params(int level, int window_bits, int 
 #ifdef __cplusplus
 }
 #endif
-
-//#endif // MINIZ_HEADER_INCLUDED

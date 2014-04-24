@@ -25,16 +25,17 @@
  **************************************************************************/
 
 // File: vogl_stb_heap.h
-#ifndef VOGL_STB_HEAP_H
-#define VOGL_STB_HEAP_H
+#pragma once
 
 #include "vogl_core.h"
 
 #include <sys/types.h>
-#include <sys/mman.h>
-#include <err.h>
-#include <fcntl.h>
-#include <unistd.h>
+#ifdef PLATFORM_LINUX
+	#include <sys/mman.h>
+	#include <err.h>
+	#include <fcntl.h>
+	#include <unistd.h>
+#endif
 
 #include "stb_malloc.h"
 
@@ -154,5 +155,3 @@ private:
 };
 
 VOGL_NAMESPACE_END(vogl)
-
-#endif // VOGL_STB_HEAP_H

@@ -29,8 +29,7 @@
 Igor Pavlov
 Public domain */
 
-#ifndef __7Z_CRC_H
-#define __7Z_CRC_H
+#pragma once
 
 #include <stddef.h>
 
@@ -51,4 +50,3 @@ namespace vogl
     UInt32 MY_FAST_CALL CrcCalc(const void *data, size_t size);
 }
 
-#endif

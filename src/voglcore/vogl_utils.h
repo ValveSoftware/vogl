@@ -39,7 +39,7 @@
 
 #define VOGL_GLUER(a, b) a##b
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
 // Need to explictly extern these with MSVC, but not MinGW.
 extern "C" unsigned long __cdecl _lrotl(unsigned long, int);
 #pragma intrinsic(_lrotl)
@@ -48,7 +48,7 @@ extern "C" unsigned long __cdecl _lrotr(unsigned long, int);
 #pragma intrinsic(_lrotr)
 #endif
 
-#ifdef WIN32
+#ifdef PLATFORM_WINDOWS
 #define VOGL_ROTATE_LEFT(x, k) _lrotl(x, k)
 #define VOGL_ROTATE_RIGHT(x, k) _lrotr(x, k)
 #else
@@ -277,7 +277,7 @@ namespace vogl
             return true;
         }
 
-#if defined(_MSC_VER)
+#if defined(COMPILER_MSVC)
         VOGL_FORCE_INLINE uint16 swap16(uint16 x)
         {
             return _byteswap_ushort(x);
@@ -290,7 +290,7 @@ namespace vogl
         {
             return _byteswap_uint64(x);
         }
-#elif defined(__GNUC__)
+#elif defined(COMPILER_GCCLIKE)
         VOGL_FORCE_INLINE uint16 swap16(uint16 x)
         {
             return static_cast<uint16>((x << 8U) | (x >> 8U));
@@ -1117,7 +1117,7 @@ namespace vogl
 
         inline uint64_t get_rdtsc()
         {
-#if defined(__GNUC__)
+#if defined(COMPILER_GCCLIKE)
             unsigned int hi, lo;
             __asm__ volatile("rdtsc" : "=a"(lo), "=d"(hi));
             return ((uint64_t)hi << 32) | lo;

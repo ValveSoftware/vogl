@@ -123,13 +123,28 @@
    ========= */
 
 #include <stdio.h>
-#include <unistd.h>
+#if defined(PLATFORM_POSIX)
+    #include <unistd.h>
+    #include <strings.h>
+#endif
 #include <string.h>
-#include <strings.h>
 #include <assert.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <stdint.h>
+
+#if defined(COMPILER_MSVC)
+    #include <direct.h>
+#endif
+
+#if defined(COMPILER_MSVC)
+    #define STATIC_INLINE static __inline
+#else
+    #define STATIC_INLINE static inline
+#endif
+
+
+
 
 #undef MALLOC_DEBUG        /* here we need the correct malloc functions */
 #define RM_NEED_PROTOTYPES /* but we want to compare prototypes */
@@ -257,7 +272,7 @@ extern "C" {
 
 /* Hash function: */
 //#define HASH(p)		((((unsigned long)(p))/ALIGNMENT)%HASHSIZE)
-static inline unsigned int bitmix32(unsigned int a)
+STATIC_INLINE unsigned int bitmix32(unsigned int a)
 {
     a -= (a << 6);
     a ^= (a >> 17);
@@ -450,13 +465,17 @@ static int IsPossibleFilePos(const char *file, int size)
     {
         /* uh oh, we got a kick in the ass */
         signal(SIGSEGV, old_sigsegv_handler);
-        signal(SIGBUS, old_sigbus_handler);
+        #if defined(SIGBUS)
+            signal(SIGBUS, old_sigbus_handler);
+        #endif
         return 0;
     }
 
     /* --- the following is dangerous! So catch signals --- */
     old_sigsegv_handler = signal(SIGSEGV, FatalSignal);
-    old_sigbus_handler = signal(SIGBUS, FatalSignal);
+    #if defined(SIGBUS)
+        old_sigbus_handler = signal(SIGBUS, FatalSignal);
+    #endif
 
     if (!file)
     {
@@ -472,7 +491,9 @@ static int IsPossibleFilePos(const char *file, int size)
 
     /* --- danger is over! --- */
     signal(SIGSEGV, old_sigsegv_handler);
-    signal(SIGBUS, old_sigbus_handler);
+    #if defined(SIGBUS)
+        signal(SIGBUS, old_sigbus_handler);
+    #endif
 
     return ret;
 }
@@ -842,7 +863,7 @@ static void TestAll(const char *file)
     }
 }
 
-static uint gTestAllCounter;
+static unsigned int gTestAllCounter;
 
 static void TestAllConditionally(const char *file)
 {
@@ -946,13 +967,17 @@ static void DelBlk(begin *Blk, const char *file)
         {
             /* uh oh, we got a kick in the ass */
             signal(SIGSEGV, old_sigsegv_handler);
-            signal(SIGBUS, old_sigbus_handler);
+            #if defined(SIGBUS)
+                signal(SIGBUS, old_sigbus_handler);
+            #endif
         }
         else
         {
             /* --- the following is dangerous! So catch signals --- */
             old_sigsegv_handler = signal(SIGSEGV, FatalSignal);
-            old_sigbus_handler = signal(SIGBUS, FatalSignal);
+            #if defined(SIGBUS)
+                old_sigbus_handler = signal(SIGBUS, FatalSignal);
+            #endif
 
             if (IsPossibleFilePos(Blk->File, Blk->Size))
             {
@@ -965,7 +990,9 @@ static void DelBlk(begin *Blk, const char *file)
 #endif
             }
             signal(SIGSEGV, old_sigsegv_handler);
-            signal(SIGBUS, old_sigbus_handler);
+            #if defined(SIGBUS)
+                signal(SIGBUS, old_sigbus_handler);
+            #endif
         }
     }
     abort(); /* die loud */
@@ -1341,7 +1368,7 @@ size_t Rmalloc_usable_size(void *p, const char *file)
     if (!p)
         return 0;
 
-    begin *info = (begin *)(((char *)p) - START_SPACE);
+    struct _begin *info = (struct _begin *)(((char *)p) - START_SPACE);
 
     ControlBlock(info, file);
 
@@ -1409,7 +1436,11 @@ char *Rstrdup(const char *s, const char *file)
 	   ============================================================================= */
 char *Rgetcwd(char *buffer, size_t size, const char *file)
 {
+#if defined(PLATFORM_WINDOWS)
+    char *ret = _getcwd(buffer, size);
+#else
     char *ret = getcwd(buffer, size);
+#endif
 
     if (ret && !buffer)
     {

@@ -27,9 +27,7 @@
 // File: vogl_object_pool.h
 // vogl_object_pool is a straightforward freelist class.
 // It's fast, but it's very greedy. It never frees allocated blocks unless you explictly call clear() (fast) or free_unused_blocks() (not as fast if some blocks are still allocated).
-
-#ifndef VOGL_OBJECT_POOL_H
-#define VOGL_OBJECT_POOL_H
+#pragma once
 
 #include "vogl_core.h"
 #include "vogl_console.h"
@@ -985,5 +983,3 @@ private:
 bool object_pool_test();
 
 VOGL_NAMESPACE_END(vogl)
-
-#endif // VOGL_OBJECT_POOL_H

@@ -29,8 +29,7 @@
 Igor Pavlov
 Public domain */
 
-#ifndef __LZMALIB_H
-#define __LZMALIB_H
+#pragma once
 
 #include "lzma_Types.h"
 
@@ -169,4 +168,3 @@ Returns:
 #define LZMA_UNCOMPRESS_FUNC_EXPORT "LzmaUncompress"
 }
 
-#endif

@@ -30,7 +30,12 @@
 #include "vogl_json.h"
 
 #if VOGL_SLOW_STRING_LEN_CHECKS
-#warning vogl_dynamic_string.cpp: Slow string checking enabled
+	// TODO: Need to create a unified way to warn on all platforms.
+	#ifdef PLATFORM_LINUX
+		#warning vogl_dynamic_string.cpp: Slow string checking enabled
+	#else
+		#pragma message(__FILE__ " Warning: Slow string checking enabled")
+	#endif
 #endif
 
 namespace vogl
@@ -546,7 +551,7 @@ namespace vogl
         char buf[cBufSize];
         char *pBuf = buf;
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
         int l = vsnprintf_s(pBuf, buf_size, _TRUNCATE, p, args);
 #else
         int l = vsnprintf(pBuf, buf_size, p, args);
@@ -557,7 +562,7 @@ namespace vogl
             buf_size = l + 1;
             pBuf = static_cast<char *>(vogl_malloc(buf_size));
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
             l = vsnprintf_s(pBuf, buf_size, _TRUNCATE, p, args);
 #else
             l = vsnprintf(pBuf, buf_size, p, args);

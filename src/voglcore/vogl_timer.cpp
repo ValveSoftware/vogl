@@ -50,8 +50,9 @@ namespace vogl
     {
         QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER *>(pTicks));
     }
-#elif defined(__GNUC__)
-#include <sys/timex.h>
+#elif defined(COMPILER_GCCLIKE)
+    #include <sys/timex.h>
+
     inline void query_counter(timer_ticks *pTicks)
     {
         struct timeval cur_time;
@@ -63,7 +64,7 @@ namespace vogl
         *pTicks = 1000000;
     }
 #else
-#error Unimplemented
+    #error Unimplemented
 #endif
 
     timer::timer()

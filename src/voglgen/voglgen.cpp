@@ -41,6 +41,8 @@
 #include "vogl_hash_map.h"
 #include <set>
 
+#include "vogl_port.h"
+
 #include "tinyxml/tinyxml.h"
 
 #define VOGL_NAMESPACES_HEADER
@@ -4501,15 +4503,15 @@ static int main_internal(int argc, char *argv[])
         if (g_command_line_params.get_value_as_string(srcdir, "srcdir"))
         {
             printf("srcdir: '%s'\n", srcdir.get_ptr());
-            chdir(srcdir.get_ptr());
+            plat_chdir(srcdir.get_ptr());
         }
         // If we can't find this text file, try the vogl/glspec dir.
-        if (access("apitrace_gl_param_info.txt", F_OK) != 0)
+        if (!plat_fexist("apitrace_gl_param_info.txt"))
         {
-            if (access("../../vogl/glspec/apitrace_gl_param_info.txt", F_OK) == 0)
-                chdir("../../vogl/glspec");
+            if (plat_fexist("../../vogl/glspec/apitrace_gl_param_info.txt"))
+                plat_chdir("../../vogl/glspec");
         }
-        getcwd(cwd, sizeof(cwd));
+        plat_getcwd(cwd, sizeof(cwd));
         printf("Current working directory: %s\n\n", cwd);
 
         vogl_gen generator;
@@ -4584,6 +4586,7 @@ static void pause_and_wait(void)
 //-----------------------------------------------------------------------------------------------------------------------
 // main
 //-----------------------------------------------------------------------------------------------------------------------
+#include <intrin.h>
 int main(int argc, char *argv[])
 {
     int status = EXIT_FAILURE;

@@ -252,12 +252,7 @@ namespace vogl
 
         va_list args;
         va_start(args, pFmt);
-#ifdef _MSC_VER
-        int l = _vsnprintf_s(str, sizeof(str), pFmt, args);
-#else
-        int l = vsnprintf(str, sizeof(str), pFmt, args);
-        str[sizeof(str) - 1] = '\0';
-#endif
+        int l = vogl_vsprintf_s(str, sizeof(str), pFmt, args);
         va_end(args);
 
         char *p = m_buf.try_enlarge(l);
@@ -2652,7 +2647,7 @@ namespace vogl
     void json_node::serialize(dynamic_string &str, bool formatted, uint cur_index, uint max_line_len) const
     {
         vogl::vector<char> buf;
-        serialize(buf, formatted, cur_index, max_line_len);
+        serialize(buf, formatted, cur_index, true, max_line_len);
 
         // FIXME: Pass along string ownership once dynamic_string supports non-pow2 sized buffers
         str.set_from_buf(buf.get_ptr(), vogl_strlen(buf.get_ptr()));
