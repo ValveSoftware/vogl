@@ -729,6 +729,8 @@ FormatTypeCombo combos[] = {
 #endif // SLOW_ON_NVIDIA
     {GL_RED,  "GL_RED",  GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 4,
      TestSwizzle_NONE},
+    {GL_RED,  "GL_RED",  GL_HALF_FLOAT, "GL_HALF_FLOAT", 2,
+     TestSwizzle_NONE},
     {GL_RED,  "GL_RED",  GL_FLOAT, "GL_FLOAT", 4,
      TestSwizzle_NONE},
 
@@ -754,6 +756,8 @@ FormatTypeCombo combos[] = {
 #endif // SLOW_ON_NVIDIA
     {GL_RG,  "GL_RG",  GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 8,
      TestSwizzle_NONE},
+    {GL_RG,  "GL_RG",  GL_HALF_FLOAT, "GL_HALF_FLOAT", 4,
+     TestSwizzle_NONE},
     {GL_RG,  "GL_RG",  GL_FLOAT, "GL_FLOAT", 8,
      TestSwizzle_NONE},
 
@@ -777,6 +781,8 @@ FormatTypeCombo combos[] = {
 #endif // SLOW_ON_NVIDIA
     {GL_RGB, "GL_RGB", GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 12,
      TestSwizzle_NONE},
+    {GL_RGB, "GL_RGB", GL_HALF_FLOAT, "GL_HALF_FLOAT", 6,
+     TestSwizzle_NONE},
     {GL_RGB, "GL_RGB", GL_FLOAT, "GL_FLOAT", 12,
      TestSwizzle_NONE},
 
@@ -788,6 +794,9 @@ FormatTypeCombo combos[] = {
     {GL_RGB, "GL_RGB", GL_UNSIGNED_SHORT_5_6_5, "GL_UNSIGNED_SHORT_5_6_5", 2,
      TestSwizzle_NONE},
     {GL_RGB, "GL_RGB", GL_UNSIGNED_SHORT_5_6_5_REV, "GL_UNSIGNED_SHORT_5_6_5_REV", 2,
+     TestSwizzle_NONE},
+    {GL_RGB, "GL_RGB",
+     GL_UNSIGNED_INT_10F_11F_11F_REV, "GL_UNSIGNED_INT_10F_11F_11F_REV", 4,
      TestSwizzle_NONE},
 #if 0 // 5999 not supported yet:
     {GL_RGB, "GL_RGB", GL_UNSIGNED_INT_5_9_9_9_REV, "GL_UNSIGNED_INT_5_9_9_9_REV", 4,
@@ -814,6 +823,8 @@ FormatTypeCombo combos[] = {
 #endif // SLOW_ON_NVIDIA
     {GL_RGBA, "GL_RGBA", GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 16,
      TestSwizzle_INT},
+    {GL_RGBA, "GL_RGBA", GL_HALF_FLOAT, "GL_HALF_FLOAT", 8,
+     TestSwizzle_NONE},
     {GL_RGBA, "GL_RGBA", GL_FLOAT, "GL_FLOAT", 16,
      TestSwizzle_INT},
 
@@ -861,6 +872,8 @@ FormatTypeCombo combos[] = {
 #endif // SLOW_ON_NVIDIA
     {GL_BGRA, "GL_BGRA", GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 16,
      TestSwizzle_INT},
+    {GL_BGRA, "GL_BGRA", GL_HALF_FLOAT, "GL_HALF_FLOAT", 8,
+     TestSwizzle_SHORT},
     {GL_BGRA, "GL_BGRA", GL_FLOAT, "GL_FLOAT", 16,
      TestSwizzle_INT},
 
@@ -911,6 +924,8 @@ FormatTypeCombo combos[] = {
 #endif // SLOW_ON_NVIDIA
     {GL_GREEN,  "GL_GREEN",  GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 4,
      TestSwizzle_NONE},
+    {GL_GREEN,  "GL_GREEN",  GL_HALF_FLOAT, "GL_HALF_FLOAT", 2,
+     TestSwizzle_NONE},
     {GL_GREEN,  "GL_GREEN",  GL_FLOAT, "GL_FLOAT", 4,
      TestSwizzle_NONE},
 #endif // SUPPORT_GREEN
@@ -939,6 +954,8 @@ FormatTypeCombo combos[] = {
 #endif // SLOW_ON_NVIDIA
     {GL_BLUE,  "GL_BLUE",  GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 4,
      TestSwizzle_NONE},
+    {GL_BLUE,  "GL_BLUE",  GL_HALF_FLOAT, "GL_HALF_FLOAT", 2,
+     TestSwizzle_NONE},
     {GL_BLUE,  "GL_BLUE",  GL_FLOAT, "GL_FLOAT", 4,
      TestSwizzle_NONE},
 #endif // SUPPORT_BLUE
@@ -966,6 +983,8 @@ FormatTypeCombo combos[] = {
      TestSwizzle_NONE},
 #endif // SLOW_ON_NVIDIA
     {GL_ALPHA,  "GL_ALPHA",  GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 4,
+     TestSwizzle_NONE},
+    {GL_ALPHA,  "GL_ALPHA",  GL_HALF_FLOAT, "GL_HALF_FLOAT", 2,
      TestSwizzle_NONE},
     {GL_ALPHA,  "GL_ALPHA",  GL_FLOAT, "GL_FLOAT", 4,
      TestSwizzle_NONE},
@@ -1237,6 +1256,8 @@ FormatTypeCombo combos[] = {
 #endif // SLOW_ON_NVIDIA
     {GL_DEPTH_COMPONENT,  "GL_DEPTH_COMPONENT",  GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 4,
      TestSwizzle_NONE},
+    {GL_DEPTH_COMPONENT,  "GL_DEPTH_COMPONENT",  GL_HALF_FLOAT, "GL_HALF_FLOAT", 2,
+     TestSwizzle_NONE},
     {GL_DEPTH_COMPONENT,  "GL_DEPTH_COMPONENT",  GL_FLOAT, "GL_FLOAT", 4,
      TestSwizzle_NONE},
 
@@ -1261,6 +1282,8 @@ FormatTypeCombo combos[] = {
      TestSwizzle_NONE},
 #endif // SLOW_ON_NVIDIA
     {GL_STENCIL_INDEX,  "GL_STENCIL_INDEX",  GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 4,
+     TestSwizzle_NONE},
+    {GL_STENCIL_INDEX,  "GL_STENCIL_INDEX",  GL_HALF_FLOAT, "GL_HALF_FLOAT", 2,
      TestSwizzle_NONE},
     {GL_STENCIL_INDEX,  "GL_STENCIL_INDEX",  GL_FLOAT, "GL_FLOAT", 4,
      TestSwizzle_NONE},

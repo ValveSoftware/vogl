@@ -65,6 +65,7 @@ enum pxfmt_sized_format
     PXFMT_R16_SNORM,
     PXFMT_R32_UNORM,
     PXFMT_R32_SNORM,
+    PXFMT_R16_FLOAT,
     PXFMT_R32_FLOAT,
 
 // GL_GREEN
@@ -74,6 +75,7 @@ enum pxfmt_sized_format
     PXFMT_G16_SNORM,
     PXFMT_G32_UNORM,
     PXFMT_G32_SNORM,
+    PXFMT_G16_FLOAT,
     PXFMT_G32_FLOAT,
 
 // GL_BLUE
@@ -83,6 +85,7 @@ enum pxfmt_sized_format
     PXFMT_B16_SNORM,
     PXFMT_B32_UNORM,
     PXFMT_B32_SNORM,
+    PXFMT_B16_FLOAT,
     PXFMT_B32_FLOAT,
 
 // GL_ALPHA
@@ -92,6 +95,7 @@ enum pxfmt_sized_format
     PXFMT_A16_SNORM,
     PXFMT_A32_UNORM,
     PXFMT_A32_SNORM,
+    PXFMT_A16_FLOAT,
     PXFMT_A32_FLOAT,
 
 // GL_RG
@@ -101,6 +105,7 @@ enum pxfmt_sized_format
     PXFMT_RG16_SNORM,
     PXFMT_RG32_UNORM,
     PXFMT_RG32_SNORM,
+    PXFMT_RG16_FLOAT,
     PXFMT_RG32_FLOAT,
 
 // GL_RGB
@@ -110,12 +115,14 @@ enum pxfmt_sized_format
     PXFMT_RGB16_SNORM,
     PXFMT_RGB32_UNORM,
     PXFMT_RGB32_SNORM,
+    PXFMT_RGB16_FLOAT,
     PXFMT_RGB32_FLOAT,
 
     PXFMT_RGB332_UNORM,
     PXFMT_RGB233_UNORM,
     PXFMT_RGB565_UNORM,
     PXFMT_RGB565REV_UNORM,
+    PXFMT_RGB10F_11F_11F,
 
 // GL_RGBA
     // NOTE: The following two OpenGL format-type combinations are actually
@@ -128,6 +135,7 @@ enum pxfmt_sized_format
     PXFMT_RGBA16_SNORM,
     PXFMT_RGBA32_UNORM,
     PXFMT_RGBA32_SNORM,
+    PXFMT_RGBA16_FLOAT,
     PXFMT_RGBA32_FLOAT,
 
     PXFMT_RGBA4_UNORM,
@@ -145,6 +153,7 @@ enum pxfmt_sized_format
     PXFMT_BGRA16_SNORM,
     PXFMT_BGRA32_UNORM,
     PXFMT_BGRA32_SNORM,
+    PXFMT_BGRA16_FLOAT,
     PXFMT_BGRA32_FLOAT,
 
     PXFMT_BGRA4_UNORM,
@@ -251,6 +260,7 @@ enum pxfmt_sized_format
     PXFMT_D16_SNORM,
     PXFMT_D32_UNORM,
     PXFMT_D32_SNORM,
+    PXFMT_D16_FLOAT,
     PXFMT_D32_FLOAT,
 
 // GL_STENCIL_INDEX
@@ -260,6 +270,7 @@ enum pxfmt_sized_format
     PXFMT_S16_SINT,
     PXFMT_S32_UINT,
     PXFMT_S32_SINT,
+    PXFMT_S16_FLOAT,
     PXFMT_S32_FLOAT,
 
 // GL_DEPTH_STENCIL

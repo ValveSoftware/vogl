@@ -112,6 +112,66 @@ MAX_VALUES(true,  32);
 /******************************************************************************
  *
  * Note: The following code creates a set of compile-time, templated struct's
+ * that contain information needed to perform conversions between a double and
+ * either a 10, 11, or 16-bit floating-point value.
+ *
+ ******************************************************************************/
+
+enum pxfmt_small_fp
+{
+    NON_FP = 0,
+    FP10 = 10,
+    FP11 = 11,
+    FP16 = 16,
+};
+
+template <pxfmt_small_fp nbits> struct small_fp { };
+
+#define SMALL_FP(nbits, min, max, is_signed, sign_shift,                \
+                 exp_mask, exp_shift, bias, man_mask, man_shift,        \
+                 inf_exp_mask)                                          \
+    template <> struct small_fp<nbits>                                  \
+    {                                                                   \
+    public:                                                             \
+        static const pxfmt_small_fp m_num_bits = nbits;                 \
+        static const int32 m_min = min;                                 \
+        static const uint32 m_max = max;                                \
+        static const bool m_is_signed = is_signed;                      \
+        static const uint32 m_sign_shift = sign_shift;                  \
+        static const uint32 m_exp_mask = exp_mask;                      \
+        static const uint32 m_exp_shift = exp_shift;                    \
+        static const uint32 m_bias = bias;                              \
+        static const uint32 m_man_mask = man_mask;                      \
+        static const uint32 m_man_shift = man_shift;                    \
+        static const uint32 m_inf_exp_mask = inf_exp_mask;              \
+    };
+
+// FIXME: SEEMS LIKE WE NEED THE FOLLOWING FOR INFINITY AND NAN:
+//
+// - bits to check a double's exponent for NAN case
+// - a double's exponent for NAN/INFINITY (i.e. 128).  NOTE: This is bias + 1.
+// - fp10-16's exponent for NAN/INFINITY (i.e. 16).    NOTE: This is bias + 1.
+// - fp10-16's mantissa for NAN (e.g. 0x10 for fp10)
+
+SMALL_FP(NON_FP,    0,     0, false,  0, 0x0000, 0,   0, 0x0000,  0,          0);
+SMALL_FP(FP10,      0, 64512, false, 10, 0x03E0, 5,  15, 0x001f, 15, 0x7FF00000);
+SMALL_FP(FP11,      0, 65024, false, 11, 0x07C0, 6,  15, 0x003f, 14, 0x7FF00000);
+SMALL_FP(FP16, -65504, 65504, false, 15, 0x7C00, 10, 15, 0x03ff, 10, 0x7FF00000);
+
+
+union double_conversion
+{
+    double d;
+    struct
+    {
+        uint32 u[2];
+    } i;
+};
+
+
+/******************************************************************************
+ *
+ * Note: The following code creates a set of compile-time, templated struct's
  * that contain information needed to perform conversions to/from pixels in a
  * given pxfmt_sized_format.
  *
@@ -127,11 +187,11 @@ MAX_VALUES(true,  32);
 // pxfmt_sized_format (i.e. for each OpenGL format/type combination):
 template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
 
-#define FMT_INFO(F, ftype, itype, ncomps, bypp,                         \
-                 needfp, norm, is_signed, pack,                         \
-                 in0, in1, in2, in3,                                    \
-                 nbits0, nbits1, nbits2, nbits3,                        \
-                 shift0, shift1, shift2, shift3)                        \
+#define FMT_INFO_BASE(F, ftype, itype, ncomps, bypp,                    \
+                      needfp, norm, is_signed, pack,                    \
+                      in0, in1, in2, in3,                               \
+                      nbits0, nbits1, nbits2, nbits3,                   \
+                      shift0, shift1, shift2, shift3)                   \
                                                                         \
     template <> struct pxfmt_per_fmt_info<F>                            \
     {                                                                   \
@@ -169,6 +229,11 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
         /* The m_mask[] members identify which bits to use for the */   \
         /* n'th component dealt with.  This is only for packed types. */ \
         static const uint32 m_mask[4];                                  \
+                                                                        \
+        /* The m_small_fp[] member identifies which, if any,  */        \
+        /* "small-floating-point" number is represented by a given */   \
+        /* component. */                                                \
+        static const pxfmt_small_fp m_small_fp[4];                      \
     };                                                                  \
     const int32 pxfmt_per_fmt_info<F>::m_index[] = {in0, in1, in2, in3}; \
     const uint32 pxfmt_per_fmt_info<F>::m_max[] =                       \
@@ -184,6 +249,38 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
          (max_values<is_signed,nbits2>::m_max << shift2),               \
          (max_values<is_signed,nbits3>::m_max << shift3)};
 
+    // This variation is used for most cases:
+#define FMT_INFO(F, ftype, itype, ncomps, bypp,                         \
+                 needfp, norm, is_signed, pack,                         \
+                 in0, in1, in2, in3,                                    \
+                 nbits0, nbits1, nbits2, nbits3,                        \
+                 shift0, shift1, shift2, shift3)                        \
+                                                                        \
+    FMT_INFO_BASE(F, ftype, itype, ncomps, bypp,                        \
+                  needfp, norm, is_signed, pack,                        \
+                  in0, in1, in2, in3,                                   \
+                  nbits0, nbits1, nbits2, nbits3,                       \
+                  shift0, shift1, shift2, shift3);                      \
+    const pxfmt_small_fp pxfmt_per_fmt_info<F>::m_small_fp[] =          \
+        {NON_FP, NON_FP, NON_FP, NON_FP};
+
+// This variation is used for the few "small-fp" cases:
+#define FMT_INFO_SFP(F, ftype, itype, ncomps, bypp,                     \
+                     is_signed,                                         \
+                     in0, in1, in2, in3,                                \
+                     nbits0, nbits1, nbits2, nbits3,                    \
+                     shift0, shift1, shift2, shift3,                    \
+                     sfp0, sfp1, sfp2, sfp3)                            \
+                                                                        \
+    FMT_INFO_BASE(F, ftype, itype, ncomps, bypp,                        \
+                  true, false, is_signed, false,                        \
+                  in0, in1, in2, in3,                                   \
+                  nbits0, nbits1, nbits2, nbits3,                       \
+                  shift0, shift1, shift2, shift3);                      \
+    const pxfmt_small_fp pxfmt_per_fmt_info<F>::m_small_fp[] =          \
+            {sfp0, sfp1, sfp2, sfp3};
+
+
 
 // FIXME: use awk sometime to pretty this up, and align the columns of
 // information:
@@ -195,6 +292,7 @@ FMT_INFO(PXFMT_R16_UNORM, uint16, double, 1, 2, true, true, false, false,       
 FMT_INFO(PXFMT_R16_SNORM, int16,  double, 1, 2, true, true, true, false,        0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_R32_UNORM, uint32, double, 1, 4, true, true, false, false,       0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_R32_SNORM, int32,  double, 1, 4, true, true, true, false,        0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_R16_FLOAT, uint16, double, 1, 2,         true,               0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   FP16, NON_FP, NON_FP, NON_FP);
 FMT_INFO(PXFMT_R32_FLOAT, float,  double, 1, 4, true, false, false, false,      0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_GREEN
@@ -204,6 +302,7 @@ FMT_INFO(PXFMT_G16_UNORM, uint16, double, 1, 2,  true, true, false, false,      
 FMT_INFO(PXFMT_G16_SNORM, int16,  double, 1, 2,  true, true, true, false,       1, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_G32_UNORM, uint32, double, 1, 4, true, true, false, false,       1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_G32_SNORM, int32,  double, 1, 4, true, true, true, false,        1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_G16_FLOAT, uint16, double, 1, 2,         true,               1, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, FP16, NON_FP, NON_FP);
 FMT_INFO(PXFMT_G32_FLOAT, float,  double, 1, 4, true, false, false, false,      1, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_BLUE
@@ -213,6 +312,7 @@ FMT_INFO(PXFMT_B16_UNORM, uint16, double, 1, 2,  true, true, false, false,      
 FMT_INFO(PXFMT_B16_SNORM, int16,  double, 1, 2,  true, true, true, false,       2, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_B32_UNORM, uint32, double, 1, 4, true, true, false, false,       2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_B32_SNORM, int32,  double, 1, 4, true, true, true, false,        2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_B16_FLOAT, uint16, double, 1, 2,         true,               2, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, NON_FP, FP16, NON_FP);
 FMT_INFO(PXFMT_B32_FLOAT, float,  double, 1, 4, true, false, false, false,      2, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_ALPHA
@@ -222,6 +322,7 @@ FMT_INFO(PXFMT_A16_UNORM, uint16, double, 1, 2, true, true, false, false,       
 FMT_INFO(PXFMT_A16_SNORM, int16,  double, 1, 2, true, true, true, false,        3, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_A32_UNORM, uint32, double, 1, 4, true, true, false, false,       3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_A32_SNORM, int32,  double, 1, 4, true, true, true, false,        3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_A16_FLOAT, uint16, double, 1, 2,         true,               3, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, NON_FP, NON_FP, FP16);
 FMT_INFO(PXFMT_A32_FLOAT, float,  double, 1, 4, true, false, false, false,      3, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_RG
@@ -231,6 +332,7 @@ FMT_INFO(PXFMT_RG16_UNORM, uint16, double, 2, 4, true, true, false, false,      
 FMT_INFO(PXFMT_RG16_SNORM, int16,  double, 2, 4, true, true, true, false,       0, 1, -1, -1,    16, 16,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_RG32_UNORM, uint32, double, 2, 8, true, true, false, false,      0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_RG32_SNORM, int32,  double, 2, 8, true, true, true, false,       0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_RG16_FLOAT, uint16, double, 2, 4,         true,              0, 1, -1, -1,     0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, NON_FP, NON_FP);
 FMT_INFO(PXFMT_RG32_FLOAT, float,  double, 2, 8, true, false, false, false,     0, 1, -1, -1,     0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_RGB
@@ -240,12 +342,14 @@ FMT_INFO(PXFMT_RGB16_UNORM, uint16, double, 3, 6,  true, true, false, false,    
 FMT_INFO(PXFMT_RGB16_SNORM, int16,  double, 3, 6,  true, true, true, false,     0, 1, 2, -1,     16, 16, 16,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_RGB32_UNORM, uint32, double, 3, 12, true, true, false, false,    0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_RGB32_SNORM, int32,  double, 3, 12, true, true, true, false,     0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_RGB16_FLOAT, uint16, double, 3, 6,          true,            0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, NON_FP);
 FMT_INFO(PXFMT_RGB32_FLOAT, float,  double, 3, 12, true, false, false, false,   0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0);
 
 FMT_INFO(PXFMT_RGB332_UNORM,  uint8,  double, 3, 1,  true, true, false, true,   0, 1, 2, -1,      3,  3,  2,  0,    5, 2, 0, 0);
 FMT_INFO(PXFMT_RGB233_UNORM,  uint8,  double, 3, 1,  true, true, false, true,   0, 1, 2, -1,      3,  3,  2,  0,    0, 3, 6, 0);
 FMT_INFO(PXFMT_RGB565_UNORM,  uint16, double, 3, 2,  true, true, false, true,   0, 1, 2, -1,      5,  6,  5,  0,   11, 5, 0, 0);
 FMT_INFO(PXFMT_RGB565REV_UNORM,uint16,double, 3, 2,  true, true, false, true,   0, 1, 2, -1,      5,  6,  5,  0,   0, 5, 11, 0);
+FMT_INFO_SFP(PXFMT_RGB10F_11F_11F, uint32, double, 3, 4,         false,         0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP10, FP11, FP11, NON_FP);
 
 // GL_RGBA
 FMT_INFO(PXFMT_RGBA8_UNORM,  uint32, double, 4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
@@ -254,13 +358,14 @@ FMT_INFO(PXFMT_RGBA16_UNORM, uint16, double, 4, 8,  true, true, false, false,   
 FMT_INFO(PXFMT_RGBA16_SNORM, int16,  double, 4, 8,  true, true, true, false,    0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
 FMT_INFO(PXFMT_RGBA32_UNORM, uint32, double, 4, 16, true, true, false, false,   0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
 FMT_INFO(PXFMT_RGBA32_SNORM, int32,  double, 4, 16, true, true, true, false,    0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_RGBA16_FLOAT, uint16, double, 4, 8,          true,           0, 1, 2, 3,       0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, FP16);
 FMT_INFO(PXFMT_RGBA32_FLOAT, float,  double, 4, 16, true, false, false, false,  0, 1, 2, 3,       0,  0,  0,  0,   0, 0, 0, 0);
 
 FMT_INFO(PXFMT_RGBA4_UNORM,   uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       4,  4,  4,  4,  12, 8, 4, 0);
 FMT_INFO(PXFMT_RGBA4REV_UNORM,uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       4,  4,  4,  4,  0, 4, 8, 12);
 FMT_INFO(PXFMT_RGB5A1_UNORM,  uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       5,  5,  5,  1,  11, 6, 1, 0);
 FMT_INFO(PXFMT_A1RGB5_UNORM,  uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       5,  5,  5,  1,  0, 5, 10, 15);
-FMT_INFO(PXFMT_RGBA8REV_UNORM, uint32, double,  4, 4,  true, true, false, true, 0, 1, 2, 3,       8,  8,  8,  8,  24, 16, 8, 0);
+FMT_INFO(PXFMT_RGBA8REV_UNORM, uint32, double,  4, 4, true, true, false, true,  0, 1, 2, 3,       8,  8,  8,  8,  24, 16, 8, 0);
 FMT_INFO(PXFMT_RGB10A2_UNORM, uint32, double, 4, 4, true, true, false, true,    0, 1, 2, 3,      10, 10, 10,  2,  22, 12, 2, 0);
 FMT_INFO(PXFMT_A2RGB10_UNORM, uint32, double, 4, 4, true, true, false, true,    0, 1, 2, 3,      10, 10, 10,  2,  0, 10, 20, 30);
 
@@ -271,6 +376,7 @@ FMT_INFO(PXFMT_BGRA16_UNORM, uint16, double, 4, 8,  true, true, false, false,   
 FMT_INFO(PXFMT_BGRA16_SNORM, int16,  double, 4, 8,  true, true, true, false,    2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
 FMT_INFO(PXFMT_BGRA32_UNORM, uint32, double, 4, 16, true, true, false, false,   2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
 FMT_INFO(PXFMT_BGRA32_SNORM, int32,  double, 4, 16, true, true, true, false,    2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_BGRA16_FLOAT, uint16, double, 4, 8,          true,           2, 1, 0, 3,       0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, FP16);
 FMT_INFO(PXFMT_BGRA32_FLOAT, float, double, 4, 16,  true, false, false, false,  2, 1, 0, 3,       0,  0,  0,  0,   0, 0, 0, 0);
 
 FMT_INFO(PXFMT_BGRA4_UNORM,   uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       4,  4,  4,  4,  4, 8, 12, 0);
@@ -346,7 +452,7 @@ FMT_INFO(PXFMT_RGBA4_UINT, uint16,  uint32, 4, 2,  false, false, false, true,   
 FMT_INFO(PXFMT_RGBA4REV_UINT,uint16,uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       4,  4,  4,  4,  0, 4, 8, 12);
 FMT_INFO(PXFMT_RGB5A1_UINT, uint16, uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       5,  5,  5,  1,  11, 6, 1, 0);
 FMT_INFO(PXFMT_A1RGB5_UINT, uint16, uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       5,  5,  5,  1,  0, 5, 10, 15);
-FMT_INFO(PXFMT_RGBA8REV_UINT, uint32, uint32,  4, 4,  false, false, false, true,0, 1, 2, 3,       8,  8,  8,  8,  24, 16, 8, 0);
+FMT_INFO(PXFMT_RGBA8REV_UINT, uint32, uint32,  4, 4, false, false, false, true, 0, 1, 2, 3,       8,  8,  8,  8,  24, 16, 8, 0);
 FMT_INFO(PXFMT_RGB10A2_UINT, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,  22, 12, 2, 0);
 FMT_INFO(PXFMT_A2RGB10_UINT, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,  0, 10, 20, 30);
 
@@ -373,6 +479,7 @@ FMT_INFO(PXFMT_D16_UNORM, uint16, double, 1, 2, true, true, false, false,       
 FMT_INFO(PXFMT_D16_SNORM, int16,  double, 1, 2, true, true, true, false,        0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_D32_UNORM, uint32, double, 1, 4, true, true, false, false,       0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_D32_SNORM, int32,  double, 1, 4, true, true, true, false,        0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_D16_FLOAT, uint16, double, 1, 2,         true,               0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   FP16, NON_FP, NON_FP, NON_FP);
 FMT_INFO(PXFMT_D32_FLOAT, float,  double, 1, 4, true, false, false, false,      0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_STENCIL_INDEX
@@ -382,6 +489,7 @@ FMT_INFO(PXFMT_S16_UINT,  uint16, uint32, 1, 2, false, false, false, false,     
 FMT_INFO(PXFMT_S16_SINT,  int16,  uint32, 1, 2, false, false, true, false,      0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_S32_UINT,  uint32, uint32, 1, 4, false, false, false, false,     0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_S32_SINT,  int32,  uint32, 1, 4, false, false, true, false,      0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_S16_FLOAT, uint16, uint32, 1, 2,           true,             0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   FP16, NON_FP, NON_FP, NON_FP);
 FMT_INFO(PXFMT_S32_FLOAT, float,  uint32, 1, 4, false, false, false, false,     0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
 
 // GL_DEPTH_STENCIL - Note: These require special treatment; as a result not all of the values look correct:
@@ -562,6 +670,98 @@ void to_int_d32_float_s8_uint(Tint *dst, const Tsrc *src)
 }
 
 
+// This function converts one component from a "small floating-point" value
+// (i.e. 10, 11, or 16 bits) to an intermediate value, which is a double:
+template <pxfmt_sized_format F, pxfmt_small_fp S, typename Tint, typename Tsrc>
+inline
+void to_int_comp_small_fp(Tint *dst, const Tsrc *src, const uint32 c)
+{
+    uint16 raw = (uint16) src[c];
+    uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
+    // Only 16-bit floats have sign bits (i.e. 10/11-bit floats don't):
+    uint32 sign_bit = ((pxfmt_per_fmt_info<F>::m_is_signed) ?
+                       (raw >> small_fp<S>::m_sign_shift) : 0);
+    // Get the exponent from the small-floating-point number, and format it for
+    // the intermediate number:
+    int32 exponent = (((raw & small_fp<S>::m_exp_mask) >>
+                        small_fp<S>::m_exp_shift) - small_fp<S>::m_bias);
+    if (exponent == 16)
+    {
+        // Adjust the exponent for zero:
+        exponent = 1024;
+    }
+    if (exponent == -15)
+    {
+        // Adjust the exponent for zero:
+        exponent = -1023;
+    }
+    exponent = (((exponent + 1023) << 20) & 0x7FF00000);
+    // Get the mantissa from the small-floating-point number, and then shift it
+    // into place for the intermediate number.  All 10/11/16-bit floats have
+    // mantissa's that are smaller than that of the top-part of a double's
+    // mantissa.  Hence, we need to shift the mantissa into place:
+    uint32 mantissa = ((raw & small_fp<S>::m_man_mask) <<
+                       small_fp<S>::m_man_shift);
+
+    // Hand-craft a double:
+    double_conversion d;
+    d.d = 0;
+    // Note: the bottom 32-bits of the mantissa will always be zero, because a
+    // small-floating-point value is too small to ever populate it.
+    d.i.u[1] = (sign_bit << 31) | exponent | mantissa;
+
+    // Put the hand-crafted double into the destination:
+    dst[index] = (Tint) d.d;
+}
+
+
+// This function converts a run-time call to a compile-time call to a function
+// that converts one component from a "small floating-point" value
+// (i.e. 10, 11, or 16 bits) to an intermediate value, which is a double:
+template <pxfmt_sized_format F, typename Tint, typename Tsrc>
+inline
+void to_int_comp_small_fp(Tint *dst, const Tsrc *src, const uint32 c)
+{
+#ifdef CASE_STATEMENT
+#undef CASE_STATEMENT
+#endif
+#define CASE_STATEMENT(fmt, S)                                          \
+    case S:                                                             \
+        to_int_comp_small_fp<fmt,S>(dst, src, c);                       \
+        break;
+
+    switch (pxfmt_per_fmt_info<F>::m_small_fp[c])
+    {
+        CASE_STATEMENT(F, NON_FP);
+        CASE_STATEMENT(F, FP10);
+        CASE_STATEMENT(F, FP11);
+        CASE_STATEMENT(F, FP16);
+    }
+}
+
+
+// This special function converts all components of a 10F/11F/11F
+// packed-integer source pixel to an intermediate format for a format of GL_RGB
+// and a type of GL_UNSIGNED_INT_10F_11F_11F_REV:
+template <pxfmt_sized_format F, typename Tint, typename Tsrc>
+inline
+void to_int_10f_11f_11f_packed(Tint *dst, const Tsrc *src)
+{
+    uint32 raw = (uint32) *src;
+    uint16 srcBits[3];
+
+    // Unpack the three components into an array of source values:
+    srcBits[0] = (raw & 0x000003FF);
+    srcBits[1] = ((raw & 0x001FFC00) >> 10);
+    srcBits[2] = ((raw & 0xFFE00000) >> 21);
+
+    // Process the unpacked source values:
+    to_int_comp_small_fp<F>(dst, srcBits, 0);
+    to_int_comp_small_fp<F>(dst, srcBits, 1);
+    to_int_comp_small_fp<F>(dst, srcBits, 2);
+}
+
+
 // This function converts all components of a source pixel to an intermediate
 // format:
 template <pxfmt_sized_format F>
@@ -592,6 +792,10 @@ void to_intermediate(void *intermediate, const void *pSrc)
     {
         to_int_d32_float_s8_uint<F>(dst, src);
     }
+    else if (pxfmt_per_fmt_info<F>::m_fmt == PXFMT_RGB10F_11F_11F)
+    {
+        to_int_10f_11f_11f_packed<F>(dst, src);
+    }
     else
     {
         // Convert this pixel to the intermediate, one component at a time:
@@ -599,7 +803,11 @@ void to_intermediate(void *intermediate, const void *pSrc)
         {
             if (pxfmt_per_fmt_info<F>::m_index[c] >= 0)
             {
-                if (pxfmt_per_fmt_info<F>::m_is_packed)
+                if (pxfmt_per_fmt_info<F>::m_small_fp[0] != NON_FP)
+                {
+                    to_int_comp_small_fp<F>(dst, src, c);
+                }
+                else if (pxfmt_per_fmt_info<F>::m_is_packed)
                 {
                     to_int_comp_packed<F>(dst, src, c);
                 }
@@ -743,6 +951,129 @@ void from_int_d32_float_s8_uint(Tdst *dst, const Tint *src)
 }
 
 
+// This function converts one component to a "small floating-point" value
+// (i.e. 10, 11, or 16 bits) from an intermediate value, which is a double:
+template <pxfmt_sized_format F, pxfmt_small_fp S, typename Tdst, typename Tint>
+inline
+void from_int_comp_small_fp(Tdst *dst, const Tint *src, const uint32 c)
+{
+    // Get the intermediate value in a form that we can split it into its
+    // components:
+    double_conversion d;
+    d.d = src[c];
+    // Note: the bottom 32-bits of the mantissa is always ignored, because a
+    // small-floating-point value is too small to ever need it.
+
+    double min = (double) small_fp<S>::m_min;
+    double max = (double) small_fp<S>::m_max;
+
+    // Obtain the new exponent:
+    int32 exponent;
+    if ((d.i.u[1] & small_fp<S>::m_inf_exp_mask) == small_fp<S>::m_inf_exp_mask)
+    {
+        // Either have infinity or NaN (not a number).  There is special
+        // handling for OpenGL's 10- and 11-bit floats, which convert
+        // negative-infinity to positive-0.0 and negative-NaN to positive-NaN.
+        // The sign-bit is handled below, but converting negative-infinity to
+        // 0.0 must be handled here:
+        if (!pxfmt_per_fmt_info<F>::m_is_signed &&
+            ((d.i.u[1] & 0x000fffff) == 0))
+        {
+            // Need to convert negative-infinity to 0.0 by using the
+            // encoded-exponent for zero (which is all zeroes):
+            exponent = 0;
+        }
+        else
+        {
+            // The new exponent will is encoded as all ones:
+            exponent = 0xFFFFFFFF & small_fp<S>::m_exp_mask;
+        }
+    }
+    else
+    {
+        // Translate the exponent from src, after potentially clamping the
+        // intermediate to the min/max values of the small-fp:
+        if (d.d < min)
+        {
+            d.d = min;
+        }
+        else if (d.d > max)
+        {
+            d.d = max;
+        }
+        // Get the exponent from the intermediate number, and format it for the
+        // small-floating-point number:
+        exponent = (((d.i.u[1] & 0x7FF00000) >> 20) - 1023);
+        if (exponent == -1023)
+        {
+            // Adjust the exponent for zero:
+            exponent = -15;
+        }
+        exponent = (((exponent + small_fp<S>::m_bias) <<
+                     small_fp<S>::m_exp_shift) & small_fp<S>::m_exp_mask);
+    }
+
+    // Only 16-bit floats have sign bits (i.e. 10/11-bit floats don't):
+    uint32 sign_bit = ((pxfmt_per_fmt_info<F>::m_is_signed) ?
+                       (d.i.u[1] >> 31) : 0);
+    // Get the mantissa from the intermediate number, and then shift it into
+    // place for the small-floating-point number.  All 10/11/16-bit floats have
+    // mantissa's that are smaller than that of the top-part of a double's
+    // mantissa.  Hence, we need to shift the mantissa into place:
+    uint32 mantissa = ((d.i.u[1] & 0x000fffff) >> small_fp<S>::m_man_shift);
+
+    // Hand-craft the small-floating-point number:
+    dst[c] = (Tdst) ((sign_bit << small_fp<S>::m_sign_shift) |
+                     exponent | mantissa);
+}
+
+
+// This function converts a run-time call to a compile-time call to a function
+// that converts one component to a "small floating-point" value
+// (i.e. 10, 11, or 16 bits) from an intermediate value, which is a double:
+template <pxfmt_sized_format F, typename Tdst, typename Tint>
+inline
+void from_int_comp_small_fp(Tdst *dst, const Tint *src, const uint32 c)
+{
+#ifdef CASE_STATEMENT
+#undef CASE_STATEMENT
+#endif
+#define CASE_STATEMENT(fmt, S)                                          \
+    case S:                                                             \
+        from_int_comp_small_fp<fmt,S>(dst, src, c);                       \
+        break;
+
+    switch (pxfmt_per_fmt_info<F>::m_small_fp[c])
+    {
+        CASE_STATEMENT(F, NON_FP);
+        CASE_STATEMENT(F, FP10);
+        CASE_STATEMENT(F, FP11);
+        CASE_STATEMENT(F, FP16);
+    }
+}
+
+
+// This special function converts all components of a source pixel from an
+// intermediate format for a format of GL_RGB and a type of
+// GL_UNSIGNED_INT_10F_11F_11F_REV:
+template <pxfmt_sized_format F, typename Tdst, typename Tint>
+inline
+void from_int_10f_11f_11f_packed(Tdst *dst, const Tint *src)
+{
+    uint16 dstBits[3];
+
+    // Process the source values:
+    from_int_comp_small_fp<F>(dstBits, src, 0);
+    from_int_comp_small_fp<F>(dstBits, src, 1);
+    from_int_comp_small_fp<F>(dstBits, src, 2);
+
+    // Pack the three components into one 32-bit integer:
+    *dst = (Tdst) ((dstBits[0] & 0x000003FF) |
+                   ((dstBits[1] << 10) & 0x001FFC00) |
+                   ((dstBits[2] << 21) & 0xFFE00000));
+}
+
+
 // This function converts all components of a destination pixel from an
 // intermediate format:
 template <pxfmt_sized_format F>
@@ -770,6 +1101,10 @@ void from_intermediate(void *pDst, const void *intermediate)
     {
         from_int_d32_float_s8_uint<F>(dst, src);
     }
+    else if (pxfmt_per_fmt_info<F>::m_fmt == PXFMT_RGB10F_11F_11F)
+    {
+        from_int_10f_11f_11f_packed<F>(dst, src);
+    }
     else if (pxfmt_per_fmt_info<F>::m_is_packed)
     {
         // Convert all components of this pixel at the same time:
@@ -780,7 +1115,11 @@ void from_intermediate(void *pDst, const void *intermediate)
         // Convert one component of this pixel at a time:
         for (uint c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
         {
-            if (pxfmt_per_fmt_info<F>::m_index[c] >= 0)
+            if (pxfmt_per_fmt_info<F>::m_small_fp[0] != NON_FP)
+            {
+                from_int_comp_small_fp<F>(dst, src, c);
+            }
+            else if (pxfmt_per_fmt_info<F>::m_index[c] >= 0)
             {
                 if (pxfmt_per_fmt_info<F>::m_is_normalized)
                 {
@@ -852,6 +1191,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_R32_UNORM;
         case GL_INT:
             return PXFMT_R32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_R16_FLOAT;
         case GL_FLOAT:
             return PXFMT_R32_FLOAT;
         default:
@@ -873,6 +1214,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_G32_UNORM;
         case GL_INT:
             return PXFMT_G32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_G16_FLOAT;
         case GL_FLOAT:
             return PXFMT_G32_FLOAT;
         default:
@@ -894,6 +1237,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_B32_UNORM;
         case GL_INT:
             return PXFMT_B32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_B16_FLOAT;
         case GL_FLOAT:
             return PXFMT_B32_FLOAT;
         default:
@@ -915,6 +1260,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_A32_UNORM;
         case GL_INT:
             return PXFMT_A32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_A16_FLOAT;
         case GL_FLOAT:
             return PXFMT_A32_FLOAT;
         default:
@@ -936,6 +1283,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_RG32_UNORM;
         case GL_INT:
             return PXFMT_RG32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_RG16_FLOAT;
         case GL_FLOAT:
             return PXFMT_RG32_FLOAT;
         default:
@@ -957,6 +1306,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_RGB32_UNORM;
         case GL_INT:
             return PXFMT_RGB32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_RGB16_FLOAT;
         case GL_FLOAT:
             return PXFMT_RGB32_FLOAT;
 
@@ -968,6 +1319,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_RGB565_UNORM;
         case GL_UNSIGNED_SHORT_5_6_5_REV:
             return PXFMT_RGB565REV_UNORM;
+        case GL_UNSIGNED_INT_10F_11F_11F_REV:
+            return PXFMT_RGB10F_11F_11F;
         default:
             break;
         }
@@ -987,6 +1340,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_RGBA32_UNORM;
         case GL_INT:
             return PXFMT_RGBA32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_RGBA16_FLOAT;
         case GL_FLOAT:
             return PXFMT_RGBA32_FLOAT;
 
@@ -1025,6 +1380,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_BGRA32_UNORM;
         case GL_INT:
             return PXFMT_BGRA32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_BGRA16_FLOAT;
         case GL_FLOAT:
             return PXFMT_BGRA32_FLOAT;
 
@@ -1257,6 +1614,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_D32_UNORM;
         case GL_INT:
             return PXFMT_D32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_D16_FLOAT;
         case GL_FLOAT:
             return PXFMT_D32_FLOAT;
         default:
@@ -1278,6 +1637,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_S32_UINT;
         case GL_INT:
             return PXFMT_S32_SINT;
+        case GL_HALF_FLOAT:
+            return PXFMT_S16_FLOAT;
         case GL_FLOAT:
             return PXFMT_S32_FLOAT;
         default:
