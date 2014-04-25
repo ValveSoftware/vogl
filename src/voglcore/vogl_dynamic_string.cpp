@@ -961,11 +961,11 @@ namespace vogl
 
     bool dynamic_string::validate() const
     {
-#define CHECK(x)                           \
-    if (!(x))                              \
-    {                                      \
+#define CHECK(x)                         \
+    if (!(x))                            \
+    {                                    \
         vogl_debug_break_if_debugging(); \
-        return false;                      \
+        return false;                    \
     }
         CHECK(m_len < get_buf_size());
         CHECK(m_len <= cMaxDynamicStringLen);

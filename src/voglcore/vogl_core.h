@@ -116,8 +116,6 @@
     #define VOGL_MEMORY_IMPORT_BARRIER
     #define VOGL_MEMORY_EXPORT_BARRIER
 
-    #define VOGL_FUNCTION_NAME __FUNCTION__
-
     // for gcc/clang: string_index is the param index of the format string, 1 is the first param for static funcs, 2 for member funcs
     // first_index is the first param to check, specify 0 to just check the format string for consistency
     #define VOGL_ATTRIBUTE_PRINTF(string_index, first_index)
@@ -163,8 +161,6 @@
     #define VOGL_MEMORY_IMPORT_BARRIER
     #define VOGL_MEMORY_EXPORT_BARRIER
 
-    #define VOGL_FUNCTION_NAME __FUNCTION__
-
     #define VOGL_ATTRIBUTE_PRINTF(string_index, first_index) __attribute__((format(printf, string_index, first_index)))
 
     #define VOGL_NOTE_UNUSED(x) (void) x
@@ -206,8 +202,6 @@
     #define VOGL_MEMORY_IMPORT_BARRIER
     #define VOGL_MEMORY_EXPORT_BARRIER
 
-    #define VOGL_FUNCTION_NAME __FUNCTION__
-
     #define VOGL_ATTRIBUTE_PRINTF(string_index, first_index)
 
     #define VOGL_NOTE_UNUSED(x) (void) x
@@ -219,6 +213,13 @@
 
 #if PLATFORM_WINDOWS
     #define _CRT_RAND_S 1
+#endif
+
+#define VOGL_FUNCTION_NAME __FUNCTION__
+#if defined(PLATFORM_WINDOWS)
+    #define VOGL_METHOD_NAME __FUNCSIG__
+#else
+    #define VOGL_METHOD_NAME __PRETTY_FUNCTION__ 
 #endif
 
 #include <stdlib.h>
