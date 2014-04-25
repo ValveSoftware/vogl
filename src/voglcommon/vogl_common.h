@@ -36,13 +36,18 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
-#include <dlfcn.h>
+
+#if PLATFORM_POSIX
+    #include <dlfcn.h>
+#endif
 
 #include <pthread.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xmd.h>
+#if PLATFORM_POSIX
+    #include <X11/Xlib.h>
+    #include <X11/Xutil.h>
+    #include <X11/Xmd.h>
+#endif
 
 #include "gl_types.h"
 

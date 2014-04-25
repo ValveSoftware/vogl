@@ -22,10 +22,8 @@
  * THE SOFTWARE.
  *
  **************************************************************************/
-
 // File: vogl_ctypes.h
-#ifndef VOGL_CTYPES_H
-#define VOGL_CTYPES_H
+#pragma once
 
 //----------------------------------------------------------------------------------------------------------------------
 // typedefs/helpers
@@ -48,14 +46,16 @@ struct gl_ctype_sizeof<void>
         size = 0
     };
 };
-template <>
-struct gl_ctype_sizeof<_XDisplay>
-{
-    enum
+#if VOGL_PLATFORM_HAS_GLX
+    template <>
+    struct gl_ctype_sizeof<_XDisplay>
     {
-        size = -1
+        enum
+        {
+            size = -1
+        };
     };
-};
+#endif
 template <>
 struct gl_ctype_sizeof<_cl_context>
 {
@@ -194,5 +194,3 @@ extern vogl_ctypes g_vogl_process_gl_ctypes;
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_dump_gl_ctypes();
 void vogl_init_gl_ctypes();
-
-#endif // VOGL_CTYPES_H

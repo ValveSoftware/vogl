@@ -122,7 +122,7 @@
     // first_index is the first param to check, specify 0 to just check the format string for consistency
     #define VOGL_ATTRIBUTE_PRINTF(string_index, first_index)
 
-#elif (defined(COMPILER_GCC) || defined(COMPILER_CLANG)) && !defined(VOGL_ANSI_CPLUSPLUS)
+#elif defined(COMPILER_GCCLIKE) && !defined(VOGL_ANSI_CPLUSPLUS)
     // GCC x86 or x64, pthreads for threading and GCC built-ins for atomic ops.
     #define VOGL_PLATFORM_PC 1
     #if defined(PLATFORM_LINUX)
@@ -276,6 +276,7 @@
 
 #if defined(PLATFORM_LINUX)
     #define VOGL_HAS_PROC_FILESYSTEM 1
+    #define VOGL_PLATFORM_HAS_GLX 1
 #elif defined(PLATFORM_OSX)
     #error "TODO -- I don't know if OSX has a proc filesystem or not."
 #elif defined(PLATFORM_WINDOWS)

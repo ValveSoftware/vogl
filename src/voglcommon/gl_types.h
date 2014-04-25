@@ -22,9 +22,7 @@
  * THE SOFTWARE.
  *
  **************************************************************************/
-
-#ifndef GL_TYPES_H
-#define GL_TYPES_H
+#pragma once
 
 // Int type large enough to hold a pointer
 typedef intptr_t GLsizeiptr;
@@ -83,7 +81,14 @@ typedef void(GLAPIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLe
 typedef void(GLAPIENTRY *GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 typedef void(GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 
-// XID types actually long's (32 or 64 bit)
+#if !defined(VOGL_PLATFORM_HAS_GLX)
+    // XID types actually long's (32 or 64 bit)
+    typedef long XID;
+    struct XVisualInfo;
+    struct Display;
+#endif
+
+
 typedef struct __GLXcontextRec *GLXContext;
 typedef XID GLXPixmap;
 typedef XID GLXDrawable;
@@ -98,8 +103,9 @@ typedef void (*__GLXextFuncPtr)(void);
 typedef XID GLXVideoCaptureDeviceNV;
 typedef unsigned int GLXVideoDeviceNV;
 
+
+
 #include "gl_enums.inc"
+
 #include "glx_enums.inc"
 #include "glx_ext_enums.inc"
-
-#endif // GL_TYPES_H

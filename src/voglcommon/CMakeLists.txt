@@ -12,10 +12,13 @@ include_directories(
     ${SRC_DIR}/voglcore
     ${SRC_DIR}/libtelemetry
     ${SRC_DIR}/libbacktrace
-    )
+)
+
+file( GLOB_RECURSE HDRS *.[h|inl] )
 
 set(SRC_LIST
     ${SRC_LIST}
+    ${HDRS}    
     vogl_ctypes.cpp
     vogl_gl_utils.cpp
     vogl_entrypoints.cpp
@@ -62,13 +65,15 @@ set(SRC_LIST
 )
 
 if (CMAKE_COMPILER_IS_GNUCC)
-# Variable trackigng causes vogl_entrypoints.cpp to take longer than 20 minutes to compile on
-#  gcc 4.6 and gcc 4.8.
-# See this bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59868
-set_source_files_properties(vogl_entrypoints.cpp PROPERTIES COMPILE_FLAGS -fno-var-tracking)
+    # Variable trackigng causes vogl_entrypoints.cpp to take longer than 20 minutes to compile on
+    #  gcc 4.6 and gcc 4.8.
+    # See this bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59868
+    set_source_files_properties(vogl_entrypoints.cpp PROPERTIES COMPILE_FLAGS -fno-var-tracking)
 endif()
 
-add_compiler_flag("-fPIC")
+if (NOT MSVC)
+    add_compiler_flag("-fPIC")
+endif()
 
 add_library(${PROJECT_NAME} ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
