@@ -7,7 +7,8 @@ require_pthreads()
 
 file( GLOB_RECURSE HDRS *.[h|inl] )
 
-set(SPEC_DIR "${CMAKE_SOURCE_DIR}/glspec")
+set(SPEC_DIR "${SRC_DIR}/../glspec")
+
 file( GLOB SPECS "${SPEC_DIR}/*.spec" "${SPEC_DIR}/*.tm" "${SPEC_DIR}/*.xml" )
 set(SRC_LIST ${HDRS} ${SPECS} voglgen.cpp)
 

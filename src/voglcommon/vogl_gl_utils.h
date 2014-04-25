@@ -379,6 +379,8 @@ inline bool vogl_is_swap_buffers_entrypoint(gl_entrypoint_id_t id)
 
 bool vogl_is_draw_entrypoint(gl_entrypoint_id_t id);
 bool vogl_is_clear_entrypoint(gl_entrypoint_id_t id);
+bool vogl_is_start_nested_entrypoint(gl_entrypoint_id_t id);
+bool vogl_is_end_nested_entrypoint(gl_entrypoint_id_t id);
 
 //----------------------------------------------------------------------------------------------------------------------
 // Error helpers
