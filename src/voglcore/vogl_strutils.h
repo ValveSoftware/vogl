@@ -37,6 +37,8 @@
 
 namespace vogl
 {
+    class dynamic_string;
+
     // These functions exist mostly to work around cross platform runtime library issues, some also work around locale issues.
     inline bool vogl_isdigit(int c)
     {

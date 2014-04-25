@@ -45,12 +45,45 @@ using namespace vogl;
 
 // --------------------------------- Misc debugging related helpers
 
+#if !defined(VOGL_USE_WIN32_API)
+
+static int IsDebuggerPresent(void)
+{
+    char buf[128];
+    int tracerpid = -1;
+
+    FILE *file = fopen("/proc/self/status", "r");
+    if (file)
+    {
+        static const char tracerpid_str[] = "TracerPid";
+        static const size_t tracerpid_str_len = strlen(tracerpid_str);
+
+        while (fgets(buf, sizeof(buf), file))
+        {
+            if ((strncmp(buf, tracerpid_str, tracerpid_str_len) == 0) && (buf[tracerpid_str_len] == ':'))
+            {
+                tracerpid = atoi(&buf[tracerpid_str_len + 1]);
+                break;
+            }
+        }
+
+        fclose(file);
+    }
+
+    return (tracerpid > 0);
+}
+
+static void OutputDebugStringA(const char *p)
+{
+    puts(p);
+}
+
+#endif
+
 void vogl_debug_break(void)
 {
     VOGL_BREAKPOINT
 }
-
-#ifdef VOGL_USE_WIN32_API
 
 void vogl_debug_break_if_debugging(void)
 {
@@ -69,112 +102,33 @@ bool vogl_is_debugger_present(bool force_check)
 #endif
 }
 
+bool vogl_is_debugger_present(void)
+{
+#if VOGL_ASSUME_DEBUGGER_IS_ALWAYS_PRESENT
+    return true;
+#else
+    return IsDebuggerPresent() != 0;
+#endif
+}
+
 void vogl_output_debug_string(const char *p)
 {
     OutputDebugStringA(p);
 }
 
-#else // !defined(VOGL_USE_WIN32_API)
-
-// From http://stackoverflow.com/questions/3596781/detect-if-gdb-is-running
-// For crying out loud, this is ridicuously complex compared to Windows and doesn't work if somebody attaches later.
-
-#include <signal.h>
-
-static int g_has_checked_for_debugger = -1;
-
-bool vogl_is_debugger_present(bool force_check)
-{
-    if ((g_has_checked_for_debugger < 0) || (force_check))
-    {
-        g_has_checked_for_debugger = 0;
-
-        dynamic_string_array status_strings;
-        if (vogl::file_utils::read_text_file_crt("/proc/self/status", status_strings))
-        {
-            for (uint i = 0; i < status_strings.size(); i++)
-            {
-                if (status_strings[i].contains("TracerPid"))
-                {
-                    int val = 0;
-                    sscanf(status_strings[i].get_ptr(), "TracerPid: %u", &val);
-                    if (val)
-                    {
-                        g_has_checked_for_debugger = 1;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (!g_has_checked_for_debugger)
-        {
-            pid_t parent_process_id = getppid();
-            dynamic_string exe_name(cVarArg, "/proc/%" PRIu64 "/exe", static_cast<uint64_t>(parent_process_id));
-
-            char buf[4096];
-            buf[sizeof(buf) - 1] = '\0';
-            int64_t n = readlink(exe_name.get_ptr(), buf, sizeof(buf) - 1);
-
-            if (n >= 0)
-            {
-                // total hackage to determine if the parent process is either gdb/lldb or qtcreator's process stub
-                if ((strstr(buf, "gdb") != NULL) || (strstr(buf, "lldb") != NULL) || (strstr(buf, "qtcreator_process_stub") != NULL))
-                    g_has_checked_for_debugger = 1;
-            }
-        }
-
-        //printf("vogl_is_debugger_present: %i\n", g_has_checked_for_debugger);
-    }
-
-#if VOGL_ASSUME_DEBUGGER_IS_ALWAYS_PRESENT
-    g_has_checked_for_debugger = 1;
-    return true;
-#else
-    return g_has_checked_for_debugger == 1;
-#endif
-}
-
-int g_debugger_present = -1;
-
-static void _sigtrap_handler(int signum)
-{
-    VOGL_NOTE_UNUSED(signum);
-    g_debugger_present = 0;
-    signal(SIGTRAP, SIG_DFL);
-}
-
-void vogl_debug_break_if_debugging(void)
-{
-    if (-1 == g_debugger_present)
-    {
-        g_debugger_present = 1;
-        signal(SIGTRAP, _sigtrap_handler);
-    }
-
-    if (g_debugger_present == 1)
-    {
-        __asm__("int3");
-    }
-}
-
-void vogl_output_debug_string(const char *p)
-{
-    puts(p);
-}
-
-#endif // #ifdef VOGL_USE_WIN32_API
-
 // --------------------------------- Process signal/exception handling
 
-#ifdef VOGL_USE_WIN32_API
+#if defined(VOGL_USE_WIN32_API)
+
 vogl_exception_callback_t vogl_set_exception_callback(vogl_exception_callback_t callback)
 {
     #pragma message("Windows: TODO: Review set_exception_callback; currently does nothing.")
     return callback;
 }
 
-#else // !defined(VOGL_USE_WIN32_API)
+#else
+
+#include <signal.h>
 
 static const int MAX_SIGNALS = 16;
 struct sigaction g_prev_sigactions[MAX_SIGNALS];
@@ -295,42 +249,5 @@ void vogl_reset_exception_callback()
     g_exception_callback = NULL;
 }
 
-#endif // #ifdef VOGL_USE_WIN32_API
+#endif // !VOGL_USE_WIN32_API
 
-namespace vogl
-{
-
-#ifdef VOGL_USE_WIN32_API
-
-#include <Dbghelp.h>
-
-#pragma message("Windows: TODO: Consider dynamic load of Dbghelp on first use, rather than linking against the library here.")
-#pragma comment(lib, "Dbghelp.lib")
-
-	dynamic_string demangle(const char *pMangled)
-    {
-		char buffer[1024];
-		UnDecorateSymbolName(pMangled, buffer, ARRAYSIZE(buffer), UNDNAME_NAME_ONLY);
-
-		return dynamic_string(buffer);
-    }
-
-#else
-
-#include <cxxabi.h>
-    dynamic_string demangle(const char *pMangled)
-    {
-        int status = 0;
-
-        char *p = abi::__cxa_demangle(pMangled, 0, 0, &status);
-
-        dynamic_string demangled(p ? p : pMangled);
-
-        std::free(p);
-
-        return demangled;
-    }
-
-#endif
-
-} // namespace vogl
