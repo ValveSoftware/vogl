@@ -1344,6 +1344,36 @@ bool vogl_is_clear_entrypoint(gl_entrypoint_id_t id)
     return false;
 }
 
+//------------------------------------------------------------------------------
+// vogl_is_start_nested_entrypoint
+//------------------------------------------------------------------------------
+bool vogl_is_start_nested_entrypoint(gl_entrypoint_id_t id)
+{
+    switch (id) {
+        case VOGL_ENTRYPOINT_glBegin:
+        case VOGL_ENTRYPOINT_glPushDebugGroup:
+          return true;
+        default:
+          break;
+    }
+    return false;
+}
+
+//------------------------------------------------------------------------------
+// vogl_is_end_nested_entrypoint
+//------------------------------------------------------------------------------
+bool vogl_is_end_nested_entrypoint(gl_entrypoint_id_t id)
+{
+    switch (id) {
+        case VOGL_ENTRYPOINT_glEnd:
+        case VOGL_ENTRYPOINT_glPopDebugGroup:
+          return true;
+        default:
+          break;
+    }
+    return false;
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_json_value_as_enum
 //----------------------------------------------------------------------------------------------------------------------
