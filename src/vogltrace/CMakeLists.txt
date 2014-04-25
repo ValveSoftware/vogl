@@ -62,7 +62,6 @@ target_link_libraries(${PROJECT_NAME}
     ${CMAKE_DL_LIBS}
     ${X11_LIBRARIES}
     rt
-    # turbojpeg
     ${LibJpegTurbo_LIBRARY}
     )
 

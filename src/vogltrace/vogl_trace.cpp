@@ -197,7 +197,7 @@ __attribute__((constructor)) static void vogl_shared_object_constructor_func()
         {
             vogl_sleep(200);
             count -= 200;
-            debugger_connected = vogl_is_debugger_present(true);
+            debugger_connected = vogl_is_debugger_present();
             if (debugger_connected || vogl_kbhit())
                 break;
         }

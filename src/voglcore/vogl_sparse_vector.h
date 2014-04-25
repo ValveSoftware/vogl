@@ -1157,13 +1157,13 @@ namespace vogl
         r.seed(seed);
 
 #define VOGL_SPARSE_VECTOR_CHECK(x)          \
-    do                                         \
-    {                                          \
-        if (!(x))                              \
-        {                                      \
-            num_failures++;                    \
+    do                                       \
+    {                                        \
+        if (!(x))                            \
+        {                                    \
+            num_failures++;                  \
             vogl_debug_break_if_debugging(); \
-        }                                      \
+        }                                    \
     } while (0)
 
         printf("\n");

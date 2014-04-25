@@ -29,7 +29,7 @@
 
 #include "vogl_core.h"
 
-bool vogl_is_debugger_present(bool force_check = false);
+bool vogl_is_debugger_present(void);
 void vogl_debug_break(void);
 void vogl_debug_break_if_debugging(void);
 void vogl_output_debug_string(const char *p);
@@ -156,16 +156,3 @@ typedef void (*vogl_exception_callback_t)();
 vogl_exception_callback_t vogl_set_exception_callback(vogl_exception_callback_t callback);
 void vogl_reset_exception_callback();
 
-namespace vogl
-{
-    class dynamic_string;
-    dynamic_string demangle(const char *pMangled);
-} // namespace vogl
-
-#if defined(COMPILER_GCCLIKE)
-// FIXME: Is there a better way on GCC to do this?
-// Obviously this isn't fast, it's intended for warning/error messages and such.
-#define VOGL_METHOD_NAME vogl::dynamic_string(vogl::cVarArg, "%s::%s (%u)", vogl::demangle(vogl::type_name(*this)).get_ptr(), VOGL_FUNCTION_NAME, __LINE__).get_ptr()
-#else
-#define VOGL_METHOD_NAME VOGL_FUNCTION_NAME
-#endif
