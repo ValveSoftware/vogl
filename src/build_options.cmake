@@ -36,11 +36,6 @@ if (BUILD_X64 STREQUAL "")
   endif()
 endif()
 
-if (BUILD_X64 AND MSVC)
-    # TODO: I don't know how to get a 64-bit build generated from MSVC yet.
-    set(BUILD_X64 "FALSE")
-endif()
-
 # Generate bitness suffix to use, but make sure to include the existing suffix (.exe) 
 # for platforms that need it (ie, Windows)
 if (BUILD_X64)
@@ -413,11 +408,17 @@ if (MSVC)
     # And in release we use the DLL release runtime
     add_compiler_flag_release("/MD")
 
-    # In debug, get debug information suitable for Edit and Continue
-    add_compiler_flag_debug("/ZI")
+    # x64 doesn't ever support /ZI, only /Zi.
+    if (BUILD_X64)
+      add_compiler_flag("/Zi")
+    else()
 
-    # In release, still generate debug information (because not having it is dumb)
-    add_compiler_flag_release("/Zi")
+      # In debug, get debug information suitable for Edit and Continue
+      add_compiler_flag_debug("/ZI")
+
+      # In release, still generate debug information (because not having it is dumb)
+      add_compiler_flag_release("/Zi")
+    endif()
 
     # And tell the linker to always generate the file for us.
     add_linker_flag("/DEBUG")

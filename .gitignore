@@ -19,4 +19,4 @@ vogl_build/*
 voglinc/
 *~
 
-_out/
+_out*/

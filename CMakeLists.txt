@@ -16,6 +16,8 @@ if (NOT WIN32)
     find_package(LibLZMA REQUIRED)
 endif()
 
+# Always look. It won't be found on Windows. Later build scripts will understand how to 
+# WAR it being missing.
 find_package(TinyXML)
 
 message("")

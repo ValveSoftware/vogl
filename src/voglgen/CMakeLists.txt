@@ -21,6 +21,10 @@ if (NOT TinyXML_FOUND)
         tinyxml/tinyxmlerror.cpp
         tinyxml/tinyxmlparser.cpp
     )
+
+    # Build it instead.
+    set(TinyXML_INCLUDE_DIRS "")
+    set(TinyXML_LIBRARIES "")
 endif()
 
 # Add a source group to easily look at the spec files.
@@ -122,16 +126,19 @@ set(GENERATED_FILES
 # TODO: Add some logic to glob the files in SPEC_DIR and then compare them with the above list to 
 # ensure we catch all the dependencies.
 
+get_target_property(VOGLGEN_EXE ${PROJECT_NAME} LOCATION)
+
 add_custom_command(OUTPUT ${GENERATED_FILES}
-                   COMMAND ${PROJECT_NAME} --specdir ${SPEC_DIR} --outinc "${VOGLINCDIR}" --outlinker "${VOGLTRACEDIR}"
-                   MAIN_DEPENDENCY ${voglgen_}
+                   COMMAND ${VOGLGEN_EXE} --specdir ${SPEC_DIR} --outinc "${VOGLINCDIR}" --outlinker "${VOGLTRACEDIR}"
                    DEPENDS ${GENERATOR_INPUT_FILES}
                    COMMENT "Running ${PROJECT_NAME} to generate include and linker files for other targets"
+                   VERBATIM
 )
 
 
 add_custom_target(voglgen_make_inc
-                  ALL DEPENDS ${PROJECT_NAME} ${GENERATED_FILES}
+                  ALL 
+                  DEPENDS ${PROJECT_NAME} ${GENERATED_FILES}
 )
 
 build_options_finalize()
