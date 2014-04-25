@@ -42,9 +42,6 @@ static bool g_exit_on_failure = true;
 
 void vogl_enable_fail_exceptions(bool enabled)
 {
-    // Make sure off_t is ALWAYS 64-bits.
-    VOGL_ASSUME(sizeof(off_t) == sizeof(uint64_t));
-
     g_fail_exceptions = enabled;
 }
 
@@ -84,7 +81,7 @@ void vogl_fail(const char *pExp, const char *pFile, unsigned line)
     if (get_printable_backtrace(backtrace))
     {
         vogl_output_debug_string("Backtrace:");
-        for (uint i = 0; i < backtrace.size(); i++)
+        for (vogl::uint i = 0; i < backtrace.size(); i++)
             vogl_output_debug_string(backtrace[i].get_ptr());
     }
 

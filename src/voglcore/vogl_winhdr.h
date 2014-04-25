@@ -26,7 +26,7 @@
 
 #pragma once
 
-#ifndef WIN32
+#ifndef PLATFORM_WINDOWS
 #error Should not get here
 #endif
 

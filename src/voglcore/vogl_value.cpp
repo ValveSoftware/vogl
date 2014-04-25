@@ -300,7 +300,7 @@ namespace vogl
         if (strchr(p, ',') != NULL)
         {
             float fx = 0, fy = 0, fz = 0;
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
             if (sscanf_s(p, "%f,%f,%f", &fx, &fy, &fz) == 3)
 #else
             if (sscanf(p, "%f,%f,%f", &fx, &fy, &fz) == 3)
@@ -308,7 +308,7 @@ namespace vogl
             {
                 bool as_float = true;
                 int ix = 0, iy = 0, iz = 0;
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
                 if (sscanf_s(p, "%i,%i,%i", &ix, &iy, &iz) == 3)
 #else
                 if (sscanf(p, "%i,%i,%i", &ix, &iy, &iz) == 3)
@@ -1031,7 +1031,7 @@ namespace vogl
             {
                 const char *p = m_pStr->get_ptr();
                 float x = 0, y = 0, z = 0;
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
                 if (sscanf_s(p, "%f,%f,%f", &x, &y, &z) == 3)
 #else
                 if (sscanf(p, "%f,%f,%f", &x, &y, &z) == 3)
@@ -1122,7 +1122,7 @@ namespace vogl
             {
                 if (m_pJSONDoc->is_node())
                     return false;
-                val.set(m_pJSONDoc->as_double());
+				val.set(m_pJSONDoc->as_float());
                 break;
             }
             default:
@@ -1144,7 +1144,7 @@ namespace vogl
             {
                 const char *p = m_pStr->get_ptr();
                 float x = 0, y = 0, z = 0;
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
                 if (sscanf_s(p, "%f,%f,%f", &x, &y, &z) == 3)
 #else
                 if (sscanf(p, "%f,%f,%f", &x, &y, &z) == 3)

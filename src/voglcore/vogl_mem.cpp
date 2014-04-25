@@ -28,6 +28,7 @@
 #include "vogl_core.h"
 #include "vogl_console.h"
 #include "vogl.h"
+#include "vogl_port.h"
 #include "vogl_threading.h"
 #include "vogl_strutils.h"
 #include <malloc.h>
@@ -53,7 +54,7 @@
 #include "vogl_winhdr.h"
 #endif
 
-#if defined(__GNUC__)
+#if defined(COMPILER_GCCLIKE)
 #include "mcheck.h"
 #endif
 
@@ -100,52 +101,21 @@ static void *sys_alloc(void *user_context, size_t size_requested, size_t *size_p
 
     if (!g_page_size)
     {
-        g_page_size = sysconf(_SC_PAGE_SIZE);
+        g_page_size = static_cast<size_t>(plat_get_virtual_page_size());
         if (!g_page_size)
             g_page_size = 65536;
     }
 
     size_requested = (size_requested + g_page_size - 1) & (~(g_page_size - 1));
 
-    void *p = mmap(NULL, size_requested, PROT_READ | PROT_WRITE, MAP_ANON | MAP_SHARED, -1, 0);
-
-    if ((!p) || (p == MAP_FAILED))
-    {
-        uint e = errno;
-
-        // Not using strerror_r because it fails when we're completely out of memory.
-        char *pError_desc = strerror(e);
-
-        char buf[256];
-        sprintf(buf, "%s: mmap() of %zu bytes failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_NAME, size_requested, pError_desc, e);
-
-        write(STDERR_FILENO, buf, strlen(buf));
-        abort();
-    }
-
-    *size_provided = size_requested;
-
-    return p;
+    return plat_virtual_alloc(size_requested, PLAT_READ | PLAT_WRITE, size_provided);
 }
 
 static void sys_free(void *user_context, void *ptr, size_t size)
 {
     VOGL_NOTE_UNUSED(user_context);
 
-    int res = munmap(ptr, size);
-    if (res != 0)
-    {
-        uint e = errno;
-
-        // Not using strerror_r because it fails when we're completely out of memory.
-        char *pError_desc = strerror(e);
-
-        char buf[256];
-        sprintf(buf, "%s: munmap() ptr 0x%" PRIxPTR " size 0x%" PRIxPTR " failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_NAME, (uintptr_t)ptr, size, pError_desc, e);
-
-        write(STDERR_FILENO, buf, strlen(buf));
-        abort();
-    }
+    plat_virtual_free(ptr, size);
 }
 
 #if VOGL_MALLOC_DEBUGGING
@@ -432,7 +402,7 @@ public:
     }
 };
 
-global_heap_constructor g_global_heap_constructor __attribute__((init_priority(102)));
+global_heap_constructor g_global_heap_constructor VOGL_INIT_PRIORITY(102);
 
 VOGL_NAMESPACE_BEGIN(vogl)
 
@@ -648,11 +618,11 @@ void vogl_tracked_check_heap(const char *pFile_line)
 {
     check(pFile_line);
 
-#ifdef WIN32
+#if defined(COMPILER_MSVC)
     // Also see_CrtSetDbgFlag ()
     int status = _CrtCheckMemory();
     VOGL_VERIFY(status == TRUE);
-#elif defined(__GNUC__)
+#elif defined(COMPILER_GCCLIKE)
     // App MUST have been linked with -mlcheck! Unfortunately -mlcheck() causes the CRT's heap API's to be unusable on some dev boxes, no idea why.
     mcheck_check_all();
 #else

@@ -32,17 +32,17 @@
 #include "vogl_command_line_params.h"
 #include "vogl_strutils.h"
 
-#ifdef WIN32
-#include <tchar.h>
-#include <conio.h>
+#ifdef PLATFORM_WINDOWS
+    #include <tchar.h>
+    #include <conio.h>
 #endif
 
 #if VOGL_USE_LINUX_API
-#include <termios.h>
-#include <unistd.h>
-#include <sys/select.h>
-#include <stropts.h>
-#include <sys/ioctl.h>
+    #include <termios.h>
+    #include <unistd.h>
+    #include <sys/select.h>
+    #include <stropts.h>
+    #include <sys/ioctl.h>
 #endif
 
 namespace vogl

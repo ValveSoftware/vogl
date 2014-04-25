@@ -40,8 +40,8 @@
 //#include <stdio.h>
 #include <math.h>
 
-#if defined(_MSC_VER)
-#pragma warning(disable : 4201) //  nonstandard extension used : nameless struct/union
+#if defined(COMPILER_MSVC)
+    #pragma warning(disable : 4201) //  nonstandard extension used : nameless struct/union
 #endif
 
 #if defined(_DEBUG) || defined(DEBUG)

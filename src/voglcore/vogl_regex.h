@@ -30,8 +30,7 @@
 // Uses Henry Spencer's regex library, see regex_man.txt and regex2_man.txt
 // regexp class enables REG_EXTENDED syntax.
 //
-#ifndef VOGL_REGEX_H
-#define VOGL_REGEX_H
+#pragma once
 
 #include "vogl_core.h"
 #include "regex/regex.h"
@@ -194,4 +193,3 @@ namespace vogl
 
 } // namespace vogl
 
-#endif // VOGL_REGEX_H

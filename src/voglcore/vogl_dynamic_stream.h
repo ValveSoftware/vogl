@@ -241,8 +241,6 @@ namespace vogl
 
             m_ofs = static_cast<uint>(new_ofs);
 
-            post_seek();
-
             return true;
         }
 

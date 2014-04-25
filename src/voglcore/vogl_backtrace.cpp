@@ -26,6 +26,7 @@
 
 // File vogl_backtrace.cpp
 #include "vogl_backtrace.h"
+#include "vogl_console.h"
 
 #if VOGL_USE_LINUX_API
 #define USE_LIBBACKTRACE 0

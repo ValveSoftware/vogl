@@ -25,20 +25,15 @@
  **************************************************************************/
 
 // File: vogl_atomics.h
-#ifndef VOGL_ATOMICS_H
-#define VOGL_ATOMICS_H
+#pragma once
 
 #include "vogl_core.h"
 
-#ifdef WIN32
-#pragma once
-#endif
-
-#ifdef WIN32
+#ifdef PLATFORM_WINDOWS
 #include "vogl_winhdr.h"
 #endif
 
-#if defined(__GNUC__) && VOGL_PLATFORM_PC
+#if defined(COMPILER_GCCLIKE) && VOGL_PLATFORM_PC
 extern __inline__ __attribute__((__always_inline__, __gnu_inline__)) void vogl_yield_processor()
 {
     __asm__ __volatile__("pause");
@@ -60,8 +55,8 @@ VOGL_FORCE_INLINE void vogl_yield_processor()
 
 #if VOGL_USE_WIN32_ATOMIC_FUNCTIONS
 extern "C" __int64 _InterlockedCompareExchange64(__int64 volatile *Destination, __int64 Exchange, __int64 Comperand);
-#if defined(_MSC_VER)
-#pragma intrinsic(_InterlockedCompareExchange64)
+#if defined(COMPILER_MSVC)
+    #pragma intrinsic(_InterlockedCompareExchange64)
 #endif
 #endif // VOGL_USE_WIN32_ATOMIC_FUNCTIONS
 
@@ -234,5 +229,3 @@ namespace vogl
 #endif
 
 } // namespace vogl
-
-#endif // VOGL_ATOMICS_H

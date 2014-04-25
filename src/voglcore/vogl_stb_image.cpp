@@ -93,7 +93,7 @@
 
 #include "vogl_stb_image.h"
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
 #pragma warning(disable : 4793) //  function compiled as native
 #endif
 
@@ -126,7 +126,7 @@ namespace vogl
         vogl_free(p);
     }
 
-#if !defined(_MSC_VER) && !defined(__MINGW32__) && !defined(__MINGW64__)
+#if !defined(COMPILER_MSVC) && !defined(COMPILER_MINGW)
 #ifdef __cplusplus
 #define __forceinline inline
 #else
@@ -225,7 +225,7 @@ namespace vogl
         return result;
     }
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
     unsigned char *stbi_load_w(wchar_t const *filename, int *x, int *y, int *comp, int req_comp)
     {
         FILE *f = _wfopen(filename, L"rb");
@@ -4322,7 +4322,7 @@ namespace vogl
         return f != NULL;
     }
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
     static int outfile_w(wchar_t const *filename, int rgb_dir, int vdir, int x, int y, int comp, const void *data, int alpha, int pad, char *fmt, ...)
     {
         FILE *f = _wfopen(filename, L"wb");
@@ -4349,7 +4349,7 @@ namespace vogl
                        40, x, y, 1, 24, 0, 0, 0, 0, 0, 0);                   // bitmap header
     }
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
     int stbi_write_bmp_w(wchar_t const *filename, int x, int y, int comp, const void *data)
     {
         int pad = (-x * 3) & 3;
@@ -4368,7 +4368,7 @@ namespace vogl
                        (char *)"111 221 2222 11", 0, 0, 2, 0, 0, 0, 0, 0, x, y, 24 + 8 * has_alpha, 8 * has_alpha);
     }
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
     int stbi_write_tga_w(wchar_t const *filename, int x, int y, int comp, const void *data)
     {
         int has_alpha = !(comp & 1);

@@ -39,7 +39,10 @@
 
 #include <pthread.h>
 #include <semaphore.h>
-#include <unistd.h>
+
+#if defined(PLATFORM_LINUX)
+    #include <unistd.h>
+#endif
 
 namespace vogl
 {

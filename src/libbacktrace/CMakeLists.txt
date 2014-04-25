@@ -33,6 +33,8 @@ cmake_minimum_required (VERSION 2.8)
 
 project (libbacktracevogl)
 
+include("${SRC_DIR}/build_options.cmake")
+
 set (BACKTRACE_SUPPORTED 1)
 
 include (CheckSymbolExists)

@@ -25,8 +25,7 @@
  **************************************************************************/
 
 // File: vogl_miniz_zip.h
-#ifndef VOGL_MINIZ_ZIP_H
-#define VOGL_MINIZ_ZIP_H
+#pragma once
 
 #include "vogl_miniz.h"
 
@@ -432,5 +431,3 @@ void *mz_zip_extract_archive_file_to_heap(const char *pZip_filename, const char 
 #ifdef __cplusplus
 }
 #endif
-
-#endif // VOGL_MINIZ_ZIP_H

@@ -26,8 +26,7 @@
 
 // File: dds_defs.h
 // DX9 .DDS file header definitions.
-#ifndef VOGL_DDS_DEFS_H
-#define VOGL_DDS_DEFS_H
+#pragma once
 
 #include "vogl.h"
 
@@ -174,5 +173,3 @@ namespace vogl
    const vogl_uint32 DDSCAPS2_VOLUME             = 0x00200000;
 
 } // namespace vogl
-
-#endif // VOGL_DDS_DEFS_H

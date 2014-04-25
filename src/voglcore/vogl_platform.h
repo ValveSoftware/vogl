@@ -46,26 +46,26 @@ const bool c_vogl_little_endian_platform = false;
 
 const bool c_vogl_big_endian_platform = !c_vogl_little_endian_platform;
 
-#ifdef __GNUC__
-#define vogl_fopen(f, m) fopen64(f, m)
-#define vogl_fopen_s(pDstFile, f, m) *(pDstFile) = fopen64(f, m)
-#define vogl_fseek fseeko64
-#define vogl_ftell ftello64
-#elif defined(_MSC_VER)
-inline FILE *vogl_fopen(const char *pFilename, const char *pMode)
-{
-    FILE *pFile = NULL;
-    fopen_s(&pFile, pFilename, pMode);
-    return pFile;
-}
-#define vogl_fopen_s(pDstFile, f, m) fopen_s(pDstFile, f, m)
-#define vogl_fseek _fseeki64
-#define vogl_ftell _ftelli64
+#if defined(COMPILER_GCCLIKE)
+    #define vogl_fopen(f, m) fopen64(f, m)
+    #define vogl_fopen_s(pDstFile, f, m) *(pDstFile) = fopen64(f, m)
+    #define vogl_fseek fseeko64
+    #define vogl_ftell ftello64
+#elif defined(COMPILER_MSVC)
+    inline FILE *vogl_fopen(const char *pFilename, const char *pMode)
+    {
+        FILE *pFile = NULL;
+        fopen_s(&pFile, pFilename, pMode);
+        return pFile;
+    }
+    #define vogl_fopen_s(pDstFile, f, m) fopen_s(pDstFile, f, m)
+    #define vogl_fseek _fseeki64
+    #define vogl_ftell _ftelli64
 #else
-#define vogl_fopen(f, m) fopen(f, m)
-#define vogl_fopen_s(pDstFile, f, m) *(pDstFile) = fopen(f, m)
-#define vogl_fseek(s, o, w) fseek(s, static_cast<long>(o), w)
-#define vogl_ftell ftell
+    #define vogl_fopen(f, m) fopen(f, m)
+    #define vogl_fopen_s(pDstFile, f, m) *(pDstFile) = fopen(f, m)
+    #define vogl_fseek(s, o, w) fseek(s, static_cast<long>(o), w)
+    #define vogl_ftell ftell
 #endif
 
 #define vogl_fread fread
@@ -80,29 +80,29 @@ inline FILE *vogl_fopen(const char *pFilename, const char *pMode)
 #define vogl_fclose fclose
 
 #ifdef VOGL_USE_WIN32_API
-#define VOGL_BREAKPOINT DebugBreak();
-#define VOGL_BUILTIN_EXPECT(c, v) c
-#elif defined(__GNUC__)
-#define VOGL_BREAKPOINT asm("int $3");
-#define VOGL_BUILTIN_EXPECT(c, v) __builtin_expect(c, v)
+    #define VOGL_BREAKPOINT DebugBreak();
+    #define VOGL_BUILTIN_EXPECT(c, v) c
+#elif defined(COMPILER_GCCLIKE)
+    #define VOGL_BREAKPOINT asm("int $3");
+    #define VOGL_BUILTIN_EXPECT(c, v) __builtin_expect(c, v)
 #else
-#define VOGL_BREAKPOINT
-#define VOGL_BUILTIN_EXPECT(c, v) c
+    #define VOGL_BREAKPOINT
+    #define VOGL_BUILTIN_EXPECT(c, v) c
 #endif
 
-#if defined(__GNUC__)
-#define VOGL_ALIGNED(x) __attribute__((aligned(x)))
-#define VOGL_ALIGNED_BEGIN(x)
-#define VOGL_ALIGNED_END(x) __attribute__((aligned(x)))
-#define VOGL_NOINLINE __attribute__((noinline))
-#elif defined(_MSC_VER)
-#define VOGL_ALIGNED(x) __declspec(align(x))
-#define VOGL_ALIGNED_BEGIN(x) __declspec(align(x))
-#define VOGL_ALIGNED_END(x)
-#define VOGL_NOINLINE __declspec(noinline)
+#if defined(COMPILER_GCCLIKE)
+    #define VOGL_ALIGNED(x) __attribute__((aligned(x)))
+    #define VOGL_ALIGNED_BEGIN(x)
+    #define VOGL_ALIGNED_END(x) __attribute__((aligned(x)))
+    #define VOGL_NOINLINE __attribute__((noinline))
+#elif defined(COMPILER_MSVC)
+    #define VOGL_ALIGNED(x) __declspec(align(x))
+    #define VOGL_ALIGNED_BEGIN(x) __declspec(align(x))
+    #define VOGL_ALIGNED_END(x)
+    #define VOGL_NOINLINE __declspec(noinline)
 #else
-#define VOGL_ALIGNED(x)
-#define VOGL_NOINLINE
+    #define VOGL_ALIGNED(x)
+    #define VOGL_NOINLINE
 #endif
 
 #define VOGL_GET_ALIGNMENT(v) ((!sizeof(v)) ? 1 : (__alignof(v) ? __alignof(v) : sizeof(uint32)))
@@ -162,7 +162,7 @@ namespace vogl
     dynamic_string demangle(const char *pMangled);
 } // namespace vogl
 
-#ifdef __GNUC__
+#if defined(COMPILER_GCCLIKE)
 // FIXME: Is there a better way on GCC to do this?
 // Obviously this isn't fast, it's intended for warning/error messages and such.
 #define VOGL_METHOD_NAME vogl::dynamic_string(vogl::cVarArg, "%s::%s (%u)", vogl::demangle(vogl::type_name(*this)).get_ptr(), VOGL_FUNCTION_NAME, __LINE__).get_ptr()

@@ -25,8 +25,7 @@
  **************************************************************************/
 
 // File: vogl_bigint128.h
-#ifndef VOGL_BIGINT128_H
-#define VOGL_BIGINT128_H
+#pragma once
 
 #include "vogl_core.h"
 #include "vogl_rand.h"
@@ -1167,7 +1166,7 @@ namespace vogl
             BIGINT128_CHECK(!(x > 0));
         }
 
-#if defined(VOGL_PLATFORM_PC_X64) && defined(__GNUC__)
+#if defined(VOGL_PLATFORM_PC_X64) && defined(COMPILER_GCCLIKE)
         vogl::random r;
         r.seed(seed);
         for (uint i = 0; i < 1000000000; i++)
@@ -1425,4 +1424,3 @@ namespace vogl
 
 } // namespace vogl
 
-#endif // VOGL_BIGINT128_H

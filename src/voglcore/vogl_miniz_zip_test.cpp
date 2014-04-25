@@ -156,7 +156,7 @@ namespace vogl
                     break;
             }
 
-            bool add_from_mem = g_thread_safe_random.get_bit();
+            bool add_from_mem = g_thread_safe_random.get_bit() != 0;
 
             printf("Adding file %s, size %s, add from mem: %u\n", name.get_ptr(), uint64_to_string_with_commas(actual_size).get_ptr(), add_from_mem);
 
@@ -501,9 +501,9 @@ namespace vogl
             dynamic_string full_zip_filename(zip_filename);
             file_utils::full_path(full_zip_filename);
 
-            bool zip64 = g_thread_safe_random.get_bit();
+            bool zip64 = g_thread_safe_random.get_bit() != 0;
 
-            bool test_big_files = g_thread_safe_random.get_bit();
+            bool test_big_files = g_thread_safe_random.get_bit() != 0;
 
             uint max_files;
             if (test_big_files)
@@ -531,7 +531,7 @@ namespace vogl
             printf("******* Validating archive %s using miniz_zip\n", full_zip_filename.get_ptr());
 
             mz_zip_error last_zip_error = MZ_ZIP_NO_ERROR;
-            success = mz_zip_validate_file_archive(zip_filename.get_ptr(), ((g_thread_safe_random.get_bit() && (file_descs.size() < 30000)) ? MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY : 0) | MZ_ZIP_FLAG_VALIDATE_LOCATE_FILE_FLAG, &last_zip_error);
+            success = (mz_zip_validate_file_archive(zip_filename.get_ptr(), ((g_thread_safe_random.get_bit() && (file_descs.size() < 30000)) ? MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY : 0) | MZ_ZIP_FLAG_VALIDATE_LOCATE_FILE_FLAG, &last_zip_error)) != 0;
             CHECK(success);
 
             printf("******* Validating archive %s using unzip\n", full_zip_filename.get_ptr());

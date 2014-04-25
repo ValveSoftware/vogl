@@ -29,12 +29,15 @@
 #include "vogl_data_stream.h"
 #include "vogl_file_utils.h"
 
+#define c_CR (0xD) 
+#define c_LF (0xA) 
+
 namespace vogl
 {
     data_stream::data_stream()
         : m_pUser_data(NULL),
           m_attribs(0),
-          m_opened(false), m_error(false), m_got_cr(false)
+          m_opened(false), m_error(false)
     {
     }
 
@@ -42,7 +45,7 @@ namespace vogl
         : m_name(pName),
           m_pUser_data(NULL),
           m_attribs(static_cast<uint16>(attribs)),
-          m_opened(false), m_error(false), m_got_cr(false)
+          m_opened(false), m_error(false)
     {
     }
 
@@ -91,10 +94,8 @@ namespace vogl
 
         for (;;)
         {
+            // Can't be const--need to deal with Mac OS9 style line endings via substition
             const int c = read_byte();
-
-            const bool prev_got_cr = m_got_cr;
-            m_got_cr = false;
 
             if (c < 0)
             {
@@ -106,16 +107,18 @@ namespace vogl
             // ignores DOS EOF, assumes it's at the very end of the file
             else if ((26 == c) || (!c))
                 continue;
-            else if (13 == c)
+            else if (c_CR == c)
             {
-                m_got_cr = true;
+                // This path handles OS9 and Windows style line endings.
+                // Check to see if the next character is a LF, if so eat that one too.
+                if (c_LF == peek_byte()) {
+                    read_byte();
+                }
                 break;
             }
-            else if (10 == c)
+            else if (c_LF == c)
             {
-                if (prev_got_cr)
-                    continue;
-
+                // UNIX style line endings.
                 break;
             }
 

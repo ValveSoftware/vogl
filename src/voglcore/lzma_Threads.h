@@ -27,8 +27,7 @@
 /* Threads.h -- multithreading library
 2008-11-22 : Igor Pavlov : Public domain */
 
-#ifndef __7Z_THRESDS_H
-#define __7Z_THRESDS_H
+#pragma once
 
 #include "lzma_Types.h"
 
@@ -92,4 +91,3 @@ namespace vogl
 #define CriticalSection_Leave(p) LeaveCriticalSection(p)
 }
 
-#endif

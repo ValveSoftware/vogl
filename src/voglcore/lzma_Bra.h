@@ -27,8 +27,7 @@
 /* Bra.h -- Branch converters for executables
 2008-10-04 : Igor Pavlov : Public domain */
 
-#ifndef __BRA_H
-#define __BRA_H
+#pragma once
 
 #include "lzma_Types.h"
 
@@ -90,4 +89,3 @@ in CALL instructions to increase the compression ratio.
     SizeT IA64_Convert(Byte *data, SizeT size, UInt32 ip, int encoding);
 }
 
-#endif

@@ -27,8 +27,7 @@
 /*  LzmaEnc.h -- LZMA Encoder
 2008-10-04 : Igor Pavlov : Public domain */
 
-#ifndef __LZMAENC_H
-#define __LZMAENC_H
+#pragma once
 
 #include "lzma_Types.h"
 
@@ -98,4 +97,3 @@ Return code:
                     ICompressProgress *progress, ISzAlloc *alloc, ISzAlloc *allocBig);
 }
 
-#endif

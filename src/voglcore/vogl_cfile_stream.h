@@ -163,6 +163,24 @@ namespace vogl
             return len;
         }
 
+        virtual uint peek(char *out_char)
+        {
+            VOGL_ASSERT(out_char);
+
+            if (!m_opened || (!is_readable()))
+                return -1;
+
+            int c = fgetc(m_pFile);
+            ungetc(c, m_pFile);
+
+            if (c == EOF)
+                return 0;
+
+            VOGL_ASSERT((c & 0xFF) == c);
+            (*out_char) = (c & 0xFF);
+             return 1;
+        }
+
         virtual uint write(const void *pBuf, uint len)
         {
             VOGL_ASSERT(len <= 0x7FFFFFFF);

@@ -5,8 +5,18 @@ set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SRC_DIR}/cmake/Modules/")
 
-find_package(LibLZMA REQUIRED)
-find_package(TinyXML REQUIRED)
+if (WIN32)
+    set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../external/windows")
+    set(WIN32_PTHREADS_PATH "${CMAKE_PREFIX_PATH}/pthreads.2")
+    set(WIN32_PTHREADS_INCLUDE_PATH "${WIN32_PTHREADS_PATH}/include")
+    set(WIN32_PTHREADS_LIB_PATH "${WIN32_PTHREADS_PATH}/lib/x86")
+endif()
+
+if (NOT WIN32)
+    find_package(LibLZMA REQUIRED)
+endif()
+
+find_package(TinyXML)
 
 message("")
 message("cmake options:")
@@ -24,17 +34,21 @@ message("")
 #  Components to build
 #
 
-add_subdirectory(src/voglcore)
-add_subdirectory(src/voglgen)
-add_subdirectory(src/voglcommon)
-add_subdirectory(src/voglreplay)
-add_subdirectory(src/voglbench)
-add_subdirectory(src/voglsyms)
-add_subdirectory(src/vogltrace)
-add_subdirectory(src/vogltest)
-add_subdirectory(src/voglserver)
-add_subdirectory(src/voglcmd)
-add_subdirectory(src/glxspheres)
-add_subdirectory(src/vogleditor)
-add_subdirectory(src/libbacktrace)
-add_subdirectory(src/libbacktrace_test)
+### All of these must be included eventually.
+add_subdirectory(src/voglcore) # 1
+add_subdirectory(src/voglgen) # 2
+
+if (NOT WIN32)
+    add_subdirectory(src/voglcommon) # 3
+    add_subdirectory(src/voglreplay) # 4
+    add_subdirectory(src/voglbench) # 5
+    add_subdirectory(src/voglsyms) # 6
+    add_subdirectory(src/vogltrace) # 7
+    add_subdirectory(src/vogltest) # 8
+    add_subdirectory(src/voglserver) # 9
+    add_subdirectory(src/voglcmd) # 10 
+    add_subdirectory(src/glxspheres) # 11 -- Probably linux only.
+    add_subdirectory(src/vogleditor) # 12
+    add_subdirectory(src/libbacktrace) # 13
+    add_subdirectory(src/libbacktrace_test) # 14
+endif()

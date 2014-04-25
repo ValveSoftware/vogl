@@ -25,17 +25,15 @@
  **************************************************************************/
 
 // File: vogl_threading.h
-#ifndef VOGL_THREADING_H
-#define VOGL_THREADING_H
+#pragma once
 
 #include "vogl_core.h"
 
-#ifdef VOGL_USE_WIN32_API
-#include "vogl_threading_win32.h"
-#elif VOGL_USE_PTHREADS_API
+#if VOGL_USE_PTHREADS_API
 #include "vogl_threading_pthreads.h"
+#elif defined(VOGL_USE_WIN32_API)
+#include "vogl_threading_win32.h"
 #else
 #include "vogl_threading_null.h"
 #endif
 
-#endif // VOGL_THREADING_H

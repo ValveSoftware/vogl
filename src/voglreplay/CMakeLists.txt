@@ -2,10 +2,9 @@ project(voglreplay)
 cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
-find_package(Threads)
-if (NOT CMAKE_USE_PTHREADS_INIT)
-    message(ERROR "pthread not found")
-endif ()
+
+require_pthreads()
+
 find_package(X11 REQUIRED)
 
 include_directories(

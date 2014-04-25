@@ -36,12 +36,18 @@ if (BUILD_X64 STREQUAL "")
   endif()
 endif()
 
-# Generate bitness suffix to use
+if (BUILD_X64 AND MSVC)
+    # TODO: I don't know how to get a 64-bit build generated from MSVC yet.
+    set(BUILD_X64 "FALSE")
+endif()
+
+# Generate bitness suffix to use, but make sure to include the existing suffix (.exe) 
+# for platforms that need it (ie, Windows)
 if (BUILD_X64)
-    set(CMAKE_EXECUTABLE_SUFFIX 64)
+    set(CMAKE_EXECUTABLE_SUFFIX "64${CMAKE_EXECUTABLE_SUFFIX}")
     set(CMAKE_SHARED_LIBRARY_SUFFIX "64.so")
 else()
-    set(CMAKE_EXECUTABLE_SUFFIX 32)
+    set(CMAKE_EXECUTABLE_SUFFIX "32${CMAKE_EXECUTABLE_SUFFIX}")
     set(CMAKE_SHARED_LIBRARY_SUFFIX "32.so")
 endif()
 
@@ -58,9 +64,15 @@ add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES)
 # support for inttypes.h macros
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS)
 
-set(CMAKE_CXX_FLAGS_LIST "-g -Wall -Wextra")
-set(CMAKE_CXX_FLAGS_RELEASE_LIST "-g -O2 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG")
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_LIST "/DEBUG /W3 /D_CRT_SECURE_NO_WARNINGS=1 /DWIN32 /D_WIN32")
+    set(CMAKE_CXX_FLAGS_RELEASE_LIST "/O2 /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_DEBUG_LIST "/Od /D_DEBUG")
+else()
+    set(CMAKE_CXX_FLAGS_LIST "-g -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS_RELEASE_LIST "-g -O2 -DNDEBUG")
+    set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG")
+endif()
 
 set(CLANG_EVERYTHING 0)
 if (NOT VOGL_BUILDING_SAMPLES)
@@ -121,14 +133,28 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 
 endif()
 
-if (NOT BUILD_X64)
-    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -m32")
+if (MSVC)
+else()
+    if (NOT BUILD_X64)
+        set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -m32")
+    endif()
 endif()
 
 function(add_compiler_flag flag)
     set(CMAKE_C_FLAGS    "${CMAKE_C_FLAGS}   ${flag}" PARENT_SCOPE)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${flag}" PARENT_SCOPE)
 endfunction()
+
+function(add_compiler_flag_debug flag)
+    set(CMAKE_C_FLAGS_DEBUG    "${CMAKE_C_FLAGS_DEBUG}   ${flag}" PARENT_SCOPE)
+    set(CMAKE_CXX_FLAGS_DEBUG  "${CMAKE_CXX_FLAGS_DEBUG} ${flag}" PARENT_SCOPE)
+endfunction()
+
+function(add_compiler_flag_release flag)
+    set(CMAKE_C_FLAGS_RELEASE    "${CMAKE_C_FLAGS_RELEASE}   ${flag}" PARENT_SCOPE)
+    set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} ${flag}" PARENT_SCOPE)
+endfunction()
+
 
 function(add_linker_flag flag)
     set(CMAKE_EXE_LINKER_FLAGS   "${CMAKE_EXE_LINKER_FLAGS} ${flag}" PARENT_SCOPE)
@@ -167,17 +193,24 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
    endif()
 endif()
 
-set(CMAKE_CXX_FLAGS_LIST
-    ${CMAKE_CXX_FLAGS_LIST}
-    "-fno-omit-frame-pointer"
-    ${MARCH_STR}
-    # "-msse2 -mfpmath=sse" # To build with SSE instruction sets
-    "-Wno-unused-parameter -Wno-unused-function"
-    "-fno-strict-aliasing" # DO NOT remove this, we have lots of code that will fail in obscure ways otherwise because it was developed with MSVC first.
-    "-fno-math-errno"
-	"-fvisibility=hidden"
-    # "-fno-exceptions" # Exceptions are enabled by default for c++ files, disabled for c files.
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_LIST
+        ${CMAKE_CXX_FLAGS_LIST}
+        "/EHsc" # Need exceptions
     )
+else()
+    set(CMAKE_CXX_FLAGS_LIST
+        ${CMAKE_CXX_FLAGS_LIST}
+        "-fno-omit-frame-pointer"
+        ${MARCH_STR}
+        # "-msse2 -mfpmath=sse" # To build with SSE instruction sets
+        "-Wno-unused-parameter -Wno-unused-function"
+        "-fno-strict-aliasing" # DO NOT remove this, we have lots of code that will fail in obscure ways otherwise because it was developed with MSVC first.
+        "-fno-math-errno"
+    	"-fvisibility=hidden"
+        # "-fno-exceptions" # Exceptions are enabled by default for c++ files, disabled for c files.
+    )
+endif()
 
 if (CMAKE_COMPILER_IS_GNUCC)
     execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
@@ -193,15 +226,18 @@ if (GCC_VERSION VERSION_GREATER 4.8 OR GCC_VERSION VERSION_EQUAL 4.8)
     )
 endif()
 
-if (WITH_HARDENING)
-    # http://gcc.gnu.org/ml/gcc-patches/2004-09/msg02055.html
-    add_definitions(-D_FORTIFY_SOURCE=2 -fpic)
-    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-        # During program load, several ELF memory sections need to be written to by the
-        # linker, but can be turned read-only before turning over control to the
-        # program. This prevents some GOT (and .dtors) overwrite attacks, but at least
-        # the part of the GOT used by the dynamic linker (.got.plt) is still vulnerable.
-        add_definitions(-pie -z now -z relro)
+if (MSVC)
+else()
+    if (WITH_HARDENING)
+        # http://gcc.gnu.org/ml/gcc-patches/2004-09/msg02055.html
+        add_definitions(-D_FORTIFY_SOURCE=2 -fpic)
+        if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+            # During program load, several ELF memory sections need to be written to by the
+            # linker, but can be turned read-only before turning over control to the
+            # program. This prevents some GOT (and .dtors) overwrite attacks, but at least
+            # the part of the GOT used by the dynamic linker (.got.plt) is still vulnerable.
+            add_definitions(-pie -z now -z relro)
+        endif()
     endif()
 endif()
 
@@ -231,13 +267,17 @@ endif()
 #endif()
 #message(STATUS "Tsan is: ${WITH_TSAN} ${SANITIZER_LIBRARY}")
 
-set(CMAKE_EXE_LINK_FLAGS_LIST
-    "-Wl,--no-undefined"
-    # "-lmcheck"
-    )
-set(CMAKE_SHARED_LINK_FLAGS_LIST
-    "-Wl,--no-undefined"
-    )
+
+if (NOT MSVC)
+	set(CMAKE_EXE_LINK_FLAGS_LIST
+		"-Wl,--no-undefined"
+		# "-lmcheck"
+	)
+
+	set(CMAKE_SHARED_LINK_FLAGS_LIST
+		"-Wl,--no-undefined"
+	)
+endif()
 
 # Compiler flags
 string(REPLACE ";" " " CMAKE_C_FLAGS              "${CMAKE_CXX_FLAGS_LIST}")
@@ -310,3 +350,75 @@ function(build_options_finalize)
     endif()
 endfunction()
 
+function(require_pthreads)
+    find_package(Threads)
+    if (NOT CMAKE_USE_PTHREADS_INIT AND NOT WIN32_PTHREADS_INCLUDE_PATH)
+        message(FATAL_ERROR "pthread not found")
+    endif()
+
+    if (MSVC)
+        include_directories("${WIN32_PTHREADS_INCLUDE_PATH}")
+    else()
+        # Export the variable to the parent scope so the linker knows where to find the library.
+        set(CMAKE_THREAD_LIBS_INIT ${CMAKE_THREAD_LIBS_INIT} PARENT_SCOPE)
+    endif()
+
+endfunction()
+
+# What compiler toolchain are we building on?
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+    add_compiler_flag("-DCOMPILER_GCC=1")
+    add_compiler_flag("-DCOMPILER_GCCLIKE=1")
+elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "mingw")
+    add_compiler_flag("-DCOMPILER_MINGW=1")
+    add_compiler_flag("-DCOMPILER_GCCLIKE=1")
+elseif (MSVC)
+    add_compiler_flag("-DCOMPILER_MSVC=1")
+elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    add_compiler_flag("-DCOMPILER_CLANG=1")
+    add_compiler_flag("-DCOMPILER_GCCLIKE=1")
+else()
+    message("Compiler is ${CMAKE_C_COMPILER_ID}")
+    message(FATAL_ERROR "Compiler unset, build will fail--stopping at CMake time.")
+endif()
+
+# What OS will we be running on?
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_compiler_flag("-DPLATFORM_OSX=1")
+    add_compiler_flag("-DPLATFORM_POSIX=1")
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    add_compiler_flag("-DPLATFORM_LINUX=1")
+    add_compiler_flag("-DPLATFORM_POSIX=1")
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    add_compiler_flag("-DPLATFORM_WINDOWS=1")
+else()
+    message(FATAL_ERROR "Platform unset, build will fail--stopping at CMake time.")
+endif()
+
+# What bittedness are we building?
+if (BUILD_X64)
+    add_compiler_flag("-DPLATFORM_64BIT=1")
+else()
+    add_compiler_flag("-DPLATFORM_32BIT=1")
+endif()
+
+# Compiler flags for windows.
+if (MSVC)
+    # Multithreaded compilation is a big time saver.
+    add_compiler_flag("/MP")
+
+    # In debug, we use the DLL debug runtime.
+    add_compiler_flag_debug("/MDd")
+
+    # And in release we use the DLL release runtime
+    add_compiler_flag_release("/MD")
+
+    # In debug, get debug information suitable for Edit and Continue
+    add_compiler_flag_debug("/ZI")
+
+    # In release, still generate debug information (because not having it is dumb)
+    add_compiler_flag_release("/Zi")
+
+    # And tell the linker to always generate the file for us.
+    add_linker_flag("/DEBUG")
+endif()

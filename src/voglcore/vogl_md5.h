@@ -87,6 +87,17 @@ namespace vogl
             init(a, b, c, d);
         }
 
+		// This is a convenience function for creating MD5 hashes directly from Windows UUID structures.
+		inline md5_hash(uint32 a32, uint16 b16, uint16 c16, uint8 d8_8[8])
+		{
+			uint a = a32;
+			uint b = uint32(b16) << 16 | c16;
+			uint c = (*(uint32*)(&d8_8[0]));
+			uint d = (*(uint32*)(&d8_8[4]));
+
+			init(a, b, c, d);
+		}
+
         // pStr must be zero terminated, 32 hex chars, big endian order
         inline md5_hash(const char *pStr)
         {
@@ -329,7 +340,7 @@ namespace vogl
         inline md5_hash_gen &update(uint16 v)
         {
             uint8 octets[2];
-            octets[0] = (v >> 16U) & 0xFF;
+            octets[0] = (v >> 8U) & 0xFF;
             octets[1] = v & 0xFF;
             return update(octets, sizeof(octets));
         }

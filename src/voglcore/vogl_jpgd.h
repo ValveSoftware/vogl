@@ -26,17 +26,16 @@
 
 // jpgd.h - C++ class for JPEG decompression.
 // Public domain, Rich Geldreich <richgel99@gmail.com>
-#ifndef JPEG_DECODER_H
-#define JPEG_DECODER_H
+#pragma once
 
 #include "vogl_core.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <setjmp.h>
 
-#ifdef _MSC_VER
+#ifdef COMPILER_MSVC
 #define JPGD_NORETURN __declspec(noreturn)
-#elif defined(__GNUC__)
+#elif defined(COMPILER_GCC)
 #define JPGD_NORETURN __attribute__((noreturn))
 #else
 #define JPGD_NORETURN
@@ -415,4 +414,3 @@ namespace jpgd
 
 } // namespace jpgd
 
-#endif // JPEG_DECODER_H
