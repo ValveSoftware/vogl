@@ -2306,37 +2306,42 @@ void vogl_enable_generic_context_debug_messages()
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config fb_config, vogl_gl_context share_context, uint major_ver, uint minor_ver, uint flags, vogl_context_desc *pDesc)
 {
-    vogl_context_attribs attribs;
-    attribs.add_key(GLX_CONTEXT_MAJOR_VERSION_ARB, major_ver);
-    attribs.add_key(GLX_CONTEXT_MINOR_VERSION_ARB, minor_ver);
+    #if VOGL_PLATFORM_HAS_GLX
+        vogl_context_attribs attribs;
+        attribs.add_key(GLX_CONTEXT_MAJOR_VERSION_ARB, major_ver);
+        attribs.add_key(GLX_CONTEXT_MINOR_VERSION_ARB, minor_ver);
 
-    if (flags & (cCHCCoreProfileFlag | cCHCCompatProfileFlag))
-    {
-        uint profile_mask = 0;
-        if (flags & cCHCCoreProfileFlag)
-            profile_mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+        if (flags & (cCHCCoreProfileFlag | cCHCCompatProfileFlag))
+        {
+            uint profile_mask = 0;
+            if (flags & cCHCCoreProfileFlag)
+                profile_mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 
-        if (flags & cCHCCompatProfileFlag)
-            profile_mask |= GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+            if (flags & cCHCCompatProfileFlag)
+                profile_mask |= GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 
-        attribs.add_key(GLX_CONTEXT_PROFILE_MASK_ARB, profile_mask);
-    }
-    if (flags & eCHCDebugContextFlag)
-    {
-        attribs.add_key(GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB);
-    }
+            attribs.add_key(GLX_CONTEXT_PROFILE_MASK_ARB, profile_mask);
+        }
+        if (flags & eCHCDebugContextFlag)
+        {
+            attribs.add_key(GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB);
+        }
 
-    GLXContext context = GL_ENTRYPOINT(glXCreateContextAttribsARB)(display, fb_config, share_context, GL_TRUE, attribs.get_ptr());
+        GLXContext context = GL_ENTRYPOINT(glXCreateContextAttribsARB)(display, fb_config, share_context, GL_TRUE, attribs.get_ptr());
 
-    if (pDesc)
-    {
-        if (!context)
-            pDesc->clear();
-        else
-            pDesc->init(VOGL_ENTRYPOINT_glXCreateContextAttribsARB, GL_TRUE, (vogl_trace_ptr_value)context, (vogl_trace_ptr_value)share_context, attribs);
-    }
+        if (pDesc)
+        {
+            if (!context)
+                pDesc->clear();
+            else
+                pDesc->init(VOGL_ENTRYPOINT_glXCreateContextAttribsARB, GL_TRUE, (vogl_trace_ptr_value)context, (vogl_trace_ptr_value)share_context, attribs);
+        }
 
-    return context;
+        return context;
+    #else
+        VOGL_ASSERT(!"impl vogl_create_context");
+        return 0;
+    #endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2368,22 +2373,27 @@ vogl_gl_drawable vogl_get_current_drawable()
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_fb_config vogl_get_current_fb_config(uint screen)
 {
-    GLXDrawable pDrawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
-    Display *pDisplay = GL_ENTRYPOINT(glXGetCurrentDisplay)();
-    if ((!pDrawable) || (!pDisplay))
+    #if VOGL_PLATFORM_HAS_GLX
+        GLXDrawable pDrawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
+        Display *pDisplay = GL_ENTRYPOINT(glXGetCurrentDisplay)();
+        if ((!pDrawable) || (!pDisplay))
+            return 0;
+
+        GLuint fbconfig_id = 0;
+        GL_ENTRYPOINT(glXQueryDrawable)(pDisplay, pDrawable, GLX_FBCONFIG_ID, &fbconfig_id);
+
+        GLint attrib_list[3] = { GLX_FBCONFIG_ID, static_cast<GLint>(fbconfig_id), None };
+        GLint nelements = 0;
+        GLXFBConfig *pConfigs = GL_ENTRYPOINT(glXChooseFBConfig)(pDisplay, screen, attrib_list, &nelements);
+
+        if ((pConfigs) && (nelements > 0))
+            return pConfigs[0];
+
         return 0;
-
-    GLuint fbconfig_id = 0;
-    GL_ENTRYPOINT(glXQueryDrawable)(pDisplay, pDrawable, GLX_FBCONFIG_ID, &fbconfig_id);
-
-    GLint attrib_list[3] = { GLX_FBCONFIG_ID, static_cast<GLint>(fbconfig_id), None };
-    GLint nelements = 0;
-    GLXFBConfig *pConfigs = GL_ENTRYPOINT(glXChooseFBConfig)(pDisplay, screen, attrib_list, &nelements);
-
-    if ((pConfigs) && (nelements > 0))
-        return pConfigs[0];
-
-    return 0;
+    #else
+        VOGL_ASSERT(!"impl vogl_get_current_fb_config");
+        return 0;
+    #endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2391,7 +2401,11 @@ vogl_gl_fb_config vogl_get_current_fb_config(uint screen)
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_make_current(vogl_gl_display display, vogl_gl_drawable drawable, vogl_gl_context context)
 {
-    GL_ENTRYPOINT(glXMakeCurrent)(display, drawable, context);
+    #if VOGL_PLATFORM_HAS_GLX
+        GL_ENTRYPOINT(glXMakeCurrent)(display, drawable, context);
+    #else
+        VOGL_ASSERT(!"impl vogl_make_current");
+    #endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------

@@ -307,6 +307,15 @@ public:
         return -1;
     }
 
+    gl_function_def *find(const char *pName)
+    {
+        for (uint i = 0; i < m_funcs.size(); i++)
+            if (m_funcs[i].m_name.compare(pName, true) == 0)
+                return &m_funcs[i];
+
+        return NULL;
+    }
+
     const gl_function_def *find(const char *pName) const
     {
         for (uint i = 0; i < m_funcs.size(); i++)
@@ -2102,6 +2111,23 @@ public:
                 m_gl_funcs.get_funcs_vec().erase_unordered(gl_index);
             }
         }
+
+        // Cleanup the DepthRange function. It uses parameters called 'near' and 'far', and this messes up windows 
+        // because they are defined to be empty. We fix it for all platforms.
+        gl_function_def* glDepthRange_func = m_gl_funcs.find("DepthRange");
+        if (glDepthRange_func != NULL) {
+            VOGL_VERIFY(glDepthRange_func->m_param_names.size() == 2);
+            if (glDepthRange_func->m_param_names[0] == "near") {
+                glDepthRange_func->m_param_names[0] = "_near";
+                glDepthRange_func->m_params[0].m_name = "_near";
+            }
+            
+            if (glDepthRange_func->m_param_names[1] == "far") {
+                glDepthRange_func->m_param_names[1] = "_far";
+                glDepthRange_func->m_params[1].m_name = "_far";
+            }
+        }
+        
 
         for (uint j = 0; j < m_glxext_funcs.size(); j++)
         {

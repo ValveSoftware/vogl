@@ -32,8 +32,6 @@
 //----------------------------------------------------------------------------------------------------------------------
 // define GL/GLX function pointer typedefs, i.e. glXGetProcAddress_func_ptr_t
 //----------------------------------------------------------------------------------------------------------------------
-DEF_PROTO(DEF_PROTO_EXPORTED, glx, Bool, VOGL_BOOL, 3, glXQueryExtension, (const Display *dpy, GLint *errorBase, GLint *eventBase), (dpy, errorBase, eventBase))
-
 
 #define DEF_PROTO(exported, category, ret, ret_type, num_params, name, args, params) typedef ret(*name##_func_ptr_t) args;
 #define DEF_PROTO_VOID(exported, category, ret, ret_type, num_params, name, args, params) typedef ret(*name##_func_ptr_t) args;

@@ -82,12 +82,22 @@ typedef void(GLAPIENTRY *GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, 
 typedef void(GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 
 #if !defined(VOGL_PLATFORM_HAS_GLX)
-    // XID types actually long's (32 or 64 bit)
-    typedef long XID;
-    struct XVisualInfo;
-    struct Display;
-#endif
+    enum GlxUndefinedType { GLXUNDEFINEDTYPE = 0 };
 
+    typedef int Bool;
+
+    typedef GlxUndefinedType Colormap;
+    typedef GlxUndefinedType Display;
+    typedef GlxUndefinedType Font;
+    typedef GlxUndefinedType Pixmap;
+    typedef GlxUndefinedType Status;
+    typedef GlxUndefinedType Window;
+
+    typedef GlxUndefinedType _XDisplay;
+    typedef GlxUndefinedType XID;
+    typedef GlxUndefinedType XFontStruct;
+    typedef GlxUndefinedType XVisualInfo;
+#endif
 
 typedef struct __GLXcontextRec *GLXContext;
 typedef XID GLXPixmap;

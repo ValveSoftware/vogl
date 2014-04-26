@@ -46,7 +46,14 @@ target_link_libraries(${PROJECT_NAME}
     ${TinyXML_LIBRARIES}
 )
 
+set(FORCE_REGENERATE ${SPEC_DIR}/force_regenerate)
+
+
 set(GENERATOR_INPUT_FILES
+	# A file used to force regeneration of generated files.
+	${FORCE_REGENERATE}
+
+	# The actual input specs.
     ${SPEC_DIR}/apitrace_gl_param_info.txt
     ${SPEC_DIR}/dbg_enums.txt
     ${SPEC_DIR}/dbg_final_gl_glx_whitelisted_funcs.txt
@@ -128,13 +135,20 @@ set(GENERATED_FILES
 
 get_target_property(VOGLGEN_EXE ${PROJECT_NAME} LOCATION)
 
+# This case deals with rebuilding the exe.
+add_custom_command(TARGET ${PROJECT_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E touch "${FORCE_REGENERATE}"
+)
+
+# And this deals with the input files changing. It's not clear why Cmake can't tolerate this project being
+# pushed into the depends list (or listed as the MAIN_DEPENDENCY), but this works so we'll live with it.
 add_custom_command(OUTPUT ${GENERATED_FILES}
                    COMMAND ${VOGLGEN_EXE} --specdir ${SPEC_DIR} --outinc "${VOGLINCDIR}" --outlinker "${VOGLTRACEDIR}"
                    DEPENDS ${GENERATOR_INPUT_FILES}
                    COMMENT "Running ${PROJECT_NAME} to generate include and linker files for other targets"
                    VERBATIM
 )
-
 
 add_custom_target(voglgen_make_inc
                   ALL 

@@ -46,16 +46,14 @@ struct gl_ctype_sizeof<void>
         size = 0
     };
 };
-#if VOGL_PLATFORM_HAS_GLX
-    template <>
-    struct gl_ctype_sizeof<_XDisplay>
+template <>
+struct gl_ctype_sizeof<_XDisplay>
+{
+    enum
     {
-        enum
-        {
-            size = -1
-        };
+        size = -1
     };
-#endif
+};
 template <>
 struct gl_ctype_sizeof<_cl_context>
 {

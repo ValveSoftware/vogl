@@ -4147,44 +4147,48 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         // -----
         case VOGL_ENTRYPOINT_glXUseXFont:
         {
-            const key_value_map &key_value_map = trace_packet.get_key_value_map();
+            #if defined(VOGL_PLATFORM_HAS_GLX)
+                const key_value_map &key_value_map = trace_packet.get_key_value_map();
 
-            const dynamic_string *pFont_name = key_value_map.get_string_ptr("font_name");
-            if ((!pFont_name) || (pFont_name->is_empty()))
-            {
-                process_entrypoint_warning("%s: Couldn't find font_name key, or key was empty - unable to call glXUseXFont()!\n", VOGL_METHOD_NAME);
-            }
-            else
-            {
-                XFontStruct *pFont = XLoadQueryFont(m_pWindow->get_display(), pFont_name->get_ptr());
-                if (!pFont)
+                const dynamic_string *pFont_name = key_value_map.get_string_ptr("font_name");
+                if ((!pFont_name) || (pFont_name->is_empty()))
                 {
-                    process_entrypoint_warning("%s: Couldn't load X font %s  - unable to call glXUseXFont()!\n", VOGL_METHOD_NAME, pFont_name->get_ptr());
+                    process_entrypoint_warning("%s: Couldn't find font_name key, or key was empty - unable to call glXUseXFont()!\n", VOGL_METHOD_NAME);
                 }
                 else
                 {
-                    GLint first = trace_packet.get_param_value<int>(1);
-                    GLint count = trace_packet.get_param_value<int>(2);
-                    int trace_list_base = trace_packet.get_param_value<int>(3);
-                    GLuint replay_list_base = map_handle(get_shared_state()->m_lists, trace_list_base);
-
-                    GL_ENTRYPOINT(glXUseXFont)(pFont->fid, first, count, replay_list_base);
-
-                    XFreeFont(m_pWindow->get_display(), pFont);
-
-                    if (get_context_state()->is_composing_display_list())
+                    XFontStruct *pFont = XLoadQueryFont(m_pWindow->get_display(), pFont_name->get_ptr());
+                    if (!pFont)
                     {
-                        process_entrypoint_warning("%s: glXUseXFont() called while composing a display list!\n", VOGL_METHOD_NAME);
+                        process_entrypoint_warning("%s: Couldn't load X font %s  - unable to call glXUseXFont()!\n", VOGL_METHOD_NAME, pFont_name->get_ptr());
                     }
                     else
                     {
-                        if (!get_shared_state()->m_shadow_state.m_display_lists.glx_font(pFont_name->get_ptr(), first, count, trace_list_base))
+                        GLint first = trace_packet.get_param_value<int>(1);
+                        GLint count = trace_packet.get_param_value<int>(2);
+                        int trace_list_base = trace_packet.get_param_value<int>(3);
+                        GLuint replay_list_base = map_handle(get_shared_state()->m_lists, trace_list_base);
+
+                        GL_ENTRYPOINT(glXUseXFont)(pFont->fid, first, count, replay_list_base);
+
+                        XFreeFont(m_pWindow->get_display(), pFont);
+
+                        if (get_context_state()->is_composing_display_list())
                         {
-                            process_entrypoint_warning("%s: Failed updating display list shadow\n", VOGL_METHOD_NAME);
+                            process_entrypoint_warning("%s: glXUseXFont() called while composing a display list!\n", VOGL_METHOD_NAME);
+                        }
+                        else
+                        {
+                            if (!get_shared_state()->m_shadow_state.m_display_lists.glx_font(pFont_name->get_ptr(), first, count, trace_list_base))
+                            {
+                                process_entrypoint_warning("%s: Failed updating display list shadow\n", VOGL_METHOD_NAME);
+                            }
                         }
                     }
                 }
-            }
+            #else
+                VOGL_ASSERT(!"impl - VOGL_ENTRYPOINT_glXUseXFont");
+            #endif
 
             break;
         }
@@ -10831,25 +10835,34 @@ public:
     void clear()
     {
         VOGL_FUNC_TRACER
-
-        for (xfont_map::iterator it = m_xfonts.begin(); it != m_xfonts.end(); ++it)
-            XFreeFont(m_dpy, it->second);
-        m_xfonts.clear();
+        #if defined(VOGL_PLATFORM_HAS_GLX)
+            for (xfont_map::iterator it = m_xfonts.begin(); it != m_xfonts.end(); ++it)
+                XFreeFont(m_dpy, it->second);
+            m_xfonts.clear();
+        #else
+            VOGL_ASSERT(!"impl vogl_xfont_cache::clear");
+        #endif
     }
 
     XFontStruct *get_or_create(const char *pName)
     {
         VOGL_FUNC_TRACER
+        #if defined(VOGL_PLATFORM_HAS_GLX)
+            XFontStruct **ppXFont = m_xfonts.find_value(pName);
+            if (ppXFont)
+                return *ppXFont;
 
-        XFontStruct **ppXFont = m_xfonts.find_value(pName);
-        if (ppXFont)
-            return *ppXFont;
+            XFontStruct *pXFont = XLoadQueryFont(m_dpy, pName);
+            if (pXFont)
+                m_xfonts.insert(pName, pXFont);
 
-        XFontStruct *pXFont = XLoadQueryFont(m_dpy, pName);
-        if (pXFont)
-            m_xfonts.insert(pName, pXFont);
+            return pXFont;
 
-        return pXFont;
+        #else
+            VOGL_ASSERT(!"impl vogl_xfont_cache::clear");
+            return NULL;
+        #endif
+
     }
 
 private:
@@ -10910,7 +10923,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
                 }
                 else
                 {
-                    GL_ENTRYPOINT(glXUseXFont)(pXFont->fid, disp_list.get_xfont_glyph(), 1, replay_handle);
+                    #if defined(VOGL_PLATFORM_HAS_GLX)
+                        GL_ENTRYPOINT(glXUseXFont)(pXFont->fid, disp_list.get_xfont_glyph(), 1, replay_handle);
+                    #else
+                        VOGL_ASSERT(!"impl glXUseXFont callsite");
+                    #endif
                 }
             }
             else
