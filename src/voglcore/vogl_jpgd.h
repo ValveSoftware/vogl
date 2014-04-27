@@ -35,7 +35,7 @@
 
 #ifdef COMPILER_MSVC
 #define JPGD_NORETURN __declspec(noreturn)
-#elif defined(COMPILER_GCC)
+#elif defined(COMPILER_GCCLIKE)
 #define JPGD_NORETURN __attribute__((noreturn))
 #else
 #define JPGD_NORETURN

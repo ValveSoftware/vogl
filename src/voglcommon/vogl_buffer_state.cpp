@@ -92,7 +92,7 @@ bool vogl_buffer_state::snapshot(const vogl_context_info &context_info, vogl_han
         if (any_gl_errors)
         {
             vogl_error_printf("%s: GL error while retrieving buffer %" PRIu64 " target %s's params\n", VOGL_METHOD_NAME,
-                             (uint64_t)handle, g_gl_enums.find_gl_name(target));
+                             (uint64_t)handle, get_gl_enums().find_gl_name(target));
             clear();
             return false;
         }
@@ -100,7 +100,7 @@ bool vogl_buffer_state::snapshot(const vogl_context_info &context_info, vogl_han
         int buf_size = m_params.get_value<int>(GL_BUFFER_SIZE);
         if (buf_size < 0)
         {
-            vogl_error_printf("%s: Invalid buffer size, buffer %" PRIu64 " target %s size %i\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(target), buf_size);
+            vogl_error_printf("%s: Invalid buffer size, buffer %" PRIu64 " target %s size %i\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(target), buf_size);
             clear();
             return false;
         }
@@ -108,7 +108,7 @@ bool vogl_buffer_state::snapshot(const vogl_context_info &context_info, vogl_han
         if (m_params.get_value<int>(GL_BUFFER_MAPPED) != 0)
         {
             vogl_error_printf("%s: Can't snapshot buffer %" PRIu64 " target %s while it's currently mapped\n", VOGL_METHOD_NAME,
-                             (uint64_t)handle, g_gl_enums.find_gl_name(target));
+                             (uint64_t)handle, get_gl_enums().find_gl_name(target));
             clear();
             return false;
         }
@@ -117,7 +117,7 @@ bool vogl_buffer_state::snapshot(const vogl_context_info &context_info, vogl_han
         {
             if (!m_buffer_data.try_resize(buf_size))
             {
-                vogl_error_printf("%s: Out of memory while trying to allocate buffer, buffer %" PRIu64 " target %s size %i\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(target), buf_size);
+                vogl_error_printf("%s: Out of memory while trying to allocate buffer, buffer %" PRIu64 " target %s size %i\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(target), buf_size);
                 clear();
                 return false;
             }
@@ -127,7 +127,7 @@ bool vogl_buffer_state::snapshot(const vogl_context_info &context_info, vogl_han
 
             if (vogl_check_gl_error())
             {
-                vogl_warning_printf("%s: GL error while retrieving buffer data, buffer %" PRIu64 " target %s size %i\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(target), buf_size);
+                vogl_warning_printf("%s: GL error while retrieving buffer data, buffer %" PRIu64 " target %s size %i\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(target), buf_size);
             }
         }
     }
@@ -206,7 +206,7 @@ bool vogl_buffer_state::restore(const vogl_context_info &context_info, vogl_hand
     return true;
 
 handle_failure:
-    vogl_error_printf("%s: Failed restoring trace buffer %u target %s size %u\n", VOGL_METHOD_NAME, m_snapshot_handle, g_gl_enums.find_gl_name(m_target), buf_size);
+    vogl_error_printf("%s: Failed restoring trace buffer %u target %s size %u\n", VOGL_METHOD_NAME, m_snapshot_handle, get_gl_enums().find_gl_name(m_target), buf_size);
 
     GL_ENTRYPOINT(glBindBuffer)(m_target, 0);
     VOGL_CHECK_GL_ERROR;
@@ -279,7 +279,7 @@ bool vogl_buffer_state::serialize(json_node &node, vogl_blob_manager &blob_manag
     }
 
     node.add_key_value("handle", m_snapshot_handle);
-    node.add_key_value("target", g_gl_enums.find_gl_name(m_target));
+    node.add_key_value("target", get_gl_enums().find_gl_name(m_target));
     node.add_key_value("buffer_data_blob_id", blob_id);
 
     node.add_key_value("map_ofs", m_map_ofs);

@@ -374,7 +374,7 @@ bool vogl_texenv_state::serialize(json_node &node, vogl_blob_manager &blob_manag
     }
 
     for (texenv_map::const_iterator it = m_params.begin(); it != m_params.end(); ++it)
-        if (!it->second.serialize(node.add_object(g_gl_enums.find_gl_name(it->first)), blob_manager))
+        if (!it->second.serialize(node.add_object(get_gl_enums().find_gl_name(it->first)), blob_manager))
             return false;
 
     return true;
@@ -392,7 +392,7 @@ bool vogl_texenv_state::deserialize(const json_node &node, const vogl_blob_manag
     for (uint i = 0; i < node.size(); i++)
     {
         const dynamic_string &name = node.get_key(i);
-        uint64_t enum_val = g_gl_enums.find_enum(name);
+        uint64_t enum_val = get_gl_enums().find_enum(name);
         if (enum_val == gl_enums::cUnknownEnum)
             return false;
 

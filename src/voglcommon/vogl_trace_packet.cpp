@@ -1207,11 +1207,11 @@ void vogl_trace_packet::ctype_to_json_value(json_value &val, gl_entrypoint_id_t 
             VOGL_NOTE_UNUSED(entrypoint_desc);
             VOGL_ASSERT((param_index == -1) || (static_cast<uint>(param_index) < entrypoint_desc.m_num_params));
 
-            const char *pName = g_gl_enums.find_name(data, entrypoint_id, param_index);
+            const char *pName = get_gl_enums().find_name(data, entrypoint_id, param_index);
 
             if (pName)
             {
-                VOGL_ASSERT(g_gl_enums.find_enum(pName) == data);
+                VOGL_ASSERT(get_gl_enums().find_enum(pName) == data);
 
                 val.set_value(pName);
                 return;
@@ -1522,7 +1522,7 @@ bool vogl_trace_packet::convert_json_value_to_ctype_data(uint64_t &data, const j
         }
         else
         {
-            uint64_t gl_enum = g_gl_enums.find_enum(str);
+            uint64_t gl_enum = get_gl_enums().find_enum(str);
             if (gl_enum == gl_enums::cUnknownEnum)
             {
                 vogl_error_printf("Unexpected string for parameter %s\n", pName);
@@ -2287,11 +2287,11 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
             }
             case VOGL_GLENUM:
             {
-                const char *pName = g_gl_enums.find_name(val_data, get_entrypoint_id(), is_return_param ? -1 : param_index);
+                const char *pName = get_gl_enums().find_name(val_data, get_entrypoint_id(), is_return_param ? -1 : param_index);
 
                 if (pName)
                 {
-                    VOGL_ASSERT(g_gl_enums.find_enum(pName) == val_data);
+                    VOGL_ASSERT(get_gl_enums().find_enum(pName) == val_data);
 
                     str += pName;
                     handled = true;

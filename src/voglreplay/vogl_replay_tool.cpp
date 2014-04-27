@@ -2947,7 +2947,7 @@ static bool tool_find_mode()
         dynamic_string find_value_str(g_command_line_params.get_value_as_string("find_param"));
         if ((find_value_str.has_content()) && (vogl_isalpha(find_value_str[0])))
         {
-            value_to_find = g_gl_enums.find_enum(find_value_str);
+            value_to_find = get_gl_enums().find_enum(find_value_str);
         }
 
         if (value_to_find == static_cast<uint64_t>(gl_enums::cUnknownEnum))

@@ -47,45 +47,40 @@ namespace vogl
         string_hash m_hash;
     };
 
-#define DEFINE_WELL_KNOWN_STRING_HASH(x) \
-    {                                    \
-        x, string_hash(x)                \
-    }                                    \
-    ,
-    well_known_hash_t g_well_known_string_hashes[] =
-        {
-            DEFINE_WELL_KNOWN_STRING_HASH("width")
-            DEFINE_WELL_KNOWN_STRING_HASH("height")
-            DEFINE_WELL_KNOWN_STRING_HASH("indices")
-            DEFINE_WELL_KNOWN_STRING_HASH("win_width")
-            DEFINE_WELL_KNOWN_STRING_HASH("win_height")
-            DEFINE_WELL_KNOWN_STRING_HASH("active_attributes")
-            DEFINE_WELL_KNOWN_STRING_HASH("active_uniforms")
-            DEFINE_WELL_KNOWN_STRING_HASH("active_uniform_blocks")
-            DEFINE_WELL_KNOWN_STRING_HASH("link_status")
-            DEFINE_WELL_KNOWN_STRING_HASH("map_access")
-            DEFINE_WELL_KNOWN_STRING_HASH("map_range")
-            DEFINE_WELL_KNOWN_STRING_HASH("data")
-            DEFINE_WELL_KNOWN_STRING_HASH("flushed_ranges")
-            DEFINE_WELL_KNOWN_STRING_HASH("explicit_flush")
-            DEFINE_WELL_KNOWN_STRING_HASH("writable_map")
-            DEFINE_WELL_KNOWN_STRING_HASH("start")
-            DEFINE_WELL_KNOWN_STRING_HASH("end")
-            DEFINE_WELL_KNOWN_STRING_HASH("first_vertex_ofs")
-            DEFINE_WELL_KNOWN_STRING_HASH("viewport_x")
-            DEFINE_WELL_KNOWN_STRING_HASH("viewport_y")
-            DEFINE_WELL_KNOWN_STRING_HASH("viewport_width")
-            DEFINE_WELL_KNOWN_STRING_HASH("viewport_height")
-            DEFINE_WELL_KNOWN_STRING_HASH("func_id")
-        };
-
-    const uint g_num_well_known_string_hashes = VOGL_ARRAY_SIZE(g_well_known_string_hashes);
-
     const char *find_well_known_string_hash(const string_hash &hash)
     {
-        for (uint i = 0; i < g_num_well_known_string_hashes; i++)
-            if (g_well_known_string_hashes[i].m_hash == hash)
-                return g_well_known_string_hashes[i].m_pStr;
+#define DEFINE_WELL_KNOWN_STRING_HASH(_x) { _x, string_hash(_x) }
+        static const well_known_hash_t s_well_known_string_hashes[] =
+        {
+            DEFINE_WELL_KNOWN_STRING_HASH("width"),
+            DEFINE_WELL_KNOWN_STRING_HASH("height"),
+            DEFINE_WELL_KNOWN_STRING_HASH("indices"),
+            DEFINE_WELL_KNOWN_STRING_HASH("win_width"),
+            DEFINE_WELL_KNOWN_STRING_HASH("win_height"),
+            DEFINE_WELL_KNOWN_STRING_HASH("active_attributes"),
+            DEFINE_WELL_KNOWN_STRING_HASH("active_uniforms"),
+            DEFINE_WELL_KNOWN_STRING_HASH("active_uniform_blocks"),
+            DEFINE_WELL_KNOWN_STRING_HASH("link_status"),
+            DEFINE_WELL_KNOWN_STRING_HASH("map_access"),
+            DEFINE_WELL_KNOWN_STRING_HASH("map_range"),
+            DEFINE_WELL_KNOWN_STRING_HASH("data"),
+            DEFINE_WELL_KNOWN_STRING_HASH("flushed_ranges"),
+            DEFINE_WELL_KNOWN_STRING_HASH("explicit_flush"),
+            DEFINE_WELL_KNOWN_STRING_HASH("writable_map"),
+            DEFINE_WELL_KNOWN_STRING_HASH("start"),
+            DEFINE_WELL_KNOWN_STRING_HASH("end"),
+            DEFINE_WELL_KNOWN_STRING_HASH("first_vertex_ofs"),
+            DEFINE_WELL_KNOWN_STRING_HASH("viewport_x"),
+            DEFINE_WELL_KNOWN_STRING_HASH("viewport_y"),
+            DEFINE_WELL_KNOWN_STRING_HASH("viewport_width"),
+            DEFINE_WELL_KNOWN_STRING_HASH("viewport_height"),
+            DEFINE_WELL_KNOWN_STRING_HASH("func_id"),
+        };
+        const uint s_num_well_known_string_hashes = VOGL_ARRAY_SIZE(s_well_known_string_hashes);
+
+        for (uint i = 0; i < s_num_well_known_string_hashes; i++)
+            if (s_well_known_string_hashes[i].m_hash == hash)
+                return s_well_known_string_hashes[i].m_pStr;
         return NULL;
     }
 

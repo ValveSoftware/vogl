@@ -87,9 +87,14 @@ VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
     // Call the real dlopen().
     void *dlopen_ret = (*s_pActual_dlopen)(pFile, mode);
 
-    // If this file hadn't been loaded before, notify btrace.
-    if (!is_loaded && dlopen_ret)
-        btrace_dlopen_notify(pFile);
+    // Only call btrace routines after vogl has been initialized. Otherwise we get
+    //  called before memory routines have been set up, etc. and possibly crash.
+    if (g_vogl_has_been_initialized)
+    {
+        // If this file hadn't been loaded before, notify btrace.
+        if (!is_loaded && dlopen_ret)
+            btrace_dlopen_notify(pFile);
+    }
 
     return dlopen_ret;
 }

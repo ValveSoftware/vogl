@@ -752,7 +752,7 @@ bool vogl_program_state::restore_uniforms(uint32 handle32, const vogl_context_in
         if (restore_uniform.m_base_location < 0)
         {
             vogl_warning_printf("%s: Trace uniform \"%s\"'s type %s was found in the restored program but the restore handle is invalid, trace program %u GL program %u.\n", VOGL_METHOD_NAME,
-                               trace_uniform.m_name.get_ptr(), g_gl_enums.find_gl_name(trace_uniform.m_type), m_snapshot_handle, handle32);
+                               trace_uniform.m_name.get_ptr(), get_gl_enums().find_gl_name(trace_uniform.m_type), m_snapshot_handle, handle32);
             any_restore_warnings = true;
             continue;
         }
@@ -760,7 +760,7 @@ bool vogl_program_state::restore_uniforms(uint32 handle32, const vogl_context_in
         if (restore_uniform.m_type != trace_uniform.m_type)
         {
             vogl_warning_printf("%s: Trace uniform \"%s\"'s type (%s) is different from restored trace program type (%s), trace program %u GL program %u. Uniform type conversion is not yet supported, skipping uniform!\n", VOGL_METHOD_NAME,
-                               trace_uniform.m_name.get_ptr(), g_gl_enums.find_gl_name(trace_uniform.m_type), g_gl_enums.find_gl_name(restore_uniform.m_type),
+                               trace_uniform.m_name.get_ptr(), get_gl_enums().find_gl_name(trace_uniform.m_type), get_gl_enums().find_gl_name(restore_uniform.m_type),
                                m_snapshot_handle, handle32);
             any_restore_warnings = true;
             continue;
@@ -769,7 +769,7 @@ bool vogl_program_state::restore_uniforms(uint32 handle32, const vogl_context_in
         if (restore_uniform.m_size != trace_uniform.m_size)
         {
             vogl_warning_printf("%s: Trace uniform \"%s\" type %s array size (%u) is different from restored program's array size (%u), trace program %u GL program %u. Will set as many array entries as possible and hope for the best.\n", VOGL_METHOD_NAME,
-                               trace_uniform.m_name.get_ptr(), g_gl_enums.find_gl_name(trace_uniform.m_type), trace_uniform.m_size, restore_uniform.m_size,
+                               trace_uniform.m_name.get_ptr(), get_gl_enums().find_gl_name(trace_uniform.m_type), trace_uniform.m_size, restore_uniform.m_size,
                                m_snapshot_handle, handle32);
             any_restore_warnings = true;
         }
@@ -1048,7 +1048,7 @@ bool vogl_program_state::restore_uniforms(uint32 handle32, const vogl_context_in
                 any_gl_errors = true;
 
                 vogl_warning_printf("%s: A GL error occurred while attempting to restore trace uniform \"%s\" type %s, trace program %u GL program %u.\n", VOGL_METHOD_NAME,
-                                   trace_uniform.m_name.get_ptr(), g_gl_enums.find_gl_name(trace_uniform.m_type), m_snapshot_handle, handle32);
+                                   trace_uniform.m_name.get_ptr(), get_gl_enums().find_gl_name(trace_uniform.m_type), m_snapshot_handle, handle32);
             }
         }
     } // uniform_iter
@@ -1641,7 +1641,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
 
             json_node &attrib_node = active_attribs_array.add_object();
             attrib_node.add_key_value("name", attrib.m_name);
-            attrib_node.add_key_value("type", g_gl_enums.find_gl_name(attrib.m_type));
+            attrib_node.add_key_value("type", get_gl_enums().find_gl_name(attrib.m_type));
             attrib_node.add_key_value("size", attrib.m_size);
             attrib_node.add_key_value("location", attrib.m_bound_location);
         }
@@ -1660,7 +1660,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
 
             json_node &uniform_node = active_uniforms_array.add_object();
             uniform_node.add_key_value("name", uniform.m_name);
-            uniform_node.add_key_value("type", g_gl_enums.find_gl_name(uniform.m_type));
+            uniform_node.add_key_value("type", get_gl_enums().find_gl_name(uniform.m_type));
             uniform_node.add_key_value("size", uniform.m_size);
             uniform_node.add_key_value("base_location", uniform.m_base_location);
 
@@ -1780,13 +1780,13 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
             outputs_node.add_key_value("name", output.m_name);
             outputs_node.add_key_value("location", output.m_location);
             outputs_node.add_key_value("location_index", output.m_location_index);
-            outputs_node.add_key_value("type", g_gl_enums.find_gl_name(output.m_type));
+            outputs_node.add_key_value("type", get_gl_enums().find_gl_name(output.m_type));
             outputs_node.add_key_value("array_size", output.m_array_size);
             outputs_node.add_key_value("is_per_patch", output.m_is_per_patch);
         }
     }
 
-    node.add_key_value("transform_feedback_mode", g_gl_enums.find_gl_name(m_transform_feedback_mode));
+    node.add_key_value("transform_feedback_mode", get_gl_enums().find_gl_name(m_transform_feedback_mode));
     node.add_key_value("transform_feedback_num_varyings", m_transform_feedback_num_varyings);
 
     if (m_transform_feedback_num_varyings)
@@ -1800,7 +1800,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
             node2.add_key_value("index", varying.m_index);
             node2.add_key_value("name", varying.m_name);
             node2.add_key_value("size", varying.m_size);
-            node2.add_key_value("type", g_gl_enums.find_gl_name(varying.m_type));
+            node2.add_key_value("type", get_gl_enums().find_gl_name(varying.m_type));
         }
     }
 

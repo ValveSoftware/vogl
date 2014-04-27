@@ -42,8 +42,13 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Globals
 //----------------------------------------------------------------------------------------------------------------------
-gl_enums g_gl_enums;
 bool g_gl_get_error_enabled = true;
+
+gl_enums &get_gl_enums()
+{
+    static gl_enums s_gl_enums;
+    return s_gl_enums;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // client side array tables
@@ -66,7 +71,7 @@ GLint vogl_get_gl_integer(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     GLint values[4] = { 0, 0, 0, 0 };
     GL_ENTRYPOINT(glGetIntegerv)(pname, values);
@@ -80,7 +85,7 @@ vec4I vogl_get_gl_vec4I(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     vec4I result(0);
     GL_ENTRYPOINT(glGetIntegerv)(pname, &result[0]);
@@ -94,7 +99,7 @@ GLint vogl_get_gl_integer_indexed(GLenum pname, uint index)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     GLint values[4] = { 0, 0, 0, 0 };
     GL_ENTRYPOINT(glGetIntegeri_v)(pname, index, values);
@@ -108,7 +113,7 @@ GLint64 vogl_get_gl_integer64(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     GLint64 values[4] = { 0, 0, 0, 0 };
     GL_ENTRYPOINT(glGetInteger64v)(pname, values);
@@ -122,7 +127,7 @@ GLint64 vogl_get_gl_integer64_indexed(GLenum pname, uint index)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     GLint64 values[4] = { 0, 0, 0, 0 };
     GL_ENTRYPOINT(glGetInteger64i_v)(pname, index, values);
@@ -136,7 +141,7 @@ GLboolean vogl_get_gl_boolean(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     GLboolean values[4] = { 0, 0, 0, 0 };
     GL_ENTRYPOINT(glGetBooleanv)(pname, values);
@@ -150,7 +155,7 @@ GLboolean vogl_get_gl_boolean_indexed(GLenum pname, uint index)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     GLboolean values[4] = { 0, 0, 0, 0 };
     GL_ENTRYPOINT(glGetBooleani_v)(pname, index, values);
@@ -164,7 +169,7 @@ GLfloat vogl_get_gl_float(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     GLfloat values[4] = { 0, 0, 0, 0 };
     GL_ENTRYPOINT(glGetFloatv)(pname, values);
@@ -178,7 +183,7 @@ vec4F vogl_get_gl_vec4F(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     vec4F values(0);
     GL_ENTRYPOINT(glGetFloatv)(pname, &values[0]);
@@ -192,7 +197,7 @@ matrix44F vogl_get_gl_matrix44F(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 16);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 16);
 
     matrix44F values(cClear);
     GL_ENTRYPOINT(glGetFloatv)(pname, &values[0][0]);
@@ -206,7 +211,7 @@ GLdouble vogl_get_gl_double(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     GLdouble values[4] = { 0, 0, 0, 0 };
     GL_ENTRYPOINT(glGetDoublev)(pname, values);
@@ -220,7 +225,7 @@ vec4D vogl_get_gl_vec4D(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 4);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 4);
 
     vec4D values(0);
     GL_ENTRYPOINT(glGetDoublev)(pname, &values[0]);
@@ -234,7 +239,7 @@ matrix44D vogl_get_gl_matrix44D(GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_gl_enums.get_pname_count(pname) <= 16);
+    VOGL_ASSERT(get_gl_enums().get_pname_count(pname) <= 16);
 
     matrix44D values(cClear);
     GL_ENTRYPOINT(glGetDoublev)(pname, &values[0][0]);
@@ -1226,7 +1231,7 @@ bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile
 
         if (!suppress_error_message)
         {
-            console::error("%s: GL error: 0x%08X (%u): %s (Called From File: %s, line: %u, func: %s)\n", VOGL_FUNCTION_NAME, gl_err, gl_err, g_gl_enums.find_name("ErrorCode", gl_err), pFile ? pFile : "?", line, pFunc ? pFunc : "?");
+            console::error("%s: GL error: 0x%08X (%u): %s (Called From File: %s, line: %u, func: %s)\n", VOGL_FUNCTION_NAME, gl_err, gl_err, get_gl_enums().find_name("ErrorCode", gl_err), pFile ? pFile : "?", line, pFunc ? pFunc : "?");
 
 #if 0
 			dynamic_string_array backtrace;
@@ -1381,7 +1386,7 @@ GLenum vogl_get_json_value_as_enum(const json_node &node, const char *pKey, GLen
 {
     VOGL_FUNC_TRACER
 
-    uint64_t v = g_gl_enums.find_enum(node.value_as_string(pKey));
+    uint64_t v = get_gl_enums().find_enum(node.value_as_string(pKey));
     if (v == gl_enums::cUnknownEnum)
         return def;
     VOGL_ASSERT(v <= cUINT32_MAX);
@@ -1395,7 +1400,7 @@ GLenum vogl_get_json_value_as_enum(const json_value &val, GLenum def)
 {
     VOGL_FUNC_TRACER
 
-    uint64_t v = g_gl_enums.find_enum(val.as_string());
+    uint64_t v = get_gl_enums().find_enum(val.as_string());
     if (v == gl_enums::cUnknownEnum)
         return def;
     VOGL_ASSERT(v <= cUINT32_MAX);

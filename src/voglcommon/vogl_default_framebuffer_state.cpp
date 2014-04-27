@@ -261,7 +261,7 @@ bool vogl_default_framebuffer_state::snapshot(const vogl_context_info &context_i
 
             if (!status)
             {
-                vogl_error_printf("%s: Failed snapshotting texture for default framebuffer %s\n", VOGL_METHOD_NAME, g_gl_enums.find_gl_name(g_def_framebuffer_enums[i]));
+                vogl_error_printf("%s: Failed snapshotting texture for default framebuffer %s\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(g_def_framebuffer_enums[i]));
             }
         }
         else

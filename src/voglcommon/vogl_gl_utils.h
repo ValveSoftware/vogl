@@ -309,7 +309,7 @@ private:
     void init_image_formats();
 };
 
-extern gl_enums g_gl_enums;
+gl_enums &get_gl_enums();
 
 GLenum vogl_get_json_value_as_enum(const json_node &node, const char *pKey, GLenum def = 0);
 GLenum vogl_get_json_value_as_enum(const json_value &val, GLenum def = 0);

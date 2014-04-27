@@ -36,6 +36,7 @@ extern bool g_dump_gl_shaders_flag;
 extern bool g_disable_gl_program_binary_flag;
 extern bool g_null_mode;
 extern bool g_backtrace_all_calls;
+extern bool g_vogl_has_been_initialized;
 
 // Functions
 void vogl_early_init();

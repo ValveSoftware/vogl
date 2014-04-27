@@ -216,12 +216,12 @@ bool vogl_shader_state::restore(const vogl_context_info &context_info, vogl_hand
             }
 
             vogl_warning_printf("%s: Restored shader failed to compile: trace compile status %u, snapshot handle %u, restore handle %u, type: %s, blob id: %s, info log:\n\"%s\"\n",
-                               VOGL_METHOD_NAME, m_compile_status, m_snapshot_handle, (uint)handle, g_gl_enums.find_gl_name(m_shader_type), m_source_blob_id.get_ptr(), info_log.get_ptr());
+                               VOGL_METHOD_NAME, m_compile_status, m_snapshot_handle, (uint)handle, get_gl_enums().find_gl_name(m_shader_type), m_source_blob_id.get_ptr(), info_log.get_ptr());
         }
         else if (!m_compile_status)
         {
             vogl_warning_printf("%s: Shader successfully compiled during restore, but was not compiled successfully during tracing: trace compile status %u, snapshot handle %u, restore handle %u, type: %s, blob id: %s\n",
-                               VOGL_METHOD_NAME, m_compile_status, m_snapshot_handle, (uint)handle, g_gl_enums.find_gl_name(m_shader_type), m_source_blob_id.get_ptr());
+                               VOGL_METHOD_NAME, m_compile_status, m_snapshot_handle, (uint)handle, get_gl_enums().find_gl_name(m_shader_type), m_source_blob_id.get_ptr());
         }
     }
 
@@ -299,7 +299,7 @@ bool vogl_shader_state::serialize(json_node &node, vogl_blob_manager &blob_manag
     }
 
     node.add_key_value("handle", m_snapshot_handle);
-    node.add_key_value("type", g_gl_enums.find_gl_name(m_shader_type));
+    node.add_key_value("type", get_gl_enums().find_gl_name(m_shader_type));
     node.add_key_value("info_log", m_info_log);
     node.add_key_value("source_blob_id", source_blob_id);
     node.add_key_value("marked_for_deletion", m_marked_for_deletion);

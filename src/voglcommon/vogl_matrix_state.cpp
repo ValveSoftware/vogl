@@ -290,7 +290,7 @@ bool vogl_matrix_state::serialize(json_node &node, vogl_blob_manager &blob_manag
     for (matrix_map::const_iterator it = m_matrices.begin(); it != m_matrices.end(); ++it)
     {
         json_node &obj_node = node.add_object();
-        obj_node.add_key_value("matrix", g_gl_enums.find_gl_name(it->first.m_target));
+        obj_node.add_key_value("matrix", get_gl_enums().find_gl_name(it->first.m_target));
         if (it->first.m_index)
             obj_node.add_key_value("index", it->first.m_index);
 

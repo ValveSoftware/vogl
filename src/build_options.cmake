@@ -106,7 +106,6 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
           "-Wno-pedantic"
           "-Wno-sign-conversion"
           "-Wno-conversion"
-          "-Wno-global-constructors"
           "-Wno-cast-align"
           "-Wno-exit-time-destructors"
           "-Wno-documentation-deprecated-sync"

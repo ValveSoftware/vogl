@@ -37,8 +37,6 @@
 
 namespace vogl
 {
-    dynamic_module_cache g_dynamic_module_cache;
-
     dynamic_module_handle_t load_dynamic_module(const char *pFilename)
     {
 #if defined(VOGL_ANSI_CPLUSPLUS)

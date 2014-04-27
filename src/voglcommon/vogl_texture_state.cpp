@@ -204,7 +204,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
     if (any_gl_errors)
     {
-        vogl_error_printf("%s: GL error while enumerating texture %" PRIu64 " target %s's params\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+        vogl_error_printf("%s: GL error while enumerating texture %" PRIu64 " target %s's params\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
         clear();
         return false;
     }
@@ -212,14 +212,14 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     int base_level = m_params.get_value<int>(GL_TEXTURE_BASE_LEVEL, 0, 0);
     if (base_level > 18)
     {
-        vogl_error_printf("%s: Unsupported base level %u while enumerating texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, base_level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+        vogl_error_printf("%s: Unsupported base level %u while enumerating texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, base_level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
         clear();
         return false;
     }
 
     if (base_level > 0)
     {
-        vogl_debug_printf("%s: Base level is non-zero (%u) while enumerating texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, base_level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+        vogl_debug_printf("%s: Base level is non-zero (%u) while enumerating texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, base_level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
     }
 
     int max_level = m_params.get_value<int>(GL_TEXTURE_MAX_LEVEL, 0, 1000);
@@ -272,14 +272,14 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         vogl_warning_printf("%s: Texture's GL_TEXTURE_MAX_LEVEL is %u, but the max defined mip level is %u. Note GL may not act consistently with this texture object, GL texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME,
                               max_level, trial_level,
-                              (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                              (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
     }
 
     GLenum internal_fmt = 0;
     GL_ENTRYPOINT(glGetTexLevelParameteriv)(target_to_query, base_level, GL_TEXTURE_INTERNAL_FORMAT, reinterpret_cast<GLint *>(&internal_fmt));
     if (vogl_check_gl_error())
     {
-        vogl_error_printf("%s: GL error while enumerating texture %" PRIu64 " target %s's base level GL_TEXTURE_INTERNAL_FORMAT\n", VOGL_METHOD_NAME, static_cast<uint64_t>(handle), g_gl_enums.find_gl_name(m_target));
+        vogl_error_printf("%s: GL error while enumerating texture %" PRIu64 " target %s's base level GL_TEXTURE_INTERNAL_FORMAT\n", VOGL_METHOD_NAME, static_cast<uint64_t>(handle), get_gl_enums().find_gl_name(m_target));
         clear();
         return false;
     }
@@ -288,7 +288,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     if (!pInternal_tex_fmt)
     {
         vogl_error_printf("%s: Unknown texture format 0x%04X (%s) while snapshotting texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME,
-                         internal_fmt, g_gl_enums.find_gl_image_format_name(internal_fmt), static_cast<uint64_t>(handle), g_gl_enums.find_gl_name(m_target));
+                         internal_fmt, get_gl_enums().find_gl_image_format_name(internal_fmt), static_cast<uint64_t>(handle), get_gl_enums().find_gl_name(m_target));
         clear();
         return false;
     }
@@ -296,7 +296,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     if ((pInternal_tex_fmt->m_optimum_get_image_fmt == GL_NONE) || (pInternal_tex_fmt->m_optimum_get_image_type == GL_NONE))
     {
         vogl_warning_printf("%s: Don't know how to retrieve texture data of internal format 0x%04X (%s) while snapshotting texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME,
-                           internal_fmt, g_gl_enums.find_gl_image_format_name(internal_fmt), static_cast<uint64_t>(handle), g_gl_enums.find_gl_name(m_target));
+                           internal_fmt, get_gl_enums().find_gl_image_format_name(internal_fmt), static_cast<uint64_t>(handle), get_gl_enums().find_gl_name(m_target));
     }
 
     // Note: Mips below the base_level may or may not actually exist, AND the app can dynamically manipulate the base level so we need to try and save everything we can.
@@ -309,7 +309,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     if ((base_width < 1) || (base_height < 1) || (base_depth < 1))
     {
         vogl_warning_printf("%s: Couldn't retrieve base level's width, height and/or depth of GL texture %" PRIu64 " target %s internal format 0x%04X (%s)\n", VOGL_METHOD_NAME,
-                           static_cast<uint64_t>(handle), g_gl_enums.find_gl_name(m_target), internal_fmt, g_gl_enums.find_gl_image_format_name(internal_fmt));
+                           static_cast<uint64_t>(handle), get_gl_enums().find_gl_name(m_target), internal_fmt, get_gl_enums().find_gl_image_format_name(internal_fmt));
 
         // Texture has been deleted but it remained bound (but at least in source1 no shaders actually tried to read it), but we can't query anything about it on NV so we're kinda screwed.
         m_is_unquerable = true;
@@ -327,14 +327,14 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
         if (m_num_samples > cMaxSamples)
         {
             vogl_error_printf("%s: Unsupported number of samples (%u) while snapshotting texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME,
-                             m_num_samples, static_cast<uint64_t>(handle), g_gl_enums.find_gl_name(m_target));
+                             m_num_samples, static_cast<uint64_t>(handle), get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
         else if ((target != GL_TEXTURE_2D_MULTISAMPLE) && (target != GL_TEXTURE_2D_MULTISAMPLE_ARRAY))
         {
             vogl_error_printf("%s: Unexpected number of samples (%u) while snapshotting texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME,
-                             m_num_samples, static_cast<uint64_t>(handle), g_gl_enums.find_gl_name(m_target));
+                             m_num_samples, static_cast<uint64_t>(handle), get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
@@ -412,7 +412,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         if (!m_textures[0].init_1D(width, num_actual_mip_levels, internal_fmt, ktx_image_fmt, ktx_image_type))
         {
-            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
@@ -421,7 +421,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         if (!m_textures[0].init_2D(width, height, num_actual_mip_levels, internal_fmt, ktx_image_fmt, ktx_image_type))
         {
-            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
@@ -430,14 +430,14 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         if (width != height)
         {
-            vogl_error_printf("%s: Unsupported cubemap dimensions (%ux%u) for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, width, height, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Unsupported cubemap dimensions (%ux%u) for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, width, height, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
 
         if (!m_textures[0].init_cubemap(width, num_actual_mip_levels, internal_fmt, ktx_image_fmt, ktx_image_type))
         {
-            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
@@ -448,14 +448,14 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         if (width != height)
         {
-            vogl_error_printf("%s: Unsupported cubemap dimensions (%ux%u) for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, width, height, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Unsupported cubemap dimensions (%ux%u) for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, width, height, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
 
         if (!m_textures[0].init_cubemap_array(width, num_actual_mip_levels, base_depth, internal_fmt, ktx_image_fmt, ktx_image_type))
         {
-            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
@@ -466,7 +466,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         if (!m_textures[0].init_3D(width, height, depth, num_actual_mip_levels, internal_fmt, ktx_image_fmt, ktx_image_type))
         {
-            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
@@ -475,7 +475,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         if (!m_textures[0].init_1D_array(width, num_actual_mip_levels, base_height, internal_fmt, ktx_image_fmt, ktx_image_type))
         {
-            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
@@ -484,7 +484,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         if (!m_textures[0].init_2D_array(width, height, num_actual_mip_levels, base_depth, internal_fmt, ktx_image_fmt, ktx_image_type))
         {
-            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
@@ -497,7 +497,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
         {
             if (!m_textures[sample_index].init_2D(width, height, num_actual_mip_levels, internal_fmt, ktx_image_fmt, ktx_image_type))
             {
-                vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                 clear();
                 return false;
             }
@@ -511,7 +511,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
         {
             if (!m_textures[sample_index].init_2D_array(width, height, num_actual_mip_levels, base_depth, internal_fmt, ktx_image_fmt, ktx_image_type))
             {
-                vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                vogl_error_printf("%s: Failed initializing KTX texture object for texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                 clear();
                 return false;
             }
@@ -519,7 +519,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     }
     else
     {
-        vogl_error_printf("%s: Unsupported target, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+        vogl_error_printf("%s: Unsupported target, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
         clear();
         return false;
     }
@@ -546,7 +546,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
         if (!splitter.init())
         {
-            vogl_error_printf("%s: Failed initializing multisample texture splitter while snapshotting texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+            vogl_error_printf("%s: Failed initializing multisample texture splitter while snapshotting texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             clear();
             return false;
         }
@@ -557,7 +557,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
         {
             if (!splitter.split(target, static_cast<GLuint>(handle), split_texture_handles))
             {
-                vogl_error_printf("%s: Failed splitting multisample texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                vogl_error_printf("%s: Failed splitting multisample texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                 clear();
                 return false;
             }
@@ -568,7 +568,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
             GLuint temp_msaa_color_tex = 0;
             if (!splitter.copy_stencil_samples_to_color(target, static_cast<GLuint>(handle), temp_msaa_color_tex))
             {
-                vogl_error_printf("%s: Failed splitting multisample texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                vogl_error_printf("%s: Failed splitting multisample texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                 clear();
                 return false;
             }
@@ -582,7 +582,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
             if (!status)
             {
-                vogl_error_printf("%s: Failed splitting multisample texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                vogl_error_printf("%s: Failed splitting multisample texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                 clear();
                 return false;
             }
@@ -649,7 +649,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
             GET_INT(GL_TEXTURE_INTERNAL_FORMAT);
             if (any_gl_errors)
             {
-                vogl_error_printf("%s: Failed retrieving face %u level %u's internal format and/or width while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                vogl_error_printf("%s: Failed retrieving face %u level %u's internal format and/or width while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                 clear();
                 VOGL_FREE_SPLIT_TEXTURES
                 return false;
@@ -699,7 +699,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
             if (any_gl_errors)
             {
-                vogl_warning_printf("%s: One or more GL errors while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                vogl_warning_printf("%s: One or more GL errors while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
             }
 
             if ((level_params.get_value<int>(GL_TEXTURE_WIDTH) == 0) ||
@@ -707,7 +707,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                 (level_params.get_value<int>(GL_TEXTURE_DEPTH) == 0) ||
                 (level_params.get_value<GLenum>(GL_TEXTURE_INTERNAL_FORMAT) != internal_fmt))
             {
-                vogl_error_printf("%s: Failed retrieving level %u's parameters while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                vogl_error_printf("%s: Failed retrieving level %u's parameters while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                 clear();
                 VOGL_FREE_SPLIT_TEXTURES
                 return false;
@@ -718,7 +718,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
             {
                 if (!size_in_bytes)
                 {
-                    vogl_error_printf("%s: Failed retrieving level %u's compressed size while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                    vogl_error_printf("%s: Failed retrieving level %u's compressed size while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                     clear();
                     VOGL_FREE_SPLIT_TEXTURES
                     return false;
@@ -728,7 +728,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
             {
                 if (size_in_bytes)
                 {
-                    vogl_error_printf("%s: Unexpected compressed size on level %u's while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                    vogl_error_printf("%s: Unexpected compressed size on level %u's while enumerating texture %" PRIu64 " target %s's level params\n", VOGL_METHOD_NAME, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                     clear();
                     VOGL_FREE_SPLIT_TEXTURES
                     return false;
@@ -806,7 +806,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                 size_t size_in_bytes64 = vogl_get_image_size(image_fmt, image_type, level_width, level_height, level_depth);
                 if (!size_in_bytes64)
                 {
-                    vogl_error_printf("%s: Failed computing image size of face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                    vogl_error_printf("%s: Failed computing image size of face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                     clear();
                     VOGL_FREE_SPLIT_TEXTURES
                     return false;
@@ -814,7 +814,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
                 if (size_in_bytes64 > static_cast<size_t>(cINT32_MAX))
                 {
-                    vogl_error_printf("%s: Image size too large for face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                    vogl_error_printf("%s: Image size too large for face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                     clear();
                     VOGL_FREE_SPLIT_TEXTURES
                     return false;
@@ -839,7 +839,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                 const uint num_guard_bytes = 2;
                 if (!temp_img.try_resize(size_in_bytes + num_guard_bytes))
                 {
-                    vogl_error_printf("%s: Out of memory while trying to retrieve texture data, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                    vogl_error_printf("%s: Out of memory while trying to retrieve texture data, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                     clear();
                     VOGL_FREE_SPLIT_TEXTURES
                     return false;
@@ -868,7 +868,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
                 if (vogl_check_gl_error())
                 {
-                    vogl_error_printf("%s: Failed retrieving image data for face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                    vogl_error_printf("%s: Failed retrieving image data for face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                     clear();
                     VOGL_FREE_SPLIT_TEXTURES
                     return false;
@@ -879,7 +879,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                     if ((temp_img[size_in_bytes - 4] == 0x67) && (temp_img[size_in_bytes - 3] == 0xCC) &&
                         (temp_img[size_in_bytes - 2] == 0xD4) && (temp_img[size_in_bytes - 1] == 0xF9))
                     {
-                        vogl_error_printf("%s: Image data retrieval may have failed for face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                        vogl_error_printf("%s: Image data retrieval may have failed for face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                     }
                 }
 
@@ -893,7 +893,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
                     if (!split_color_size_in_bytes64)
                     {
-                        vogl_error_printf("%s: Failed computing image size of face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                        vogl_error_printf("%s: Failed computing image size of face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                         clear();
                         VOGL_FREE_SPLIT_TEXTURES
                         return false;
@@ -901,7 +901,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
                     if (split_color_size_in_bytes64 > static_cast<size_t>(cINT32_MAX))
                     {
-                        vogl_error_printf("%s: Image size too large for face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+                        vogl_error_printf("%s: Image size too large for face %u level %u, texture %" PRIu64 " target %s\n", VOGL_METHOD_NAME, face, level, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
                         clear();
                         VOGL_FREE_SPLIT_TEXTURES
                         return false;
@@ -1032,7 +1032,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
     if (!m_textures[0].consistency_check())
     {
-        vogl_error_printf("%s: Internal error: KTX texture failed internal consistency check, texture %" PRIu64 " target %s. This should not happen!\n", VOGL_METHOD_NAME, (uint64_t)handle, g_gl_enums.find_gl_name(m_target));
+        vogl_error_printf("%s: Internal error: KTX texture failed internal consistency check, texture %" PRIu64 " target %s. This should not happen!\n", VOGL_METHOD_NAME, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
         clear();
         VOGL_FREE_SPLIT_TEXTURES
         return false;
@@ -1598,14 +1598,14 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
     if (any_failures)
     {
         vogl_warning_printf("%s: One or more texture params could not be set on trace texture %u, GL texture %" PRIu64 " target %s, dimensions %ux%ux%u, internal format %s\n", VOGL_METHOD_NAME,
-                           m_snapshot_handle, (uint64_t)handle, g_gl_enums.find_gl_name(m_target), tex_width, tex_height, tex_depth, g_gl_enums.find_gl_image_format_name(internal_fmt));
+                           m_snapshot_handle, (uint64_t)handle, get_gl_enums().find_gl_name(m_target), tex_width, tex_height, tex_depth, get_gl_enums().find_gl_image_format_name(internal_fmt));
     }
 
     return true;
 
 handle_error:
     vogl_error_printf("%s: Failed restoring trace texture %u, GL texture %" PRIu64 " target %s, while processing face %u level %u, dimensions %ux%ux%u, internal format %s\n", VOGL_METHOD_NAME,
-                     m_snapshot_handle, (uint64_t)handle, g_gl_enums.find_gl_name(m_target), face, level, tex_width, tex_height, tex_depth, g_gl_enums.find_gl_image_format_name(internal_fmt));
+                     m_snapshot_handle, (uint64_t)handle, get_gl_enums().find_gl_name(m_target), face, level, tex_width, tex_height, tex_depth, get_gl_enums().find_gl_image_format_name(internal_fmt));
 
     GL_ENTRYPOINT(glBindTexture)(m_target, 0);
     VOGL_CHECK_GL_ERROR;
@@ -1667,7 +1667,7 @@ bool vogl_texture_state::serialize(json_node &node, vogl_blob_manager &blob_mana
 
     node.add_key_value("version", VOGL_SERIALIZED_TEXTURE_STATE_VERSION);
     node.add_key_value("handle", m_snapshot_handle);
-    node.add_key_value("target", g_gl_enums.find_gl_name(m_target));
+    node.add_key_value("target", get_gl_enums().find_gl_name(m_target));
     node.add_key_value("is_unquerable", m_is_unquerable);
     node.add_key_value("buffer", m_buffer);
     node.add_key_value("samples", m_num_samples);
@@ -1709,32 +1709,32 @@ bool vogl_texture_state::serialize(json_node &node, vogl_blob_manager &blob_mana
                 switch (m_target)
                 {
                     case GL_TEXTURE_1D:
-                        prefix.format("%s_%u_levels_%u_%s", pTex_type, tex.get_width(), actual_mip_levels, g_gl_enums.find_gl_name(tex.get_ogl_internal_fmt()));
+                        prefix.format("%s_%u_levels_%u_%s", pTex_type, tex.get_width(), actual_mip_levels, get_gl_enums().find_gl_name(tex.get_ogl_internal_fmt()));
                         break;
                     case GL_TEXTURE_RECTANGLE:
                     case GL_TEXTURE_2D:
-                        prefix.format("%s_%ux%u_levels_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, g_gl_enums.find_gl_image_format_name(tex.get_ogl_internal_fmt()));
+                        prefix.format("%s_%ux%u_levels_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, get_gl_enums().find_gl_image_format_name(tex.get_ogl_internal_fmt()));
                         break;
                     case GL_TEXTURE_3D:
-                        prefix.format("%s_%ux%ux%u_levels_%u_%s", pTex_type, tex.get_width(), tex.get_height(), tex.get_depth(), actual_mip_levels, g_gl_enums.find_gl_image_format_name(tex.get_ogl_internal_fmt()));
+                        prefix.format("%s_%ux%ux%u_levels_%u_%s", pTex_type, tex.get_width(), tex.get_height(), tex.get_depth(), actual_mip_levels, get_gl_enums().find_gl_image_format_name(tex.get_ogl_internal_fmt()));
                         break;
                     case GL_TEXTURE_1D_ARRAY:
-                        prefix.format("%s_%u_levels_%u_arraysize_%u_%s", pTex_type, tex.get_width(), actual_mip_levels, tex.get_array_size(), g_gl_enums.find_gl_name(tex.get_ogl_internal_fmt()));
+                        prefix.format("%s_%u_levels_%u_arraysize_%u_%s", pTex_type, tex.get_width(), actual_mip_levels, tex.get_array_size(), get_gl_enums().find_gl_name(tex.get_ogl_internal_fmt()));
                         break;
                     case GL_TEXTURE_2D_ARRAY:
-                        prefix.format("%s_%ux%u_levels_%u_arraysize_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, tex.get_array_size(), g_gl_enums.find_gl_image_format_name(tex.get_ogl_internal_fmt()));
+                        prefix.format("%s_%ux%u_levels_%u_arraysize_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, tex.get_array_size(), get_gl_enums().find_gl_image_format_name(tex.get_ogl_internal_fmt()));
                         break;
                     case GL_TEXTURE_2D_MULTISAMPLE:
-                        prefix.format("%s_%ux%u_levels_%u_sample_%u_of_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, sample_index, m_num_samples, g_gl_enums.find_gl_image_format_name(tex.get_ogl_internal_fmt()));
+                        prefix.format("%s_%ux%u_levels_%u_sample_%u_of_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, sample_index, m_num_samples, get_gl_enums().find_gl_image_format_name(tex.get_ogl_internal_fmt()));
                         break;
                     case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
-                        prefix.format("%s_%ux%u_levels_%u_sample_%u_of_%u_arraysize_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, sample_index, m_num_samples, tex.get_array_size(), g_gl_enums.find_gl_image_format_name(tex.get_ogl_internal_fmt()));
+                        prefix.format("%s_%ux%u_levels_%u_sample_%u_of_%u_arraysize_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, sample_index, m_num_samples, tex.get_array_size(), get_gl_enums().find_gl_image_format_name(tex.get_ogl_internal_fmt()));
                         break;
                     case GL_TEXTURE_CUBE_MAP:
-                        prefix.format("%s_%ux%u_levels_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, g_gl_enums.find_gl_image_format_name(tex.get_ogl_internal_fmt()));
+                        prefix.format("%s_%ux%u_levels_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, get_gl_enums().find_gl_image_format_name(tex.get_ogl_internal_fmt()));
                         break;
                     case GL_TEXTURE_CUBE_MAP_ARRAY:
-                        prefix.format("%s_%ux%u_levels_%u_arraysize_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, tex.get_array_size(), g_gl_enums.find_gl_image_format_name(tex.get_ogl_internal_fmt()));
+                        prefix.format("%s_%ux%u_levels_%u_arraysize_%u_%s", pTex_type, tex.get_width(), tex.get_height(), actual_mip_levels, tex.get_array_size(), get_gl_enums().find_gl_image_format_name(tex.get_ogl_internal_fmt()));
                         break;
                     default:
                         VOGL_ASSERT_ALWAYS;

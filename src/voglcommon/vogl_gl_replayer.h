@@ -1083,7 +1083,7 @@ private:
         const T *pTrace_params = m_pCur_gl_packet->get_param_client_memory<const T>(2);
         uint num_trace_params = m_pCur_gl_packet->get_param_client_memory_data_size(2) / sizeof(T);
 
-        int n = g_gl_enums.get_pname_count(pname);
+        int n = get_gl_enums().get_pname_count(pname);
         if (n <= 0)
         {
             process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
