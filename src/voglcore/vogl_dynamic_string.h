@@ -447,7 +447,11 @@ namespace vogl
         }
     };
 
-    extern dynamic_string g_empty_dynamic_string;
+    inline dynamic_string& get_empty_dynamic_string()
+    {
+        static dynamic_string s_empty_dynamic_string;
+        return s_empty_dynamic_string;
+    }
 
     VOGL_DEFINE_BITWISE_MOVABLE(dynamic_string);
 

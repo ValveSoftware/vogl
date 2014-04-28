@@ -2371,7 +2371,7 @@ namespace vogl
         if (!m_is_object)
         {
             VOGL_ASSERT_ALWAYS;
-            return g_empty_dynamic_string;
+            return get_empty_dynamic_string();
         }
         return m_keys[index];
     }

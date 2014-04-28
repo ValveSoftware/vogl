@@ -543,7 +543,7 @@ namespace vogl
         // Adds a new value to a node. pValueToParse must be JSON text.
         bool add_parsed_value(const char *pValueToParse);
 
-        // Retrieves a node's key. Asserts and returns a ref to g_empty_dynamic_string if the node is an array.
+        // Retrieves a node's key. Asserts and returns a ref to get_empty_dynamic_string() if the node is an array.
         dynamic_string &get_key(uint index);
 
         // Sets the key/value at the specified index. If the node is not an object it will be upgraded to one.

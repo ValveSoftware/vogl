@@ -40,8 +40,6 @@
 
 namespace vogl
 {
-    dynamic_string g_empty_dynamic_string;
-
     dynamic_string::dynamic_string(eVarArg dummy, const char *p, ...)
     {
         VOGL_NOTE_UNUSED(dummy);

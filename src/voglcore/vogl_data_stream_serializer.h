@@ -71,7 +71,7 @@ namespace vogl
 
         const dynamic_string &get_name() const
         {
-            return m_pStream ? m_pStream->get_name() : g_empty_dynamic_string;
+            return m_pStream ? m_pStream->get_name() : get_empty_dynamic_string();
         }
 
         // true if stream has latched an error
