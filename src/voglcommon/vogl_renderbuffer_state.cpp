@@ -112,7 +112,7 @@ bool vogl_renderbuffer_desc::serialize(json_node &node) const
 
     node.add_key_value("width", m_width);
     node.add_key_value("height", m_height);
-    node.add_key_value("internal_format", g_gl_enums.find_name(m_internal_format, "gl"));
+    node.add_key_value("internal_format", get_gl_enums().find_name(m_internal_format, "gl"));
     node.add_key_value("samples", m_samples);
     node.add_key_value("red_size", m_red_size);
     node.add_key_value("green_size", m_green_size);
@@ -147,7 +147,7 @@ bool vogl_renderbuffer_desc::deserialize(const json_node &node)
         return false;
     }
 
-    uint64_t enum_val = g_gl_enums.find_enum(pFmt);
+    uint64_t enum_val = get_gl_enums().find_enum(pFmt);
     VOGL_ASSERT(enum_val != gl_enums::cUnknownEnum);
     if (enum_val == gl_enums::cUnknownEnum)
         return false;

@@ -304,7 +304,7 @@ bool vogl_vao_state::serialize(json_node &node, vogl_blob_manager &blob_manager)
         attribs_obj.add_key_value("element_array_binding", desc.m_element_array_binding);
         attribs_obj.add_key_value("array_binding", desc.m_array_binding);
         attribs_obj.add_key_value("size", desc.m_size);
-        attribs_obj.add_key_value("type", g_gl_enums.find_gl_name(desc.m_type));
+        attribs_obj.add_key_value("type", get_gl_enums().find_gl_name(desc.m_type));
         attribs_obj.add_key_value("stride", desc.m_stride);
         attribs_obj.add_key_value("integer", desc.m_integer);
         attribs_obj.add_key_value("divisor", desc.m_divisor);

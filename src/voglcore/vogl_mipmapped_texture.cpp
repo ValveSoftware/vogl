@@ -35,7 +35,6 @@
 
 namespace vogl
 {
-    const vec2I g_vertical_cross_image_offsets[6] = { vec2I(2, 1), vec2I(0, 1), vec2I(1, 0), vec2I(1, 2), vec2I(1, 1), vec2I(1, 3) };
 
     mip_level::mip_level()
         : m_width(0),
@@ -2478,6 +2477,11 @@ namespace vogl
         // 2     -y
         // 3     -z
 
+        static const vec2I s_vertical_cross_image_offsets[6] =
+        {
+            vec2I(2, 1), vec2I(0, 1), vec2I(1, 0), vec2I(1, 2), vec2I(1, 1), vec2I(1, 3)
+        };
+
         for (uint face_index = 0; face_index < 6; face_index++)
         {
             const mip_level *pSrc = get_level(0, 0);
@@ -2490,8 +2494,8 @@ namespace vogl
             VOGL_ASSERT(pDst_image);
 
             const bool flipped = (face_index == 5);
-            const uint x_ofs = g_vertical_cross_image_offsets[face_index][0] * face_width;
-            const uint y_ofs = g_vertical_cross_image_offsets[face_index][1] * face_width;
+            const uint x_ofs = s_vertical_cross_image_offsets[face_index][0] * face_width;
+            const uint y_ofs = s_vertical_cross_image_offsets[face_index][1] * face_width;
 
             for (uint y = 0; y < face_width; y++)
             {

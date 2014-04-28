@@ -30,18 +30,21 @@
 
 int main(int argc, char *argv[])
 {
-   QApplication a(argc, argv);
+    // Initialize vogl_core.
+    vogl_core_init();
 
-   vogl_common_lib_early_init();
-   vogl_common_lib_global_init();
+    QApplication a(argc, argv);
 
-   VoglEditor w;
-   w.show();
+    vogl_common_lib_early_init();
+    vogl_common_lib_global_init();
 
-   if (argc == 2)
-   {
-      w.open_trace_file(argv[1]);
-   }
+    VoglEditor w;
+    w.show();
 
-   return a.exec();
+    if (argc == 2)
+    {
+        w.open_trace_file(argv[1]);
+    }
+
+    return a.exec();
 }

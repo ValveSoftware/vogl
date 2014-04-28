@@ -76,10 +76,10 @@ struct vogl_trace_stream_packet_base
         m_rnd = cMinimumPossibleRnd;
     }
 
-    // Sets the rnd field using g_thread_safe_random
+    // Sets the rnd field using get_thread_safe_random()
     inline void init_rnd()
     {
-        uint32 rnd16 = static_cast<uint16>(g_thread_safe_random.urand32());
+        uint32 rnd16 = static_cast<uint16>(get_thread_safe_random().urand32());
         m_rnd = static_cast<uint16>(math::maximum<uint>(vogl_trace_stream_packet_base::cMinimumPossibleRnd, rnd16));
         VOGL_ASSERT(m_rnd);
     }

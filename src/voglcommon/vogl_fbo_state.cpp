@@ -116,15 +116,15 @@ bool vogl_framebuffer_attachment::serialize(json_node &node) const
 {
     VOGL_FUNC_TRACER
 
-    node.add_key_value("attachment", g_gl_enums.find_name(m_attachment, "gl"));
-    node.add_key_value("type", g_gl_enums.find_name(m_type, "gl"));
+    node.add_key_value("attachment", get_gl_enums().find_name(m_attachment, "gl"));
+    node.add_key_value("type", get_gl_enums().find_name(m_type, "gl"));
 
     for (GLenum_to_int_map::const_iterator it = m_params.begin(); it != m_params.end(); ++it)
     {
-        const char *pEnum_name = g_gl_enums.find_name(it->first, "gl");
+        const char *pEnum_name = get_gl_enums().find_name(it->first, "gl");
 
-        if (g_gl_enums.get_pname_type(it->first) == cSTGLenum)
-            node.add_key_value(pEnum_name, g_gl_enums.find_name(it->second, "gl"));
+        if (get_gl_enums().get_pname_type(it->first) == cSTGLenum)
+            node.add_key_value(pEnum_name, get_gl_enums().find_name(it->second, "gl"));
         else
             node.add_key_value(pEnum_name, it->second);
     }
@@ -152,12 +152,12 @@ bool vogl_framebuffer_attachment::deserialize(const json_node &node)
             m_type = vogl_get_json_value_as_enum(val);
         else
         {
-            uint64_t enum_val = g_gl_enums.find_enum(key);
+            uint64_t enum_val = get_gl_enums().find_enum(key);
             if ((enum_val == gl_enums::cUnknownEnum) || (enum_val > cUINT32_MAX))
                 vogl_warning_printf("%s: Invalid enum \"%s\"\n", VOGL_METHOD_NAME, key.get_ptr());
             else
             {
-                if (g_gl_enums.get_pname_type(enum_val) == cSTGLenum)
+                if (get_gl_enums().get_pname_type(enum_val) == cSTGLenum)
                     m_params.insert(static_cast<GLenum>(enum_val), vogl_get_json_value_as_enum(val));
                 else
                     m_params.insert(static_cast<GLenum>(enum_val), val.as_int());
@@ -444,7 +444,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                                 }
                                 default:
                                 {
-                                    vogl_error_printf("%s: Don't know how to attach texture with target %s to FBO, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_METHOD_NAME, g_gl_enums.find_gl_name(tex_target), m_snapshot_handle, static_cast<uint32>(handle), attachment_obj.get_handle(), handle);
+                                    vogl_error_printf("%s: Don't know how to attach texture with target %s to FBO, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(tex_target), m_snapshot_handle, static_cast<uint32>(handle), attachment_obj.get_handle(), handle);
                                     goto handle_error;
                                 }
                             }
@@ -494,7 +494,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
 
         if (cur_status != m_status)
         {
-            vogl_error_printf("%s: Restored FBO's completeness (%s) is not the same as the trace's (%s), trace handle %u GL handle %u!\n", VOGL_METHOD_NAME, g_gl_enums.find_name(cur_status, "gl"), g_gl_enums.find_name(m_status, "gl"), m_snapshot_handle, static_cast<uint32>(handle));
+            vogl_error_printf("%s: Restored FBO's completeness (%s) is not the same as the trace's (%s), trace handle %u GL handle %u!\n", VOGL_METHOD_NAME, get_gl_enums().find_name(cur_status, "gl"), get_gl_enums().find_name(m_status, "gl"), m_snapshot_handle, static_cast<uint32>(handle));
         }
     }
 
@@ -561,7 +561,7 @@ bool vogl_framebuffer_state::serialize(json_node &node, vogl_blob_manager &blob_
 
     node.add_key_value("handle", m_snapshot_handle);
     node.add_key_value("has_been_bound", m_has_been_bound);
-    node.add_key_value("status", g_gl_enums.find_name(m_status, "gl"));
+    node.add_key_value("status", get_gl_enums().find_name(m_status, "gl"));
 
     node.add_key_value("read_buffer", m_read_buffer);
 

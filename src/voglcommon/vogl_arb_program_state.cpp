@@ -237,12 +237,12 @@ bool vogl_arb_program_state::serialize(json_node &node, vogl_blob_manager &blob_
         return false;
 
     node.add_key_value("snapshot_handle", m_snapshot_handle);
-    node.add_key_value("target", g_gl_enums.find_gl_name(m_target));
+    node.add_key_value("target", get_gl_enums().find_gl_name(m_target));
     node.add_key_value("error_position", m_error_position);
     node.add_key_value("error_string", m_error_string);
     node.add_key_value("is_native", m_is_native);
     node.add_key_value("num_instructions", m_num_instructions);
-    node.add_key_value("program_format", g_gl_enums.find_gl_name(m_program_format));
+    node.add_key_value("program_format", get_gl_enums().find_gl_name(m_program_format));
 
     if (m_program_string.size())
     {

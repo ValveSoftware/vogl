@@ -322,7 +322,7 @@ bool vogl_binary_trace_file_reader::seek_to_frame(uint frame_index)
 
         if (frame_index >= m_frame_file_offsets.size())
         {
-            if (g_command_line_params.get_value_as_bool("verbose"))
+            if (g_command_line_params().get_value_as_bool("verbose"))
                 vogl_debug_printf("%s: Failed seeking forward in binary trace to frame %u, cur frame is now %u\n", VOGL_METHOD_NAME, frame_index, m_cur_frame_index);
             return false;
         }

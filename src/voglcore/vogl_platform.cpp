@@ -80,26 +80,12 @@ static void OutputDebugStringA(const char *p)
 
 #endif
 
-void vogl_debug_break(void)
-{
-    VOGL_BREAKPOINT
-}
-
 void vogl_debug_break_if_debugging(void)
 {
     if (vogl_is_debugger_present())
     {
         VOGL_BREAKPOINT
     }
-}
-
-bool vogl_is_debugger_present(bool force_check)
-{
-#if VOGL_ASSUME_DEBUGGER_IS_ALWAYS_PRESENT
-    return true;
-#else
-    return IsDebuggerPresent() != 0;
-#endif
 }
 
 bool vogl_is_debugger_present(void)

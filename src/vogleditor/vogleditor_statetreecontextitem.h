@@ -95,7 +95,7 @@ private:
             }
             else
             {
-                tmp = g_gl_enums.find_glx_name(id);
+                tmp = get_gl_enums().find_glx_name(id);
                 if (tmp.isEmpty() || tmp.isNull())
                 {
                     tmp = tmp.sprintf("0x%x", id);

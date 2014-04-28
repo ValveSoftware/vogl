@@ -120,9 +120,6 @@ struct vogl_internal_tex_format
     }
 };
 
-extern vogl_internal_tex_format g_vogl_internal_texture_formats[];
-extern uint g_vogl_total_internal_texture_formats;
-
 void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_info);
 
 void vogl_texture_format_init();

@@ -140,14 +140,14 @@ void vogleditor_QProgramExplorer::on_programListBox_currentIndexChanged(int inde
         for (vogl_shader_state_vec::iterator linkedIter = linkedShaderVec.begin(); linkedIter != linkedShaderVec.end(); linkedIter++)
         {
             vogl_shader_state* pShaderState = linkedIter;
-            valueStr = valueStr.sprintf("Linked Shader %" PRIu64 " - %s", pShaderState->get_snapshot_handle(), g_gl_enums.find_gl_name(pShaderState->get_shader_type()));
+            valueStr = valueStr.sprintf("Linked Shader %" PRIu64 " - %s", pShaderState->get_snapshot_handle(), get_gl_enums().find_gl_name(pShaderState->get_shader_type()));
             ui->shaderListBox->addItem(valueStr, QVariant::fromValue(pShaderState));
         }
 
         for (vogl_shader_state_vec::iterator attachedIter = attachedShaderVec.begin(); attachedIter != attachedShaderVec.end(); attachedIter++)
         {
             vogl_shader_state* pShaderState = attachedIter;
-            valueStr = valueStr.sprintf("Attached Shader %" PRIu64 " - %s", pShaderState->get_snapshot_handle(), g_gl_enums.find_gl_name(pShaderState->get_shader_type()));
+            valueStr = valueStr.sprintf("Attached Shader %" PRIu64 " - %s", pShaderState->get_snapshot_handle(), get_gl_enums().find_gl_name(pShaderState->get_shader_type()));
             ui->shaderListBox->addItem(valueStr, QVariant::fromValue(pShaderState));
         }
     }

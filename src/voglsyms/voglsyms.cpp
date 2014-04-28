@@ -70,8 +70,8 @@ static bool init_logfile()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string log_file(g_command_line_params.get_value_as_string_or_empty("logfile"));
-    dynamic_string log_file_append(g_command_line_params.get_value_as_string_or_empty("logfile_append"));
+    dynamic_string log_file(g_command_line_params().get_value_as_string_or_empty("logfile"));
+    dynamic_string log_file_append(g_command_line_params().get_value_as_string_or_empty("logfile_append"));
     if (log_file.is_empty() && log_file_append.is_empty())
         return true;
 
@@ -140,7 +140,7 @@ static bool init_command_line_params(int argc, char *argv[])
     parse_cfg.m_single_minus_params = true;
     parse_cfg.m_double_minus_params = true;
 
-    if (!g_command_line_params.parse(get_command_line_params(argc, argv),
+    if (!g_command_line_params().parse(get_command_line_params(argc, argv),
                                      VOGL_ARRAY_SIZE(g_command_line_param_descs),
                                      g_command_line_param_descs, parse_cfg))
     {
@@ -151,7 +151,7 @@ static bool init_command_line_params(int argc, char *argv[])
     if (!init_logfile())
         return false;
 
-    if (g_command_line_params.get_value_as_bool("help") || g_command_line_params.get_value_as_bool("?"))
+    if (g_command_line_params().get_value_as_bool("help") || g_command_line_params().get_value_as_bool("?"))
     {
         tool_print_help();
         return false;
@@ -167,7 +167,7 @@ static bool voglsyms_init(int argc, char *argv[])
 {
     VOGL_FUNC_TRACER
 
-    g_thread_safe_random.seed_from_urandom();
+    get_thread_safe_random().seed_from_urandom();
 
     console::disable_prefixes();
 
@@ -180,7 +180,7 @@ static bool voglsyms_init(int argc, char *argv[])
     if (!init_command_line_params(argc, argv))
         return false;
 
-    if (g_command_line_params.get_value_as_bool("quiet"))
+    if (g_command_line_params().get_value_as_bool("quiet"))
         console::disable_output();
 
     return true;
@@ -448,7 +448,7 @@ voglsym_main_loop(char *argv[])
     vector<addr_data_t> addr_data_arr;
     vector<btrace_module_info> module_infos;
 
-    dynamic_string trace_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
+    dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (trace_filename.is_empty())
     {
         vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_NAME);
@@ -458,14 +458,14 @@ voglsym_main_loop(char *argv[])
     vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(
         trace_filename,
         actual_trace_filename,
-        g_command_line_params.get_value_as_string_or_empty("loose_file_path").get_ptr()));
+        g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
         vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_NAME, trace_filename.get_ptr());
         return false;
     }
 
-    bool resolve_symbols = g_command_line_params.get_value_as_bool("resolve_symbols");
+    bool resolve_symbols = g_command_line_params().get_value_as_bool("resolve_symbols");
 
     if (resolve_symbols)
         vogl_printf("Resolving symbols in trace file %s\n\n", actual_trace_filename.get_ptr());
@@ -648,13 +648,16 @@ int main(int argc, char *argv[])
 
     VOGL_FUNC_TRACER
 
+    // Initialize vogl_core.
+    vogl_core_init();
+
     if (!voglsyms_init(argc, argv))
     {
         voglsyms_deinit();
         return EXIT_FAILURE;
     }
 
-    if (g_command_line_params.get_count("") < 2)
+    if (g_command_line_params().get_count("") < 2)
     {
         vogl_error_printf("No trace file specified!\n");
 
@@ -664,7 +667,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (g_command_line_params.get_value_as_bool("pause"))
+    if (g_command_line_params().get_value_as_bool("pause"))
     {
         vogl_message_printf("Press key to continue\n");
         vogl_sleep(1000);

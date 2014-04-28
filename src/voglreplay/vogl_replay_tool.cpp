@@ -181,14 +181,14 @@ static bool init_logfile()
     VOGL_FUNC_TRACER
 
     dynamic_string backbuffer_hash_file;
-    if (g_command_line_params.get_value_as_string(backbuffer_hash_file, "dump_backbuffer_hashes"))
+    if (g_command_line_params().get_value_as_string(backbuffer_hash_file, "dump_backbuffer_hashes"))
     {
         remove(backbuffer_hash_file.get_ptr());
         vogl_message_printf("Deleted backbuffer hash file \"%s\"\n", backbuffer_hash_file.get_ptr());
     }
 
-    dynamic_string log_file(g_command_line_params.get_value_as_string_or_empty("logfile"));
-    dynamic_string log_file_append(g_command_line_params.get_value_as_string_or_empty("logfile_append"));
+    dynamic_string log_file(g_command_line_params().get_value_as_string_or_empty("logfile"));
+    dynamic_string log_file_append(g_command_line_params().get_value_as_string_or_empty("logfile_append"));
     if (log_file.is_empty() && log_file_append.is_empty())
         return true;
 
@@ -261,7 +261,7 @@ static bool init_command_line_params(int argc, char *argv[])
     parse_cfg.m_single_minus_params = true;
     parse_cfg.m_double_minus_params = true;
 
-    if (!g_command_line_params.parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
+    if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
         vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_NAME);
         return false;
@@ -270,7 +270,7 @@ static bool init_command_line_params(int argc, char *argv[])
     if (!init_logfile())
         return false;
 
-    if (g_command_line_params.get_value_as_bool("help") || g_command_line_params.get_value_as_bool("?"))
+    if (g_command_line_params().get_value_as_bool("help") || g_command_line_params().get_value_as_bool("?"))
     {
         tool_print_help();
         return false;
@@ -362,7 +362,7 @@ static bool vogl_replay_init(int argc, char *argv[])
 {
     VOGL_FUNC_TRACER
 
-    g_thread_safe_random.seed_from_urandom();
+    get_thread_safe_random().seed_from_urandom();
 
     colorized_console::init();
     colorized_console::set_exception_callback();
@@ -374,7 +374,7 @@ static bool vogl_replay_init(int argc, char *argv[])
         return false;
 
 #ifdef USE_TELEMETRY
-    int telemetry_level = g_command_line_params.get_value_as_int("telemetry_level", 0,
+    int telemetry_level = g_command_line_params().get_value_as_int("telemetry_level", 0,
                                                                  TELEMETRY_LEVEL_MIN + 1, TELEMETRY_LEVEL_MIN, TELEMETRY_LEVEL_MAX);
     telemetry_set_level(telemetry_level);
     telemetry_tick();
@@ -383,10 +383,10 @@ static bool vogl_replay_init(int argc, char *argv[])
     vogl_common_lib_early_init();
     vogl_common_lib_global_init();
 
-    if (g_command_line_params.get_value_as_bool("quiet"))
+    if (g_command_line_params().get_value_as_bool("quiet"))
         console::disable_output();
 
-    if (g_command_line_params.get_value_as_bool("gl_debug_log"))
+    if (g_command_line_params().get_value_as_bool("gl_debug_log"))
     {
         vogl_set_direct_gl_func_prolog(vogl_direct_gl_func_prolog, NULL);
         vogl_set_direct_gl_func_epilog(vogl_direct_gl_func_epilog, NULL);
@@ -397,7 +397,7 @@ static bool vogl_replay_init(int argc, char *argv[])
 
     bool wrap_all_gl_calls = true;
 
-    if (g_command_line_params.get_value_as_bool("benchmark"))
+    if (g_command_line_params().get_value_as_bool("benchmark"))
         wrap_all_gl_calls = false;
 
     vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper, wrap_all_gl_calls);
@@ -622,10 +622,10 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
           };
 
     for (uint i = 0; i < sizeof(s_replayer_command_line_params) / sizeof(s_replayer_command_line_params[0]); i++)
-        if (g_command_line_params.get_value_as_bool(s_replayer_command_line_params[i].m_pCommand))
+        if (g_command_line_params().get_value_as_bool(s_replayer_command_line_params[i].m_pCommand))
             replayer_flags |= s_replayer_command_line_params[i].m_flag;
 
-    if (interactive_mode && !g_command_line_params.get_value_as_bool("disable_snapshot_caching"))
+    if (interactive_mode && !g_command_line_params().get_value_as_bool("disable_snapshot_caching"))
         replayer_flags |= cGLReplayerSnapshotCaching;
 
     return replayer_flags;
@@ -638,7 +638,7 @@ static bool tool_replay_mode()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string trace_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
+    dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (trace_filename.is_empty())
     {
         vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_NAME);
@@ -646,7 +646,7 @@ static bool tool_replay_mode()
     }
 
     dynamic_string actual_trace_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(trace_filename, actual_trace_filename, g_command_line_params.get_value_as_string_or_empty("loose_file_path").get_ptr()));
+    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(trace_filename, actual_trace_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
         vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_NAME, trace_filename.get_ptr());
@@ -655,7 +655,7 @@ static bool tool_replay_mode()
 
     vogl_printf("Reading trace file %s\n", actual_trace_filename.get_ptr());
 
-    bool interactive_mode = g_command_line_params.get_value_as_bool("interactive");
+    bool interactive_mode = g_command_line_params().get_value_as_bool("interactive");
 
     vogl_gl_replayer replayer;
 
@@ -666,7 +666,7 @@ static bool tool_replay_mode()
     // TODO: This will create a window with default attributes, which seems fine for the majority of traces.
     // Unfortunately, some GL call streams *don't* want an alpha channel, or depth, or stencil etc. in the default framebuffer so this may become a problem.
     // Also, this design only supports a single window, which is going to be a problem with multiple window traces.
-    if (!window.open(g_command_line_params.get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params.get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params.get_value_as_int("msaa", 0, 0, 0, 65535)))
+    if (!window.open(g_command_line_params().get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params().get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params().get_value_as_int("msaa", 0, 0, 0, 65535)))
     {
         vogl_error_printf("%s: Failed initializing replay window\n", VOGL_FUNCTION_NAME);
         return false;
@@ -684,13 +684,13 @@ static bool tool_replay_mode()
         vogl_disable_gl_get_error();
     }
 
-    replayer.set_swap_sleep_time(g_command_line_params.get_value_as_uint("swap_sleep"));
-    replayer.set_dump_framebuffer_on_draw_prefix(g_command_line_params.get_value_as_string("dump_framebuffer_on_draw_prefix", 0, "screenshot"));
-    replayer.set_screenshot_prefix(g_command_line_params.get_value_as_string("dump_screenshots_prefix", 0, "screenshot"));
-    replayer.set_backbuffer_hash_filename(g_command_line_params.get_value_as_string_or_empty("dump_backbuffer_hashes"));
-    replayer.set_dump_framebuffer_on_draw_frame_index(g_command_line_params.get_value_as_int("dump_framebuffer_on_draw_frame", 0, -1, 0, INT_MAX));
-    replayer.set_dump_framebuffer_on_draw_first_gl_call_index(g_command_line_params.get_value_as_int("dump_framebuffer_on_draw_first_gl_call", 0, -1, 0, INT_MAX));
-    replayer.set_dump_framebuffer_on_draw_last_gl_call_index(g_command_line_params.get_value_as_int("dump_framebuffer_on_draw_last_gl_call", 0, -1, 0, INT_MAX));
+    replayer.set_swap_sleep_time(g_command_line_params().get_value_as_uint("swap_sleep"));
+    replayer.set_dump_framebuffer_on_draw_prefix(g_command_line_params().get_value_as_string("dump_framebuffer_on_draw_prefix", 0, "screenshot"));
+    replayer.set_screenshot_prefix(g_command_line_params().get_value_as_string("dump_screenshots_prefix", 0, "screenshot"));
+    replayer.set_backbuffer_hash_filename(g_command_line_params().get_value_as_string_or_empty("dump_backbuffer_hashes"));
+    replayer.set_dump_framebuffer_on_draw_frame_index(g_command_line_params().get_value_as_int("dump_framebuffer_on_draw_frame", 0, -1, 0, INT_MAX));
+    replayer.set_dump_framebuffer_on_draw_first_gl_call_index(g_command_line_params().get_value_as_int("dump_framebuffer_on_draw_first_gl_call", 0, -1, 0, INT_MAX));
+    replayer.set_dump_framebuffer_on_draw_last_gl_call_index(g_command_line_params().get_value_as_int("dump_framebuffer_on_draw_last_gl_call", 0, -1, 0, INT_MAX));
 
     XSelectInput(window.get_display(), window.get_xwindow(),
                  EnterWindowMask | LeaveWindowMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask | FocusChangeMask | KeyPressMask | KeyReleaseMask | PropertyChangeMask | StructureNotifyMask | KeymapStateMask);
@@ -705,10 +705,10 @@ static bool tool_replay_mode()
     int64_t snapshot_loop_end_frame = -1;
 
     vogl::hash_map<uint64_t> keys_pressed, keys_down;
-    dynamic_string keyframe_base_filename(g_command_line_params.get_value_as_string("keyframe_base_filename"));
+    dynamic_string keyframe_base_filename(g_command_line_params().get_value_as_string("keyframe_base_filename"));
     vogl::vector<uint64_t> keyframes;
     int64_t paused_mode_frame_index = -1;
-    int64_t take_snapshot_at_frame_index = g_command_line_params.get_value_as_int64("pause_on_frame", 0, -1);
+    int64_t take_snapshot_at_frame_index = g_command_line_params().get_value_as_int64("pause_on_frame", 0, -1);
     bool paused_mode = false;
     bool slow_mode = false;
 
@@ -751,25 +751,25 @@ static bool tool_replay_mode()
         keyframes.sort();
     }
 
-    int loop_frame = g_command_line_params.get_value_as_int("loop_frame", 0, -1);
-    int loop_len = math::maximum<int>(g_command_line_params.get_value_as_int("loop_len", 0, 1), 1);
-    int loop_count = math::maximum<int>(g_command_line_params.get_value_as_int("loop_count", 0, cINT32_MAX), 1);
-    int draw_kill_max_thresh = g_command_line_params.get_value_as_int("draw_kill_max_thresh", 0, -1);
-    bool endless_mode = g_command_line_params.get_value_as_bool("endless");
+    int loop_frame = g_command_line_params().get_value_as_int("loop_frame", 0, -1);
+    int loop_len = math::maximum<int>(g_command_line_params().get_value_as_int("loop_len", 0, 1), 1);
+    int loop_count = math::maximum<int>(g_command_line_params().get_value_as_int("loop_count", 0, cINT32_MAX), 1);
+    int draw_kill_max_thresh = g_command_line_params().get_value_as_int("draw_kill_max_thresh", 0, -1);
+    bool endless_mode = g_command_line_params().get_value_as_bool("endless");
 
-    bool multitrim_mode = g_command_line_params.get_value_as_bool("multitrim");
-    int multitrim_interval = g_command_line_params.get_value_as_int("multitrim_interval", 0, 1, 1);
+    bool multitrim_mode = g_command_line_params().get_value_as_bool("multitrim");
+    int multitrim_interval = g_command_line_params().get_value_as_int("multitrim_interval", 0, 1, 1);
     int multitrim_frames_remaining = 0;
 
-    int64_t write_snapshot_index = g_command_line_params.get_value_as_int64("write_snapshot_call", 0, -1, 0);
-    dynamic_string write_snapshot_filename = g_command_line_params.get_value_as_string("write_snapshot_file", 0, "state_snapshot.json");
+    int64_t write_snapshot_index = g_command_line_params().get_value_as_int64("write_snapshot_call", 0, -1, 0);
+    dynamic_string write_snapshot_filename = g_command_line_params().get_value_as_string("write_snapshot_file", 0, "state_snapshot.json");
 
-    int64_t trim_call_index = g_command_line_params.get_value_as_int64("trim_call", 0, -1, 0);
-    vogl::vector<uint> trim_frames(g_command_line_params.get_count("trim_frame"));
+    int64_t trim_call_index = g_command_line_params().get_value_as_int64("trim_call", 0, -1, 0);
+    vogl::vector<uint> trim_frames(g_command_line_params().get_count("trim_frame"));
     for (uint i = 0; i < trim_frames.size(); i++)
     {
         bool parsed_successfully;
-        trim_frames[i] = g_command_line_params.get_value_as_uint("trim_frame", i, 0, 0, cUINT32_MAX, 0, &parsed_successfully);
+        trim_frames[i] = g_command_line_params().get_value_as_uint("trim_frame", i, 0, 0, cUINT32_MAX, 0, &parsed_successfully);
         if (!parsed_successfully)
         {
             vogl_error_printf("%s: Failed parsing -trim_frame at index %u\n", VOGL_FUNCTION_NAME, i);
@@ -777,10 +777,10 @@ static bool tool_replay_mode()
         }
     }
 
-    vogl::vector<dynamic_string> trim_filenames(g_command_line_params.get_count("trim_file"));
+    vogl::vector<dynamic_string> trim_filenames(g_command_line_params().get_count("trim_file"));
     for (uint i = 0; i < trim_filenames.size(); i++)
     {
-        dynamic_string filename(g_command_line_params.get_value_as_string("trim_file", i));
+        dynamic_string filename(g_command_line_params().get_value_as_string("trim_file", i));
 
         if (filename.is_empty())
         {
@@ -794,11 +794,11 @@ static bool tool_replay_mode()
             vogl_message_printf("%s: Trim output filename \"%s\", didn't have an extension, appended \".bin\" to the filename: %s\n", VOGL_FUNCTION_NAME, filename.get_ptr(), trim_filenames[i].get_ptr());
     }
 
-    vogl::vector<uint> trim_lens(g_command_line_params.get_count("trim_len"));
+    vogl::vector<uint> trim_lens(g_command_line_params().get_count("trim_len"));
     for (uint i = 0; i < trim_lens.size(); i++)
     {
         bool parsed_successfully;
-        trim_lens[i] = g_command_line_params.get_value_as_uint("trim_len", i, 1, 0, cUINT32_MAX, 0, &parsed_successfully);
+        trim_lens[i] = g_command_line_params().get_value_as_uint("trim_len", i, 1, 0, cUINT32_MAX, 0, &parsed_successfully);
         if (!parsed_successfully)
         {
             vogl_error_printf("%s: Failed parsing -trim_len at index %u\n", VOGL_FUNCTION_NAME, i);
@@ -1136,7 +1136,7 @@ static bool tool_replay_mode()
                         goto error_exit;
                     }
 
-                    if (g_command_line_params.get_value_as_bool("debug_test_snapshot_serialization"))
+                    if (g_command_line_params().get_value_as_bool("debug_test_snapshot_serialization"))
                     {
                         // Obviously, this crap is only for debugging.
                         vogl_memory_blob_manager mem_blob_manager;
@@ -1218,7 +1218,7 @@ static bool tool_replay_mode()
 
                         dynamic_string trim_filename(trim_name + "/" + trim_name + ".bin");
                         dynamic_string snapshot_id;
-                        uint write_trim_file_flags = vogl_gl_replayer::cWriteTrimFileFromStartOfFrame | (g_command_line_params.get_value_as_bool("no_trim_optimization") ? 0 : vogl_gl_replayer::cWriteTrimFileOptimizeSnapshot);
+                        uint write_trim_file_flags = vogl_gl_replayer::cWriteTrimFileFromStartOfFrame | (g_command_line_params().get_value_as_bool("no_trim_optimization") ? 0 : vogl_gl_replayer::cWriteTrimFileOptimizeSnapshot);
                         if (replayer.write_trim_file(write_trim_file_flags, trim_filename, 1, *pTrace_reader, &snapshot_id))
                         {
                             dynamic_string json_trim_base_filename(trim_name + "/j" + trim_name);
@@ -1661,7 +1661,7 @@ static bool tool_replay_mode()
 
                         file_utils::create_directories(trim_path, false);
 
-                        uint write_trim_file_flags = vogl_gl_replayer::cWriteTrimFileFromStartOfFrame | (g_command_line_params.get_value_as_bool("no_trim_optimization") ? 0 : vogl_gl_replayer::cWriteTrimFileOptimizeSnapshot);
+                        uint write_trim_file_flags = vogl_gl_replayer::cWriteTrimFileFromStartOfFrame | (g_command_line_params().get_value_as_bool("no_trim_optimization") ? 0 : vogl_gl_replayer::cWriteTrimFileOptimizeSnapshot);
                         if (!replayer.write_trim_file(write_trim_file_flags, filename, multitrim_mode ? 1 : len, *pTrace_reader))
                             goto error_exit;
 
@@ -1746,7 +1746,7 @@ static bool tool_replay_mode()
                                 null_blob_manager.init(cBMFReadWrite);
 
                                 json_document doc;
-                                vogl_blob_manager *pBlob_manager = g_command_line_params.get_value_as_bool("write_snapshot_blobs") ? static_cast<vogl_blob_manager *>(&trim_file_blob_manager) : static_cast<vogl_blob_manager *>(&null_blob_manager);
+                                vogl_blob_manager *pBlob_manager = g_command_line_params().get_value_as_bool("write_snapshot_blobs") ? static_cast<vogl_blob_manager *>(&trim_file_blob_manager) : static_cast<vogl_blob_manager *>(&null_blob_manager);
                                 if (!pSnapshot->serialize(*doc.get_root(), *pBlob_manager, &replayer.get_trace_gl_ctypes()))
                                 {
                                     vogl_error_printf("Failed serializing state snapshot document!\n");
@@ -1878,7 +1878,7 @@ static bool tool_replay_mode()
 
 normal_exit:
 
-    if (g_command_line_params.get_value_as_bool("pause_on_exit") && (window.is_opened()))
+    if (g_command_line_params().get_value_as_bool("pause_on_exit") && (window.is_opened()))
     {
         vogl_printf("Press a key to continue.\n");
 
@@ -1930,14 +1930,14 @@ static bool tool_dump_mode()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string input_trace_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
+    dynamic_string input_trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_trace_filename.is_empty())
     {
         vogl_error_printf("Must specify filename of input binary trace file!\n");
         return false;
     }
 
-    dynamic_string output_base_filename(g_command_line_params.get_value_as_string_or_empty("", 2));
+    dynamic_string output_base_filename(g_command_line_params().get_value_as_string_or_empty("", 2));
     if (output_base_filename.is_empty())
     {
         vogl_error_printf("Must specify base filename of output JSON/blob files!\n");
@@ -1953,14 +1953,14 @@ static bool tool_dump_mode()
     file_utils::create_directories(output_trace_path, false);
 
     dynamic_string actual_input_trace_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_trace_filename, actual_input_trace_filename, g_command_line_params.get_value_as_string_or_empty("loose_file_path").get_ptr()));
+    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_trace_filename, actual_input_trace_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
         vogl_error_printf("%s: Failed opening input trace file \"%s\"\n", VOGL_FUNCTION_NAME, input_trace_filename.get_ptr());
         return false;
     }
 
-    const bool full_verification = g_command_line_params.get_value_as_bool("verify");
+    const bool full_verification = g_command_line_params().get_value_as_bool("verify");
 
     vogl_ctypes trace_gl_ctypes;
     trace_gl_ctypes.init(pTrace_reader->get_sof_packet().m_pointer_sizes);
@@ -2098,7 +2098,7 @@ static bool tool_dump_mode()
         const char *pFunc_name = g_vogl_entrypoint_descs[gl_packet.m_entrypoint_id].m_pName;
         VOGL_NOTE_UNUSED(pFunc_name);
 
-        if (g_command_line_params.get_value_as_bool("debug"))
+        if (g_command_line_params().get_value_as_bool("debug"))
         {
             vogl_debug_printf("Trace packet: File offset: %" PRIu64 ", Total size %u, Param size: %u, Client mem size %u, Name value size %u, call %" PRIu64 ", ID: %s (%u), Thread ID: 0x%" PRIX64 ", Trace Context: 0x%" PRIX64 "\n",
                              cur_packet_ofs,
@@ -2128,7 +2128,7 @@ static bool tool_dump_mode()
         serialize_params.m_output_basename = file_utils::get_filename(output_base_filename.get_ptr());
         serialize_params.m_pBlob_manager = &output_file_blob_manager;
         serialize_params.m_cur_frame = cur_file_index;
-        serialize_params.m_write_debug_info = g_command_line_params.get_value_as_bool("write_debug_info");
+        serialize_params.m_write_debug_info = g_command_line_params().get_value_as_bool("write_debug_info");
         if (!gl_packet_cracker.json_serialize(new_node, serialize_params))
         {
             vogl_error_printf("JSON serialization failed!\n");
@@ -2140,20 +2140,20 @@ static bool tool_dump_mode()
         if (full_verification)
         {
 #if 0
-			if (!strcmp(pFunc_name, "glClearColor"))
-			{
-				vogl_debug_break();
-			}
+            if (!strcmp(pFunc_name, "glClearColor"))
+            {
+                VOGL_BREAKPOINT
+            }
 #endif
 
             vogl::vector<char> new_node_as_text;
             new_node.serialize(new_node_as_text, true, 0);
 
 #if 0
-			if (new_node_as_text.size())
-			{
-				printf("%s\n", new_node_as_text.get_ptr());
-			}
+            if (new_node_as_text.size())
+            {
+                printf("%s\n", new_node_as_text.get_ptr());
+            }
 #endif
 
             json_document round_tripped_node;
@@ -2303,7 +2303,7 @@ static bool tool_parse_mode()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string input_base_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
+    dynamic_string input_base_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_base_filename.is_empty())
     {
         vogl_error_printf("Must specify filename of input JSON/blob trace files!\n");
@@ -2311,11 +2311,11 @@ static bool tool_parse_mode()
     }
 
     dynamic_string actual_input_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_base_filename, actual_input_filename, g_command_line_params.get_value_as_string_or_empty("loose_file_path").get_ptr()));
+    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_base_filename, actual_input_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
         return false;
 
-    dynamic_string output_trace_filename(g_command_line_params.get_value_as_string_or_empty("", 2));
+    dynamic_string output_trace_filename(g_command_line_params().get_value_as_string_or_empty("", 2));
     if (output_trace_filename.is_empty())
     {
         vogl_error_printf("Must specify full filename of output binary trace file!\n");
@@ -2463,7 +2463,7 @@ static bool tool_info_mode()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string input_base_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
+    dynamic_string input_base_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_base_filename.is_empty())
     {
         vogl_error_printf("Must specify filename of input JSON/blob trace files!\n");
@@ -2471,7 +2471,7 @@ static bool tool_info_mode()
     }
 
     dynamic_string actual_input_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_base_filename, actual_input_filename, g_command_line_params.get_value_as_string_or_empty("loose_file_path").get_ptr()));
+    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_base_filename, actual_input_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
         return false;
 
@@ -2928,7 +2928,7 @@ static bool tool_find_mode()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string input_base_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
+    dynamic_string input_base_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_base_filename.is_empty())
     {
         vogl_error_printf("Must specify filename of input JSON/blob trace files!\n");
@@ -2936,29 +2936,29 @@ static bool tool_find_mode()
     }
 
     dynamic_string actual_input_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_base_filename, actual_input_filename, g_command_line_params.get_value_as_string_or_empty("loose_file_path").get_ptr()));
+    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_base_filename, actual_input_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
         return false;
 
     bigint128 value_to_find(static_cast<uint64_t>(gl_enums::cUnknownEnum));
-    bool has_find_param = g_command_line_params.has_key("find_param");
+    bool has_find_param = g_command_line_params().has_key("find_param");
     if (has_find_param)
     {
-        dynamic_string find_value_str(g_command_line_params.get_value_as_string("find_param"));
+        dynamic_string find_value_str(g_command_line_params().get_value_as_string("find_param"));
         if ((find_value_str.has_content()) && (vogl_isalpha(find_value_str[0])))
         {
-            value_to_find = g_gl_enums.find_enum(find_value_str);
+            value_to_find = get_gl_enums().find_enum(find_value_str);
         }
 
         if (value_to_find == static_cast<uint64_t>(gl_enums::cUnknownEnum))
         {
             bool find_param_u64_valid = false;
-            value_to_find = g_command_line_params.get_value_as_uint64("find_param", 0, 0, 0, cUINT64_MAX, 0, &find_param_u64_valid);
+            value_to_find = g_command_line_params().get_value_as_uint64("find_param", 0, 0, 0, cUINT64_MAX, 0, &find_param_u64_valid);
 
             if (!find_param_u64_valid)
             {
                 bool find_param_i64_valid = false;
-                value_to_find = g_command_line_params.get_value_as_int64("find_param", 0, 0, 0, cINT64_MAX, 0, &find_param_i64_valid);
+                value_to_find = g_command_line_params().get_value_as_int64("find_param", 0, 0, 0, cINT64_MAX, 0, &find_param_i64_valid);
 
                 if (!find_param_i64_valid)
                 {
@@ -2969,7 +2969,7 @@ static bool tool_find_mode()
         }
     }
 
-    dynamic_string find_namespace_str(g_command_line_params.get_value_as_string_or_empty("find_namespace"));
+    dynamic_string find_namespace_str(g_command_line_params().get_value_as_string_or_empty("find_namespace"));
     vogl_namespace_t find_namespace = VOGL_NAMESPACE_UNKNOWN;
     if (find_namespace_str.has_content())
     {
@@ -2981,9 +2981,9 @@ static bool tool_find_mode()
         }
     }
 
-    dynamic_string find_param_name(g_command_line_params.get_value_as_string_or_empty("find_param_name"));
+    dynamic_string find_param_name(g_command_line_params().get_value_as_string_or_empty("find_param_name"));
 
-    dynamic_string find_func_pattern(g_command_line_params.get_value_as_string_or_empty("find_func"));
+    dynamic_string find_func_pattern(g_command_line_params().get_value_as_string_or_empty("find_func"));
     regexp func_regex;
     if (find_func_pattern.has_content())
     {
@@ -2994,10 +2994,10 @@ static bool tool_find_mode()
         }
     }
 
-    int64_t find_frame_low = g_command_line_params.get_value_as_int64("find_frame_low", 0, -1);
-    int64_t find_frame_high = g_command_line_params.get_value_as_int64("find_frame_high", 0, -1);
-    int64_t find_call_low = g_command_line_params.get_value_as_int64("find_call_low", 0, -1);
-    int64_t find_call_high = g_command_line_params.get_value_as_int64("find_call_high", 0, -1);
+    int64_t find_frame_low = g_command_line_params().get_value_as_int64("find_frame_low", 0, -1);
+    int64_t find_frame_high = g_command_line_params().get_value_as_int64("find_frame_high", 0, -1);
+    int64_t find_call_low = g_command_line_params().get_value_as_int64("find_call_low", 0, -1);
+    int64_t find_call_high = g_command_line_params().get_value_as_int64("find_call_high", 0, -1);
 
     vogl_printf("Scanning trace file %s\n", actual_input_filename.get_ptr());
 
@@ -3136,8 +3136,8 @@ done:
 //----------------------------------------------------------------------------------------------------------------------
 static bool tool_compare_hash_files()
 {
-    dynamic_string src1_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
-    dynamic_string src2_filename(g_command_line_params.get_value_as_string_or_empty("", 2));
+    dynamic_string src1_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
+    dynamic_string src2_filename(g_command_line_params().get_value_as_string_or_empty("", 2));
     if ((src1_filename.is_empty()) || (src2_filename.is_empty()))
     {
         vogl_error_printf("Must specify two source filenames!\n");
@@ -3162,9 +3162,9 @@ static bool tool_compare_hash_files()
 
     vogl_printf("Read 2nd source file \"%s\", %u lines\n", src2_filename.get_ptr(), src2_lines.size());
 
-    const uint64_t sum_comp_thresh = g_command_line_params.get_value_as_uint64("sum_compare_threshold");
+    const uint64_t sum_comp_thresh = g_command_line_params().get_value_as_uint64("sum_compare_threshold");
 
-    const uint compare_first_frame = g_command_line_params.get_value_as_uint("compare_first_frame");
+    const uint compare_first_frame = g_command_line_params().get_value_as_uint("compare_first_frame");
     if (compare_first_frame > src2_lines.size())
     {
         vogl_error_printf("%s: -compare_first_frame is %u, but the second file only has %u frames!\n", VOGL_FUNCTION_NAME, compare_first_frame, src2_lines.size());
@@ -3176,7 +3176,7 @@ static bool tool_compare_hash_files()
     if (src1_lines.size() != src2_lines.size())
     {
         // FIXME: When we replay q2, we get 2 more frames vs. tracing. Not sure why, this needs to be investigated.
-        if ( (!g_command_line_params.get_value_as_bool("ignore_line_count_differences")) && (labs(src1_lines.size() - src2_lines.size()) > 3) )
+        if ( (!g_command_line_params().get_value_as_bool("ignore_line_count_differences")) && (labs(src1_lines.size() - src2_lines.size()) > 3) )
         {
             vogl_error_printf("%s: Input files have a different number of lines! (%u vs %u)\n", VOGL_FUNCTION_NAME, src1_lines.size(), src2_lines.size());
             return false;
@@ -3187,18 +3187,18 @@ static bool tool_compare_hash_files()
         }
     }
 
-    const uint compare_ignore_frames = g_command_line_params.get_value_as_uint("compare_ignore_frames");
+    const uint compare_ignore_frames = g_command_line_params().get_value_as_uint("compare_ignore_frames");
     if (compare_ignore_frames > lines_to_comp)
     {
         vogl_error_printf("%s: -compare_ignore_frames is too large!\n", VOGL_FUNCTION_NAME);
         return false;
     }
 
-    const bool sum_hashing = g_command_line_params.get_value_as_bool("sum_hashing");
+    const bool sum_hashing = g_command_line_params().get_value_as_bool("sum_hashing");
 
-    if (g_command_line_params.has_key("compare_expected_frames"))
+    if (g_command_line_params().has_key("compare_expected_frames"))
     {
-        const uint compare_expected_frames = g_command_line_params.get_value_as_uint("compare_expected_frames");
+        const uint compare_expected_frames = g_command_line_params().get_value_as_uint("compare_expected_frames");
         if ((src1_lines.size() != compare_expected_frames) || (src2_lines.size() != compare_expected_frames))
         {
             vogl_warning_printf("%s: Expected %u frames! First file has %u frames, second file has %u frames.\n", VOGL_FUNCTION_NAME, compare_expected_frames, src1_lines.size(), src2_lines.size());
@@ -3277,14 +3277,14 @@ static bool tool_unpack_json_mode()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string input_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
+    dynamic_string input_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_filename.is_empty())
     {
         vogl_error_printf("Must specify filename of input UBJ file!\n");
         return false;
     }
 
-    dynamic_string output_filename(g_command_line_params.get_value_as_string_or_empty("", 2));
+    dynamic_string output_filename(g_command_line_params().get_value_as_string_or_empty("", 2));
     if (output_filename.is_empty())
     {
         vogl_error_printf("Must specify filename of output text file!\n");
@@ -3320,14 +3320,14 @@ static bool tool_pack_json_mode()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string input_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
+    dynamic_string input_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_filename.is_empty())
     {
         vogl_error_printf("Must specify filename of input text file!\n");
         return false;
     }
 
-    dynamic_string output_filename(g_command_line_params.get_value_as_string_or_empty("", 2));
+    dynamic_string output_filename(g_command_line_params().get_value_as_string_or_empty("", 2));
     if (output_filename.is_empty())
     {
         vogl_error_printf("Must specify filename of output UBJ file!\n");
@@ -3382,6 +3382,9 @@ int main(int argc, char *argv[])
 
     VOGL_FUNC_TRACER
 
+    // Initialize vogl_core.
+    vogl_core_init();
+
     XSetErrorHandler(xerror_handler);
 
     if (!vogl_replay_init(argc, argv))
@@ -3399,7 +3402,7 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 #endif
 
-    if (g_command_line_params.get_count("") < 2)
+    if (g_command_line_params().get_count("") < 2)
     {
         vogl_error_printf("Must specify at least one trace (or input) files!\n");
 
@@ -3409,7 +3412,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (g_command_line_params.get_value_as_bool("pause"))
+    if (g_command_line_params().get_value_as_bool("pause"))
     {
         vogl_message_printf("Press key to continue\n");
         vogl_sleep(1000);
@@ -3418,48 +3421,48 @@ int main(int argc, char *argv[])
 
     bool success = false;
 
-    if (g_command_line_params.get_value_as_bool("dump"))
+    if (g_command_line_params().get_value_as_bool("dump"))
     {
         tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "dump");
         vogl_message_printf("Dump from binary to JSON mode\n");
 
         success = tool_dump_mode();
     }
-    else if (g_command_line_params.get_value_as_bool("parse"))
+    else if (g_command_line_params().get_value_as_bool("parse"))
     {
         tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "parse");
         vogl_message_printf("Parse from JSON to binary mode\n");
 
         success = tool_parse_mode();
     }
-    else if (g_command_line_params.get_value_as_bool("info"))
+    else if (g_command_line_params().get_value_as_bool("info"))
     {
         tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "info");
         vogl_message_printf("Dumping trace information\n");
 
         success = tool_info_mode();
     }
-    else if (g_command_line_params.get_value_as_bool("unpack_json"))
+    else if (g_command_line_params().get_value_as_bool("unpack_json"))
     {
         tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "unpack_json");
         vogl_message_printf("Unpacking UBJ to text\n");
 
         success = tool_unpack_json_mode();
     }
-    else if (g_command_line_params.get_value_as_bool("pack_json"))
+    else if (g_command_line_params().get_value_as_bool("pack_json"))
     {
         tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "pack_json");
         vogl_message_printf("Packing textual JSON to UBJ\n");
 
         success = tool_pack_json_mode();
     }
-    else if (g_command_line_params.get_value_as_bool("find"))
+    else if (g_command_line_params().get_value_as_bool("find"))
     {
         vogl_message_printf("Find mode\n");
 
         success = tool_find_mode();
     }
-    else if (g_command_line_params.get_value_as_bool("compare_hash_files"))
+    else if (g_command_line_params().get_value_as_bool("compare_hash_files"))
     {
        vogl_message_printf("Comparing hash/sum files\n");
 

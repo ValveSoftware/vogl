@@ -174,7 +174,12 @@ extern gl_entrypoint_desc_t g_vogl_entrypoint_descs[VOGL_NUM_ENTRYPOINTS];
 extern gl_entrypoint_param_desc_t g_vogl_entrypoint_param_descs[VOGL_NUM_ENTRYPOINTS][VOGL_MAX_ENTRYPOINT_PARAMETERS];
 
 typedef vogl::hash_map<dynamic_string, gl_entrypoint_id_t, hasher<dynamic_string>, dynamic_string_equal_to_case_sensitive> entrypoint_name_hash_map_t;
-extern entrypoint_name_hash_map_t g_vogl_entrypoint_hashmap;
+
+inline entrypoint_name_hash_map_t &get_vogl_entrypoint_hashmap()
+{
+    static entrypoint_name_hash_map_t s_vogl_entrypoint_hashmap;
+    return s_vogl_entrypoint_hashmap;
+}
 
 extern vogl_void_func_ptr_t g_vogl_actual_gl_entrypoint_direct_func_ptrs[VOGL_NUM_ENTRYPOINTS];
 extern vogl_void_func_ptr_t g_vogl_actual_gl_entrypoint_func_ptrs[VOGL_NUM_ENTRYPOINTS];

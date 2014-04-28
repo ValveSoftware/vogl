@@ -204,9 +204,9 @@ bool vogl_state_data::init(GLenum enum_val, uint index, const void *pData, uint 
 {
     VOGL_FUNC_TRACER
 
-    const char *pName = g_gl_enums.find_name(enum_val);
+    const char *pName = get_gl_enums().find_name(enum_val);
 
-    int pname_def_index = g_gl_enums.find_pname_def_index(enum_val);
+    int pname_def_index = get_gl_enums().find_pname_def_index(enum_val);
     if (pname_def_index < 0)
     {
         vogl_warning_printf("%s: Unable to find pname def for GL enum %s\n", VOGL_METHOD_NAME, pName);
@@ -226,7 +226,7 @@ bool vogl_state_data::init(GLenum enum_val, uint index, const void *pData, uint 
         return false;
     }
 
-    uint n = g_gl_enums.get_pname_count(enum_val);
+    uint n = get_gl_enums().get_pname_count(enum_val);
     if (!n)
     {
         VOGL_ASSERT_ALWAYS;
@@ -867,7 +867,7 @@ bool vogl_state_data::serialize(json_node &node) const
 {
     VOGL_FUNC_TRACER
 
-    const char *pEnum_name = g_gl_enums.find_name(m_id.m_enum_val);
+    const char *pEnum_name = get_gl_enums().find_name(m_id.m_enum_val);
     dynamic_string enum_name;
     if (pEnum_name)
         enum_name.set(pEnum_name);
@@ -900,7 +900,7 @@ bool vogl_state_data::serialize(json_node &node) const
             {
                 const GLenum *pVal = reinterpret_cast<const GLenum *>(pElement);
 
-                const char *pValue_enum_name = g_gl_enums.find_name(*pVal);
+                const char *pValue_enum_name = get_gl_enums().find_name(*pVal);
                 dynamic_string value_enum_name;
                 if (pValue_enum_name)
                     value_enum_name.set(pValue_enum_name);
@@ -973,7 +973,7 @@ bool vogl_state_data::deserialize(const json_node &node)
     if (key_str.begins_with("0x"))
         gl_enum = string_to_uint64(key_str.get_ptr(), gl_enums::cUnknownEnum);
     else
-        gl_enum = g_gl_enums.find_enum(key_str.get_ptr());
+        gl_enum = get_gl_enums().find_enum(key_str.get_ptr());
 
     if ((gl_enum == gl_enums::cUnknownEnum) || (gl_enum > cUINT32_MAX))
     {
@@ -1038,7 +1038,7 @@ bool vogl_state_data::deserialize(const json_node &node)
                 if ((pStr[0] == '0') && (pStr[1] == 'x'))
                     gl_enum = string_to_uint64(pStr, gl_enums::cUnknownEnum);
                 else
-                    gl_enum = g_gl_enums.find_enum(dynamic_string(pStr));
+                    gl_enum = get_gl_enums().find_enum(dynamic_string(pStr));
 
                 if ((gl_enum == gl_enums::cUnknownEnum) || (gl_enum > cUINT32_MAX))
                 {

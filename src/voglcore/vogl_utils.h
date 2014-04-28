@@ -530,8 +530,6 @@ namespace vogl
         uint compute_max_mips(uint width, uint height, uint min_width = 1U, uint min_height = 1U);
         uint compute_max_mips3D(uint width, uint height, uint depth, uint min_width = 1U, uint min_height = 1U, uint min_depth = 1U);
 
-        bool check_for_sse_4_1_support();
-
         inline char to_hex(uint v)
         {
             VOGL_ASSERT(v <= 0xF);

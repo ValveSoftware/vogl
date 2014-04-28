@@ -36,7 +36,6 @@ namespace vogl
 {
 
     json_node_object_pool *g_pJSON_node_pool;
-    json_value g_null_json_value;
 
     static const char *g_to_hex = "0123456789ABCDEF";
 
@@ -1962,7 +1961,7 @@ namespace vogl
     const json_value &json_node::find_value(const char *pKey) const
     {
         int index = find_key(pKey);
-        return (index < 0) ? g_null_json_value : m_values[index];
+        return (index < 0) ? get_null_json_value() : m_values[index];
     }
 
     int json_node::find_key(const char *pKey) const
@@ -2371,7 +2370,7 @@ namespace vogl
         if (!m_is_object)
         {
             VOGL_ASSERT_ALWAYS;
-            return g_empty_dynamic_string;
+            return get_empty_dynamic_string();
         }
         return m_keys[index];
     }

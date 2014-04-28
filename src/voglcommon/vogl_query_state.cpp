@@ -184,7 +184,7 @@ bool vogl_query_state::serialize(json_node &node, vogl_blob_manager &blob_manage
         return false;
 
     node.add_key_value("handle", m_snapshot_handle);
-    node.add_key_value("target", g_gl_enums.find_name(m_target, "gl"));
+    node.add_key_value("target", get_gl_enums().find_name(m_target, "gl"));
     node.add_key_value("prev_result", m_prev_result);
     node.add_key_value("has_been_begun", m_has_been_begun);
 

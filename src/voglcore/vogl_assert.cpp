@@ -37,7 +37,7 @@
 #warning Assertions enabled in release build
 #endif
 
-static bool g_fail_exceptions;
+static bool g_fail_exceptions = false;
 static bool g_exit_on_failure = true;
 
 void vogl_enable_fail_exceptions(bool enabled)
@@ -64,8 +64,7 @@ void vogl_assert(const char *pExp, const char *pFile, unsigned line)
 	}
 #endif
 
-    if (vogl_is_debugger_present())
-        vogl_debug_break();
+    vogl_debug_break_if_debugging();
 }
 
 void vogl_fail(const char *pExp, const char *pFile, unsigned line)
@@ -85,8 +84,7 @@ void vogl_fail(const char *pExp, const char *pFile, unsigned line)
             vogl_output_debug_string(backtrace[i].get_ptr());
     }
 
-    if (vogl_is_debugger_present())
-        vogl_debug_break();
+    vogl_debug_break_if_debugging();
 
 #ifdef VOGL_USE_WIN32_API
     if (g_fail_exceptions)

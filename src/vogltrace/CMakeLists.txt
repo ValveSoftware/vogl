@@ -11,18 +11,18 @@ find_package(X11 REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-add_compiler_flag("-DVOGL_REMOTING")
+# add_compiler_flag("-DVOGL_REMOTING")
 
 set(SRC_LIST
     ${SRC_LIST}
     vogl_trace.cpp
     vogl_intercept.cpp
-    vogl_remote.cpp
-    ${SRC_DIR}/common/channel.cpp
-    ${SRC_DIR}/common/mtqueue.cpp
-    ${SRC_DIR}/common/channelmgr.cpp
-    ${SRC_DIR}/common/toclientmsg.cpp
-    ${SRC_DIR}/common/pinggame.cpp
+    # vogl_remote.cpp
+    # ${SRC_DIR}/common/channel.cpp
+    # ${SRC_DIR}/common/mtqueue.cpp
+    # ${SRC_DIR}/common/channelmgr.cpp
+    # ${SRC_DIR}/common/toclientmsg.cpp
+    # ${SRC_DIR}/common/pinggame.cpp
 )
 
 if (VOGLTRACE_NO_PUBLIC_EXPORTS)

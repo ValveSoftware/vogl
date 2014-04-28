@@ -104,7 +104,7 @@ protected:
     static QString enum_to_string(GLenum id)
     {
         static QString tmp;
-        tmp = g_gl_enums.find_name(id);
+        tmp = get_gl_enums().find_name(id);
         if (tmp.isNull() || tmp.isEmpty())
         {
            tmp = tmp.sprintf("0x%04x", id);

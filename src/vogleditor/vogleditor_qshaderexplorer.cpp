@@ -82,7 +82,7 @@ uint vogleditor_QShaderExplorer::add_shader_objects(vogl_gl_object_state_ptr_vec
             vogl_shader_state* pState = static_cast<vogl_shader_state*>(*iter);
 
             QString valueStr;
-            valueStr = valueStr.sprintf("Shader %" PRIu64 " - %s", pState->get_snapshot_handle(), g_gl_enums.find_gl_name(pState->get_shader_type()));
+            valueStr = valueStr.sprintf("Shader %" PRIu64 " - %s", pState->get_snapshot_handle(), get_gl_enums().find_gl_name(pState->get_shader_type()));
 
             ui->shaderListbox->addItem(valueStr, QVariant::fromValue(pState));
         }

@@ -185,7 +185,14 @@ private:
     uint m_pointer_size;
 };
 
-extern vogl_ctypes g_vogl_process_gl_ctypes;
+//----------------------------------------------------------------------------------------------------------------------
+//  Global process vogl_ctypes object
+//----------------------------------------------------------------------------------------------------------------------
+inline vogl_ctypes &get_vogl_process_gl_ctypes()
+{
+    static vogl_ctypes s_vogl_process_gl_ctypes;
+    return s_vogl_process_gl_ctypes;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // Functions

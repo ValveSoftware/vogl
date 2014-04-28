@@ -47,53 +47,26 @@ namespace vogl
             {
                 g_reliable_rdtsc = 0;
 
-                vogl::growable_array<char, 2048> current_clocksource;
-                if (file_utils::read_proc_file("/sys/devices/system/clocksource/clocksource0/current_clocksource", current_clocksource))
+                FILE *file = fopen("/sys/devices/system/clocksource/clocksource0/current_clocksource", "r");
+                if (file)
                 {
-                    const char *clock_source = current_clocksource.get_ptr();
-                    g_reliable_rdtsc = (clock_source[0] == 't' && clock_source[1] == 's' && clock_source[2] == 'c');
+                    char buf[64];
+
+                    if (fgets(buf, sizeof(buf), file))
+                    {
+                        if (buf[0] == 't' && buf[1] == 's' && buf[2] == 'c')
+                            g_reliable_rdtsc = 1;
+                    }
+
+                    fclose(file);
                 }
             }
+
             // return true for reliable rdtsc.
             return !!g_reliable_rdtsc;
-#endif
-            return true;
-        }
-
-        class check_for_sse_4_1
-        {
-        public:
-            check_for_sse_4_1()
-            {
-                if (!utils::check_for_sse_4_1_support())
-                {
-                    fprintf(stderr, "This program requires SSE 4.1, which is supported by Intel Core 2 (\"Penryn\"), Intel Core i7 (\"Nehalem\"), AMD Bulldozer, and later CPU's\n");
-                    exit(EXIT_FAILURE);
-                }
-            }
-        } g_check_for_sse_4_1_obj;
-
-        bool check_for_sse_4_1_support()
-        {
-            bool sse4_1 = false;
-            bool sse4_2 = false;
-
-#ifdef _WIN32
-            int CPUInfo[4] = { -1 };
-            __cpuid(CPUInfo, 0);
-
-            if (CPUInfo[0] > 0)
-            {
-                __cpuid(CPUInfo, 1);
-                sse4_1 = (CPUInfo[2] & 0x80000) != 0;
-                sse4_2 = (CPUInfo[2] & 0x100000) != 0;
-            }
 #else
-            //         #warning Create linux implementation of check_for_sse_4_1_support
-            sse4_1 = sse4_2 = true;
+            return true;
 #endif
-
-            return sse4_1;
         }
 
         void endian_switch_words(uint16 *p, uint num)

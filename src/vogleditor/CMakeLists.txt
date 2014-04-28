@@ -152,6 +152,10 @@ QT4_ADD_RESOURCES(QT_GEN_RESOURCE_RCC_LIST ${RESOURCE_LIST})
 
 #add_definitions(${QT_DEFINITIONS})
 
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    add_compiler_flag("-Wno-global-constructors")
+endif()
+
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADER_LIST}
         ${QT_GEN_HEADER_MOC_LIST}
         ${QT_GEN_FORM_HEADER_LIST}

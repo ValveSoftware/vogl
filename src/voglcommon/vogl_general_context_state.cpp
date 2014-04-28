@@ -248,7 +248,11 @@ private:
     }
 };
 
-static gl_get_desc g_get_desc;
+static gl_get_desc& get_gl_get_desc()
+{
+    static gl_get_desc s_get_desc;
+    return s_get_desc;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // struct snapshot_context_info
@@ -391,10 +395,11 @@ bool vogl_general_context_state::can_snapshot_state(const vogl_context_info &con
 {
     VOGL_FUNC_TRACER
 
-    const GLenum enum_val = g_get_desc.get_enum_val(get_desc_index);
-    const uint min_vers = g_get_desc.get_min_vers(get_desc_index);
-    const uint max_vers = g_get_desc.get_max_vers(get_desc_index);
-    const char *pExtension = g_get_desc.get_extension(get_desc_index);
+    gl_get_desc& gl_desc = get_gl_get_desc();
+    const GLenum enum_val = gl_desc.get_enum_val(get_desc_index);
+    const uint min_vers = gl_desc.get_min_vers(get_desc_index);
+    const uint max_vers = gl_desc.get_max_vers(get_desc_index);
+    const char *pExtension = gl_desc.get_extension(get_desc_index);
     if (pExtension)
     {
         if (!context_info.supports_extension(pExtension))
@@ -432,11 +437,11 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
 
     VOGL_NOTE_UNUSED(context_info);
 
-    const GLenum enum_val = g_get_desc.get_enum_val(get_desc_index);
+    const GLenum enum_val = get_gl_get_desc().get_enum_val(get_desc_index);
 
-    const char *pName = g_gl_enums.find_name(enum_val);
+    const char *pName = get_gl_enums().find_name(enum_val);
 
-    int pname_def_index = g_gl_enums.find_pname_def_index(enum_val);
+    int pname_def_index = get_gl_enums().find_pname_def_index(enum_val);
     if (pname_def_index < 0)
     {
         vogl_warning_printf("Unable to find pname def for GL enum %s\n", pName);
@@ -487,7 +492,7 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
 
     vogl_state_type state_type = static_cast<vogl_state_type>(pname_def.m_type);
 
-    uint n = g_gl_enums.get_pname_count(enum_val);
+    uint n = get_gl_enums().get_pname_count(enum_val);
     if (!n)
         return false;
 
@@ -801,9 +806,11 @@ bool vogl_general_context_state::snapshot(const vogl_context_info &context_info)
 
     m_states.clear();
 
-    for (uint get_desc_index = 0; get_desc_index < g_get_desc.get_total(); get_desc_index++)
+    gl_get_desc& gl_desc = get_gl_get_desc();
+
+    for (uint get_desc_index = 0; get_desc_index < gl_desc.get_total(); get_desc_index++)
     {
-        const GLenum enum_val = g_get_desc.get_enum_val(get_desc_index);
+        const GLenum enum_val = gl_desc.get_enum_val(get_desc_index);
 
         const bool is_dependent_on_client_active_texture = vogl_gl_enum_is_dependent_on_client_active_texture(enum_val);
         const bool is_dependent_on_active_texture = vogl_gl_enum_is_dependent_on_active_texture(enum_val);
@@ -813,7 +820,7 @@ bool vogl_general_context_state::snapshot(const vogl_context_info &context_info)
         if (!can_snapshot_state(context_info, snapshot_context_info, get_desc_index))
             continue;
 
-        GLenum enum_val_max = g_get_desc.get_enum_val_max(get_desc_index);
+        GLenum enum_val_max = gl_desc.get_enum_val_max(get_desc_index);
         if (enum_val_max == GL_NONE)
             snapshot_state(context_info, snapshot_context_info, get_desc_index, 0, false);
         else
@@ -845,9 +852,9 @@ bool vogl_general_context_state::snapshot(const vogl_context_info &context_info)
             prev_gl_error = vogl_check_gl_error();
             VOGL_ASSERT(!prev_gl_error);
 
-            for (uint get_desc_index = 0; get_desc_index < g_get_desc.get_total(); get_desc_index++)
+            for (uint get_desc_index = 0; get_desc_index < gl_desc.get_total(); get_desc_index++)
             {
-                const GLenum enum_val = g_get_desc.get_enum_val(get_desc_index);
+                const GLenum enum_val = gl_desc.get_enum_val(get_desc_index);
 
                 const bool is_dependent_on_client_active_texture = vogl_gl_enum_is_dependent_on_client_active_texture(enum_val);
                 if (!is_dependent_on_client_active_texture)
@@ -882,9 +889,9 @@ bool vogl_general_context_state::snapshot(const vogl_context_info &context_info)
         prev_gl_error = vogl_check_gl_error();
         VOGL_ASSERT(!prev_gl_error);
 
-        for (uint get_desc_index = 0; get_desc_index < g_get_desc.get_total(); get_desc_index++)
+        for (uint get_desc_index = 0; get_desc_index < gl_desc.get_total(); get_desc_index++)
         {
-            const GLenum enum_val = g_get_desc.get_enum_val(get_desc_index);
+            const GLenum enum_val = gl_desc.get_enum_val(get_desc_index);
 
             const bool is_dependent_on_active_texture = vogl_gl_enum_is_dependent_on_active_texture(enum_val);
             if (!is_dependent_on_active_texture)
@@ -1189,7 +1196,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 default:
                 {
-                    vogl_debug_printf("%s: FIXME: Don't know how to hande boolean GLenum 0x%04X %s\n", VOGL_METHOD_NAME, enum_val, g_gl_enums.find_name(enum_val));
+                    vogl_debug_printf("%s: FIXME: Don't know how to hande boolean GLenum 0x%04X %s\n", VOGL_METHOD_NAME, enum_val, get_gl_enums().find_name(enum_val));
                     break;
                 }
             }
@@ -1916,10 +1923,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     {
         GLenum enum_val = s_pixel_transfer_pnames[i];
 
-        int pname_def_index = g_gl_enums.find_pname_def_index(enum_val);
+        int pname_def_index = get_gl_enums().find_pname_def_index(enum_val);
         if (pname_def_index < 0)
         {
-            vogl_warning_printf("Unable to find pname def for GL enum %s\n", g_gl_enums.find_name(enum_val));
+            vogl_warning_printf("Unable to find pname def for GL enum %s\n", get_gl_enums().find_name(enum_val));
             continue;
         }
 
@@ -1960,10 +1967,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     {
         GLenum enum_val = s_fog_pnames[i];
 
-        int pname_def_index = g_gl_enums.find_pname_def_index(enum_val);
+        int pname_def_index = get_gl_enums().find_pname_def_index(enum_val);
         if (pname_def_index < 0)
         {
-            vogl_warning_printf("Unable to find pname def for GL enum %s\n", g_gl_enums.find_name(enum_val));
+            vogl_warning_printf("Unable to find pname def for GL enum %s\n", get_gl_enums().find_name(enum_val));
             continue;
         }
 
@@ -2137,10 +2144,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     {
         GLenum enum_val = s_pixel_store_pnames[i];
 
-        int pname_def_index = g_gl_enums.find_pname_def_index(enum_val);
+        int pname_def_index = get_gl_enums().find_pname_def_index(enum_val);
         if (pname_def_index < 0)
         {
-            vogl_warning_printf("Unable to find pname def for GL enum %s\n", g_gl_enums.find_name(enum_val));
+            vogl_warning_printf("Unable to find pname def for GL enum %s\n", get_gl_enums().find_name(enum_val));
             continue;
         }
 
@@ -2569,7 +2576,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
 
         if (i == processed_states.size())
         {
-            vogl_debug_printf("Didn't process state: %s index: %u indexed_variant: %u\n", g_gl_enums.find_name(state.get_enum_val()), state.get_index(), state.get_indexed_variant());
+            vogl_debug_printf("Didn't process state: %s index: %u indexed_variant: %u\n", get_gl_enums().find_name(state.get_enum_val()), state.get_index(), state.get_indexed_variant());
         }
     }
 #endif

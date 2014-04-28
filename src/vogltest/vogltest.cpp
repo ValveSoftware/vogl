@@ -422,7 +422,7 @@ static int run_tests(int argc, char *argv[])
     VOGL_NOTE_UNUSED(argc);
     VOGL_NOTE_UNUSED(argv);
 
-    g_random.seed(12345);
+    get_random().seed(12345);
 
     uint num_failures = 0;
 
@@ -562,6 +562,9 @@ static int run_tests(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    // Initialize vogl_core.
+    vogl_core_init();
+
     colorized_console::init();
     colorized_console::set_exception_callback();
     console::set_tool_prefix("(vogltest) ");

@@ -31,18 +31,27 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Globals
 //----------------------------------------------------------------------------------------------------------------------
-vogl_internal_tex_format g_vogl_internal_texture_formats[] =
+static const vogl_internal_tex_format *get_vogl_internal_texture_formats(uint *count)
+{
+    static const vogl_internal_tex_format s_vogl_internal_texture_formats[] =
     {
-// TODO: Test ALL of these format mappings on AMD and Intel Mesa.
-// TODO: This table mapping internal texture formats was composed by calling NVidia's driver.
-// We should also compose tables for other drivers, and a generic table.
-#include "vogl_internal_texture_formats.inc"
+        // TODO: Test ALL of these format mappings on AMD and Intel Mesa.
+        // TODO: This table mapping internal texture formats was composed by calling NVidia's driver.
+        // We should also compose tables for other drivers, and a generic table.
+        #include "vogl_internal_texture_formats.inc"
     };
-uint g_vogl_total_internal_texture_formats = VOGL_ARRAY_SIZE(g_vogl_internal_texture_formats);
+    *count = VOGL_ARRAY_SIZE(s_vogl_internal_texture_formats);
 
-typedef vogl::hash_map<GLenum, vogl_internal_tex_format *> vogl_internal_texture_format_hash_map;
+    return s_vogl_internal_texture_formats;
+}
 
-vogl_internal_texture_format_hash_map g_internal_format_hash_map;
+typedef vogl::hash_map<GLenum, const vogl_internal_tex_format *> vogl_internal_texture_format_hash_map;
+
+static vogl_internal_texture_format_hash_map& get_internal_format_hash_map()
+{
+    static vogl_internal_texture_format_hash_map s_internal_format_hash_map;
+    return s_internal_format_hash_map;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_devel_dump_internal_texture_formats
@@ -128,7 +137,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 
     for (uint i = 0; i < VOGL_ARRAY_SIZE(base_internal_formats); i++)
     {
-        printf("%s\n", g_gl_enums.find_gl_name(base_internal_formats[i]));
+        printf("%s\n", get_gl_enums().find_gl_name(base_internal_formats[i]));
 
         GLuint handle;
         GL_ENTRYPOINT(glGenTextures)(1, &handle);
@@ -251,7 +260,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
         f.m_tex_image_flags = ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4));
         f.m_fmt = base_internal_fmt;
         f.m_actual_internal_fmt = actual_internal_fmt;
-        f.m_name = g_gl_enums.find_name(base_internal_fmt, "gl");
+        f.m_name = get_gl_enums().find_name(base_internal_fmt, "gl");
 
         GET_INT(f.m_comp_sizes[cTCRed], GL_TEXTURE_RED_SIZE);
         GET_INT(f.m_comp_sizes[cTCGreen], GL_TEXTURE_GREEN_SIZE);
@@ -274,8 +283,8 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
         GET_INT(f.m_compressed, GL_TEXTURE_COMPRESSED);
 
         printf("base_internal_fmt: %s get_fmt: %s get_type: %s, actual_internal_fmt: %s compressed: %u\n",
-               g_gl_enums.find_gl_name(base_internal_fmt), g_gl_enums.find_gl_name(get_fmt), g_gl_enums.find_gl_name(get_type),
-               g_gl_enums.find_gl_name(actual_internal_fmt),
+               get_gl_enums().find_gl_name(base_internal_fmt), get_gl_enums().find_gl_name(get_fmt), get_gl_enums().find_gl_name(get_type),
+               get_gl_enums().find_gl_name(actual_internal_fmt),
                f.m_compressed);
 #undef GET_INT
 
@@ -398,7 +407,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             f.m_tex_image_flags = (1 << t);
             f.m_fmt = fmt;
             f.m_actual_internal_fmt = fmt; // this assumes the actual internal fmt will match here!
-            f.m_name = g_gl_enums.find_name(fmt, "gl");
+            f.m_name = get_gl_enums().find_name(fmt, "gl");
 
 #define GET_INT(dst, gl_enum)                                                  \
     do                                                                         \
@@ -525,7 +534,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 
                 if ((unhandled) && ((f.m_optimum_get_image_fmt == GL_NONE) || (f.m_optimum_get_image_type == GL_NONE)))
                 {
-                    printf("INVALID: %s %s %s\n", f.m_name.get_ptr(), g_gl_enums.find_name(f.m_optimum_get_image_fmt, "gl"), g_gl_enums.find_name(f.m_optimum_get_image_type, "gl"));
+                    printf("INVALID: %s %s %s\n", f.m_name.get_ptr(), get_gl_enums().find_name(f.m_optimum_get_image_fmt, "gl"), get_gl_enums().find_name(f.m_optimum_get_image_type, "gl"));
                 }
             }
 
@@ -534,7 +543,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             VOGL_ASSERT(f.m_actual_internal_fmt != GL_NONE);
 
             if ((f.m_optimum_get_image_fmt == GL_NONE) || (f.m_optimum_get_image_type == GL_NONE))
-                vogl_warning_printf("%s: Don't have an optimal get format/type for internal format %s\n", VOGL_FUNCTION_NAME, g_gl_enums.find_gl_name(fmt));
+                vogl_warning_printf("%s: Don't have an optimal get format/type for internal format %s\n", VOGL_FUNCTION_NAME, get_gl_enums().find_gl_name(fmt));
 
             VOGL_ASSERT(fmt != GL_LUMINANCE);
 
@@ -601,7 +610,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             GL_ENTRYPOINT(glTexImage2D)(GL_TEXTURE_2D, 0, fmt.m_fmt, 1, 1, 0, fmt.m_optimum_get_image_fmt, fmt.m_optimum_get_image_type, vals);
             if (vogl_check_gl_error())
             {
-                printf("glTexImage2D FAILED: %s %s %s\n", fmt.m_name.get_ptr(), g_gl_enums.find_name(fmt.m_optimum_get_image_fmt, "gl"), g_gl_enums.find_name(fmt.m_optimum_get_image_type, "gl"));
+                printf("glTexImage2D FAILED: %s %s %s\n", fmt.m_name.get_ptr(), get_gl_enums().find_name(fmt.m_optimum_get_image_fmt, "gl"), get_gl_enums().find_name(fmt.m_optimum_get_image_type, "gl"));
             }
 
             uint8 gvals[128];
@@ -627,7 +636,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 
             if (vogl_check_gl_error()) // || gvals[1] != vals[1])
             {
-                printf("glGetTexImage() failed: %s %s %s\n", fmt.m_name.get_ptr(), g_gl_enums.find_name(fmt.m_optimum_get_image_fmt, "gl"), g_gl_enums.find_name(fmt.m_optimum_get_image_type, "gl"));
+                printf("glGetTexImage() failed: %s %s %s\n", fmt.m_name.get_ptr(), get_gl_enums().find_name(fmt.m_optimum_get_image_fmt, "gl"), get_gl_enums().find_name(fmt.m_optimum_get_image_type, "gl"));
             }
 
             GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_2D, 0);
@@ -658,7 +667,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 
             if (!ktx_tex.init_2D(1, 1, 1, fmt.m_fmt, img_fmt, img_type))
             {
-                printf("ktx_texture::init_2D() failed: %s %s %s\n", fmt.m_name.get_ptr(), g_gl_enums.find_name(fmt.m_optimum_get_image_fmt, "gl"), g_gl_enums.find_name(fmt.m_optimum_get_image_type, "gl"));
+                printf("ktx_texture::init_2D() failed: %s %s %s\n", fmt.m_name.get_ptr(), get_gl_enums().find_name(fmt.m_optimum_get_image_fmt, "gl"), get_gl_enums().find_name(fmt.m_optimum_get_image_type, "gl"));
             }
         }
         else if (fmt.m_compressed)
@@ -695,7 +704,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             bool success = ktx_get_ogl_fmt_desc(fmt.m_fmt, GL_UNSIGNED_BYTE, block_dim, bytes_per_block);
             if ((!success) || (block_dim != block_width) || (block_dim != block_height) || (bytes_per_block != actual_size) || (bytes_per_block != block_size))
             {
-                printf("ktx_get_ogl_fmt_desc on compressed format failed: %s %s %s %u %i %i %i\n", fmt.m_name.get_ptr(), g_gl_enums.find_name(fmt.m_optimum_get_image_fmt, "gl"), g_gl_enums.find_name(fmt.m_optimum_get_image_type, "gl"), actual_size, block_width, block_height, block_size);
+                printf("ktx_get_ogl_fmt_desc on compressed format failed: %s %s %s %u %i %i %i\n", fmt.m_name.get_ptr(), get_gl_enums().find_name(fmt.m_optimum_get_image_fmt, "gl"), get_gl_enums().find_name(fmt.m_optimum_get_image_type, "gl"), actual_size, block_width, block_height, block_size);
             }
 
             fmt.m_block_width = block_width;
@@ -704,7 +713,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             vogl::ktx_texture ktx_tex;
             if (!ktx_tex.init_2D(1, 1, 1, fmt.m_fmt, GL_NONE, GL_NONE))
             {
-                printf("ktx_texture::init_2D() compressed failed: %s %s %s\n", fmt.m_name.get_ptr(), g_gl_enums.find_name(fmt.m_optimum_get_image_fmt, "gl"), g_gl_enums.find_name(fmt.m_optimum_get_image_type, "gl"));
+                printf("ktx_texture::init_2D() compressed failed: %s %s %s\n", fmt.m_name.get_ptr(), get_gl_enums().find_name(fmt.m_optimum_get_image_fmt, "gl"), get_gl_enums().find_name(fmt.m_optimum_get_image_type, "gl"));
             }
         }
 
@@ -719,30 +728,31 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 
         fprintf(pFile, "      ");
         for (uint i = 0; i < cTCTotalComponents; i++)
-            fprintf(pFile, "%s, ", g_gl_enums.find_name(fmt.m_comp_types[i], "gl"));
+            fprintf(pFile, "%s, ", get_gl_enums().find_name(fmt.m_comp_types[i], "gl"));
         fprintf(pFile, "\n");
 
         fprintf(pFile, "      %u, 0x%02X, %u, \n", fmt.m_shared_size, fmt.m_tex_image_flags, fmt.m_compressed);
         fprintf(pFile, "      %s, %s, %u, %u, %u),\n",
-                g_gl_enums.find_name(fmt.m_optimum_get_image_fmt, "gl"),
-                g_gl_enums.find_name(fmt.m_optimum_get_image_type, "gl"),
+                get_gl_enums().find_name(fmt.m_optimum_get_image_fmt, "gl"),
+                get_gl_enums().find_name(fmt.m_optimum_get_image_type, "gl"),
                 fmt.m_image_bytes_per_pixel_or_block,
                 fmt.m_block_width, fmt.m_block_height);
 
 #if 0
-		uint q;
-		for (q = 0; q < g_vogl_total_internal_texture_formats; q++)
+        uint tex_formats_count;
+        static const vogl_internal_tex_format *tex_formats = get_vogl_internal_texture_formats(&tex_formats_count);
+		for (uint q = 0; q < tex_formats_count; q++)
 		{
-			if (g_vogl_internal_texture_formats[q].m_fmt == fmt.m_fmt)
+			if (tex_formats[q].m_fmt == fmt.m_fmt)
 			{
-				if (!g_vogl_internal_texture_formats[q].compare(fmt))
+				if (!tex_formats[q].compare(fmt))
 				{
 					VOGL_ASSERT_ALWAYS;
 				}
 				break;
 			}
 		}
-		if (q == g_vogl_total_internal_texture_formats)
+		if (q == tex_formats_count)
 		{
 			VOGL_ASSERT_ALWAYS;
 		}
@@ -836,13 +846,16 @@ void vogl_texture_format_init()
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_vogl_internal_texture_formats[0].m_fmt);
+    uint tex_formats_count;
+    static const vogl_internal_tex_format *tex_formats = get_vogl_internal_texture_formats(&tex_formats_count);
 
-    g_internal_format_hash_map.reserve(g_vogl_total_internal_texture_formats);
+    VOGL_ASSERT(tex_formats_count && tex_formats[0].m_fmt);
 
-    for (uint i = 0; i < g_vogl_total_internal_texture_formats; i++)
+    get_internal_format_hash_map().reserve(tex_formats_count);
+
+    for (uint i = 0; i < tex_formats_count; i++)
     {
-        bool success = g_internal_format_hash_map.insert(g_vogl_internal_texture_formats[i].m_fmt, &g_vogl_internal_texture_formats[i]).second;
+        bool success = get_internal_format_hash_map().insert(tex_formats[i].m_fmt, &tex_formats[i]).second;
         VOGL_VERIFY(success);
     }
 }
@@ -854,8 +867,8 @@ const vogl_internal_tex_format *vogl_find_internal_texture_format(GLenum interna
 {
     VOGL_FUNC_TRACER
 
-    VOGL_ASSERT(g_internal_format_hash_map.size());
+    VOGL_ASSERT(get_internal_format_hash_map().size());
 
-    vogl_internal_tex_format **ppFmt = g_internal_format_hash_map.find_value(internal_format);
+    const vogl_internal_tex_format **ppFmt = get_internal_format_hash_map().find_value(internal_format);
     return ppFmt ? *ppFmt : NULL;
 }

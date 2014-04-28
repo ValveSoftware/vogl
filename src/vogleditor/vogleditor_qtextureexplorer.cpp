@@ -160,7 +160,7 @@ uint vogleditor_QTextureExplorer::add_texture_objects(vogl_gl_object_state_ptr_v
             vogl_texture_state* pTexState = static_cast<vogl_texture_state*>(*iter);
 
             QString valueStr;
-            valueStr = valueStr.sprintf("Texture %" PRIu64 " - %s (%u samples) (%u x %u x %u) %s", pTexState->get_snapshot_handle(), g_gl_enums.find_name(pTexState->get_target()), pTexState->get_num_samples(), pTexState->get_texture().get_width(), pTexState->get_texture().get_height(), pTexState->get_texture().get_depth(), g_gl_enums.find_name(pTexState->get_texture().get_ogl_internal_fmt()));
+            valueStr = valueStr.sprintf("Texture %" PRIu64 " - %s (%u samples) (%u x %u x %u) %s", pTexState->get_snapshot_handle(), get_gl_enums().find_name(pTexState->get_target()), pTexState->get_num_samples(), pTexState->get_texture().get_width(), pTexState->get_texture().get_height(), pTexState->get_texture().get_depth(), get_gl_enums().find_name(pTexState->get_texture().get_ogl_internal_fmt()));
 
             ui->textureObjectListbox->addItem(valueStr, QVariant::fromValue(*iter));
         }
@@ -169,7 +169,7 @@ uint vogleditor_QTextureExplorer::add_texture_objects(vogl_gl_object_state_ptr_v
             vogl_renderbuffer_state* pRbState = static_cast<vogl_renderbuffer_state*>(*iter);
 
             QString valueStr;
-            valueStr = valueStr.sprintf("Renderbuffer %" PRIu64 " - %s (%u samples) (%u x %u) %s", pRbState->get_snapshot_handle(), "GL_RENDERBUFFER", pRbState->get_texture().get_num_samples(), pRbState->get_desc().get_int_or_default(GL_RENDERBUFFER_WIDTH), pRbState->get_desc().get_int_or_default(GL_RENDERBUFFER_HEIGHT), g_gl_enums.find_name(pRbState->get_desc().get_int_or_default(GL_RENDERBUFFER_INTERNAL_FORMAT)));
+            valueStr = valueStr.sprintf("Renderbuffer %" PRIu64 " - %s (%u samples) (%u x %u) %s", pRbState->get_snapshot_handle(), "GL_RENDERBUFFER", pRbState->get_texture().get_num_samples(), pRbState->get_desc().get_int_or_default(GL_RENDERBUFFER_WIDTH), pRbState->get_desc().get_int_or_default(GL_RENDERBUFFER_HEIGHT), get_gl_enums().find_name(pRbState->get_desc().get_int_or_default(GL_RENDERBUFFER_INTERNAL_FORMAT)));
 
             ui->textureObjectListbox->addItem(valueStr, QVariant::fromValue(*iter));
         }
@@ -187,7 +187,7 @@ uint vogleditor_QTextureExplorer::add_texture_object(vogl_texture_state& texture
     m_objects.push_back(&textureState);
 
     QString valueStr;
-    valueStr = valueStr.sprintf("%s (%u x %u) %s", bufferType.c_str(), textureState.get_texture().get_width(), textureState.get_texture().get_height(), g_gl_enums.find_name(textureState.get_texture().get_ogl_internal_fmt()));
+    valueStr = valueStr.sprintf("%s (%u x %u) %s", bufferType.c_str(), textureState.get_texture().get_width(), textureState.get_texture().get_height(), get_gl_enums().find_name(textureState.get_texture().get_ogl_internal_fmt()));
 
     ui->textureObjectListbox->addItem(valueStr, QVariant::fromValue((vogl_gl_object_state*)&textureState));
     return 1;

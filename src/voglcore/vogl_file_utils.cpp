@@ -931,7 +931,7 @@ namespace vogl
 		pPath[0] = '\0';
 
 		return pPath;
-	#elif VOGL_USE_WIN32_API
+	#elif defined(VOGL_USE_WIN32_API)
 		DWORD result = GetModuleFileNameA(0, pPath, dest_len);
 		VOGL_VERIFY(result != 0);
 		return pPath;

@@ -645,7 +645,7 @@ bool vogl_gl_replayer::check_gl_error_internal(bool quietly, const char *pFile, 
 
         if (!quietly)
         {
-            process_entrypoint_warning("%s: GL error: 0x%08X (%u): %s (Called from File: %s Line: %u Func: %s)\n", VOGL_METHOD_NAME, gl_err, gl_err, g_gl_enums.find_name("ErrorCode", gl_err), pFile ? pFile : "?", line, pFunc ? pFunc : "?");
+            process_entrypoint_warning("%s: GL error: 0x%08X (%u): %s (Called from File: %s Line: %u Func: %s)\n", VOGL_METHOD_NAME, gl_err, gl_err, get_gl_enums().find_name("ErrorCode", gl_err), pFile ? pFile : "?", line, pFunc ? pFunc : "?");
         }
 
         status = true;
@@ -1665,7 +1665,7 @@ void vogl_gl_replayer::dump_context_attrib_list(const int *pAttrib_list, uint si
         uint value = pAttrib_list[ofs];
         ofs++;
 
-        vogl_debug_printf("Key: %s (0x%08X), Value: 0x%08X\n", g_gl_enums.find_name(key, "GLX"), key, value);
+        vogl_debug_printf("Key: %s (0x%08X), Value: 0x%08X\n", get_gl_enums().find_name(key, "GLX"), key, value);
     }
     vogl_debug_printf("End of context attribs\n");
 }
@@ -3024,12 +3024,12 @@ bool vogl_gl_replayer::dump_framebuffer(
                                        (unsigned long long)m_frame_draw_counter,
                                        width, height,
                                        trace_read_framebuffer,
-                                       g_gl_enums.find_gl_name(read_buffer));
+                                       get_gl_enums().find_gl_name(read_buffer));
 
     if (internal_format != GL_NONE)
     {
         screenshot_filename += "_";
-        screenshot_filename += g_gl_enums.find_gl_image_format_name(internal_format);
+        screenshot_filename += get_gl_enums().find_gl_image_format_name(internal_format);
     }
 
     if (orig_samples != 0)
@@ -3123,7 +3123,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
         const vogl_framebuffer_attachment *pAttachment = fbo_state.get_attachments().find_value(draw_buffers[i]);
         if (!pAttachment)
         {
-            process_entrypoint_warning("%s: Can't find draw buffer %s in currently bound FBO %u\n", VOGL_METHOD_NAME, g_gl_enums.find_gl_name(draw_buffers[i]), draw_framebuffer_binding);
+            process_entrypoint_warning("%s: Can't find draw buffer %s in currently bound FBO %u\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(draw_buffers[i]), draw_framebuffer_binding);
             continue;
         }
 
@@ -3265,7 +3265,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
 
             if (!utils::is_in_set<GLenum, GLenum>(target, GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_1D_ARRAY, GL_TEXTURE_2D_ARRAY, GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP, GL_TEXTURE_CUBE_MAP_ARRAY))
             {
-                process_entrypoint_warning("%s: Unsupported FBO attachment texture target type (%s), GL texture handle %u\n", VOGL_METHOD_NAME, g_gl_enums.find_gl_name(target), tex_handle);
+                process_entrypoint_warning("%s: Unsupported FBO attachment texture target type (%s), GL texture handle %u\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(target), tex_handle);
                 continue;
             }
 
@@ -3380,7 +3380,7 @@ void vogl_gl_replayer::dump_current_shaders()
         GL_ENTRYPOINT(glGetShaderiv)(shader, GL_SHADER_TYPE, &shader_type);
         check_gl_error();
 
-        vogl_printf("\n%s: %u\n", g_gl_enums.find_gl_name(shader_type), shader);
+        vogl_printf("\n%s: %u\n", get_gl_enums().find_gl_name(shader_type), shader);
 
         GLint source_length = -1; // Includes NUL terminator.
         GL_ENTRYPOINT(glGetShaderiv)(shader, GL_SHADER_SOURCE_LENGTH, &source_length);
@@ -3534,7 +3534,7 @@ void vogl_gl_replayer::display_list_bind_callback(vogl_namespace_t handle_namesp
     else
     {
         // TODO - right now the display list whitelist doens't let anything else get bound.
-        pReplayer->process_entrypoint_warning("%s: Unsupported bind in display lists, namespace %s target %s trace handle %u\n", VOGL_FUNCTION_NAME, vogl_get_namespace_name(handle_namespace), g_gl_enums.find_gl_name(target), handle);
+        pReplayer->process_entrypoint_warning("%s: Unsupported bind in display lists, namespace %s target %s trace handle %u\n", VOGL_FUNCTION_NAME, vogl_get_namespace_name(handle_namespace), get_gl_enums().find_gl_name(target), handle);
     }
 }
 
@@ -4308,7 +4308,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 uint trace_params_size = trace_packet.get_param_client_memory_data_size(2);
                 uint trace_params_count = trace_params_size / sizeof(GLint);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -4330,7 +4330,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (memcmp(pTrace_params, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s target %s\n", VOGL_METHOD_NAME, g_gl_enums.find_gl_name(pname), g_gl_enums.find_gl_name(target));
+                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s target %s\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(pname), get_gl_enums().find_gl_name(target));
                     }
                 }
             }
@@ -4706,7 +4706,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             }
             else
             {
-                process_entrypoint_warning("%s: GL error while binding ARB program, trace handle %u GL handle %u target %s\n", VOGL_METHOD_NAME, trace_program, program, g_gl_enums.find_gl_name(target));
+                process_entrypoint_warning("%s: GL error while binding ARB program, trace handle %u GL handle %u target %s\n", VOGL_METHOD_NAME, trace_program, program, get_gl_enums().find_gl_name(target));
                 return cStatusGLError;
             }
 
@@ -5046,7 +5046,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLenum pname = trace_packet.get_param_value<GLenum>(1);
                 const GLint *pParams = trace_packet.get_param_client_memory<GLint>(2);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -5066,7 +5066,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (memcmp(pParams, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_METHOD_NAME, g_gl_enums.find_gl_name(pname));
+                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(pname));
                     }
                 }
             }
@@ -5080,7 +5080,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLenum value = trace_packet.get_param_value<GLenum>(1);
                 const GLint *pTrace_data = trace_packet.get_param_client_memory<GLint>(2);
 
-                int n = g_gl_enums.get_pname_count(value);
+                int n = get_gl_enums().get_pname_count(value);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL value 0x%08X\n", VOGL_METHOD_NAME, value);
@@ -5395,7 +5395,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 uint params_size = trace_packet.get_param_client_memory_data_size(2);
                 uint params_count = params_size / sizeof(GLint);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -5419,7 +5419,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                     else if (pParams && memcmp(pParams, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_METHOD_NAME, g_gl_enums.find_gl_name(pname));
+                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(pname));
                     }
                 }
             }
@@ -5439,7 +5439,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 uint params_size = trace_packet.get_param_client_memory_data_size(2);
                 uint params_count = params_size / sizeof(GLint);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -5463,7 +5463,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                     else if (pParams && memcmp(pParams, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_METHOD_NAME, g_gl_enums.find_gl_name(pname));
+                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(pname));
                     }
                 }
             }
@@ -5540,10 +5540,10 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLenum pname = trace_packet.get_param_value<GLenum>(0);
                 const GLboolean *pParams = trace_packet.get_param_client_memory<GLboolean>(1);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X (%s)\n", VOGL_METHOD_NAME, pname, g_gl_enums.find_gl_name(pname));
+                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X (%s)\n", VOGL_METHOD_NAME, pname, get_gl_enums().find_gl_name(pname));
                     return cStatusSoftFailure;
                 }
                 else
@@ -5557,7 +5557,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (memcmp(pParams, params.get_ptr(), n * sizeof(GLboolean)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLboolean data for pname 0x%08X (%s) differed from trace's\n", VOGL_METHOD_NAME, pname, g_gl_enums.find_gl_name(pname));
+                        process_entrypoint_warning("%s: Replay's returned GLboolean data for pname 0x%08X (%s) differed from trace's\n", VOGL_METHOD_NAME, pname, get_gl_enums().find_gl_name(pname));
                     }
                 }
             }
@@ -5571,7 +5571,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLenum pname = trace_packet.get_param_value<GLenum>(0);
                 const GLdouble *pParams = trace_packet.get_param_client_memory<GLdouble>(1);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -5603,7 +5603,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 const GLfloat *pTrace_params = trace_packet.get_param_client_memory<GLfloat>(1);
                 uint trace_params_count = trace_packet.get_param_client_memory_data_size(1) / sizeof(GLfloat);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -5635,7 +5635,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 const GLint *pTrace_params = trace_packet.get_param_client_memory<GLint>(1);
                 uint trace_params_count = trace_packet.get_param_client_memory_data_size(1) / sizeof(GLint);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -5701,7 +5701,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                     else if (memcmp(pTrace_params, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_METHOD_NAME, g_gl_enums.find_gl_name(pname));
+                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(pname));
                         for (int i = 0; i < n; i++)
                             vogl_printf("GLint %u: Trace: %i, Replay: %i\n", i, pTrace_params[i], params[i]);
                     }
@@ -6219,7 +6219,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             GLenum pname = trace_packet.get_param_value<GLenum>(1);
 
-            int n = g_gl_enums.get_pname_count(pname);
+            int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
                 process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -6244,7 +6244,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             GLenum pname = trace_packet.get_param_value<GLenum>(1);
 
-            int n = g_gl_enums.get_pname_count(pname);
+            int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
                 process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -6269,7 +6269,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             GLenum pname = trace_packet.get_param_value<GLenum>(1);
 
-            int n = g_gl_enums.get_pname_count(pname);
+            int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
                 process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -6294,7 +6294,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             GLenum pname = trace_packet.get_param_value<GLenum>(1);
 
-            int n = g_gl_enums.get_pname_count(pname);
+            int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
                 process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -6329,7 +6329,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             id = map_handle(get_shared_state()->m_queries, id);
 
-            int n = g_gl_enums.get_pname_count(pname);
+            int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
                 process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -6354,7 +6354,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             id = map_handle(get_shared_state()->m_queries, id);
 
-            int n = g_gl_enums.get_pname_count(pname);
+            int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
                 process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -7610,7 +7610,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 const GLfloat *pTrace_params = trace_packet.get_param_client_memory<const GLfloat>(3);
                 uint trace_params_size = trace_packet.get_param_client_memory_data_size(3);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -7644,7 +7644,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 const GLint *pTrace_params = trace_packet.get_param_client_memory<const GLint>(3);
                 uint trace_params_size = trace_packet.get_param_client_memory_data_size(3);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -7678,7 +7678,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 const GLint *pTrace_params = trace_packet.get_param_client_memory<const GLint>(2);
                 uint trace_params_size = trace_packet.get_param_client_memory_data_size(2);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -7714,7 +7714,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 const GLuint *pTrace_params = trace_packet.get_param_client_memory<const GLuint>(2);
                 uint trace_params_size = trace_packet.get_param_client_memory_data_size(2);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -7747,7 +7747,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 const GLfloat *pTrace_params = trace_packet.get_param_client_memory<const GLfloat>(2);
                 uint trace_params_size = trace_packet.get_param_client_memory_data_size(2);
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
                     process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
@@ -8205,7 +8205,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLfloat vals[4] = { 0, 0, 0, 0 };
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 VOGL_ASSERT(n <= (int)VOGL_ARRAY_SIZE(vals));
 
                 GL_ENTRYPOINT(glGetTexEnvfv)(target, pname, vals);
@@ -8232,7 +8232,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLint vals[4] = { 0, 0, 0, 0 };
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 VOGL_ASSERT(n <= (int)VOGL_ARRAY_SIZE(vals));
 
                 GL_ENTRYPOINT(glGetTexEnviv)(target, pname, vals);
@@ -8259,7 +8259,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLdouble vals[4] = { 0, 0, 0, 0 };
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 VOGL_ASSERT(n <= (int)VOGL_ARRAY_SIZE(vals));
 
                 GL_ENTRYPOINT(glGetTexGendv)(coord, pname, vals);
@@ -8286,7 +8286,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLfloat vals[4] = { 0, 0, 0, 0 };
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 VOGL_ASSERT(n <= (int)VOGL_ARRAY_SIZE(vals));
 
                 GL_ENTRYPOINT(glGetTexGenfv)(coord, pname, vals);
@@ -8313,7 +8313,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLint vals[4] = { 0, 0, 0, 0 };
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 VOGL_ASSERT(n <= (int)VOGL_ARRAY_SIZE(vals));
 
                 GL_ENTRYPOINT(glGetTexGeniv)(coord, pname, vals);
@@ -8340,7 +8340,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLfloat vals[4] = { 0, 0, 0, 0 };
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 VOGL_ASSERT(n <= (int)VOGL_ARRAY_SIZE(vals));
 
                 GL_ENTRYPOINT(glGetLightfv)(light, pname, vals);
@@ -8367,7 +8367,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLint vals[4] = { 0, 0, 0, 0 };
 
-                int n = g_gl_enums.get_pname_count(pname);
+                int n = get_gl_enums().get_pname_count(pname);
                 VOGL_ASSERT(n <= (int)VOGL_ARRAY_SIZE(vals));
 
                 GL_ENTRYPOINT(glGetLightiv)(light, pname, vals);
