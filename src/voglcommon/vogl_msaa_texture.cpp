@@ -212,16 +212,20 @@ struct vogl_quad_vertex
     }
 };
 
-static const vogl_quad_vertex g_quad_tri_verts[3*2] =
+static const vogl_quad_vertex *get_quad_tri_verts()
 {
-    vogl_quad_vertex(-1.0f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f ), // top left
-    vogl_quad_vertex( 1.0f,  1.0f, 0.0f, 1.0f,  1.0f, 1.0f, 0.0f ), // top right
-    vogl_quad_vertex( 1.0f, -1.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f ), // bottom right
+    static const vogl_quad_vertex s_quad_tri_verts[3*2] =
+    {
+        vogl_quad_vertex(-1.0f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f ), // top left
+        vogl_quad_vertex( 1.0f,  1.0f, 0.0f, 1.0f,  1.0f, 1.0f, 0.0f ), // top right
+        vogl_quad_vertex( 1.0f, -1.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f ), // bottom right
 
-    vogl_quad_vertex(-1.0f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f ), // top left
-    vogl_quad_vertex( 1.0f, -1.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f ), // bottom right
-    vogl_quad_vertex(-1.0f, -1.0f, 0.0f, 1.0f,  0.0f, 0.0f, 0.0f )  // bottom left
-};
+        vogl_quad_vertex(-1.0f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f ), // top left
+        vogl_quad_vertex( 1.0f, -1.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f ), // bottom right
+        vogl_quad_vertex(-1.0f, -1.0f, 0.0f, 1.0f,  0.0f, 0.0f, 0.0f )  // bottom left
+    };
+    return s_quad_tri_verts;
+}
 
 vogl_msaa_texture_splitter::vogl_msaa_texture_splitter() :
     m_vao_handle(0),
@@ -651,7 +655,7 @@ bool vogl_msaa_texture_splitter::split(GLenum src_target, GLuint src_texture, vo
                 }
 
                 vogl_quad_vertex quad_tri_verts[3*2];
-                memcpy(quad_tri_verts, g_quad_tri_verts, sizeof(quad_tri_verts));
+                memcpy(quad_tri_verts, get_quad_tri_verts(), sizeof(quad_tri_verts));
 
                 for (uint i = 0; i < 6; i++)
                 {
@@ -853,7 +857,7 @@ bool vogl_msaa_texture_splitter::combine(GLuint src_texture, uint dest_sample_in
             VOGL_CHECK_GL_ERROR;
 
             vogl_quad_vertex quad_tri_verts[3*2];
-            memcpy(quad_tri_verts, g_quad_tri_verts, sizeof(quad_tri_verts));
+            memcpy(quad_tri_verts, get_quad_tri_verts(), sizeof(quad_tri_verts));
 
             for (uint i = 0; i < 6; i++)
             {
@@ -1073,7 +1077,7 @@ bool vogl_msaa_texture_splitter::copy_stencil_samples_to_color(GLenum target, GL
             VOGL_CHECK_GL_ERROR;
 
             vogl_quad_vertex quad_tri_verts[3*2];
-            memcpy(quad_tri_verts, g_quad_tri_verts, sizeof(quad_tri_verts));
+            memcpy(quad_tri_verts, get_quad_tri_verts(), sizeof(quad_tri_verts));
 
             for (uint i = 0; i < 6; i++)
             {
@@ -1251,7 +1255,7 @@ bool vogl_msaa_texture_splitter::copy_color_sample_to_stencil(
             }
 
             vogl_quad_vertex quad_tri_verts[3*2];
-            memcpy(quad_tri_verts, g_quad_tri_verts, sizeof(quad_tri_verts));
+            memcpy(quad_tri_verts, get_quad_tri_verts(), sizeof(quad_tri_verts));
 
             for (uint i = 0; i < 6; i++)
             {
