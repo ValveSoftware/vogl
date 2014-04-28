@@ -40,12 +40,13 @@ message("")
 add_subdirectory(src/voglcore) # 1
 add_subdirectory(src/voglgen) # 2
 add_subdirectory(src/voglcommon) # 3
+add_subdirectory(src/vogltrace) # 7
 
 if (NOT WIN32)
     add_subdirectory(src/voglreplay) # 4
     add_subdirectory(src/voglbench) # 5
     add_subdirectory(src/voglsyms) # 6
-    add_subdirectory(src/vogltrace) # 7
+
     add_subdirectory(src/vogltest) # 8
     add_subdirectory(src/voglserver) # 9
     add_subdirectory(src/voglcmd) # 10 

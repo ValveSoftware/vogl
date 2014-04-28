@@ -264,14 +264,14 @@ endif()
 
 
 if (NOT MSVC)
-	set(CMAKE_EXE_LINK_FLAGS_LIST
-		"-Wl,--no-undefined"
-		# "-lmcheck"
-	)
+  set(CMAKE_EXE_LINK_FLAGS_LIST
+    "-Wl,--no-undefined"
+    # "-lmcheck"
+  )
 
-	set(CMAKE_SHARED_LINK_FLAGS_LIST
-		"-Wl,--no-undefined"
-	)
+  set(CMAKE_SHARED_LINK_FLAGS_LIST
+    "-Wl,--no-undefined"
+  )
 endif()
 
 # Compiler flags

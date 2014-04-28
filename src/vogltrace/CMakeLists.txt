@@ -42,8 +42,10 @@ include_directories(
     )
 
 # Not sure if -Wl,-Bsymbolic is needed or useful?
-add_shared_linker_flag("-Wl,-Bsymbolic")
-add_shared_linker_flag("-Wl,--version-script=${PROJECT_SOURCE_DIR}/libvogltrace_linker_script.txt")
+if (NOT MSVC)
+  add_shared_linker_flag("-Wl,-Bsymbolic")
+  add_shared_linker_flag("-Wl,--version-script=${PROJECT_SOURCE_DIR}/libvogltrace_linker_script.txt")
+endif()
 
 add_library(${PROJECT_NAME} SHARED ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
@@ -51,7 +53,11 @@ add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 find_library(LibJpegTurbo_LIBRARY
     NAMES libturbojpeg.so libturbojpeg.so.0 turbojpeg.dll libturbojpeg.dylib
     PATHS /opt/libjpeg-turbo/lib
-  )
+)
+
+if (NOT LibJpegTurbo_LIBRARY)
+    set(LibJpegTurbo_LIBRARY "")
+endif()
 
 target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}

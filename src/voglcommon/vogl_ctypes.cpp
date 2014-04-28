@@ -165,7 +165,7 @@ void vogl_ctypes::change_pointer_sizes(uint trace_ptr_size)
     }
 #endif
 #else
-    VOGL_ASSERT(!"impl");
+    VOGL_ASSERT(!"impl change_pointer_sizes");
 #endif
 }
 

@@ -28,9 +28,13 @@
 #include "vogl_command_line_params.h"
 #include "vogl_colorized_console.h"
 #include <signal.h>
-#include <linux/unistd.h>
-#include <execinfo.h>
 #include "btrace.h"
+
+#if defined(PLATFORM_LINUX)
+    #include <execinfo.h>
+    #include <linux/unistd.h>
+#endif
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Has exception hooks, dlopen() interception, super low-level global init.  Be super careful what you

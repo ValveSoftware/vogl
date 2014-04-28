@@ -58,7 +58,11 @@
 
 using namespace vogl;
 
-#define VOGL_API_EXPORT extern "C" __attribute__((visibility("default")))
+#if defined(COMPILER_GCCLIKE)
+    #define VOGL_API_EXPORT extern "C" __attribute__((visibility("default")))
+#else
+    #define VOGL_API_EXPORT extern "C" __declspec(dllexport)
+#endif
 
 // DO NOT leave this enabled when you check in!
 #ifndef VOGL_FUNCTION_TRACING
