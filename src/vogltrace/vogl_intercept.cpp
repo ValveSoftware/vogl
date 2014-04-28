@@ -189,7 +189,7 @@ static vogl_trace_file_writer& get_vogl_trace_writer()
     // See these links to C++ FAQ Lite for more information:
     //  [10.15] http://www.parashift.com/c++-faq-lite/static-init-order-on-first-use.html 
     //  [10.16] http://www.parashift.com/c++-faq-lite/construct-on-first-use-v2.html 
-    static vogl_trace_file_writer s_vogl_trace_writer(&g_vogl_process_gl_ctypes);
+    static vogl_trace_file_writer s_vogl_trace_writer(&get_vogl_process_gl_ctypes());
     return s_vogl_trace_writer;
 }
 
@@ -234,13 +234,13 @@ class vogl_entrypoint_serializer
 
 public:
     inline vogl_entrypoint_serializer()
-        : m_packet(&g_vogl_process_gl_ctypes),
+        : m_packet(&get_vogl_process_gl_ctypes()),
           m_in_begin(false)
     {
     }
 
     inline vogl_entrypoint_serializer(gl_entrypoint_id_t id, vogl_context *pContext)
-        : m_packet(&g_vogl_process_gl_ctypes),
+        : m_packet(&get_vogl_process_gl_ctypes()),
           m_in_begin(false)
     {
         begin(id, pContext);
@@ -3420,7 +3420,7 @@ static inline void vogl_dump_value_param(vogl_context *pContext, vogl_entrypoint
 
     int size = sizeof(T);
 
-    if (g_vogl_process_gl_ctypes[type].m_size != size)
+    if (get_vogl_process_gl_ctypes()[type].m_size != size)
         vogl_error_printf("%s: size mismatch on ctype %u\n", VOGL_FUNCTION_NAME, type);
 
     if (serializer.is_in_begin())
@@ -3430,7 +3430,7 @@ static inline void vogl_dump_value_param(vogl_context *pContext, vogl_entrypoint
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_log_printf("%s: %s %s, ctype: %s, size: %i: ", pDesc, pType, pParam_name, g_vogl_process_gl_ctypes[type].m_pName, size);
+        vogl_log_printf("%s: %s %s, ctype: %s, size: %i: ", pDesc, pType, pParam_name, get_vogl_process_gl_ctypes()[type].m_pName, size);
 
         if (Loki::TypeTraits<T>::isPointer)
         {
@@ -3476,7 +3476,7 @@ static inline void vogl_dump_ptr_param(vogl_context *pContext, vogl_entrypoint_s
     VOGL_ASSUME(Loki::TypeTraits<T>::isPointer);
     int size = sizeof(T);
 
-    if (g_vogl_process_gl_ctypes[type].m_size != size)
+    if (get_vogl_process_gl_ctypes()[type].m_size != size)
         vogl_error_printf("%s: size mismatch on ctype %u\n", VOGL_FUNCTION_NAME, type);
 
     if (serializer.is_in_begin())
@@ -3486,7 +3486,7 @@ static inline void vogl_dump_ptr_param(vogl_context *pContext, vogl_entrypoint_s
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_log_printf("%s: %s %s, ctype: %s, size: %i, ptr: 0x%" PRIX64 "\n", pDesc, pType, pParam_name, g_vogl_process_gl_ctypes[type].m_pName, size, cast_val_to_uint64(val));
+        vogl_log_printf("%s: %s %s, ctype: %s, size: %i, ptr: 0x%" PRIX64 "\n", pDesc, pType, pParam_name, get_vogl_process_gl_ctypes()[type].m_pName, size, cast_val_to_uint64(val));
     }
 }
 
@@ -3496,19 +3496,19 @@ static inline void vogl_dump_ref_param(vogl_context *pContext, vogl_entrypoint_s
 {
     VOGL_NOTE_UNUSED(pContext);
 
-    if (g_vogl_process_gl_ctypes[type].m_size != sizeof(const T *))
+    if (get_vogl_process_gl_ctypes()[type].m_size != sizeof(const T *))
         vogl_error_printf("%s: size mismatch on ctype %u\n", VOGL_FUNCTION_NAME, type);
 
     int obj_size = gl_ctype_sizeof<T>::size;
 
-    vogl_ctype_t pointee_type = g_vogl_process_gl_ctypes[type].m_pointee_ctype;
+    vogl_ctype_t pointee_type = get_vogl_process_gl_ctypes()[type].m_pointee_ctype;
     if (pointee_type == VOGL_INVALID_CTYPE)
     {
         vogl_error_printf("%s: Type %u doesn't have a pointee ctype\n", VOGL_FUNCTION_NAME, type);
         return;
     }
 
-    if (g_vogl_process_gl_ctypes[pointee_type].m_size != obj_size)
+    if (get_vogl_process_gl_ctypes()[pointee_type].m_size != obj_size)
         vogl_error_printf("%s: size mismatch on pointee ctype %u\n", VOGL_FUNCTION_NAME, type);
 
     if (serializer.is_in_begin())
@@ -3523,7 +3523,7 @@ static inline void vogl_dump_ref_param(vogl_context *pContext, vogl_entrypoint_s
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_log_printf("%s: %s %s, ptr: 0x%" PRIX64 ", ctype: %s, pointee_ctype: %s, pointee_size: %i: ", pDesc, pType, pParam_name, cast_val_to_uint64(pObj), g_vogl_process_gl_ctypes[type].m_pName, g_vogl_process_gl_ctypes[pointee_type].m_pName, obj_size);
+        vogl_log_printf("%s: %s %s, ptr: 0x%" PRIX64 ", ctype: %s, pointee_ctype: %s, pointee_size: %i: ", pDesc, pType, pParam_name, cast_val_to_uint64(pObj), get_vogl_process_gl_ctypes()[type].m_pName, get_vogl_process_gl_ctypes()[pointee_type].m_pName, obj_size);
         if (!pObj)
         {
             vogl_log_printf("NULL");
@@ -3550,7 +3550,7 @@ static inline void vogl_dump_array_param(vogl_context *pContext, vogl_entrypoint
     int64_t obj_size = gl_ctype_sizeof<T>::size;
     int64_t total_size = obj_size * math::maximum<int64_t>(size, 0);
 
-    vogl_ctype_t pointee_type = g_vogl_process_gl_ctypes[type].m_pointee_ctype;
+    vogl_ctype_t pointee_type = get_vogl_process_gl_ctypes()[type].m_pointee_ctype;
     if (((type == VOGL_CONST_VOID_PTR) || (type == VOGL_CONST_GLVOID_PTR) || (type == VOGL_GLVOID_PTR)) && (size > 0))
     {
         obj_size = 1;
@@ -3564,11 +3564,11 @@ static inline void vogl_dump_array_param(vogl_context *pContext, vogl_entrypoint
             return;
         }
 
-        if (g_vogl_process_gl_ctypes[pointee_type].m_size != obj_size)
+        if (get_vogl_process_gl_ctypes()[pointee_type].m_size != obj_size)
             vogl_error_printf("%s: Size mismatch on ctype %u\n", VOGL_FUNCTION_NAME, type);
     }
 
-    bool pointee_is_ptr = g_vogl_process_gl_ctypes[pointee_type].m_is_pointer;
+    bool pointee_is_ptr = get_vogl_process_gl_ctypes()[pointee_type].m_is_pointer;
 
     if (serializer.is_in_begin())
     {
@@ -3582,7 +3582,7 @@ static inline void vogl_dump_array_param(vogl_context *pContext, vogl_entrypoint
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_log_printf("%s: %s %s, ptr: 0x%" PRIX64 ", ctype: %s, pointee_ctype: %s, size: %" PRIi64 ", pointee_size: %" PRIi64 ", total size: %" PRIi64 ": ", pDesc, pType, pParam_name, cast_val_to_uint64(pArray), g_vogl_process_gl_ctypes[type].m_pName, g_vogl_process_gl_ctypes[pointee_type].m_pName,
+        vogl_log_printf("%s: %s %s, ptr: 0x%" PRIX64 ", ctype: %s, pointee_ctype: %s, size: %" PRIi64 ", pointee_size: %" PRIi64 ", total size: %" PRIi64 ": ", pDesc, pType, pParam_name, cast_val_to_uint64(pArray), get_vogl_process_gl_ctypes()[type].m_pName, get_vogl_process_gl_ctypes()[pointee_type].m_pName,
                        size, obj_size, total_size);
         if (!pArray)
         {
@@ -4745,7 +4745,7 @@ static bool vogl_write_snapshot_to_trace(const char *pTrace_filename, const Disp
 
     // TODO: This can take a lot of memory, probably better off to split the snapshot into separate smaller binary json or whatever files stored directly in the archive.
     json_document doc;
-    if (!pSnapshot->serialize(*doc.get_root(), trace_archive, &g_vogl_process_gl_ctypes))
+    if (!pSnapshot->serialize(*doc.get_root(), trace_archive, &get_vogl_process_gl_ctypes()))
     {
         vogl_error_printf("%s: Failed serializing GL state snapshot!\n", VOGL_FUNCTION_NAME);
 
@@ -4802,7 +4802,7 @@ static bool vogl_write_snapshot_to_trace(const char *pTrace_filename, const Disp
 	snapshot_key_value_map.insert("id", snapshot_id);
 #endif
 
-    vogl_ctypes &trace_gl_ctypes = g_vogl_process_gl_ctypes;
+    vogl_ctypes &trace_gl_ctypes = get_vogl_process_gl_ctypes();
     if (!vogl_write_glInternalTraceCommandRAD(get_vogl_trace_writer().get_stream(), &trace_gl_ctypes, cITCRKeyValueMap, sizeof(snapshot_key_value_map), reinterpret_cast<const GLubyte *>(&snapshot_key_value_map)))
     {
         VOGL_FUNC_TRACER
@@ -7814,14 +7814,14 @@ static void vogl_check_entrypoints()
 
             if (return_ctype == VOGL_VOID)
                 continue;
-            if (!g_vogl_process_gl_ctypes[return_ctype].m_is_pointer)
+            if (!get_vogl_process_gl_ctypes()[return_ctype].m_is_pointer)
                 continue;
-            //if (g_vogl_process_gl_ctypes[return_ctype].m_is_opaque_pointer)
+            //if (get_vogl_process_gl_ctypes()[return_ctype].m_is_opaque_pointer)
             //	continue;
 
             if (g_vogl_entrypoint_descs[i].m_custom_return_param_array_size_macro_is_missing)
             {
-                vogl_debug_printf("%s, opaque_ptr: %u\n", g_vogl_entrypoint_descs[i].m_pName, g_vogl_process_gl_ctypes[return_ctype].m_is_opaque_pointer);
+                vogl_debug_printf("%s, opaque_ptr: %u\n", g_vogl_entrypoint_descs[i].m_pName, get_vogl_process_gl_ctypes()[return_ctype].m_is_opaque_pointer);
             }
 
             if (g_vogl_entrypoint_descs[i].m_whitelisted_for_displaylists)
@@ -7859,9 +7859,9 @@ static void vogl_check_entrypoints()
 
             if (return_ctype == VOGL_VOID)
                 continue;
-            if (!g_vogl_process_gl_ctypes[return_ctype].m_is_pointer)
+            if (!get_vogl_process_gl_ctypes()[return_ctype].m_is_pointer)
                 continue;
-            if (g_vogl_process_gl_ctypes[return_ctype].m_is_opaque_pointer)
+            if (get_vogl_process_gl_ctypes()[return_ctype].m_is_opaque_pointer)
                 continue;
 
             if (g_vogl_entrypoint_descs[i].m_custom_return_param_array_size_macro_is_missing)

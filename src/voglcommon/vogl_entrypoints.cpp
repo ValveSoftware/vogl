@@ -33,7 +33,7 @@
 static vogl_gl_get_proc_address_helper_func_ptr_t g_vogl_pGet_proc_address_helper_func;
 
 actual_gl_entrypoints_t g_vogl_actual_gl_entrypoints;
-entrypoint_name_hash_map_t g_vogl_entrypoint_hashmap;
+entrypoint_name_hash_map_t get_vogl_entrypoint_hashmap();
 
 // The "direct" pointers are not wrapped, they go STRAIGHT to the driver. The non-direct are wrapped with optional callbacks.
 vogl_void_func_ptr_t g_vogl_actual_gl_entrypoint_direct_func_ptrs[VOGL_NUM_ENTRYPOINTS];
@@ -255,20 +255,20 @@ void vogl_init_gl_entrypoint_descs()
 
         if (desc.m_return_ctype != VOGL_VOID)
         {
-            if ((size_t)g_vogl_process_gl_ctypes[desc.m_return_ctype].m_size < 1)
-                vogl_warning_printf("%s: function %s's return ctype %s is too small\n", VOGL_FUNCTION_NAME, desc.m_pName, g_vogl_process_gl_ctypes[desc.m_return_ctype].m_pName);
+            if ((size_t)get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_size < 1)
+                vogl_warning_printf("%s: function %s's return ctype %s is too small\n", VOGL_FUNCTION_NAME, desc.m_pName, get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_pName);
 
-            if ((size_t)g_vogl_process_gl_ctypes[desc.m_return_ctype].m_size > sizeof(uint64_t))
-                vogl_warning_printf("%s: function %s's return ctype %s is too large\n", VOGL_FUNCTION_NAME, desc.m_pName, g_vogl_process_gl_ctypes[desc.m_return_ctype].m_pName);
+            if ((size_t)get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_size > sizeof(uint64_t))
+                vogl_warning_printf("%s: function %s's return ctype %s is too large\n", VOGL_FUNCTION_NAME, desc.m_pName, get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_pName);
         }
 
         for (uint j = 0; j < desc.m_num_params; j++)
         {
-            if ((size_t)g_vogl_process_gl_ctypes[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_size < 1)
-                vogl_warning_printf("%s: param %u of function %s ctype %s is too small\n", VOGL_FUNCTION_NAME, j, desc.m_pName, g_vogl_process_gl_ctypes[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_pName);
+            if ((size_t)get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_size < 1)
+                vogl_warning_printf("%s: param %u of function %s ctype %s is too small\n", VOGL_FUNCTION_NAME, j, desc.m_pName, get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_pName);
 
-            if ((size_t)g_vogl_process_gl_ctypes[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_size > sizeof(uint64_t))
-                vogl_warning_printf("%s: param %u of function %s ctype %s is too large\n", VOGL_FUNCTION_NAME, j, desc.m_pName, g_vogl_process_gl_ctypes[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_pName);
+            if ((size_t)get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_size > sizeof(uint64_t))
+                vogl_warning_printf("%s: param %u of function %s ctype %s is too large\n", VOGL_FUNCTION_NAME, j, desc.m_pName, get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_pName);
         }
 
         desc.m_pAPI_prefix = "GL";
@@ -289,7 +289,7 @@ void vogl_init_gl_entrypoint_descs()
 
     for (uint i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
     {
-        g_vogl_entrypoint_hashmap.insert(g_vogl_entrypoint_descs[i].m_pName, static_cast<gl_entrypoint_id_t>(i));
+        get_vogl_entrypoint_hashmap().insert(g_vogl_entrypoint_descs[i].m_pName, static_cast<gl_entrypoint_id_t>(i));
     }
 }
 
@@ -298,8 +298,8 @@ void vogl_init_gl_entrypoint_descs()
 //----------------------------------------------------------------------------------------------------------------------
 gl_entrypoint_id_t vogl_find_entrypoint(const dynamic_string &name)
 {
-    entrypoint_name_hash_map_t::const_iterator it(g_vogl_entrypoint_hashmap.find(name));
-    if (it == g_vogl_entrypoint_hashmap.end())
+    entrypoint_name_hash_map_t::const_iterator it(get_vogl_entrypoint_hashmap().find(name));
+    if (it == get_vogl_entrypoint_hashmap().end())
         return VOGL_ENTRYPOINT_INVALID;
     return it->second;
 }
