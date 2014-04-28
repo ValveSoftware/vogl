@@ -289,7 +289,7 @@ namespace vogl
 
 #undef MESSAGE_VPRINTF_IMPL
     
-#if VOGL_USE_WIN32_API
+#if defined(VOGL_USE_WIN32_API)
     int vogl_getch()
     {
         return _getch();
@@ -299,7 +299,7 @@ namespace vogl
     {
         return _kbhit();
     }
-#elif VOGL_USE_LINUX_API
+#elif defined(VOGL_USE_LINUX_API)
     int vogl_getch()
     {
         struct termios oldt, newt;

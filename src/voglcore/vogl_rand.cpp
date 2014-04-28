@@ -41,7 +41,7 @@
 #include "vogl_image_utils.h"
 
 // TODO: Linux specific, needed by the seed_from_urand() method
-#if PLATFORM_LINUX
+#if defined(PLATFORM_LINUX)
 	#include <unistd.h>
 	#include <sys/syscall.h>
 #endif

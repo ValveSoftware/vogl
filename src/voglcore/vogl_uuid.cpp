@@ -31,12 +31,12 @@
 #include "vogl_threading.h"
 #include "vogl_rand.h"
 
-#if PLATFORM_LINUX
+#if defined(PLATFORM_LINUX)
 	#include <unistd.h>
 	#include <sys/syscall.h>
 	#include <sys/time.h>
 	#include <pwd.h>
-#elif VOGL_USE_WIN32_API
+#elif defined(VOGL_USE_WIN32_API)
 	#include <rpc.h>
 #endif
 
@@ -254,66 +254,67 @@ namespace vogl
         }
     #endif
 
-    static bool g_uuid_initialized;
-    static md5_hash g_uuid_key;
-    static random g_uuid_rand;
-    static mutex g_uuid_mutex;
-    static md5_hash g_prev_uuid;
-
     md5_hash gen_uuid()
     {
-		#if PLATFORM_LINUX
-			uint64_t s = utils::RDTSC();
+    #if defined(PLATFORM_LINUX)
 
-			scoped_mutex scoped_lock(g_uuid_mutex);
+        static bool s_uuid_initialized = false;
+        static md5_hash s_uuid_key;
+        static random s_uuid_rand;
+        static mutex s_uuid_mutex;
+        static md5_hash s_prev_uuid;
 
-			if (!g_uuid_initialized)
-			{
-				g_uuid_key = init_uuid();
+        uint64_t s = utils::RDTSC();
 
-				g_uuid_rand.seed(g_uuid_key);
+        scoped_mutex scoped_lock(s_uuid_mutex);
 
-				g_uuid_initialized = true;
-			}
+        if (!s_uuid_initialized)
+        {
+            s_uuid_key = init_uuid();
 
-			uint32 h[4] = { g_uuid_rand.urand32(), g_uuid_rand.urand32(), g_uuid_rand.urand32(), g_uuid_rand.urand32() };
+            s_uuid_rand.seed(s_uuid_key);
 
-			// Throw in some more quick sources of entropy, why not.
-			md5_hash_gen gen(h, sizeof(h));
-			gen.update_obj_bits(g_uuid_key);
-			gen.update_obj_bits(g_prev_uuid);
+            s_uuid_initialized = true;
+        }
 
-			gen.update(s);
-			gen.update((uint64_t) & s);
+        uint32 h[4] = { s_uuid_rand.urand32(), s_uuid_rand.urand32(), s_uuid_rand.urand32(), s_uuid_rand.urand32() };
 
-			uint64_t purposely_uninitialized_variable;
-			gen.update(&purposely_uninitialized_variable, sizeof(purposely_uninitialized_variable));
+        // Throw in some more quick sources of entropy, why not.
+        md5_hash_gen gen(h, sizeof(h));
+        gen.update_obj_bits(s_uuid_key);
+        gen.update_obj_bits(s_prev_uuid);
 
-			static uint64_t s_counter;
-			s_counter++;
-			gen.update(s_counter);
+        gen.update(s);
+        gen.update((uint64_t) & s);
 
-			struct timeval tv;
-			gettimeofday(&tv, NULL);
-			gen.update_obj_bits(tv);
+        uint64_t purposely_uninitialized_variable;
+        gen.update(&purposely_uninitialized_variable, sizeof(purposely_uninitialized_variable));
 
-			uint64_t e = utils::RDTSC();
+        static uint64_t s_counter;
+        s_counter++;
+        gen.update(s_counter);
 
-			gen.update(e - s);
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        gen.update_obj_bits(tv);
 
-			return (g_prev_uuid = gen.finalize());
+        uint64_t e = utils::RDTSC();
 
-		#elif (VOGL_USE_WIN32_API)
+        gen.update(e - s);
 
-			UUID windowsUuid;
-			RPC_STATUS rpcStatus = UuidCreate(&windowsUuid);
-			VOGL_VERIFY(SUCCEEDED(rpcStatus));
+        return (s_prev_uuid = gen.finalize());
 
-			return md5_hash(windowsUuid.Data1, windowsUuid.Data2, windowsUuid.Data3, windowsUuid.Data4);
+    #elif defined(VOGL_USE_WIN32_API)
 
-		#else
-			VOGL_ASSUME(!"Need implementation of gen_uuid for this platform.");
-		#endif
+        UUID windowsUuid;
+        RPC_STATUS rpcStatus = UuidCreate(&windowsUuid);
+        VOGL_VERIFY(SUCCEEDED(rpcStatus));
+
+        return md5_hash(windowsUuid.Data1, windowsUuid.Data2, windowsUuid.Data3, windowsUuid.Data4);
+
+    #else
+        VOGL_ASSUME(!"Need implementation of gen_uuid for this platform.");
+    #endif
     }
 
     uint64_t gen_uuid64()
