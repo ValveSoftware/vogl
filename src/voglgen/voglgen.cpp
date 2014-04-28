@@ -2023,7 +2023,7 @@ public:
         // TODO: I'm going to move the "glspec" dir from under bin to raddebugger/glspec (or whatever)
         dynamic_string specdir;
 
-        if (g_command_line_params.get_value_as_string(specdir, "specdir"))
+        if (g_command_line_params().get_value_as_string(specdir, "specdir"))
         {
             file_utils::change_directory(specdir.c_str());
             console::warning("Changing current directory to %s\n", specdir.c_str());
@@ -2278,7 +2278,7 @@ public:
         create_array_size_macros("glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
 
         //$ TODO: Why are some of these console::messages, printf, and console::printf?
-        if (g_command_line_params.get_value_as_bool("verbose"))
+        if (g_command_line_params().get_value_as_bool("verbose"))
         {
             // console::message("deleting glxext func %s\n", m_glxext_funcs[j].m_name.get_ptr());
             if (gl_ext_func_deleted.size())
@@ -2587,7 +2587,7 @@ public:
     bool generate() const
     {
         dynamic_string out_inc_dir;
-        g_command_line_params.get_value_as_string(out_inc_dir, "outinc", 0, ".");
+        g_command_line_params().get_value_as_string(out_inc_dir, "outinc", 0, ".");
         // Create and ignore failure to create, we'll fail if we can't write to the location.
         file_utils::create_directories(out_inc_dir, false);
 
@@ -2880,7 +2880,7 @@ local:
         file_utils::read_text_file("gl_glx_nongenerated_so_export_list.txt", nongenerated_exports, file_utils::cRTFPrintWarningMessages);
 
         dynamic_string out_linker_dir;
-        g_command_line_params.get_value_as_string(out_linker_dir, "outlinker", 0, ".");
+        g_command_line_params().get_value_as_string(out_linker_dir, "outlinker", 0, ".");
         file_utils::create_directories(out_linker_dir, false);
 
         // Convert this to use naked pfiles like everything else--to support writing native line endings.
@@ -4126,7 +4126,7 @@ local:
         printf("Total skipped: %u\n", total_skipped);
         printf("Total functions present in spec but missing in XML: %u\n", total_not_found);
 
-        if (g_command_line_params.get_value_as_bool("verbose"))
+        if (g_command_line_params().get_value_as_bool("verbose"))
         {
             printf("\nMissing function list:\n");
             for (uint i = 0; i < missing_funcs.size(); i++)
@@ -4442,7 +4442,7 @@ static bool init_command_line_params(int argc, char *argv[])
     parse_cfg.m_single_minus_params = true;
     parse_cfg.m_double_minus_params = true;
 
-    if (!g_command_line_params.parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
+    if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
         console::error("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_NAME);
         return false;
@@ -4504,7 +4504,7 @@ static int main_internal(int argc, char *argv[])
     {
         dynamic_string srcdir;
 
-        if (g_command_line_params.get_value_as_string(srcdir, "srcdir"))
+        if (g_command_line_params().get_value_as_string(srcdir, "srcdir"))
         {
             printf("srcdir: '%s'\n", srcdir.get_ptr());
             plat_chdir(srcdir.get_ptr());
@@ -4527,15 +4527,15 @@ static int main_internal(int argc, char *argv[])
         if (status)
         {
             dynamic_string regex_pattern;
-            if (g_command_line_params.get_value_as_string(regex_pattern, "func_regex"))
+            if (g_command_line_params().get_value_as_string(regex_pattern, "func_regex"))
                 generator.func_regex(regex_pattern.get_ptr());
-            else if (g_command_line_params.get_value_as_string(regex_pattern, "param_regex"))
+            else if (g_command_line_params().get_value_as_string(regex_pattern, "param_regex"))
                 generator.param_regex(regex_pattern.get_ptr());
-            else if (g_command_line_params.get_value_as_string(regex_pattern, "category_regex"))
+            else if (g_command_line_params().get_value_as_string(regex_pattern, "category_regex"))
                 generator.category_regex(regex_pattern.get_ptr());
-            else if (g_command_line_params.get_value_as_string(regex_pattern, "namespace_regex"))
+            else if (g_command_line_params().get_value_as_string(regex_pattern, "namespace_regex"))
                 generator.namespace_regex(regex_pattern.get_ptr());
-            else if (g_command_line_params.get_value_as_string(regex_pattern, "ctype_regex"))
+            else if (g_command_line_params().get_value_as_string(regex_pattern, "ctype_regex"))
                 generator.ctype_regex(regex_pattern.get_ptr());
             else
             {
@@ -4543,7 +4543,7 @@ static int main_internal(int argc, char *argv[])
                 status = generator.generate();
                 console::printf("---------------- End Generate\n");
 
-                if (status && g_command_line_params.get_value_as_bool("debug"))
+                if (status && g_command_line_params().get_value_as_bool("debug"))
                 {
                     console::printf("---------------- Begin Debug Dump\n");
                     generator.dump_debug_files();

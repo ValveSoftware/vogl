@@ -44,6 +44,6 @@ void vogl_common_lib_global_init()
     vogl_texture_format_init();
 
 #if VOGL_FUNCTION_TRACING
-    g_vogl_enable_function_tracing = g_command_line_params.get_value_as_bool("vogl_func_tracing");
+    g_vogl_enable_function_tracing = g_command_line_params().get_value_as_bool("vogl_func_tracing");
 #endif
 }

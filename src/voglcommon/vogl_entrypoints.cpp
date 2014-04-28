@@ -33,7 +33,6 @@
 static vogl_gl_get_proc_address_helper_func_ptr_t g_vogl_pGet_proc_address_helper_func;
 
 actual_gl_entrypoints_t g_vogl_actual_gl_entrypoints;
-entrypoint_name_hash_map_t get_vogl_entrypoint_hashmap();
 
 // The "direct" pointers are not wrapped, they go STRAIGHT to the driver. The non-direct are wrapped with optional callbacks.
 vogl_void_func_ptr_t g_vogl_actual_gl_entrypoint_direct_func_ptrs[VOGL_NUM_ENTRYPOINTS];

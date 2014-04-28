@@ -179,6 +179,10 @@ namespace vogl
         static bool load_string_file(const char *pFilename, dynamic_string_array &strings);
     };
 
-    extern command_line_params g_command_line_params;
+    inline command_line_params &g_command_line_params()
+    {
+        static command_line_params s_command_line_params;
+        return s_command_line_params;
+    }
 
 } // namespace vogl

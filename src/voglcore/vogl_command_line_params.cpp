@@ -46,8 +46,6 @@
 
 namespace vogl
 {
-    command_line_params g_command_line_params;
-
     dynamic_string_array get_command_line_params(int argc, char *argv[])
     {
         dynamic_string_array params;
