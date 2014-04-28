@@ -30,7 +30,6 @@
 #include "vogl_core.h"
 
 bool vogl_is_debugger_present(void);
-void vogl_debug_break(void);
 void vogl_debug_break_if_debugging(void);
 void vogl_output_debug_string(const char *p);
 

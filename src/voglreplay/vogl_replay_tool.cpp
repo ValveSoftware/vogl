@@ -2140,20 +2140,20 @@ static bool tool_dump_mode()
         if (full_verification)
         {
 #if 0
-			if (!strcmp(pFunc_name, "glClearColor"))
-			{
-				vogl_debug_break();
-			}
+            if (!strcmp(pFunc_name, "glClearColor"))
+            {
+                VOGL_BREAKPOINT
+            }
 #endif
 
             vogl::vector<char> new_node_as_text;
             new_node.serialize(new_node_as_text, true, 0);
 
 #if 0
-			if (new_node_as_text.size())
-			{
-				printf("%s\n", new_node_as_text.get_ptr());
-			}
+            if (new_node_as_text.size())
+            {
+                printf("%s\n", new_node_as_text.get_ptr());
+            }
 #endif
 
             json_document round_tripped_node;
