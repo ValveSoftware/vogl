@@ -422,7 +422,7 @@ static int run_tests(int argc, char *argv[])
     VOGL_NOTE_UNUSED(argc);
     VOGL_NOTE_UNUSED(argv);
 
-    g_random.seed(12345);
+    get_random().seed(12345);
 
     uint num_failures = 0;
 

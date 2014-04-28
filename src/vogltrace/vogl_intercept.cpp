@@ -774,7 +774,7 @@ static void vogl_global_init()
 
     VOGL_FUNC_TRACER
 
-    g_thread_safe_random.seed_from_urandom();
+    get_thread_safe_random().seed_from_urandom();
 
     colorized_console::init();
 

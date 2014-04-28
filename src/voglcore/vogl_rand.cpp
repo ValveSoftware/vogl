@@ -62,10 +62,6 @@
 
 namespace vogl
 {
-    random g_random;
-    fast_random g_fast_random;
-    thread_safe_random g_thread_safe_random;
-
     static const double cNorm32 = 1.0 / (double)0x100000000ULL;
 
     kiss99::kiss99()

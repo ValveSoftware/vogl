@@ -167,7 +167,7 @@ static bool voglsyms_init(int argc, char *argv[])
 {
     VOGL_FUNC_TRACER
 
-    g_thread_safe_random.seed_from_urandom();
+    get_thread_safe_random().seed_from_urandom();
 
     console::disable_prefixes();
 
