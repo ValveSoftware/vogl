@@ -77,7 +77,7 @@ fileline_initialize (struct backtrace_state *state,
 
   /* We have not initialized the information.  Do it now.  */
 
-  const char *filename;
+  const char *filename = NULL;
   for (pass = 0; pass < 4; ++pass)
     {
       switch (pass)
