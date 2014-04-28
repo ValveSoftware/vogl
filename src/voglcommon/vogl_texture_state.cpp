@@ -629,9 +629,6 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
             vogl_state_vector level_params;
 
-            //$ TODO WSHADOW: this shadows any_gl_error declaration at top of function.
-            bool any_gl_errors = false;
-
 // TODO: Check for core vs. compat profiles and not query the old stuff
 #define GET_INT(gl_enum)                                                                        \
     do                                                                                          \

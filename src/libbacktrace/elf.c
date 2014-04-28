@@ -741,7 +741,7 @@ elf_add (struct backtrace_state *state, const char *filename, uintptr_t base_add
   struct backtrace_view debug_view;
   int debug_view_valid;
   int retval = 0;
-  int uuid_len = 0;
+  uint32_t uuid_len = 0;
   uint8_t uuid[20];
 
   *found_sym = 0;

@@ -767,10 +767,10 @@ read_attribute (enum dwarf_form form, struct dwarf_buf *buf,
       return 1;
     case DW_FORM_indirect:
       {
-	uint64_t form;
+	uint64_t dw_form;
 
-	form = read_uleb128 (buf);
-	return read_attribute ((enum dwarf_form) form, buf, is_dwarf64,
+	dw_form = read_uleb128 (buf);
+	return read_attribute ((enum dwarf_form) dw_form, buf, is_dwarf64,
 			       version, addrsize, dwarf_str, dwarf_str_size,
 			       val);
       }
@@ -1097,7 +1097,7 @@ read_abbrevs (struct backtrace_state *state, uint64_t abbrev_offset,
 	break;
 
       a.code = code;
-      a.tag = (enum dwarf_tag) read_uleb128 (&abbrev_buf);
+      a.tag = (enum dwarf_tag)(uint32_t)read_uleb128 (&abbrev_buf);
       a.has_children = read_byte (&abbrev_buf);
 
       count_buf = abbrev_buf;
@@ -2781,11 +2781,11 @@ dwarf_lookup_pc (struct backtrace_state *state, struct dwarf_data *ddata,
 
       if (entry->u->abs_filename == NULL)
 	{
-	  const char *filename;
+	  const char *entry_filename;
 
-	  filename = entry->u->filename;
-	  if (filename != NULL
-	      && !IS_ABSOLUTE_PATH (filename)
+	  entry_filename = entry->u->filename;
+	  if (entry_filename != NULL
+	      && !IS_ABSOLUTE_PATH (entry_filename)
 	      && entry->u->comp_dir != NULL)
 	    {
 	      size_t filename_len;
@@ -2793,7 +2793,7 @@ dwarf_lookup_pc (struct backtrace_state *state, struct dwarf_data *ddata,
 	      size_t dir_len;
 	      char *s;
 
-	      filename_len = strlen (filename);
+	      filename_len = strlen (entry_filename);
 	      dir = entry->u->comp_dir;
 	      dir_len = strlen (dir);
 	      s = (char *) backtrace_alloc (state, dir_len + filename_len + 2,
@@ -2806,10 +2806,10 @@ dwarf_lookup_pc (struct backtrace_state *state, struct dwarf_data *ddata,
 	      memcpy (s, dir, dir_len);
 	      /* FIXME: Should use backslash if DOS file system.  */
 	      s[dir_len] = '/';
-	      memcpy (s + dir_len + 1, filename, filename_len + 1);
-	      filename = s;
+	      memcpy (s + dir_len + 1, entry_filename, filename_len + 1);
+	      entry_filename = s;
 	    }
-	  entry->u->abs_filename = filename;
+	  entry->u->abs_filename = entry_filename;
 	}
 
       return callback (data, pc, entry->u->abs_filename, 0, NULL);
