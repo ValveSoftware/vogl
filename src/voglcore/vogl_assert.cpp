@@ -37,7 +37,7 @@
 #warning Assertions enabled in release build
 #endif
 
-static bool g_fail_exceptions;
+static bool g_fail_exceptions = false;
 static bool g_exit_on_failure = true;
 
 void vogl_enable_fail_exceptions(bool enabled)

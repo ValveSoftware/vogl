@@ -322,7 +322,11 @@ namespace vogl
 
     VOGL_DEFINE_BITWISE_MOVABLE(json_value);
 
-    extern json_value g_null_json_value;
+    inline json_value &get_null_json_value()
+    {
+        static json_value s_null_json_value;
+        return s_null_json_value;
+    }
 
     typedef vogl::vector<dynamic_string> dynamic_string_array;
     typedef vogl::vector<json_value> json_value_array;
@@ -420,7 +424,7 @@ namespace vogl
 
         inline const dynamic_string &get_key(uint index) const;
 
-        // returns g_null_json_value if the key does not exist
+        // returns get_null_json_value if the key does not exist
         const json_value &find_value(const char *pKey) const;
         inline const json_value &operator[](const char *pKey) const;
 
