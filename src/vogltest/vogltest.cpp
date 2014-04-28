@@ -562,6 +562,9 @@ static int run_tests(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
+    // Initialize vogl_core.
+    vogl_core_init();
+
     colorized_console::init();
     colorized_console::set_exception_callback();
     console::set_tool_prefix("(vogltest) ");

@@ -671,6 +671,9 @@ int main(int argc, char *argv[])
 
     VOGL_FUNC_TRACER
 
+    // Initialize vogl_core.
+    vogl_core_init();
+
     XSetErrorHandler(xerror_handler);
 
     if (!voglbench_init(argc, argv))

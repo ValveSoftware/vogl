@@ -3382,6 +3382,9 @@ int main(int argc, char *argv[])
 
     VOGL_FUNC_TRACER
 
+    // Initialize vogl_core.
+    vogl_core_init();
+
     XSetErrorHandler(xerror_handler);
 
     if (!vogl_replay_init(argc, argv))

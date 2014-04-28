@@ -75,16 +75,12 @@ namespace vogl
                 status = (*m_pCompress)(pComp_data, &destLen, reinterpret_cast<const unsigned char *>(p), n,
                                         pHDR->m_lzma_props, &outPropsSize,
                                         -1, /* 0 <= level <= 9, default = 5 */
-                                        0,  /* default = (1 << 24) */
+                                         0, /* default = (1 << 24) */
                                         -1, /* 0 <= lc <= 8, default = 3  */
                                         -1, /* 0 <= lp <= 4, default = 0  */
                                         -1, /* 0 <= pb <= 4, default = 2  */
                                         -1, /* 5 <= fb <= 273, default = 32 */
-#if defined(PLATFORM_WINDOWS)
                                         (g_number_of_processors > 1) ? 2 : 1
-#else
-                                        1
-#endif
                                         );
 
                 if (status != SZ_ERROR_OUTPUT_EOF)

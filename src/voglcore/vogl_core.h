@@ -302,3 +302,5 @@
 #include "vogl_dynamic_string.h"
 #include "vogl_timer.h"
 
+// vogl_core initialize function.
+void vogl_core_init();

@@ -648,6 +648,9 @@ int main(int argc, char *argv[])
 
     VOGL_FUNC_TRACER
 
+    // Initialize vogl_core.
+    vogl_core_init();
+
     if (!voglsyms_init(argc, argv))
     {
         voglsyms_deinit();

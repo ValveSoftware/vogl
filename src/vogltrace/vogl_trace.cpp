@@ -44,8 +44,8 @@
 //----------------------------------------------------------------------------------------------------------------------
 // globals
 //----------------------------------------------------------------------------------------------------------------------
-void *g_vogl_actual_libgl_module_handle;
-bool g_vogl_initializing_flag;
+void *g_vogl_actual_libgl_module_handle = NULL;
+bool g_vogl_initializing_flag = false;
 
 //----------------------------------------------------------------------------------------------------------------------
 // dlopen interceptor
@@ -170,14 +170,15 @@ static vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
 // global constructor init
 // Note: Be VERY careful what you do in here! It's called very early during init (long before main, during c++ init)
 //----------------------------------------------------------------------------------------------------------------------
-__attribute__((constructor)) static void vogl_shared_object_constructor_func()
+VOGL_CONSTRUCTOR_FUNCTION(vogl_shared_object_constructor_func);
+static void vogl_shared_object_constructor_func()
 {
-    //printf("vogl_shared_object_constructor_func\n");
-
-    // Initialize our memory heap.
-    vogl_init_heap();
-
     g_vogl_initializing_flag = true;
+
+    printf("(vogltrace) %s\n", VOGL_METHOD_NAME);
+
+    // Initialize vogl_core.
+    vogl_core_init();
 
     // can't call vogl::colorized_console::init() because its global arrays will be cleared after this func returns
     vogl::console::set_tool_prefix("(vogltrace) ");

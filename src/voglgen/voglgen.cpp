@@ -4614,6 +4614,9 @@ int main(int argc, char *argv[])
 {
     int status = EXIT_FAILURE;
 
+    // Initialize vogl_core.
+    vogl_core_init();
+
     if (vogl_is_debugger_present())
     {
         status = main_internal(argc, argv);
