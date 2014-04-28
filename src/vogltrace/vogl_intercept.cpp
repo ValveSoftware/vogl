@@ -599,22 +599,24 @@ static void vogl_dump_statistics()
     }
 }
 
+
 //----------------------------------------------------------------------------------------------------------------------
 // Deinitialization
 //----------------------------------------------------------------------------------------------------------------------
+static void vogl_deinit_callback()
+{
+    VOGL_FUNC_TRACER
+
+    vogl_end_capture();
+    vogl_dump_statistics();
+}
+
 void vogl_deinit()
 {
     VOGL_FUNC_TRACER
 
-    static bool s_already_deinitialized;
-    if (s_already_deinitialized)
-        return;
-    s_already_deinitialized = true;
-
-    VOGL_FUNC_TRACER
-    vogl_end_capture();
-
-    vogl_dump_statistics();
+    static pthread_once_t s_vogl_deinit_once_control = PTHREAD_ONCE_INIT;
+    pthread_once(&s_vogl_deinit_once_control, vogl_deinit_callback);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -4635,8 +4637,6 @@ static vogl_gl_state_snapshot *vogl_snapshot_state(const Display *dpy, GLXDrawab
 static void vogl_end_capture(bool inside_signal_handler)
 {
     VOGL_FUNC_TRACER
-
-    VOGL_NOTE_UNUSED(inside_signal_handler);
 
     vogl_debug_printf("%s\n", VOGL_FUNCTION_NAME);
 
