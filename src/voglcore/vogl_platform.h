@@ -121,7 +121,7 @@ const bool c_vogl_big_endian_platform = !c_vogl_little_endian_platform;
         __declspec(allocate(".CRT$XCU")) static void (__cdecl * func ## _entry)(void) = func;
 
 #else
-    #warning 
+    #error "No VOGL_CONSTRUCTOR_FUNCTION definition."
 #endif
 
 inline bool vogl_is_little_endian()

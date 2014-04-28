@@ -43,7 +43,7 @@ static glXCreateContextAttribsARBProc glXCreateContextAttribsARBFuncPtr;
 typedef __GLXextFuncPtr (*glXGetProcAddressARBProc)(const GLubyte *procName);
 static glXGetProcAddressARBProc glXGetProcAddressARBFuncPtr;
 
-#warning Using LOAD_LIBGLITRACE path
+#pragma message("Using LOAD_LIBGLITRACE path.")
 typedef void(GLAPIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 typedef int GLfixed;
 
@@ -103,7 +103,7 @@ static void LoadGL()
 #define CALL_GL(name) g_##name##_func_ptr
 
 #else
-#warning Using implicitly loaded libgl path
+#pragma message("Using implicitly loaded libgl path.")
 
 #define CALL_GL(name) name
 

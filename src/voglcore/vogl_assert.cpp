@@ -34,7 +34,7 @@
 #endif
 
 #if VOGL_ENABLE_ASSERTIONS_IN_ALL_BUILDS &&(defined(NDEBUG) || defined(VOGL_BUILD_RELEASE))
-#warning Assertions enabled in release build
+#pragma message("Assertions enabled in release build.")
 #endif
 
 static bool g_fail_exceptions = false;

@@ -47,7 +47,7 @@
 #endif
 
 #if VOGL_RAND_FILL_ALLLOCATED_MEMORY || VOGL_SCRUB_FREED_MEMORY
-#warning VOGL_RAND_FILL_ALLLOCATED_MEMORY and/or VOGL_SCRUB_FREED_MEMORY is enabled
+#pragma message("VOGL_RAND_FILL_ALLLOCATED_MEMORY and/or VOGL_SCRUB_FREED_MEMORY is enabled.")
 #endif
 
 #ifdef VOGL_USE_WIN32_API
@@ -79,7 +79,7 @@
 #undef vogl_delete_array
 
 #if VOGL_MALLOC_DEBUGGING
-#warning vogl_mem.cpp: Malloc debugging enabled
+#pragma message("vogl_mem.cpp: Malloc debugging enabled.")
 #endif
 
 #if VOGL_USE_STB_MALLOC

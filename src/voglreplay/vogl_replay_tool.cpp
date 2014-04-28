@@ -1212,10 +1212,6 @@ static bool tool_replay_mode()
                     }
                     else
                     {
-                        //$ TODO WSHADOW: This declaration shadows declaration towards top of function.
-                        vogl_loose_file_blob_manager trim_file_blob_manager;
-                        trim_file_blob_manager.init(cBMFReadWrite, trim_name.get_ptr());
-
                         dynamic_string trim_filename(trim_name + "/" + trim_name + ".bin");
                         dynamic_string snapshot_id;
                         uint write_trim_file_flags = vogl_gl_replayer::cWriteTrimFileFromStartOfFrame | (g_command_line_params().get_value_as_bool("no_trim_optimization") ? 0 : vogl_gl_replayer::cWriteTrimFileOptimizeSnapshot);

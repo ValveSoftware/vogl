@@ -32,7 +32,7 @@
 #define VOGL_CONTEXT_STATE_DEBUG 0
 
 #if VOGL_CONTEXT_STATE_DEBUG
-#warning VOGL_CONTEXT_STATE_DEBUG enabled
+#pragma message("VOGL_CONTEXT_STATE_DEBUG enabled")
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------

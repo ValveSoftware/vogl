@@ -38,7 +38,7 @@
 #endif
 
 #if VOGL_OBJECT_POOL_DEBUGGING
-//   #warning vogl_object_pool.h: Object pool debugging enabled
+//   #pragma message("vogl_object_pool.h: Object pool debugging enabled")
 #endif
 
 VOGL_NAMESPACE_BEGIN(vogl)

@@ -6138,11 +6138,10 @@ static void vogl_serialize_client_side_arrays_helper(
                 if (!ptr)
                     continue;
 
-                //$ TODO WSHADOW: type shadows type passed into function.
-                GLint type = GL_BOOL;
+                GLint inner_type = GL_BOOL;
                 if (desc.m_get_type)
                 {
-                    GL_ENTRYPOINT(glGetIntegerv)(desc.m_get_type, &type);
+                    GL_ENTRYPOINT(glGetIntegerv)(desc.m_get_type, &inner_type);
                 }
 
                 GLint stride = 0;
@@ -6154,7 +6153,7 @@ static void vogl_serialize_client_side_arrays_helper(
                     GL_ENTRYPOINT(glGetIntegerv)(desc.m_get_size, &size);
                 }
 
-                uint type_size = vogl_get_gl_type_size(type);
+                uint type_size = vogl_get_gl_type_size(inner_type);
                 if (!type_size)
                 {
                     vogl_error_printf("%s: Can't determine type size of enabled client side array set by func %s\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName);

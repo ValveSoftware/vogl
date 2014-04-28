@@ -11575,7 +11575,8 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
 
     // TODO: This seems like WAY too much work! Move the snapshot to the beginning of the trace, in the header!
     bool found_state_snapshot = false;
-    dynamic_string binary_snapshot_id, text_snapshot_id;
+    // Not currently used...
+    // dynamic_string binary_snapshot_id, text_snapshot_id;
 
     bool is_at_start_of_trace = false;
     VOGL_NOTE_UNUSED(is_at_start_of_trace);
@@ -11615,8 +11616,9 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
             {
                 found_state_snapshot = true;
 
-                text_snapshot_id = kvm.get_string("id");
-                binary_snapshot_id = kvm.get_string("binary_id");
+                // Not currently used...
+                // text_snapshot_id = kvm.get_string("id");
+                // binary_snapshot_id = kvm.get_string("binary_id");
             }
         }
     }
@@ -11707,9 +11709,8 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
         snapshot_data.clear();
 
         // Write the binary_state_snapshot file to the trace archive
-        //$ TODO WSHADOW: this declaration shadows the declaration at top of function.
-        dynamic_string binary_snapshot_id(trace_writer.get_trace_archive()->add_buf_compute_unique_id(binary_snapshot_data.get_ptr(), binary_snapshot_data.size(), "binary_state_snapshot", VOGL_BINARY_JSON_EXTENSION));
-        if (binary_snapshot_id.is_empty())
+        dynamic_string binary_id(trace_writer.get_trace_archive()->add_buf_compute_unique_id(binary_snapshot_data.get_ptr(), binary_snapshot_data.size(), "binary_state_snapshot", VOGL_BINARY_JSON_EXTENSION));
+        if (binary_id.is_empty())
         {
             console::error("%s: Failed adding binary GL snapshot file to output blob manager!\n", VOGL_FUNCTION_NAME);
             trace_writer.close();
@@ -11722,7 +11723,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
         key_value_map snapshot_key_value_map;
         snapshot_key_value_map.insert("command_type", "state_snapshot");
         snapshot_key_value_map.insert("id", snapshot_id);
-        snapshot_key_value_map.insert("binary_id", binary_snapshot_id);
+        snapshot_key_value_map.insert("binary_id", binary_id);
 
         dynamic_stream snapshot_stream(0);
         if (!vogl_write_glInternalTraceCommandRAD(snapshot_stream, &trace_gl_ctypes, cITCRKeyValueMap, sizeof(snapshot_key_value_map), reinterpret_cast<const GLubyte *>(&snapshot_key_value_map)))

@@ -30,12 +30,7 @@
 #include "vogl_json.h"
 
 #if VOGL_SLOW_STRING_LEN_CHECKS
-	// TODO: Need to create a unified way to warn on all platforms.
-	#ifdef PLATFORM_LINUX
-		#warning vogl_dynamic_string.cpp: Slow string checking enabled
-	#else
-		#pragma message(__FILE__ " Warning: Slow string checking enabled")
-	#endif
+#pragma message("Warning: Slow string checking enabled")
 #endif
 
 namespace vogl

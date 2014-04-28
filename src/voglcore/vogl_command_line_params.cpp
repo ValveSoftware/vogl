@@ -96,7 +96,7 @@ namespace vogl
             vogl_fclose(pFile);
         }
 #else
-#warning Unimplemented!
+#error Unimplemented!
 #endif
 
         return params;
@@ -128,7 +128,7 @@ namespace vogl
             cmd_line += tmp;
         }
 #else
-#warning Unimplemented!
+#error Unimplemented!
 #endif
         return cmd_line;
     }
@@ -194,7 +194,7 @@ namespace vogl
             pSrc += strlen(pSrc) + 1;
         }
 #else
-#warning Unimplemented!
+#error Unimplemented!
 #endif
 
         return false;
