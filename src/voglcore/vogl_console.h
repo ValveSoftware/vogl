@@ -152,12 +152,9 @@ namespace vogl
             void *m_pData;
         };
 
-        enum
-        {
-            cMaxOutputFuncs = 16
-        };
+        enum { cMaxOutputFuncs = 16 };
         static uint m_num_output_funcs;
-        static console_func m_output_funcs[cMaxOutputFuncs];
+        static console_func *get_output_funcs();
 
         static bool m_prefixes, m_output_disabled;
         static data_stream *m_pLog_stream;

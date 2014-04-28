@@ -60,8 +60,7 @@ namespace vogl
         };
 
     eConsoleMessageType console::m_default_category = cInfoConsoleMessage;
-    uint console::m_num_output_funcs;
-    console::console_func console::m_output_funcs[cMaxOutputFuncs];
+    uint console::m_num_output_funcs = 0;
     bool console::m_prefixes = true;
     bool console::m_output_disabled;
     data_stream *console::m_pLog_stream;
@@ -89,6 +88,12 @@ namespace vogl
         }
 
         m_num_output_funcs = 0;
+    }
+
+    console::console_func *console::get_output_funcs()
+    {
+        static console::console_func s_output_funcs[cMaxOutputFuncs];
+        return s_output_funcs;
     }
 
     const char *console::get_message_type_str(eConsoleMessageType type)
@@ -165,8 +170,10 @@ namespace vogl
 
         if (m_num_output_funcs)
         {
+            console_func *funcs = get_output_funcs();
+
             for (uint i = 0; i < m_num_output_funcs; i++)
-                if (m_output_funcs[i].m_func(type, buf, m_output_funcs[i].m_pData))
+                if (funcs[i].m_func(type, buf, funcs[i].m_pData))
                     handled = true;
         }
 
@@ -236,7 +243,8 @@ namespace vogl
 
         if (m_num_output_funcs < cMaxOutputFuncs)
         {
-            m_output_funcs[m_num_output_funcs++] = console_func(pFunc, pData);
+            console_func *funcs = get_output_funcs();
+            funcs[m_num_output_funcs++] = console_func(pFunc, pData);
         }
 
         if (m_pMutex)
@@ -250,11 +258,12 @@ namespace vogl
         if (m_pMutex)
             m_pMutex->lock();
 
+        console_func *funcs = get_output_funcs();
         for (int i = m_num_output_funcs - 1; i >= 0; i--)
         {
-            if (m_output_funcs[i].m_func == pFunc)
+            if (funcs[i].m_func == pFunc)
             {
-                m_output_funcs[i] = m_output_funcs[m_num_output_funcs - 1];
+                funcs[i] = funcs[m_num_output_funcs - 1];
                 m_num_output_funcs--;
             }
         }
