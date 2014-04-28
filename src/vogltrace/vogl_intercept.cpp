@@ -183,6 +183,12 @@ static void *g_vogl_pCapture_status_opaque;
 
 static vogl_trace_file_writer& get_vogl_trace_writer()
 {
+    // If we wind up having issues with destructor ordering, we could changed these
+    //  routines to do a "new CObject()" and return that instead of using static.
+    //
+    // See these links to C++ FAQ Lite for more information:
+    //  [10.15] http://www.parashift.com/c++-faq-lite/static-init-order-on-first-use.html 
+    //  [10.16] http://www.parashift.com/c++-faq-lite/construct-on-first-use-v2.html 
     static vogl_trace_file_writer s_vogl_trace_writer(&g_vogl_process_gl_ctypes);
     return s_vogl_trace_writer;
 }
