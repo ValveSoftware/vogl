@@ -40,10 +40,10 @@ endif()
 # for platforms that need it (ie, Windows)
 if (BUILD_X64)
     set(CMAKE_EXECUTABLE_SUFFIX "64${CMAKE_EXECUTABLE_SUFFIX}")
-    set(CMAKE_SHARED_LIBRARY_SUFFIX "64.so")
+    set(CMAKE_SHARED_LIBRARY_SUFFIX "64${CMAKE_SHARED_LIBRARY_SUFFIX}")
 else()
     set(CMAKE_EXECUTABLE_SUFFIX "32${CMAKE_EXECUTABLE_SUFFIX}")
-    set(CMAKE_SHARED_LIBRARY_SUFFIX "32.so")
+    set(CMAKE_SHARED_LIBRARY_SUFFIX "32${CMAKE_SHARED_LIBRARY_SUFFIX}")
 endif()
 
 # Default to release build
@@ -356,7 +356,37 @@ function(require_pthreads)
         # Export the variable to the parent scope so the linker knows where to find the library.
         set(CMAKE_THREAD_LIBS_INIT ${CMAKE_THREAD_LIBS_INIT} PARENT_SCOPE)
     endif()
+endfunction()
 
+function(require_libjpegturbo)
+    find_library(LibJpegTurbo_LIBRARY
+        NAMES libturbojpeg.so libturbojpeg.so.0 libturbojpeg.dylib
+        PATHS /opt/libjpeg-turbo/lib 
+    )
+
+    # On platforms that find this, the include files will have also been installed to the system
+    # so we don't need extra include dirs.
+    if (LibJpegTurbo_LIBRARY)
+        set(LibJpegTurbo_INCLUDE "" PARENT_SCOPE)
+    else()
+        if (BUILD_X64)
+            set(BITS_STRING "x64")
+        else()
+            set(BITS_STRING "x86")
+        endif()
+        set(LibJpegTurbo_INCLUDE "${CMAKE_PREFIX_PATH}/libjpeg-turbo-2.1.3/include" PARENT_SCOPE)
+        set(LibJpegTurbo_LIBRARY "${CMAKE_PREFIX_PATH}/libjpeg-turbo-2.1.3/lib_${BITS_STRING}/turbojpeg-static.lib" PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(request_backtrace)
+    if (NOT MSVC)
+        set( LibBackTrace_INCLUDE "${SRC_DIR}/libbacktrace" PARENT_SCOPE )
+        set( LibBackTrace_LIBRARY "backtracevogl" PARENT_SCOPE )
+    else()
+        set( LibBackTrace_INCLUDE "" PARENT_SCOPE )
+        set( LibBackTrace_LIBRARY "" PARENT_SCOPE )
+    endif()
 endfunction()
 
 # What compiler toolchain are we building on?

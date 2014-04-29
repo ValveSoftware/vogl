@@ -2693,11 +2693,14 @@ public:
         for (uint i = 0; i < custom_return_param_array_size_macros.size(); i++)
         {
             dynamic_string macro_name(custom_return_param_array_size_macros[i]);
-            int n = macro_name.find_left('(');
-            if (n >= 0)
-                macro_name.truncate(n);
+            int left_paren_pos = macro_name.find_left('(');
+            int right_paren_pos = macro_name.find_left(')');
+            if (left_paren_pos >= 0)
+                macro_name.truncate(left_paren_pos);
 
             int num_params = custom_return_param_array_size_macros[i].count_char(',') + 1;
+            if (right_paren_pos - left_paren_pos == 1) 
+                num_params = 0;
 
             dynamic_string params("(");
             for (int j = 0; j < num_params; j++)

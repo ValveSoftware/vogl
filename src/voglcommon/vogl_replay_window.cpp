@@ -47,7 +47,7 @@ vogl_replay_window::~vogl_replay_window()
 bool vogl_replay_window::open(int width, int height, int samples)
 {
     VOGL_FUNC_TRACER
-    #if defined(VOGL_PLATFORM_HAS_GLX)
+    #if (VOGL_PLATFORM_HAS_GLX)
 
         close();
 
@@ -156,7 +156,7 @@ bool vogl_replay_window::open(int width, int height, int samples)
 void vogl_replay_window::set_title(const char *pTitle)
 {
     VOGL_FUNC_TRACER
-    #if defined(VOGL_PLATFORM_HAS_GLX)
+    #if (VOGL_PLATFORM_HAS_GLX)
         if (m_win)
         {
             XStoreName(m_dpy, m_win, pTitle);
@@ -170,7 +170,7 @@ bool vogl_replay_window::resize(int new_width, int new_height)
 {
     VOGL_FUNC_TRACER
 
-    #if defined(VOGL_PLATFORM_HAS_GLX)
+    #if (VOGL_PLATFORM_HAS_GLX)
 
         if (!is_opened())
             return open(new_width, new_height);
@@ -205,7 +205,7 @@ bool vogl_replay_window::resize(int new_width, int new_height)
 void vogl_replay_window::clear_window()
 {
     VOGL_FUNC_TRACER
-    #if defined(VOGL_PLATFORM_HAS_GLX)
+    #if (VOGL_PLATFORM_HAS_GLX)
 
         if (!m_dpy)
             return;
@@ -219,7 +219,7 @@ void vogl_replay_window::clear_window()
 void vogl_replay_window::close()
 {
     VOGL_FUNC_TRACER
-    #if defined(VOGL_PLATFORM_HAS_GLX)
+    #if (VOGL_PLATFORM_HAS_GLX)
 
         if (m_win)
         {
@@ -258,7 +258,7 @@ void vogl_replay_window::update_dimensions()
 bool vogl_replay_window::get_actual_dimensions(uint &width, uint &height) const
 {
     VOGL_FUNC_TRACER
-    #if defined(VOGL_PLATFORM_HAS_GLX)
+    #if (VOGL_PLATFORM_HAS_GLX)
         Window root;
         int x, y;
         unsigned int border_width, depth;

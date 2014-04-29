@@ -1452,15 +1452,23 @@ vogl_gl_replayer::status_t vogl_gl_replayer::switch_contexts(vogl_trace_context_
     context_state *pContext_state = get_trace_context_state(trace_context);
     GLXContext replay_context = pContext_state ? pContext_state->m_replay_context : 0;
 
-    const Display *dpy = m_pWindow->get_display();
-    GLXDrawable drawable = replay_context ? m_pWindow->get_xwindow() : (GLXDrawable)NULL;
+    #if (VOGL_PLATFORM_HAS_GLX)
+        const Display *dpy = m_pWindow->get_display();
+        GLXDrawable drawable = replay_context ? m_pWindow->get_xwindow() : (GLXDrawable)NULL;
 
-    Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
+        Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
+    #else
+        VOGL_VERIFY(!"impl vogl_gl_replayer::switch_contexts for Windows");
+        bool result = true;
+
+    #endif
+
     if (!result)
     {
         process_entrypoint_error("%s: Failed switching current trace context to 0x%" PRIX64 "\n", VOGL_METHOD_NAME, trace_context);
         return cStatusHardFailure;
     }
+
 
     m_cur_trace_context = trace_context;
     m_cur_replay_context = replay_context;
@@ -1853,10 +1861,17 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
         return cStatusHardFailure;
     }
 
-    const Display *dpy = m_pWindow->get_display();
-    GLXDrawable drawable = replay_context ? m_pWindow->get_xwindow() : (GLXDrawable)NULL;
+    #if (VOGL_PLATFORM_HAS_GLX)
+        const Display *dpy = m_pWindow->get_display();
+        GLXDrawable drawable = replay_context ? m_pWindow->get_xwindow() : (GLXDrawable)NULL;
+        Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
+    #elif (VOGL_PLATFORM_HAS_WGL)
+        VOGL_VERIFY(!"impl vogl_gl_replayer::process_pending_make_current on Windows");
+        bool result = true;
+    #else
+        #error "impl vogl_gl_replayer::process_pending_make_current on this platform"
+    #endif
 
-    Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
     if (!result)
     {
         if (trace_result)
@@ -3722,10 +3737,17 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (status != cStatusResizeWindow)
             {
-                const Display *dpy = m_pWindow->get_display();
-                GLXDrawable drawable = replay_context ? m_pWindow->get_xwindow() : (GLXDrawable)NULL;
+                #if (VOGL_PLATFORM_HAS_GLX)
+                    const Display *dpy = m_pWindow->get_display();
+                    GLXDrawable drawable = replay_context ? m_pWindow->get_xwindow() : (GLXDrawable)NULL;
+                    Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
+                #elif (VOGL_PLATFORM_HAS_WGL)
+                    bool result = true;
+                    VOGL_VERIFY(!"impl - vogl_gl_replayer::process_gl_entrypoint_packet_internal");
+                #else
+                    #error "impl - vogl_gl_replayer::process_gl_entrypoint_packet_internal"
+                #endif
 
-                Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
                 if (!result)
                 {
                     if (trace_result)
@@ -3962,9 +3984,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     vogl_warning_printf("%s: Failed validating texture handles against handle mapping tables\n", VOGL_METHOD_NAME);
             }
 
-            const Display *dpy = m_pWindow->get_display();
-            GLXDrawable drawable = m_pWindow->get_xwindow();
-
             if ((m_flags & cGLReplayerHashBackbuffer) || (m_flags & cGLReplayerDumpScreenshots) || (m_flags & cGLReplayerDumpBackbufferHashes))
             {
                 snapshot_backbuffer();
@@ -3976,7 +3995,16 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 m_dump_frontbuffer_filename.clear();
             }
 
-            GL_ENTRYPOINT(glXSwapBuffers)(dpy, drawable);
+            #if (VOGL_PLATFORM_HAS_GLX)
+                const Display *dpy = m_pWindow->get_display();
+                GLXDrawable drawable = m_pWindow->get_xwindow();
+
+                GL_ENTRYPOINT(glXSwapBuffers)(dpy, drawable);
+            #elif (VOGL_PLATFORM_HAS_WGL)
+                VOGL_VERIFY(!"impl vogl_gl_replayer::process_gl_entrypoint_packet_internal on Windows");
+            #else
+                #error "impl vogl_gl_replayer::process_gl_entrypoint_packet_internal on this platform"
+            #endif
 
             if (m_swap_sleep_time)
                 vogl_sleep(m_swap_sleep_time);
@@ -4147,7 +4175,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         // -----
         case VOGL_ENTRYPOINT_glXUseXFont:
         {
-            #if defined(VOGL_PLATFORM_HAS_GLX)
+            #if (VOGL_PLATFORM_HAS_GLX)
                 const key_value_map &key_value_map = trace_packet.get_key_value_map();
 
                 const dynamic_string *pFont_name = key_value_map.get_string_ptr("font_name");
@@ -10835,7 +10863,7 @@ public:
     void clear()
     {
         VOGL_FUNC_TRACER
-        #if defined(VOGL_PLATFORM_HAS_GLX)
+        #if (VOGL_PLATFORM_HAS_GLX)
             for (xfont_map::iterator it = m_xfonts.begin(); it != m_xfonts.end(); ++it)
                 XFreeFont(m_dpy, it->second);
             m_xfonts.clear();
@@ -10847,7 +10875,7 @@ public:
     XFontStruct *get_or_create(const char *pName)
     {
         VOGL_FUNC_TRACER
-        #if defined(VOGL_PLATFORM_HAS_GLX)
+        #if (VOGL_PLATFORM_HAS_GLX)
             XFontStruct **ppXFont = m_xfonts.find_value(pName);
             if (ppXFont)
                 return *ppXFont;
@@ -10923,7 +10951,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
                 }
                 else
                 {
-                    #if defined(VOGL_PLATFORM_HAS_GLX)
+                    #if (VOGL_PLATFORM_HAS_GLX)
                         GL_ENTRYPOINT(glXUseXFont)(pXFont->fid, disp_list.get_xfont_glyph(), 1, replay_handle);
                     #else
                         VOGL_ASSERT(!"impl glXUseXFont callsite");
@@ -11379,9 +11407,16 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
             return cStatusHardFailure;
         }
 
-        GLXDrawable drawable = m_pWindow->get_xwindow();
-
-        Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
+        #if (VOGL_PLATFORM_HAS_GLX)
+            GLXDrawable drawable = m_pWindow->get_xwindow();
+            Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
+        #elif (VOGL_PLATFORM_HAS_WGL)
+            bool result = false;
+            VOGL_VERIFY(!"impl vogl_gl_replayer::restore_context on Windows");
+        #else
+            #error "impl vogl_gl_replayer::restore_context on this platform"
+        #endif
+            
         if (!result)
         {
             vogl_error_printf("%s: Failed making context current\n", VOGL_METHOD_NAME);

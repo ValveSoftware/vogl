@@ -180,3 +180,12 @@ void plat_virtual_free(void* free_addr, size_t size)
 
 #endif
 
+
+void* plat_dlsym(void* handle, const char* symbol)
+{
+    VOGL_VERIFY((handle != (void*)PLAT_RTLD_NEXT) && !!"plat_dlsym[Windows] was passed PLAT_RTLD_NEXT, which isn't actually implemented yet.");
+
+    return GetProcAddress(*(HMODULE*)handle, symbol);
+}
+
+

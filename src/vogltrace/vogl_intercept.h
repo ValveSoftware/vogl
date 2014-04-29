@@ -39,6 +39,7 @@ extern bool g_backtrace_all_calls;
 extern bool g_vogl_has_been_initialized;
 
 // Functions
+void vogl_init();
 void vogl_early_init();
 void vogl_deinit();
 

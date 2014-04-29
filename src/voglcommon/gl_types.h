@@ -81,22 +81,33 @@ typedef void(GLAPIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLe
 typedef void(GLAPIENTRY *GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 typedef void(GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 
-#if !defined(VOGL_PLATFORM_HAS_GLX)
-    enum GlxUndefinedType { GLXUNDEFINEDTYPE = 0 };
+#if (!VOGL_PLATFORM_HAS_GLX)
+    enum GlxUndefinedType { GLXUNDEFINEDTYPE = 0, None = 1 };
+
+    #define UndefinedTypeThisPlatform(_typename) \
+        struct _typename \
+        { \
+            GlxUndefinedType unused; \
+            _typename(GlxUndefinedType _unused=GLXUNDEFINEDTYPE) : unused(_unused) { } \
+            _typename(int _ptr) : unused(GLXUNDEFINEDTYPE) { } \
+            bool operator==(const _typename& ) { return false; } \
+        }
+
 
     typedef int Bool;
+    typedef uint32_t XID;
 
-    typedef GlxUndefinedType Colormap;
-    typedef GlxUndefinedType Display;
-    typedef GlxUndefinedType Font;
-    typedef GlxUndefinedType Pixmap;
-    typedef GlxUndefinedType Status;
-    typedef GlxUndefinedType Window;
+    UndefinedTypeThisPlatform(Colormap);
+    UndefinedTypeThisPlatform(Font);
+    UndefinedTypeThisPlatform(Pixmap);
+    UndefinedTypeThisPlatform(Status);
+    UndefinedTypeThisPlatform(Window);
 
-    typedef GlxUndefinedType _XDisplay;
-    typedef GlxUndefinedType XID;
-    typedef GlxUndefinedType XFontStruct;
-    typedef GlxUndefinedType XVisualInfo;
+    UndefinedTypeThisPlatform(_XDisplay);
+    UndefinedTypeThisPlatform(XFontStruct);
+    UndefinedTypeThisPlatform(XVisualInfo);
+
+    typedef _XDisplay Display;
 #endif
 
 typedef struct __GLXcontextRec *GLXContext;

@@ -278,12 +278,26 @@
 #if defined(PLATFORM_LINUX)
     #define VOGL_HAS_PROC_FILESYSTEM 1
     #define VOGL_PLATFORM_HAS_GLX 1
+    #define VOGL_PLATFORM_HAS_WGL 0
+    #define VOGL_PLATFORM_HAS_AGL 0
+    #define VOGL_PLATFORM_SUPPORTS_BTRACE 1
+
 #elif defined(PLATFORM_OSX)
     #error "TODO -- I don't know if OSX has a proc filesystem or not."
+    #define VOGL_PLATFORM_HAS_GLX 0
+    #define VOGL_PLATFORM_HAS_WGL 0
+    #define VOGL_PLATFORM_HAS_AGL 1
+    #define VOGL_PLATFORM_SUPPORTS_BTRACE 0
+
 #elif defined(PLATFORM_WINDOWS)
     #define VOGL_HAS_PROC_FILESYSTEM 0
+    #define VOGL_PLATFORM_HAS_GLX 0
+    #define VOGL_PLATFORM_HAS_WGL 1
+    #define VOGL_PLATFORM_HAS_AGL 0
+    #define VOGL_PLATFORM_SUPPORTS_BTRACE 0
+
 #else
-#error "Specify whether target platform has PROC filesystem or not."
+    #error "Specify whether target platform has PROC filesystem or not."
 #endif
 
 #include "vogl_warnings.h"

@@ -6,6 +6,8 @@ option(VOGLTRACE_NO_PUBLIC_EXPORTS "Don't define any public GL exports in libvog
 include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
+require_libjpegturbo()
+request_backtrace()
 
 find_package(X11 REQUIRED)
 
@@ -33,13 +35,14 @@ else()
 endif()
 
 include_directories(
-    ${SRC_DIR}/libbacktrace
+    ${LibBackTrace_INCLUDE}
     ${SRC_DIR}/extlib/loki/include/loki
     ${SRC_DIR}/voglcommon
     ${CMAKE_BINARY_DIR}/voglinc
     ${SRC_DIR}/voglcore
     ${SRC_DIR}/libtelemetry
-    )
+    ${LibJpegTurbo_INCLUDE}
+)
 
 # Not sure if -Wl,-Bsymbolic is needed or useful?
 if (NOT MSVC)
@@ -50,26 +53,16 @@ endif()
 add_library(${PROJECT_NAME} SHARED ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
-find_library(LibJpegTurbo_LIBRARY
-    NAMES libturbojpeg.so libturbojpeg.so.0 turbojpeg.dll libturbojpeg.dylib
-    PATHS /opt/libjpeg-turbo/lib
-)
-
-if (NOT LibJpegTurbo_LIBRARY)
-    set(LibJpegTurbo_LIBRARY "")
-endif()
-
 target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
-    backtracevogl
+    ${LibBackTrace_LIBRARY}
     voglcommon
     voglcore
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_DL_LIBS}
     ${X11_LIBRARIES}
-    rt
     ${LibJpegTurbo_LIBRARY}
-    )
+)
 
 build_options_finalize()
 

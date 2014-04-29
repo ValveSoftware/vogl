@@ -44,7 +44,7 @@ static const GLenum g_def_framebuffer_enums[] =
 
 bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attribs, uint screen)
 {
-    #if defined(VOGL_PLATFORM_HAS_GLX)
+    #if (VOGL_PLATFORM_HAS_GLX)
         GLXDrawable pDrawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
         Display *pDisplay = GL_ENTRYPOINT(glXGetCurrentDisplay)();
         if ((!pDrawable) || (!pDisplay))

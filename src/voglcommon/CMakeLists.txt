@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
+request_backtrace()
 
 include_directories(
     ${SRC_DIR}/extlib/loki/include/loki
@@ -11,7 +12,7 @@ include_directories(
     ${CMAKE_BINARY_DIR}/voglinc
     ${SRC_DIR}/voglcore
     ${SRC_DIR}/libtelemetry
-    ${SRC_DIR}/libbacktrace
+    ${LibBackTrace_INCLUDE}
 )
 
 file( GLOB_RECURSE HDRS *.[h|inl] )
@@ -77,7 +78,10 @@ endif()
 
 add_library(${PROJECT_NAME} ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
-target_link_libraries(${PROJECT_NAME} backtracevogl)
+
+target_link_libraries(${PROJECT_NAME} 
+    ${LibBackTrace_LIBRARY}
+)
 
 build_options_finalize()
 

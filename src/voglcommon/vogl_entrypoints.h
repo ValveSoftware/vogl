@@ -187,7 +187,7 @@ extern vogl_void_func_ptr_t g_vogl_actual_gl_entrypoint_func_ptrs[VOGL_NUM_ENTRY
 //----------------------------------------------------------------------------------------------------------------------
 // Typedefs/Functions
 //----------------------------------------------------------------------------------------------------------------------
-typedef vogl_void_func_ptr_t (*vogl_gl_get_proc_address_helper_func_ptr_t)(const char *pName);
+typedef __GLXextFuncPtr (*vogl_gl_get_proc_address_helper_func_ptr_t)(const GLubyte *pName);
 
 // pGet_proc_address_helper_func must be valid
 void vogl_init_actual_gl_entrypoints(vogl_gl_get_proc_address_helper_func_ptr_t pGet_proc_address_helper_func, bool wrap_all_gl_calls = true);
