@@ -12,6 +12,8 @@
 #include "vogl_ktx_texture.h"
 #include "vogl_miniz.h"
 #include "vogl_file_utils.h"
+#include "vogl_image.h"
+#include "vogl_image_utils.h"
 
 using namespace vogl;
 
@@ -122,6 +124,13 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
+    if (tex.is_compressed())
+    {
+        //get_ogl_internal_fmt()
+        console::error("Compressed KTX files are not supported because the pxfmt lib doesn't support compressed formats yet.\n");
+        return EXIT_FAILURE;
+    }
+
     pxfmt_sized_format src_pxfmt = validate_format_type_combo(tex.get_ogl_fmt(), tex.get_ogl_type());
     if (src_pxfmt == PXFMT_INVALID)
     {
@@ -157,8 +166,7 @@ int main(int argc, char **argv)
                     temp_buf.push_back(0xAB);
                     temp_buf.push_back(0xCD);
 
-                    uint num_chans = 3;
-                    pxfmt_sized_format temp_pxfmt = PXFMT_RGB8_UNORM;
+                    pxfmt_sized_format temp_pxfmt = PXFMT_RGBA8_UNORM;
                     pxfmt_convert_pixels(temp_buf.get_ptr(), level_data.get_ptr(), mip_width, mip_height, src_pxfmt, temp_pxfmt);
 
                     if ((temp_buf[temp_buf.size() - 2] != 0xAB) || (temp_buf[temp_buf.size() - 1] != 0xCD))
@@ -167,23 +175,43 @@ int main(int argc, char **argv)
                         return EXIT_FAILURE;
                     }
 
-                    size_t png_data_size = 0;
-                    void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(temp_buf.get_ptr(), mip_width, mip_height, num_chans, &png_data_size, 5, MZ_TRUE);
-                    if (pPNG_data)
+                    image_u8 rgb_img(mip_width, mip_height);
+                    image_u8 alpha_img(mip_width, mip_height);
+
+                    for (uint y = 0; y < mip_height; y++)
                     {
-                        dynamic_string output_filename(cVarArg, "%s_array_%u_face_%u_mip_%u_zslice_%u.png",
-                                                       out_prefix.get_ptr(), array_index, face_index, mip_level, zslice_index);
+                        const color_quad_u8 *pPixel = reinterpret_cast<color_quad_u8 *>(temp_buf.get_ptr() + y * mip_width * sizeof(uint32));
 
-                        console::info("Writing output file %s\n", output_filename.get_ptr());
-
-                        if (!file_utils::write_buf_to_file(output_filename.get_ptr(), pPNG_data, png_data_size))
+                        for (uint x = 0; x < mip_width; x++)
                         {
-                            console::error("Failed writing to output file %s\n", output_filename.get_ptr());
-                            return EXIT_FAILURE;
+                            rgb_img.set_pixel_unclipped(x, y, *pPixel);
+                            alpha_img.set_pixel_unclipped(x, y, color_quad_u8((*pPixel)[3]));
+
+                            ++pPixel;
                         }
+                    }
 
+                    dynamic_string rgb_output_filename(cVarArg, "%s_array_%u_face_%u_mip_%u_zslice_%u_rgb.png",
+                        out_prefix.get_ptr(), array_index, face_index, mip_level, zslice_index);
 
-                        mz_free(pPNG_data);
+                    console::info("Writing RGB output file %s\n", rgb_output_filename.get_ptr());
+
+                    if (!image_utils::write_to_file(rgb_output_filename.get_ptr(), rgb_img, image_utils::cWriteFlagIgnoreAlpha))
+                    {
+                        console::error("Failed writing to output file %s\n", rgb_output_filename.get_ptr());
+                        return EXIT_FAILURE;
+                    }
+
+                    // TODO: We always write an alpha image, although there may not be any alpha data in the source image's pixel format.
+                    dynamic_string alpha_output_filename(cVarArg, "%s_array_%u_face_%u_mip_%u_zslice_%u_alpha.png",
+                        out_prefix.get_ptr(), array_index, face_index, mip_level, zslice_index);
+
+                    console::info("Writing alpha output file %s\n", alpha_output_filename.get_ptr());
+
+                    if (!image_utils::write_to_file(alpha_output_filename.get_ptr(), alpha_img, image_utils::cWriteFlagIgnoreAlpha | image_utils::cWriteFlagGrayscale, 0))
+                    {
+                        console::error("Failed writing to output file %s\n", rgb_output_filename.get_ptr());
+                        return EXIT_FAILURE;
                     }
 
                 } // zslice_index
