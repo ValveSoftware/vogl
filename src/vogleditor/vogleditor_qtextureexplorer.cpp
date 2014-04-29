@@ -245,6 +245,33 @@ void vogleditor_QTextureExplorer::selectedTextureIndexChanged(int index)
 
         if (pTexState != NULL)
         {
+            // Update array element spin box
+            uint maxArrayElement = pTexState->get_texture().get_array_size();
+            if (maxArrayElement <= 1)
+            {
+                ui->arrayElementSpinBox->setEnabled(false);
+                ui->arrayElementSpinBox->setMaximum(0);
+
+                // simulate that the value has changed to select the first (only) element
+                on_arrayElementSpinBox_valueChanged(0);
+            }
+            else
+            {
+                ui->arrayElementSpinBox->setEnabled(true);
+
+                int arrayElement = ui->arrayElementSpinBox->value();
+                ui->arrayElementSpinBox->setMaximum(maxArrayElement - 1);
+
+                // if the value is still at the same element after setting the max, then the
+                // valueChanged signal will not be emitted, so we'll need to simulate that
+                // in order to update and display the correct array element.
+                if (ui->arrayElementSpinBox->value() == (int)arrayElement)
+                {
+                    on_arrayElementSpinBox_valueChanged(arrayElement);
+                }
+            }
+
+            // Update sample spin box
             uint maxSample = pTexState->get_num_samples();
             if (maxSample <= 1)
             {
@@ -299,6 +326,12 @@ void vogleditor_QTextureExplorer::on_zoomSpinBox_valueChanged(double zoomFactor)
 void vogleditor_QTextureExplorer::on_pushButton_toggled(bool checked)
 {
     m_textureViewer.setInverted(checked);
+}
+
+void vogleditor_QTextureExplorer::on_arrayElementSpinBox_valueChanged(int index)
+{
+    m_textureViewer.setArrayElement(index);
+    m_textureViewer.repaint();
 }
 
 void vogleditor_QTextureExplorer::on_sampleSpinBox_valueChanged(int sample)

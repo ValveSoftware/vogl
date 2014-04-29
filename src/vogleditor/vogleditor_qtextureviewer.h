@@ -135,6 +135,13 @@ public:
        return height;
    }
 
+   void setArrayElement(uint arrayElementIndex)
+   {
+       m_arrayIndex = arrayElementIndex;
+       delete_pixmaps();
+       repaint();
+   }
+
 private:
    bool m_draw_enabled;
    QBrush m_background;
@@ -150,6 +157,7 @@ private:
    vogl::mipmapped_texture m_mipmappedTexture;
    uint m_baseMipLevel;
    uint m_maxMipLevel;
+   uint m_arrayIndex;
 
    void delete_pixmaps()
    {

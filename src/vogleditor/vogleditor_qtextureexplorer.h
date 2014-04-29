@@ -52,6 +52,7 @@ private slots:
     void on_pushButton_toggled(bool checked);
 
     void on_sampleSpinBox_valueChanged(int sample);
+    void on_arrayElementSpinBox_valueChanged(int index);
 
 signals:
     void zoomFactorChanged(double zoomFactor);

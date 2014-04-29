@@ -76,6 +76,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QSpinBox" name="arrayElementSpinBox">
+       <property name="prefix">
+        <string>Index </string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QSpinBox" name="sampleSpinBox">
        <property name="prefix">
         <string>Sample </string>

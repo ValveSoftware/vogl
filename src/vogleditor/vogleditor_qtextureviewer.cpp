@@ -34,7 +34,8 @@ QTextureViewer::QTextureViewer(QWidget *parent) :
    m_bInvert(false),
    m_pKtxTexture(NULL),
    m_baseMipLevel(0),
-   m_maxMipLevel(0)
+   m_maxMipLevel(0),
+   m_arrayIndex(0)
 {
    m_background = QBrush(QColor(0, 0, 0));
    m_outlinePen = QPen(Qt::black);
@@ -146,7 +147,7 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
             vogl::color_quad_u8* pTmpPixels = NULL;
             if (m_mipmappedTexture.get_num_faces() == 6)
             {
-                vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(0, mip);
+                vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(m_arrayIndex, 0, mip);
                 vogl::image_u8* image = mipLevel->get_image();
 
                 mipWidth = image->get_width();
@@ -174,7 +175,7 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
 
                 for (uint face = 0; face < m_mipmappedTexture.get_num_faces(); face++)
                 {
-                    vogl::mip_level* mipLevel2 = m_mipmappedTexture.get_level(face, mip);
+                    vogl::mip_level* mipLevel2 = m_mipmappedTexture.get_level(m_arrayIndex, face, mip);
                     vogl::image_u8* image2 = mipLevel2->get_image();
                     vogl::color_quad_u8* pPixels = image2->get_pixels();
 
@@ -200,7 +201,7 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
             }
             else
             {
-                vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(0, mip);
+                vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(m_arrayIndex, 0, mip);
                 vogl::image_u8* image = mipLevel->get_image();
                 vogl::color_quad_u8* pPixels = image->get_pixels();
 

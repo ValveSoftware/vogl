@@ -181,6 +181,9 @@ namespace vogl
     // And an array of one, six, or N faces make up a texture.
     typedef vogl::vector<mip_ptr_vec> face_vec;
 
+    // And a set of textures make up a texture array
+    typedef vogl::vector<face_vec> face_array_vec;
+
     class mipmapped_texture
     {
     public:
@@ -193,22 +196,22 @@ namespace vogl
 
         void clear();
 
-        void init(uint width, uint height, uint levels, uint faces, pixel_format fmt, const char *pName, orientation_flags_t orient_flags);
+        void init(uint width, uint height, uint levels, uint faces, uint array_size, pixel_format fmt, const char *pName, orientation_flags_t orient_flags);
 
         // Assumes ownership.
-        void assign(face_vec &faces);
-        void assign(mip_level *pLevel);
-        void assign(image_u8 *p, pixel_format fmt = PIXEL_FMT_INVALID, orientation_flags_t orient_flags = cDefaultOrientationFlags);
-        void assign(dxt_image *p, pixel_format fmt = PIXEL_FMT_INVALID, orientation_flags_t orient_flags = cDefaultOrientationFlags);
+        void assign(uint array_index, face_vec &faces);
+        void assign(uint array_index, mip_level *pLevel);
+        void assign(uint array_index, image_u8 *p, pixel_format fmt = PIXEL_FMT_INVALID, orientation_flags_t orient_flags = cDefaultOrientationFlags);
+        void assign(uint array_index, dxt_image *p, pixel_format fmt = PIXEL_FMT_INVALID, orientation_flags_t orient_flags = cDefaultOrientationFlags);
 
         void set(texture_file_types::format source_file_type, const mipmapped_texture &mipmapped_texture);
 
         // Accessors
-        image_u8 *get_level_image(uint face, uint level, image_u8 &img, uint unpack_flags = cUnpackFlagUncook | cUnpackFlagUnflip) const;
+        image_u8 *get_level_image(uint array_index, uint face, uint level, image_u8 &img, uint unpack_flags = cUnpackFlagUncook | cUnpackFlagUnflip) const;
 
         inline bool is_valid() const
         {
-            return m_faces.size() > 0;
+            return m_face_array.size() > 0;
         }
 
         const dynamic_string &get_name() const
@@ -245,14 +248,19 @@ namespace vogl
 
         inline uint get_num_faces() const
         {
-            return m_faces.size();
+            if (m_face_array.size() == 0)
+                return 0;
+
+            return m_face_array[0].size();
         }
         inline uint get_num_levels() const
         {
-            if (m_faces.is_empty())
+            if (m_face_array.is_empty())
+                return 0;
+            else if (m_face_array[0].is_empty())
                 return 0;
             else
-                return m_faces[0].size();
+                return m_face_array[0][0].size();
         }
 
         inline pixel_format_helpers::component_flags get_comp_flags() const
@@ -268,27 +276,27 @@ namespace vogl
         {
             if (get_num_faces())
             {
-                return get_level(0, 0)->get_image() != NULL;
+                return get_level(0, 0, 0)->get_image() != NULL;
             }
             return false;
         }
 
-        inline const mip_ptr_vec &get_face(uint face) const
+        inline const mip_ptr_vec &get_face(uint array_index, uint face) const
         {
-            return m_faces[face];
+            return m_face_array[array_index][face];
         }
-        inline mip_ptr_vec &get_face(uint face)
+        inline mip_ptr_vec &get_face(uint array_index, uint face)
         {
-            return m_faces[face];
+            return m_face_array[array_index][face];
         }
 
-        inline const mip_level *get_level(uint face, uint mip) const
+        inline const mip_level *get_level(uint array_index, uint face, uint mip) const
         {
-            return m_faces[face][mip];
+            return m_face_array[array_index][face][mip];
         }
-        inline mip_level *get_level(uint face, uint mip)
+        inline mip_level *get_level(uint array_index, uint face, uint mip)
         {
-            return m_faces[face][mip];
+            return m_face_array[array_index][face][mip];
         }
 
         bool has_alpha() const;
@@ -401,11 +409,12 @@ namespace vogl
 
         uint m_width;
         uint m_height;
+        uint m_array_size;
 
         pixel_format_helpers::component_flags m_comp_flags;
         pixel_format m_format;
 
-        face_vec m_faces;
+        face_array_vec m_face_array;
 
         texture_file_types::format m_source_file_type;
 

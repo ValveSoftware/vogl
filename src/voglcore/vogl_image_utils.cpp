@@ -1512,7 +1512,7 @@ namespace vogl
             }
 
             image_u8 img;
-            image_u8 *pImg = tex.get_level_image(0, 0, img);
+            image_u8 *pImg = tex.get_level_image(0, 0, 0, img);
             if (!pImg)
                 return NULL;
 
