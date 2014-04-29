@@ -103,7 +103,7 @@ VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
 // Intercept _exit() so we get a final chance to flush our trace/log files
 //----------------------------------------------------------------------------------------------------------------------
 typedef void (*exit_func_ptr_t)(int status);
-VOGL_NORETURN VOGL_API_EXPORT void _exit(int status)
+VOGL_API_EXPORT VOGL_NORETURN void _exit(int status)
 {
     static exit_func_ptr_t s_pActual_exit = (exit_func_ptr_t)dlsym(RTLD_NEXT, "_exit");
 
@@ -123,7 +123,7 @@ VOGL_NORETURN VOGL_API_EXPORT void _exit(int status)
 // Intercept _exit() so we get a final chance to flush our trace/log files
 //----------------------------------------------------------------------------------------------------------------------
 typedef void (*Exit_func_ptr_t)(int status);
-VOGL_NORETURN VOGL_API_EXPORT void _Exit(int status)
+VOGL_API_EXPORT VOGL_NORETURN void _Exit(int status)
 {
     static Exit_func_ptr_t s_pActual_Exit = (Exit_func_ptr_t)dlsym(RTLD_NEXT, "_Exit");
 
