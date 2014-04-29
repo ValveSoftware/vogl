@@ -51,4 +51,6 @@ if (NOT WIN32)
     add_subdirectory(src/vogleditor) # 12
     add_subdirectory(src/libbacktrace) # 13
     add_subdirectory(src/libbacktrace_test) # 14
+    add_subdirectory(src/extlib/pxfmt) # 15
+    add_subdirectory(src/ktxtool) # 16
 endif()
