@@ -278,11 +278,6 @@ struct vogl_backtrace_addrs
         utils::zero_object(*this);
     }
 
-    uint64_t get_hash() const
-    {
-        return vogl::calc_crc64(vogl::CRC64_INIT, reinterpret_cast<const uint8 *>(this), sizeof(uint32) + sizeof(m_addrs[0]) * m_num_addrs);
-    }
-
     bool operator==(const vogl_backtrace_addrs &rhs) const
     {
         if (m_num_addrs != rhs.m_num_addrs)
@@ -313,9 +308,9 @@ struct vogl_backtrace_addrs
         return false;
     }
 
-    uint32 hash() const
+    uint32 get_hash() const
     {
-        return fast_hash(this, sizeof(uint32) + (m_num_addrs * sizeof(m_addrs[0])));
+        return vogl::fast_hash(&m_num_addrs, sizeof(m_num_addrs)) ^ vogl::fast_hash(m_addrs, m_num_addrs * sizeof(m_addrs[0]));
     }
 };
 
