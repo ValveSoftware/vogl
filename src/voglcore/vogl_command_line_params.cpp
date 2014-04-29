@@ -46,6 +46,37 @@
 
 namespace vogl
 {
+#if defined(VOGL_USE_LINUX_API)
+    static const char *get_proc_cmdline()
+    {
+        static bool s_inited = false;
+        static vogl::vector<char> s_buf;
+
+        if (!s_inited)
+        {
+            s_inited = true;
+
+            FILE *pFile = vogl_fopen("/proc/self/cmdline", "rb");
+            if (pFile)
+            {
+                for (;;)
+                {
+                    int c = vogl_fgetc(pFile);
+                    if (c < 0)
+                        break;
+                    s_buf.push_back(static_cast<char>(c));
+                }
+                vogl_fclose(pFile);
+            }
+
+            s_buf.push_back(0);
+            s_buf.push_back(0);
+        }
+
+        return s_buf.get_const_ptr();
+    }
+#endif 
+
     dynamic_string_array get_command_line_params(int argc, char *argv[])
     {
         dynamic_string_array params;
@@ -61,42 +92,13 @@ namespace vogl
 #ifdef VOGL_USE_WIN32_API
         dynamic_string cmd_line;
         split_command_line_params(get_command_line().c_str(), params);
-#elif defined(VOGL_USE_LINUX_API)
-        pid_t proc_id = getpid();
-
-        char cmdline_filename[256];
-        sprintf(cmdline_filename, "/proc/%i/cmdline", proc_id);
-
-        FILE *pFile = vogl_fopen(cmdline_filename, "rb");
-        if (!pFile)
-        {
-            console::error("Failed reading command line parameters from file \"%s\"!\n", cmdline_filename);
-        }
-        else
-        {
-            dynamic_string tmp;
-
-            for (;;)
-            {
-                int c = vogl_fgetc(pFile);
-                if (c < 0)
-                    break;
-
-                if (c)
-                    tmp.append_char(static_cast<char>(c));
-                else
-                {
-                    if (!tmp.get_len())
-                        break;
-
-                    params.push_back(tmp);
-                    tmp.truncate(0);
-                }
-            }
-            vogl_fclose(pFile);
-        }
 #else
-#error Unimplemented!
+        const char *pSrc = get_proc_cmdline();
+        while (*pSrc)
+        {
+            params.push_back(pSrc);
+            pSrc += strlen(pSrc) + 1;
+        }
 #endif
 
         return params;
@@ -108,7 +110,7 @@ namespace vogl
 
 #ifdef VOGL_USE_WIN32_API
         cmd_line.set(GetCommandLineA());
-#elif defined(VOGL_USE_LINUX_API)
+#else
         dynamic_string_array params(get_command_line_params());
 
         for (uint i = 0; i < params.size(); i++)
@@ -118,28 +120,24 @@ namespace vogl
             // If the param is not already quoted, and it has any whitespace, then quote it. (The goal here is to ensure the split_command_line_params() method,
             // which was unfortunately written for Windows where it's trivial to get the full unparsed cmd line as a string, doesn't split up this parameter.)
             if ((tmp.front() != '\"') && (tmp.contains(' ') || tmp.contains('\t')))
-            {
                 tmp = "\"" + tmp + "\"";
-            }
 
             if (cmd_line.get_len())
                 cmd_line += " ";
 
             cmd_line += tmp;
         }
-#else
-#error Unimplemented!
 #endif
         return cmd_line;
     }
 
     dynamic_string get_command_line(int argc, char *argv[])
     {
-        (void)argc, (void)argv;
-
         dynamic_string cmd_line;
 
 #ifdef VOGL_USE_WIN32_API
+        (void)argc, (void)argv;
+
         cmd_line.set(GetCommandLineA());
 #else
         cmd_line.clear();
@@ -149,9 +147,7 @@ namespace vogl
 
             // If the param is not already quoted, and it has any whitespace, then quote it.
             if ((tmp.front() != '\"') && (tmp.contains(' ') || tmp.contains('\t')))
-            {
                 tmp = "\"" + tmp + "\"";
-            }
 
             if (cmd_line.get_len())
                 cmd_line += " ";
@@ -165,36 +161,14 @@ namespace vogl
     {
 #ifdef VOGL_USE_WIN32_API
         return (strstr(GetCommandLineA(), pParam) != NULL);
-#elif defined(VOGL_USE_LINUX_API)
-        pid_t proc_id = getpid();
-
-        char cmdline_filename[256];
-        sprintf(cmdline_filename, "/proc/%i/cmdline", proc_id);
-
-        FILE *pFile = vogl_fopen(cmdline_filename, "rb");
-        if (!pFile)
-            return false;
-
-        vogl::vector<char> buf;
-
-        for (;;)
-        {
-            int c = vogl_fgetc(pFile);
-            if (c < 0)
-                break;
-            buf.push_back(static_cast<char>(c));
-        }
-        vogl_fclose(pFile);
-
-        const char *pSrc = buf.get_ptr();
+#else
+        const char *pSrc = get_proc_cmdline();
         while (*pSrc)
         {
             if (!strcmp(pParam, pSrc))
                 return true;
             pSrc += strlen(pSrc) + 1;
         }
-#else
-#error Unimplemented!
 #endif
 
         return false;
