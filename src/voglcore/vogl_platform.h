@@ -71,6 +71,7 @@ const bool c_vogl_big_endian_platform = !c_vogl_little_endian_platform;
 #define vogl_fwrite fwrite
 #define vogl_fputc fputc
 #define vogl_fgetc fgetc
+#define vogl_ungetc ungetc
 #define vogl_fputs fputs
 #define vogl_fgets fgets
 #define vogl_fprintf fprintf

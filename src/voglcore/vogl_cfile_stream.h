@@ -170,8 +170,8 @@ namespace vogl
             if (!m_opened || (!is_readable()))
                 return -1;
 
-            int c = fgetc(m_pFile);
-            ungetc(c, m_pFile);
+            int c = vogl_fgetc(m_pFile);
+            vogl_ungetc(c, m_pFile);
 
             if (c == EOF)
                 return 0;
