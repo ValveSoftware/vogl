@@ -34,6 +34,14 @@
 //#include "rrtimer.h"
 //#include "rrutil.h"
 
+#ifdef COMPILER_MSVC
+#define GLX_NORETURN __declspec(noreturn)
+#elif defined(COMPILER_GCCLIKE)
+#define GLX_NORETURN __attribute__((noreturn))
+#else
+#define GLX_NORETURN
+#endif
+
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
 static double rrtime()
@@ -563,7 +571,7 @@ bailout:
     return -1;
 }
 
-void usage(char **argv)
+GLX_NORETURN void usage(char **argv)
 {
     printf("\nUSAGE: %s [options]\n\n", argv[0]);
     printf("Options:\n");

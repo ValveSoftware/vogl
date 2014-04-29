@@ -690,7 +690,7 @@ namespace vogl
         return m_keys[index];
     }
 
-    // returns g_null_json_value if the key does not exist
+    // returns get_null_json_value() if the key does not exist
     inline const json_value &json_node::operator[](const char *pKey) const
     {
         return find_value(pKey);
@@ -844,7 +844,7 @@ namespace vogl
         }
 
         const json_value &val = find_value(pKey);
-        if (val == g_null_json_value)
+        if (val == get_null_json_value())
             return false;
 
         return json_deserialize(obj, val);
@@ -1004,7 +1004,7 @@ namespace vogl
                 return false;
 
             const json_value &key_val = pArr_node->find_value("key");
-            if (key_val == g_null_json_value)
+            if (key_val == get_null_json_value())
                 return false;
 
             typename T::key_type key;
@@ -1016,7 +1016,7 @@ namespace vogl
             if (!is_empty_type<typename T::referent_type>::cValue)
             {
                 const json_value &value_val = pArr_node->find_value("value");
-                if (value_val == g_null_json_value)
+                if (value_val == get_null_json_value())
                     return false;
 
                 if (!json_deserialize(val, value_val))

@@ -414,7 +414,7 @@ bool vogl_display_list_state::parse_list_and_update_shadows(GLuint handle, pBind
 
     const vogl_trace_packet_array &packets = pList->get_packets();
 
-    vogl_trace_packet trace_packet(&g_vogl_process_gl_ctypes);
+    vogl_trace_packet trace_packet(&get_vogl_process_gl_ctypes());
 
     for (uint packet_index = 0; packet_index < packets.size(); packet_index++)
     {

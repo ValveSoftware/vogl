@@ -46,8 +46,6 @@
 
 namespace vogl
 {
-    command_line_params g_command_line_params;
-
     dynamic_string_array get_command_line_params(int argc, char *argv[])
     {
         dynamic_string_array params;
@@ -98,7 +96,7 @@ namespace vogl
             vogl_fclose(pFile);
         }
 #else
-#warning Unimplemented!
+#error Unimplemented!
 #endif
 
         return params;
@@ -130,7 +128,7 @@ namespace vogl
             cmd_line += tmp;
         }
 #else
-#warning Unimplemented!
+#error Unimplemented!
 #endif
         return cmd_line;
     }
@@ -196,7 +194,7 @@ namespace vogl
             pSrc += strlen(pSrc) + 1;
         }
 #else
-#warning Unimplemented!
+#error Unimplemented!
 #endif
 
         return false;
@@ -478,7 +476,7 @@ namespace vogl
                 pv.m_values.push_back(src_param);
                 pv.m_values.back().unquote();
                 pv.m_split_param_index = cur_arg_index;
-                m_param_map.insert(std::make_pair(g_empty_dynamic_string, pv));
+                m_param_map.insert(std::make_pair(get_empty_dynamic_string(), pv));
             }
         }
 
@@ -832,12 +830,12 @@ namespace vogl
     {
         param_map_const_iterator it = get_param(pKey, key_index);
         if (it == end())
-            return g_empty_dynamic_string;
+            return get_empty_dynamic_string();
 
         if (value_index >= it->second.m_values.size())
         {
             vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_METHOD_NAME, value_index, pKey, it->second.m_values.size());
-            return g_empty_dynamic_string;
+            return get_empty_dynamic_string();
         }
 
         return it->second.m_values[value_index];

@@ -61,18 +61,18 @@ namespace vogl
 
         for (uint t = 0; t < 1000; t++)
         {
-            uint n = g_random.irand_inclusive(0, 100000);
+            uint n = get_random().irand_inclusive(0, 100000);
 
             x.resize(n);
 
-            uint k = static_cast<uint>((1ULL << g_random.irand_inclusive(0, 31)) - 1UL);
+            uint k = static_cast<uint>((1ULL << get_random().irand_inclusive(0, 31)) - 1UL);
             for (uint i = 0; i < n; i++)
-                x[i] = g_random.irand_inclusive(0, k);
+                x[i] = get_random().irand_inclusive(0, k);
 
-            if (g_random.irand(0, 30) == 0)
+            if (get_random().irand(0, 30) == 0)
             {
                 x.sort();
-                if (g_random.get_bit())
+                if (get_random().get_bit())
                     x.reverse();
             }
 

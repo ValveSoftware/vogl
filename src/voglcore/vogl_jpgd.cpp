@@ -1541,7 +1541,6 @@ namespace jpgd
 
         memset(m_dc_coeffs, 0, sizeof(m_dc_coeffs));
         memset(m_ac_coeffs, 0, sizeof(m_ac_coeffs));
-        memset(m_block_y_mcu, 0, sizeof(m_block_y_mcu));
 
         m_eob_run = 0;
 
@@ -2919,10 +2918,9 @@ namespace jpgd
     void jpeg_decoder::decode_scan(pDecode_block_func decode_block_func)
     {
         int mcu_row, mcu_col, mcu_block;
-        //$ TODO WSHADOW: m_block_y_mcu should be block_y_mcu?
-        int block_x_mcu[JPGD_MAX_COMPONENTS], m_block_y_mcu[JPGD_MAX_COMPONENTS];
+        int block_x_mcu[JPGD_MAX_COMPONENTS], block_y_mcu[JPGD_MAX_COMPONENTS];
 
-        memset(m_block_y_mcu, 0, sizeof(m_block_y_mcu));
+        memset(block_y_mcu, 0, sizeof(block_y_mcu));
 
         for (mcu_col = 0; mcu_col < m_mcus_per_col; mcu_col++)
         {
@@ -2941,7 +2939,7 @@ namespace jpgd
                 {
                     component_id = m_mcu_org[mcu_block];
 
-                    decode_block_func(this, component_id, block_x_mcu[component_id] + block_x_mcu_ofs, m_block_y_mcu[component_id] + block_y_mcu_ofs);
+                    decode_block_func(this, component_id, block_x_mcu[component_id] + block_x_mcu_ofs, block_y_mcu[component_id] + block_y_mcu_ofs);
 
                     if (m_comps_in_scan == 1)
                         block_x_mcu[component_id]++;
@@ -2964,13 +2962,13 @@ namespace jpgd
             }
 
             if (m_comps_in_scan == 1)
-                m_block_y_mcu[m_comp_list[0]]++;
+                block_y_mcu[m_comp_list[0]]++;
             else
             {
                 for (component_num = 0; component_num < m_comps_in_scan; component_num++)
                 {
                     component_id = m_comp_list[component_num];
-                    m_block_y_mcu[component_id] += m_comp_v_samp[component_id];
+                    block_y_mcu[component_id] += m_comp_v_samp[component_id];
                 }
             }
         }

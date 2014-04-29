@@ -370,12 +370,11 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                     GLuint trace_handle = attachment_obj.get_handle();
                     if (trace_handle)
                     {
-                        //$ TODO WSHADOW: this handle shadows high level handle. This looks like a bug.
-                        GLuint handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_RENDER_BUFFERS, trace_handle));
-                        if (!handle)
+                        GLuint rbo_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_RENDER_BUFFERS, trace_handle));
+                        if (!rbo_handle)
                             goto handle_error;
 
-                        GL_ENTRYPOINT(glFramebufferRenderbuffer)(GL_DRAW_FRAMEBUFFER, attachment_target, GL_RENDERBUFFER, handle);
+                        GL_ENTRYPOINT(glFramebufferRenderbuffer)(GL_DRAW_FRAMEBUFFER, attachment_target, GL_RENDERBUFFER, rbo_handle);
                         VOGL_CHECK_GL_ERROR;
                     }
 
@@ -387,15 +386,15 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                     if (trace_handle)
                     {
                         //$ TODO WSHADOW: this handle shadows high level handle. This looks like a bug.
-                        GLuint handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, trace_handle));
-                        if (!handle)
+                        GLuint tex_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, trace_handle));
+                        if (!tex_handle)
                             goto handle_error;
 
-                        //const GLenum tex_target = vogl_determine_texture_target(context_info, handle);
+                        //const GLenum tex_target = vogl_determine_texture_target(context_info, tex_handle);
                         GLenum tex_target = GL_NONE;
-                        if (!remapper.determine_to_object_target(VOGL_NAMESPACE_TEXTURES, handle, tex_target))
+                        if (!remapper.determine_to_object_target(VOGL_NAMESPACE_TEXTURES, tex_handle, tex_target))
                         {
-                            vogl_error_printf("%s: Failed determining FBO texture attachment's target, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_METHOD_NAME, m_snapshot_handle, static_cast<uint32>(handle), attachment_obj.get_handle(), handle);
+                            vogl_error_printf("%s: Failed determining FBO texture attachment's target, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_METHOD_NAME, m_snapshot_handle, static_cast<uint32>(handle), attachment_obj.get_handle(), tex_handle);
                             goto handle_error;
                         }
 
@@ -407,7 +406,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                         if (layered)
                         {
                             // GL_FRAMEBUFFER_ATTACHMENT_LAYERED can only be true if glFramebufferTexture was used to attach.
-                            GL_ENTRYPOINT(glFramebufferTexture)(GL_DRAW_FRAMEBUFFER, attachment_target, handle, level);
+                            GL_ENTRYPOINT(glFramebufferTexture)(GL_DRAW_FRAMEBUFFER, attachment_target, tex_handle, level);
                         }
                         else
                         {
@@ -415,14 +414,14 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                             {
                                 case GL_TEXTURE_1D:
                                 {
-                                    GL_ENTRYPOINT(glFramebufferTexture1D)(GL_DRAW_FRAMEBUFFER, attachment_target, tex_target, handle, level);
+                                    GL_ENTRYPOINT(glFramebufferTexture1D)(GL_DRAW_FRAMEBUFFER, attachment_target, tex_target, tex_handle, level);
                                     break;
                                 }
                                 case GL_TEXTURE_2D:
                                 case GL_TEXTURE_2D_MULTISAMPLE:
                                 case GL_TEXTURE_RECTANGLE:
                                 {
-                                    GL_ENTRYPOINT(glFramebufferTexture2D)(GL_DRAW_FRAMEBUFFER, attachment_target, tex_target, handle, level);
+                                    GL_ENTRYPOINT(glFramebufferTexture2D)(GL_DRAW_FRAMEBUFFER, attachment_target, tex_target, tex_handle, level);
                                     break;
                                 }
                                 case GL_TEXTURE_CUBE_MAP:
@@ -430,7 +429,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                                     VOGL_ASSERT((cube_map_face == GL_TEXTURE_CUBE_MAP_POSITIVE_X) || (cube_map_face == GL_TEXTURE_CUBE_MAP_POSITIVE_Y) || (cube_map_face == GL_TEXTURE_CUBE_MAP_POSITIVE_Z) ||
                                                   (cube_map_face == GL_TEXTURE_CUBE_MAP_NEGATIVE_X) || (cube_map_face == GL_TEXTURE_CUBE_MAP_NEGATIVE_Y) || (cube_map_face == GL_TEXTURE_CUBE_MAP_NEGATIVE_Z));
 
-                                    GL_ENTRYPOINT(glFramebufferTexture2D)(GL_DRAW_FRAMEBUFFER, attachment_target, cube_map_face, handle, level);
+                                    GL_ENTRYPOINT(glFramebufferTexture2D)(GL_DRAW_FRAMEBUFFER, attachment_target, cube_map_face, tex_handle, level);
                                     break;
                                 }
                                 case GL_TEXTURE_3D:
@@ -439,12 +438,12 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                                 case GL_TEXTURE_CUBE_MAP_ARRAY:
                                 case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
                                 {
-                                    GL_ENTRYPOINT(glFramebufferTextureLayer)(GL_DRAW_FRAMEBUFFER, attachment_target, handle, level, layer);
+                                    GL_ENTRYPOINT(glFramebufferTextureLayer)(GL_DRAW_FRAMEBUFFER, attachment_target, tex_handle, level, layer);
                                     break;
                                 }
                                 default:
                                 {
-                                    vogl_error_printf("%s: Don't know how to attach texture with target %s to FBO, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(tex_target), m_snapshot_handle, static_cast<uint32>(handle), attachment_obj.get_handle(), handle);
+                                    vogl_error_printf("%s: Don't know how to attach texture with target %s to FBO, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(tex_target), m_snapshot_handle, static_cast<uint32>(handle), attachment_obj.get_handle(), tex_handle);
                                     goto handle_error;
                                 }
                             }

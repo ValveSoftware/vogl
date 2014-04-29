@@ -47,7 +47,7 @@
 #endif
 
 #if VOGL_RAND_FILL_ALLLOCATED_MEMORY || VOGL_SCRUB_FREED_MEMORY
-#warning VOGL_RAND_FILL_ALLLOCATED_MEMORY and/or VOGL_SCRUB_FREED_MEMORY is enabled
+#pragma message("VOGL_RAND_FILL_ALLLOCATED_MEMORY and/or VOGL_SCRUB_FREED_MEMORY is enabled.")
 #endif
 
 #ifdef VOGL_USE_WIN32_API
@@ -79,7 +79,7 @@
 #undef vogl_delete_array
 
 #if VOGL_MALLOC_DEBUGGING
-#warning vogl_mem.cpp: Malloc debugging enabled
+#pragma message("vogl_mem.cpp: Malloc debugging enabled.")
 #endif
 
 #if VOGL_USE_STB_MALLOC
@@ -177,6 +177,8 @@ static void unlock_heap()
 
 static void *malloc_block(size_t size, const char *pFile_line)
 {
+    // If you hit this assert, it's most likely because vogl_core_init()
+    //  (which calls vogl_init_heap) hasn't been called.
     VOGL_ASSERT(g_pHeap);
 
     lock_heap();
@@ -390,19 +392,6 @@ static void check(const char *pFile_line)
 }
 
 #endif // #ifdef VOGL_USE_STB_MALLOC
-
-class global_heap_constructor
-{
-public:
-    global_heap_constructor()
-    {
-        //printf("global_heap_constructor\n");
-
-        init_heap();
-    }
-};
-
-global_heap_constructor g_global_heap_constructor VOGL_INIT_PRIORITY(102);
 
 VOGL_NAMESPACE_BEGIN(vogl)
 

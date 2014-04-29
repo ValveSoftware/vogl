@@ -691,9 +691,6 @@ btrace_dlopen_notify(const char *filename)
 {
     VOGL_NOTE_UNUSED(filename);
 
-    // Make sure the vogl heap is initialized.
-    vogl::vogl_init_heap();
-
     vogl::scoped_mutex lock(get_dlopen_mutex());
     vogl::vector<btrace_module_info> new_module_infos;
 

@@ -671,12 +671,11 @@ namespace vogl
                         for (uint r = 0; r < n; r++)
                         {
                             const uint s = *pSelectors++;
-                            //$ TODO WSHADOW: yd shadows the yd above. This should be yd2?
-                            const int yd = pInten_table[s];
+                            const int yd2 = pInten_table[s];
                             // Compute actual delta being applied to each pixel, taking into account clamping.
-                            delta_sum_r += math::clamp<int>(base_color.r + yd, 0, 255) - base_color.r;
-                            delta_sum_g += math::clamp<int>(base_color.g + yd, 0, 255) - base_color.g;
-                            delta_sum_b += math::clamp<int>(base_color.b + yd, 0, 255) - base_color.b;
+                            delta_sum_r += math::clamp<int>(base_color.r + yd2, 0, 255) - base_color.r;
+                            delta_sum_g += math::clamp<int>(base_color.g + yd2, 0, 255) - base_color.g;
+                            delta_sum_b += math::clamp<int>(base_color.b + yd2, 0, 255) - base_color.b;
                         }
                         if ((!delta_sum_r) && (!delta_sum_g) && (!delta_sum_b))
                             break;

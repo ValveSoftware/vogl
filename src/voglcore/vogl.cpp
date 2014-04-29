@@ -32,31 +32,36 @@
 #include "vogl_ryg_dxt.hpp"
 #include "vogl_pixel_format.h"
 
-namespace vogl
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_core_initialize
+//   Internal vogl_core initialization routine.
+//----------------------------------------------------------------------------------------------------------------------
+static void vogl_core_initialize()
 {
-    class vogl_global_initializer
-    {
-    public:
-        vogl_global_initializer()
-        {
-            vogl_threading_init();
+    vogl::vogl_init_heap();
 
-            vogl_enable_fail_exceptions(true);
+    vogl::vogl_threading_init();
 
-            ryg_dxt::sInitDXT();
-        }
-    };
+    vogl_enable_fail_exceptions(true);
 
-    vogl_global_initializer g_vogl_initializer;
-} // namespace vogl
+    //$ TODO: Could probably move this and only initialize when dxt routines used (if ever?).
+    ryg_dxt::sInitDXT();
+}
 
-using namespace vogl;
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_core_init
+//----------------------------------------------------------------------------------------------------------------------
+void vogl_core_init()
+{
+    static pthread_once_t s_vogl_core_initialize = PTHREAD_ONCE_INIT;
+    pthread_once(&s_vogl_core_initialize, vogl_core_initialize);
+}
 
 // TODO: Move or delete these straggler funcs, they are artifacts from when voglcore was crnlib
 
 const char *vogl_get_format_string(vogl_format fmt)
 {
-    return pixel_format_helpers::get_vogl_format_string(fmt);
+    return vogl::pixel_format_helpers::get_vogl_format_string(fmt);
 }
 
 const char *vogl_get_file_type_ext(vogl_file_type file_type)

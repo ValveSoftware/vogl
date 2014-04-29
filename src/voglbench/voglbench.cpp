@@ -96,8 +96,8 @@ static bool init_logfile()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string log_file(g_command_line_params.get_value_as_string_or_empty("logfile"));
-    dynamic_string log_file_append(g_command_line_params.get_value_as_string_or_empty("logfile_append"));
+    dynamic_string log_file(g_command_line_params().get_value_as_string_or_empty("logfile"));
+    dynamic_string log_file_append(g_command_line_params().get_value_as_string_or_empty("logfile_append"));
     if (log_file.is_empty() && log_file_append.is_empty())
         return true;
 
@@ -166,7 +166,7 @@ static bool init_command_line_params(int argc, char *argv[])
     parse_cfg.m_single_minus_params = true;
     parse_cfg.m_double_minus_params = true;
 
-    if (!g_command_line_params.parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
+    if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
         vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_NAME);
         return false;
@@ -175,7 +175,7 @@ static bool init_command_line_params(int argc, char *argv[])
     if (!init_logfile())
         return false;
 
-    if (g_command_line_params.get_value_as_bool("help") || g_command_line_params.get_value_as_bool("?"))
+    if (g_command_line_params().get_value_as_bool("help") || g_command_line_params().get_value_as_bool("?"))
     {
         tool_print_help();
         return false;
@@ -254,7 +254,7 @@ static bool voglbench_init(int argc, char *argv[])
 {
     VOGL_FUNC_TRACER
 
-    g_thread_safe_random.seed_from_urandom();
+    get_thread_safe_random().seed_from_urandom();
 
     colorized_console::init();
     colorized_console::set_exception_callback();
@@ -266,7 +266,7 @@ static bool voglbench_init(int argc, char *argv[])
         return false;
 
 #ifdef USE_TELEMETRY
-    int telemetry_level = g_command_line_params.get_value_as_int("telemetry_level", 0,
+    int telemetry_level = g_command_line_params().get_value_as_int("telemetry_level", 0,
                                                                  TELEMETRY_LEVEL_MIN + 1, TELEMETRY_LEVEL_MIN, TELEMETRY_LEVEL_MAX);
     telemetry_set_level(telemetry_level);
     telemetry_tick();
@@ -275,10 +275,10 @@ static bool voglbench_init(int argc, char *argv[])
     vogl_common_lib_early_init();
     vogl_common_lib_global_init();
 
-    if (g_command_line_params.get_value_as_bool("quiet"))
+    if (g_command_line_params().get_value_as_bool("quiet"))
         console::disable_output();
 
-    if (g_command_line_params.get_value_as_bool("gl_debug_log"))
+    if (g_command_line_params().get_value_as_bool("gl_debug_log"))
     {
         vogl_set_direct_gl_func_prolog(vogl_direct_gl_func_prolog, NULL);
         vogl_set_direct_gl_func_epilog(vogl_direct_gl_func_epilog, NULL);
@@ -356,7 +356,7 @@ static uint get_replayer_flags_from_command_line_params()
 
     for (uint i = 0; i < sizeof(s_replayer_command_line_params) / sizeof(s_replayer_command_line_params[0]); i++)
     {
-        if (g_command_line_params.get_value_as_bool(s_replayer_command_line_params[i].m_pCommand))
+        if (g_command_line_params().get_value_as_bool(s_replayer_command_line_params[i].m_pCommand))
             replayer_flags |= s_replayer_command_line_params[i].m_flag;
     }
 
@@ -370,7 +370,7 @@ static bool tool_replay_mode()
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string trace_filename(g_command_line_params.get_value_as_string_or_empty("", 1));
+    dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (trace_filename.is_empty())
     {
         vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_NAME);
@@ -381,7 +381,7 @@ static bool tool_replay_mode()
     vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(
                 trace_filename,
                 actual_trace_filename,
-                g_command_line_params.get_value_as_string_or_empty("loose_file_path").get_ptr()));
+                g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
         vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_NAME, trace_filename.get_ptr());
@@ -398,7 +398,7 @@ static bool tool_replay_mode()
     // TODO: This will create a window with default attributes, which seems fine for the majority of traces.
     // Unfortunately, some GL call streams *don't* want an alpha channel, or depth, or stencil etc. in the default framebuffer so this may become a problem.
     // Also, this design only supports a single window, which is going to be a problem with multiple window traces.
-    if (!window.open(g_command_line_params.get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params.get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params.get_value_as_int("msaa", 0, 0, 0, 65535)))
+    if (!window.open(g_command_line_params().get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params().get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params().get_value_as_int("msaa", 0, 0, 0, 65535)))
     {
         vogl_error_printf("%s: Failed initializing replay window\n", VOGL_FUNCTION_NAME);
         return false;
@@ -427,10 +427,10 @@ static bool tool_replay_mode()
 
     vogl::hash_map<uint64_t> keys_pressed, keys_down;
 
-    int loop_frame = g_command_line_params.get_value_as_int("loop_frame", 0, -1);
-    int loop_len = math::maximum<int>(g_command_line_params.get_value_as_int("loop_len", 0, 1), 1);
-    int loop_count = math::maximum<int>(g_command_line_params.get_value_as_int("loop_count", 0, cINT32_MAX), 1);
-    bool endless_mode = g_command_line_params.get_value_as_bool("endless");
+    int loop_frame = g_command_line_params().get_value_as_int("loop_frame", 0, -1);
+    int loop_len = math::maximum<int>(g_command_line_params().get_value_as_int("loop_len", 0, 1), 1);
+    int loop_count = math::maximum<int>(g_command_line_params().get_value_as_int("loop_count", 0, cINT32_MAX), 1);
+    bool endless_mode = g_command_line_params().get_value_as_bool("endless");
 
     timer tm;
     tm.start();
@@ -671,6 +671,9 @@ int main(int argc, char *argv[])
 
     VOGL_FUNC_TRACER
 
+    // Initialize vogl_core.
+    vogl_core_init();
+
     XSetErrorHandler(xerror_handler);
 
     if (!voglbench_init(argc, argv))
@@ -679,7 +682,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (g_command_line_params.get_count("") < 2)
+    if (g_command_line_params().get_count("") < 2)
     {
         vogl_error_printf("No trace file specified!\n");
 
@@ -689,7 +692,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    if (g_command_line_params.get_value_as_bool("pause"))
+    if (g_command_line_params().get_value_as_bool("pause"))
     {
         vogl_message_printf("Press key to continue\n");
         vogl_sleep(1000);

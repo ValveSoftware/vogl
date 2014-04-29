@@ -87,6 +87,9 @@ void ProcessCommand(void *callbackParam, unsigned int cbData, char *pbData);
 
 int main(int argc, char *argv[])
 {
+    // Initialize vogl_core.
+    vogl_core_init();
+
     int port = DEFAULT_PORT;
     network::CHEC ec = network::EC_NONE;
 

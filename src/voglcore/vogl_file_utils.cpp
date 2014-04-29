@@ -919,7 +919,7 @@ namespace vogl
 
 	char *file_utils::get_exec_filename(char *pPath, size_t dest_len)
 	{
-	#if VOGL_HAS_PROC_FILESYSTEM
+	#if defined(VOGL_HAS_PROC_FILESYSTEM)
 		ssize_t s = readlink("/proc/self/exe", pPath, dest_len);
 		if (s >= 0)
 		{
@@ -931,7 +931,7 @@ namespace vogl
 		pPath[0] = '\0';
 
 		return pPath;
-	#elif VOGL_USE_WIN32_API
+	#elif defined(VOGL_USE_WIN32_API)
 		DWORD result = GetModuleFileNameA(0, pPath, dest_len);
 		VOGL_VERIFY(result != 0);
 		return pPath;

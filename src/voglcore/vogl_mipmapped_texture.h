@@ -41,8 +41,6 @@ namespace vogl
 {
     class ktx_texture;
 
-    extern const vec2I g_vertical_cross_image_offsets[6];
-
     enum orientation_flags_t
     {
         cOrientationFlagXFlipped = 1,

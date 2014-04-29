@@ -41,7 +41,7 @@
 #include "vogl_image_utils.h"
 
 // TODO: Linux specific, needed by the seed_from_urand() method
-#if PLATFORM_LINUX
+#if defined(PLATFORM_LINUX)
 	#include <unistd.h>
 	#include <sys/syscall.h>
 #endif
@@ -62,10 +62,6 @@
 
 namespace vogl
 {
-    random g_random;
-    fast_random g_fast_random;
-    thread_safe_random g_thread_safe_random;
-
     static const double cNorm32 = 1.0 / (double)0x100000000ULL;
 
     kiss99::kiss99()

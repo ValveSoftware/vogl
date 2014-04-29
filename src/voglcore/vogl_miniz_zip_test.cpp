@@ -43,7 +43,7 @@ namespace vogl
             return NULL;
 
         uint64_t max_ofs = rand_stream.get_size() - file_size;
-        uint64_t src_file_ofs = g_thread_safe_random.urand64_inclusive(0, max_ofs);
+        uint64_t src_file_ofs = get_thread_safe_random().urand64_inclusive(0, max_ofs);
 
         if (!rand_stream.seek(src_file_ofs, false))
             return NULL;
@@ -83,7 +83,7 @@ namespace vogl
     {
         file_sizes.resize(num_files);
         for (uint i = 0; i < num_files; i++)
-            file_sizes[i] = g_thread_safe_random.urand64_inclusive(min_file_size, max_file_size);
+            file_sizes[i] = get_thread_safe_random().urand64_inclusive(min_file_size, max_file_size);
     }
 
 #define FAIL                                      \
@@ -96,7 +96,7 @@ namespace vogl
 
     static bool mz_zip_create_random_file_archive(data_stream &rand_stream, const char *pZip_filename, bool zip64, uint64_t min_file_size, uint64_t max_file_size, uint min_files, uint max_files, zip_file_desc_vec &files, mz_zip_archive *pSrc_zip)
     {
-        const uint total_files = g_thread_safe_random.urand_inclusive(min_files, max_files);
+        const uint total_files = get_thread_safe_random().urand_inclusive(min_files, max_files);
 
         uint64_vec file_sizes;
         create_rand_file_sizes(file_sizes, total_files, min_file_size, math::minimum<uint64_t>(rand_stream.get_size(), max_file_size));
@@ -104,7 +104,7 @@ namespace vogl
         mz_zip_archive zip;
         mz_zip_zero_struct(&zip);
 
-        uint proceeding_size = g_thread_safe_random.urand(0, 1000000);
+        uint proceeding_size = get_thread_safe_random().urand(0, 1000000);
 
         printf("Creating archive %s, total files %u\n", pZip_filename, total_files);
 
@@ -115,25 +115,25 @@ namespace vogl
         for (uint i = 0; i < total_files; i++)
             filenames.push_back(dynamic_string(cVarArg, "xxxxfile_%u", i));
 
-        switch (g_thread_safe_random.irand_inclusive(0, 2))
+        switch (get_thread_safe_random().irand_inclusive(0, 2))
         {
             case 0:
                 break;
             case 1:
                 filenames.reverse();
             case 2:
-                filenames.shuffle(g_thread_safe_random);
+                filenames.shuffle(get_thread_safe_random());
                 break;
         }
 
-        dynamic_string temp_filename(cVarArg, "temp_%u.bin", g_thread_safe_random.urand32());
+        dynamic_string temp_filename(cVarArg, "temp_%u.bin", get_thread_safe_random().urand32());
 
         for (uint i = 0; i < total_files; i++)
         {
             const dynamic_string &name = filenames[i];
 
-            //uint level = g_thread_safe_random.irand_inclusive(0, 10);
-            uint level = g_thread_safe_random.irand_inclusive(0, 1);
+            //uint level = get_thread_safe_random().irand_inclusive(0, 10);
+            uint level = get_thread_safe_random().irand_inclusive(0, 1);
 
             // HACK HACK
             //level = 0;
@@ -156,7 +156,7 @@ namespace vogl
                     break;
             }
 
-            bool add_from_mem = g_thread_safe_random.get_bit() != 0;
+            bool add_from_mem = get_thread_safe_random().get_bit() != 0;
 
             printf("Adding file %s, size %s, add from mem: %u\n", name.get_ptr(), uint64_to_string_with_commas(actual_size).get_ptr(), add_from_mem);
 
@@ -164,10 +164,10 @@ namespace vogl
 
             dynamic_string comment_str;
             comment_str.reserve(512);
-            uint l = g_thread_safe_random.urand_inclusive(0, 300);
+            uint l = get_thread_safe_random().urand_inclusive(0, 300);
 
             for (uint i2 = 0; i2 < l; i2++)
-                comment_str.append_char((char)g_thread_safe_random.urand_inclusive(32, 127));
+                comment_str.append_char((char)get_thread_safe_random().urand_inclusive(32, 127));
 
             if (add_from_mem)
             {
@@ -197,7 +197,7 @@ namespace vogl
 
         if (pSrc_zip)
         {
-            uint n = g_thread_safe_random.urand_inclusive(0, VOGL_MIN(100, pSrc_zip->m_total_files));
+            uint n = get_thread_safe_random().urand_inclusive(0, VOGL_MIN(100, pSrc_zip->m_total_files));
 
             printf("Copying %u files from source archive\n", n);
 
@@ -208,7 +208,7 @@ namespace vogl
                 uint src_file_index;
                 for (;;)
                 {
-                    src_file_index = g_thread_safe_random.urand(0, pSrc_zip->m_total_files);
+                    src_file_index = get_thread_safe_random().urand(0, pSrc_zip->m_total_files);
                     if (used_files.find(src_file_index) < 0)
                         break;
                 }
@@ -279,7 +279,7 @@ namespace vogl
         vogl::vector<uint> file_order(src_zip.m_total_files);
         for (uint i = 0; i < src_zip.m_total_files; i++)
             file_order[i] = i;
-        file_order.shuffle(g_thread_safe_random);
+        file_order.shuffle(get_thread_safe_random());
 
         for (uint i = 0; i < src_zip.m_total_files; i++)
         {
@@ -411,7 +411,7 @@ namespace vogl
 
     bool mz_zip_test()
     {
-        g_thread_safe_random.seed(1000);
+        get_thread_safe_random().seed(1000);
 
         //CHECK(mz_zip_validate_file_archive("/home/richg/temp/blah.zip", 0, NULL));
         //CHECK(mz_zip_validate_file_archive("big.zip", 0, NULL));
@@ -485,31 +485,31 @@ namespace vogl
             return false;
 
         int zip_base = rm.urand_inclusive('a', 'z');
-        int start_seed = g_thread_safe_random.urand(1, 10000);
+        int start_seed = get_thread_safe_random().urand(1, 10000);
 
-        dynamic_string temp_filename(cVarArg, "temp_%u.bin", g_thread_safe_random.urand32());
+        dynamic_string temp_filename(cVarArg, "temp_%u.bin", get_thread_safe_random().urand32());
 
         for (uint t = 0; t < 10000; t++)
         {
             uint32 seed = t + start_seed;
             printf("******* Pass %u, seed %u\n", t, seed);
 
-            g_thread_safe_random.seed(seed);
+            get_thread_safe_random().seed(seed);
 
             dynamic_string zip_filename(cVarArg, "%c%u.zip", zip_base, t + 1);
 
             dynamic_string full_zip_filename(zip_filename);
             file_utils::full_path(full_zip_filename);
 
-            bool zip64 = g_thread_safe_random.get_bit() != 0;
+            bool zip64 = get_thread_safe_random().get_bit() != 0;
 
-            bool test_big_files = g_thread_safe_random.get_bit() != 0;
+            bool test_big_files = get_thread_safe_random().get_bit() != 0;
 
             uint max_files;
             if (test_big_files)
-                max_files = (uint)g_thread_safe_random.urand64_inclusive(0, 10);
+                max_files = (uint)get_thread_safe_random().urand64_inclusive(0, 10);
             else
-                max_files = (uint)g_thread_safe_random.urand64_inclusive(0, zip64 ? 200000 : 65535);
+                max_files = (uint)get_thread_safe_random().urand64_inclusive(0, zip64 ? 200000 : 65535);
 
             printf("Max files: %u, zip64: %u\n", max_files, zip64);
 
@@ -523,7 +523,7 @@ namespace vogl
             }
 
             zip_file_desc_vec file_descs;
-            success = mz_zip_create_random_file_archive(rand_stream, zip_filename.get_ptr(), zip64, min_file_size, max_file_size, 0, max_files, file_descs, zip64 ? (g_thread_safe_random.get_bit() ? &src_zip64 : &src_zip32) : &src_zip32);
+            success = mz_zip_create_random_file_archive(rand_stream, zip_filename.get_ptr(), zip64, min_file_size, max_file_size, 0, max_files, file_descs, zip64 ? (get_thread_safe_random().get_bit() ? &src_zip64 : &src_zip32) : &src_zip32);
             CHECK(success);
 
             uint num_actual_files = file_descs.size();
@@ -531,7 +531,7 @@ namespace vogl
             printf("******* Validating archive %s using miniz_zip\n", full_zip_filename.get_ptr());
 
             mz_zip_error last_zip_error = MZ_ZIP_NO_ERROR;
-            success = (mz_zip_validate_file_archive(zip_filename.get_ptr(), ((g_thread_safe_random.get_bit() && (file_descs.size() < 30000)) ? MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY : 0) | MZ_ZIP_FLAG_VALIDATE_LOCATE_FILE_FLAG, &last_zip_error)) != 0;
+            success = (mz_zip_validate_file_archive(zip_filename.get_ptr(), ((get_thread_safe_random().get_bit() && (file_descs.size() < 30000)) ? MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY : 0) | MZ_ZIP_FLAG_VALIDATE_LOCATE_FILE_FLAG, &last_zip_error)) != 0;
             CHECK(success);
 
             printf("******* Validating archive %s using unzip\n", full_zip_filename.get_ptr());

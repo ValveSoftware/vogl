@@ -60,12 +60,11 @@ namespace ryg_dxt
         };
         sU32 v;
 
-        void From16Bit(sU16 v)
+        void From16Bit(sU16 v_in)
         {
-            //$ TODO WSHADOW: this v shadows the member v...
-            sInt rv = (v & 0xf800) >> 11;
-            sInt gv = (v & 0x07e0) >> 5;
-            sInt bv = (v & 0x001f) >> 0;
+            sInt rv = (v_in & 0xf7ff) >> 11;
+            sInt gv = (v_in & 0x07e0) >> 5;
+            sInt bv = (v_in & 0x001f) >> 0;
 
             a = 0;
             r = Expand5[rv];

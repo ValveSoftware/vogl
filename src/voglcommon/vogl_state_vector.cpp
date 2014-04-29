@@ -32,7 +32,7 @@
 #define VOGL_CONTEXT_STATE_DEBUG 0
 
 #if VOGL_CONTEXT_STATE_DEBUG
-#warning VOGL_CONTEXT_STATE_DEBUG enabled
+#pragma message("VOGL_CONTEXT_STATE_DEBUG enabled")
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1030,21 +1030,20 @@ bool vogl_state_data::deserialize(const json_node &node)
                     return false;
                 }
 
-                //$ TODO WSHADOW: gl_enum shadows gl_enum at top of function.
-                uint64_t gl_enum = 0;
+                uint64_t gl_enum_val = 0;
                 if ((pStr[0] == '0') && (pStr[1] == 'x'))
-                    gl_enum = string_to_uint64(pStr, gl_enums::cUnknownEnum);
+                    gl_enum_val = string_to_uint64(pStr, gl_enums::cUnknownEnum);
                 else
-                    gl_enum = get_gl_enums().find_enum(dynamic_string(pStr));
+                    gl_enum_val = get_gl_enums().find_enum(dynamic_string(pStr));
 
-                if ((gl_enum == gl_enums::cUnknownEnum) || (gl_enum > cUINT32_MAX))
+                if ((gl_enum_val == gl_enums::cUnknownEnum) || (gl_enum_val > cUINT32_MAX))
                 {
                     vogl_error_printf("%s: Unknown/invalid GL enum \"%s\"\n", VOGL_METHOD_NAME, pStr);
                     return false;
                 }
 
                 GLenum *pVal = reinterpret_cast<GLenum *>(pElement);
-                *pVal = static_cast<GLenum>(gl_enum);
+                *pVal = static_cast<GLenum>(gl_enum_val);
 
                 break;
             }
@@ -1237,16 +1236,15 @@ bool vogl_state_vector::operator==(const vogl_state_vector &rhs) const
         }
 
         const vogl_state_data &lhs = lhs_it->second;
-        //$ TODO WSHADOW: rhs shadows passed in rhs.
-        const vogl_state_data &rhs = rhs_it->second;
+        const vogl_state_data &rhs2 = rhs_it->second;
 
-        if (lhs.get_id() != rhs.get_id())
+        if (lhs.get_id() != rhs2.get_id())
             return false;
 
         if (lhs.get_enum_val() == GL_TIMESTAMP)
             continue;
 
-        if (!lhs.is_equal(rhs))
+        if (!lhs.is_equal(rhs2))
             return false;
     }
 

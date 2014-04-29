@@ -818,7 +818,7 @@ const char *gl_enums::find_name(uint64_t gl_enum, const char *pPreferred_prefix)
     if ((pname_index >= 0) && (g_gl_pname_defs[pname_index].m_pName))
         return g_gl_pname_defs[pname_index].m_pName;
 
-    if (g_command_line_params.get_value_as_bool("debug"))
+    if (g_command_line_params().get_value_as_bool("debug"))
     {
         vogl_debug_printf("%s: Failed finding GL enum 0x%08" PRIX64 ", API prefix \"%s\"\n", VOGL_METHOD_NAME, gl_enum, pPreferred_prefix ? pPreferred_prefix : "");
     }
@@ -867,7 +867,7 @@ const char *gl_enums::find_name(const char *pSpec_type, uint64_t gl_enum, const 
         }
         else
         {
-            if (g_command_line_params.get_value_as_bool("debug"))
+            if (g_command_line_params().get_value_as_bool("debug"))
             {
                 vogl_debug_printf("%s: Failed finding GL enum with spec type %s, enum 0x%08" PRIX64 ", API prefix \"%s\", falling back to non-spec type search\n",
                                  VOGL_METHOD_NAME, pSpec_type, gl_enum, pPreferred_prefix ? pPreferred_prefix : "");

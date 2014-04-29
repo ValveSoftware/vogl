@@ -361,9 +361,23 @@ namespace vogl
     }
 
     // non-thread safe global instances, for simplicity in single threaded tools/experiments
-    extern random g_random;
-    extern fast_random g_fast_random;
-    extern thread_safe_random g_thread_safe_random;
+    inline random &get_random()
+    {
+        static random s_random;
+        return s_random;
+    }
+
+    inline fast_random &get_fast_random()
+    {
+        static fast_random s_fast_random;
+        return s_fast_random;
+    }
+
+    inline thread_safe_random &get_thread_safe_random()
+    {
+        static thread_safe_random s_thread_safe_random;
+        return s_thread_safe_random;
+    }
 
     bool rand_test();
 

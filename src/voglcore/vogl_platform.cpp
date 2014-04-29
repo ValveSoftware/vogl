@@ -36,7 +36,7 @@ using namespace vogl;
 #endif
 
 #if VOGL_ASSUME_DEBUGGER_IS_ALWAYS_PRESENT
-#warning VOGL_ASSUME_DEBUGGER_IS_ALWAYS_PRESENT is enabled!
+#pragma message("VOGL_ASSUME_DEBUGGER_IS_ALWAYS_PRESENT is enabled.")
 #endif
 
 #ifdef VOGL_USE_WIN32_API

@@ -769,8 +769,8 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
         return false;
     }
 
-    entrypoint_name_hash_map_t::const_iterator it = g_vogl_entrypoint_hashmap.find(gl_func_name);
-    if (it == g_vogl_entrypoint_hashmap.end())
+    entrypoint_name_hash_map_t::const_iterator it = get_vogl_entrypoint_hashmap().find(gl_func_name);
+    if (it == get_vogl_entrypoint_hashmap().end())
     {
         vogl_error_printf("%s: Unknown GL function name: \"%s\"\n", VOGL_METHOD_NAME, gl_func_name.get_ptr());
         print_json_context(pDocument_filename, node);
@@ -1334,7 +1334,7 @@ bool vogl_trace_packet::json_serialize_param(
         {
             if ((client_mem_size >= 2) && (static_cast<const char *>(pClient_mem)[0] == '0') && (static_cast<const char *>(pClient_mem)[1] == 'x'))
                 print_as_cstring = false;
-            //else if (g_vogl_entrypoint_hashmap.find(static_cast<const char *>(pClient_mem)) != g_vogl_entrypoint_hashmap.end())
+            //else if (get_vogl_entrypoint_hashmap().find(static_cast<const char *>(pClient_mem)) != get_vogl_entrypoint_hashmap().end())
             //   print_as_cstring = false;
         }
 

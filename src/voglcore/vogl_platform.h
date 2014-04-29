@@ -106,6 +106,24 @@ const bool c_vogl_big_endian_platform = !c_vogl_little_endian_platform;
 
 #define VOGL_GET_ALIGNMENT(v) ((!sizeof(v)) ? 1 : (__alignof(v) ? __alignof(v) : sizeof(uint32)))
 
+#if defined(COMPILER_GCCLIKE)
+
+    #define VOGL_CONSTRUCTOR_FUNCTION(func) \
+        static void __attribute__((constructor)) func(void)
+
+#elif defined(COMPILER_MSVC)
+
+    // CRT Initialization. See:
+    //  http://msdn.microsoft.com/en-us/library/bb918180.aspx
+    #define VOGL_CONSTRUCTOR_FUNCTION(func) \
+        static void __cdecl func(void); \
+        __pragma(section(".CRT$XCU",read)) \
+        __declspec(allocate(".CRT$XCU")) static void (__cdecl * func ## _entry)(void) = func;
+
+#else
+    #error "No VOGL_CONSTRUCTOR_FUNCTION definition."
+#endif
+
 inline bool vogl_is_little_endian()
 {
     return c_vogl_little_endian_platform;

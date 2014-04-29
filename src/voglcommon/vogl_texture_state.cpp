@@ -629,9 +629,6 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
             vogl_state_vector level_params;
 
-            //$ TODO WSHADOW: this shadows any_gl_error declaration at top of function.
-            bool any_gl_errors = false;
-
 // TODO: Check for core vs. compat profiles and not query the old stuff
 #define GET_INT(gl_enum)                                                                        \
     do                                                                                          \
@@ -1417,18 +1414,17 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                         GL_ENTRYPOINT(glGenTextures)(1, &temp_color_texture);
                         VOGL_CHECK_GL_ERROR;
 
-                        //$ TODO WSHADOW: shadows src_target declared on line 1361 - this one can die I believe.
-                        const GLenum src_target = (m_target == GL_TEXTURE_2D_MULTISAMPLE_ARRAY) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+                        const GLenum src_starget = (m_target == GL_TEXTURE_2D_MULTISAMPLE_ARRAY) ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
 
-                        GL_ENTRYPOINT(glBindTexture)(src_target, temp_color_texture);
+                        GL_ENTRYPOINT(glBindTexture)(src_starget, temp_color_texture);
                         VOGL_CHECK_GL_ERROR;
 
-                        GL_ENTRYPOINT(glTexParameteri)(src_target, GL_TEXTURE_MAX_LEVEL, 0);
-                        GL_ENTRYPOINT(glTexParameteri)(src_target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                        GL_ENTRYPOINT(glTexParameteri)(src_target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                        GL_ENTRYPOINT(glTexParameteri)(src_starget, GL_TEXTURE_MAX_LEVEL, 0);
+                        GL_ENTRYPOINT(glTexParameteri)(src_starget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                        GL_ENTRYPOINT(glTexParameteri)(src_starget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                         VOGL_CHECK_GL_ERROR;
 
-                        if (src_target == GL_TEXTURE_2D_ARRAY)
+                        if (src_starget == GL_TEXTURE_2D_ARRAY)
                         {
                             uint array_size = tex0.get_array_size();
 
@@ -1440,19 +1436,18 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                                 temp_img.append(m_textures[sample_index].get_image_data(level, array_index, face, 0));
                             }
 
-                            GL_ENTRYPOINT(glTexImage3D)(src_target, level, GL_RGBA, level_width, level_height, array_size, 0, temp_color_format, temp_color_type, temp_img.get_ptr());
+                            GL_ENTRYPOINT(glTexImage3D)(src_starget, level, GL_RGBA, level_width, level_height, array_size, 0, temp_color_format, temp_color_type, temp_img.get_ptr());
                             VOGL_CHECK_GL_ERROR;
                         }
                         else
                         {
-                            GL_ENTRYPOINT(glTexImage2D)(src_target, level, GL_RGBA, level_width, level_height, 0, temp_color_format, temp_color_type, src_img.get_ptr());
+                            GL_ENTRYPOINT(glTexImage2D)(src_starget, level, GL_RGBA, level_width, level_height, 0, temp_color_format, temp_color_type, src_img.get_ptr());
                             VOGL_CHECK_GL_ERROR;
                         }
 
-                        //$ TODO WSHADOW: status already declared above. This declaration should die?
-                        bool status = splitter.copy_color_sample_to_stencil(temp_color_texture, sample_index, m_target, static_cast<uint32>(handle));
+                        status = splitter.copy_color_sample_to_stencil(temp_color_texture, sample_index, m_target, static_cast<uint32>(handle));
 
-                        GL_ENTRYPOINT(glBindTexture)(src_target, 0);
+                        GL_ENTRYPOINT(glBindTexture)(src_starget, 0);
                         VOGL_CHECK_GL_ERROR;
 
                         GL_ENTRYPOINT(glDeleteTextures)(1, &temp_color_texture);

@@ -59,11 +59,6 @@ static vogl_ctype_desc_t g_vogl_ctype_descs[] =
     };
 
 //----------------------------------------------------------------------------------------------------------------------
-//  Global process vogl_ctypes object
-//----------------------------------------------------------------------------------------------------------------------
-vogl_ctypes g_vogl_process_gl_ctypes;
-
-//----------------------------------------------------------------------------------------------------------------------
 // vogl_ctypes::vogl_ctypes
 //----------------------------------------------------------------------------------------------------------------------
 vogl_ctypes::vogl_ctypes()
@@ -309,7 +304,7 @@ void vogl_init_gl_ctypes()
             vogl_warning_printf("%s: ctype %s is not a pointer, but has been marked as an opaque pointer!\n", VOGL_FUNCTION_NAME, desc.m_pName);
     }
 
-    g_vogl_process_gl_ctypes.init();
+    get_vogl_process_gl_ctypes().init();
 
     if (vogl::check_for_command_line_param("--vogl_debug"))
         vogl_dump_gl_ctypes();

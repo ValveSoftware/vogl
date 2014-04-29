@@ -189,7 +189,7 @@ static vogl_trace_file_writer& get_vogl_trace_writer()
     // See these links to C++ FAQ Lite for more information:
     //  [10.15] http://www.parashift.com/c++-faq-lite/static-init-order-on-first-use.html 
     //  [10.16] http://www.parashift.com/c++-faq-lite/construct-on-first-use-v2.html 
-    static vogl_trace_file_writer s_vogl_trace_writer(&g_vogl_process_gl_ctypes);
+    static vogl_trace_file_writer s_vogl_trace_writer(&get_vogl_process_gl_ctypes());
     return s_vogl_trace_writer;
 }
 
@@ -234,13 +234,13 @@ class vogl_entrypoint_serializer
 
 public:
     inline vogl_entrypoint_serializer()
-        : m_packet(&g_vogl_process_gl_ctypes),
+        : m_packet(&get_vogl_process_gl_ctypes()),
           m_in_begin(false)
     {
     }
 
     inline vogl_entrypoint_serializer(gl_entrypoint_id_t id, vogl_context *pContext)
-        : m_packet(&g_vogl_process_gl_ctypes),
+        : m_packet(&get_vogl_process_gl_ctypes()),
           m_in_begin(false)
     {
         begin(id, pContext);
@@ -465,14 +465,14 @@ static void vogl_init_logfile()
     VOGL_FUNC_TRACER
 
     dynamic_string backbuffer_hash_file;
-    if (g_command_line_params.get_value_as_string(backbuffer_hash_file, "vogl_dump_backbuffer_hashes"))
+    if (g_command_line_params().get_value_as_string(backbuffer_hash_file, "vogl_dump_backbuffer_hashes"))
     {
         remove(backbuffer_hash_file.get_ptr());
         vogl_message_printf("Deleted backbuffer hash file \"%s\"\n", backbuffer_hash_file.get_ptr());
     }
 
-    dynamic_string log_file(g_command_line_params.get_value_as_string_or_empty("vogl_logfile"));
-    dynamic_string log_file_append(g_command_line_params.get_value_as_string_or_empty("vogl_logfile_append"));
+    dynamic_string log_file(g_command_line_params().get_value_as_string_or_empty("vogl_logfile"));
+    dynamic_string log_file_append(g_command_line_params().get_value_as_string_or_empty("vogl_logfile_append"));
     if (log_file.is_empty() && log_file_append.is_empty())
         return;
 
@@ -653,7 +653,7 @@ static void vogl_init_command_line_params()
 {
     VOGL_FUNC_TRACER
 
-    float sleep_time = g_command_line_params.get_value_as_float("vogl_sleep_at_startup");
+    float sleep_time = g_command_line_params().get_value_as_float("vogl_sleep_at_startup");
     if (sleep_time > 0.0f)
     {
         vogl_sleep(static_cast<uint>(ceil(1000.0f * sleep_time)));
@@ -706,26 +706,26 @@ static void vogl_init_command_line_params()
     parse_cfg.m_ignore_unrecognized_params = pEnv_cmd_line ? false : true;
     parse_cfg.m_pParam_accept_prefix = "vogl_";
 
-    if (!g_command_line_params.parse(cmd_line_params, VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
+    if (!g_command_line_params().parse(cmd_line_params, VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
         console::error("%s: Failed parsing command line parameters\n", VOGL_FUNCTION_NAME);
         exit(EXIT_FAILURE);
     }
 
-    g_dump_gl_calls_flag = g_command_line_params.get_value_as_bool("vogl_dump_gl_calls");
-    g_dump_gl_buffers_flag = g_command_line_params.get_value_as_bool("vogl_dump_gl_buffers");
-    g_dump_gl_shaders_flag = g_command_line_params.get_value_as_bool("vogl_dump_gl_shaders");
-    g_disable_gl_program_binary_flag = g_command_line_params.get_value_as_bool("vogl_disable_gl_program_binary");
-    g_flush_files_after_each_call = g_command_line_params.get_value_as_bool("vogl_flush_files_after_each_call");
-    g_flush_files_after_each_swap = g_command_line_params.get_value_as_bool("vogl_flush_files_after_each_swap");
+    g_dump_gl_calls_flag = g_command_line_params().get_value_as_bool("vogl_dump_gl_calls");
+    g_dump_gl_buffers_flag = g_command_line_params().get_value_as_bool("vogl_dump_gl_buffers");
+    g_dump_gl_shaders_flag = g_command_line_params().get_value_as_bool("vogl_dump_gl_shaders");
+    g_disable_gl_program_binary_flag = g_command_line_params().get_value_as_bool("vogl_disable_gl_program_binary");
+    g_flush_files_after_each_call = g_command_line_params().get_value_as_bool("vogl_flush_files_after_each_call");
+    g_flush_files_after_each_swap = g_command_line_params().get_value_as_bool("vogl_flush_files_after_each_swap");
 
-    g_gather_statistics = g_command_line_params.get_value_as_bool("vogl_dump_stats");
-    g_null_mode = g_command_line_params.get_value_as_bool("vogl_null_mode");
-    g_backtrace_all_calls = g_command_line_params.get_value_as_bool("vogl_backtrace_all_calls");
-    g_backtrace_no_calls = g_command_line_params.get_value_as_bool("vogl_backtrace_no_calls");
-    g_disable_client_side_array_tracing = g_command_line_params.get_value_as_bool("vogl_disable_client_side_array_tracing");
+    g_gather_statistics = g_command_line_params().get_value_as_bool("vogl_dump_stats");
+    g_null_mode = g_command_line_params().get_value_as_bool("vogl_null_mode");
+    g_backtrace_all_calls = g_command_line_params().get_value_as_bool("vogl_backtrace_all_calls");
+    g_backtrace_no_calls = g_command_line_params().get_value_as_bool("vogl_backtrace_no_calls");
+    g_disable_client_side_array_tracing = g_command_line_params().get_value_as_bool("vogl_disable_client_side_array_tracing");
 
-    if (g_command_line_params.get_value_as_bool("vogl_dump_gl_full"))
+    if (g_command_line_params().get_value_as_bool("vogl_dump_gl_full"))
     {
         g_dump_gl_calls_flag = true;
         g_dump_gl_buffers_flag = true;
@@ -774,7 +774,7 @@ static void vogl_global_init()
 
     VOGL_FUNC_TRACER
 
-    g_thread_safe_random.seed_from_urandom();
+    get_thread_safe_random().seed_from_urandom();
 
     colorized_console::init();
 
@@ -794,9 +794,9 @@ static void vogl_global_init()
 
     vogl_common_lib_global_init();
 
-    if (g_command_line_params.has_key("vogl_tracefile"))
+    if (g_command_line_params().has_key("vogl_tracefile"))
     {
-        if (!get_vogl_trace_writer().open(g_command_line_params.get_value_as_string_or_empty("vogl_tracefile").get_ptr()))
+        if (!get_vogl_trace_writer().open(g_command_line_params().get_value_as_string_or_empty("vogl_tracefile").get_ptr()))
         {
             // FIXME: What do we do? The caller WANTS a full-stream trace, and continuing execution is probably not desired.
 
@@ -806,7 +806,7 @@ static void vogl_global_init()
         }
     }
 
-    if (!g_command_line_params.get_value_as_bool("vogl_disable_signal_interception"))
+    if (!g_command_line_params().get_value_as_bool("vogl_disable_signal_interception"))
     {
         console::message("Installing exception/signal callbacks\n");
 
@@ -816,8 +816,8 @@ static void vogl_global_init()
     }
 
 #if VOGL_REMOTING
-    console::message("vogl_traceport = %d\n", g_command_line_params.get_value_as_int("vogl_traceport"));
-    vogl_init_listener(g_command_line_params.get_value_as_int("vogl_traceport"));
+    console::message("vogl_traceport = %d\n", g_command_line_params().get_value_as_int("vogl_traceport"));
+    vogl_init_listener(g_command_line_params().get_value_as_int("vogl_traceport"));
 #endif
 
     vogl_check_for_threaded_driver_optimizations();
@@ -2527,7 +2527,7 @@ private:
 
     void on_first_make_current()
     {
-        if ((g_command_line_params.get_value_as_bool("vogl_force_debug_context")) && (m_context_info.is_debug_context()))
+        if ((g_command_line_params().get_value_as_bool("vogl_force_debug_context")) && (m_context_info.is_debug_context()))
         {
             if (GL_ENTRYPOINT(glDebugMessageCallbackARB) && m_context_info.supports_extension("GL_ARB_debug_output"))
             {
@@ -3420,7 +3420,7 @@ static inline void vogl_dump_value_param(vogl_context *pContext, vogl_entrypoint
 
     int size = sizeof(T);
 
-    if (g_vogl_process_gl_ctypes[type].m_size != size)
+    if (get_vogl_process_gl_ctypes()[type].m_size != size)
         vogl_error_printf("%s: size mismatch on ctype %u\n", VOGL_FUNCTION_NAME, type);
 
     if (serializer.is_in_begin())
@@ -3430,7 +3430,7 @@ static inline void vogl_dump_value_param(vogl_context *pContext, vogl_entrypoint
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_log_printf("%s: %s %s, ctype: %s, size: %i: ", pDesc, pType, pParam_name, g_vogl_process_gl_ctypes[type].m_pName, size);
+        vogl_log_printf("%s: %s %s, ctype: %s, size: %i: ", pDesc, pType, pParam_name, get_vogl_process_gl_ctypes()[type].m_pName, size);
 
         if (Loki::TypeTraits<T>::isPointer)
         {
@@ -3476,7 +3476,7 @@ static inline void vogl_dump_ptr_param(vogl_context *pContext, vogl_entrypoint_s
     VOGL_ASSUME(Loki::TypeTraits<T>::isPointer);
     int size = sizeof(T);
 
-    if (g_vogl_process_gl_ctypes[type].m_size != size)
+    if (get_vogl_process_gl_ctypes()[type].m_size != size)
         vogl_error_printf("%s: size mismatch on ctype %u\n", VOGL_FUNCTION_NAME, type);
 
     if (serializer.is_in_begin())
@@ -3486,7 +3486,7 @@ static inline void vogl_dump_ptr_param(vogl_context *pContext, vogl_entrypoint_s
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_log_printf("%s: %s %s, ctype: %s, size: %i, ptr: 0x%" PRIX64 "\n", pDesc, pType, pParam_name, g_vogl_process_gl_ctypes[type].m_pName, size, cast_val_to_uint64(val));
+        vogl_log_printf("%s: %s %s, ctype: %s, size: %i, ptr: 0x%" PRIX64 "\n", pDesc, pType, pParam_name, get_vogl_process_gl_ctypes()[type].m_pName, size, cast_val_to_uint64(val));
     }
 }
 
@@ -3496,19 +3496,19 @@ static inline void vogl_dump_ref_param(vogl_context *pContext, vogl_entrypoint_s
 {
     VOGL_NOTE_UNUSED(pContext);
 
-    if (g_vogl_process_gl_ctypes[type].m_size != sizeof(const T *))
+    if (get_vogl_process_gl_ctypes()[type].m_size != sizeof(const T *))
         vogl_error_printf("%s: size mismatch on ctype %u\n", VOGL_FUNCTION_NAME, type);
 
     int obj_size = gl_ctype_sizeof<T>::size;
 
-    vogl_ctype_t pointee_type = g_vogl_process_gl_ctypes[type].m_pointee_ctype;
+    vogl_ctype_t pointee_type = get_vogl_process_gl_ctypes()[type].m_pointee_ctype;
     if (pointee_type == VOGL_INVALID_CTYPE)
     {
         vogl_error_printf("%s: Type %u doesn't have a pointee ctype\n", VOGL_FUNCTION_NAME, type);
         return;
     }
 
-    if (g_vogl_process_gl_ctypes[pointee_type].m_size != obj_size)
+    if (get_vogl_process_gl_ctypes()[pointee_type].m_size != obj_size)
         vogl_error_printf("%s: size mismatch on pointee ctype %u\n", VOGL_FUNCTION_NAME, type);
 
     if (serializer.is_in_begin())
@@ -3523,7 +3523,7 @@ static inline void vogl_dump_ref_param(vogl_context *pContext, vogl_entrypoint_s
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_log_printf("%s: %s %s, ptr: 0x%" PRIX64 ", ctype: %s, pointee_ctype: %s, pointee_size: %i: ", pDesc, pType, pParam_name, cast_val_to_uint64(pObj), g_vogl_process_gl_ctypes[type].m_pName, g_vogl_process_gl_ctypes[pointee_type].m_pName, obj_size);
+        vogl_log_printf("%s: %s %s, ptr: 0x%" PRIX64 ", ctype: %s, pointee_ctype: %s, pointee_size: %i: ", pDesc, pType, pParam_name, cast_val_to_uint64(pObj), get_vogl_process_gl_ctypes()[type].m_pName, get_vogl_process_gl_ctypes()[pointee_type].m_pName, obj_size);
         if (!pObj)
         {
             vogl_log_printf("NULL");
@@ -3550,7 +3550,7 @@ static inline void vogl_dump_array_param(vogl_context *pContext, vogl_entrypoint
     int64_t obj_size = gl_ctype_sizeof<T>::size;
     int64_t total_size = obj_size * math::maximum<int64_t>(size, 0);
 
-    vogl_ctype_t pointee_type = g_vogl_process_gl_ctypes[type].m_pointee_ctype;
+    vogl_ctype_t pointee_type = get_vogl_process_gl_ctypes()[type].m_pointee_ctype;
     if (((type == VOGL_CONST_VOID_PTR) || (type == VOGL_CONST_GLVOID_PTR) || (type == VOGL_GLVOID_PTR)) && (size > 0))
     {
         obj_size = 1;
@@ -3564,11 +3564,11 @@ static inline void vogl_dump_array_param(vogl_context *pContext, vogl_entrypoint
             return;
         }
 
-        if (g_vogl_process_gl_ctypes[pointee_type].m_size != obj_size)
+        if (get_vogl_process_gl_ctypes()[pointee_type].m_size != obj_size)
             vogl_error_printf("%s: Size mismatch on ctype %u\n", VOGL_FUNCTION_NAME, type);
     }
 
-    bool pointee_is_ptr = g_vogl_process_gl_ctypes[pointee_type].m_is_pointer;
+    bool pointee_is_ptr = get_vogl_process_gl_ctypes()[pointee_type].m_is_pointer;
 
     if (serializer.is_in_begin())
     {
@@ -3582,7 +3582,7 @@ static inline void vogl_dump_array_param(vogl_context *pContext, vogl_entrypoint
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_log_printf("%s: %s %s, ptr: 0x%" PRIX64 ", ctype: %s, pointee_ctype: %s, size: %" PRIi64 ", pointee_size: %" PRIi64 ", total size: %" PRIi64 ": ", pDesc, pType, pParam_name, cast_val_to_uint64(pArray), g_vogl_process_gl_ctypes[type].m_pName, g_vogl_process_gl_ctypes[pointee_type].m_pName,
+        vogl_log_printf("%s: %s %s, ptr: 0x%" PRIX64 ", ctype: %s, pointee_ctype: %s, size: %" PRIi64 ", pointee_size: %" PRIi64 ", total size: %" PRIi64 ": ", pDesc, pType, pParam_name, cast_val_to_uint64(pArray), get_vogl_process_gl_ctypes()[type].m_pName, get_vogl_process_gl_ctypes()[pointee_type].m_pName,
                        size, obj_size, total_size);
         if (!pArray)
         {
@@ -4376,12 +4376,12 @@ static bool vogl_screen_capture_callback(uint width, uint height, uint pitch, si
         return false;
     }
 
-    if (g_command_line_params.get_value_as_bool("vogl_dump_png_screenshots"))
+    if (g_command_line_params().get_value_as_bool("vogl_dump_png_screenshots"))
     {
         size_t png_size = 0;
         void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(pImage, width, height, 3, &png_size, 1, true);
 
-        dynamic_string screenshot_filename(cVarArg, "%s__%08" PRIx64 "_%08" PRIu64 ".png", g_command_line_params.get_value_as_string("vogl_screenshot_prefix", 0, "screenshot").get_ptr(), cast_val_to_uint64(pContext->get_context_handle()), cast_val_to_uint64(frame_index));
+        dynamic_string screenshot_filename(cVarArg, "%s__%08" PRIx64 "_%08" PRIu64 ".png", g_command_line_params().get_value_as_string("vogl_screenshot_prefix", 0, "screenshot").get_ptr(), cast_val_to_uint64(pContext->get_context_handle()), cast_val_to_uint64(frame_index));
         if (!file_utils::write_buf_to_file(screenshot_filename.get_ptr(), pPNG_data, png_size))
         {
             console::error("Failed writing PNG screenshot to file %s\n", screenshot_filename.get_ptr());
@@ -4389,9 +4389,9 @@ static bool vogl_screen_capture_callback(uint width, uint height, uint pitch, si
 
         mz_free(pPNG_data);
     }
-    else if (g_command_line_params.get_value_as_bool("vogl_dump_jpeg_screenshots"))
+    else if (g_command_line_params().get_value_as_bool("vogl_dump_jpeg_screenshots"))
     {
-        int jpeg_quality = g_command_line_params.get_value_as_int("vogl_jpeg_quality", 0, 80, 1, 100);
+        int jpeg_quality = g_command_line_params().get_value_as_int("vogl_jpeg_quality", 0, 80, 1, 100);
 
         long unsigned int jpeg_size = 0;
         unsigned char *pJPEG_data = NULL;
@@ -4407,7 +4407,7 @@ static bool vogl_screen_capture_callback(uint width, uint height, uint pitch, si
         if (status == 0)
         {
             dynamic_string screenshot_filename(cVarArg, "%s_%08" PRIx64 "_%08" PRIu64 ".jpg",
-                g_command_line_params.get_value_as_string("vogl_screenshot_prefix", 0, "screenshot").get_ptr(),
+                g_command_line_params().get_value_as_string("vogl_screenshot_prefix", 0, "screenshot").get_ptr(),
                 cast_val_to_uint64(pContext->get_context_handle()),
                 cast_val_to_uint64(frame_index));
             if (!file_utils::write_buf_to_file(screenshot_filename.get_ptr(), pJPEG_data, jpeg_size))
@@ -4419,11 +4419,11 @@ static bool vogl_screen_capture_callback(uint width, uint height, uint pitch, si
         tjFree(pJPEG_data);
     }
 
-    if (g_command_line_params.get_value_as_bool("vogl_dump_backbuffer_hashes") || g_command_line_params.get_value_as_bool("vogl_hash_backbuffer"))
+    if (g_command_line_params().get_value_as_bool("vogl_dump_backbuffer_hashes") || g_command_line_params().get_value_as_bool("vogl_hash_backbuffer"))
     {
         uint64_t backbuffer_crc64;
 
-        if (g_command_line_params.get_value_as_bool("vogl_sum_hashing"))
+        if (g_command_line_params().get_value_as_bool("vogl_sum_hashing"))
         {
             backbuffer_crc64 = calc_sum64(static_cast<const uint8 *>(pImage), size);
         }
@@ -4435,7 +4435,7 @@ static bool vogl_screen_capture_callback(uint width, uint height, uint pitch, si
         console::printf("Frame %" PRIu64 " hash: 0x%016" PRIX64 "\n", cast_val_to_uint64(frame_index), backbuffer_crc64);
 
         dynamic_string backbuffer_hash_file;
-        if (g_command_line_params.get_value_as_string(backbuffer_hash_file, "vogl_dump_backbuffer_hashes"))
+        if (g_command_line_params().get_value_as_string(backbuffer_hash_file, "vogl_dump_backbuffer_hashes"))
         {
             FILE *pFile = vogl_fopen(backbuffer_hash_file.get_ptr(), "a");
             if (!pFile)
@@ -4461,8 +4461,8 @@ static void vogl_tick_screen_capture(vogl_context *pVOGL_context)
     if ((!width) || (!height))
         return;
 
-    bool grab_backbuffer = g_command_line_params.get_value_as_bool("vogl_dump_backbuffer_hashes") || g_command_line_params.get_value_as_bool("vogl_hash_backbuffer") ||
-                           g_command_line_params.get_value_as_bool("vogl_dump_jpeg_screenshots") || g_command_line_params.get_value_as_bool("vogl_dump_png_screenshots");
+    bool grab_backbuffer = g_command_line_params().get_value_as_bool("vogl_dump_backbuffer_hashes") || g_command_line_params().get_value_as_bool("vogl_hash_backbuffer") ||
+                           g_command_line_params().get_value_as_bool("vogl_dump_jpeg_screenshots") || g_command_line_params().get_value_as_bool("vogl_dump_png_screenshots");
     if (!grab_backbuffer)
         return;
 
@@ -4745,7 +4745,7 @@ static bool vogl_write_snapshot_to_trace(const char *pTrace_filename, const Disp
 
     // TODO: This can take a lot of memory, probably better off to split the snapshot into separate smaller binary json or whatever files stored directly in the archive.
     json_document doc;
-    if (!pSnapshot->serialize(*doc.get_root(), trace_archive, &g_vogl_process_gl_ctypes))
+    if (!pSnapshot->serialize(*doc.get_root(), trace_archive, &get_vogl_process_gl_ctypes()))
     {
         vogl_error_printf("%s: Failed serializing GL state snapshot!\n", VOGL_FUNCTION_NAME);
 
@@ -4802,7 +4802,7 @@ static bool vogl_write_snapshot_to_trace(const char *pTrace_filename, const Disp
 	snapshot_key_value_map.insert("id", snapshot_id);
 #endif
 
-    vogl_ctypes &trace_gl_ctypes = g_vogl_process_gl_ctypes;
+    vogl_ctypes &trace_gl_ctypes = get_vogl_process_gl_ctypes();
     if (!vogl_write_glInternalTraceCommandRAD(get_vogl_trace_writer().get_stream(), &trace_gl_ctypes, cITCRKeyValueMap, sizeof(snapshot_key_value_map), reinterpret_cast<const GLubyte *>(&snapshot_key_value_map)))
     {
         VOGL_FUNC_TRACER
@@ -4846,9 +4846,9 @@ static bool vogl_check_for_trigger_file(const char *pBase_name, dynamic_string &
     filename = pBase_name;
     if (!file_utils::does_file_exist(filename.get_ptr()))
     {
-        dynamic_string path_to_check(g_command_line_params.get_value_as_string_or_empty("vogl_tracepath"));
+        dynamic_string path_to_check(g_command_line_params().get_value_as_string_or_empty("vogl_tracepath"));
         if (path_to_check.is_empty())
-            path_to_check = file_utils::get_pathname(g_command_line_params.get_value_as_string_or_empty("vogl_tracefile").get_ptr());
+            path_to_check = file_utils::get_pathname(g_command_line_params().get_value_as_string_or_empty("vogl_tracefile").get_ptr());
 
         if (path_to_check.is_empty())
             return false;
@@ -4982,7 +4982,7 @@ static void vogl_tick_capture(const Display *dpy, GLXDrawable drawable, vogl_con
 
     if (!get_vogl_trace_writer().is_opened())
     {
-        dynamic_string trace_path(g_command_line_params.get_value_as_string_or_empty("vogl_tracepath"));
+        dynamic_string trace_path(g_command_line_params().get_value_as_string_or_empty("vogl_tracepath"));
         if (trace_path.is_empty())
             trace_path = "/tmp";
         if (!get_vogl_intercept_data().capture_path.is_empty())
@@ -5168,9 +5168,9 @@ static void vogl_glXSwapBuffers(const Display *dpy, GLXDrawable drawable)
         vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
     }
 
-    if (g_command_line_params.has_key("vogl_exit_after_x_frames") && (pTLS_data->m_pContext))
+    if (g_command_line_params().has_key("vogl_exit_after_x_frames") && (pTLS_data->m_pContext))
     {
-        uint64_t max_num_frames = g_command_line_params.get_value_as_uint64("vogl_exit_after_x_frames");
+        uint64_t max_num_frames = g_command_line_params().get_value_as_uint64("vogl_exit_after_x_frames");
         uint64_t cur_num_frames = pTLS_data->m_pContext->get_frame_index();
 
         if (cur_num_frames >= max_num_frames)
@@ -5205,7 +5205,7 @@ static GLXContext vogl_glXCreateContextAttribsARB(const Display *dpy, GLXFBConfi
 
     vogl_context_attribs context_attribs;
 
-    if (g_command_line_params.get_value_as_bool("vogl_force_debug_context"))
+    if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
     {
         vogl_warning_printf("%s: Forcing debug context\n", VOGL_FUNCTION_NAME);
 
@@ -5411,7 +5411,7 @@ static GLXContext vogl_glXCreateContext(const Display *dpy, const XVisualInfo *v
         return GL_ENTRYPOINT(glXCreateContext)(dpy, vis, shareList, direct);
     }
 
-    if (g_command_line_params.get_value_as_bool("vogl_force_debug_context"))
+    if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
     {
         vogl_warning_printf("%s: Can't enable debug contexts via glXCreateContext(), forcing call to use glXCreateContextsAttribsARB() instead\n", VOGL_FUNCTION_NAME);
 
@@ -5512,7 +5512,7 @@ static GLXContext vogl_glXCreateNewContext(const Display *dpy, GLXFBConfig confi
         vogl_error_printf("%s: Unsupported render type (%s)!\n", VOGL_FUNCTION_NAME, get_gl_enums().find_glx_name(render_type));
     }
 
-    if (g_command_line_params.get_value_as_bool("vogl_force_debug_context"))
+    if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
     {
         vogl_warning_printf("%s: Redirecting call from glxCreateNewContext() to glxCreateContextAttribsARB because --vogl_force_debug_context was specified. Note this may fail if glXCreateWindow() was called.\n", VOGL_FUNCTION_NAME);
 
@@ -6138,11 +6138,10 @@ static void vogl_serialize_client_side_arrays_helper(
                 if (!ptr)
                     continue;
 
-                //$ TODO WSHADOW: type shadows type passed into function.
-                GLint type = GL_BOOL;
+                GLint inner_type = GL_BOOL;
                 if (desc.m_get_type)
                 {
-                    GL_ENTRYPOINT(glGetIntegerv)(desc.m_get_type, &type);
+                    GL_ENTRYPOINT(glGetIntegerv)(desc.m_get_type, &inner_type);
                 }
 
                 GLint stride = 0;
@@ -6154,7 +6153,7 @@ static void vogl_serialize_client_side_arrays_helper(
                     GL_ENTRYPOINT(glGetIntegerv)(desc.m_get_size, &size);
                 }
 
-                uint type_size = vogl_get_gl_type_size(type);
+                uint type_size = vogl_get_gl_type_size(inner_type);
                 if (!type_size)
                 {
                     vogl_error_printf("%s: Can't determine type size of enabled client side array set by func %s\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName);
@@ -7814,14 +7813,14 @@ static void vogl_check_entrypoints()
 
             if (return_ctype == VOGL_VOID)
                 continue;
-            if (!g_vogl_process_gl_ctypes[return_ctype].m_is_pointer)
+            if (!get_vogl_process_gl_ctypes()[return_ctype].m_is_pointer)
                 continue;
-            //if (g_vogl_process_gl_ctypes[return_ctype].m_is_opaque_pointer)
+            //if (get_vogl_process_gl_ctypes()[return_ctype].m_is_opaque_pointer)
             //	continue;
 
             if (g_vogl_entrypoint_descs[i].m_custom_return_param_array_size_macro_is_missing)
             {
-                vogl_debug_printf("%s, opaque_ptr: %u\n", g_vogl_entrypoint_descs[i].m_pName, g_vogl_process_gl_ctypes[return_ctype].m_is_opaque_pointer);
+                vogl_debug_printf("%s, opaque_ptr: %u\n", g_vogl_entrypoint_descs[i].m_pName, get_vogl_process_gl_ctypes()[return_ctype].m_is_opaque_pointer);
             }
 
             if (g_vogl_entrypoint_descs[i].m_whitelisted_for_displaylists)
@@ -7859,9 +7858,9 @@ static void vogl_check_entrypoints()
 
             if (return_ctype == VOGL_VOID)
                 continue;
-            if (!g_vogl_process_gl_ctypes[return_ctype].m_is_pointer)
+            if (!get_vogl_process_gl_ctypes()[return_ctype].m_is_pointer)
                 continue;
-            if (g_vogl_process_gl_ctypes[return_ctype].m_is_opaque_pointer)
+            if (get_vogl_process_gl_ctypes()[return_ctype].m_is_opaque_pointer)
                 continue;
 
             if (g_vogl_entrypoint_descs[i].m_custom_return_param_array_size_macro_is_missing)
