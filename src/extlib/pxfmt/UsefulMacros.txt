@@ -1,0 +1,316 @@
+/* PixelFormat */
+#define GL_COLOR_INDEX                    0x1900
+#define GL_STENCIL_INDEX                  0x1901
+#define GL_DEPTH_COMPONENT                0x1902
+#define GL_RED                            0x1903
+#define GL_GREEN                          0x1904
+#define GL_BLUE                           0x1905
+#define GL_ALPHA                          0x1906
+#define GL_RGB                            0x1907
+#define GL_RGBA                           0x1908
+#define GL_LUMINANCE                      0x1909
+#define GL_LUMINANCE_ALPHA                0x190A
+/*      GL_ABGR */
+/* bgra */
+#define GL_BGR                            0x80E0
+#define GL_BGRA                           0x80E1
+
+#define GL_RED_INTEGER_EXT                0x8D94
+#define GL_GREEN_INTEGER_EXT              0x8D95
+#define GL_BLUE_INTEGER_EXT               0x8D96
+#define GL_ALPHA_INTEGER_EXT              0x8D97
+#define GL_RGB_INTEGER_EXT                0x8D98
+#define GL_RGBA_INTEGER_EXT               0x8D99
+#define GL_BGR_INTEGER_EXT                0x8D9A
+#define GL_BGRA_INTEGER_EXT               0x8D9B
+#define GL_LUMINANCE_INTEGER_EXT          0x8D9C
+#define GL_LUMINANCE_ALPHA_INTEGER_EXT    0x8D9D
+
+
+
+/* PixelType */
+#define GL_BITMAP                         0x1A00
+/* DataType */
+#define GL_BYTE                           0x1400
+#define GL_UNSIGNED_BYTE                  0x1401
+#define GL_SHORT                          0x1402
+#define GL_UNSIGNED_SHORT                 0x1403
+#define GL_INT                            0x1404
+#define GL_UNSIGNED_INT                   0x1405
+#define GL_FLOAT                          0x1406
+/* packed_pixels */
+#define GL_UNSIGNED_BYTE_3_3_2            0x8032
+#define GL_UNSIGNED_SHORT_4_4_4_4         0x8033
+#define GL_UNSIGNED_SHORT_5_5_5_1         0x8034
+#define GL_UNSIGNED_INT_8_8_8_8           0x8035
+#define GL_UNSIGNED_INT_10_10_10_2        0x8036
+#define GL_UNSIGNED_BYTE_2_3_3_REV        0x8362
+#define GL_UNSIGNED_SHORT_5_6_5           0x8363
+#define GL_UNSIGNED_SHORT_5_6_5_REV       0x8364
+#define GL_UNSIGNED_SHORT_4_4_4_4_REV     0x8365
+#define GL_UNSIGNED_SHORT_1_5_5_5_REV     0x8366
+#define GL_UNSIGNED_INT_8_8_8_8_REV       0x8367
+#define GL_UNSIGNED_INT_2_10_10_10_REV    0x8368
+
+#define GL_UNSIGNED_INT_10F_11F_11F_REV   0x8C3B
+#define GL_RGB9_E5                        0x8C3D
+#define GL_UNSIGNED_INT_5_9_9_9_REV       0x8C3E
+
+#ifndef GL_EXT_packed_float
+#define GL_R11F_G11F_B10F_EXT             0x8C3A
+#define GL_UNSIGNED_INT_10F_11F_11F_REV_EXT 0x8C3B
+#define GL_RGBA_SIGNED_COMPONENTS_EXT     0x8C3C
+#endif
+
+#ifndef GL_EXT_texture_shared_exponent
+#define GL_RGB9_E5_EXT                    0x8C3D
+#define GL_UNSIGNED_INT_5_9_9_9_REV_EXT   0x8C3E
+#define GL_TEXTURE_SHARED_SIZE_EXT        0x8C3F
+#endif
+
+#ifndef GL_EXT_packed_depth_stencil
+#define GL_DEPTH_STENCIL_EXT              0x84F9
+#define GL_UNSIGNED_INT_24_8_EXT          0x84FA
+#define GL_DEPTH24_STENCIL8_EXT           0x88F0
+#define GL_TEXTURE_STENCIL_SIZE_EXT       0x88F1
+#endif
+
+#ifndef GL_ARB_depth_buffer_float
+#define GL_DEPTH_COMPONENT32F             0x8CAC
+#define GL_DEPTH32F_STENCIL8              0x8CAD
+#define GL_FLOAT_32_UNSIGNED_INT_24_8_REV 0x8DAD
+#endif
+
+
+
+
+/* texture */
+/* PixelInternalFormat */
+#define GL_ALPHA4                         0x803B
+#define GL_ALPHA8                         0x803C
+#define GL_ALPHA12                        0x803D
+#define GL_ALPHA16                        0x803E
+#define GL_LUMINANCE4                     0x803F
+#define GL_LUMINANCE8                     0x8040
+#define GL_LUMINANCE12                    0x8041
+#define GL_LUMINANCE16                    0x8042
+#define GL_LUMINANCE4_ALPHA4              0x8043
+#define GL_LUMINANCE6_ALPHA2              0x8044
+#define GL_LUMINANCE8_ALPHA8              0x8045
+#define GL_LUMINANCE12_ALPHA4             0x8046
+#define GL_LUMINANCE12_ALPHA12            0x8047
+#define GL_LUMINANCE16_ALPHA16            0x8048
+#define GL_INTENSITY                      0x8049
+#define GL_INTENSITY4                     0x804A
+#define GL_INTENSITY8                     0x804B
+#define GL_INTENSITY12                    0x804C
+#define GL_INTENSITY16                    0x804D
+#define GL_R3_G3_B2                       0x2A10
+#define GL_RGB565                         0x8D62
+#define GL_RGB4                           0x804F
+#define GL_RGB5                           0x8050
+#define GL_RGB8                           0x8051
+#define GL_RGB10                          0x8052
+#define GL_RGB12                          0x8053
+#define GL_RGB16                          0x8054
+#define GL_RGBA2                          0x8055
+#define GL_RGBA4                          0x8056
+#define GL_RGB5_A1                        0x8057
+#define GL_RGBA8                          0x8058
+#define GL_RGB10_A2                       0x8059
+#define GL_RGBA12                         0x805A
+#define GL_RGBA16                         0x805B
+
+#ifndef GL_EXT_texture_integer
+#define GL_RGBA32UI_EXT                   0x8D70
+#define GL_RGB32UI_EXT                    0x8D71
+#define GL_ALPHA32UI_EXT                  0x8D72
+#define GL_INTENSITY32UI_EXT              0x8D73
+#define GL_LUMINANCE32UI_EXT              0x8D74
+#define GL_LUMINANCE_ALPHA32UI_EXT        0x8D75
+
+#define GL_RGBA16UI_EXT                   0x8D76
+#define GL_RGB16UI_EXT                    0x8D77
+#define GL_ALPHA16UI_EXT                  0x8D78
+#define GL_INTENSITY16UI_EXT              0x8D79
+#define GL_LUMINANCE16UI_EXT              0x8D7A
+#define GL_LUMINANCE_ALPHA16UI_EXT        0x8D7B
+
+#define GL_RGBA8UI_EXT                    0x8D7C
+#define GL_RGB8UI_EXT                     0x8D7D
+#define GL_ALPHA8UI_EXT                   0x8D7E
+#define GL_INTENSITY8UI_EXT               0x8D7F
+#define GL_LUMINANCE8UI_EXT               0x8D80
+#define GL_LUMINANCE_ALPHA8UI_EXT         0x8D81
+
+#define GL_RGBA32I_EXT                    0x8D82
+#define GL_RGB32I_EXT                     0x8D83
+#define GL_ALPHA32I_EXT                   0x8D84
+#define GL_INTENSITY32I_EXT               0x8D85
+#define GL_LUMINANCE32I_EXT               0x8D86
+#define GL_LUMINANCE_ALPHA32I_EXT         0x8D87
+
+#define GL_RGBA16I_EXT                    0x8D88
+#define GL_RGB16I_EXT                     0x8D89
+#define GL_ALPHA16I_EXT                   0x8D8A
+#define GL_INTENSITY16I_EXT               0x8D8B
+#define GL_LUMINANCE16I_EXT               0x8D8C
+#define GL_LUMINANCE_ALPHA16I_EXT         0x8D8D
+
+#define GL_RGBA8I_EXT                     0x8D8E
+#define GL_RGB8I_EXT                      0x8D8F
+#define GL_ALPHA8I_EXT                    0x8D90
+#define GL_INTENSITY8I_EXT                0x8D91
+#define GL_LUMINANCE8I_EXT                0x8D92
+#define GL_LUMINANCE_ALPHA8I_EXT          0x8D93
+
+#define GL_RED_INTEGER_EXT                0x8D94
+#define GL_GREEN_INTEGER_EXT              0x8D95
+#define GL_BLUE_INTEGER_EXT               0x8D96
+#define GL_ALPHA_INTEGER_EXT              0x8D97
+#define GL_RGB_INTEGER_EXT                0x8D98
+#define GL_RGBA_INTEGER_EXT               0x8D99
+#define GL_BGR_INTEGER_EXT                0x8D9A
+#define GL_BGRA_INTEGER_EXT               0x8D9B
+#define GL_LUMINANCE_INTEGER_EXT          0x8D9C
+#define GL_LUMINANCE_ALPHA_INTEGER_EXT    0x8D9D
+
+#define GL_RGBA_INTEGER_MODE_EXT          0x8D9E
+#endif
+
+#ifndef GL_ARB_texture_rgb10_a2ui
+#define GL_RGB10_A2UI                     0x906F
+#endif
+
+#ifndef GL_ARB_texture_rg
+#define GL_COMPRESSED_RED                 0x8225
+#define GL_COMPRESSED_RG                  0x8226
+#define GL_R8                             0x8229
+#define GL_R16                            0x822A
+#define GL_RG8                            0x822B
+#define GL_RG16                           0x822C
+#define GL_R16F                           0x822D
+#define GL_R32F                           0x822E
+#define GL_RG16F                          0x822F
+#define GL_RG32F                          0x8230
+
+#define GL_R8I                            0x8231
+#define GL_R8UI                           0x8232
+#define GL_R16I                           0x8233
+#define GL_R16UI                          0x8234
+#define GL_R32I                           0x8235
+#define GL_R32UI                          0x8236
+#define GL_RG8I                           0x8237
+#define GL_RG8UI                          0x8238
+#define GL_RG16I                          0x8239
+#define GL_RG16UI                         0x823A
+#define GL_RG32I                          0x823B
+#define GL_RG32UI                         0x823C
+
+#define GL_RG                             0x8227
+#define GL_RG_INTEGER                     0x8228
+#endif
+
+#ifndef GL_ARB_texture_compression_rg
+#define GL_COMPRESSED_RED_RGTC1           0x8DBB
+#define GL_COMPRESSED_SIGNED_RED_RGTC1    0x8DBC
+#define GL_COMPRESSED_RG_RGTC2            0x8DBD
+#define GL_COMPRESSED_SIGNED_RG_RGTC2     0x8DBE
+#endif
+
+#ifndef GL_ARB_texture_float
+#define GL_TEXTURE_RED_TYPE_ARB           0x8C10
+#define GL_TEXTURE_GREEN_TYPE_ARB         0x8C11
+#define GL_TEXTURE_BLUE_TYPE_ARB          0x8C12
+#define GL_TEXTURE_ALPHA_TYPE_ARB         0x8C13
+#define GL_TEXTURE_LUMINANCE_TYPE_ARB     0x8C14
+#define GL_TEXTURE_INTENSITY_TYPE_ARB     0x8C15
+#define GL_TEXTURE_DEPTH_TYPE_ARB         0x8C16
+#define GL_UNSIGNED_NORMALIZED_ARB        0x8C17
+#define GL_RGBA32F_ARB                    0x8814
+#define GL_RGB32F_ARB                     0x8815
+#define GL_ALPHA32F_ARB                   0x8816
+#define GL_INTENSITY32F_ARB               0x8817
+#define GL_LUMINANCE32F_ARB               0x8818
+#define GL_LUMINANCE_ALPHA32F_ARB         0x8819
+#define GL_RGBA16F_ARB                    0x881A
+#define GL_RGB16F_ARB                     0x881B
+#define GL_ALPHA16F_ARB                   0x881C
+#define GL_INTENSITY16F_ARB               0x881D
+#define GL_LUMINANCE16F_ARB               0x881E
+#define GL_LUMINANCE_ALPHA16F_ARB         0x881F
+#endif
+
+#ifndef GL_EXT_packed_depth_stencil
+#define GL_DEPTH_STENCIL_EXT              0x84F9
+#define GL_UNSIGNED_INT_24_8_EXT          0x84FA
+#define GL_DEPTH24_STENCIL8_EXT           0x88F0
+#define GL_TEXTURE_STENCIL_SIZE_EXT       0x88F1
+#endif
+
+#ifndef GL_ARB_depth_buffer_float
+#define GL_DEPTH_COMPONENT32F             0x8CAC
+#define GL_DEPTH32F_STENCIL8              0x8CAD
+#define GL_FLOAT_32_UNSIGNED_INT_24_8_REV 0x8DAD
+#endif
+
+#ifndef GL_EXT_texture_integer
+#define GL_RGBA32UI_EXT                   0x8D70
+#define GL_RGB32UI_EXT                    0x8D71
+#define GL_ALPHA32UI_EXT                  0x8D72
+#define GL_INTENSITY32UI_EXT              0x8D73
+#define GL_LUMINANCE32UI_EXT              0x8D74
+#define GL_LUMINANCE_ALPHA32UI_EXT        0x8D75
+
+#define GL_RGBA16UI_EXT                   0x8D76
+#define GL_RGB16UI_EXT                    0x8D77
+#define GL_ALPHA16UI_EXT                  0x8D78
+#define GL_INTENSITY16UI_EXT              0x8D79
+#define GL_LUMINANCE16UI_EXT              0x8D7A
+#define GL_LUMINANCE_ALPHA16UI_EXT        0x8D7B
+
+#define GL_RGBA8UI_EXT                    0x8D7C
+#define GL_RGB8UI_EXT                     0x8D7D
+#define GL_ALPHA8UI_EXT                   0x8D7E
+#define GL_INTENSITY8UI_EXT               0x8D7F
+#define GL_LUMINANCE8UI_EXT               0x8D80
+#define GL_LUMINANCE_ALPHA8UI_EXT         0x8D81
+
+#define GL_RGBA32I_EXT                    0x8D82
+#define GL_RGB32I_EXT                     0x8D83
+#define GL_ALPHA32I_EXT                   0x8D84
+#define GL_INTENSITY32I_EXT               0x8D85
+#define GL_LUMINANCE32I_EXT               0x8D86
+#define GL_LUMINANCE_ALPHA32I_EXT         0x8D87
+
+#define GL_RGBA16I_EXT                    0x8D88
+#define GL_RGB16I_EXT                     0x8D89
+#define GL_ALPHA16I_EXT                   0x8D8A
+#define GL_INTENSITY16I_EXT               0x8D8B
+#define GL_LUMINANCE16I_EXT               0x8D8C
+#define GL_LUMINANCE_ALPHA16I_EXT         0x8D8D
+
+#define GL_RGBA8I_EXT                     0x8D8E
+#define GL_RGB8I_EXT                      0x8D8F
+#define GL_ALPHA8I_EXT                    0x8D90
+#define GL_INTENSITY8I_EXT                0x8D91
+#define GL_LUMINANCE8I_EXT                0x8D92
+#define GL_LUMINANCE_ALPHA8I_EXT          0x8D93
+
+#define GL_RED_INTEGER_EXT                0x8D94
+#define GL_GREEN_INTEGER_EXT              0x8D95
+#define GL_BLUE_INTEGER_EXT               0x8D96
+#define GL_ALPHA_INTEGER_EXT              0x8D97
+#define GL_RGB_INTEGER_EXT                0x8D98
+#define GL_RGBA_INTEGER_EXT               0x8D99
+#define GL_BGR_INTEGER_EXT                0x8D9A
+#define GL_BGRA_INTEGER_EXT               0x8D9B
+#define GL_LUMINANCE_INTEGER_EXT          0x8D9C
+#define GL_LUMINANCE_ALPHA_INTEGER_EXT    0x8D9D
+
+#define GL_RGBA_INTEGER_MODE_EXT          0x8D9E
+#endif
+
+#ifndef GL_ARB_texture_rgb10_a2ui
+#define GL_RGB10_A2UI                     0x906F
+#endif

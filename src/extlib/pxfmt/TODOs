@@ -1,0 +1,27 @@
+Now supporting and testing 160 format-type combinations!
+
+Cases not covered include:
+
+- OpenGL "formats":
+  - GL_LUMINANCE
+  - GL_LUMINANCE_ALPHA
+  - GL_COLOR_INDEX (which I may never support, except maybe for GL_BITMAP)
+
+- OpenGL "types":
+  - GL_HALF_FLOAT
+  - GL_UNSIGNED_INT_10F_11F_11F_REV
+  - GL_UNSIGNED_INT_5_9_9_9_REV
+  - GL_BITMAP
+
+- Add support for conversion of the following:
+  - Mipmap levels, faces, etc.
+  - A single pixel's values.
+
+- I also haven't added support for a scaled & biased version of 8888, per the
+  needs of the VOGL GUI.  I do not yet know the following:
+  - Is this only wanted for floating-point and fixed-point values?
+  - Is this also wanted for GL_*_INTEGER values?
+
+- Support for compressed-texture formats.
+
+- Perhaps do better aligment of the columns of the FMT_INFO declarations.
