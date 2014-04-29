@@ -25,7 +25,9 @@
  
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#if defined(PLATFORM_POSIX)
+    #include <unistd.h>
+#endif
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>

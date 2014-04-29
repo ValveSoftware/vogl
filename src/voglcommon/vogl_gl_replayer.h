@@ -508,8 +508,8 @@ private:
 
     // Returns *true* if any errors occurred.
     bool check_gl_error_internal(bool quietly = false, const char *pFile = "", uint line = 0, const char *pFunc = "");
-#define check_gl_error() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(false, __FILE__, __LINE__, __PRETTY_FUNCTION__) : false)
-#define check_gl_error_quietly() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(true, __FILE__, __LINE__, __PRETTY_FUNCTION__) : false)
+#define check_gl_error() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(false, __FILE__, __LINE__, VOGL_METHOD_NAME) : false)
+#define check_gl_error_quietly() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(true, __FILE__, __LINE__, VOGL_METHOD_NAME) : false)
 
     void destroy_contexts();
     void clear_contexts();

@@ -38,6 +38,7 @@
 	#include <pwd.h>
 #elif defined(VOGL_USE_WIN32_API)
 	#include <rpc.h>
+    #pragma comment(lib, "Rpcrt4.lib")
 #endif
 
 

@@ -919,7 +919,7 @@ namespace vogl
 
 	char *file_utils::get_exec_filename(char *pPath, size_t dest_len)
 	{
-	#if defined(VOGL_HAS_PROC_FILESYSTEM)
+	#if VOGL_HAS_PROC_FILESYSTEM
 		ssize_t s = readlink("/proc/self/exe", pPath, dest_len);
 		if (s >= 0)
 		{

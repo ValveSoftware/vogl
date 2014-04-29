@@ -29,7 +29,9 @@
 
 #include "vogl_console.h"
 
-#include "btrace.h"
+#if VOGL_PLATFORM_SUPPORTS_BTRACE
+    #include "btrace.h"
+#endif
 
 int vogl_determine_attrib_list_array_size(const int *attrib_list)
 {
@@ -316,10 +318,12 @@ bool vogl_context_info::init(const vogl_context_desc &desc)
     query_string(m_renderer_str, GL_RENDERER);
 
     // Update btrace with our gl info.
-    btrace_get_glinfo().version_str = m_version_str;
-    btrace_get_glinfo().glsl_version_str = m_glsl_version_str;
-    btrace_get_glinfo().vendor_str = m_vendor_str;
-    btrace_get_glinfo().renderer_str = m_renderer_str;
+    #if VOGL_PLATFORM_SUPPORTS_BTRACE
+        btrace_get_glinfo().version_str = m_version_str;
+        btrace_get_glinfo().glsl_version_str = m_glsl_version_str;
+        btrace_get_glinfo().vendor_str = m_vendor_str;
+        btrace_get_glinfo().renderer_str = m_renderer_str;
+    #endif
 
     m_version = parse_version_string(m_version_str);
     m_glsl_version = parse_version_string(m_glsl_version_str);

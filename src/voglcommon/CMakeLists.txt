@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
+request_backtrace()
 
 include_directories(
     ${SRC_DIR}/extlib/loki/include/loki
@@ -11,11 +12,14 @@ include_directories(
     ${CMAKE_BINARY_DIR}/voglinc
     ${SRC_DIR}/voglcore
     ${SRC_DIR}/libtelemetry
-    ${SRC_DIR}/libbacktrace
-    )
+    ${LibBackTrace_INCLUDE}
+)
+
+file( GLOB_RECURSE HDRS *.[h|inl] )
 
 set(SRC_LIST
     ${SRC_LIST}
+    ${HDRS}    
     vogl_ctypes.cpp
     vogl_gl_utils.cpp
     vogl_entrypoints.cpp
@@ -62,17 +66,22 @@ set(SRC_LIST
 )
 
 if (CMAKE_COMPILER_IS_GNUCC)
-# Variable trackigng causes vogl_entrypoints.cpp to take longer than 20 minutes to compile on
-#  gcc 4.6 and gcc 4.8.
-# See this bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59868
-set_source_files_properties(vogl_entrypoints.cpp PROPERTIES COMPILE_FLAGS -fno-var-tracking)
+    # Variable trackigng causes vogl_entrypoints.cpp to take longer than 20 minutes to compile on
+    #  gcc 4.6 and gcc 4.8.
+    # See this bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=59868
+    set_source_files_properties(vogl_entrypoints.cpp PROPERTIES COMPILE_FLAGS -fno-var-tracking)
 endif()
 
-add_compiler_flag("-fPIC")
+if (NOT MSVC)
+    add_compiler_flag("-fPIC")
+endif()
 
 add_library(${PROJECT_NAME} ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
-target_link_libraries(${PROJECT_NAME} backtracevogl)
+
+target_link_libraries(${PROJECT_NAME} 
+    ${LibBackTrace_LIBRARY}
+)
 
 build_options_finalize()
 

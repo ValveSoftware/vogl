@@ -29,6 +29,9 @@
 #include "gl_pname_defs.h"
 #include "vogl_growable_array.h"
 
+#include "vogl_blob_manager.h"
+
+
 #define VOGL_CONTEXT_STATE_DEBUG 0
 
 #if VOGL_CONTEXT_STATE_DEBUG

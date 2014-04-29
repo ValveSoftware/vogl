@@ -43,20 +43,25 @@
 #include "vogl_file_utils.h"
 #include "vogl_uuid.h"
 #include "vogl_unique_ptr.h"
+#include "vogl_port.h"
 
-#include <unistd.h>
-#include <sys/syscall.h>
+#if defined(PLATFORM_POSIX)
+    #include <unistd.h>
+    #include <sys/syscall.h>
+    #include <X11/Xatom.h>
 
-#include <X11/Xatom.h>
+#endif
 
 #if VOGL_REMOTING
 #include "vogl_remote.h"
 #endif
 
+#if VOGL_PLATFORM_SUPPORTS_BTRACE
+    #include "btrace.h"
+#endif
+
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "vogl_miniz.h"
-
-#include "btrace.h"
 
 // loki
 #include "TypeTraits.h"
@@ -88,9 +93,11 @@ static GLuint g_dummy_program;
 //----------------------------------------------------------------------------------------------------------------------
 // Forward declaration
 //----------------------------------------------------------------------------------------------------------------------
+static __GLXextFuncPtr vogl_get_proc_address_helper(const GLubyte *procName);
 static void vogl_glInternalTraceCommandRAD(GLuint cmd, GLuint size, const GLubyte *data);
 static void vogl_end_capture(bool inside_signal_handler = false);
 static void vogl_atexit();
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Context sharelist shadow locking
@@ -209,7 +216,9 @@ struct vogl_intercept_data
 {
     dynamic_string capture_path;
     dynamic_string capture_basename;
-    vogl_backtrace_hashmap backtrace_hashmap;
+    #if VOGL_PLATFORM_SUPPORTS_BTRACE
+        vogl_backtrace_hashmap backtrace_hashmap;
+    #endif
 };
 static vogl_intercept_data &get_vogl_intercept_data()
 {
@@ -222,7 +231,7 @@ static vogl_intercept_data &get_vogl_intercept_data()
 //----------------------------------------------------------------------------------------------------------------------
 static inline uint64_t vogl_get_current_kernel_thread_id()
 {
-    return static_cast<uint64_t>(syscall(SYS_gettid));
+    return plat_gettid();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -599,13 +608,98 @@ static void vogl_dump_statistics()
     }
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// Initialization
+//----------------------------------------------------------------------------------------------------------------------
+static void vogl_init()
+{
+    // Cannot telemetry this function, too early.
+    g_vogl_initializing_flag = true;
+
+    printf("(vogltrace) %s\n", VOGL_METHOD_NAME);
+
+    // Initialize vogl_core.
+    vogl_core_init();
+
+    // can't call vogl::colorized_console::init() because its global arrays will be cleared after this func returns
+    vogl::console::set_tool_prefix("(vogltrace) ");
+
+    #if VOGL_PLATFORM_SUPPORTS_BTRACE
+        vogl_message_printf("%s built %s %s, begin initialization in %s\n", btrace_get_current_module(), __DATE__, __TIME__, getenv("_"));
+    #endif
+
+    // We can't use the regular cmd line parser here because this func is called before global objects are constructed.
+    char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
+    bool pause = vogl::check_for_command_line_param("-vogl_pause") || ((pEnv_cmd_line) && (strstr(pEnv_cmd_line, "-vogl_pause") != NULL));
+    bool long_pause = vogl::check_for_command_line_param("-vogl_long_pause") || ((pEnv_cmd_line) && (strstr(pEnv_cmd_line, "-vogl_long_pause") != NULL));
+    if (pause || long_pause)
+    {
+        int count = 60000;
+        bool debugger_connected = false;
+        dynamic_string cmdline = vogl::get_command_line();
+
+        vogl_message_printf("cmdline: %s\n", cmdline.c_str());
+        vogl_message_printf("Pausing %d ms or until debugger is attached (pid %d).\n", count, plat_getpid());
+        vogl_message_printf("  Or press any key to continue.\n");
+
+        while (count >= 0)
+        {
+            vogl_sleep(200);
+            count -= 200;
+            debugger_connected = vogl_is_debugger_present();
+            if (debugger_connected || vogl_kbhit())
+                break;
+        }
+
+        if (debugger_connected)
+            vogl_message_printf("  Debugger connected...\n");
+    }
+
+    #if (VOGL_PLATFORM_HAS_GLX)
+        g_vogl_actual_gl_entrypoints.m_glXGetProcAddress = reinterpret_cast<glXGetProcAddress_func_ptr_t>(dlsym(RTLD_NEXT, "glXGetProcAddress"));
+        if (!g_vogl_actual_gl_entrypoints.m_glXGetProcAddress)
+        {
+            vogl_warning_printf("%s: dlsym(RTLD_NEXT, \"glXGetProcAddress\") failed, trying to manually load %s\n", VOGL_FUNCTION_NAME, VOGL_LIBGL_SO_FILENAME);
+
+            g_vogl_actual_libgl_module_handle = dlopen(VOGL_LIBGL_SO_FILENAME, RTLD_LAZY);
+            if (!g_vogl_actual_libgl_module_handle)
+            {
+                vogl_error_printf("%s: Failed loading %s!\n", VOGL_FUNCTION_NAME, VOGL_LIBGL_SO_FILENAME);
+                exit(EXIT_FAILURE);
+            }
+
+            g_vogl_actual_gl_entrypoints.m_glXGetProcAddress = reinterpret_cast<glXGetProcAddress_func_ptr_t>(dlsym(g_vogl_actual_libgl_module_handle, "glXGetProcAddress"));
+            if (!g_vogl_actual_gl_entrypoints.m_glXGetProcAddress)
+            {
+                vogl_error_printf("%s: Failed getting address of glXGetProcAddress() from %s!\n", VOGL_FUNCTION_NAME, VOGL_LIBGL_SO_FILENAME);
+                exit(EXIT_FAILURE);
+            }
+
+            vogl_message_printf("%s: Manually loaded %s\n", VOGL_FUNCTION_NAME, VOGL_LIBGL_SO_FILENAME);
+        }
+    #elif (VOGL_PLATFORM_HAS_WGL)
+        VOGL_VERIFY(!"impl vogl_init on Windows");
+    #else
+        #error "impl vogl_init on this platform."
+    #endif
+
+    vogl_common_lib_early_init();
+
+    vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
+
+    vogl_early_init();
+
+    vogl_message_printf("end initialization\n");
+
+    g_vogl_initializing_flag = false;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // Deinitialization
 //----------------------------------------------------------------------------------------------------------------------
 static void vogl_deinit_callback()
 {
-    VOGL_FUNC_TRACER
+    VOGL_FUNC_TRACER // I'm not sure this is a good idea here.
 
     vogl_end_capture();
     vogl_dump_statistics();
@@ -613,7 +707,7 @@ static void vogl_deinit_callback()
 
 void vogl_deinit()
 {
-    VOGL_FUNC_TRACER
+    VOGL_FUNC_TRACER // I'm not sure this is a good idea here.
 
     static pthread_once_t s_vogl_deinit_once_control = PTHREAD_ONCE_INIT;
     pthread_once(&s_vogl_deinit_once_control, vogl_deinit_callback);
@@ -822,7 +916,9 @@ static void vogl_global_init()
 
     vogl_check_for_threaded_driver_optimizations();
 
-    get_vogl_intercept_data().backtrace_hashmap.reserve(VOGL_BACKTRACE_HASHMAP_CAPACITY);
+    #if VOGL_PLATFORM_SUPPORTS_BTRACE
+        get_vogl_intercept_data().backtrace_hashmap.reserve(VOGL_BACKTRACE_HASHMAP_CAPACITY);
+    #endif
 
     // atexit routines are called in the reverse order in which they were registered. We would like
 	//  our vogl_atexit() routine to be called before anything else (Ie C++ destructors, etc.) So we
@@ -2858,86 +2954,89 @@ static void vogl_atexit()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_backtrace
 //----------------------------------------------------------------------------------------------------------------------
-static uint32 vogl_backtrace(uint addrs_to_skip)
-{
-    vogl_backtrace_addrs addrs;
-    addrs.m_num_addrs = btrace_get(addrs.m_addrs, addrs.cMaxAddrs, addrs_to_skip);
-
-    vogl_backtrace_hashmap::insert_result ins_res;
-
-    uint32 index = 0;
-
-    get_backtrace_hashmap_mutex().lock();
-
-    if (!get_vogl_intercept_data().backtrace_hashmap.insert_no_grow(ins_res, addrs))
-        vogl_error_printf("%s: Backtrace hashmap exhausted! Please increase VOGL_BACKTRACE_HASHMAP_CAPACITY. Some backtraces in this trace will not have symbols.\n", VOGL_FUNCTION_NAME);
-    else
+#if VOGL_PLATFORM_SUPPORTS_BTRACE
+    static uint32 vogl_backtrace(uint addrs_to_skip)
     {
-        index = ins_res.first.get_index();
-        (ins_res.first)->second++;
+        vogl_backtrace_addrs addrs;
+        addrs.m_num_addrs = btrace_get(addrs.m_addrs, addrs.cMaxAddrs, addrs_to_skip);
+
+        vogl_backtrace_hashmap::insert_result ins_res;
+
+        uint32 index = 0;
+
+        get_backtrace_hashmap_mutex().lock();
+
+        if (!get_vogl_intercept_data().backtrace_hashmap.insert_no_grow(ins_res, addrs))
+            vogl_error_printf("%s: Backtrace hashmap exhausted! Please increase VOGL_BACKTRACE_HASHMAP_CAPACITY. Some backtraces in this trace will not have symbols.\n", VOGL_FUNCTION_NAME);
+        else
+        {
+            index = ins_res.first.get_index();
+            (ins_res.first)->second++;
+        }
+
+        get_backtrace_hashmap_mutex().unlock();
+
+        return index;
     }
-
-    get_backtrace_hashmap_mutex().unlock();
-
-    return index;
-}
-
+#endif
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_flush_backtrace_to_trace_file
 //----------------------------------------------------------------------------------------------------------------------
-static bool vogl_flush_backtrace_to_trace_file()
-{
-    scoped_mutex lock(get_vogl_trace_mutex());
-
-    if (!get_vogl_trace_writer().is_opened() || (get_vogl_trace_writer().get_trace_archive() == NULL))
-        return false;
-
-    json_document doc;
-
-    get_backtrace_hashmap_mutex().lock();
-
-    vogl_backtrace_hashmap &backtrace_hashmap = get_vogl_intercept_data().backtrace_hashmap;
-    uint backtrace_hashmap_size = backtrace_hashmap.size();
-    if (backtrace_hashmap_size)
+#if VOGL_PLATFORM_SUPPORTS_BTRACE
+    static bool vogl_flush_backtrace_to_trace_file()
     {
-        vogl_message_printf("%s: Writing backtrace %u addrs\n", VOGL_FUNCTION_NAME, backtrace_hashmap_size);
+        scoped_mutex lock(get_vogl_trace_mutex());
 
-        json_node *pRoot = doc.get_root();
-        pRoot->init_array();
+        if (!get_vogl_trace_writer().is_opened() || (get_vogl_trace_writer().get_trace_archive() == NULL))
+            return false;
 
-        for (vogl_backtrace_hashmap::const_iterator it = backtrace_hashmap.begin(); it != backtrace_hashmap.end(); ++it)
+        json_document doc;
+
+        get_backtrace_hashmap_mutex().lock();
+
+        vogl_backtrace_hashmap &backtrace_hashmap = get_vogl_intercept_data().backtrace_hashmap;
+        uint backtrace_hashmap_size = backtrace_hashmap.size();
+        if (backtrace_hashmap_size)
         {
-            json_node &node = pRoot->add_array();
+            vogl_message_printf("%s: Writing backtrace %u addrs\n", VOGL_FUNCTION_NAME, backtrace_hashmap_size);
 
-            node.add_key_value("index", it.get_index());
-            node.add_key_value("count", it->second);
+            json_node *pRoot = doc.get_root();
+            pRoot->init_array();
 
-            json_node &addrs_arr = node.add_array("addrs");
-            const vogl_backtrace_addrs &addrs = it->first;
-
-            for (uint i = 0; i < addrs.m_num_addrs; i++)
+            for (vogl_backtrace_hashmap::const_iterator it = backtrace_hashmap.begin(); it != backtrace_hashmap.end(); ++it)
             {
-                addrs_arr.add_value(to_hex_string(static_cast<uint64_t>(addrs.m_addrs[i])));
+                json_node &node = pRoot->add_array();
+
+                node.add_key_value("index", it.get_index());
+                node.add_key_value("count", it->second);
+
+                json_node &addrs_arr = node.add_array("addrs");
+                const vogl_backtrace_addrs &addrs = it->first;
+
+                for (uint i = 0; i < addrs.m_num_addrs; i++)
+                {
+                    addrs_arr.add_value(to_hex_string(static_cast<uint64_t>(addrs.m_addrs[i])));
+                }
             }
         }
+
+        backtrace_hashmap.reset();
+        get_backtrace_hashmap_mutex().unlock();
+
+        if (backtrace_hashmap_size)
+        {
+            char_vec data;
+            doc.serialize(data, true, 0, false);
+
+            if (get_vogl_trace_writer().get_trace_archive()->add_buf_using_id(data.get_ptr(), data.size(), VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME).is_empty())
+                vogl_error_printf("%s: Failed adding serialized backtrace addrs to trace archive\n", VOGL_FUNCTION_NAME);
+            else
+                vogl_message_printf("%s: Done writing backtrace addrs\n", VOGL_FUNCTION_NAME);
+        }
+
+        return true;
     }
-
-    backtrace_hashmap.reset();
-    get_backtrace_hashmap_mutex().unlock();
-
-    if (backtrace_hashmap_size)
-    {
-        char_vec data;
-        doc.serialize(data, true, 0, false);
-
-        if (get_vogl_trace_writer().get_trace_archive()->add_buf_using_id(data.get_ptr(), data.size(), VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME).is_empty())
-            vogl_error_printf("%s: Failed adding serialized backtrace addrs to trace archive\n", VOGL_FUNCTION_NAME);
-        else
-            vogl_message_printf("%s: Done writing backtrace addrs\n", VOGL_FUNCTION_NAME);
-    }
-
-    return true;
-}
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_flush_compilerinfo_to_trace_file
@@ -2994,7 +3093,9 @@ static bool vogl_flush_machineinfo_to_trace_file()
 
     json_node *pRoot = doc.get_root();
 
-    btrace_get_machine_info(pRoot);
+    #if VOGL_PLATFORM_SUPPORTS_BTRACE
+        btrace_get_machine_info(pRoot);
+    #endif
 
     char_vec data;
     doc.serialize(data, true, 0, false);
@@ -3027,19 +3128,21 @@ inline bool vogl_entrypoint_serializer::begin(gl_entrypoint_id_t id, vogl_contex
 
     m_packet.begin_construction(id, context_id, get_vogl_trace_writer().get_next_gl_call_counter(), thread_id, utils::RDTSC());
 
-    if (!g_backtrace_no_calls)
-    {
-        bool do_backtrace = g_backtrace_all_calls ||
-                vogl_is_make_current_entrypoint(id) ||
-                vogl_is_swap_buffers_entrypoint(id) ||
-                vogl_is_clear_entrypoint(id) ||
-                vogl_is_draw_entrypoint(id);
-        if (do_backtrace && get_vogl_trace_writer().is_opened())
+    #if VOGL_PLATFORM_SUPPORTS_BTRACE
+        if (!g_backtrace_no_calls)
         {
-            // Take a backtrace and store its hashtable index into the packet.
-            m_packet.set_backtrace_hash_index(vogl_backtrace(1));
+            bool do_backtrace = g_backtrace_all_calls ||
+                    vogl_is_make_current_entrypoint(id) ||
+                    vogl_is_swap_buffers_entrypoint(id) ||
+                    vogl_is_clear_entrypoint(id) ||
+                    vogl_is_draw_entrypoint(id);
+            if (do_backtrace && get_vogl_trace_writer().is_opened())
+            {
+                // Take a backtrace and store its hashtable index into the packet.
+                m_packet.set_backtrace_hash_index(vogl_backtrace(1));
+            }
         }
-    }
+    #endif
 
     return true;
 }
@@ -4121,23 +4224,34 @@ static void vogl_add_make_current_key_value_fields(const Display *dpy, GLXDrawab
 
     if ((pVOGL_context) && (pVOGL_context->get_window_width() < 0))
     {
-        if ((dpy) && (drawable) && (result))
-        {
-            Window root;
-            int x, y;
-            unsigned int width, height, border_width, depth;
-            if (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False)
+        bool valid_dims = false;
+        unsigned int width = 1, 
+                     height = 1;
+        #if (VOGL_PLATFORM_HAS_GLX)
+            if ((dpy) && (drawable) && (result))
             {
-                pVOGL_context->set_window_dimensions(width, height);
-
-                serializer.add_key_value(string_hash("win_width"), width);
-                serializer.add_key_value(string_hash("win_height"), height);
-
-                if (g_dump_gl_calls_flag)
-                {
-                    vogl_log_printf("** Current window dimensions: %ix%i\n", width, height);
-                }
+                Window root;
+                int x, y;
+                unsigned int border_width, depth;
+                valid_dims = (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False);
             }
+        #elif (VOGL_PLATFORM_HAS_WGL)
+            VOGL_VERIFY(!"impl vogl_add_make_current_key_value_fields on Windows");
+        #else
+            #error "impl vogl_add_make_current_key_value_fields on this platform"
+        #endif
+
+        if (valid_dims)
+        {
+            pVOGL_context->set_window_dimensions(width, height);
+
+            serializer.add_key_value(string_hash("win_width"), width);
+            serializer.add_key_value(string_hash("win_height"), height);
+
+            if (g_dump_gl_calls_flag)
+            {
+                vogl_log_printf("** Current window dimensions: %ix%i\n", width, height);
+            }                
         }
     }
 }
@@ -4682,7 +4796,9 @@ static void vogl_end_capture(bool inside_signal_handler)
         
         vogl_flush_compilerinfo_to_trace_file();
         vogl_flush_machineinfo_to_trace_file();
-        vogl_flush_backtrace_to_trace_file();
+        #if VOGL_PLATFORM_SUPPORTS_BTRACE
+            vogl_flush_backtrace_to_trace_file();
+        #endif
 
         if (!get_vogl_trace_writer().close())
         {
@@ -5080,8 +5196,18 @@ static inline void vogl_glXSwapBuffersGLFuncProlog(const Display *dpy, GLXDrawab
 
     Window root = 0;
     int x = 0, y = 0;
-    unsigned int width = 0, height = 0, border_width = 0, depth = 0;
-    if ((dpy) && (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False))
+    unsigned int width = 0, height = 0;
+    bool dims_valid = false;
+    #if (VOGL_PLATFORM_HAS_GLX)
+        unsigned int border_width = 0, depth = 0;
+        dims_valid = (dpy) && (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False);
+    #elif (VOGL_PLATFORM_HAS_WGL)
+        VOGL_VERIFY(!"impl vogl_glXSwapBuffersGLFuncProlog on windows");
+    #else
+        #error "impl vogl_glXSwapBuffersGLFuncProlog on windows"
+    #endif
+
+    if (dims_valid)
     {
         pVOGL_context->set_window_dimensions(width, height);
 
@@ -5327,71 +5453,73 @@ static GLXContext vogl_glXCreateContextAttribsARB(const Display *dpy, GLXFBConfi
 // Attempts to find the GLXFBConfig corresponding to a particular visual.
 // TODO: Test this more!
 //----------------------------------------------------------------------------------------------------------------------
-static GLXFBConfig *vogl_get_fb_config_from_xvisual_info(const Display *dpy, const XVisualInfo *vis)
-{
-    vogl_context_attribs attribs;
-
-#define GET_CONFIG(attrib)                                   \
-    do                                                       \
-    {                                                        \
-        int val = 0;                                         \
-        GL_ENTRYPOINT(glXGetConfig)(dpy, vis, attrib, &val); \
-        if (val)                                             \
-            attribs.add_key(attrib, val);                    \
-    } while (0)
-
-    int is_rgba = 0;
-    GL_ENTRYPOINT(glXGetConfig)(dpy, vis, GLX_RGBA, &is_rgba);
-
-    attribs.add_key(GLX_RENDER_TYPE, is_rgba ? GLX_RGBA_BIT : GLX_COLOR_INDEX_BIT);
-    attribs.add_key(GLX_X_RENDERABLE, True);
-    attribs.add_key(GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT);
-
-    if (!is_rgba)
-        GET_CONFIG(GLX_BUFFER_SIZE);
-
-    GET_CONFIG(GLX_LEVEL);
-
-    GET_CONFIG(GLX_DOUBLEBUFFER);
-    GET_CONFIG(GLX_STEREO);
-    GET_CONFIG(GLX_AUX_BUFFERS);
-    if (is_rgba)
+#if (VOGL_PLATFORM_HAS_GLX)
+    static GLXFBConfig *vogl_get_fb_config_from_xvisual_info(const Display *dpy, const XVisualInfo *vis)
     {
-        GET_CONFIG(GLX_RED_SIZE);
-        GET_CONFIG(GLX_GREEN_SIZE);
-        GET_CONFIG(GLX_BLUE_SIZE);
-        GET_CONFIG(GLX_ALPHA_SIZE);
+        vogl_context_attribs attribs;
+
+    #define GET_CONFIG(attrib)                                   \
+        do                                                       \
+        {                                                        \
+            int val = 0;                                         \
+            GL_ENTRYPOINT(glXGetConfig)(dpy, vis, attrib, &val); \
+            if (val)                                             \
+                attribs.add_key(attrib, val);                    \
+        } while (0)
+
+        int is_rgba = 0;
+        GL_ENTRYPOINT(glXGetConfig)(dpy, vis, GLX_RGBA, &is_rgba);
+
+        attribs.add_key(GLX_RENDER_TYPE, is_rgba ? GLX_RGBA_BIT : GLX_COLOR_INDEX_BIT);
+        attribs.add_key(GLX_X_RENDERABLE, True);
+        attribs.add_key(GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT);
+
+        if (!is_rgba)
+            GET_CONFIG(GLX_BUFFER_SIZE);
+
+        GET_CONFIG(GLX_LEVEL);
+
+        GET_CONFIG(GLX_DOUBLEBUFFER);
+        GET_CONFIG(GLX_STEREO);
+        GET_CONFIG(GLX_AUX_BUFFERS);
+        if (is_rgba)
+        {
+            GET_CONFIG(GLX_RED_SIZE);
+            GET_CONFIG(GLX_GREEN_SIZE);
+            GET_CONFIG(GLX_BLUE_SIZE);
+            GET_CONFIG(GLX_ALPHA_SIZE);
+        }
+        GET_CONFIG(GLX_DEPTH_SIZE);
+        GET_CONFIG(GLX_STENCIL_SIZE);
+
+        GET_CONFIG(GLX_TRANSPARENT_INDEX_VALUE);
+        GET_CONFIG(GLX_TRANSPARENT_RED_VALUE);
+        GET_CONFIG(GLX_TRANSPARENT_GREEN_VALUE);
+        GET_CONFIG(GLX_TRANSPARENT_BLUE_VALUE);
+        GET_CONFIG(GLX_TRANSPARENT_ALPHA_VALUE);
+
+        if (attribs.get_value_or_default(GLX_TRANSPARENT_INDEX_VALUE) || attribs.get_value_or_default(GLX_TRANSPARENT_RED_VALUE) ||
+            attribs.get_value_or_default(GLX_TRANSPARENT_GREEN_VALUE) || attribs.get_value_or_default(GLX_TRANSPARENT_BLUE_VALUE) ||
+            attribs.get_value_or_default(GLX_TRANSPARENT_ALPHA_VALUE))
+        {
+            GET_CONFIG(GLX_TRANSPARENT_TYPE);
+        }
+    #undef GET_CONFIG
+
+    #if 0
+	    for (uint i = 0; i < attribs.size(); i += 2)
+	    {
+		    if (!attribs[i])
+			    break;
+		    printf("%s 0x%x\n", get_gl_enums().find_glx_name(attribs[i]), attribs[i + 1]);
+	    }
+    #endif
+
+        int num_configs = 0;
+        GLXFBConfig *pConfigs = GL_ENTRYPOINT(glXChooseFBConfig)(dpy, vis->screen, attribs.get_ptr(), &num_configs);
+        return num_configs ? pConfigs : NULL;
     }
-    GET_CONFIG(GLX_DEPTH_SIZE);
-    GET_CONFIG(GLX_STENCIL_SIZE);
-
-    GET_CONFIG(GLX_TRANSPARENT_INDEX_VALUE);
-    GET_CONFIG(GLX_TRANSPARENT_RED_VALUE);
-    GET_CONFIG(GLX_TRANSPARENT_GREEN_VALUE);
-    GET_CONFIG(GLX_TRANSPARENT_BLUE_VALUE);
-    GET_CONFIG(GLX_TRANSPARENT_ALPHA_VALUE);
-
-    if (attribs.get_value_or_default(GLX_TRANSPARENT_INDEX_VALUE) || attribs.get_value_or_default(GLX_TRANSPARENT_RED_VALUE) ||
-        attribs.get_value_or_default(GLX_TRANSPARENT_GREEN_VALUE) || attribs.get_value_or_default(GLX_TRANSPARENT_BLUE_VALUE) ||
-        attribs.get_value_or_default(GLX_TRANSPARENT_ALPHA_VALUE))
-    {
-        GET_CONFIG(GLX_TRANSPARENT_TYPE);
-    }
-#undef GET_CONFIG
-
-#if 0
-	for (uint i = 0; i < attribs.size(); i += 2)
-	{
-		if (!attribs[i])
-			break;
-		printf("%s 0x%x\n", get_gl_enums().find_glx_name(attribs[i]), attribs[i + 1]);
-	}
 #endif
-
-    int num_configs = 0;
-    GLXFBConfig *pConfigs = GL_ENTRYPOINT(glXChooseFBConfig)(dpy, vis->screen, attribs.get_ptr(), &num_configs);
-    return num_configs ? pConfigs : NULL;
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 #define DEF_FUNCTION_CUSTOM_HANDLER_glXCreateContext(exported, category, ret, ret_type_enum, num_params, name, args, params)
@@ -5415,16 +5543,22 @@ static GLXContext vogl_glXCreateContext(const Display *dpy, const XVisualInfo *v
     {
         vogl_warning_printf("%s: Can't enable debug contexts via glXCreateContext(), forcing call to use glXCreateContextsAttribsARB() instead\n", VOGL_FUNCTION_NAME);
 
-        GLXFBConfig *pConfig = vogl_get_fb_config_from_xvisual_info(dpy, vis);
-        if (!pConfig)
-        {
-            vogl_error_printf("%s: Can't enable debug contexts: Unable to find the FB config that matches the passed in XVisualInfo!\n", VOGL_FUNCTION_NAME);
-        }
-        else
-        {
-            int empty_attrib_list[1] = { 0 };
-            return vogl_glXCreateContextAttribsARB(dpy, pConfig[0], shareList, direct, empty_attrib_list);
-        }
+        #if (VOGL_PLATFORM_HAS_GLX)
+            GLXFBConfig *pConfig = vogl_get_fb_config_from_xvisual_info(dpy, vis);
+            if (!pConfig)
+            {
+                vogl_error_printf("%s: Can't enable debug contexts: Unable to find the FB config that matches the passed in XVisualInfo!\n", VOGL_FUNCTION_NAME);
+            }
+            else
+            {
+                int empty_attrib_list[1] = { 0 };
+                return vogl_glXCreateContextAttribsARB(dpy, pConfig[0], shareList, direct, empty_attrib_list);
+            }
+        #elif (VOGL_PLATFORM_HAS_WGL)
+            VOGL_VERIFY(!"impl vogl_glXCreateContext vogl_force_debug_context on Windows.");
+        #else
+            #error "impl vogl_glXCreateContext vogl_force_debug_context on this platform."
+        #endif
     }
 
     uint64_t gl_begin_rdtsc = utils::RDTSC();
@@ -7653,36 +7787,40 @@ static inline void vogl_check_for_client_side_array_usage(vogl_context *pContext
 #define DEF_FUNCTION_CUSTOM_GL_EPILOG_glXUseXFont(e, c, rt, r, nu, ne, a, p) vogl_glx_use_xfont_epilog_helper(pContext, trace_serializer, font, first, count, list_base);
 static void vogl_glx_use_xfont_epilog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, Font font, int first, int count, int list_base)
 {
-    if (!pContext)
-        return;
+    #if (VOGL_PLATFORM_HAS_GLX)
+        if (!pContext)
+            return;
 
-    if (pContext->peek_and_record_gl_error())
-        return;
+        if (pContext->peek_and_record_gl_error())
+            return;
 
-    char *pFont = NULL;
+        char *pFont = NULL;
 
-    if (pContext->get_display())
-    {
-        XFontStruct *pFont_struct = XQueryFont((Display *)pContext->get_display(), font);
-
-        if (pFont_struct)
+        if (pContext->get_display())
         {
-            unsigned long value = 0;
-            Bool result = XGetFontProperty(pFont_struct, XA_FONT, &value);
-            if (result)
+            XFontStruct *pFont_struct = XQueryFont((Display *)pContext->get_display(), font);
+
+            if (pFont_struct)
             {
-                pFont = (char *)XGetAtomName((Display *)pContext->get_display(), (Atom)value);
-                if ((pFont) && (trace_serializer.is_in_begin()))
+                unsigned long value = 0;
+                Bool result = XGetFontProperty(pFont_struct, XA_FONT, &value);
+                if (result)
                 {
-                    trace_serializer.add_key_value("font_name", pFont);
+                    pFont = (char *)XGetAtomName((Display *)pContext->get_display(), (Atom)value);
+                    if ((pFont) && (trace_serializer.is_in_begin()))
+                    {
+                        trace_serializer.add_key_value("font_name", pFont);
+                    }
                 }
             }
+
+            XFreeFontInfo(NULL, pFont_struct, 1);
         }
 
-        XFreeFontInfo(NULL, pFont_struct, 1);
-    }
-
-    pContext->glx_font(pFont, first, count, list_base);
+        pContext->glx_font(pFont, first, count, list_base);
+    #else
+        VOGL_VERIFY(!"Somehow got into vogl_glx_use_xfont_epilog_helper on a platform that doesn't have GLX, which is very surprising.");
+    #endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------

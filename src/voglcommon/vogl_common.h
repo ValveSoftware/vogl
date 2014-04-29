@@ -36,13 +36,18 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <assert.h>
-#include <dlfcn.h>
+
+#if PLATFORM_POSIX
+    #include <dlfcn.h>
+#endif
 
 #include <pthread.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xmd.h>
+#if PLATFORM_POSIX
+    #include <X11/Xlib.h>
+    #include <X11/Xutil.h>
+    #include <X11/Xmd.h>
+#endif
 
 #include "gl_types.h"
 
@@ -53,7 +58,11 @@
 
 using namespace vogl;
 
-#define VOGL_API_EXPORT extern "C" __attribute__((visibility("default")))
+#if defined(COMPILER_GCCLIKE)
+    #define VOGL_API_EXPORT extern "C" __attribute__((visibility("default")))
+#else
+    #define VOGL_API_EXPORT extern "C" __declspec(dllexport)
+#endif
 
 // DO NOT leave this enabled when you check in!
 #ifndef VOGL_FUNCTION_TRACING
@@ -89,10 +98,10 @@ public:
 };
 
 #define VOGL_FUNC_TRACER                                                                          \
-    vogl_scoped_func_tracer VOGL_JOIN(func_tracer, __COUNTER__)(__PRETTY_FUNCTION__, __LINE__); \
-    tmZone(TELEMETRY_LEVEL1, TMZF_NONE, "%s", __PRETTY_FUNCTION__);
+    vogl_scoped_func_tracer VOGL_JOIN(func_tracer, __COUNTER__)(VOGL_METHOD_NAME, __LINE__); \
+    tmZone(TELEMETRY_LEVEL1, TMZF_NONE, "%s", VOGL_METHOD_NAME);
 #else
-#define VOGL_FUNC_TRACER tmZone(TELEMETRY_LEVEL1, TMZF_NONE, "%s", __PRETTY_FUNCTION__);
+#define VOGL_FUNC_TRACER tmZone(TELEMETRY_LEVEL1, TMZF_NONE, "%s", VOGL_METHOD_NAME);
 #endif
 
 #define VOGL_NAMESPACES_HEADER

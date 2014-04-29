@@ -24,13 +24,13 @@
  **************************************************************************/
 
 // File: vogl_context_info.h
-#ifndef VOGL_CONTEXT_INFO_H
-#define VOGL_CONTEXT_INFO_H
+#pragma once
 
 #include "vogl_common.h"
 #include "vogl_dynamic_string.h"
 
 #include "vogl_json.h"
+#include "vogl_blob_manager.h"
 
 enum vogl_gl_version_t
 {
@@ -424,5 +424,3 @@ private:
     void init_context_limits();
     void determine_core_extensions();
 };
-
-#endif // VOGL_CONTEXT_INFO_H

@@ -597,7 +597,9 @@ sopno lev; /* PLUS nesting level */
             if (m->pmatch[i].rm_eo == -1)
                 return (NULL);
             assert(m->pmatch[i].rm_so != -1);
-            len = m->pmatch[i].rm_eo - m->pmatch[i].rm_so;
+            // Storing in a smaller type
+            assert(m->pmatch[i].rm_eo - m->pmatch[i].rm_so < UINT_MAX);
+            len = (size_t)(m->pmatch[i].rm_eo - m->pmatch[i].rm_so);
             assert(stop - m->beginp >= len);
             if (sp > stop - len)
                 return (NULL); /* not enough left to match */

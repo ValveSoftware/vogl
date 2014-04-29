@@ -22,10 +22,8 @@
  * THE SOFTWARE.
  *
  **************************************************************************/
-
 // File: vogl_ctypes.h
-#ifndef VOGL_CTYPES_H
-#define VOGL_CTYPES_H
+#pragma once
 
 //----------------------------------------------------------------------------------------------------------------------
 // typedefs/helpers
@@ -201,5 +199,3 @@ inline vogl_ctypes &get_vogl_process_gl_ctypes()
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_dump_gl_ctypes();
 void vogl_init_gl_ctypes();
-
-#endif // VOGL_CTYPES_H
