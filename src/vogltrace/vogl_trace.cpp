@@ -247,5 +247,13 @@ static void vogl_shared_object_constructor_func()
 
 __attribute__((destructor)) static void vogl_shared_object_destructor_func()
 {
-    vogl_deinit();
+    if (vogl_is_capturing())
+    {
+        // This shouldn't ever happen hopefully. Ie, our atexit() handler or exit() hooks should call vogl_deinit()
+        //  well before this destructor is called.
+        vogl_warning_printf_once("ERROR: %s called with open trace file. Somehow vogl_deinit() hasn't been called?", VOGL_FUNCTION_NAME);
+
+        // Try to do vogl_deinit().
+        vogl_deinit();
+    }
 }
