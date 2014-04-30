@@ -302,7 +302,7 @@ public:
     bool init_file(uint32 flags, const char *pFilename, uint64_t file_start_ofs = 0, uint64_t actual_archive_size = 0);
 
     // Same as init_file(), but creates a temporary archive. It's up to you to delete the archive.
-    bool init_file_temp(uint32 flags, const char *pPath);
+    bool init_file_temp(uint32 flags);
 
     bool init_cfile(uint32 flags, FILE *pFile, uint64_t cur_size);
 

@@ -25,175 +25,20 @@
  **************************************************************************/
 
 // File: vogl_rand.cpp
-// See:
-// http://www.ciphersbyritter.com/NEWS4/RANDC.HTM
-// http://burtleburtle.net/bob/rand/smallprng.html
-// http://www.cs.ucl.ac.uk/staff/d.jones/GoodPracticeRNG.pdf
-// See GPG7, page 120, or http://www.lomont.org/Math/Papers/2008/Lomont_PRNG_2008.pdf
-// I've tested random::urand32() using the CISC test suite here: http://www.csis.hku.hk/cisc/download/idetect/
 #include "vogl_core.h"
 #include "vogl_rand.h"
-#include "vogl_hash.h"
-#include "vogl_md5.h"
 #include "vogl_bigint128.h"
 #include "vogl_port.h"
 
 #include "vogl_image_utils.h"
 
-// TODO: Linux specific, needed by the seed_from_urand() method
-#if defined(PLATFORM_LINUX)
-	#include <unistd.h>
-	#include <sys/syscall.h>
-#endif
-
-#define znew (z = 36969 * (z & 65535) + (z >> 16))
-#define wnew (w = 18000 * (w & 65535) + (w >> 16))
-#define MWC ((znew << 16) + wnew)
-#define FIB ((b = a + b), (a = b - a))
-#define KISS ((MWC ^ VOGL_CONG) + VOGL_SHR3)
-#define LFIB4 (c++, t[c] = t[c] + t[UC(c + 58)] + t[UC(c + 119)] + t[UC(c + 178)])
-#define SWB (c++, bro = (x < y), t[c] = (x = t[UC(c + 34)]) - (y = t[UC(c + 19)] + bro))
-#define UNI (KISS * 2.328306e-10)
-#define VNI ((long)KISS) * 4.656613e-10
-#define UC (unsigned char) /*a cast operation*/
-
-//#define ROTL(x,k) (((x)<<(k))|((x)>>(32-(k))))
-#define ROTL(x, k) VOGL_ROTATE_LEFT(x, k)
-
 namespace vogl
 {
     static const double cNorm32 = 1.0 / (double)0x100000000ULL;
 
-    kiss99::kiss99()
-    {
-        x = 123456789;
-        y = 362436000;
-        z = 521288629;
-        c = 7654321;
-    }
-
-    void kiss99::seed(uint32 i, uint32 j, uint32 k)
-    {
-        x = i;
-        y = j;
-        z = k;
-        c = 7654321;
-    }
-
-    inline uint32 kiss99::next()
-    {
-        x = 69069 * x + 12345;
-
-        y ^= (y << 13);
-        y ^= (y >> 17);
-        y ^= (y << 5);
-
-        uint64_t t = c;
-        t += (698769069ULL * z);
-        c = static_cast<uint32>(t >> 32);
-        z = static_cast<uint32>(t);
-
-        return (x + y + z);
-    }
-
-    inline uint32 ranctx::next()
-    {
-        uint32 e = a - ROTL(b, 27);
-        a = b ^ ROTL(c, 17);
-        b = c + d;
-        c = d + e;
-        d = e + a;
-        return d;
-    }
-
-    void ranctx::seed(uint32 seed)
-    {
-        a = 0xf1ea5eed, b = c = d = seed;
-        for (uint32 i = 0; i < 20; ++i)
-            next();
-    }
-
-    well512::well512()
-    {
-        seed(0xDEADBE3F);
-    }
-
-    void well512::seed(uint32 seed[well512::cStateSize])
-    {
-        memcpy(m_state, seed, sizeof(m_state));
-        m_index = 0;
-    }
-
-    void well512::seed(uint32 seed)
-    {
-        uint32 jsr = utils::swap32(seed) ^ 0xAAC29377;
-
-        for (uint i = 0; i < cStateSize; i++)
-        {
-            VOGL_SHR3;
-            seed = bitmix32c(seed);
-
-            m_state[i] = seed ^ jsr;
-        }
-        m_index = 0;
-    }
-
-    void well512::seed(uint32 seed1, uint32 seed2, uint32 seed3)
-    {
-        uint32 jsr = seed2;
-        uint32 jcong = seed3;
-
-        for (uint i = 0; i < cStateSize; i++)
-        {
-            VOGL_SHR3;
-            seed1 = bitmix32c(seed1);
-            VOGL_CONG;
-
-            m_state[i] = seed1 ^ jsr ^ jcong;
-        }
-        m_index = 0;
-    }
-
-    void well512::seed(uint32 seed1, uint32 seed2, uint32 seed3, uint seed4)
-    {
-        uint32 jsr = seed2;
-        uint32 jcong = seed3;
-
-        m_state[0] = seed1;
-        m_state[1] = seed2;
-        m_state[2] = seed3;
-        m_state[3] = seed4;
-
-        for (uint i = 4; i < cStateSize; i++)
-        {
-            VOGL_SHR3;
-            VOGL_CONG;
-
-            m_state[i] = jsr ^ jcong ^ m_state[(i - 4) & (cStateSize - 1)];
-        }
-
-        m_index = 0;
-    }
-
-    inline uint32 well512::next()
-    {
-        uint32 a, b, c, d;
-        a = m_state[m_index];
-        c = m_state[(m_index + 13) & 15];
-        b = a ^ c ^ (a << 16) ^ (c << 15);
-        c = m_state[(m_index + 9) & 15];
-        c ^= (c >> 11);
-        a = m_state[m_index] = b ^ c;
-        d = a ^ ((a << 5) & 0xDA442D20UL);
-        m_index = (m_index + 15) & 15;
-        a = m_state[m_index];
-        m_state[m_index] = a ^ b ^ d ^ (a << 2) ^ (b << 18) ^ (c << 28);
-        return m_state[m_index];
-    }
-
     random::random()
     {
-        seed(12345, 65435, 34221);
+        seed(12345);
     }
 
     random::random(uint32 i)
@@ -203,72 +48,17 @@ namespace vogl
 
     void random::seed()
     {
-        seed(12345, 65435, 34221);
-    }
-
-    void random::seed(uint32 i1, uint32 i2, uint32 i3)
-    {
-        m_ranctx.seed(i1 ^ i2 ^ i3);
-
-        m_kiss99.seed(i1, i2, i3);
-
-        m_well512.seed(i1, i2, i3);
-
-        m_pdes.seed((static_cast<uint64_t>(i1) | (static_cast<uint64_t>(i2) << 32U)) ^ (static_cast<uint64_t>(i3) << 10));
-
-        const uint warming_iters = 16;
-        for (uint i = 0; i < warming_iters; i++)
-            urand32();
-    }
-
-    void random::seed(uint32 i1, uint32 i2, uint32 i3, uint i4)
-    {
-        m_ranctx.seed(i1 ^ i2 ^ i3);
-
-        m_kiss99.seed(i1, i2, i4);
-
-        m_well512.seed(i1, i2, i3, i4);
-
-        m_pdes.seed((static_cast<uint64_t>(i1) | (static_cast<uint64_t>(i4) << 32U)) ^ (static_cast<uint64_t>(i3) << 10));
-
-        const uint warming_iters = 16;
-        for (uint i = 0; i < warming_iters; i++)
-            urand32();
-    }
-
-    void random::seed(const md5_hash &h)
-    {
-        seed(h[0], h[1], h[2], h[3]);
+        seed(plat_rand());
     }
 
     void random::seed(uint32 i)
     {
-        md5_hash h(md5_hash_gen(&i, sizeof(i)).finalize());
-        seed(h[0], h[1], h[2], h[3]);
-    }
-
-    void random::seed_from_urandom()
-    {
-        const uint N = 4;
-        uint32 buf[N] = { 0xABCDEF, 0x12345678, 0xFFFECABC, 0xABCDDEF0 };
-        plat_rand_s(buf, VOGL_ARRAY_SIZE(buf));
-
-        // Hash thread, process ID's, etc. for good measure, or in case the call failed, or to make this easier to port. (we can just leave out the /dev/urandom read)
-        pid_t tid = plat_gettid(); 
-        pid_t pid = plat_getpid();
-        pid_t ppid = plat_getppid();
-
-        buf[0] ^= static_cast<uint32>(time(NULL));
-        buf[1] ^= static_cast<uint32>(utils::RDTSC()) ^ static_cast<uint32>(ppid);
-        buf[2] ^= static_cast<uint32>(tid);
-        buf[3] ^= static_cast<uint32>(pid);
-
-        seed(buf[0], buf[1], buf[2], buf[3]);
+        m_frand.seed(i);
     }
 
     uint32 random::urand32()
     {
-        return m_kiss99.next() ^ m_ranctx.next() ^ m_well512.next() ^ m_pdes.next32();
+        return m_frand.urand32();
     }
 
     uint64_t random::urand64()
@@ -277,11 +67,6 @@ namespace vogl
         result <<= 32ULL;
         result |= urand32();
         return result;
-    }
-
-    uint32 random::fast_urand32()
-    {
-        return m_well512.next();
     }
 
     uint32 random::get_bit()
@@ -496,146 +281,6 @@ namespace vogl
 
         /*  Return ratio of P's coordinates as the normal deviate */
         return (mean + stddev * v / u);
-    }
-
-    thread_safe_random::thread_safe_random()
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        m_rm.seed();
-    }
-
-    thread_safe_random::thread_safe_random(uint32 i)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        m_rm.seed(i);
-    }
-
-    void thread_safe_random::seed()
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        m_rm.seed();
-    }
-
-    void thread_safe_random::seed(uint32 i)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        m_rm.seed(i);
-    }
-
-    void thread_safe_random::seed(uint32 i1, uint32 i2, uint32 i3)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        m_rm.seed(i1, i2, i3);
-    }
-
-    void thread_safe_random::seed(uint32 i1, uint32 i2, uint32 i3, uint32 i4)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        m_rm.seed(i1, i2, i3, i4);
-    }
-
-    void thread_safe_random::seed(const md5_hash &h)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        m_rm.seed(h);
-    }
-
-    void thread_safe_random::seed_from_urandom()
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        m_rm.seed_from_urandom();
-    }
-
-    uint8 thread_safe_random::urand8()
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.urand8();
-    }
-
-    uint16 thread_safe_random::urand16()
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.urand16();
-    }
-
-    uint32 thread_safe_random::urand32()
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.urand32();
-    }
-
-    uint64_t thread_safe_random::urand64()
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.urand64();
-    }
-
-    uint32 thread_safe_random::fast_urand32()
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.fast_urand32();
-    }
-
-    uint32 thread_safe_random::get_bit()
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.get_bit();
-    }
-
-    double thread_safe_random::drand(double l, double h)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.drand(l, h);
-    }
-
-    float thread_safe_random::frand(float l, float h)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.frand(l, h);
-    }
-
-    int thread_safe_random::irand(int l, int h)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.irand(l, h);
-    }
-
-    int thread_safe_random::irand_inclusive(int l, int h)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.irand_inclusive(l, h);
-    }
-
-    uint thread_safe_random::urand(uint l, uint h)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.urand(l, h);
-    }
-
-    uint thread_safe_random::urand_inclusive(uint l, uint h)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.urand_inclusive(l, h);
-    }
-
-    // Returns random 64-bit unsigned int between [l, h)
-    uint64_t thread_safe_random::urand64(uint64_t l, uint64_t h)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.urand64(l, h);
-    }
-
-    // Returns random 64-bit unsigned int between [l, h]
-    uint64_t thread_safe_random::urand64_inclusive(uint64_t l, uint64_t h)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.urand64_inclusive(l, h);
-    }
-
-    double thread_safe_random::gaussian(double mean, double stddev)
-    {
-        scoped_spinlock scoped_lock(m_spinlock);
-        return m_rm.gaussian(mean, stddev);
     }
 
     int fast_random::irand(int l, int h)

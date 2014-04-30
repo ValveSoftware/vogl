@@ -45,8 +45,11 @@ namespace vogl
 
     bool introsort_test()
     {
+        random rnd;
         vogl::vector<int> x;
         vogl::vector<int> y;
+
+        rnd.seed(1000);
 
         double std_sort_total_time = 0;
         double introsort_total_time = 0;
@@ -61,18 +64,18 @@ namespace vogl
 
         for (uint t = 0; t < 1000; t++)
         {
-            uint n = get_random().irand_inclusive(0, 100000);
+            uint n = rnd.irand_inclusive(0, 100000);
 
             x.resize(n);
 
-            uint k = static_cast<uint>((1ULL << get_random().irand_inclusive(0, 31)) - 1UL);
+            uint k = static_cast<uint>((1ULL << rnd.irand_inclusive(0, 31)) - 1UL);
             for (uint i = 0; i < n; i++)
-                x[i] = get_random().irand_inclusive(0, k);
+                x[i] = rnd.irand_inclusive(0, k);
 
-            if (get_random().irand(0, 30) == 0)
+            if (rnd.irand(0, 30) == 0)
             {
                 x.sort();
-                if (get_random().get_bit())
+                if (rnd.get_bit())
                     x.reverse();
             }
 

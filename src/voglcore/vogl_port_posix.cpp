@@ -32,9 +32,9 @@
 
 #include "vogl_port.h"
 #include <dlfcn.h>
-#include <unistd.h>
 #include <sys/mman.h>
 #include <sys/syscall.h>
+#include <paths.h>
 
 int plat_chdir(const char* path)
 {
@@ -44,6 +44,44 @@ int plat_chdir(const char* path)
 char* plat_getcwd(char *buffer, int maxlen)
 {
     return getcwd(buffer, maxlen);
+}
+
+const char* plat_gettmpdir()
+{
+    static char s_tmpdir[PATH_MAX];
+
+    if (!s_tmpdir[0])
+    {
+        const char *tmpdir = getenv("TMPDIR");
+
+        if (!tmpdir)
+        {
+            tmpdir = P_tmpdir;
+            if (!tmpdir)
+                tmpdir = _PATH_TMP;
+        }
+
+        strncpy(s_tmpdir, tmpdir, sizeof(s_tmpdir));
+        s_tmpdir[sizeof(s_tmpdir) - 1] = 0;
+
+        // Remove trailing slash.
+        size_t slen = strlen(s_tmpdir);
+        if ((slen > 0) && (s_tmpdir[slen - 1] == '/'))
+            s_tmpdir[--slen] = 0;
+    }
+
+    return s_tmpdir;
+}
+
+char* plat_gettmpfname(char *buffer, int maxlen, const char *prefix)
+{
+    const char *tmpdir = plat_gettmpdir();
+    vogl::uint32 rnd32 = plat_rand();
+    unsigned int time32 = time(NULL);
+
+    snprintf(buffer, maxlen, "%s/_%s_%08x_%08x.tmp", tmpdir, prefix, time32, rnd32);
+    buffer[maxlen - 1] = 0;
+    return buffer;
 }
 
 // Tests for the existence of the specified path, returns true if it exists and false otherwise.
@@ -75,15 +113,19 @@ pid_t plat_getppid()
 
 size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length)
 {
-    size_t read_uint32s = 0;
-    FILE *fp = vogl_fopen("/dev/urandom", "rb");
-    if (fp)
-    {
-        read_uint32s = fread(out_array, sizeof(vogl::uint32), out_array_length, fp);
-        vogl_fclose(fp);
-    }
+    static __thread unsigned int s_seed = time(NULL);
 
-    return read_uint32s;
+    for (size_t i = 0; i < out_array_length; ++i)
+        out_array[i] = rand_r(&s_seed);
+
+    return out_array_length;
+}
+
+vogl::uint32 plat_rand()
+{
+    vogl::uint32 num;
+    plat_rand_s(&num, 1);
+    return num;
 }
 
 // Returns the size of a virtual page of memory.
