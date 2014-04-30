@@ -194,7 +194,7 @@ namespace vogl
 
         void clear();
 
-        void init(uint width, uint height, uint levels, uint faces, uint array_size, pixel_format fmt, const char *pName, orientation_flags_t orient_flags);
+        void init(uint width, uint height, uint depth, uint levels, uint faces, uint array_size, pixel_format fmt, const char *pName, orientation_flags_t orient_flags);
 
         // Assumes ownership.
         void assign(uint array_index, face_vec &faces);
@@ -238,18 +238,23 @@ namespace vogl
         {
             return m_height;
         }
+        inline uint get_depth() const
+        {
+            return m_depth;
+        }
         inline uint get_total_pixels() const
         {
             return m_width * m_height;
         }
         uint get_total_pixels_in_all_faces_and_mips() const;
 
+        inline uint get_array_size() const
+        {
+            return m_array_size;
+        }
         inline uint get_num_faces() const
         {
-            if (m_face_array.size() == 0)
-                return 0;
-
-            return m_face_array[0].size();
+            return m_faces;
         }
         inline uint get_num_levels() const
         {
@@ -300,6 +305,7 @@ namespace vogl
         bool has_alpha() const;
         bool is_normal_map() const;
         bool is_vertical_cross() const;
+        bool is_cubemap() const;
         bool is_packed() const;
         texture_type determine_texture_type() const;
 
@@ -407,6 +413,8 @@ namespace vogl
 
         uint m_width;
         uint m_height;
+        uint m_depth;
+        uint m_faces;
         uint m_array_size;
 
         pixel_format_helpers::component_flags m_comp_flags;
