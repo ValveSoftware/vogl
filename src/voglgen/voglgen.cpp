@@ -307,6 +307,15 @@ public:
         return -1;
     }
 
+    gl_function_def *find(const char *pName)
+    {
+        for (uint i = 0; i < m_funcs.size(); i++)
+            if (m_funcs[i].m_name.compare(pName, true) == 0)
+                return &m_funcs[i];
+
+        return NULL;
+    }
+
     const gl_function_def *find(const char *pName) const
     {
         for (uint i = 0; i < m_funcs.size(); i++)
@@ -2103,6 +2112,23 @@ public:
             }
         }
 
+        // Cleanup the DepthRange function. It uses parameters called 'near' and 'far', and this messes up windows 
+        // because they are defined to be empty. We fix it for all platforms.
+        gl_function_def* glDepthRange_func = m_gl_funcs.find("DepthRange");
+        if (glDepthRange_func != NULL) {
+            VOGL_VERIFY(glDepthRange_func->m_param_names.size() == 2);
+            if (glDepthRange_func->m_param_names[0] == "near") {
+                glDepthRange_func->m_param_names[0] = "_near";
+                glDepthRange_func->m_params[0].m_name = "_near";
+            }
+            
+            if (glDepthRange_func->m_param_names[1] == "far") {
+                glDepthRange_func->m_param_names[1] = "_far";
+                glDepthRange_func->m_params[1].m_name = "_far";
+            }
+        }
+        
+
         for (uint j = 0; j < m_glxext_funcs.size(); j++)
         {
             if (m_glxext_funcs[j].m_name.ends_with("SGIX"))
@@ -2667,11 +2693,14 @@ public:
         for (uint i = 0; i < custom_return_param_array_size_macros.size(); i++)
         {
             dynamic_string macro_name(custom_return_param_array_size_macros[i]);
-            int n = macro_name.find_left('(');
-            if (n >= 0)
-                macro_name.truncate(n);
+            int left_paren_pos = macro_name.find_left('(');
+            int right_paren_pos = macro_name.find_left(')');
+            if (left_paren_pos >= 0)
+                macro_name.truncate(left_paren_pos);
 
             int num_params = custom_return_param_array_size_macros[i].count_char(',') + 1;
+            if (right_paren_pos - left_paren_pos == 1) 
+                num_params = 0;
 
             dynamic_string params("(");
             for (int j = 0; j < num_params; j++)

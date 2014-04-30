@@ -18,3 +18,5 @@ src/vogleditor/ui_vogleditor*
 vogl_build/*
 voglinc/
 *~
+
+_out*/

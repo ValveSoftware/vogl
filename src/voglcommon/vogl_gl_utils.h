@@ -389,8 +389,8 @@ extern bool g_gl_get_error_enabled;
 
 // Returns *true* if there was an error.
 bool vogl_check_gl_error_internal(bool suppress_error_message = false, const char *pFile = "", uint line = 0, const char *pFunc = "");
-#define vogl_check_gl_error() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(false, __FILE__, __LINE__, __PRETTY_FUNCTION__) : false)
-#define vogl_check_gl_error_suppress_message() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(true, __FILE__, __LINE__, __PRETTY_FUNCTION__) : false)
+#define vogl_check_gl_error() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(false, __FILE__, __LINE__, VOGL_METHOD_NAME) : false)
+#define vogl_check_gl_error_suppress_message() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(true, __FILE__, __LINE__, VOGL_METHOD_NAME) : false)
 
 #define VOGL_CHECK_GL_ERROR                          \
     do                                               \
@@ -948,8 +948,12 @@ void vogl_enable_generic_context_debug_messages();
 typedef GLXContext vogl_gl_context;
 typedef Display *vogl_gl_display;
 typedef GLXFBConfig vogl_gl_fb_config;
-typedef GLXDrawable vogl_gl_drawable;
-
+#if VOGL_PLATFORM_HAS_GLX
+    typedef GLXDrawable vogl_gl_drawable;
+#else
+    // TODO
+    typedef int vogl_gl_drawable;
+#endif
 enum
 {
     eCHCDebugContextFlag = 1,

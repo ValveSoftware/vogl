@@ -31,6 +31,7 @@
 #endif
 
 #include "vogl_port.h"
+#include <dlfcn.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/syscall.h>
@@ -181,4 +182,8 @@ void plat_virtual_free(void* free_addr, size_t size)
     }
 #endif
 
+void* plat_dlsym(void* handle, const char* symbol)
+{
+    return dlsym(handle, symbol);
+}
 

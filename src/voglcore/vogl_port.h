@@ -69,3 +69,12 @@ void plat_virtual_free(void* free_addr, size_t size);
     int plat_sem_post(sem_t* sem, vogl::uint32 release_count);
     void plat_try_sem_post(sem_t* sem, vogl::uint32 release_count);
 #endif
+
+void* plat_dlsym(void* handle, const char* symbol);
+
+#if defined(PLATFORM_WINDOWS)
+    #define PLAT_RTLD_NEXT ((void*)0)
+#elif defined(PLATFORM_POSIX)
+    #define PLAT_RTLD_NEXT (RTLD_NEXT)
+#endif
+

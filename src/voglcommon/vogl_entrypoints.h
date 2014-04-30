@@ -32,6 +32,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 // define GL/GLX function pointer typedefs, i.e. glXGetProcAddress_func_ptr_t
 //----------------------------------------------------------------------------------------------------------------------
+
 #define DEF_PROTO(exported, category, ret, ret_type, num_params, name, args, params) typedef ret(*name##_func_ptr_t) args;
 #define DEF_PROTO_VOID(exported, category, ret, ret_type, num_params, name, args, params) typedef ret(*name##_func_ptr_t) args;
 #include "gl_glx_protos.inc"

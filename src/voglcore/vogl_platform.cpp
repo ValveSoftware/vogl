@@ -39,6 +39,8 @@ using namespace vogl;
 #pragma message("VOGL_ASSUME_DEBUGGER_IS_ALWAYS_PRESENT is enabled.")
 #endif
 
+#pragma message(__FILE__ " Warning: Slow string checking enabled")
+
 #ifdef VOGL_USE_WIN32_API
 #include "vogl_winhdr.h"
 #endif

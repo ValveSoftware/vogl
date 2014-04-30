@@ -107,9 +107,12 @@ endif()
 
 # Platform specific libary defines.
 if (WIN32)
-	set( LIBRT "" )
+    set( LIBRT "" )
+    set( LIBDL "" )
+
 elseif (UNIX)
-	set( LIBRT rt )
+    set( LIBRT rt )
+    set( LIBDL dl )
 else()
     message(FATAL_ERROR "Need to determine what the library name for 'rt' is for non-windows, non-unix platforms (or if it's even needed).")
 endif()
@@ -125,6 +128,7 @@ add_library(${PROJECT_NAME} ${SRC_LIST})
 target_link_libraries(${PROJECT_NAME}
     ${CMAKE_THREAD_LIBS_INIT}
     ${LIBRT}
+    ${LIBDL}
     ${LZMA_LIBRARIES}
     ${LZMADEC_LIBRARIES}
 )
