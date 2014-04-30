@@ -154,6 +154,12 @@ static uint g_custom_array_size_macro_indices[] =
 #include "gl_glx_array_size_macro_func_param_indices.inc"
     };
 
+// This function casues the compiler to run for "awhile" on MSVC and GCC. We should move it to its own file and 
+// then disable optimization for that file from the build script. In the short term, I just disable optimization
+// on MSVC.
+#if defined(COMPILER_MSVC)
+    #pragma optimize("", off)
+#endif
 //----------------------------------------------------------------------------------------------------------------------
 // Function vogl_init_gl_entrypoint_descs
 //----------------------------------------------------------------------------------------------------------------------
@@ -291,6 +297,10 @@ void vogl_init_gl_entrypoint_descs()
         get_vogl_entrypoint_hashmap().insert(g_vogl_entrypoint_descs[i].m_pName, static_cast<gl_entrypoint_id_t>(i));
     }
 }
+#if defined(COMPILER_MSVC)
+    #pragma optimize("", on)
+#endif
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // Function vogl_find_entrypoint

@@ -375,7 +375,7 @@ function(require_libjpegturbo)
             set(BITS_STRING "x86")
         endif()
         set(LibJpegTurbo_INCLUDE "${CMAKE_PREFIX_PATH}/libjpeg-turbo-2.1.3/include" PARENT_SCOPE)
-        set(LibJpegTurbo_LIBRARY "${CMAKE_PREFIX_PATH}/libjpeg-turbo-2.1.3/lib_${BITS_STRING}/turbojpeg-static.lib" PARENT_SCOPE)
+        set(LibJpegTurbo_LIBRARY "${CMAKE_PREFIX_PATH}/libjpeg-turbo-2.1.3/lib_${BITS_STRING}/turbojpeg.lib" PARENT_SCOPE)
     endif()
 endfunction()
 
