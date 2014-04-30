@@ -422,8 +422,6 @@ static int run_tests(int argc, char *argv[])
     VOGL_NOTE_UNUSED(argc);
     VOGL_NOTE_UNUSED(argv);
 
-    get_random().seed(12345);
-
     uint num_failures = 0;
 
     print_sep();

@@ -27,6 +27,7 @@
 #ifndef VOGL_TRACE_STREAM_TYPES_H
 #define VOGL_TRACE_STREAM_TYPES_H
 #include "vogl_miniz.h"
+#include "vogl_port.h"
 
 #define VOGL_TRACE_FILE_VERSION 0x0106
 #define VOGL_TRACE_FILE_MINIMUM_COMPATIBLE_VERSION 0x0106
@@ -76,10 +77,10 @@ struct vogl_trace_stream_packet_base
         m_rnd = cMinimumPossibleRnd;
     }
 
-    // Sets the rnd field using get_thread_safe_random()
+    // Sets the rnd field using get_random()
     inline void init_rnd()
     {
-        uint32 rnd16 = static_cast<uint16>(get_thread_safe_random().urand32());
+        uint32 rnd16 = static_cast<uint16>(plat_rand());
         m_rnd = static_cast<uint16>(math::maximum<uint>(vogl_trace_stream_packet_base::cMinimumPossibleRnd, rnd16));
         VOGL_ASSERT(m_rnd);
     }

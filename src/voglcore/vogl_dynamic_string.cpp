@@ -1195,6 +1195,10 @@ namespace vogl
 
     bool dynamic_string_test()
     {
+        random rnd;
+
+        rnd.seed();
+
 #define CHECK(x) \
     if (!(x))    \
         return false;
@@ -1277,7 +1281,7 @@ namespace vogl
             vogl::vector<uint64_t> y(N);
             for (uint i = 0; i < N; i++)
             {
-                uint64_t r = get_random().urand64();
+                uint64_t r = rnd.urand64();
                 x[i].format("%" PRIu64, r);
                 CHECK(string_to_uint64(x[i].get_ptr()) == r);
                 y[i] = r;
@@ -1285,8 +1289,8 @@ namespace vogl
 
             for (uint i = 0; i < 100000; i++)
             {
-                uint k = get_random().irand(0, N);
-                uint l = get_random().irand(0, N);
+                uint k = rnd.irand(0, N);
+                uint l = rnd.irand(0, N);
                 CHECK(string_to_uint64(x[k].get_ptr()) == y[k]);
                 CHECK(string_to_uint64(x[l].get_ptr()) == y[l]);
 
@@ -1329,40 +1333,40 @@ namespace vogl
             vogl::vector<char> y;
             for (uint t = 0; t < 10000000; t++)
             {
-                if (get_random().irand(0, 1000) == 0)
+                if (rnd.irand(0, 1000) == 0)
                 {
                     x.clear();
                     y.clear();
                 }
 
-                if (get_random().irand(0, 100) == 0)
+                if (rnd.irand(0, 100) == 0)
                     x.optimize();
-                else if (get_random().irand(0, 100) == 0)
+                else if (rnd.irand(0, 100) == 0)
                     x.ensure_dynamic();
-                else if (get_random().irand(0, 10000) == 0)
+                else if (rnd.irand(0, 10000) == 0)
                     x = dynamic_string(x);
-                else if (get_random().irand(0, 4000) == 0)
+                else if (rnd.irand(0, 4000) == 0)
                 {
                     dynamic_string xx;
                     xx.set(x.get_ptr());
                     xx.swap(x);
                 }
-                else if (get_random().irand(0, 4000) == 0)
+                else if (rnd.irand(0, 4000) == 0)
                 {
                     dynamic_string xx;
                     xx.set(x.get_ptr());
                     x = xx;
                 }
-                else if (get_random().irand(0, 4000) == 0)
+                else if (rnd.irand(0, 4000) == 0)
                 {
                     x.truncate(0);
                     uint pos = 0;
                     uint left = y.size();
                     while (left)
                     {
-                        uint n = get_random().irand_inclusive(1, left);
+                        uint n = rnd.irand_inclusive(1, left);
 
-                        if ((n == 1) && (get_random().get_bit()))
+                        if ((n == 1) && (rnd.get_bit()))
                             x.append_char(y[pos]);
                         else
                         {
@@ -1377,7 +1381,7 @@ namespace vogl
                     }
                 }
 
-                if (get_random().irand(0, 1000) == 0)
+                if (rnd.irand(0, 1000) == 0)
                 {
                     x.append(x);
                     y.append(vogl::vector<char>(y));
@@ -1389,14 +1393,14 @@ namespace vogl
                     y.resize(y.size() / 2);
                 }
 
-                switch (get_random().irand(0, 6))
+                switch (rnd.irand(0, 6))
                 {
                     case 0:
                     {
-                        uint n = (uint)fabs(get_random().gaussian(10, 10));
+                        uint n = (uint)fabs(rnd.gaussian(10, 10));
                         for (uint i = 0; i < n; i++)
                         {
-                            int c = get_random().irand_inclusive(1, 255);
+                            int c = rnd.irand_inclusive(1, 255);
                             x.append_char(c);
                             y.push_back(c);
                         }
@@ -1406,11 +1410,11 @@ namespace vogl
                     {
                         if (x.get_len())
                         {
-                            uint p = get_random().irand(0, x.get_len());
-                            uint n = (uint)fabs(get_random().gaussian(10, 10));
+                            uint p = rnd.irand(0, x.get_len());
+                            uint n = (uint)fabs(rnd.gaussian(10, 10));
                             n = math::minimum(n, x.get_len() - p);
 
-                            if (get_random().get_bit())
+                            if (rnd.get_bit())
                                 x = dynamic_string(x).left(p) + dynamic_string(x).right(p + n);
                             else
                                 x.remove(p, n);
@@ -1422,8 +1426,8 @@ namespace vogl
                     }
                     case 2:
                     {
-                        int c = get_random().irand_inclusive(1, 255);
-                        uint p = get_random().irand_inclusive(0, x.get_len());
+                        int c = rnd.irand_inclusive(1, 255);
+                        uint p = rnd.irand_inclusive(0, x.get_len());
 
                         x = dynamic_string(x).left(p) + dynamic_string(cVarArg, "%c", c) + dynamic_string(x).right(p);
                         y.insert(p, c);
@@ -1434,7 +1438,7 @@ namespace vogl
                     {
                         if (x.size())
                         {
-                            if (get_random().get_bit())
+                            if (rnd.get_bit())
                                 x.shorten(1);
                             else
                                 x.truncate(x.get_len() - 1);
@@ -1444,7 +1448,7 @@ namespace vogl
                     }
                     case 4:
                     {
-                        char buf[3] = {(char)get_random().irand_inclusive(1, 255), get_random().get_bit() ? (char)get_random().irand(1, 255) : (char)0, 0 };
+                        char buf[3] = {(char)rnd.irand_inclusive(1, 255), rnd.get_bit() ? (char)rnd.irand(1, 255) : (char)0, 0 };
                         uint l = vogl_strlen(buf);
 
                         int p0 = x.find_left(buf, true);
@@ -1465,7 +1469,7 @@ namespace vogl
                     }
                     case 5:
                     {
-                        char buf[3] = {(char)get_random().irand_inclusive(1, 255), get_random().get_bit() ? (char)get_random().irand(1, 255) : (char)0, 0 };
+                        char buf[3] = {(char)rnd.irand_inclusive(1, 255), rnd.get_bit() ? (char)rnd.irand(1, 255) : (char)0, 0 };
                         uint l = vogl_strlen(buf);
 
                         int p0 = x.find_right(buf, true);
@@ -1503,12 +1507,12 @@ namespace vogl
             const uint N = 5;
             for (uint t = 0; t < N; t++)
             {
-                uint i = get_random().irand_inclusive(0, cMaxDynamicStringLen);
+                uint i = rnd.irand_inclusive(0, cMaxDynamicStringLen);
                 printf("Size: %u\n", i);
 
                 dynamic_string k;
 
-                int fill_char = get_random().irand_inclusive(1, 255);
+                int fill_char = rnd.irand_inclusive(1, 255);
                 CHECK(k.set_len(i, (char)fill_char));
 
                 CHECK(k.validate());
@@ -1533,8 +1537,8 @@ namespace vogl
 
         for (uint i = 0; i < 1000000; i++)
         {
-            uint k0 = get_random().irand(0, 20000);
-            uint k1 = get_random().irand(0, 20000);
+            uint k0 = rnd.irand(0, 20000);
+            uint k1 = rnd.irand(0, 20000);
 
             dynamic_string a0(cVarArg, "%u", k0);
             dynamic_string a1(cVarArg, "%u", k1);

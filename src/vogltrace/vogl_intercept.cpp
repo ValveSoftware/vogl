@@ -872,8 +872,6 @@ static void vogl_global_init()
 
     VOGL_FUNC_TRACER
 
-    get_thread_safe_random().seed_from_urandom();
-
     colorized_console::init();
 
     console::set_tool_prefix("(vogltrace) ");
