@@ -912,6 +912,12 @@ bool vogl_general_context_state::snapshot(const vogl_context_info &context_info)
                     continue;
             }
 
+            if (utils::is_in_set<GLenum>(enum_val, GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_CUBE_MAP))
+            {
+                if (static_cast<int>(texcoord_index) >= snapshot_context_info.m_max_texture_units)
+                    continue;
+            }
+
             if (can_snapshot_state(context_info, snapshot_context_info, get_desc_index))
                 snapshot_state(context_info, snapshot_context_info, get_desc_index, texcoord_index, false);
         }

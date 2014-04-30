@@ -54,7 +54,8 @@ bool vogl_texenv_state::snapshot(const vogl_context_info &context_info)
     if (vogl_check_gl_error())
         any_gl_errors = true;
 
-    for (uint texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
+    //for (uint texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
+    for (uint texcoord_index = 0; texcoord_index < context_info.get_max_texture_units(); texcoord_index++)
     {
         GL_ENTRYPOINT(glActiveTexture)(GL_TEXTURE0 + texcoord_index);
 
@@ -79,6 +80,7 @@ bool vogl_texenv_state::snapshot(const vogl_context_info &context_info)
             any_gl_errors = true;                                       \
         m_params[target].insert(pname, idx, values, sizeof(values[0])); \
     } while (0)
+
         GET_FLOAT(GL_TEXTURE_FILTER_CONTROL, texcoord_index, GL_TEXTURE_LOD_BIAS);
         GET_INT(GL_POINT_SPRITE, texcoord_index, GL_COORD_REPLACE);
         GET_INT(GL_TEXTURE_ENV, texcoord_index, GL_TEXTURE_ENV_MODE);
