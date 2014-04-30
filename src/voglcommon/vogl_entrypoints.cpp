@@ -84,7 +84,7 @@ void vogl_init_actual_gl_entrypoints(vogl_gl_get_proc_address_helper_func_ptr_t 
 
 #define DEF_PROTO_UNIVERSAL(category, ret, ret_type, num_params, name, args, params)                                                                          \
     {                                                                                                                                                         \
-        vogl_void_func_ptr_t pFunc = g_vogl_pGet_proc_address_helper_func((const GLubyte*)#name);                                                             \
+        vogl_void_func_ptr_t pFunc = g_vogl_pGet_proc_address_helper_func(#name);                                                                             \
         g_vogl_actual_gl_entrypoint_direct_func_ptrs[VOGL_ENTRYPOINT_##name] = pFunc;                                                                         \
         g_vogl_actual_gl_entrypoints.m_##name##_direct = reinterpret_cast<name##_func_ptr_t>(pFunc);                                                          \
         if (pFunc)                                                                                                                                            \

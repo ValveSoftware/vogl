@@ -74,4 +74,7 @@ void* plat_dlsym(void* handle, const char* symbol);
 
 #if defined(PLATFORM_WINDOWS)
     #define PLAT_RTLD_NEXT ((void*)0)
+#elif defined(PLATFORM_POSIX)
+    #define PLAT_RTLD_NEXT (RTLD_NEXT)
 #endif
+

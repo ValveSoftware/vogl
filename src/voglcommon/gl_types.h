@@ -24,6 +24,9 @@
  **************************************************************************/
 #pragma once
 
+
+#include "vogl_core.h"
+
 // Int type large enough to hold a pointer
 typedef intptr_t GLsizeiptr;
 typedef intptr_t GLintptr;

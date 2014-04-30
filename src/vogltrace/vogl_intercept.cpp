@@ -77,6 +77,8 @@
 
 #define VOGL_BACKTRACE_HASHMAP_CAPACITY 50000
 
+#define VOGL_LIBGL_SO_FILENAME "libGL.so.1"
+
 class vogl_context;
 class vogl_entrypoint_serializer;
 
@@ -93,10 +95,12 @@ static GLuint g_dummy_program;
 //----------------------------------------------------------------------------------------------------------------------
 // Forward declaration
 //----------------------------------------------------------------------------------------------------------------------
-static __GLXextFuncPtr vogl_get_proc_address_helper(const GLubyte *procName);
 static void vogl_glInternalTraceCommandRAD(GLuint cmd, GLuint size, const GLubyte *data);
 static void vogl_end_capture(bool inside_signal_handler = false);
 static void vogl_atexit();
+// TODO: Move this declaration into a header that we share with the location the code actually exists.
+vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pName);
+
 
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -611,7 +615,7 @@ static void vogl_dump_statistics()
 //----------------------------------------------------------------------------------------------------------------------
 // Initialization
 //----------------------------------------------------------------------------------------------------------------------
-static void vogl_init()
+void vogl_init()
 {
     // Cannot telemetry this function, too early.
     g_vogl_initializing_flag = true;
@@ -685,7 +689,7 @@ static void vogl_init()
 
     vogl_common_lib_early_init();
 
-    vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
+    vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper_return_actual);
 
     vogl_early_init();
 
@@ -4012,7 +4016,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
 //----------------------------------------------------------------------------------------------------------------------
 // gl/glx override functions
 //----------------------------------------------------------------------------------------------------------------------
-static __GLXextFuncPtr vogl_get_proc_address_helper(const GLubyte *procName)
+static __GLXextFuncPtr vogl_get_proc_address_helper_return_wrapper(const GLubyte *procName)
 {
     if (!procName)
         return NULL;
@@ -4132,7 +4136,7 @@ static __GLXextFuncPtr vogl_glXGetProcAddress(const GLubyte *procName)
     }
 
     uint64_t gl_begin_rdtsc = utils::RDTSC();
-    __GLXextFuncPtr ptr = vogl_get_proc_address_helper(procName);
+    __GLXextFuncPtr ptr = vogl_get_proc_address_helper_return_wrapper(procName);
     uint64_t gl_end_rdtsc = utils::RDTSC();
 
     if (get_vogl_trace_writer().is_opened())
@@ -4178,7 +4182,7 @@ static __GLXextFuncPtr vogl_glXGetProcAddressARB(const GLubyte *procName)
     }
 
     uint64_t gl_begin_rdtsc = utils::RDTSC();
-    __GLXextFuncPtr ptr = vogl_get_proc_address_helper(procName);
+    __GLXextFuncPtr ptr = vogl_get_proc_address_helper_return_wrapper(procName);
     uint64_t gl_end_rdtsc = utils::RDTSC();
 
     if (get_vogl_trace_writer().is_opened())

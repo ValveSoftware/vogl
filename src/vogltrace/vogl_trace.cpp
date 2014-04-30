@@ -49,8 +49,6 @@
 //  vogltest) but kill tracing in some real apps.
 //----------------------------------------------------------------------------------------------------------------------
 
-#define VOGL_LIBGL_SO_FILENAME "libGL.so.1"
-
 //----------------------------------------------------------------------------------------------------------------------
 // globals
 //----------------------------------------------------------------------------------------------------------------------
@@ -162,9 +160,9 @@ static void vogl_glInternalTraceCommandRAD_dummy_func(GLuint cmd, GLuint size, c
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_get_proc_address_helper
+// vogl_get_proc_address_helper_return_actual
 //----------------------------------------------------------------------------------------------------------------------
-static vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
+vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pName)
 {
     if (!strcmp(pName, "glInternalTraceCommandRAD"))
         return reinterpret_cast<vogl_void_func_ptr_t>(vogl_glInternalTraceCommandRAD_dummy_func);
