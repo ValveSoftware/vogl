@@ -31,7 +31,7 @@ make -j 10
 The binaries are placed in the vogl/vogl_build/bin directory.
 
 For debug builds, use "-DCMAKE_BUILD_TYPE=Debug"  
-For 32-bit builds, use "-DBUILD_X64=On"  
+For 32-bit builds, use "-DBUILD_X64=Off"  
 
 ## Capturing ##
 
