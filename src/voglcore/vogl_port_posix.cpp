@@ -32,9 +32,11 @@
 
 #include "vogl_port.h"
 #include <dlfcn.h>
+#include <fcntl.h>
+#include <paths.h>
 #include <sys/mman.h>
 #include <sys/syscall.h>
-#include <paths.h>
+#include <sys/time.h>
 
 int plat_chdir(const char* path)
 {
@@ -75,11 +77,16 @@ const char* plat_gettmpdir()
 
 char* plat_gettmpfname(char *buffer, int maxlen, const char *prefix)
 {
-    const char *tmpdir = plat_gettmpdir();
+    struct timeval cur_time;
     vogl::uint32 rnd32 = plat_rand();
-    unsigned int time32 = time(NULL);
+    const char *tmpdir = plat_gettmpdir();
 
-    snprintf(buffer, maxlen, "%s/_%s_%08x_%08x.tmp", tmpdir, prefix, time32, rnd32);
+    gettimeofday(&cur_time, NULL);
+
+    uint64_t time64 = cur_time.tv_sec * 1000000ULL + cur_time.tv_usec;
+
+    // Create a fileiname with THREADID & RAND32 & TIME64.
+    snprintf(buffer, maxlen, "%s/_%s_%x_%x_%" PRIx64 ".tmp", tmpdir, prefix, plat_gettid(), rnd32, time64);
     buffer[maxlen - 1] = 0;
     return buffer;
 }
@@ -89,7 +96,6 @@ bool plat_fexist(const char* path)
 {
     return access(path, F_OK) == 0;
 }
-
 
 pid_t plat_gettid()
 {
@@ -113,7 +119,27 @@ pid_t plat_getppid()
 
 size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length)
 {
-    static __thread unsigned int s_seed = time(NULL);
+    static __thread unsigned int s_seed = 0;
+
+    if (s_seed == 0)
+    {
+        // Try to seed rand_r() with /dev/urandom.
+        ssize_t nbytes = 0;
+        int fd = open("/dev/urandom", O_RDONLY);
+        if (fd != -1)
+        {
+            nbytes = read(fd, &s_seed, sizeof(s_seed));
+            close(fd);
+        }
+
+        // If that didn't work, fallback to time and thread id.
+        if (nbytes != sizeof(s_seed))
+        {
+            struct timeval time;
+            gettimeofday(&time, NULL);
+            s_seed = plat_gettid() ^ ((time.tv_sec * 1000) + (time.tv_usec / 1000));
+        }
+    }
 
     for (size_t i = 0; i < out_array_length; ++i)
         out_array[i] = rand_r(&s_seed);
