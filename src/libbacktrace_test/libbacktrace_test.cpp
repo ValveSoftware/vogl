@@ -86,7 +86,9 @@ int main(int argc, char *argv[])
 {
     VOGL_NOTE_UNUSED(argc);
     VOGL_NOTE_UNUSED(argv);
-  
+
+    vogl::vogl_init_heap();
+
     printf("libbacktrace_test: hello world!\n\n");
 
     foo_static();

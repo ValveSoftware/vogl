@@ -30,6 +30,7 @@ message("  -DCMAKE_VERBOSE='${CMAKE_VERBOSE}': Spew cmake project options. (On|O
 message("  -DBUILD_X64='${BUILD_X64}': Build 32 or 64-bit. (On|Off)")
 message("  -DWITH_ASAN='${WITH_ASAN}': Build with Address sanitizer. (On|Off)")
 message("  -DUSE_TELEMETRY='${USE_TELEMETRY}': Build with Telemetry. (On|Off)")
+message("  -DUSE_MALLOC='${USE_MALLOC}': Use system malloc (not STB Malloc). (On|Off)")
 message("")
 
 #

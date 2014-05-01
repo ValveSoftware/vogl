@@ -17,13 +17,10 @@ if (CMAKE_VERBOSE)
     SET(CMAKE_VERBOSE_MAKEFILE ON)
 endif()
 
-# http://clang.llvm.org/docs/AddressSanitizer.html
-# https://code.google.com/p/address-sanitizer/wiki/Flags#Turning_off_instrumentation
-# http://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=230762
+# With clang: http://clang.llvm.org/docs/AddressSanitizer.html
+# With gcc48: http://indico.cern.ch/getFile.py/access?contribId=1&resId=0&materialId=slides&confId=230762
 option(WITH_ASAN "Enable address sanitizer" OFF) # gcc4.8+, clang 3.1+
 
-#option(WITH_MSAN "Enable memory sanitizer" OFF)
-#option(WITH_TSAN "Enable thread sanitizer" OFF)
 option(WITH_HARDENING "Enable hardening: Compile-time protection against static sized buffer overflows" OFF)
 option(USE_TELEMETRY "Build with Telemetry" OFF)
 
@@ -67,6 +64,10 @@ else()
     set(CMAKE_CXX_FLAGS_LIST "-g -Wall -Wextra")
     set(CMAKE_CXX_FLAGS_RELEASE_LIST "-g -O2 -DNDEBUG")
     set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG")
+endif()
+
+if(USE_MALLOC)
+    set(CMAKE_CXX_FLAGS_LIST "-DVOGL_USE_STB_MALLOC=0")
 endif()
 
 set(CLANG_EVERYTHING 0)
@@ -235,42 +236,23 @@ else()
     endif()
 endif()
 
-## -fsanitize=address
-## -fsanitize=address-full
-## -fsanitize=integer
-## -fsanitize=thread
-## -fsanitize=undefined
-## -fsanitize=memory
-## -fsanitize-memory-track-origins
 if (WITH_ASAN)
-    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -fsanitize=address" )
+    # llvm-symbolizer must be on the path. So something like this:
+    #  path_prepend /home/mikesart/dev/voglproj/vogl_chroot/vogl_extbuild/i386/clang34_rev1/build/bin
+    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -fsanitize=address -fno-optimize-sibling-calls -DVOGL_USE_STB_MALLOC=0")
     set(CMAKE_EXE_LINK_FLAGS_LIST "${CMAKE_EXE_LINK_FLAGS_LIST} -fsanitize=address")
     set(CMAKE_SHARED_LINK_FLAGS_LIST "${CMAKE_SHARED_LINK_FLAGS_LIST} -fsanitize=address")
-    link_libraries(asan)
 endif()
 
-#if (WITH_MSAN)
-#    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -fpic -fsanitize-memory-track-origins -fsanitize=memory" )
-#    set(SANITIZER_LIBRARY "-lmsan -ldl")
-#endif()
-#message(STATUS "Msan is: ${WITH_MSAN} ${SANITIZER_LIBRARY}")
-#
-#if (WITH_TSAN)
-#    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -fpic -fsanitize=thread" )
-#    set(SANITIZER_LIBRARY "-ltsan -ldl")
-#endif()
-#message(STATUS "Tsan is: ${WITH_TSAN} ${SANITIZER_LIBRARY}")
-
-
 if (NOT MSVC)
-  set(CMAKE_EXE_LINK_FLAGS_LIST
-    "-Wl,--no-undefined"
-    # "-lmcheck"
-  )
+    set(CMAKE_EXE_LINK_FLAGS_LIST "-Wl,--no-undefined")
 
-  set(CMAKE_SHARED_LINK_FLAGS_LIST
-    "-Wl,--no-undefined"
-  )
+    # When linking shared libraries, the AddressSanitizer run-time is not linked,
+    #  so -Wl,-z,defs may cause link errors.
+    # http://clang.llvm.org/docs/AddressSanitizer.html
+    if (NOT WITH_ASAN)
+        set(CMAKE_SHARED_LINK_FLAGS_LIST "-Wl,--no-undefined")
+    endif()
 endif()
 
 # Compiler flags
