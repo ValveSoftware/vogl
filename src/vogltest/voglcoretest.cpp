@@ -161,17 +161,17 @@ int run_voglcore_tests(int argc, char *argv[])
 
         if (run_test)
         {
-            printf("\n%" PRIu64 ": %s...\n", i, g_tests[i].name);
+            printf("\n%zu: %s...\n", i, g_tests[i].name);
 
             timer tm;
             tm.start();
             int ret = g_tests[i].pfunc1() ? g_tests[i].pfunc1() : g_tests[i].pfunc2(15);
             double time = tm.get_elapsed_secs();
 
-            printf("%" PRIu64 ": %s: %s (%.3f secs)\n", i, g_tests[i].name,
-                   (ret == EXIT_SUCCESS) ? "Success" : "Failed", time);
+            printf("%zu: %s: %s (%.3f secs)\n", i, g_tests[i].name,
+                   ret ? "Success" : "Failed", time);
 
-            num_failures += (ret == EXIT_FAILURE);
+            num_failures += !ret;
         }
     }
 
