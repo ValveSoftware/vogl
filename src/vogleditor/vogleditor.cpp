@@ -41,12 +41,14 @@
 #include "vogleditor_output.h"
 #include "vogleditor_settings.h"
 #include "vogleditor_statetreetextureitem.h"
+#include "vogleditor_statetreearbprogramitem.h"
 #include "vogleditor_statetreeprogramitem.h"
 #include "vogleditor_statetreeshaderitem.h"
 #include "vogleditor_statetreeframebufferitem.h"
 #include "vogleditor_qstatetreemodel.h"
 #include "vogleditor_qtrimdialog.h"
 #include "vogleditor_qframebufferexplorer.h"
+#include "vogleditor_qprogramarbexplorer.h"
 #include "vogleditor_qprogramexplorer.h"
 #include "vogleditor_qshaderexplorer.h"
 #include "vogleditor_qtimelineview.h"
@@ -178,6 +180,12 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pProgramTab_layout->addWidget(m_pProgramExplorer, 0, 0);
    ui->programTab->setLayout(m_pProgramTab_layout);
 
+   // setup program ARB tab
+   m_pProgramArbTab_layout = new QGridLayout();
+   m_pProgramArbExplorer = new vogleditor_QProgramArbExplorer(ui->programArbTab);
+   m_pProgramArbTab_layout->addWidget(m_pProgramArbExplorer, 0, 0);
+   ui->programArbTab->setLayout(m_pProgramArbTab_layout);
+
    // setup shader tab
    m_pShaderTab_layout = new QGridLayout();
    m_pShaderExplorer = new vogleditor_QShaderExplorer(ui->shaderTab);
@@ -207,6 +215,7 @@ VoglEditor::VoglEditor(QWidget *parent) :
    connect(m_pPlayButton, SIGNAL(clicked()), this, SLOT(playCurrentTraceFile()));
    connect(m_pTrimButton, SIGNAL(clicked()), this, SLOT(trimCurrentTraceFile()));
 
+   connect(m_pProgramArbExplorer, SIGNAL(program_edited(vogl_arb_program_state*)), this, SLOT(slot_program_edited(vogl_arb_program_state*)));
    connect(m_pProgramExplorer, SIGNAL(program_edited(vogl_program_state*)), this, SLOT(slot_program_edited(vogl_program_state*)));
 
    connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slot_readReplayStandardOutput()));
@@ -244,6 +253,12 @@ VoglEditor::~VoglEditor()
     {
         delete m_pRenderbufferExplorer;
         m_pRenderbufferExplorer = NULL;
+    }
+
+    if (m_pProgramArbExplorer != NULL)
+    {
+        delete m_pProgramArbExplorer;
+        m_pProgramArbExplorer = NULL;
     }
 
     if (m_pProgramExplorer != NULL)
@@ -286,6 +301,12 @@ VoglEditor::~VoglEditor()
     {
         delete m_pRenderbufferTab_layout;
         m_pRenderbufferTab_layout = NULL;
+    }
+
+    if (m_pProgramArbTab_layout != NULL)
+    {
+        delete m_pProgramArbTab_layout;
+        m_pProgramArbTab_layout = NULL;
     }
 
     if (m_pProgramTab_layout != NULL)
@@ -1384,6 +1405,7 @@ void VoglEditor::reset_snapshot_ui()
     m_pFramebufferExplorer->clear();
     m_pTextureExplorer->clear();
     m_pRenderbufferExplorer->clear();
+    m_pProgramArbExplorer->clear();
     m_pProgramExplorer->clear();
     m_pShaderExplorer->clear();
     ui->contextComboBox->clear();
@@ -1395,6 +1417,7 @@ void VoglEditor::reset_snapshot_ui()
 
     VOGLEDITOR_DISABLE_STATE_TAB(ui->stateTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->framebufferTab);
+    VOGLEDITOR_DISABLE_STATE_TAB(ui->programArbTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->programTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->shaderTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->textureTab);
@@ -1619,6 +1642,13 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
     displayFramebuffer(curDrawFramebuffer, false);
     if (framebufferCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->framebufferTab); }
 
+    // arb programs
+    m_pProgramArbExplorer->clear();
+    uint programArbCount = m_pProgramArbExplorer->set_program_objects(sharingContexts);
+    GLuint64 curProgramArb = 0; // TODO: pContext->get_general_state().get_value<GLuint64>(GL_CURRENT_PROGRAM);
+    m_pProgramArbExplorer->set_active_program(curProgramArb);
+    if (programArbCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->programArbTab); }
+
     // programs
     m_pProgramExplorer->clear();
     uint programCount = m_pProgramExplorer->set_program_objects(sharingContexts);
@@ -1693,6 +1723,18 @@ void VoglEditor::on_stateTreeView_clicked(const QModelIndex &index)
 
       break;
    }
+   case vogleditor_stateTreeItem::cPROGRAMARB:
+   {
+      vogleditor_stateTreeArbProgramItem* pProgramArbItem = static_cast<vogleditor_stateTreeArbProgramItem*>(pStateItem);
+      if (pProgramArbItem == NULL)
+      {
+         break;
+      }
+
+      displayProgramArb(pProgramArbItem->get_current_state()->get_snapshot_handle(), true);
+
+      break;
+   }
    case vogleditor_stateTreeItem::cSHADER:
    {
       vogleditor_stateTreeShaderItem* pShaderItem = static_cast<vogleditor_stateTreeShaderItem*>(pStateItem);
@@ -1736,6 +1778,17 @@ bool VoglEditor::displayShader(GLuint64 shaderHandle, bool bBringTabToFront)
     }
 
     return bDisplayed;
+}
+
+void VoglEditor::displayProgramArb(GLuint64 programArbHandle, bool bBringTabToFront)
+{
+    if (m_pProgramArbExplorer->set_active_program(programArbHandle))
+    {
+        if (bBringTabToFront)
+        {
+            ui->tabWidget->setCurrentWidget(ui->programArbTab);
+        }
+    }
 }
 
 void VoglEditor::displayProgram(GLuint64 programHandle, bool bBringTabToFront)
@@ -1978,6 +2031,23 @@ void VoglEditor::on_nextDrawcallButton_clicked()
             ui->treeView->setFocus();
         }
     }
+}
+
+void VoglEditor::slot_program_edited(vogl_arb_program_state* pNewProgramState)
+{
+    VOGL_NOTE_UNUSED(pNewProgramState);
+
+    m_currentSnapshot->set_edited(true);
+
+    // update all the snapshot flags
+    bool bFoundEditedSnapshot = false;
+    recursive_update_snapshot_flags(m_pApiCallTreeModel->root(), bFoundEditedSnapshot);
+
+    // give the tree view focus so that it redraws. This is something of a hack, we don't really want to be changing around which control has focus,
+    // but right now I don't see it being a major issue. It may be an issue later on depending on how we implement more state editing (ie, if arrow
+    // keys are used to cycle through options in a drop-down, and the tree view gets focus, the arrow keys would then start changing the selected
+    // API call instead of cycling through state options).
+    ui->treeView->setFocus();
 }
 
 void VoglEditor::slot_program_edited(vogl_program_state* pNewProgramState)

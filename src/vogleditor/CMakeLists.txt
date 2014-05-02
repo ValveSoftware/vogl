@@ -47,6 +47,7 @@ set(SRC_LIST
     vogleditor_gl_state_snapshot.cpp
     vogleditor_qapicalltreemodel.cpp
     vogleditor_qframebufferexplorer.cpp
+    vogleditor_qprogramarbexplorer.cpp
     vogleditor_qprogramexplorer.cpp
     vogleditor_qshaderexplorer.cpp
     vogleditor_qstatetreemodel.cpp
@@ -88,6 +89,7 @@ set(UI_HEADER_LIST
     vogleditor.h
     vogleditor_qapicalltreemodel.h
     vogleditor_qframebufferexplorer.h
+    vogleditor_qprogramarbexplorer.h
     vogleditor_qprogramexplorer.h
     vogleditor_qshaderexplorer.h
     vogleditor_qstatetreemodel.h
@@ -137,6 +139,7 @@ set(HEADER_LIST
 set(FORM_LIST
     vogleditor.ui
     vogleditor_qframebufferexplorer.ui
+    vogleditor_qprogramarbexplorer.ui
     vogleditor_qprogramexplorer.ui
     vogleditor_qshaderexplorer.ui
     vogleditor_qtextureexplorer.ui

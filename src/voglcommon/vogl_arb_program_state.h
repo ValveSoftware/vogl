@@ -97,9 +97,21 @@ public:
     {
         return m_program_format;
     }
+
     const uint8_vec &get_program_string() const
     {
         return m_program_string;
+    }
+    bool set_program_string(const char* program_string, int program_length)
+    {
+        if ((program_length < 0) || (!m_program_string.try_resize(program_length)))
+        {
+            return false;
+        }
+
+        memcpy(m_program_string.get_ptr(), program_string, program_length);
+
+        return true;
     }
 
     uint get_program_string_size() const

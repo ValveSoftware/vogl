@@ -43,10 +43,12 @@ class QGridLayout;
 class QModelIndex;
 class QProcess;
 class QToolButton;
+class vogl_arb_program_state;
 class vogl_program_state;
 class vogleditor_apiCallTimelineModel;
 class vogleditor_QApiCallTreeModel;
 class vogleditor_QStateTreeModel;
+class vogleditor_QProgramArbExplorer;
 class vogleditor_QProgramExplorer;
 class vogleditor_QFramebufferExplorer;
 class vogleditor_QTimelineView;
@@ -88,6 +90,7 @@ private slots:
    void on_prevDrawcallButton_clicked();
    void on_nextDrawcallButton_clicked();
 
+   void slot_program_edited(vogl_arb_program_state* pNewProgramState);
    void slot_program_edited(vogl_program_state* pNewProgramState);
 
    void on_actionSave_Session_triggered();
@@ -108,6 +111,7 @@ private:
    bool displayTexture(GLuint64 textureHandle, bool bBringTabToFront);
    void displayFramebuffer(GLuint64 framebufferHandle, bool bBringTabToFront);
    bool displayShader(GLuint64 shaderHandle, bool bBringTabToFront);
+   void displayProgramArb(GLuint64 programArbHandle, bool bBringTabToFront);
    void displayProgram(GLuint64 programHandle, bool bBringTabToFront);
 
    // temp?
@@ -139,6 +143,7 @@ private:
    vogleditor_QFramebufferExplorer* m_pFramebufferExplorer;
    vogleditor_QTextureExplorer* m_pTextureExplorer;
    vogleditor_QTextureExplorer* m_pRenderbufferExplorer;
+   vogleditor_QProgramArbExplorer* m_pProgramArbExplorer;
    vogleditor_QProgramExplorer* m_pProgramExplorer;
    vogleditor_QShaderExplorer* m_pShaderExplorer;
    vogleditor_QTimelineView* m_timeline;
@@ -146,6 +151,7 @@ private:
    QGridLayout* m_pFramebufferTab_layout;
    QGridLayout* m_pTextureTab_layout;
    QGridLayout* m_pRenderbufferTab_layout;
+   QGridLayout* m_pProgramArbTab_layout;
    QGridLayout* m_pProgramTab_layout;
    QGridLayout* m_pShaderTab_layout;
 

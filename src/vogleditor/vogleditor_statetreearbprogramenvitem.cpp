@@ -86,7 +86,7 @@ bool vogleditor_stateTreeArbProgramEnvItem::hasChanged() const
                     return true;
             }
 
-            // the target was found, but we couldn't idenfity any differences
+            // the target was found, but we couldn't identify any differences
             return false;
         }
     }
