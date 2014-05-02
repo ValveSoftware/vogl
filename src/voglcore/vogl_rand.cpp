@@ -472,6 +472,8 @@ namespace vogl
         frm.seed(seed);
         rm.seed(seed);
 
+        dynamic_string tmpdir = plat_gettmpdir();
+
         image_u8 eye_test_img(1024, 1024);
         for (uint t = 0; t < 500; t++)
         {
@@ -495,7 +497,7 @@ namespace vogl
                 eye_test_img(x, y) = c;
             }
 
-            dynamic_string filename(cVarArg, "rand_eye_test_%02i.png", t);
+            dynamic_string filename(cVarArg, "%s/rand_eye_test_%02i.png", tmpdir.c_str(), t);
             image_utils::write_to_file(filename.get_ptr(), eye_test_img, image_utils::cWriteFlagIgnoreAlpha);
             printf("Wrote %s\n", filename.get_ptr());
         }
