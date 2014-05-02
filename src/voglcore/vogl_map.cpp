@@ -424,7 +424,7 @@ namespace vogl
 
         for (uint t = 0; t < 100; t++)
         {
-            uint n = rm.irand(1, 5000000);
+            uint n = rm.irand(1, 50000);
             uint k = rm.irand(1, n);
 
             int_to_int_map m;
