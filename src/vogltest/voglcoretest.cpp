@@ -55,11 +55,13 @@ static bool bigint128x_test() { return bigint128_test(); }
 struct test_data_t
 {
     const char *name;
-    bool (*pfunc)(void);
+    bool (*pfunc1)(void);
+    bool (*pfunc2)(uint);
 };
 static const struct test_data_t g_tests[] =
 {
-#define DEFTEST(_x) { #_x, _x ## _test }
+#define DEFTEST(_x) { #_x, _x ## _test, NULL }
+#define DEFTEST2(_x) { #_x, NULL, _x ## _test }
     DEFTEST(rh_hash_map),
     DEFTEST(object_pool),
     DEFTEST(dynamic_string),
@@ -71,9 +73,10 @@ static const struct test_data_t g_tests[] =
     DEFTEST(map),
     DEFTEST(hash_map),
     DEFTEST(sort),
-    DEFTEST(sparse_vectorx),
-    DEFTEST(bigint128x),
+    DEFTEST2(sparse_vector),
+    DEFTEST2(bigint128),
 #undef DEFTEST
+#undef DEFTEST2
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -162,7 +165,7 @@ int run_voglcore_tests(int argc, char *argv[])
 
             timer tm;
             tm.start();
-            int ret = g_tests[i].pfunc();
+            int ret = g_tests[i].pfunc1() ? g_tests[i].pfunc1() : g_tests[i].pfunc2(15);
             double time = tm.get_elapsed_secs();
 
             printf("%" PRIu64 ": %s: %s (%.3f secs)\n", i, g_tests[i].name,
