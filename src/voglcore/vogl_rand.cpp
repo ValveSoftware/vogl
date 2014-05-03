@@ -484,6 +484,10 @@ namespace vogl
                 {
                     x = static_cast<int>(rm.frand(0, 1.0f) * eye_test_img.get_width());
                     y = static_cast<int>(rm.frand(0, 1.0f) * eye_test_img.get_height());
+                    if (x == eye_test_img.get_width())
+                        x = eye_test_img.get_width() - 1;
+                    if (y == eye_test_img.get_height())
+                        y = eye_test_img.get_height() - 1;
                 }
                 else
                 {
