@@ -48,10 +48,6 @@
 
 using namespace vogl;
 
-// These test functions take parameters.
-static bool sparse_vectorx_test() { return sparse_vector_test(); }
-static bool bigint128x_test() { return bigint128_test(); }
-
 struct test_data_t
 {
     const char *name;
@@ -165,7 +161,7 @@ int run_voglcore_tests(int argc, char *argv[])
 
             timer tm;
             tm.start();
-            int ret = g_tests[i].pfunc1() ? g_tests[i].pfunc1() : g_tests[i].pfunc2(15);
+            int ret = g_tests[i].pfunc1 ? g_tests[i].pfunc1() : g_tests[i].pfunc2(15);
             double time = tm.get_elapsed_secs();
 
             printf("%zu: %s: %s (%.3f secs)\n", i, g_tests[i].name,
