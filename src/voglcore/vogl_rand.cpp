@@ -343,7 +343,20 @@ namespace vogl
         if (l >= h)
             return l;
 
-        return math::clamp(l + (h - l) * (urand32() * cNorm32), l, h);
+        double result = l;
+
+        for (uint i = 0; i < 4; i++)
+        {
+            double trial_result = (urand32() * (cNorm32 * cNorm32)) + (urand32() * cNorm32);
+
+            if ((trial_result >= l) && (trial_result < h))
+            {
+                result = trial_result;
+                break;
+            }
+        }
+
+        return result;
     }
 
     float fast_random::frand(float l, float h)
@@ -352,9 +365,20 @@ namespace vogl
         if (l >= h)
             return l;
 
-        float r = static_cast<float>(l + (h - l) * (urand32() * cNorm32));
+        float result = l;
 
-        return math::clamp<float>(r, l, h);
+        for (uint i = 0; i < 4; i++)
+        {
+            float trial_result = static_cast<float>(l + (h - l) * (urand32() * cNorm32));
+
+            if ((trial_result >= l) && (trial_result < h))
+            {
+                result = trial_result;
+                break;
+            }
+        }
+
+        return result;
     }
 
     // Got this from http://www.physics.buffalo.edu/phy410-505-2009/topic2/lec-2-1.pdf
