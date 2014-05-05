@@ -1033,7 +1033,9 @@ GLuint vogl_get_bound_gl_buffer(GLenum target)
             t = GL_UNIFORM_BUFFER_BINDING;
             break;
         case GL_TEXTURE_BUFFER:
-            t = GL_TEXTURE_BINDING_BUFFER;
+            // TODO:  Change to GL_TEXTURE_BUFFER_BINDING once it's in 4.4
+            // http://www.khronos.org/bugzilla/show_bug.cgi?id=844
+            t = GL_TEXTURE_BUFFER;
             break;
         default:
         {

@@ -1311,6 +1311,7 @@ private:
     void handle_delete_shader(GLuint trace_handle);
     void handle_detach_shader(gl_entrypoint_id_t entrypoint_id);
     void handle_link_program(gl_entrypoint_id_t entrypoint_id);
+    void handle_post_link_program(gl_entrypoint_id_t entrypoint_id, GLuint trace_handle, GLuint replay_handle, GLenum type, GLsizei count, GLchar *const *strings);
 
     static void display_list_bind_callback(vogl_namespace_t handle_namespace, GLenum target, GLuint handle, void *pOpaque);
 

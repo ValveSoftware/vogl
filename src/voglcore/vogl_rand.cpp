@@ -81,10 +81,20 @@ namespace vogl
         if (l >= h)
             return l;
 
-        double fract = (urand32() * (cNorm32 * cNorm32)) + (urand32() * cNorm32);
+        double result = l;
 
-        // clamp here shouldn't be necessary, but it ensures this function provably cannot return out of range results
-        return math::clamp(l + (h - l) * fract, l, h);
+        for (uint i = 0; i < 4; i++)
+        {
+            double trial_result = (urand32() * (cNorm32 * cNorm32)) + (urand32() * cNorm32);
+
+            if ((trial_result >= l) && (trial_result < h))
+            {
+                result = trial_result;
+                break;
+            }
+        }
+
+        return result;
     }
 
     float random::frand(float l, float h)
@@ -93,10 +103,20 @@ namespace vogl
         if (l >= h)
             return l;
 
-        float r = static_cast<float>(l + (h - l) * (urand32() * cNorm32));
+        float result = l;
 
-        // clamp here shouldn't be necessary, but it ensures this function provably cannot return out of range results
-        return math::clamp<float>(r, l, h);
+        for (uint i = 0; i < 4; i++)
+        {
+            float trial_result = static_cast<float>(l + (h - l) * (urand32() * cNorm32));
+
+            if ((trial_result >= l) && (trial_result < h))
+            {
+                result = trial_result;
+                break;
+            }
+        }
+
+        return result;
     }
 
     static inline uint umul32_return_high(uint32 range, uint32 rnd)
@@ -479,22 +499,28 @@ namespace vogl
         {
             for (uint i = 0; i < 40000; i++)
             {
-                uint x, y;
+                int x, y;
                 if (i > 10000)
                 {
                     x = static_cast<int>(rm.frand(0, 1.0f) * eye_test_img.get_width());
                     y = static_cast<int>(rm.frand(0, 1.0f) * eye_test_img.get_height());
-                    if (x == eye_test_img.get_width())
-                        x = eye_test_img.get_width() - 1;
-                    if (y == eye_test_img.get_height())
-                        y = eye_test_img.get_height() - 1;
                 }
                 else
                 {
                     x = rm.irand(0, eye_test_img.get_width());
                     y = rm.irand(0, eye_test_img.get_height());
                 }
+
+                if ((x < 0) || (x >= static_cast<int>(eye_test_img.get_width())))
+                    return false;
+
+                if ((y < 0) || (y >= static_cast<int>(eye_test_img.get_height())))
+                    return false;
+
                 uint l = rm.irand(1, 16);
+                if ((l < 1) || (l >= 16))
+                    return false;
+
                 color_quad_u8 c(eye_test_img(x, y));
                 int k = math::minimum<int>(c[0] + l, 255);
                 c.set(k);

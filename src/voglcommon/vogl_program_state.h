@@ -235,7 +235,7 @@ public:
         return m_info_log;
     }
 
-    bool link_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint handle, const void *pBinary = NULL, uint binary_size = 0, GLenum binary_format = GL_NONE);
+    bool link_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, const void *pBinary = NULL, uint binary_size = 0, GLenum binary_format = GL_NONE, GLenum type = GL_NONE, GLsizei count = 0, GLchar *const *strings = NULL);
 
     void set_link_time_snapshot(vogl_unique_ptr<vogl_program_state> &pSnapshot);
 
@@ -351,6 +351,7 @@ public:
     bool compare_full_state(const vogl_program_state &rhs) const;
 
 private:
+    gl_entrypoint_id_t m_link_entrypoint;
     GLuint m_snapshot_handle;
 
     uint8_vec m_program_binary;
@@ -377,6 +378,9 @@ private:
     GLenum m_transform_feedback_mode;
     uint m_transform_feedback_num_varyings;
     vogl_program_transform_feedback_varying_vec m_varyings;
+
+    GLenum m_create_shader_program_type;
+    dynamic_string_array m_create_shader_program_strings;
 
     bool m_marked_for_deletion;
     bool m_link_status;
@@ -418,7 +422,8 @@ public:
     void clear();
 
     bool add_snapshot(GLuint handle, const vogl_program_state &prog);
-    bool add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint handle, GLenum binary_format = GL_NONE, const void *pBinary = NULL, uint binary_size = 0);
+    bool add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum binary_format = GL_NONE, const void *pBinary = NULL, uint binary_size = 0);
+    bool add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum type, GLsizei count, GLchar *const *strings);
     bool remove_snapshot(GLuint handle);
 
     const vogl_program_state *find_snapshot(GLuint handle) const;
