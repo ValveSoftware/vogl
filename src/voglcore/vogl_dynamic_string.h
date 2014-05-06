@@ -53,7 +53,7 @@ namespace vogl
     // These limits are in place so plain signed int's can be safely used as offsets into the buffer (use something else if you need strings this big).
     enum
     {
-        cMaxDynamicStringBufSize = 0x7FFFFFFFU,
+        cMaxDynamicStringBufSize = 0x70000000U,
         cMaxDynamicStringLen = cMaxDynamicStringBufSize - 1
     };
 
