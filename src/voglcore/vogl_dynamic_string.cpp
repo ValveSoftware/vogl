@@ -1333,7 +1333,7 @@ namespace vogl
             vogl::vector<char> y;
             for (uint t = 0; t < 10000000; t++)
             {
-                if (rnd.irand(0, 1000) == 0)
+                if ((rnd.irand(0, 1000) == 0) || (x.size() > 8000000))
                 {
                     x.clear();
                     y.clear();
