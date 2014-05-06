@@ -2276,8 +2276,7 @@ void vogl_gl_replayer::handle_use_program(GLuint trace_handle, gl_entrypoint_id_
             VOGL_ASSERT(was_deleted);
             VOGL_NOTE_UNUSED(was_deleted);
 
-            was_deleted = get_shared_state()->m_glsl_program_hash_map.erase(prev_trace_program);
-            VOGL_ASSERT(was_deleted);
+            get_shared_state()->m_glsl_program_hash_map.erase(prev_trace_program);
 
             was_deleted = get_shared_state()->m_shadow_state.m_linked_programs.remove_snapshot(prev_replay_program);
             if ((prev_link_status) && (!was_deleted))
@@ -2409,7 +2408,6 @@ void vogl_gl_replayer::handle_delete_program(GLuint trace_handle)
         VOGL_NOTE_UNUSED(was_deleted);
 
         was_deleted = get_shared_state()->m_glsl_program_hash_map.erase(trace_handle);
-        VOGL_ASSERT(was_deleted);
 
         get_shared_state()->m_shadow_state.m_linked_programs.remove_snapshot(replay_handle);
 
@@ -11241,11 +11239,6 @@ bool vogl_gl_replayer::validate_program_and_shader_handle_tables()
             if (!GL_ENTRYPOINT(glIsProgram)(replay_handle))
             {
                 vogl_error_printf("%s: GL handle %u is being tracked, but glIsProgram() reports the handle is not a program\n", VOGL_METHOD_NAME, replay_handle);
-            }
-
-            if (!get_shared_state()->m_glsl_program_hash_map.contains(trace_handle))
-            {
-                vogl_error_printf("%s: Found program at trace handle %u GL handle %u, but the GLSL program hash map doesn't contain an entry for this object!\n", VOGL_METHOD_NAME, trace_handle, replay_handle);
             }
         }
         else if (target == VOGL_SHADER_OBJECT)
