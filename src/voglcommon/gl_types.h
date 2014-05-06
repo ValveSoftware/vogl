@@ -128,6 +128,7 @@ typedef unsigned long XID;
     typedef char CHAR;
     typedef unsigned long DWORD;
     typedef int INT;
+    typedef int64_t INT64;
     typedef float FLOAT;
     typedef void* HANDLE;
     typedef char* LPCSTR;
