@@ -54,6 +54,8 @@ private slots:
     void on_sampleSpinBox_valueChanged(int sample);
     void on_arrayElementSpinBox_valueChanged(int index);
 
+    void on_sliceSpinBox_valueChanged(int slice);
+
 signals:
     void zoomFactorChanged(double zoomFactor);
 };

@@ -142,6 +142,13 @@ public:
        repaint();
    }
 
+   void setSliceIndex(uint sliceIndex)
+   {
+       m_sliceIndex = sliceIndex;
+       delete_pixmaps();
+       repaint();
+   }
+
 private:
    bool m_draw_enabled;
    QBrush m_background;
@@ -158,6 +165,7 @@ private:
    uint m_baseMipLevel;
    uint m_maxMipLevel;
    uint m_arrayIndex;
+   uint m_sliceIndex;
 
    void delete_pixmaps()
    {

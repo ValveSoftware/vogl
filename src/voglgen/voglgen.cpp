@@ -2378,6 +2378,9 @@ public:
             }
         }
 
+        m_pointee_types.insert(std::make_pair("VOGL_LPCSTR", "VOGL_CHAR"));
+
+
         // -- Read the GL/GLX/WGL whitelisted and nullable funcs file
         if (!read_regex_function_array("gl_glx_whitelisted_funcs.txt", m_whitelisted_funcs))
             return false;

@@ -37,6 +37,12 @@ int plat_chdir(const char* path);
 // Get the cwd, store into buffer. Retun buffer on success or NULL on error.
 char* plat_getcwd(char *buffer, int maxlen);
 
+// Get the temporary directory.
+const char* plat_gettmpdir();
+
+// Get a full path to a temporary filename prefixed with prefix.
+char* plat_gettmpfname(char *buffer, int maxlen, const char *prefix);
+
 // Tests for the existence of the specified path, returns true if it exists and false otherwise.
 bool plat_fexist(const char* path);
 
@@ -54,6 +60,9 @@ pid_t plat_getppid();
 
 // Provides out_array_length uint32s of random data from a secure service (/dev/urandom, crypto apis, etc).
 size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length);
+
+// Provide a single random uint32.
+vogl::uint32 plat_rand();
 
 // Virtual memory handling
 #define PLAT_READ 0x01

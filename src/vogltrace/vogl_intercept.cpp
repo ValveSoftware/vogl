@@ -889,8 +889,6 @@ static void vogl_global_init()
 
     VOGL_FUNC_TRACER
 
-    get_thread_safe_random().seed_from_urandom();
-
     colorized_console::init();
 
     console::set_tool_prefix("(vogltrace) ");
@@ -2043,6 +2041,14 @@ public:
         return handle;
     }
 
+    void add_program(GLuint handle)
+    {
+        vogl_scoped_context_shadow_lock lock;
+
+        if (!get_shared_state()->m_capture_context_params.m_objs.update(handle, handle, VOGL_PROGRAM_OBJECT))
+            vogl_error_printf("%s: Failed inserting program handle %u into object shadow!\n", VOGL_METHOD_NAME, handle);
+    }
+
     GLuint handle_create_shader(gl_entrypoint_id_t id, GLenum type)
     {
         GLuint handle;
@@ -2070,6 +2076,14 @@ public:
         return handle;
     }
 
+    void add_shader(GLuint handle)
+    {
+        vogl_scoped_context_shadow_lock lock;
+
+        if (!get_shared_state()->m_capture_context_params.m_objs.update(handle, handle, VOGL_SHADER_OBJECT))
+            vogl_error_printf("%s: Failed inserting shader handle %u into object shadow!\n", VOGL_METHOD_NAME, handle);
+    }
+
     bool has_linked_program_snapshot(GLuint handle)
     {
         vogl_scoped_context_shadow_lock lock;
@@ -2077,11 +2091,18 @@ public:
         return get_shared_state()->m_capture_context_params.m_linked_programs.find_snapshot(handle) != NULL;
     }
 
-    bool add_linked_program_snapshot(GLuint handle, GLenum binary_format = GL_NONE, const void *pBinary = NULL, uint binary_size = 0)
+    bool add_linked_program_snapshot(gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum binary_format = GL_NONE, const void *pBinary = NULL, uint binary_size = 0)
     {
         vogl_scoped_context_shadow_lock lock;
 
-        return get_shared_state()->m_capture_context_params.m_linked_programs.add_snapshot(m_context_info, m_handle_remapper, handle, binary_format, pBinary, binary_size);
+        return get_shared_state()->m_capture_context_params.m_linked_programs.add_snapshot(m_context_info, m_handle_remapper, link_entrypoint, handle, binary_format, pBinary, binary_size);
+    }
+
+    bool add_linked_program_snapshot(gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum type, GLsizei count, GLchar *const *strings)
+    {
+        vogl_scoped_context_shadow_lock lock;
+
+        return get_shared_state()->m_capture_context_params.m_linked_programs.add_snapshot(m_context_info, m_handle_remapper, link_entrypoint, handle, type, count, strings);
     }
 
     void handle_use_program(gl_entrypoint_id_t id, GLuint program)
@@ -6527,12 +6548,15 @@ static void vogl_check_for_capture_trigger_file()
         uint64_t gl_begin_rdtsc = utils::RDTSC();
 
         // Call the driver directly, bypassing our GL/GLX wrappers which set m_calling_driver_entrypoint_id. The Steam Overlay may call us back!
-        DIRECT_GL_ENTRYPOINT(wglSwapBuffers)(hdc);
+        BOOL result = DIRECT_GL_ENTRYPOINT(wglSwapBuffers)(hdc);
 
         uint64_t gl_end_rdtsc = utils::RDTSC();
 
         if (get_vogl_trace_writer().is_opened())
         {
+            // Add the return parameter here.
+            serializer.add_return_param(VOGL_BOOL, &result, sizeof(result));
+
             serializer.set_begin_rdtsc(begin_rdtsc);
             serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
             serializer.end();
@@ -6566,6 +6590,8 @@ static void vogl_check_for_capture_trigger_file()
                 exit(0);
             }
         }
+
+        return result;
     }
     
     //----------------------------------------------------------------------------------------------------------------------
@@ -7863,7 +7889,7 @@ static void vogl_dump_program_outputs(json_node &doc_root, vogl_context *pContex
 // glLinkProgramARB function epilog
 //----------------------------------------------------------------------------------------------------------------------
 #define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glLinkProgramARB(e, c, rt, r, nu, ne, a, p) vogl_link_program_arb(pContext, trace_serializer, programObj);
-static inline void vogl_link_program_arb(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLhandleARB programObj)
+static void vogl_link_program_arb(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLhandleARB programObj)
 {
     if (!pContext)
         return;
@@ -7965,7 +7991,7 @@ static inline void vogl_link_program_arb(vogl_context *pContext, vogl_entrypoint
     {
         if ((link_status) || (!pContext->has_linked_program_snapshot(programObj)))
         {
-            if (!pContext->add_linked_program_snapshot(programObj))
+            if (!pContext->add_linked_program_snapshot(VOGL_ENTRYPOINT_glLinkProgramARB, programObj))
                 vogl_error_printf("%s: Failed snapshotting program into link-time program shadow table, program 0x%X\n", VOGL_FUNCTION_NAME, programObj);
         }
     }
@@ -7974,9 +8000,9 @@ static inline void vogl_link_program_arb(vogl_context *pContext, vogl_entrypoint
 //----------------------------------------------------------------------------------------------------------------------
 // glLinkProgram/glProgramBinary function epilog
 //----------------------------------------------------------------------------------------------------------------------
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glLinkProgram(e, c, rt, r, nu, ne, a, p) vogl_link_program_epilog_helper(pContext, trace_serializer, program, VOGL_ENTRYPOINT_##ne, GL_NONE, NULL, 0);
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glProgramBinary(e, c, rt, r, nu, ne, a, p) vogl_link_program_epilog_helper(pContext, trace_serializer, program, VOGL_ENTRYPOINT_##ne, binaryFormat, binary, length);
-static inline void vogl_link_program_epilog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLuint program, gl_entrypoint_id_t id, GLenum binary_format, const GLvoid *pBinary, GLsizei binary_length)
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glLinkProgram(e, c, rt, r, nu, ne, a, p) vogl_link_program_epilog_helper(pContext, trace_serializer, program, VOGL_ENTRYPOINT_##ne, GL_NONE, NULL, 0, GL_NONE, 0, NULL);
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glProgramBinary(e, c, rt, r, nu, ne, a, p) vogl_link_program_epilog_helper(pContext, trace_serializer, program, VOGL_ENTRYPOINT_##ne, binaryFormat, binary, length, GL_NONE, 0, NULL);
+static void vogl_link_program_epilog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLuint program, gl_entrypoint_id_t id, GLenum binary_format, const GLvoid *pBinary, GLsizei binary_length, GLenum create_shader_program_type, GLsizei count, GLchar *const *strings)
 {
     if (!pContext)
         return;
@@ -8123,14 +8149,21 @@ static inline void vogl_link_program_epilog_helper(vogl_context *pContext, vogl_
         {
             if (id == VOGL_ENTRYPOINT_glProgramBinary)
             {
-                if (!pContext->add_linked_program_snapshot(program, binary_format, pBinary, binary_length))
+                if (!pContext->add_linked_program_snapshot(id, program, binary_format, pBinary, binary_length))
                 {
                     vogl_error_printf("%s: Failed snapshotting binary program into link-time program shadow table, program 0x%X\n", VOGL_FUNCTION_NAME, program);
                 }
             }
+            else if (id == VOGL_ENTRYPOINT_glCreateShaderProgramv)
+            {
+                if (!pContext->add_linked_program_snapshot(id, program, create_shader_program_type, count, strings))
+                {
+                    vogl_error_printf("%s: Failed snapshotting program into link-time program shadow table, program 0x%X\n", VOGL_FUNCTION_NAME, program);
+                }
+            }
             else
             {
-                if (!pContext->add_linked_program_snapshot(program))
+                if (!pContext->add_linked_program_snapshot(id, program))
                 {
                     vogl_error_printf("%s: Failed snapshotting program into link-time program shadow table, program 0x%X\n", VOGL_FUNCTION_NAME, program);
                 }
@@ -8139,6 +8172,28 @@ static inline void vogl_link_program_epilog_helper(vogl_context *pContext, vogl_
     }
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// glCreateShaderProgramv
+//----------------------------------------------------------------------------------------------------------------------
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glCreateShaderProgramv(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_create_shader_programv_epilog_helper(pContext, trace_serializer, type, count, strings, result);
+static void vogl_create_shader_programv_epilog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLenum type, GLsizei count, GLchar *const *strings, GLuint program)
+{
+    vogl_serialize_shader_source(trace_serializer, count, (const GLcharARB *const *)strings, NULL);
+
+    if (program)
+    {
+        pContext->add_program(program);
+
+        vogl_scoped_gl_error_absorber gl_error_absorber(pContext);
+        VOGL_NOTE_UNUSED(gl_error_absorber);
+
+        vogl_link_program_epilog_helper(pContext, trace_serializer, program, VOGL_ENTRYPOINT_glCreateShaderProgramv, GL_NONE, NULL, 0, type, count, strings);
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// glProgramBinary
+//----------------------------------------------------------------------------------------------------------------------
 #define DEF_FUNCTION_CUSTOM_FUNC_PROLOG_glProgramBinary(e, c, rt, r, nu, ne, a, p) vogl_glProgramBinary_prolog(program, binaryFormat, binary, length);
 static inline void vogl_glProgramBinary_prolog(GLuint program, GLenum binaryFormat, const void *&pBinary, GLsizei &length)
 {

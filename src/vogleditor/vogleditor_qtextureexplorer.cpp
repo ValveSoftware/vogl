@@ -271,6 +271,32 @@ void vogleditor_QTextureExplorer::selectedTextureIndexChanged(int index)
                 }
             }
 
+            // Update slice spin box
+            uint maxSlice = pTexState->get_texture().get_depth();
+            if (maxSlice <= 1)
+            {
+                ui->sliceSpinBox->setEnabled(false);
+                ui->sliceSpinBox->setMaximum(0);
+
+                // simulate that the value has changed to select the first (only) element
+                on_sliceSpinBox_valueChanged(0);
+            }
+            else
+            {
+                ui->sliceSpinBox->setEnabled(true);
+
+                int slice = ui->sliceSpinBox->value();
+                ui->sliceSpinBox->setMaximum(maxSlice - 1);
+
+                // if the value is still at the same slice after setting the max, then the
+                // valueChanged signal will not be emitted, so we'll need to simulate that
+                // in order to update and display the correct slice.
+                if (ui->sliceSpinBox->value() == (int)slice)
+                {
+                    on_sliceSpinBox_valueChanged(slice);
+                }
+            }
+
             // Update sample spin box
             uint maxSample = pTexState->get_num_samples();
             if (maxSample <= 1)
@@ -331,7 +357,6 @@ void vogleditor_QTextureExplorer::on_pushButton_toggled(bool checked)
 void vogleditor_QTextureExplorer::on_arrayElementSpinBox_valueChanged(int index)
 {
     m_textureViewer.setArrayElement(index);
-    m_textureViewer.repaint();
 }
 
 void vogleditor_QTextureExplorer::on_sampleSpinBox_valueChanged(int sample)
@@ -371,4 +396,9 @@ void vogleditor_QTextureExplorer::on_sampleSpinBox_valueChanged(int sample)
         m_textureViewer.setTexture(pKTXTexture, baseLevel, maxLevel);
         m_textureViewer.repaint();
     }
+}
+
+void vogleditor_QTextureExplorer::on_sliceSpinBox_valueChanged(int slice)
+{
+    m_textureViewer.setSliceIndex(slice);
 }

@@ -32,9 +32,11 @@
 
 #include "vogl_port.h"
 #include <dlfcn.h>
-#include <unistd.h>
+#include <fcntl.h>
+#include <paths.h>
 #include <sys/mman.h>
 #include <sys/syscall.h>
+#include <sys/time.h>
 
 int plat_chdir(const char* path)
 {
@@ -46,12 +48,54 @@ char* plat_getcwd(char *buffer, int maxlen)
     return getcwd(buffer, maxlen);
 }
 
+const char* plat_gettmpdir()
+{
+    static char s_tmpdir[PATH_MAX];
+
+    if (!s_tmpdir[0])
+    {
+        const char *tmpdir = getenv("TMPDIR");
+
+        if (!tmpdir)
+        {
+            tmpdir = P_tmpdir;
+            if (!tmpdir)
+                tmpdir = _PATH_TMP;
+        }
+
+        strncpy(s_tmpdir, tmpdir, sizeof(s_tmpdir));
+        s_tmpdir[sizeof(s_tmpdir) - 1] = 0;
+
+        // Remove trailing slash.
+        size_t slen = strlen(s_tmpdir);
+        if ((slen > 0) && (s_tmpdir[slen - 1] == '/'))
+            s_tmpdir[--slen] = 0;
+    }
+
+    return s_tmpdir;
+}
+
+char* plat_gettmpfname(char *buffer, int maxlen, const char *prefix)
+{
+    struct timeval cur_time;
+    vogl::uint32 rnd32 = plat_rand();
+    const char *tmpdir = plat_gettmpdir();
+
+    gettimeofday(&cur_time, NULL);
+
+    uint64_t time64 = cur_time.tv_sec * 1000000ULL + cur_time.tv_usec;
+
+    // Create a fileiname with THREADID & RAND32 & TIME64.
+    snprintf(buffer, maxlen, "%s/_%s_%x_%x_%" PRIx64 ".tmp", tmpdir, prefix, plat_gettid(), rnd32, time64);
+    buffer[maxlen - 1] = 0;
+    return buffer;
+}
+
 // Tests for the existence of the specified path, returns true if it exists and false otherwise.
 bool plat_fexist(const char* path)
 {
     return access(path, F_OK) == 0;
 }
-
 
 pid_t plat_gettid()
 {
@@ -75,15 +119,39 @@ pid_t plat_getppid()
 
 size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length)
 {
-    size_t read_uint32s = 0;
-    FILE *fp = vogl_fopen("/dev/urandom", "rb");
-    if (fp)
+    static __thread unsigned int s_seed = 0;
+
+    if (s_seed == 0)
     {
-        read_uint32s = fread(out_array, sizeof(vogl::uint32), out_array_length, fp);
-        vogl_fclose(fp);
+        // Try to seed rand_r() with /dev/urandom.
+        ssize_t nbytes = 0;
+        int fd = open("/dev/urandom", O_RDONLY);
+        if (fd != -1)
+        {
+            nbytes = read(fd, &s_seed, sizeof(s_seed));
+            close(fd);
+        }
+
+        // If that didn't work, fallback to time and thread id.
+        if (nbytes != sizeof(s_seed))
+        {
+            struct timeval time;
+            gettimeofday(&time, NULL);
+            s_seed = plat_gettid() ^ ((time.tv_sec * 1000) + (time.tv_usec / 1000));
+        }
     }
 
-    return read_uint32s;
+    for (size_t i = 0; i < out_array_length; ++i)
+        out_array[i] = rand_r(&s_seed);
+
+    return out_array_length;
+}
+
+vogl::uint32 plat_rand()
+{
+    vogl::uint32 num;
+    plat_rand_s(&num, 1);
+    return num;
 }
 
 // Returns the size of a virtual page of memory.

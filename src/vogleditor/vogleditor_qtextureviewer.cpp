@@ -145,7 +145,7 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
             pParent->setCursor(Qt::WaitCursor);
 
             vogl::color_quad_u8* pTmpPixels = NULL;
-            if (m_mipmappedTexture.get_num_faces() == 6)
+            if (m_mipmappedTexture.is_cubemap())
             {
                 vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(m_arrayIndex, 0, mip);
                 vogl::image_u8* image = mipLevel->get_image();
@@ -201,7 +201,7 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
             }
             else
             {
-                vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(m_arrayIndex, 0, mip);
+                vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(m_arrayIndex, m_sliceIndex, mip);
                 vogl::image_u8* image = mipLevel->get_image();
                 vogl::color_quad_u8* pPixels = image->get_pixels();
 

@@ -47,6 +47,54 @@ char* plat_getcwd(char *buffer, int maxlen)
     return _getcwd(buffer, maxlen);
 }
 
+const char* plat_gettmpdir()
+{
+    static char s_tmpdir[MAX_PATH];
+
+    if (!s_tmpdir[0])
+    {
+        DWORD ret = GetTempPath(MAX_PATH, s_tmpdir);
+
+        if ((ret == 0) || (ret > MAX_PATH))
+        {
+            // Ugh. Try several environment variables and just
+            //  set to c:\\temp if all those fail.
+            const char *tmpdir = getenv("TMP");
+            if (!tmpdir)
+            {
+                tmpdir = getenv("TEMP");
+                if (!tmpdir)
+                {
+                    tmpdir = getenv("USERPROFILE");
+                    if (!tmpdir)
+                        tmpdir = "c:\\temp";
+                }
+            }
+
+            strncpy(s_tmpdir, tmpdir, sizeof(s_tmpdir));
+            s_tmpdir[sizeof(s_tmpdir) - 1] = 0;
+        }
+
+        // Remove trailing slash.
+        size_t slen = strlen(s_tmpdir);
+        if ((slen > 0) && (s_tmpdir[slen - 1] == '\\'))
+            s_tmpdir[--slen] = 0;
+    }
+
+    return s_tmpdir;
+}
+
+char* plat_gettmpfname(char *buffer, int maxlen, const char *prefix)
+{
+    const char *tmpdir = plat_gettmpdir();
+    vogl::uint32 rnd32 = plat_rand();
+    unsigned int time32 = (unsigned int)time(NULL);
+
+    _snprintf(buffer, maxlen, "%s\\_%s_%08x_%08x.tmp", tmpdir, prefix, time32, rnd32);
+    buffer[maxlen - 1] = 0;
+    return buffer;
+}
+
 bool plat_fexist(const char* path)
 {
     return _access(path, 00) == 0;
@@ -86,6 +134,12 @@ size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length)
     }
 
     return ret_values;
+}
+
+vogl::uint32 plat_rand()
+{
+    vogl::uint32 num;
+    return (plat_rand_s(&num, 1) > 0) ? num : rand();
 }
 
 // Returns the size of a virtual page of memory.

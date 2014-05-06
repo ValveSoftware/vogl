@@ -254,8 +254,6 @@ static bool voglbench_init(int argc, char *argv[])
 {
     VOGL_FUNC_TRACER
 
-    get_thread_safe_random().seed_from_urandom();
-
     colorized_console::init();
     colorized_console::set_exception_callback();
     //console::set_tool_prefix("(voglbench) ");

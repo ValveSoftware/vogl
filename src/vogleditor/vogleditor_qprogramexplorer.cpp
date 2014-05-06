@@ -56,8 +56,8 @@ void vogleditor_QProgramExplorer::clear()
 {
     ui->programListBox->clear();
     ui->shaderListBox->clear();
-
     ui->shaderTextEdit->clear();
+    m_objects.clear();
 }
 
 uint vogleditor_QProgramExplorer::set_program_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)

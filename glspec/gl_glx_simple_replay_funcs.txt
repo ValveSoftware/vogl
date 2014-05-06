@@ -654,3 +654,5 @@ glDebugMessageControlARB
 glPushDebugGroup
 glDispatchCompute
 glDispatchComputeIndirect
+glTextureBarrierNV
+glTexBufferRange
