@@ -45,6 +45,16 @@ vogleditor_QProgramExplorer::vogleditor_QProgramExplorer(QWidget *parent) :
     ui->setupUi(this);
 
     ui->saveShaderButton->setEnabled(false);
+
+    ui->uniformTableWidget->setColumnCount(4);
+    ui->uniformTableWidget->setHorizontalHeaderLabels(QStringList() << "Loc" << "Name" << "Value" << "Type");
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_location, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_name, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_value, QHeaderView::Stretch);
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_type, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_location, 50);
+    ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_name, 100);
+    ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_type, 100);
 }
 
 vogleditor_QProgramExplorer::~vogleditor_QProgramExplorer()
@@ -150,6 +160,8 @@ void vogleditor_QProgramExplorer::on_programListBox_currentIndexChanged(int inde
             valueStr = valueStr.sprintf("Attached Shader %" PRIu64 " - %s", pShaderState->get_snapshot_handle(), get_gl_enums().find_gl_name(pShaderState->get_shader_type()));
             ui->shaderListBox->addItem(valueStr, QVariant::fromValue(pShaderState));
         }
+
+        update_uniforms_for_program(pObjState);
     }
 }
 
@@ -198,4 +210,358 @@ void vogleditor_QProgramExplorer::on_saveShaderButton_clicked()
         vogl_program_state* pProgramState = ui->programListBox->itemData(index).value<vogl_program_state*>();
         emit program_edited(pProgramState);
     }
+}
+
+void vogleditor_QProgramExplorer::update_uniforms_for_program(vogl_program_state* pProgramState)
+{
+    // clear the table
+    ui->uniformTableWidget->setRowCount(0);
+
+    const vogl_uniform_state_vec& uniformVec = pProgramState->get_uniform_state_vec();
+    uint rowIndex = 0;
+    for (uint i = 0; i < uniformVec.size(); i++)
+    {
+        QString varName = QString("%1").arg(uniformVec[i].m_name.c_str());
+
+        // check if element is an array
+        bool isArray = varName.endsWith("[0]");
+
+        unsigned int size = uniformVec[i].m_size;
+
+        for (uint uniformElementIndex = 0; uniformElementIndex < size; uniformElementIndex++)
+        {
+            if (isArray)
+            {
+                // chop off "[0]" and add appropriate index
+                varName.truncate(varName.indexOf("["));
+                varName += QString("[%1]").arg(uniformElementIndex);
+            }
+
+            ui->uniformTableWidget->insertRow(rowIndex);
+
+
+            int baseLocation = uniformVec[i].m_base_location;
+            if (baseLocation >= 0)
+            {
+                baseLocation += uniformElementIndex;
+            }
+
+            ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_location, new QTableWidgetItem(QString("%1").arg(baseLocation)));
+            ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_name, new QTableWidgetItem(varName));
+            ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_type, new QTableWidgetItem(get_gl_enums().find_gl_name(uniformVec[i].m_type)));
+
+            switch (uniformVec[i].m_type)
+            {
+                case GL_DOUBLE:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("%1").arg(pData[0])));
+                    break;
+                }
+                case GL_DOUBLE_VEC2:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*2];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2 }").arg(pData[0]).arg(pData[1])));
+                    break;
+                }
+                case GL_DOUBLE_VEC3:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*3];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2, %3 }").arg(pData[0]).arg(pData[1]).arg(pData[2])));
+                    break;
+                }
+                case GL_DOUBLE_VEC4:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*4];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2, %3, %4 }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3])));
+                    break;
+                }
+                case GL_DOUBLE_MAT2:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*4];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2 }, { %3, %4 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3])));
+                    break;
+                }
+                case GL_DOUBLE_MAT3:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*9];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3 }, { %4, %5, %6 }, { %7, %8, %9 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7]).arg(pData[8])));
+                    break;
+                }
+                case GL_DOUBLE_MAT4:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*16];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3, %4 }, { %5, %6, %7, %8 }, { %9, %10, %11, %12 }, { %13, %14, %15, %16 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7]).arg(pData[8]).arg(pData[9]).arg(pData[10]).arg(pData[11]).arg(pData[12]).arg(pData[13]).arg(pData[14]).arg(pData[15])));
+                    break;
+                }
+                case GL_DOUBLE_MAT2x3:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*6];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2 }, { %3, %4 }, { %5, %6 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5])));
+                    break;
+                }
+                case GL_DOUBLE_MAT3x2:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*6];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3 }, { %4, %5, %6 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5])));
+                    break;
+                }
+                case GL_DOUBLE_MAT2x4:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*8];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2 }, { %3, %4 }, { %5, %6 }, { %7, %8 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7])));
+                    break;
+                }
+                case GL_DOUBLE_MAT4x2:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*8];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3, %4 }, { %5, %6, %7, %8 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7])));
+                    break;
+                }
+                case GL_DOUBLE_MAT3x4:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*12];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3 }, { %4, %5, %6 }, { %7, %8, %9 }, { %10, %11, %12 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7]).arg(pData[8]).arg(pData[9]).arg(pData[10]).arg(pData[11])));
+                    break;
+                }
+                case GL_DOUBLE_MAT4x3:
+                {
+                    double* pData = &((double*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*12];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3, %4 }, { %5, %6, %7, %8 } { %9, %10, %11, %12 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7]).arg(pData[8]).arg(pData[9]).arg(pData[10]).arg(pData[11])));
+                    break;
+                }
+
+                case GL_FLOAT:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("%1").arg(pData[0])));
+                    break;
+                }
+                case GL_FLOAT_VEC2:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*2];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2 }").arg(pData[0]).arg(pData[1])));
+                    break;
+                }
+                case GL_FLOAT_VEC3:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*3];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2, %3 }").arg(pData[0]).arg(pData[1]).arg(pData[2])));
+                    break;
+                }
+                case GL_FLOAT_VEC4:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*4];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2, %3, %4 }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3])));
+                    break;
+                }
+                case GL_FLOAT_MAT2:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*4];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2 }, { %3, %4 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3])));
+                    break;
+                }
+                case GL_FLOAT_MAT3:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*9];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3 }, { %4, %5, %6 }, { %7, %8, %9 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7]).arg(pData[8])));
+                    break;
+                }
+                case GL_FLOAT_MAT4:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*16];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3, %4 }, { %5, %6, %7, %8 }, { %9, %10, %11, %12 }, { %13, %14, %15, %16 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7]).arg(pData[8]).arg(pData[9]).arg(pData[10]).arg(pData[11]).arg(pData[12]).arg(pData[13]).arg(pData[14]).arg(pData[15])));
+                    break;
+                }
+                case GL_FLOAT_MAT2x3:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*6];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2 }, { %3, %4 }, { %5, %6 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5])));
+                    break;
+                }
+                case GL_FLOAT_MAT3x2:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*6];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3 }, { %4, %5, %6 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5])));
+                    break;
+                }
+                case GL_FLOAT_MAT2x4:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*8];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2 }, { %3, %4 }, { %5, %6 }, { %7, %8 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7])));
+                    break;
+                }
+                case GL_FLOAT_MAT4x2:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*8];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3, %4 }, { %5, %6, %7, %8 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7])));
+                    break;
+                }
+                case GL_FLOAT_MAT3x4:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*12];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3 }, { %4, %5, %6 }, { %7, %8, %9 }, { %10, %11, %12 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7]).arg(pData[8]).arg(pData[9]).arg(pData[10]).arg(pData[11])));
+                    break;
+                }
+                case GL_FLOAT_MAT4x3:
+                {
+                    float* pData = &((float*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*12];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ { %1, %2, %3, %4 }, { %5, %6, %7, %8 } { %9, %10, %11, %12 } }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3]).arg(pData[4]).arg(pData[5]).arg(pData[6]).arg(pData[7]).arg(pData[8]).arg(pData[9]).arg(pData[10]).arg(pData[11])));
+                    break;
+                }
+
+                case GL_SAMPLER_1D:
+                case GL_SAMPLER_2D:
+                case GL_SAMPLER_3D:
+                case GL_SAMPLER_CUBE:
+                case GL_SAMPLER_1D_SHADOW:
+                case GL_SAMPLER_2D_SHADOW:
+                case GL_SAMPLER_1D_ARRAY:
+                case GL_SAMPLER_2D_ARRAY:
+                case GL_SAMPLER_1D_ARRAY_SHADOW:
+                case GL_SAMPLER_2D_ARRAY_SHADOW:
+                case GL_SAMPLER_2D_MULTISAMPLE:
+                case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+                case GL_SAMPLER_CUBE_SHADOW:
+                case GL_SAMPLER_BUFFER:
+                case GL_SAMPLER_2D_RECT:
+                case GL_SAMPLER_2D_RECT_SHADOW:
+                case GL_SAMPLER_CUBE_MAP_ARRAY:
+                case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW:
+                case GL_INT_SAMPLER_CUBE_MAP_ARRAY:
+                case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY:
+                case GL_INT_SAMPLER_1D:
+                case GL_INT_SAMPLER_2D:
+                case GL_INT_SAMPLER_3D:
+                case GL_INT_SAMPLER_CUBE:
+                case GL_INT_SAMPLER_1D_ARRAY:
+                case GL_INT_SAMPLER_2D_ARRAY:
+                case GL_INT_SAMPLER_2D_MULTISAMPLE:
+                case GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+                case GL_INT_SAMPLER_BUFFER:
+                case GL_INT_SAMPLER_2D_RECT:
+                case GL_UNSIGNED_INT_SAMPLER_1D:
+                case GL_UNSIGNED_INT_SAMPLER_2D:
+                case GL_UNSIGNED_INT_SAMPLER_3D:
+                case GL_UNSIGNED_INT_SAMPLER_CUBE:
+                case GL_UNSIGNED_INT_SAMPLER_1D_ARRAY:
+                case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY:
+                case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE:
+                case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY:
+                case GL_UNSIGNED_INT_SAMPLER_BUFFER:
+                case GL_UNSIGNED_INT_SAMPLER_2D_RECT:
+
+                case GL_IMAGE_1D:
+                case GL_IMAGE_2D:
+                case GL_IMAGE_3D:
+                case GL_IMAGE_2D_RECT:
+                case GL_IMAGE_CUBE:
+                case GL_IMAGE_BUFFER:
+                case GL_IMAGE_1D_ARRAY:
+                case GL_IMAGE_2D_ARRAY:
+                case GL_IMAGE_2D_MULTISAMPLE:
+                case GL_IMAGE_2D_MULTISAMPLE_ARRAY:
+                case GL_INT_IMAGE_1D:
+                case GL_INT_IMAGE_2D:
+                case GL_INT_IMAGE_3D:
+                case GL_INT_IMAGE_2D_RECT:
+                case GL_INT_IMAGE_CUBE:
+                case GL_INT_IMAGE_BUFFER:
+                case GL_INT_IMAGE_1D_ARRAY:
+                case GL_INT_IMAGE_2D_ARRAY:
+                case GL_INT_IMAGE_2D_MULTISAMPLE:
+                case GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+                case GL_UNSIGNED_INT_IMAGE_1D:
+                case GL_UNSIGNED_INT_IMAGE_2D:
+                case GL_UNSIGNED_INT_IMAGE_3D:
+                case GL_UNSIGNED_INT_IMAGE_2D_RECT:
+                case GL_UNSIGNED_INT_IMAGE_CUBE:
+                case GL_UNSIGNED_INT_IMAGE_BUFFER:
+                case GL_UNSIGNED_INT_IMAGE_1D_ARRAY:
+                case GL_UNSIGNED_INT_IMAGE_2D_ARRAY:
+                case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE:
+                case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY:
+
+                case GL_INT:
+                case GL_BOOL:
+                {
+                    int* pData = &((int*)uniformVec[i].m_data.get_ptr())[uniformElementIndex];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("%1").arg(pData[0])));
+                    break;
+                }
+                case GL_INT_VEC2:
+                case GL_BOOL_VEC2:
+                {
+                    int* pData = &((int*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*2];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2 }").arg(pData[0]).arg(pData[1])));
+                    break;
+                }
+                case GL_INT_VEC3:
+                case GL_BOOL_VEC3:
+                {
+                    int* pData = &((int*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*3];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2, %3 }").arg(pData[0]).arg(pData[1]).arg(pData[2])));
+                    break;
+                }
+                case GL_INT_VEC4:
+                case GL_BOOL_VEC4:
+                {
+                    int* pData = &((int*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*4];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2, %3, %4 }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3])));
+                    break;
+                }
+                case GL_UNSIGNED_INT:
+                case GL_UNSIGNED_INT_ATOMIC_COUNTER: // TODO: is this correct?
+                {
+                    unsigned int* pData = &((unsigned int*)uniformVec[i].m_data.get_ptr())[uniformElementIndex];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("%1").arg(pData[0])));
+                    break;
+                }
+                case GL_UNSIGNED_INT_VEC2:
+                {
+                    unsigned int* pData = &((unsigned int*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*2];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2 }").arg(pData[0]).arg(pData[1])));
+                    break;
+                }
+                case GL_UNSIGNED_INT_VEC3:
+                {
+                    unsigned int* pData = &((unsigned int*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*3];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2, %3 }").arg(pData[0]).arg(pData[1]).arg(pData[2])));
+                    break;
+                }
+                case GL_UNSIGNED_INT_VEC4:
+                {
+                    unsigned int* pData = &((unsigned int*)uniformVec[i].m_data.get_ptr())[uniformElementIndex*4];
+                    ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(QString("{ %1, %2, %3, %4 }").arg(pData[0]).arg(pData[1]).arg(pData[2]).arg(pData[3])));
+                    break;
+                }
+                default:
+                {
+                    VOGL_ASSERT_ALWAYS;
+                    vogl_warning_printf("%s: Unknown uniform type 0x%04X\n", VOGL_FUNCTION_NAME, uniformVec[i].m_type);
+                    continue;
+                }
+            } // end switch
+
+            rowIndex++;
+        } // end uniform element index
+    }
+
+    // resize columns so that they are properly sized, but still allow the user to resize them more if needed
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_location, QHeaderView::ResizeToContents);
+    uint tmpWidth = ui->uniformTableWidget->horizontalHeader()->sectionSize(vogleditor_utc_location);
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_location, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_location, tmpWidth);
+
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_name, QHeaderView::ResizeToContents);
+    tmpWidth = ui->uniformTableWidget->horizontalHeader()->sectionSize(vogleditor_utc_name);
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_name, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_name, tmpWidth);
+
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_type, QHeaderView::ResizeToContents);
+    tmpWidth = ui->uniformTableWidget->horizontalHeader()->sectionSize(vogleditor_utc_type);
+    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_type, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_type, tmpWidth);
+
+    ui->saveShaderButton->setEnabled(false);
 }

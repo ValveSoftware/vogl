@@ -38,13 +38,23 @@ private slots:
     void on_saveShaderButton_clicked();
 
 private:
+    enum uniform_table_columns
+    {
+        vogleditor_utc_location = 0,
+        vogleditor_utc_name,
+        vogleditor_utc_value,
+        vogleditor_utc_type
+    };
+
     Ui::vogleditor_QProgramExplorer *ui;
     vogl_gl_object_state_ptr_vec m_objects;
 
     uint add_program_objects(vogl_gl_object_state_ptr_vec objects);
 
+    void update_uniforms_for_program(vogl_program_state* pProgramState);
+
 signals:
-    void program_edited(vogl_program_state* pNewProgramState);
+    void program_edited(vogl_program_state* pProgramState);
 
 };
 
