@@ -49,7 +49,6 @@
     #include <unistd.h>
     #include <sys/syscall.h>
     #include <X11/Xatom.h>
-
 #endif
 
 #if VOGL_REMOTING
@@ -81,6 +80,17 @@
 
 class vogl_context;
 class vogl_entrypoint_serializer;
+
+#if VOGL_PLATFORM_HAS_GLX
+    #define CONTEXT_TYPE GLXContext
+#elif VOGL_PLATFORM_HAS_WGL
+    #define CONTEXT_TYPE HGLRC
+#else
+    #error "Need to define CONTEXT_TYPE for this platform"
+#endif
+
+typedef vogl::hash_map<CONTEXT_TYPE, vogl_context *, bit_hasher<CONTEXT_TYPE> > context_map;
+bool get_dimensions_from_dc(unsigned int* out_width, unsigned int* out_height, HDC hdc);
 
 //----------------------------------------------------------------------------------------------------------------------
 // Globals
@@ -682,7 +692,14 @@ void vogl_init()
             vogl_message_printf("%s: Manually loaded %s\n", VOGL_FUNCTION_NAME, VOGL_LIBGL_SO_FILENAME);
         }
     #elif (VOGL_PLATFORM_HAS_WGL)
-        VOGL_VERIFY(!"impl vogl_init on Windows");
+        g_vogl_actual_gl_entrypoints.m_wglGetProcAddress = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(PLAT_RTLD_NEXT, "wglGetProcAddress"));
+        if (!g_vogl_actual_gl_entrypoints.m_wglGetProcAddress)
+        {
+            // There's no fallback on windows, the underlying code already forcibly loaded the system dll--so if we couldn't find it we need to understand why.
+            vogl_error_printf("%s: Failed getting address of wglGetProcAddress from opengl32.dll\n", VOGL_FUNCTION_NAME);
+            exit(EXIT_FAILURE);
+        }
+
     #else
         #error "impl vogl_init on this platform."
     #endif
@@ -945,7 +962,8 @@ static inline void vogl_check_context(gl_entrypoint_id_t id, vogl_context *pCont
 
         // FIXME: Check to see if the func is in a non-GL category, anything but this!
         // These are rare enough that this is not the biggest fire right now.
-        if ((pName[0] != 'g') || (pName[1] != 'l') || (pName[2] != 'X'))
+        if (   ((pName[0] != 'g') || (pName[1] != 'l') || (pName[2] != 'X'))
+            && ((pName[0] != 'w') || (pName[1] != 'g') || (pName[2] != 'l')))
         {
             uint n = vogl_strlen(pName);
             if ((n <= 3) || ((pName[n - 3] != 'R') || (pName[n - 2] != 'A') || (pName[n - 1] != 'D')))
@@ -1123,7 +1141,7 @@ class vogl_context
     VOGL_NO_COPY_OR_ASSIGNMENT_OP(vogl_context);
 
 public:
-    vogl_context(GLXContext handle)
+    vogl_context(CONTEXT_TYPE handle)
         : m_ref_count(1),
           m_deleted_flag(false),
           m_pShared_state(this),
@@ -1134,6 +1152,7 @@ public:
           m_read_drawable(None),
           m_render_type(0),
           m_fb_config(NULL),
+          m_hdc(NULL),
           m_direct(false),
           m_created_from_attribs(false),
           m_current_thread(0),
@@ -1205,16 +1224,16 @@ public:
         return this != m_pShared_state;
     }
 
-    GLXContext get_context_handle() const
+    CONTEXT_TYPE get_context_handle() const
     {
         return m_context_handle;
     }
 
-    GLXContext get_sharelist_handle() const
+    CONTEXT_TYPE get_sharelist_handle() const
     {
         return m_sharelist_handle;
     }
-    void set_sharelist_handle(GLXContext context)
+    void set_sharelist_handle(CONTEXT_TYPE context)
     {
         m_sharelist_handle = context;
     }
@@ -1227,6 +1246,16 @@ public:
     {
         m_pDpy = pDpy;
     }
+
+    const HDC get_hdc() const
+    {
+        return m_hdc;
+    }
+    void set_hdc(HDC hdc)
+    {
+        m_hdc = hdc;
+    }
+
 
     void set_drawable(GLXDrawable drawable)
     {
@@ -1445,7 +1474,7 @@ public:
             return false;
 
         // Double check that the context that we think is current is actually current.
-        GLXContext cur_context = GL_ENTRYPOINT(glXGetCurrentContext)();
+        CONTEXT_TYPE cur_context = GetCurrentContext(); 
         if (!cur_context)
         {
             VOGL_ASSERT(!m_current_thread);
@@ -2551,13 +2580,37 @@ public:
         return get_shared_state()->m_capture_context_params.m_display_lists.add_packet_to_list(m_current_display_list_handle, func, packet);
     }
 
+    bool MakeCurrent(CONTEXT_TYPE new_context)
+    {
+        #if (VOGL_PLATFORM_HAS_GLX)
+            return GL_ENTRYPOINT(glXMakeCurrent)(get_display(), get_drawable(), new_context);
+        #elif (VOGL_PLATFORM_HAS_WGL)
+            return GL_ENTRYPOINT(wglMakeCurrent)(get_hdc(), new_context) != GL_FALSE;
+        #else
+            #error "Need a MakeCurrent implementation for this platform."
+        #endif
+    }
+
+    CONTEXT_TYPE GetCurrentContext() const
+    {
+        #if (VOGL_PLATFORM_HAS_GLX)
+            return GL_ENTRYPOINT(glXGetCurrentContext)();
+        #elif (VOGL_PLATFORM_HAS_WGL)
+            return GL_ENTRYPOINT(wglGetCurrentContext)();
+        #else
+            #error "Need a GetCurrentContext implementation for this platform."
+            return CONTEXT_TYPE(0);
+        #endif
+    }
+
+
 private:
     int m_ref_count;
     bool m_deleted_flag;
     vogl_context *m_pShared_state;
 
-    GLXContext m_context_handle;
-    GLXContext m_sharelist_handle;
+    CONTEXT_TYPE m_context_handle;
+    CONTEXT_TYPE m_sharelist_handle;
 
     const Display *m_pDpy;
     GLXDrawable m_drawable;
@@ -2565,6 +2618,8 @@ private:
     int m_render_type;
     XVisualInfo m_xvisual_info;
     GLXFBConfig m_fb_config;
+
+    HDC m_hdc;
 
     bool m_direct;
 
@@ -2673,8 +2728,6 @@ private:
     }
 };
 
-typedef vogl::hash_map<GLXContext, vogl_context *, bit_hasher<GLXContext> > glxcontext_map;
-
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_context_handle_remapper::is_valid_handle
 //----------------------------------------------------------------------------------------------------------------------
@@ -2770,7 +2823,7 @@ public:
     {
     }
 
-    vogl_context *create_context(GLXContext handle)
+    vogl_context *create_context(CONTEXT_TYPE handle)
     {
         VOGL_ASSERT(handle);
 
@@ -2784,13 +2837,13 @@ public:
         return pVOGL_context;
     }
 
-    vogl_context *lookup_vogl_context(GLXContext handle)
+    vogl_context *lookup_vogl_context(CONTEXT_TYPE handle)
     {
         VOGL_ASSERT(handle);
 
         vogl_context *pVOGL_context;
         VOGL_NOTE_UNUSED(pVOGL_context);
-        glxcontext_map::iterator it;
+        context_map::iterator it;
 
         {
             scoped_mutex lock(m_glx_context_map_lock);
@@ -2800,7 +2853,7 @@ public:
         return (it != m_glx_context_map.end()) ? it->second : NULL;
     }
 
-    bool destroy_context(GLXContext handle)
+    bool destroy_context(CONTEXT_TYPE handle)
     {
         VOGL_ASSERT(handle);
 
@@ -2822,7 +2875,7 @@ public:
         return true;
     }
 
-    vogl_context *get_or_create_context(GLXContext handle)
+    vogl_context *get_or_create_context(CONTEXT_TYPE handle)
     {
         VOGL_ASSERT(handle);
 
@@ -2833,7 +2886,7 @@ public:
         return pVOGL_context;
     }
 
-    vogl_context *make_current(GLXContext handle)
+    vogl_context *make_current(CONTEXT_TYPE handle)
     {
         VOGL_ASSERT(handle);
 
@@ -2892,7 +2945,7 @@ public:
         m_glx_context_map_lock.unlock();
     }
 
-    const glxcontext_map &get_context_map() const
+    const context_map &get_context_map() const
     {
         return m_glx_context_map;
     }
@@ -2901,8 +2954,8 @@ public:
     {
         lock();
 
-        const glxcontext_map &contexts = m_glx_context_map;
-        for (glxcontext_map::const_iterator it = contexts.begin(); it != contexts.end(); ++it)
+        const context_map &contexts = m_glx_context_map;
+        for (context_map::const_iterator it = contexts.begin(); it != contexts.end(); ++it)
         {
             vogl_context *p = it->second;
             if ((p->get_display() == dpy) && (p->get_drawable() == drawable))
@@ -2918,7 +2971,7 @@ public:
 
 private:
     mutex m_glx_context_map_lock;
-    glxcontext_map m_glx_context_map;
+    context_map m_glx_context_map;
 };
 
 static vogl_context_manager& get_context_manager()
@@ -2948,11 +3001,15 @@ static inline void vogl_context_shadow_unlock()
 //----------------------------------------------------------------------------------------------------------------------
 static void vogl_atexit()
 {
-    vogl_debug_printf("vogl_atexit()\n");
+    #if !defined(PLATFORM_WINDOWS)
+        vogl_debug_printf("vogl_atexit()\n");
 
-    scoped_mutex lock(get_vogl_trace_mutex());
+        scoped_mutex lock(get_vogl_trace_mutex());
 
-    vogl_deinit();
+        vogl_deinit();
+    #else
+        vogl_debug_printf("vogl_atexit crashes on windows because of dll unloading issues. Need to investigate further.\n");
+    #endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -3764,6 +3821,14 @@ static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoin
     vogl_dump_array_param(pContext, serializer, "RETURN_GLUBYTE_PTR", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pPtr, array_size);
 }
 
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, const char *pPtr)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    size_t array_size = pPtr ? (strlen(pPtr) + 1) : 0;
+    vogl_dump_array_param(pContext, serializer, "RETURN_CONST_CHAR_PTR", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pPtr, array_size);
+}
+
 static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, void *pPtr)
 {
     VOGL_NOTE_UNUSED(size);
@@ -3811,6 +3876,48 @@ static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoin
     // opaque data
     vogl_dump_ptr_param(pContext, serializer, "RETURN_XDISPLAY_PTR", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pPtr);
 }
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, HDC hdc)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_HDC", VOGL_RETURN_PARAM_INDEX, "result", pType, type, hdc);
+}
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, HGLRC hglrc)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_HGLRC", VOGL_RETURN_PARAM_INDEX, "result", pType, type, hglrc);
+}
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, PROC proc)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_PROC", VOGL_RETURN_PARAM_INDEX, "result", pType, type, proc);
+}
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, HPBUFFERARB hpbufferarb)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_HPBUFFERARB", VOGL_RETURN_PARAM_INDEX, "result", pType, type, hpbufferarb);
+}
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, HPBUFFEREXT hpbufferext)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_HPBUFFEREXT", VOGL_RETURN_PARAM_INDEX, "result", pType, type, hpbufferext);
+}
+
+
 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_should_serialize_call
@@ -4210,28 +4317,30 @@ static __GLXextFuncPtr vogl_glXGetProcAddressARB(const GLubyte *procName)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-static void vogl_add_make_current_key_value_fields(const Display *dpy, GLXDrawable drawable, Bool result, vogl_context *pVOGL_context, vogl_entrypoint_serializer &serializer)
-{
-    if ((result) && (pVOGL_context))
+#if (VOGL_PLATFORM_HAS_GLX)
+
+    static void vogl_add_make_current_key_value_fields(const Display *dpy, GLXDrawable drawable, Bool result, vogl_context *pVOGL_context, vogl_entrypoint_serializer &serializer)
     {
-        vogl_scoped_gl_error_absorber gl_error_absorber(pVOGL_context);
-        VOGL_NOTE_UNUSED(gl_error_absorber);
+        if ((result) && (pVOGL_context))
+        {
+            vogl_scoped_gl_error_absorber gl_error_absorber(pVOGL_context);
+            VOGL_NOTE_UNUSED(gl_error_absorber);
 
-        GLint cur_viewport[4];
-        GL_ENTRYPOINT(glGetIntegerv)(GL_VIEWPORT, cur_viewport);
+            GLint cur_viewport[4];
+            GL_ENTRYPOINT(glGetIntegerv)(GL_VIEWPORT, cur_viewport);
 
-        serializer.add_key_value(string_hash("viewport_x"), cur_viewport[0]);
-        serializer.add_key_value(string_hash("viewport_y"), cur_viewport[1]);
-        serializer.add_key_value(string_hash("viewport_width"), cur_viewport[2]);
-        serializer.add_key_value(string_hash("viewport_height"), cur_viewport[3]);
-    }
+            serializer.add_key_value(string_hash("viewport_x"), cur_viewport[0]);
+            serializer.add_key_value(string_hash("viewport_y"), cur_viewport[1]);
+            serializer.add_key_value(string_hash("viewport_width"), cur_viewport[2]);
+            serializer.add_key_value(string_hash("viewport_height"), cur_viewport[3]);
+        }
 
-    if ((pVOGL_context) && (pVOGL_context->get_window_width() < 0))
-    {
-        bool valid_dims = false;
-        unsigned int width = 1, 
-                     height = 1;
-        #if (VOGL_PLATFORM_HAS_GLX)
+        if ((pVOGL_context) && (pVOGL_context->get_window_width() < 0))
+        {
+            bool valid_dims = false;
+            unsigned int width = 1, 
+                         height = 1;
+
             if ((dpy) && (drawable) && (result))
             {
                 Window root;
@@ -4239,26 +4348,89 @@ static void vogl_add_make_current_key_value_fields(const Display *dpy, GLXDrawab
                 unsigned int border_width, depth;
                 valid_dims = (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False);
             }
-        #elif (VOGL_PLATFORM_HAS_WGL)
-            VOGL_VERIFY(!"impl vogl_add_make_current_key_value_fields on Windows");
-        #else
-            #error "impl vogl_add_make_current_key_value_fields on this platform"
-        #endif
 
-        if (valid_dims)
-        {
-            pVOGL_context->set_window_dimensions(width, height);
-
-            serializer.add_key_value(string_hash("win_width"), width);
-            serializer.add_key_value(string_hash("win_height"), height);
-
-            if (g_dump_gl_calls_flag)
+            if (valid_dims)
             {
-                vogl_log_printf("** Current window dimensions: %ix%i\n", width, height);
-            }                
+                pVOGL_context->set_window_dimensions(width, height);
+
+                serializer.add_key_value(string_hash("win_width"), width);
+                serializer.add_key_value(string_hash("win_height"), height);
+
+                if (g_dump_gl_calls_flag)
+                {
+                    vogl_log_printf("** Current window dimensions: %ix%i\n", width, height);
+                }                
+            }
         }
     }
-}
+
+#elif (VOGL_PLATFORM_HAS_WGL)
+
+    bool get_dimensions_from_dc(unsigned int* out_width, unsigned int* out_height, HDC hdc)
+    {
+        VOGL_ASSERT(out_width);
+        VOGL_ASSERT(out_height);
+
+        if (!hdc)
+            return false;
+
+        HWND wnd = WindowFromDC(hdc);
+        if (!wnd)
+            return false;
+
+        RECT dims = {};
+        if (GetClientRect(wnd, &dims))
+        {
+            (*out_width) = dims.right - dims.left;
+            (*out_height) = dims.bottom - dims.top;
+
+            return (*out_width) > 0 
+                && (*out_height) > 0;
+        }
+
+        return false;
+    }
+
+    static void vogl_add_make_current_key_value_fields(HDC hdc, HGLRC hglrc, Bool result, vogl_context *pVOGL_context, vogl_entrypoint_serializer &serializer)
+    {
+        if ((result) && (pVOGL_context))
+        {
+            vogl_scoped_gl_error_absorber gl_error_absorber(pVOGL_context);
+            VOGL_NOTE_UNUSED(gl_error_absorber);
+
+            GLint cur_viewport[4];
+            GL_ENTRYPOINT(glGetIntegerv)(GL_VIEWPORT, cur_viewport);
+
+            serializer.add_key_value(string_hash("viewport_x"), cur_viewport[0]);
+            serializer.add_key_value(string_hash("viewport_y"), cur_viewport[1]);
+            serializer.add_key_value(string_hash("viewport_width"), cur_viewport[2]);
+            serializer.add_key_value(string_hash("viewport_height"), cur_viewport[3]);
+        }
+
+        if ((pVOGL_context) && (pVOGL_context->get_window_width() < 0))
+        {
+            unsigned int width = 1, 
+                         height = 1;
+
+            if (hglrc && result && get_dimensions_from_dc(&width, &height, hdc))
+            {
+                pVOGL_context->set_window_dimensions(width, height);
+
+                serializer.add_key_value(string_hash("win_width"), width);
+                serializer.add_key_value(string_hash("win_height"), height);
+
+                if (g_dump_gl_calls_flag)
+                {
+                    vogl_log_printf("** Current window dimensions: %ix%i\n", width, height);
+                }
+            }
+        }
+    }
+
+#else
+    #error "impl vogl_add_make_current_key_value_fields on this platform"
+#endif
+
 
 #if 0
 //----------------------------------------------------------------------------------------------------------------------
@@ -4286,196 +4458,298 @@ static void vogl_glTexStorage2D(	GLenum target,
 }
 #endif
 
-//----------------------------------------------------------------------------------------------------------------------
-#define DEF_FUNCTION_CUSTOM_HANDLER_glXMakeCurrent(exported, category, ret, ret_type_enum, num_params, name, args, params)
-static Bool vogl_glXMakeCurrent(const Display *dpy, GLXDrawable drawable, GLXContext context)
-{
-    uint64_t begin_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
+#if VOGL_PLATFORM_HAS_GLX
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_glXMakeCurrent(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static Bool vogl_glXMakeCurrent(const Display *dpy, GLXDrawable drawable, GLXContext context)
     {
-        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
+        uint64_t begin_rdtsc = utils::RDTSC();
 
-    vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXMakeCurrent);
-    if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
-    {
-        vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
-        return GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, context);
-    }
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_log_printf("** glXMakeCurrent TID: 0x%" PRIX64 " dpy: 0x%" PRIX64 " drawable: 0x%" PRIX64 " context: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(drawable), cast_val_to_uint64(context));
-    }
-
-    vogl_context_manager &context_manager = get_context_manager();
-    vogl_context *pCur_context = context_manager.get_current(true);
-
-    vogl_context *pNew_context = context ? context_manager.lookup_vogl_context(context) : NULL;
-    if ((context) && (!pNew_context))
-    {
-        vogl_error_printf("%s: Unknown context handle 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
-    }
-
-    if (pCur_context)
-    {
-        if (pCur_context != pNew_context)
-            pCur_context->on_release_current_prolog();
-        else
-            vogl_warning_printf("%s: Context 0x%" PRIX64 " is already current (redundant call)\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
-    }
-
-    uint64_t gl_begin_rdtsc = utils::RDTSC();
-    Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, context);
-    uint64_t gl_end_rdtsc = utils::RDTSC();
-
-    if ((result) && (pCur_context != pNew_context))
-    {
-        if (pCur_context)
-            context_manager.release_current();
-
-        if (context)
+        if (g_dump_gl_calls_flag)
         {
-            vogl_context *p = context_manager.make_current(context);
-            VOGL_ASSERT(p == pNew_context);
-            VOGL_NOTE_UNUSED(p);
-
-            pNew_context->set_display(dpy);
-            pNew_context->set_drawable(drawable);
-            pNew_context->set_read_drawable(drawable);
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
         }
-    }
 
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_log_printf("** glXMakeCurrent result: %i\n", result);
-    }
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXMakeCurrent);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, context);
+        }
 
-    if (get_vogl_trace_writer().is_opened())
-    {
-        vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXMakeCurrent, pCur_context);
-        serializer.set_begin_rdtsc(begin_rdtsc);
-        serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
-        serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
-        serializer.add_param(1, VOGL_GLXDRAWABLE, &drawable, sizeof(drawable));
-        serializer.add_param(2, VOGL_GLXCONTEXT, &context, sizeof(context));
-        serializer.add_return_param(VOGL_BOOL, &result, sizeof(result));
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** glXMakeCurrent TID: 0x%" PRIX64 " dpy: 0x%" PRIX64 " drawable: 0x%" PRIX64 " context: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(drawable), cast_val_to_uint64(context));
+        }
 
-        vogl_add_make_current_key_value_fields(dpy, drawable, result, pNew_context, serializer);
+        vogl_context_manager &context_manager = get_context_manager();
+        vogl_context *pCur_context = context_manager.get_current(true);
 
-        serializer.end();
-        vogl_write_packet_to_trace(serializer.get_packet());
-    }
+        vogl_context *pNew_context = context ? context_manager.lookup_vogl_context(context) : NULL;
+        if ((context) && (!pNew_context))
+        {
+            vogl_error_printf("%s: Unknown context handle 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
+        }
 
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
+        if (pCur_context)
+        {
+            if (pCur_context != pNew_context)
+                pCur_context->on_release_current_prolog();
+            else
+                vogl_warning_printf("%s: Context 0x%" PRIX64 " is already current (redundant call)\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
+        }
 
-    static bool s_added_atexit = false;
-    if (!s_added_atexit)
-    {
-	    // atexit routines are called in the reverse order in which they were registered. We would like
-		//  our vogl_atexit() routine to be called before anything else (Ie C++ destructors, etc.) So we
-		//  put atexit at the end of vogl_global_init() and another at the end of glXMakeCurrent.
-        atexit(vogl_atexit);
-        s_added_atexit = true;
-    }
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, context);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if ((result) && (pCur_context != pNew_context))
+        {
+            if (pCur_context)
+                context_manager.release_current();
+
+            if (context)
+            {
+                vogl_context *p = context_manager.make_current(context);
+                VOGL_ASSERT(p == pNew_context);
+                VOGL_NOTE_UNUSED(p);
+
+                pNew_context->set_display(dpy);
+                pNew_context->set_drawable(drawable);
+                pNew_context->set_read_drawable(drawable);
+            }
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** glXMakeCurrent result: %i\n", result);
+        }
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXMakeCurrent, pCur_context);
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
+            serializer.add_param(1, VOGL_GLXDRAWABLE, &drawable, sizeof(drawable));
+            serializer.add_param(2, VOGL_GLXCONTEXT, &context, sizeof(context));
+            serializer.add_return_param(VOGL_BOOL, &result, sizeof(result));
+
+            vogl_add_make_current_key_value_fields(dpy, drawable, result, pNew_context, serializer);
+
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        static bool s_added_atexit = false;
+        if (!s_added_atexit)
+        {
+	        // atexit routines are called in the reverse order in which they were registered. We would like
+		    //  our vogl_atexit() routine to be called before anything else (Ie C++ destructors, etc.) So we
+		    //  put atexit at the end of vogl_global_init() and another at the end of glXMakeCurrent.
+            atexit(vogl_atexit);
+            s_added_atexit = true;
+        }
     
-    return result;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-#define DEF_FUNCTION_CUSTOM_HANDLER_glXMakeContextCurrent(exported, category, ret, ret_type_enum, num_params, name, args, params)
-static Bool vogl_glXMakeContextCurrent(const Display *dpy, GLXDrawable draw, GLXDrawable read, GLXContext context)
-{
-    uint64_t begin_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        return result;
     }
 
-    vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXMakeContextCurrent);
-    if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_glXMakeContextCurrent(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static Bool vogl_glXMakeContextCurrent(const Display *dpy, GLXDrawable draw, GLXDrawable read, GLXContext context)
     {
-        vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
-        return GL_ENTRYPOINT(glXMakeContextCurrent)(dpy, draw, read, context);
-    }
+        uint64_t begin_rdtsc = utils::RDTSC();
 
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_log_printf("** glXMakeContextCurrent TID: 0x%" PRIX64 " dpy: 0x%" PRIX64 " draw: 0x%" PRIX64 " read: 0x%" PRIX64 " context: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(draw), cast_val_to_uint64(read), cast_val_to_uint64(context));
-    }
-
-    vogl_context_manager &context_manager = get_context_manager();
-    vogl_context *pCur_context = context_manager.get_current(true);
-
-    vogl_context *pNew_context = context ? context_manager.lookup_vogl_context(context) : NULL;
-    if ((context) && (!pNew_context))
-    {
-        vogl_error_printf("%s: Unknown coontext handle 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
-    }
-
-    if (pCur_context)
-    {
-        if (pCur_context != pNew_context)
-            pCur_context->on_release_current_prolog();
-        else
-            vogl_warning_printf("%s: Context 0x%" PRIX64 " is already current (redundant call)\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
-    }
-
-    uint64_t gl_begin_rdtsc = utils::RDTSC();
-    Bool result = GL_ENTRYPOINT(glXMakeContextCurrent)(dpy, draw, read, context);
-    uint64_t gl_end_rdtsc = utils::RDTSC();
-
-    if ((result) && (pCur_context != pNew_context))
-    {
-        if (pCur_context)
-            context_manager.release_current();
-
-        if (context)
+        if (g_dump_gl_calls_flag)
         {
-            vogl_context *p = context_manager.make_current(context);
-            VOGL_ASSERT(p == pNew_context);
-            VOGL_NOTE_UNUSED(p);
-
-            pNew_context->set_display(dpy);
-            pNew_context->set_drawable(draw);
-            pNew_context->set_read_drawable(read);
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
         }
-    }
 
-    if (g_dump_gl_calls_flag)
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXMakeContextCurrent);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(glXMakeContextCurrent)(dpy, draw, read, context);
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** glXMakeContextCurrent TID: 0x%" PRIX64 " dpy: 0x%" PRIX64 " draw: 0x%" PRIX64 " read: 0x%" PRIX64 " context: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(draw), cast_val_to_uint64(read), cast_val_to_uint64(context));
+        }
+
+        vogl_context_manager &context_manager = get_context_manager();
+        vogl_context *pCur_context = context_manager.get_current(true);
+
+        vogl_context *pNew_context = context ? context_manager.lookup_vogl_context(context) : NULL;
+        if ((context) && (!pNew_context))
+        {
+            vogl_error_printf("%s: Unknown coontext handle 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
+        }
+
+        if (pCur_context)
+        {
+            if (pCur_context != pNew_context)
+                pCur_context->on_release_current_prolog();
+            else
+                vogl_warning_printf("%s: Context 0x%" PRIX64 " is already current (redundant call)\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
+        }
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        Bool result = GL_ENTRYPOINT(glXMakeContextCurrent)(dpy, draw, read, context);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if ((result) && (pCur_context != pNew_context))
+        {
+            if (pCur_context)
+                context_manager.release_current();
+
+            if (context)
+            {
+                vogl_context *p = context_manager.make_current(context);
+                VOGL_ASSERT(p == pNew_context);
+                VOGL_NOTE_UNUSED(p);
+
+                pNew_context->set_display(dpy);
+                pNew_context->set_drawable(draw);
+                pNew_context->set_read_drawable(read);
+            }
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** glXMakeCurrent result: %i\n", result);
+        }
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXMakeContextCurrent, pCur_context);
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
+            serializer.add_param(1, VOGL_GLXDRAWABLE, &draw, sizeof(draw));
+            serializer.add_param(2, VOGL_GLXDRAWABLE, &read, sizeof(read));
+            serializer.add_param(3, VOGL_GLXCONTEXT, &context, sizeof(context));
+            serializer.add_return_param(VOGL_BOOL, &result, sizeof(result));
+
+            vogl_add_make_current_key_value_fields(dpy, draw, result, pNew_context, serializer);
+
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        return result;
+    }
+#endif
+
+#if VOGL_PLATFORM_HAS_WGL
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_wglMakeCurrent(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static Bool vogl_wglMakeCurrent(HDC hdc, HGLRC newContext)
     {
-        vogl_log_printf("** glXMakeCurrent result: %i\n", result);
+        
+        uint64_t begin_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglMakeCurrent);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(wglMakeCurrent)(hdc, newContext);
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** wglMakeCurrent TID: 0x%" PRIX64 " hdc: 0x%" PRIX64 " newContext: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(hdc), cast_val_to_uint64(newContext));
+        }
+
+        vogl_context_manager &context_manager = get_context_manager();
+        vogl_context *pCur_context = context_manager.get_current(true);
+
+        vogl_context *pNew_context = newContext ? context_manager.lookup_vogl_context(newContext) : NULL;
+        if ((newContext) && (!pNew_context))
+        {
+            vogl_error_printf("%s: Unknown context handle 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(newContext));
+        }
+
+        if (pCur_context)
+        {
+            if (pCur_context != pNew_context)
+                pCur_context->on_release_current_prolog();
+            else
+                vogl_warning_printf("%s: Context (newContext) 0x%" PRIX64 " is already current (redundant call)\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(newContext));
+        }
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        Bool result = GL_ENTRYPOINT(wglMakeCurrent)(hdc, newContext);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if ((result) && (pCur_context != pNew_context))
+        {
+            if (pCur_context)
+                context_manager.release_current();
+
+            if (newContext)
+            {
+                vogl_context *p = context_manager.make_current(newContext);
+                VOGL_ASSERT(p == pNew_context);
+                VOGL_NOTE_UNUSED(p);
+
+                pNew_context->set_hdc(hdc);
+            }
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** wglMakeCurrent result: %i\n", result);
+        }
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_wglMakeCurrent, pCur_context);
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_HDC, &hdc, sizeof(hdc));
+            serializer.add_param(1, VOGL_HGLRC, &newContext, sizeof(newContext));
+            serializer.add_return_param(VOGL_BOOL, &result, sizeof(result));
+
+            vogl_add_make_current_key_value_fields(hdc, newContext, result, pNew_context, serializer);
+
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        static bool s_added_atexit = false;
+        if (!s_added_atexit)
+        {
+            // atexit routines are called in the reverse order in which they were registered. We would like
+            //  our vogl_atexit() routine to be called before anything else (Ie C++ destructors, etc.) So we
+            //  put atexit at the end of vogl_global_init() and another at the end of glXMakeCurrent.
+            atexit(vogl_atexit);
+            s_added_atexit = true;
+        }
+
+        return result;
     }
-
-    if (get_vogl_trace_writer().is_opened())
-    {
-        vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXMakeContextCurrent, pCur_context);
-        serializer.set_begin_rdtsc(begin_rdtsc);
-        serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
-        serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
-        serializer.add_param(1, VOGL_GLXDRAWABLE, &draw, sizeof(draw));
-        serializer.add_param(2, VOGL_GLXDRAWABLE, &read, sizeof(read));
-        serializer.add_param(3, VOGL_GLXCONTEXT, &context, sizeof(context));
-        serializer.add_return_param(VOGL_BOOL, &result, sizeof(result));
-
-        vogl_add_make_current_key_value_fields(dpy, draw, result, pNew_context, serializer);
-
-        serializer.end();
-        vogl_write_packet_to_trace(serializer.get_packet());
-    }
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
-
-    return result;
-}
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------
 static bool vogl_screen_capture_callback(uint width, uint height, uint pitch, size_t size, GLenum pixel_format, GLenum pixel_type, const void *pImage, void *pOpaque, uint64_t frame_index)
@@ -4604,151 +4878,6 @@ static void vogl_tick_screen_capture(vogl_context *pVOGL_context)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-static vogl_gl_state_snapshot *vogl_snapshot_state(const Display *dpy, GLXDrawable drawable, vogl_context *pCur_context)
-{
-    VOGL_NOTE_UNUSED(dpy);
-    VOGL_NOTE_UNUSED(drawable);
-
-    // pCur_context may be NULL!
-
-    if (!GL_ENTRYPOINT(glXGetCurrentContext) || !GL_ENTRYPOINT(glXGetCurrentDisplay) ||
-        !GL_ENTRYPOINT(glXGetCurrentDrawable) || !GL_ENTRYPOINT(glXGetCurrentReadDrawable))
-        return NULL;
-
-    timed_scope ts(VOGL_FUNCTION_NAME);
-
-    vogl_context_manager &context_manager = get_context_manager();
-    context_manager.lock();
-
-    if (vogl_check_gl_error())
-        vogl_error_printf("%s: A GL error occured sometime before this function was called\n", VOGL_FUNCTION_NAME);
-
-    const Display *orig_dpy = GL_ENTRYPOINT(glXGetCurrentDisplay)();
-    GLXDrawable orig_drawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
-    GLXDrawable orig_read_drawable = GL_ENTRYPOINT(glXGetCurrentReadDrawable)();
-    GLXContext orig_context = GL_ENTRYPOINT(glXGetCurrentContext)();
-
-    if (!orig_dpy)
-        orig_dpy = dpy;
-
-    vogl_check_gl_error();
-
-    vogl_gl_state_snapshot *pSnapshot = vogl_new(vogl_gl_state_snapshot);
-
-    const glxcontext_map &contexts = context_manager.get_context_map();
-
-    // TODO: Find a better way of determining which window dimensions to use.
-    // No context is current, let's just find the biggest window.
-    uint win_width = 0;
-    uint win_height = 0;
-    if (pCur_context)
-    {
-        win_width = pCur_context->get_window_width();
-        win_height = pCur_context->get_window_height();
-    }
-    else
-    {
-        glxcontext_map::const_iterator it;
-        for (it = contexts.begin(); it != contexts.end(); ++it)
-        {
-            vogl_context *pVOGL_context = it->second;
-            if ((pVOGL_context->get_window_width() > (int)win_width) || (pVOGL_context->get_window_height() > (int)win_height))
-            {
-                win_width = pVOGL_context->get_window_width();
-                win_height = pVOGL_context->get_window_height();
-            }
-        }
-    }
-
-    vogl_message_printf("%s: Beginning capture: width %u, height %u\n", VOGL_FUNCTION_NAME, win_width, win_height);
-
-    if (!pSnapshot->begin_capture(win_width, win_height, pCur_context ? (uint64_t)pCur_context->get_context_handle() : 0, 0, get_vogl_trace_writer().get_cur_gl_call_counter(), true))
-    {
-        vogl_error_printf("%s: Failed beginning capture\n", VOGL_FUNCTION_NAME);
-
-        vogl_delete(pSnapshot);
-        pSnapshot = NULL;
-
-        get_context_manager().unlock();
-
-        return NULL;
-    }
-
-    vogl_printf("%s: Capturing %u context(s)\n", VOGL_FUNCTION_NAME, contexts.size());
-
-    glxcontext_map::const_iterator it;
-    for (it = contexts.begin(); it != contexts.end(); ++it)
-    {
-        GLXContext glx_context = it->first;
-        vogl_context *pVOGL_context = it->second;
-
-        if (pVOGL_context->get_deleted_flag())
-        {
-            vogl_error_printf("%s: Context 0x%" PRIX64 " has been deleted but is the root of a sharelist group - this scenario is not yet supported for state snapshotting.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(glx_context));
-            break;
-        }
-
-        if (pVOGL_context->get_has_been_made_current())
-        {
-            if (!GL_ENTRYPOINT(glXMakeCurrent)(pVOGL_context->get_display(), pVOGL_context->get_drawable(), glx_context))
-            {
-                vogl_error_printf("%s: Failed switching to trace context 0x%" PRIX64 ". (This context may be current on another thread.) Capture failed!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(glx_context));
-                break;
-            }
-
-            if (pVOGL_context->get_total_mapped_buffers())
-            {
-                vogl_error_printf("%s: Trace context 0x%" PRIX64 " has %u buffer(s) mapped across a call to glXSwapBuffers(), which is not currently supported!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(glx_context), pVOGL_context->get_total_mapped_buffers());
-                break;
-            }
-
-            if (pVOGL_context->is_composing_display_list())
-            {
-                vogl_error_printf("%s: Trace context 0x%" PRIX64 " is currently composing a display list across a call to glXSwapBuffers()!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(glx_context));
-                break;
-            }
-
-            if (pVOGL_context->get_in_gl_begin())
-            {
-                vogl_error_printf("%s: Trace context 0x%" PRIX64 " is currently in a glBegin() across a call to glXSwapBuffers(), which is not supported!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(glx_context));
-                break;
-            }
-        }
-
-        vogl_capture_context_params &capture_context_params = pVOGL_context->get_capture_context_params();
-
-        if (!pSnapshot->capture_context(pVOGL_context->get_context_desc(), pVOGL_context->get_context_info(), pVOGL_context->get_handle_remapper(), capture_context_params))
-        {
-            vogl_error_printf("%s: Failed capturing trace context 0x%" PRIX64 ", capture failed\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(glx_context));
-            break;
-        }
-    }
-
-    if ((it == contexts.end()) && (pSnapshot->end_capture()))
-    {
-        vogl_printf("%s: Capture succeeded\n", VOGL_FUNCTION_NAME);
-    }
-    else
-    {
-        vogl_printf("%s: Capture failed\n", VOGL_FUNCTION_NAME);
-
-        vogl_delete(pSnapshot);
-        pSnapshot = NULL;
-    }
-
-    if (orig_dpy)
-    {
-        GL_ENTRYPOINT(glXMakeContextCurrent)(orig_dpy, orig_drawable, orig_read_drawable, orig_context);
-    }
-
-    vogl_check_gl_error();
-
-    get_context_manager().unlock();
-
-    return pSnapshot;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 // vogl_end_capture
 // Important: This could be called at signal time!
 //----------------------------------------------------------------------------------------------------------------------
@@ -4828,128 +4957,6 @@ static void vogl_end_capture(bool inside_signal_handler)
 
     g_vogl_pCapture_status_callback = NULL;
     g_vogl_pCapture_status_opaque = NULL;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-static bool vogl_write_snapshot_to_trace(const char *pTrace_filename, const Display *dpy, GLXDrawable drawable, vogl_context *pVOGL_context)
-{
-    VOGL_FUNC_TRACER
-    vogl_message_printf("%s: Snapshot begin\n", VOGL_FUNCTION_NAME);
-
-    // pVOGL_context may be NULL here!
-
-    vogl_unique_ptr<vogl_gl_state_snapshot> pSnapshot(vogl_snapshot_state(dpy, drawable, pVOGL_context));
-    if (!pSnapshot.get())
-    {
-        vogl_error_printf("%s: Failed snapshotting GL/GLX state!\n", VOGL_FUNCTION_NAME);
-
-        VOGL_FUNC_TRACER
-        vogl_end_capture();
-        return false;
-    }
-
-    pSnapshot->set_frame_index(0);
-
-    if (!get_vogl_trace_writer().open(pTrace_filename, NULL, true, false))
-    {
-        vogl_error_printf("%s: Failed creating trace file \"%s\"!\n", VOGL_FUNCTION_NAME, pTrace_filename);
-
-        VOGL_FUNC_TRACER
-        vogl_end_capture();
-        return false;
-    }
-
-    vogl_archive_blob_manager &trace_archive = *get_vogl_trace_writer().get_trace_archive();
-
-    vogl_message_printf("%s: Serializing snapshot data to JSON document\n", VOGL_FUNCTION_NAME);
-
-    // TODO: This can take a lot of memory, probably better off to split the snapshot into separate smaller binary json or whatever files stored directly in the archive.
-    json_document doc;
-    if (!pSnapshot->serialize(*doc.get_root(), trace_archive, &get_vogl_process_gl_ctypes()))
-    {
-        vogl_error_printf("%s: Failed serializing GL state snapshot!\n", VOGL_FUNCTION_NAME);
-
-        VOGL_FUNC_TRACER
-        vogl_end_capture();
-        return false;
-    }
-
-    pSnapshot.reset();
-
-    vogl_message_printf("%s: Serializing JSON document to UBJ\n", VOGL_FUNCTION_NAME);
-
-    uint8_vec binary_snapshot_data;
-    vogl::vector<char> snapshot_data;
-
-    // TODO: This can take a lot of memory
-    doc.binary_serialize(binary_snapshot_data);
-
-    vogl_message_printf("%s: Compressing UBJ data and adding to trace archive\n", VOGL_FUNCTION_NAME);
-
-    dynamic_string binary_snapshot_id(trace_archive.add_buf_compute_unique_id(binary_snapshot_data.get_ptr(), binary_snapshot_data.size(), "binary_state_snapshot", VOGL_BINARY_JSON_EXTENSION));
-    if (binary_snapshot_id.is_empty())
-    {
-        vogl_error_printf("%s: Failed adding binary GL snapshot file to output blob manager!\n", VOGL_FUNCTION_NAME);
-
-        VOGL_FUNC_TRACER
-        vogl_end_capture();
-        return false;
-    }
-
-    binary_snapshot_data.clear();
-
-    snapshot_data.clear();
-
-#if 0
-	// TODO: This requires too much temp memory!
-	doc.serialize(snapshot_data, true, 0, false);
-
-	dynamic_string snapshot_id(trace_archive.add_buf_compute_unique_id(snapshot_data.get_ptr(), snapshot_data.size(), "state_snapshot", VOGL_TEXT_JSON_EXTENSION));
-	if (snapshot_id.is_empty())
-	{
-		vogl_error_printf("%s: Failed adding binary GL snapshot file to output blob manager!\n", VOGL_FUNCTION_NAME);
-		get_vogl_trace_writer().deinit();
-		return false;
-	}
-#endif
-
-    key_value_map snapshot_key_value_map;
-    snapshot_key_value_map.insert("command_type", "state_snapshot");
-    snapshot_key_value_map.insert("binary_id", binary_snapshot_id);
-
-#if 0
-	// TODO: This requires too much temp memory!
-	snapshot_key_value_map.insert("id", snapshot_id);
-#endif
-
-    vogl_ctypes &trace_gl_ctypes = get_vogl_process_gl_ctypes();
-    if (!vogl_write_glInternalTraceCommandRAD(get_vogl_trace_writer().get_stream(), &trace_gl_ctypes, cITCRKeyValueMap, sizeof(snapshot_key_value_map), reinterpret_cast<const GLubyte *>(&snapshot_key_value_map)))
-    {
-        VOGL_FUNC_TRACER
-        vogl_end_capture();
-        vogl_error_printf("%s: Failed writing to trace file!\n", VOGL_FUNCTION_NAME);
-        return false;
-    }
-
-    if (!vogl_write_glInternalTraceCommandRAD(get_vogl_trace_writer().get_stream(), &trace_gl_ctypes, cITCRDemarcation, 0, NULL))
-    {
-        VOGL_FUNC_TRACER
-        vogl_end_capture();
-        vogl_error_printf("%s: Failed writing to trace file!\n", VOGL_FUNCTION_NAME);
-        return false;
-    }
-
-    doc.clear(false);
-
-    if (g_pJSON_node_pool)
-    {
-        uint64_t total_bytes_freed = static_cast<uint64_t>(g_pJSON_node_pool->free_unused_blocks());
-        vogl_debug_printf("%s: Freed %" PRIu64 " bytes from the JSON object pool (%" PRIu64 " bytes remaining)\n", VOGL_FUNCTION_NAME, total_bytes_freed, static_cast<uint64_t>(g_pJSON_node_pool->get_total_heap_bytes()));
-    }
-
-    vogl_message_printf("%s: Snapshot complete\n", VOGL_FUNCTION_NAME);
-
-    return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -5065,399 +5072,659 @@ static void vogl_check_for_capture_trigger_file()
         vogl_message_printf("%s: Successfully enabled capture mode, will capture up to %u frame(s), override path \"%s\", override base_name \"%s\"\n", VOGL_FUNCTION_NAME, total_frames, path.get_ptr(), base_name.get_ptr());
 }
 
-//----------------------------------------------------------------------------------------------------------------------
-//  vogl_tick_capture
-//----------------------------------------------------------------------------------------------------------------------
-static void vogl_tick_capture(const Display *dpy, GLXDrawable drawable, vogl_context *pVOGL_context)
-{
-    VOGL_FUNC_TRACER
-
-    // pVOGL_context may be NULL here!
-
-    vogl_check_for_capture_stop_file();
-    vogl_check_for_capture_trigger_file();
-
-    scoped_mutex lock(get_vogl_trace_mutex());
-
-    if ((g_vogl_total_frames_to_capture) && (!g_vogl_frames_remaining_to_capture))
+#if (VOGL_PLATFORM_HAS_GLX)
+    //----------------------------------------------------------------------------------------------------------------------
+    static vogl_gl_state_snapshot *vogl_snapshot_state(const Display *dpy, GLXDrawable drawable, vogl_context *pCur_context)
     {
-        g_vogl_frames_remaining_to_capture = g_vogl_total_frames_to_capture;
-        g_vogl_total_frames_to_capture = 0;
-    }
+        VOGL_NOTE_UNUSED(drawable);
 
-    if (g_vogl_stop_capturing)
-    {
-        g_vogl_stop_capturing = false;
+        // pCur_context may be NULL!
 
-        if (get_vogl_trace_writer().is_opened())
-        {
-            VOGL_FUNC_TRACER
-            vogl_end_capture();
-            return;
-        }
-    }
+        if (!GL_ENTRYPOINT(glXGetCurrentContext) || !GL_ENTRYPOINT(glXGetCurrentDisplay) ||
+            !GL_ENTRYPOINT(glXGetCurrentDrawable) || !GL_ENTRYPOINT(glXGetCurrentReadDrawable))
+            return NULL;
 
-    if (!g_vogl_frames_remaining_to_capture)
-        return;
+        timed_scope ts(VOGL_FUNCTION_NAME);
 
-    if (!get_vogl_trace_writer().is_opened())
-    {
-        dynamic_string trace_path(g_command_line_params().get_value_as_string_or_empty("vogl_tracepath"));
-        if (trace_path.is_empty())
-            trace_path = "/tmp";
-        if (!get_vogl_intercept_data().capture_path.is_empty())
-            trace_path = get_vogl_intercept_data().capture_path;
+        vogl_context_manager &context_manager = get_context_manager();
+        context_manager.lock();
 
-        time_t t = time(NULL);
-        struct tm ltm = *localtime(&t);
+        if (vogl_check_gl_error())
+            vogl_error_printf("%s: A GL error occured sometime before this function was called\n", VOGL_FUNCTION_NAME);
 
-        dynamic_string trace_basename("capture");
-        if (!get_vogl_intercept_data().capture_basename.is_empty())
-            trace_basename = get_vogl_intercept_data().capture_basename;
-
-        dynamic_string filename(cVarArg, "%s_%04d_%02d_%02d_%02d_%02d_%02d.bin", trace_basename.get_ptr(), ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, ltm.tm_hour, ltm.tm_min, ltm.tm_sec);
-
-        dynamic_string full_trace_filename;
-        file_utils::combine_path(full_trace_filename, trace_path.get_ptr(), filename.get_ptr());
-
-        if (g_vogl_frames_remaining_to_capture == cUINT32_MAX)
-            vogl_message_printf("%s: Initiating capture of all remaining frames to file \"%s\"\n", VOGL_FUNCTION_NAME, full_trace_filename.get_ptr());
-        else
-            vogl_message_printf("%s: Initiating capture of up to %u frame(s) to file \"%s\"\n", VOGL_FUNCTION_NAME, g_vogl_frames_remaining_to_capture, full_trace_filename.get_ptr());
-
-        if (!vogl_write_snapshot_to_trace(full_trace_filename.get_ptr(), dpy, drawable, pVOGL_context))
-        {
-            file_utils::delete_file(full_trace_filename.get_ptr());
-            vogl_error_printf("%s: Failed creating GL state snapshot, closing and deleting trace file\n", VOGL_FUNCTION_NAME);
-        }
-    }
-    else
-    {
-        if (g_vogl_frames_remaining_to_capture != cUINT32_MAX)
-            g_vogl_frames_remaining_to_capture--;
-
-        // See if we should stop capturing.
-        if (!g_vogl_frames_remaining_to_capture)
-        {
-            VOGL_FUNC_TRACER
-            vogl_end_capture();
-        }
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-//  vogl_glXSwapBuffersGLFuncProlog
-//----------------------------------------------------------------------------------------------------------------------
-static inline void vogl_glXSwapBuffersGLFuncProlog(const Display *dpy, GLXDrawable drawable, vogl_context *pVOGL_context, vogl_entrypoint_serializer &trace_serializer)
-{
-    // pVOGL_context may be NULL here!
-
-    if (!GL_ENTRYPOINT(glXGetCurrentContext) || !GL_ENTRYPOINT(glXGetCurrentDisplay) ||
-        !GL_ENTRYPOINT(glXGetCurrentDrawable) || !GL_ENTRYPOINT(glXGetCurrentReadDrawable))
-    {
-        return;
-    }
-
-    bool override_current_context = false;
-
-    if ((!pVOGL_context) || ((pVOGL_context->get_display() != dpy) || (pVOGL_context->get_drawable() != drawable)))
-    {
-        // NVidia/AMD closed source don't seem to care if a context is current when glXSwapBuffer()'s is called. But Mesa doesn't like it.
-        vogl_warning_printf_once("%s: No context is current, or the current context's display/drawable don't match the provided display/drawable. Will try to find the first context which matches the provided params, but this may not work reliably.\n", VOGL_FUNCTION_NAME);
-
-        pVOGL_context = get_context_manager().find_context(dpy, drawable);
-
-        if (!pVOGL_context)
-        {
-            vogl_error_printf("%s: Unable to determine which GL context is associated with the indicated drawable/display! Will not be able to take a screen capture, or record context related information to the trace!\n", VOGL_FUNCTION_NAME);
-            return;
-        }
-        else if (pVOGL_context->get_current_thread() != 0)
-        {
-            vogl_error_printf("%s: The GL context which matches the provided display/drawable is already current on another thread!\n", VOGL_FUNCTION_NAME);
-            return;
-        }
-
-        override_current_context = true;
-    }
-
-    GLXContext orig_context = 0;
-    const Display *orig_dpy = NULL;
-    GLXDrawable orig_drawable = 0;
-    GLXDrawable orig_read_drawable = 0;
-    if (override_current_context)
-    {
-        orig_context = GL_ENTRYPOINT(glXGetCurrentContext)();
-        orig_dpy = GL_ENTRYPOINT(glXGetCurrentDisplay)();
-        orig_drawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
-        orig_read_drawable = GL_ENTRYPOINT(glXGetCurrentReadDrawable)();
+        const Display *orig_dpy = GL_ENTRYPOINT(glXGetCurrentDisplay)();
+        GLXDrawable orig_drawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
+        GLXDrawable orig_read_drawable = GL_ENTRYPOINT(glXGetCurrentReadDrawable)();
+        GLXContext orig_context = GL_ENTRYPOINT(glXGetCurrentContext)();
 
         if (!orig_dpy)
             orig_dpy = dpy;
 
-        GL_ENTRYPOINT(glXMakeCurrent)(pVOGL_context->get_display(), pVOGL_context->get_drawable(), pVOGL_context->get_context_handle());
-    }
+        vogl_check_gl_error();
 
-    Window root = 0;
-    int x = 0, y = 0;
-    unsigned int width = 0, height = 0;
-    bool dims_valid = false;
-    #if (VOGL_PLATFORM_HAS_GLX)
-        unsigned int border_width = 0, depth = 0;
-        dims_valid = (dpy) && (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False);
-    #elif (VOGL_PLATFORM_HAS_WGL)
-        VOGL_VERIFY(!"impl vogl_glXSwapBuffersGLFuncProlog on windows");
-    #else
-        #error "impl vogl_glXSwapBuffersGLFuncProlog on windows"
-    #endif
+        vogl_gl_state_snapshot *pSnapshot = vogl_new(vogl_gl_state_snapshot);
 
-    if (dims_valid)
-    {
-        pVOGL_context->set_window_dimensions(width, height);
+        const context_map &contexts = context_manager.get_context_map();
 
-        vogl_tick_screen_capture(pVOGL_context);
-    }
-    else
-    {
-        console::warning("%s: XGetGeometry() call failed!\n", VOGL_FUNCTION_NAME);
-    }
-
-    if (trace_serializer.is_in_begin())
-    {
-        trace_serializer.add_key_value(string_hash("win_width"), pVOGL_context->get_window_width());
-        trace_serializer.add_key_value(string_hash("win_height"), pVOGL_context->get_window_height());
-    }
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_log_printf("** Current window dimensions: %ix%i\n", pVOGL_context->get_window_width(), pVOGL_context->get_window_height());
-    }
-
-    pVOGL_context->inc_frame_index();
-
-    if ((override_current_context) && (orig_dpy))
-    {
-        GL_ENTRYPOINT(glXMakeContextCurrent)(orig_dpy, orig_drawable, orig_read_drawable, orig_context);
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-#define DEF_FUNCTION_CUSTOM_HANDLER_glXSwapBuffers(exported, category, ret, ret_type_enum, num_params, name, args, params)
-static void vogl_glXSwapBuffers(const Display *dpy, GLXDrawable drawable)
-{
-    uint64_t begin_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
-
-    vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXSwapBuffers);
-    if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
-    {
-        vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
-        return GL_ENTRYPOINT(glXSwapBuffers)(dpy, drawable);
-    }
-
-    // Use a local serializer because the call to glXSwapBuffer()'s will make GL calls if something like the Steam Overlay is active.
-    vogl_entrypoint_serializer serializer;
-
-    if (get_vogl_trace_writer().is_opened())
-    {
-        serializer.begin(VOGL_ENTRYPOINT_glXSwapBuffers, get_context_manager().get_current(true));
-        serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
-        serializer.add_param(1, VOGL_GLXDRAWABLE, &drawable, sizeof(drawable));
-    }
-
-    vogl_glXSwapBuffersGLFuncProlog(dpy, drawable, pTLS_data->m_pContext, serializer);
-
-    uint64_t gl_begin_rdtsc = utils::RDTSC();
-
-    // Call the driver directly, bypassing our GL/GLX wrappers which set m_calling_driver_entrypoint_id. The Steam Overlay may call us back!
-    DIRECT_GL_ENTRYPOINT(glXSwapBuffers)(dpy, drawable);
-
-    uint64_t gl_end_rdtsc = utils::RDTSC();
-
-    if (get_vogl_trace_writer().is_opened())
-    {
-        serializer.set_begin_rdtsc(begin_rdtsc);
-        serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
-        serializer.end();
-        vogl_write_packet_to_trace(serializer.get_packet());
-    }
-
-    vogl_tick_capture(dpy, drawable, pTLS_data->m_pContext);
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_log_printf("** glXSwapBuffers TID: 0x%" PRIX64 " Display: 0x%" PRIX64 " drawable: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(drawable));
-    }
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
-
-    if (g_command_line_params().has_key("vogl_exit_after_x_frames") && (pTLS_data->m_pContext))
-    {
-        uint64_t max_num_frames = g_command_line_params().get_value_as_uint64("vogl_exit_after_x_frames");
-        uint64_t cur_num_frames = pTLS_data->m_pContext->get_frame_index();
-
-        if (cur_num_frames >= max_num_frames)
+        // TODO: Find a better way of determining which window dimensions to use.
+        // No context is current, let's just find the biggest window.
+        uint win_width = 0;
+        uint win_height = 0;
+        if (pCur_context)
         {
-            vogl_message_printf("Number of frames specified by --vogl_exit_after_x_frames param reached, forcing trace to close and calling exit()\n");
-
-            vogl_end_capture();
-
-            // Exit the app
-            exit(0);
+            win_width = pCur_context->get_window_width();
+            win_height = pCur_context->get_window_height();
         }
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-#define DEF_FUNCTION_CUSTOM_HANDLER_glXCreateContextAttribsARB(exported, category, ret, ret_type_enum, num_params, name, args, params)
-static GLXContext vogl_glXCreateContextAttribsARB(const Display *dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list)
-{
-    uint64_t begin_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
-
-    vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXCreateContextAttribsARB);
-    if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
-    {
-        vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
-        return GL_ENTRYPOINT(glXCreateContextAttribsARB)(dpy, config, share_context, direct, attrib_list);
-    }
-
-    vogl_context_attribs context_attribs;
-
-    if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
-    {
-        vogl_warning_printf("%s: Forcing debug context\n", VOGL_FUNCTION_NAME);
-
-        context_attribs.init(attrib_list);
-        if (!context_attribs.has_key(GLX_CONTEXT_FLAGS_ARB))
-            context_attribs.add_key(GLX_CONTEXT_FLAGS_ARB, 0);
-
-        int context_flags_value_ofs = context_attribs.find_value_ofs(GLX_CONTEXT_FLAGS_ARB);
-        VOGL_ASSERT(context_flags_value_ofs >= 0);
-        if (context_flags_value_ofs >= 0)
-            context_attribs[context_flags_value_ofs] |= GLX_CONTEXT_DEBUG_BIT_ARB;
-
-        int context_major_version_ofs = context_attribs.find_value_ofs(GLX_CONTEXT_MAJOR_VERSION_ARB);
-        int context_minor_version_ofs = context_attribs.find_value_ofs(GLX_CONTEXT_MINOR_VERSION_ARB);
-
-        if (context_major_version_ofs < 0)
+        else
         {
-            // Don't slam up if they haven't requested a specific GL version, the driver will give us the most recent version that is backwards compatible with 1.0 (i.e. 4.3 for NVidia's current dirver).
-        }
-        else if (context_attribs[context_major_version_ofs] < 3)
-        {
-            context_attribs[context_major_version_ofs] = 3;
-
-            if (context_minor_version_ofs < 0)
-                context_attribs.add_key(GLX_CONTEXT_MINOR_VERSION_ARB, 0);
-            else
-                context_attribs[context_minor_version_ofs] = 0;
-
-            vogl_warning_printf("%s: Forcing GL context version up to v3.0 due to debug context usage\n", VOGL_FUNCTION_NAME);
-        }
-
-        attrib_list = context_attribs.get_vec().get_ptr();
-    }
-
-    uint64_t gl_begin_rdtsc = utils::RDTSC();
-    GLXContext result = GL_ENTRYPOINT(glXCreateContextAttribsARB)(dpy, config, share_context, direct, attrib_list);
-    uint64_t gl_end_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_log_printf("** glXCreateContextAttribsARB TID: 0x%" PRIX64 " Display: 0x%" PRIX64 " config: 0x%" PRIX64 " share_context: 0x%" PRIX64 " direct %i attrib_list: 0x%" PRIX64 ", result: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(config), cast_val_to_uint64(share_context), (int)direct, cast_val_to_uint64(attrib_list), cast_val_to_uint64(result));
-    }
-
-    vogl_context_manager &context_manager = get_context_manager();
-
-    if (get_vogl_trace_writer().is_opened())
-    {
-        vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXCreateContextAttribsARB, context_manager.get_current(true));
-        serializer.set_begin_rdtsc(begin_rdtsc);
-        serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
-        serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
-        serializer.add_param(1, VOGL_GLXFBCONFIG, &config, sizeof(config));
-        serializer.add_param(2, VOGL_GLXCONTEXT, &share_context, sizeof(share_context));
-        serializer.add_param(3, VOGL_BOOL, &direct, sizeof(direct));
-        serializer.add_param(4, VOGL_CONST_INT_PTR, &attrib_list, sizeof(attrib_list));
-        if (attrib_list)
-        {
-            uint n = vogl_determine_attrib_list_array_size(attrib_list);
-            serializer.add_array_client_memory(4, VOGL_INT, n, attrib_list, sizeof(int) * n);
-        }
-        serializer.add_return_param(VOGL_GLXCONTEXT, &result, sizeof(result));
-        serializer.end();
-        vogl_write_packet_to_trace(serializer.get_packet());
-    }
-
-    if (result)
-    {
-        if (share_context)
-        {
-            if (!g_app_uses_sharelists)
-                vogl_message_printf("%s: sharelist usage detected\n", VOGL_FUNCTION_NAME);
-
-            g_app_uses_sharelists = true;
-        }
-
-        context_manager.lock();
-
-        vogl_context *pVOGL_context = context_manager.create_context(result);
-        pVOGL_context->set_display(dpy);
-        pVOGL_context->set_fb_config(config);
-        pVOGL_context->set_sharelist_handle(share_context);
-        pVOGL_context->set_direct(direct);
-        pVOGL_context->set_attrib_list(attrib_list);
-        pVOGL_context->set_created_from_attribs(true);
-        pVOGL_context->set_creation_func(VOGL_ENTRYPOINT_glXCreateContextAttribsARB);
-
-        if (share_context)
-        {
-            vogl_context *pShare_context = context_manager.lookup_vogl_context(share_context);
-
-            if (!pShare_context)
-                vogl_error_printf("%s: Failed finding share context 0x%" PRIx64 " in context manager's hashmap! This handle is probably invalid.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(share_context));
-            else
+            context_map::const_iterator it;
+            for (it = contexts.begin(); it != contexts.end(); ++it)
             {
-                while (!pShare_context->is_root_context())
-                    pShare_context = pShare_context->get_shared_state();
-
-                pVOGL_context->set_shared_context(pShare_context);
-
-                pShare_context->add_ref();
+                vogl_context *pVOGL_context = it->second;
+                if ((pVOGL_context->get_window_width() > (int)win_width) || (pVOGL_context->get_window_height() > (int)win_height))
+                {
+                    win_width = pVOGL_context->get_window_width();
+                    win_height = pVOGL_context->get_window_height();
+                }
             }
         }
 
-        pVOGL_context->init();
+        vogl_message_printf("%s: Beginning capture: width %u, height %u\n", VOGL_FUNCTION_NAME, win_width, win_height);
 
-        context_manager.unlock();
+        if (!pSnapshot->begin_capture(win_width, win_height, pCur_context ? (uint64_t)pCur_context->get_context_handle() : 0, 0, get_vogl_trace_writer().get_cur_gl_call_counter(), true))
+        {
+            vogl_error_printf("%s: Failed beginning capture\n", VOGL_FUNCTION_NAME);
+
+            vogl_delete(pSnapshot);
+            pSnapshot = NULL;
+
+            get_context_manager().unlock();
+
+            return NULL;
+        }
+
+        vogl_printf("%s: Capturing %u context(s)\n", VOGL_FUNCTION_NAME, contexts.size());
+
+        context_map::const_iterator it;
+        for (it = contexts.begin(); it != contexts.end(); ++it)
+        {
+            CONTEXT_TYPE gl_context = it->first;
+            vogl_context *pVOGL_context = it->second;
+
+            if (pVOGL_context->get_deleted_flag())
+            {
+                vogl_error_printf("%s: Context 0x%" PRIX64 " has been deleted but is the root of a sharelist group - this scenario is not yet supported for state snapshotting.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                break;
+            }
+
+            if (pVOGL_context->get_has_been_made_current())
+            {
+                if (!pVOGL_context->MakeCurrent(gl_context))
+                {
+                    vogl_error_printf("%s: Failed switching to trace context 0x%" PRIX64 ". (This context may be current on another thread.) Capture failed!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                    break;
+                }
+
+                if (pVOGL_context->get_total_mapped_buffers())
+                {
+                    vogl_error_printf("%s: Trace context 0x%" PRIX64 " has %u buffer(s) mapped across a call to glXSwapBuffers(), which is not currently supported!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context), pVOGL_context->get_total_mapped_buffers());
+                    break;
+                }
+
+                if (pVOGL_context->is_composing_display_list())
+                {
+                    vogl_error_printf("%s: Trace context 0x%" PRIX64 " is currently composing a display list across a call to glXSwapBuffers()!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                    break;
+                }
+
+                if (pVOGL_context->get_in_gl_begin())
+                {
+                    vogl_error_printf("%s: Trace context 0x%" PRIX64 " is currently in a glBegin() across a call to glXSwapBuffers(), which is not supported!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                    break;
+                }
+            }
+
+            vogl_capture_context_params &capture_context_params = pVOGL_context->get_capture_context_params();
+
+            if (!pSnapshot->capture_context(pVOGL_context->get_context_desc(), pVOGL_context->get_context_info(), pVOGL_context->get_handle_remapper(), capture_context_params))
+            {
+                vogl_error_printf("%s: Failed capturing trace context 0x%" PRIX64 ", capture failed\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                break;
+            }
+        }
+
+        if ((it == contexts.end()) && (pSnapshot->end_capture()))
+        {
+            vogl_printf("%s: Capture succeeded\n", VOGL_FUNCTION_NAME);
+        }
+        else
+        {
+            vogl_printf("%s: Capture failed\n", VOGL_FUNCTION_NAME);
+
+            vogl_delete(pSnapshot);
+            pSnapshot = NULL;
+        }
+
+        if (orig_dpy)
+        {
+            GL_ENTRYPOINT(glXMakeContextCurrent)(orig_dpy, orig_drawable, orig_read_drawable, orig_context);
+        }
+
+        vogl_check_gl_error();
+
+        get_context_manager().unlock();
+
+        return pSnapshot;
     }
 
-    if (g_dump_gl_calls_flag)
+    //----------------------------------------------------------------------------------------------------------------------
+    static bool vogl_write_snapshot_to_trace(const char *pTrace_filename, const Display *dpy, GLXDrawable drawable, vogl_context *pVOGL_context)
     {
-        vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        VOGL_FUNC_TRACER
+            vogl_message_printf("%s: Snapshot begin\n", VOGL_FUNCTION_NAME);
+
+        // pVOGL_context may be NULL here!
+
+        vogl_unique_ptr<vogl_gl_state_snapshot> pSnapshot(vogl_snapshot_state(dpy, drawable, pVOGL_context));
+        if (!pSnapshot.get())
+        {
+            vogl_error_printf("%s: Failed snapshotting GL/GLX state!\n", VOGL_FUNCTION_NAME);
+
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            return false;
+        }
+
+        pSnapshot->set_frame_index(0);
+
+        if (!get_vogl_trace_writer().open(pTrace_filename, NULL, true, false))
+        {
+            vogl_error_printf("%s: Failed creating trace file \"%s\"!\n", VOGL_FUNCTION_NAME, pTrace_filename);
+
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            return false;
+        }
+
+        vogl_archive_blob_manager &trace_archive = *get_vogl_trace_writer().get_trace_archive();
+
+        vogl_message_printf("%s: Serializing snapshot data to JSON document\n", VOGL_FUNCTION_NAME);
+
+        // TODO: This can take a lot of memory, probably better off to split the snapshot into separate smaller binary json or whatever files stored directly in the archive.
+        json_document doc;
+        if (!pSnapshot->serialize(*doc.get_root(), trace_archive, &get_vogl_process_gl_ctypes()))
+        {
+            vogl_error_printf("%s: Failed serializing GL state snapshot!\n", VOGL_FUNCTION_NAME);
+
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            return false;
+        }
+
+        pSnapshot.reset();
+
+        vogl_message_printf("%s: Serializing JSON document to UBJ\n", VOGL_FUNCTION_NAME);
+
+        uint8_vec binary_snapshot_data;
+        vogl::vector<char> snapshot_data;
+
+        // TODO: This can take a lot of memory
+        doc.binary_serialize(binary_snapshot_data);
+
+        vogl_message_printf("%s: Compressing UBJ data and adding to trace archive\n", VOGL_FUNCTION_NAME);
+
+        dynamic_string binary_snapshot_id(trace_archive.add_buf_compute_unique_id(binary_snapshot_data.get_ptr(), binary_snapshot_data.size(), "binary_state_snapshot", VOGL_BINARY_JSON_EXTENSION));
+        if (binary_snapshot_id.is_empty())
+        {
+            vogl_error_printf("%s: Failed adding binary GL snapshot file to output blob manager!\n", VOGL_FUNCTION_NAME);
+
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            return false;
+        }
+
+        binary_snapshot_data.clear();
+
+        snapshot_data.clear();
+
+    #if 0
+        // TODO: This requires too much temp memory!
+        doc.serialize(snapshot_data, true, 0, false);
+
+        dynamic_string snapshot_id(trace_archive.add_buf_compute_unique_id(snapshot_data.get_ptr(), snapshot_data.size(), "state_snapshot", VOGL_TEXT_JSON_EXTENSION));
+        if (snapshot_id.is_empty())
+        {
+            vogl_error_printf("%s: Failed adding binary GL snapshot file to output blob manager!\n", VOGL_FUNCTION_NAME);
+            get_vogl_trace_writer().deinit();
+            return false;
+        }
+    #endif
+
+        key_value_map snapshot_key_value_map;
+        snapshot_key_value_map.insert("command_type", "state_snapshot");
+        snapshot_key_value_map.insert("binary_id", binary_snapshot_id);
+
+    #if 0
+        // TODO: This requires too much temp memory!
+        snapshot_key_value_map.insert("id", snapshot_id);
+    #endif
+
+        vogl_ctypes &trace_gl_ctypes = get_vogl_process_gl_ctypes();
+        if (!vogl_write_glInternalTraceCommandRAD(get_vogl_trace_writer().get_stream(), &trace_gl_ctypes, cITCRKeyValueMap, sizeof(snapshot_key_value_map), reinterpret_cast<const GLubyte *>(&snapshot_key_value_map)))
+        {
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            vogl_error_printf("%s: Failed writing to trace file!\n", VOGL_FUNCTION_NAME);
+            return false;
+        }
+
+        if (!vogl_write_glInternalTraceCommandRAD(get_vogl_trace_writer().get_stream(), &trace_gl_ctypes, cITCRDemarcation, 0, NULL))
+        {
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            vogl_error_printf("%s: Failed writing to trace file!\n", VOGL_FUNCTION_NAME);
+            return false;
+        }
+
+        doc.clear(false);
+
+        if (g_pJSON_node_pool)
+        {
+            uint64_t total_bytes_freed = static_cast<uint64_t>(g_pJSON_node_pool->free_unused_blocks());
+            vogl_debug_printf("%s: Freed %" PRIu64 " bytes from the JSON object pool (%" PRIu64 " bytes remaining)\n", VOGL_FUNCTION_NAME, total_bytes_freed, static_cast<uint64_t>(g_pJSON_node_pool->get_total_heap_bytes()));
+        }
+
+        vogl_message_printf("%s: Snapshot complete\n", VOGL_FUNCTION_NAME);
+
+        return true;
     }
 
-    return result;
-}
+    //----------------------------------------------------------------------------------------------------------------------
+    //  vogl_tick_capture
+    //----------------------------------------------------------------------------------------------------------------------
+    static void vogl_tick_capture(const Display *dpy, GLXDrawable drawable, vogl_context *pVOGL_context)
+    {
+        VOGL_FUNC_TRACER
 
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_fb_config_from_xvisual_info
-// Attempts to find the GLXFBConfig corresponding to a particular visual.
-// TODO: Test this more!
-//----------------------------------------------------------------------------------------------------------------------
-#if (VOGL_PLATFORM_HAS_GLX)
+            // pVOGL_context may be NULL here!
+
+            vogl_check_for_capture_stop_file();
+        vogl_check_for_capture_trigger_file();
+
+        scoped_mutex lock(get_vogl_trace_mutex());
+
+        if ((g_vogl_total_frames_to_capture) && (!g_vogl_frames_remaining_to_capture))
+        {
+            g_vogl_frames_remaining_to_capture = g_vogl_total_frames_to_capture;
+            g_vogl_total_frames_to_capture = 0;
+        }
+
+        if (g_vogl_stop_capturing)
+        {
+            g_vogl_stop_capturing = false;
+
+            if (get_vogl_trace_writer().is_opened())
+            {
+                VOGL_FUNC_TRACER
+                    vogl_end_capture();
+                return;
+            }
+        }
+
+        if (!g_vogl_frames_remaining_to_capture)
+            return;
+
+        if (!get_vogl_trace_writer().is_opened())
+        {
+            dynamic_string trace_path(g_command_line_params().get_value_as_string_or_empty("vogl_tracepath"));
+            if (trace_path.is_empty())
+                trace_path = "/tmp";
+            if (!get_vogl_intercept_data().capture_path.is_empty())
+                trace_path = get_vogl_intercept_data().capture_path;
+
+            time_t t = time(NULL);
+            struct tm ltm = *localtime(&t);
+
+            dynamic_string trace_basename("capture");
+            if (!get_vogl_intercept_data().capture_basename.is_empty())
+                trace_basename = get_vogl_intercept_data().capture_basename;
+
+            dynamic_string filename(cVarArg, "%s_%04d_%02d_%02d_%02d_%02d_%02d.bin", trace_basename.get_ptr(), ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, ltm.tm_hour, ltm.tm_min, ltm.tm_sec);
+
+            dynamic_string full_trace_filename;
+            file_utils::combine_path(full_trace_filename, trace_path.get_ptr(), filename.get_ptr());
+
+            if (g_vogl_frames_remaining_to_capture == cUINT32_MAX)
+                vogl_message_printf("%s: Initiating capture of all remaining frames to file \"%s\"\n", VOGL_FUNCTION_NAME, full_trace_filename.get_ptr());
+            else
+                vogl_message_printf("%s: Initiating capture of up to %u frame(s) to file \"%s\"\n", VOGL_FUNCTION_NAME, g_vogl_frames_remaining_to_capture, full_trace_filename.get_ptr());
+
+            if (!vogl_write_snapshot_to_trace(full_trace_filename.get_ptr(), dpy, drawable, pVOGL_context))
+            {
+                file_utils::delete_file(full_trace_filename.get_ptr());
+                vogl_error_printf("%s: Failed creating GL state snapshot, closing and deleting trace file\n", VOGL_FUNCTION_NAME);
+            }
+        }
+        else
+        {
+            if (g_vogl_frames_remaining_to_capture != cUINT32_MAX)
+                g_vogl_frames_remaining_to_capture--;
+
+            // See if we should stop capturing.
+            if (!g_vogl_frames_remaining_to_capture)
+            {
+                VOGL_FUNC_TRACER
+                    vogl_end_capture();
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    //  vogl_glXSwapBuffersGLFuncProlog
+    //----------------------------------------------------------------------------------------------------------------------
+    static inline void vogl_glXSwapBuffersGLFuncProlog(const Display *dpy, GLXDrawable drawable, vogl_context *pVOGL_context, vogl_entrypoint_serializer &trace_serializer)
+    {
+        // pVOGL_context may be NULL here!
+
+        if (!GL_ENTRYPOINT(glXGetCurrentContext) || !GL_ENTRYPOINT(glXGetCurrentDisplay) ||
+            !GL_ENTRYPOINT(glXGetCurrentDrawable) || !GL_ENTRYPOINT(glXGetCurrentReadDrawable))
+        {
+            return;
+        }
+
+        bool override_current_context = false;
+
+        if ((!pVOGL_context) || ((pVOGL_context->get_display() != dpy) || (pVOGL_context->get_drawable() != drawable)))
+        {
+            // NVidia/AMD closed source don't seem to care if a context is current when glXSwapBuffer()'s is called. But Mesa doesn't like it.
+            vogl_warning_printf_once("%s: No context is current, or the current context's display/drawable don't match the provided display/drawable. Will try to find the first context which matches the provided params, but this may not work reliably.\n", VOGL_FUNCTION_NAME);
+
+            pVOGL_context = get_context_manager().find_context(dpy, drawable);
+
+            if (!pVOGL_context)
+            {
+                vogl_error_printf("%s: Unable to determine which GL context is associated with the indicated drawable/display! Will not be able to take a screen capture, or record context related information to the trace!\n", VOGL_FUNCTION_NAME);
+                return;
+            }
+            else if (pVOGL_context->get_current_thread() != 0)
+            {
+                vogl_error_printf("%s: The GL context which matches the provided display/drawable is already current on another thread!\n", VOGL_FUNCTION_NAME);
+                return;
+            }
+
+            override_current_context = true;
+        }
+
+        GLXContext orig_context = 0;
+        const Display *orig_dpy = NULL;
+        GLXDrawable orig_drawable = 0;
+        GLXDrawable orig_read_drawable = 0;
+        if (override_current_context)
+        {
+            orig_context = GL_ENTRYPOINT(glXGetCurrentContext)();
+            orig_dpy = GL_ENTRYPOINT(glXGetCurrentDisplay)();
+            orig_drawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
+            orig_read_drawable = GL_ENTRYPOINT(glXGetCurrentReadDrawable)();
+
+            if (!orig_dpy)
+                orig_dpy = dpy;
+
+            GL_ENTRYPOINT(glXMakeCurrent)(pVOGL_context->get_display(), pVOGL_context->get_drawable(), pVOGL_context->get_context_handle());
+        }
+
+        Window root = 0;
+        int x = 0, y = 0;
+        unsigned int width = 0, height = 0;
+        bool dims_valid = false;
+        unsigned int border_width = 0, depth = 0;
+        dims_valid = (dpy) && (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False);
+
+        if (dims_valid)
+        {
+            pVOGL_context->set_window_dimensions(width, height);
+
+            vogl_tick_screen_capture(pVOGL_context);
+        }
+        else
+        {
+            console::warning("%s: XGetGeometry() call failed!\n", VOGL_FUNCTION_NAME);
+        }
+
+        if (trace_serializer.is_in_begin())
+        {
+            trace_serializer.add_key_value(string_hash("win_width"), pVOGL_context->get_window_width());
+            trace_serializer.add_key_value(string_hash("win_height"), pVOGL_context->get_window_height());
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** Current window dimensions: %ix%i\n", pVOGL_context->get_window_width(), pVOGL_context->get_window_height());
+        }
+
+        pVOGL_context->inc_frame_index();
+
+        if ((override_current_context) && (orig_dpy))
+        {
+            GL_ENTRYPOINT(glXMakeContextCurrent)(orig_dpy, orig_drawable, orig_read_drawable, orig_context);
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_glXSwapBuffers(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static void vogl_glXSwapBuffers(const Display *dpy, GLXDrawable drawable)
+    {
+        uint64_t begin_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXSwapBuffers);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(glXSwapBuffers)(dpy, drawable);
+        }
+
+        // Use a local serializer because the call to glXSwapBuffer()'s will make GL calls if something like the Steam Overlay is active.
+        vogl_entrypoint_serializer serializer;
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            serializer.begin(VOGL_ENTRYPOINT_glXSwapBuffers, get_context_manager().get_current(true));
+            serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
+            serializer.add_param(1, VOGL_GLXDRAWABLE, &drawable, sizeof(drawable));
+        }
+
+        vogl_glXSwapBuffersGLFuncProlog(dpy, drawable, pTLS_data->m_pContext, serializer);
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+
+        // Call the driver directly, bypassing our GL/GLX wrappers which set m_calling_driver_entrypoint_id. The Steam Overlay may call us back!
+        DIRECT_GL_ENTRYPOINT(glXSwapBuffers)(dpy, drawable);
+
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        vogl_tick_capture(dpy, drawable, pTLS_data->m_pContext);
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** glXSwapBuffers TID: 0x%" PRIX64 " Display: 0x%" PRIX64 " drawable: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(drawable));
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        if (g_command_line_params().has_key("vogl_exit_after_x_frames") && (pTLS_data->m_pContext))
+        {
+            uint64_t max_num_frames = g_command_line_params().get_value_as_uint64("vogl_exit_after_x_frames");
+            uint64_t cur_num_frames = pTLS_data->m_pContext->get_frame_index();
+
+            if (cur_num_frames >= max_num_frames)
+            {
+                vogl_message_printf("Number of frames specified by --vogl_exit_after_x_frames param reached, forcing trace to close and calling exit()\n");
+
+                vogl_end_capture();
+
+                // Exit the app
+                exit(0);
+            }
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_glXCreateContextAttribsARB(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static GLXContext vogl_glXCreateContextAttribsARB(const Display *dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list)
+    {
+        uint64_t begin_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXCreateContextAttribsARB);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(glXCreateContextAttribsARB)(dpy, config, share_context, direct, attrib_list);
+        }
+
+        vogl_context_attribs context_attribs;
+
+        if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
+        {
+            vogl_warning_printf("%s: Forcing debug context\n", VOGL_FUNCTION_NAME);
+
+            context_attribs.init(attrib_list);
+            if (!context_attribs.has_key(GLX_CONTEXT_FLAGS_ARB))
+                context_attribs.add_key(GLX_CONTEXT_FLAGS_ARB, 0);
+
+            int context_flags_value_ofs = context_attribs.find_value_ofs(GLX_CONTEXT_FLAGS_ARB);
+            VOGL_ASSERT(context_flags_value_ofs >= 0);
+            if (context_flags_value_ofs >= 0)
+                context_attribs[context_flags_value_ofs] |= GLX_CONTEXT_DEBUG_BIT_ARB;
+
+            int context_major_version_ofs = context_attribs.find_value_ofs(GLX_CONTEXT_MAJOR_VERSION_ARB);
+            int context_minor_version_ofs = context_attribs.find_value_ofs(GLX_CONTEXT_MINOR_VERSION_ARB);
+
+            if (context_major_version_ofs < 0)
+            {
+                // Don't slam up if they haven't requested a specific GL version, the driver will give us the most recent version that is backwards compatible with 1.0 (i.e. 4.3 for NVidia's current dirver).
+            }
+            else if (context_attribs[context_major_version_ofs] < 3)
+            {
+                context_attribs[context_major_version_ofs] = 3;
+
+                if (context_minor_version_ofs < 0)
+                    context_attribs.add_key(GLX_CONTEXT_MINOR_VERSION_ARB, 0);
+                else
+                    context_attribs[context_minor_version_ofs] = 0;
+
+                vogl_warning_printf("%s: Forcing GL context version up to v3.0 due to debug context usage\n", VOGL_FUNCTION_NAME);
+            }
+
+            attrib_list = context_attribs.get_vec().get_ptr();
+        }
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        GLXContext result = GL_ENTRYPOINT(glXCreateContextAttribsARB)(dpy, config, share_context, direct, attrib_list);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** glXCreateContextAttribsARB TID: 0x%" PRIX64 " Display: 0x%" PRIX64 " config: 0x%" PRIX64 " share_context: 0x%" PRIX64 " direct %i attrib_list: 0x%" PRIX64 ", result: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(config), cast_val_to_uint64(share_context), (int)direct, cast_val_to_uint64(attrib_list), cast_val_to_uint64(result));
+        }
+
+        vogl_context_manager &context_manager = get_context_manager();
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXCreateContextAttribsARB, context_manager.get_current(true));
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
+            serializer.add_param(1, VOGL_GLXFBCONFIG, &config, sizeof(config));
+            serializer.add_param(2, VOGL_GLXCONTEXT, &share_context, sizeof(share_context));
+            serializer.add_param(3, VOGL_BOOL, &direct, sizeof(direct));
+            serializer.add_param(4, VOGL_CONST_INT_PTR, &attrib_list, sizeof(attrib_list));
+            if (attrib_list)
+            {
+                uint n = vogl_determine_attrib_list_array_size(attrib_list);
+                serializer.add_array_client_memory(4, VOGL_INT, n, attrib_list, sizeof(int) * n);
+            }
+            serializer.add_return_param(VOGL_GLXCONTEXT, &result, sizeof(result));
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        if (result)
+        {
+            if (share_context)
+            {
+                if (!g_app_uses_sharelists)
+                    vogl_message_printf("%s: sharelist usage detected\n", VOGL_FUNCTION_NAME);
+
+                g_app_uses_sharelists = true;
+            }
+
+            context_manager.lock();
+
+            vogl_context *pVOGL_context = context_manager.create_context(result);
+            pVOGL_context->set_display(dpy);
+            pVOGL_context->set_fb_config(config);
+            pVOGL_context->set_sharelist_handle(share_context);
+            pVOGL_context->set_direct(direct);
+            pVOGL_context->set_attrib_list(attrib_list);
+            pVOGL_context->set_created_from_attribs(true);
+            pVOGL_context->set_creation_func(VOGL_ENTRYPOINT_glXCreateContextAttribsARB);
+
+            if (share_context)
+            {
+                vogl_context *pShare_context = context_manager.lookup_vogl_context(share_context);
+
+                if (!pShare_context)
+                    vogl_error_printf("%s: Failed finding share context 0x%" PRIx64 " in context manager's hashmap! This handle is probably invalid.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(share_context));
+                else
+                {
+                    while (!pShare_context->is_root_context())
+                        pShare_context = pShare_context->get_shared_state();
+
+                    pVOGL_context->set_shared_context(pShare_context);
+
+                    pShare_context->add_ref();
+                }
+            }
+
+            pVOGL_context->init();
+
+            context_manager.unlock();
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        return result;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    // vogl_get_fb_config_from_xvisual_info
+    // Attempts to find the GLXFBConfig corresponding to a particular visual.
+    // TODO: Test this more!
+    //----------------------------------------------------------------------------------------------------------------------
     static GLXFBConfig *vogl_get_fb_config_from_xvisual_info(const Display *dpy, const XVisualInfo *vis)
     {
         vogl_context_attribs attribs;
@@ -5523,31 +5790,29 @@ static GLXContext vogl_glXCreateContextAttribsARB(const Display *dpy, GLXFBConfi
         GLXFBConfig *pConfigs = GL_ENTRYPOINT(glXChooseFBConfig)(dpy, vis->screen, attribs.get_ptr(), &num_configs);
         return num_configs ? pConfigs : NULL;
     }
-#endif
 
-//----------------------------------------------------------------------------------------------------------------------
-#define DEF_FUNCTION_CUSTOM_HANDLER_glXCreateContext(exported, category, ret, ret_type_enum, num_params, name, args, params)
-static GLXContext vogl_glXCreateContext(const Display *dpy, const XVisualInfo *vis, GLXContext shareList, Bool direct)
-{
-    uint64_t begin_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_glXCreateContext(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static GLXContext vogl_glXCreateContext(const Display *dpy, const XVisualInfo *vis, GLXContext shareList, Bool direct)
     {
-        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
+        uint64_t begin_rdtsc = utils::RDTSC();
 
-    vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXCreateContext);
-    if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
-    {
-        vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
-        return GL_ENTRYPOINT(glXCreateContext)(dpy, vis, shareList, direct);
-    }
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
 
-    if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
-    {
-        vogl_warning_printf("%s: Can't enable debug contexts via glXCreateContext(), forcing call to use glXCreateContextsAttribsARB() instead\n", VOGL_FUNCTION_NAME);
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXCreateContext);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(glXCreateContext)(dpy, vis, shareList, direct);
+        }
 
-        #if (VOGL_PLATFORM_HAS_GLX)
+        if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
+        {
+            vogl_warning_printf("%s: Can't enable debug contexts via glXCreateContext(), forcing call to use glXCreateContextsAttribsARB() instead\n", VOGL_FUNCTION_NAME);
+
             GLXFBConfig *pConfig = vogl_get_fb_config_from_xvisual_info(dpy, vis);
             if (!pConfig)
             {
@@ -5558,299 +5823,906 @@ static GLXContext vogl_glXCreateContext(const Display *dpy, const XVisualInfo *v
                 int empty_attrib_list[1] = { 0 };
                 return vogl_glXCreateContextAttribsARB(dpy, pConfig[0], shareList, direct, empty_attrib_list);
             }
-        #elif (VOGL_PLATFORM_HAS_WGL)
-            VOGL_VERIFY(!"impl vogl_glXCreateContext vogl_force_debug_context on Windows.");
-        #else
-            #error "impl vogl_glXCreateContext vogl_force_debug_context on this platform."
-        #endif
-    }
-
-    uint64_t gl_begin_rdtsc = utils::RDTSC();
-    GLXContext result = GL_ENTRYPOINT(glXCreateContext)(dpy, vis, shareList, direct);
-    uint64_t gl_end_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_log_printf("** glXCreateContext TID: 0x%" PRIX64 " dpy: 0x%" PRIX64 " vis: 0x%" PRIX64 " shareList: 0x%" PRIX64 " direct %i, result: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(vis), cast_val_to_uint64(shareList), (int)direct, cast_val_to_uint64(result));
-    }
-
-    vogl_context_manager &context_manager = get_context_manager();
-
-    if (get_vogl_trace_writer().is_opened())
-    {
-        vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXCreateContext, context_manager.get_current(true));
-        serializer.set_begin_rdtsc(begin_rdtsc);
-        serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
-        serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
-        serializer.add_param(1, VOGL_CONST_XVISUALINFO_PTR, &vis, sizeof(vis));
-        serializer.add_param(2, VOGL_GLXCONTEXT, &shareList, sizeof(shareList));
-        serializer.add_param(3, VOGL_BOOL, &direct, sizeof(direct));
-        serializer.add_return_param(VOGL_GLXCONTEXT, &result, sizeof(result));
-        if (vis)
-            serializer.add_ref_client_memory(1, VOGL_XVISUALINFO, vis, sizeof(XVisualInfo));
-        serializer.end();
-        vogl_write_packet_to_trace(serializer.get_packet());
-    }
-
-    if (result)
-    {
-        if (shareList)
-        {
-            if (!g_app_uses_sharelists)
-                vogl_message_printf("%s: sharelist usage detected\n", VOGL_FUNCTION_NAME);
-
-            g_app_uses_sharelists = true;
         }
 
-        context_manager.lock();
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        GLXContext result = GL_ENTRYPOINT(glXCreateContext)(dpy, vis, shareList, direct);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
 
-        vogl_context *pVOGL_context = context_manager.create_context(result);
-        pVOGL_context->set_display(dpy);
-        pVOGL_context->set_xvisual_info(vis);
-        pVOGL_context->set_sharelist_handle(shareList);
-        pVOGL_context->set_direct(direct);
-        pVOGL_context->set_creation_func(VOGL_ENTRYPOINT_glXCreateContext);
-
-        if (shareList)
+        if (g_dump_gl_calls_flag)
         {
-            vogl_context *pShare_context = context_manager.lookup_vogl_context(shareList);
+            vogl_log_printf("** glXCreateContext TID: 0x%" PRIX64 " dpy: 0x%" PRIX64 " vis: 0x%" PRIX64 " shareList: 0x%" PRIX64 " direct %i, result: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(vis), cast_val_to_uint64(shareList), (int)direct, cast_val_to_uint64(result));
+        }
 
-            if (!pShare_context)
-                vogl_error_printf("%s: Failed finding share context 0x%" PRIx64 " in context manager's hashmap! This handle is probably invalid.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(shareList));
-            else
+        vogl_context_manager &context_manager = get_context_manager();
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXCreateContext, context_manager.get_current(true));
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
+            serializer.add_param(1, VOGL_CONST_XVISUALINFO_PTR, &vis, sizeof(vis));
+            serializer.add_param(2, VOGL_GLXCONTEXT, &shareList, sizeof(shareList));
+            serializer.add_param(3, VOGL_BOOL, &direct, sizeof(direct));
+            serializer.add_return_param(VOGL_GLXCONTEXT, &result, sizeof(result));
+            if (vis)
+                serializer.add_ref_client_memory(1, VOGL_XVISUALINFO, vis, sizeof(XVisualInfo));
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        if (result)
+        {
+            if (shareList)
             {
-                while (!pShare_context->is_root_context())
-                    pShare_context = pShare_context->get_shared_state();
+                if (!g_app_uses_sharelists)
+                    vogl_message_printf("%s: sharelist usage detected\n", VOGL_FUNCTION_NAME);
 
-                pVOGL_context->set_shared_context(pShare_context);
-
-                pShare_context->add_ref();
-            }
-        }
-
-        pVOGL_context->init();
-
-        context_manager.unlock();
-    }
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
-
-    return result;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-#define DEF_FUNCTION_CUSTOM_HANDLER_glXCreateNewContext(exported, category, ret, ret_type_enum, num_params, name, args, params)
-static GLXContext vogl_glXCreateNewContext(const Display *dpy, GLXFBConfig config, int render_type, GLXContext share_list, Bool direct)
-{
-    if (render_type != GLX_RGBA_TYPE)
-    {
-        vogl_error_printf("%s: Unsupported render type (%s)!\n", VOGL_FUNCTION_NAME, get_gl_enums().find_glx_name(render_type));
-    }
-
-    if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
-    {
-        vogl_warning_printf("%s: Redirecting call from glxCreateNewContext() to glxCreateContextAttribsARB because --vogl_force_debug_context was specified. Note this may fail if glXCreateWindow() was called.\n", VOGL_FUNCTION_NAME);
-
-        return vogl_glXCreateContextAttribsARB(dpy, config, share_list, direct, NULL);
-    }
-
-    uint64_t begin_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
-
-    vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXCreateNewContext);
-    if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
-    {
-        vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
-        return GL_ENTRYPOINT(glXCreateNewContext)(dpy, config, render_type, share_list, direct);
-    }
-
-    uint64_t gl_begin_rdtsc = utils::RDTSC();
-    GLXContext result = GL_ENTRYPOINT(glXCreateNewContext)(dpy, config, render_type, share_list, direct);
-    uint64_t gl_end_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_log_printf("** glXCreateNewContext TID: 0x%" PRIX64 " dpy: 0x%" PRIX64 " config: 0x%" PRIX64 " render_type: %i shareList: 0x%" PRIX64 " direct %i, result: 0x%" PRIX64 "\n",
-                       vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(config), render_type, cast_val_to_uint64(share_list), static_cast<int>(direct), cast_val_to_uint64(result));
-    }
-
-    vogl_context_manager &context_manager = get_context_manager();
-
-    if (get_vogl_trace_writer().is_opened())
-    {
-        vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXCreateNewContext, context_manager.get_current(true));
-        serializer.set_begin_rdtsc(begin_rdtsc);
-        serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
-        serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
-        serializer.add_param(1, VOGL_GLXFBCONFIG, &config, sizeof(config));
-        serializer.add_param(2, VOGL_INT, &render_type, sizeof(render_type));
-        serializer.add_param(3, VOGL_GLXCONTEXT, &share_list, sizeof(share_list));
-        serializer.add_param(4, VOGL_BOOL, &direct, sizeof(direct));
-        serializer.add_return_param(VOGL_GLXCONTEXT, &result, sizeof(result));
-        serializer.end();
-        vogl_write_packet_to_trace(serializer.get_packet());
-    }
-
-    if (result)
-    {
-        if (share_list)
-        {
-            if (!g_app_uses_sharelists)
-                vogl_message_printf("%s: sharelist usage detected\n", VOGL_FUNCTION_NAME);
-
-            g_app_uses_sharelists = true;
-        }
-
-        context_manager.lock();
-
-        vogl_context *pVOGL_context = context_manager.create_context(result);
-        pVOGL_context->set_display(dpy);
-        pVOGL_context->set_fb_config(config);
-        pVOGL_context->set_sharelist_handle(share_list);
-        pVOGL_context->set_direct(direct);
-        pVOGL_context->set_creation_func(VOGL_ENTRYPOINT_glXCreateNewContext);
-
-        if (share_list)
-        {
-            vogl_context *pShare_context = context_manager.lookup_vogl_context(share_list);
-
-            if (!pShare_context)
-                vogl_error_printf("%s: Failed finding share context 0x%" PRIx64 " in context manager's hashmap! This handle is probably invalid.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(share_list));
-            else
-            {
-                while (!pShare_context->is_root_context())
-                    pShare_context = pShare_context->get_shared_state();
-
-                pVOGL_context->set_shared_context(pShare_context);
-
-                pShare_context->add_ref();
-            }
-        }
-
-        pVOGL_context->init();
-
-        context_manager.unlock();
-    }
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
-
-    return result;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-#define DEF_FUNCTION_CUSTOM_HANDLER_glXDestroyContext(exported, category, ret, ret_type_enum, num_params, name, args, params)
-static void vogl_glXDestroyContext(const Display *dpy, GLXContext context)
-{
-    uint64_t begin_rdtsc = utils::RDTSC();
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
-    }
-
-    vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXDestroyContext);
-    if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
-    {
-        vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
-        return GL_ENTRYPOINT(glXDestroyContext)(dpy, context);
-    }
-
-    if (g_dump_gl_calls_flag)
-    {
-        vogl_log_printf("** glXDestroyContext TID: 0x%" PRIX64 " Display: 0x%" PRIX64 " context: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(context));
-    }
-
-    vogl_context_manager &context_manager = get_context_manager();
-    vogl_context *pContext = context ? context_manager.lookup_vogl_context(context) : NULL;
-    if (!pContext)
-        vogl_error_printf("%s: glXDestroyContext() called on an unknown context handle 0x%" PRIX64 "!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
-    else if (pContext->get_current_thread())
-        vogl_error_printf("%s: glXDestroyContext() called on a handle 0x%" PRIX64 " that is still current on thread 0x%" PRIX64 "! This may cause the asynchronous framebuffer capturing system to miss frames!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context), pContext->get_current_thread());
-
-    if (pContext)
-    {
-        pContext->on_destroy_prolog();
-    }
-
-    uint64_t gl_begin_rdtsc = utils::RDTSC();
-    GL_ENTRYPOINT(glXDestroyContext)(dpy, context);
-    uint64_t gl_end_rdtsc = utils::RDTSC();
-
-    if (get_vogl_trace_writer().is_opened())
-    {
-        vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXDestroyContext, context_manager.get_current(true));
-        serializer.set_begin_rdtsc(begin_rdtsc);
-        serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
-        serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
-        serializer.add_param(1, VOGL_GLXCONTEXT, &context, sizeof(context));
-        serializer.end();
-        vogl_write_packet_to_trace(serializer.get_packet());
-        get_vogl_trace_writer().flush();
-    }
-
-    if (pContext)
-    {
-        context_manager.lock();
-
-        VOGL_ASSERT(!pContext->get_deleted_flag());
-        if (!pContext->get_deleted_flag())
-        {
-            pContext->set_deleted_flag(true);
-
-            if (pContext->is_share_context())
-            {
-                VOGL_ASSERT(pContext->get_ref_count() == 1);
+                g_app_uses_sharelists = true;
             }
 
-            int new_ref_count = pContext->del_ref();
-            if (new_ref_count <= 0)
+            context_manager.lock();
+
+            vogl_context *pVOGL_context = context_manager.create_context(result);
+            pVOGL_context->set_display(dpy);
+            pVOGL_context->set_xvisual_info(vis);
+            pVOGL_context->set_sharelist_handle(shareList);
+            pVOGL_context->set_direct(direct);
+            pVOGL_context->set_creation_func(VOGL_ENTRYPOINT_glXCreateContext);
+
+            if (shareList)
             {
+                vogl_context *pShare_context = context_manager.lookup_vogl_context(shareList);
+
+                if (!pShare_context)
+                    vogl_error_printf("%s: Failed finding share context 0x%" PRIx64 " in context manager's hashmap! This handle is probably invalid.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(shareList));
+                else
+                {
+                    while (!pShare_context->is_root_context())
+                        pShare_context = pShare_context->get_shared_state();
+
+                    pVOGL_context->set_shared_context(pShare_context);
+
+                    pShare_context->add_ref();
+                }
+            }
+
+            pVOGL_context->init();
+
+            context_manager.unlock();
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        return result;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_glXCreateNewContext(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static GLXContext vogl_glXCreateNewContext(const Display *dpy, GLXFBConfig config, int render_type, GLXContext share_list, Bool direct)
+    {
+        if (render_type != GLX_RGBA_TYPE)
+        {
+            vogl_error_printf("%s: Unsupported render type (%s)!\n", VOGL_FUNCTION_NAME, get_gl_enums().find_glx_name(render_type));
+        }
+
+        if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
+        {
+            vogl_warning_printf("%s: Redirecting call from glxCreateNewContext() to glxCreateContextAttribsARB because --vogl_force_debug_context was specified. Note this may fail if glXCreateWindow() was called.\n", VOGL_FUNCTION_NAME);
+
+            return vogl_glXCreateContextAttribsARB(dpy, config, share_list, direct, NULL);
+        }
+
+        uint64_t begin_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXCreateNewContext);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(glXCreateNewContext)(dpy, config, render_type, share_list, direct);
+        }
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        GLXContext result = GL_ENTRYPOINT(glXCreateNewContext)(dpy, config, render_type, share_list, direct);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** glXCreateNewContext TID: 0x%" PRIX64 " dpy: 0x%" PRIX64 " config: 0x%" PRIX64 " render_type: %i shareList: 0x%" PRIX64 " direct %i, result: 0x%" PRIX64 "\n",
+                           vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(config), render_type, cast_val_to_uint64(share_list), static_cast<int>(direct), cast_val_to_uint64(result));
+        }
+
+        vogl_context_manager &context_manager = get_context_manager();
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXCreateNewContext, context_manager.get_current(true));
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
+            serializer.add_param(1, VOGL_GLXFBCONFIG, &config, sizeof(config));
+            serializer.add_param(2, VOGL_INT, &render_type, sizeof(render_type));
+            serializer.add_param(3, VOGL_GLXCONTEXT, &share_list, sizeof(share_list));
+            serializer.add_param(4, VOGL_BOOL, &direct, sizeof(direct));
+            serializer.add_return_param(VOGL_GLXCONTEXT, &result, sizeof(result));
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        if (result)
+        {
+            if (share_list)
+            {
+                if (!g_app_uses_sharelists)
+                    vogl_message_printf("%s: sharelist usage detected\n", VOGL_FUNCTION_NAME);
+
+                g_app_uses_sharelists = true;
+            }
+
+            context_manager.lock();
+
+            vogl_context *pVOGL_context = context_manager.create_context(result);
+            pVOGL_context->set_display(dpy);
+            pVOGL_context->set_fb_config(config);
+            pVOGL_context->set_sharelist_handle(share_list);
+            pVOGL_context->set_direct(direct);
+            pVOGL_context->set_creation_func(VOGL_ENTRYPOINT_glXCreateNewContext);
+
+            if (share_list)
+            {
+                vogl_context *pShare_context = context_manager.lookup_vogl_context(share_list);
+
+                if (!pShare_context)
+                    vogl_error_printf("%s: Failed finding share context 0x%" PRIx64 " in context manager's hashmap! This handle is probably invalid.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(share_list));
+                else
+                {
+                    while (!pShare_context->is_root_context())
+                        pShare_context = pShare_context->get_shared_state();
+
+                    pVOGL_context->set_shared_context(pShare_context);
+
+                    pShare_context->add_ref();
+                }
+            }
+
+            pVOGL_context->init();
+
+            context_manager.unlock();
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        return result;
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_glXDestroyContext(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static void vogl_glXDestroyContext(const Display *dpy, GLXContext context)
+    {
+        uint64_t begin_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXDestroyContext);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(glXDestroyContext)(dpy, context);
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** glXDestroyContext TID: 0x%" PRIX64 " Display: 0x%" PRIX64 " context: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(dpy), cast_val_to_uint64(context));
+        }
+
+        vogl_context_manager &context_manager = get_context_manager();
+        vogl_context *pContext = context ? context_manager.lookup_vogl_context(context) : NULL;
+        if (!pContext)
+            vogl_error_printf("%s: glXDestroyContext() called on an unknown context handle 0x%" PRIX64 "!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context));
+        else if (pContext->get_current_thread())
+            vogl_error_printf("%s: glXDestroyContext() called on a handle 0x%" PRIX64 " that is still current on thread 0x%" PRIX64 "! This may cause the asynchronous framebuffer capturing system to miss frames!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(context), pContext->get_current_thread());
+
+        if (pContext)
+        {
+            pContext->on_destroy_prolog();
+        }
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        GL_ENTRYPOINT(glXDestroyContext)(dpy, context);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_glXDestroyContext, context_manager.get_current(true));
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_CONST_DISPLAY_PTR, &dpy, sizeof(dpy));
+            serializer.add_param(1, VOGL_GLXCONTEXT, &context, sizeof(context));
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+            get_vogl_trace_writer().flush();
+        }
+
+        if (pContext)
+        {
+            context_manager.lock();
+
+            VOGL_ASSERT(!pContext->get_deleted_flag());
+            if (!pContext->get_deleted_flag())
+            {
+                pContext->set_deleted_flag(true);
+
                 if (pContext->is_share_context())
                 {
-                    vogl_context *pRoot_context = pContext->get_shared_state();
-
-                    pContext->set_shared_context(NULL);
-
-                    if (pRoot_context->del_ref() == 0)
-                    {
-                        VOGL_ASSERT(pRoot_context->get_deleted_flag());
-
-                        bool status = context_manager.destroy_context(pRoot_context->get_context_handle());
-                        VOGL_ASSERT(status);
-                        VOGL_NOTE_UNUSED(status);
-                    }
+                    VOGL_ASSERT(pContext->get_ref_count() == 1);
                 }
 
-                bool status = context_manager.destroy_context(context);
-                VOGL_ASSERT(status);
-                VOGL_NOTE_UNUSED(status);
+                int new_ref_count = pContext->del_ref();
+                if (new_ref_count <= 0)
+                {
+                    if (pContext->is_share_context())
+                    {
+                        vogl_context *pRoot_context = pContext->get_shared_state();
+
+                        pContext->set_shared_context(NULL);
+
+                        if (pRoot_context->del_ref() == 0)
+                        {
+                            VOGL_ASSERT(pRoot_context->get_deleted_flag());
+
+                            bool status = context_manager.destroy_context(pRoot_context->get_context_handle());
+                            VOGL_ASSERT(status);
+                            VOGL_NOTE_UNUSED(status);
+                        }
+                    }
+
+                    bool status = context_manager.destroy_context(context);
+                    VOGL_ASSERT(status);
+                    VOGL_NOTE_UNUSED(status);
+                }
+            }
+
+            context_manager.unlock();
+        }
+
+        if (g_vogl_pLog_stream)
+        {
+            // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
+            g_vogl_pLog_stream->flush();
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+    }
+
+#elif VOGL_PLATFORM_HAS_WGL
+    //----------------------------------------------------------------------------------------------------------------------
+    static vogl_gl_state_snapshot *vogl_snapshot_state(HDC hdc, vogl_context *pCur_context)
+    {
+        VOGL_NOTE_UNUSED(hdc);
+
+        // pCur_context may be NULL!
+
+        if (!GL_ENTRYPOINT(wglGetCurrentContext) || !GL_ENTRYPOINT(wglGetCurrentDC))
+            return NULL;
+
+        timed_scope ts(VOGL_FUNCTION_NAME);
+
+        vogl_context_manager &context_manager = get_context_manager();
+        context_manager.lock();
+
+        if (vogl_check_gl_error())
+            vogl_error_printf("%s: A GL error occured sometime before this function was called\n", VOGL_FUNCTION_NAME);
+
+        HDC orig_hdc = GL_ENTRYPOINT(wglGetCurrentDC)();
+        HGLRC orig_context = GL_ENTRYPOINT(wglGetCurrentContext)();
+
+        vogl_check_gl_error();
+
+        vogl_gl_state_snapshot *pSnapshot = vogl_new(vogl_gl_state_snapshot);
+
+        const context_map &contexts = context_manager.get_context_map();
+
+        // TODO: Find a better way of determining which window dimensions to use.
+        // No context is current, let's just find the biggest window.
+        uint win_width = 0;
+        uint win_height = 0;
+        if (pCur_context)
+        {
+            win_width = pCur_context->get_window_width();
+            win_height = pCur_context->get_window_height();
+        }
+        else
+        {
+            context_map::const_iterator it;
+            for (it = contexts.begin(); it != contexts.end(); ++it)
+            {
+                vogl_context *pVOGL_context = it->second;
+                if ((pVOGL_context->get_window_width() > (int)win_width) || (pVOGL_context->get_window_height() > (int)win_height))
+                {
+                    win_width = pVOGL_context->get_window_width();
+                    win_height = pVOGL_context->get_window_height();
+                }
             }
         }
 
-        context_manager.unlock();
+        vogl_message_printf("%s: Beginning capture: width %u, height %u\n", VOGL_FUNCTION_NAME, win_width, win_height);
+
+        if (!pSnapshot->begin_capture(win_width, win_height, pCur_context ? (uint64_t)pCur_context->get_context_handle() : 0, 0, get_vogl_trace_writer().get_cur_gl_call_counter(), true))
+        {
+            vogl_error_printf("%s: Failed beginning capture\n", VOGL_FUNCTION_NAME);
+
+            vogl_delete(pSnapshot);
+            pSnapshot = NULL;
+
+            get_context_manager().unlock();
+
+            return NULL;
+        }
+
+        vogl_printf("%s: Capturing %u context(s)\n", VOGL_FUNCTION_NAME, contexts.size());
+
+        context_map::const_iterator it;
+        for (it = contexts.begin(); it != contexts.end(); ++it)
+        {
+            CONTEXT_TYPE gl_context = it->first;
+            vogl_context *pVOGL_context = it->second;
+
+            if (pVOGL_context->get_deleted_flag())
+            {
+                vogl_error_printf("%s: Context 0x%" PRIX64 " has been deleted but is the root of a sharelist group - this scenario is not yet supported for state snapshotting.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                break;
+            }
+
+            if (pVOGL_context->get_has_been_made_current())
+            {
+                if (!pVOGL_context->MakeCurrent(gl_context))
+                {
+                    vogl_error_printf("%s: Failed switching to trace context 0x%" PRIX64 ". (This context may be current on another thread.) Capture failed!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                    break;
+                }
+
+                if (pVOGL_context->get_total_mapped_buffers())
+                {
+                    vogl_error_printf("%s: Trace context 0x%" PRIX64 " has %u buffer(s) mapped across a call to glXSwapBuffers(), which is not currently supported!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context), pVOGL_context->get_total_mapped_buffers());
+                    break;
+                }
+
+                if (pVOGL_context->is_composing_display_list())
+                {
+                    vogl_error_printf("%s: Trace context 0x%" PRIX64 " is currently composing a display list across a call to glXSwapBuffers()!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                    break;
+                }
+
+                if (pVOGL_context->get_in_gl_begin())
+                {
+                    vogl_error_printf("%s: Trace context 0x%" PRIX64 " is currently in a glBegin() across a call to glXSwapBuffers(), which is not supported!\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                    break;
+                }
+            }
+
+            vogl_capture_context_params &capture_context_params = pVOGL_context->get_capture_context_params();
+
+            if (!pSnapshot->capture_context(pVOGL_context->get_context_desc(), pVOGL_context->get_context_info(), pVOGL_context->get_handle_remapper(), capture_context_params))
+            {
+                vogl_error_printf("%s: Failed capturing trace context 0x%" PRIX64 ", capture failed\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(gl_context));
+                break;
+            }
+        }
+
+        if ((it == contexts.end()) && (pSnapshot->end_capture()))
+        {
+            vogl_printf("%s: Capture succeeded\n", VOGL_FUNCTION_NAME);
+        }
+        else
+        {
+            vogl_printf("%s: Capture failed\n", VOGL_FUNCTION_NAME);
+
+            vogl_delete(pSnapshot);
+            pSnapshot = NULL;
+        }
+
+        if (orig_hdc && orig_context)
+        {
+            GL_ENTRYPOINT(wglMakeCurrent)(orig_hdc, orig_context);
+        }
+
+        vogl_check_gl_error();
+
+        get_context_manager().unlock();
+
+        return pSnapshot;
     }
 
-    if (g_vogl_pLog_stream)
+
+    //----------------------------------------------------------------------------------------------------------------------
+    static bool vogl_write_snapshot_to_trace(const char *pTrace_filename, HDC hdc, vogl_context *pVOGL_context)
     {
-        // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
-        g_vogl_pLog_stream->flush();
+        VOGL_FUNC_TRACER
+            vogl_message_printf("%s: Snapshot begin\n", VOGL_FUNCTION_NAME);
+
+        // pVOGL_context may be NULL here!
+
+        vogl_unique_ptr<vogl_gl_state_snapshot> pSnapshot(vogl_snapshot_state(hdc, pVOGL_context));
+        if (!pSnapshot.get())
+        {
+            vogl_error_printf("%s: Failed snapshotting GL/GLX state!\n", VOGL_FUNCTION_NAME);
+
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            return false;
+        }
+
+        pSnapshot->set_frame_index(0);
+
+        if (!get_vogl_trace_writer().open(pTrace_filename, NULL, true, false))
+        {
+            vogl_error_printf("%s: Failed creating trace file \"%s\"!\n", VOGL_FUNCTION_NAME, pTrace_filename);
+
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            return false;
+        }
+
+        vogl_archive_blob_manager &trace_archive = *get_vogl_trace_writer().get_trace_archive();
+
+        vogl_message_printf("%s: Serializing snapshot data to JSON document\n", VOGL_FUNCTION_NAME);
+
+        // TODO: This can take a lot of memory, probably better off to split the snapshot into separate smaller binary json or whatever files stored directly in the archive.
+        json_document doc;
+        if (!pSnapshot->serialize(*doc.get_root(), trace_archive, &get_vogl_process_gl_ctypes()))
+        {
+            vogl_error_printf("%s: Failed serializing GL state snapshot!\n", VOGL_FUNCTION_NAME);
+
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            return false;
+        }
+
+        pSnapshot.reset();
+
+        vogl_message_printf("%s: Serializing JSON document to UBJ\n", VOGL_FUNCTION_NAME);
+
+        uint8_vec binary_snapshot_data;
+        vogl::vector<char> snapshot_data;
+
+        // TODO: This can take a lot of memory
+        doc.binary_serialize(binary_snapshot_data);
+
+        vogl_message_printf("%s: Compressing UBJ data and adding to trace archive\n", VOGL_FUNCTION_NAME);
+
+        dynamic_string binary_snapshot_id(trace_archive.add_buf_compute_unique_id(binary_snapshot_data.get_ptr(), binary_snapshot_data.size(), "binary_state_snapshot", VOGL_BINARY_JSON_EXTENSION));
+        if (binary_snapshot_id.is_empty())
+        {
+            vogl_error_printf("%s: Failed adding binary GL snapshot file to output blob manager!\n", VOGL_FUNCTION_NAME);
+
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            return false;
+        }
+
+        binary_snapshot_data.clear();
+
+        snapshot_data.clear();
+
+    #if 0
+        // TODO: This requires too much temp memory!
+        doc.serialize(snapshot_data, true, 0, false);
+
+        dynamic_string snapshot_id(trace_archive.add_buf_compute_unique_id(snapshot_data.get_ptr(), snapshot_data.size(), "state_snapshot", VOGL_TEXT_JSON_EXTENSION));
+        if (snapshot_id.is_empty())
+        {
+            vogl_error_printf("%s: Failed adding binary GL snapshot file to output blob manager!\n", VOGL_FUNCTION_NAME);
+            get_vogl_trace_writer().deinit();
+            return false;
+        }
+    #endif
+
+        key_value_map snapshot_key_value_map;
+        snapshot_key_value_map.insert("command_type", "state_snapshot");
+        snapshot_key_value_map.insert("binary_id", binary_snapshot_id);
+
+    #if 0
+        // TODO: This requires too much temp memory!
+        snapshot_key_value_map.insert("id", snapshot_id);
+    #endif
+
+        vogl_ctypes &trace_gl_ctypes = get_vogl_process_gl_ctypes();
+        if (!vogl_write_glInternalTraceCommandRAD(get_vogl_trace_writer().get_stream(), &trace_gl_ctypes, cITCRKeyValueMap, sizeof(snapshot_key_value_map), reinterpret_cast<const GLubyte *>(&snapshot_key_value_map)))
+        {
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            vogl_error_printf("%s: Failed writing to trace file!\n", VOGL_FUNCTION_NAME);
+            return false;
+        }
+
+        if (!vogl_write_glInternalTraceCommandRAD(get_vogl_trace_writer().get_stream(), &trace_gl_ctypes, cITCRDemarcation, 0, NULL))
+        {
+            VOGL_FUNC_TRACER
+                vogl_end_capture();
+            vogl_error_printf("%s: Failed writing to trace file!\n", VOGL_FUNCTION_NAME);
+            return false;
+        }
+
+        doc.clear(false);
+
+        if (g_pJSON_node_pool)
+        {
+            uint64_t total_bytes_freed = static_cast<uint64_t>(g_pJSON_node_pool->free_unused_blocks());
+            vogl_debug_printf("%s: Freed %" PRIu64 " bytes from the JSON object pool (%" PRIu64 " bytes remaining)\n", VOGL_FUNCTION_NAME, total_bytes_freed, static_cast<uint64_t>(g_pJSON_node_pool->get_total_heap_bytes()));
+        }
+
+        vogl_message_printf("%s: Snapshot complete\n", VOGL_FUNCTION_NAME);
+
+        return true;
     }
 
-    if (g_dump_gl_calls_flag)
+    //----------------------------------------------------------------------------------------------------------------------
+    //  vogl_tick_capture
+    //----------------------------------------------------------------------------------------------------------------------
+    static void vogl_tick_capture(HDC hdc, vogl_context *pVOGL_context)
     {
-        vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        VOGL_FUNC_TRACER
+
+            // pVOGL_context may be NULL here!
+
+            vogl_check_for_capture_stop_file();
+        vogl_check_for_capture_trigger_file();
+
+        scoped_mutex lock(get_vogl_trace_mutex());
+
+        if ((g_vogl_total_frames_to_capture) && (!g_vogl_frames_remaining_to_capture))
+        {
+            g_vogl_frames_remaining_to_capture = g_vogl_total_frames_to_capture;
+            g_vogl_total_frames_to_capture = 0;
+        }
+
+        if (g_vogl_stop_capturing)
+        {
+            g_vogl_stop_capturing = false;
+
+            if (get_vogl_trace_writer().is_opened())
+            {
+                VOGL_FUNC_TRACER
+                    vogl_end_capture();
+                return;
+            }
+        }
+
+        if (!g_vogl_frames_remaining_to_capture)
+            return;
+
+        if (!get_vogl_trace_writer().is_opened())
+        {
+            dynamic_string trace_path(g_command_line_params().get_value_as_string_or_empty("vogl_tracepath"));
+            if (trace_path.is_empty())
+                trace_path = "/tmp";
+            if (!get_vogl_intercept_data().capture_path.is_empty())
+                trace_path = get_vogl_intercept_data().capture_path;
+
+            time_t t = time(NULL);
+            struct tm ltm = *localtime(&t);
+
+            dynamic_string trace_basename("capture");
+            if (!get_vogl_intercept_data().capture_basename.is_empty())
+                trace_basename = get_vogl_intercept_data().capture_basename;
+
+            dynamic_string filename(cVarArg, "%s_%04d_%02d_%02d_%02d_%02d_%02d.bin", trace_basename.get_ptr(), ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, ltm.tm_hour, ltm.tm_min, ltm.tm_sec);
+
+            dynamic_string full_trace_filename;
+            file_utils::combine_path(full_trace_filename, trace_path.get_ptr(), filename.get_ptr());
+
+            if (g_vogl_frames_remaining_to_capture == cUINT32_MAX)
+                vogl_message_printf("%s: Initiating capture of all remaining frames to file \"%s\"\n", VOGL_FUNCTION_NAME, full_trace_filename.get_ptr());
+            else
+                vogl_message_printf("%s: Initiating capture of up to %u frame(s) to file \"%s\"\n", VOGL_FUNCTION_NAME, g_vogl_frames_remaining_to_capture, full_trace_filename.get_ptr());
+
+            if (!vogl_write_snapshot_to_trace(full_trace_filename.get_ptr(), hdc, pVOGL_context))
+            {
+                file_utils::delete_file(full_trace_filename.get_ptr());
+                vogl_error_printf("%s: Failed creating GL state snapshot, closing and deleting trace file\n", VOGL_FUNCTION_NAME);
+            }
+        }
+        else
+        {
+            if (g_vogl_frames_remaining_to_capture != cUINT32_MAX)
+                g_vogl_frames_remaining_to_capture--;
+
+            // See if we should stop capturing.
+            if (!g_vogl_frames_remaining_to_capture)
+            {
+                VOGL_FUNC_TRACER
+                    vogl_end_capture();
+            }
+        }
     }
-}
+
+    //----------------------------------------------------------------------------------------------------------------------
+    //  vogl_glXSwapBuffersGLFuncProlog
+    //----------------------------------------------------------------------------------------------------------------------
+    static inline void vogl_wglSwapBuffersGLFuncProlog(HDC hdc, vogl_context *pVOGL_context, vogl_entrypoint_serializer &trace_serializer)
+    {
+        // pVOGL_context may be NULL here!
+
+        if (!GL_ENTRYPOINT(glXGetCurrentContext) || !GL_ENTRYPOINT(glXGetCurrentDisplay) ||
+            !GL_ENTRYPOINT(glXGetCurrentDrawable) || !GL_ENTRYPOINT(glXGetCurrentReadDrawable))
+        {
+            return;
+        }
+
+        unsigned int width = 0,
+                     height = 0;
+
+        if (get_dimensions_from_dc(&width, &height, hdc))
+        {
+            pVOGL_context->set_window_dimensions(width, height);
+
+            vogl_tick_screen_capture(pVOGL_context);
+        }
+        else
+        {
+            console::warning("%s: Couldn't determine dimensions from hdc!\n", VOGL_FUNCTION_NAME);
+        }
+
+        if (trace_serializer.is_in_begin())
+        {
+            trace_serializer.add_key_value(string_hash("win_width"), pVOGL_context->get_window_width());
+            trace_serializer.add_key_value(string_hash("win_height"), pVOGL_context->get_window_height());
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** Current window dimensions: %ix%i\n", pVOGL_context->get_window_width(), pVOGL_context->get_window_height());
+        }
+
+        pVOGL_context->inc_frame_index();
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_wglSwapBuffers(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static BOOL vogl_wglSwapBuffers(HDC hdc)
+    {
+        uint64_t begin_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglSwapBuffers);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(wglSwapBuffers)(hdc);
+        }
+
+        // Use a local serializer because the call to wglSwapBuffer()'s will make GL calls if something like the Steam Overlay is active.
+        vogl_entrypoint_serializer serializer;
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            serializer.begin(VOGL_ENTRYPOINT_wglSwapBuffers, get_context_manager().get_current(true));
+            serializer.add_param(0, VOGL_HDC, &hdc, sizeof(hdc));
+        }
+
+        vogl_wglSwapBuffersGLFuncProlog(hdc, pTLS_data->m_pContext, serializer);
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+
+        // Call the driver directly, bypassing our GL/GLX wrappers which set m_calling_driver_entrypoint_id. The Steam Overlay may call us back!
+        DIRECT_GL_ENTRYPOINT(wglSwapBuffers)(hdc);
+
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        vogl_tick_capture(hdc, pTLS_data->m_pContext);
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** wglSwapBuffers TID: 0x%" PRIX64 " HDC: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(hdc));
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        if (g_command_line_params().has_key("vogl_exit_after_x_frames") && (pTLS_data->m_pContext))
+        {
+            uint64_t max_num_frames = g_command_line_params().get_value_as_uint64("vogl_exit_after_x_frames");
+            uint64_t cur_num_frames = pTLS_data->m_pContext->get_frame_index();
+
+            if (cur_num_frames >= max_num_frames)
+            {
+                vogl_message_printf("Number of frames specified by --vogl_exit_after_x_frames param reached, forcing trace to close and calling exit()\n");
+
+                vogl_end_capture();
+
+                // Exit the app
+                exit(0);
+            }
+        }
+    }
+    
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_wglCreateContext(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static HGLRC vogl_wglCreateContext(HDC hdc)
+    {
+        uint64_t begin_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglCreateContext);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(wglCreateContext)(hdc);
+        }
+
+        if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
+        {
+            vogl_warning_printf("%s: Can't enable debug contexts via wglCreateContext(), forcing call to use wglCreateContextsAttribsARB() instead\n", VOGL_FUNCTION_NAME);
+
+            #if (VOGL_PLATFORM_HAS_WGL)
+                VOGL_VERIFY(!"impl vogl_wglCreateContext vogl_force_debug_context on Windows.");
+            #endif
+        }
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        HGLRC result = GL_ENTRYPOINT(wglCreateContext)(hdc);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** wglCreateContext TID: 0x%" PRIX64 " hdc: 0x%" PRIX64 ", result: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(hdc), cast_val_to_uint64(result));
+        }
+
+        vogl_context_manager &context_manager = get_context_manager();
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_wglCreateContext, context_manager.get_current(true));
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_HDC, &hdc, sizeof(hdc));
+            serializer.add_return_param(VOGL_HGLRC, &result, sizeof(result));
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        if (result)
+        {
+            context_manager.lock();
+
+            vogl_context *pVOGL_context = context_manager.create_context(result);
+            pVOGL_context->set_hdc(hdc);
+            pVOGL_context->set_creation_func(VOGL_ENTRYPOINT_wglCreateContext);
+
+            pVOGL_context->init();
+
+            context_manager.unlock();
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        return result;
+    }
+
+
+    //----------------------------------------------------------------------------------------------------------------------
+    #define DEF_FUNCTION_CUSTOM_HANDLER_wglShareLists(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static BOOL vogl_wglShareLists(HGLRC hglrc1, HGLRC hglrc2)
+    {
+        uint64_t begin_rdtsc = utils::RDTSC();
+
+        if (!g_app_uses_sharelists)
+            vogl_message_printf("%s: sharelist usage detected\n", VOGL_FUNCTION_NAME);
+        g_app_uses_sharelists = true;
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglShareLists);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_NAME, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(wglShareLists)(hglrc1, hglrc2);
+        }
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        BOOL result = GL_ENTRYPOINT(wglShareLists)(hglrc1, hglrc2);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** wglShareLists TID: 0x%" PRIX64 " hglrc1: 0x%" PRIX64 ", hglrc2: 0x%" PRIX64 ", result: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(hglrc1), cast_val_to_uint64(hglrc2), cast_val_to_uint64(result));
+        }
+
+        vogl_context_manager &context_manager = get_context_manager();
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_wglShareLists, context_manager.get_current(true));
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_HGLRC, &hglrc1, sizeof(hglrc1));
+            serializer.add_param(1, VOGL_HGLRC, &hglrc2, sizeof(hglrc2));
+            serializer.add_return_param(VOGL_BOOL, &result, sizeof(result));
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        if (result)
+        {
+            context_manager.lock();
+
+            vogl_context *pVOGL_context = context_manager.lookup_vogl_context(hglrc2);
+            pVOGL_context->set_sharelist_handle(hglrc1);
+            pVOGL_context->set_creation_func(VOGL_ENTRYPOINT_wglCreateContext);
+
+            vogl_context *pShare_context = context_manager.lookup_vogl_context(hglrc1);
+
+            if (!pShare_context)
+                vogl_error_printf("%s: Failed finding share context 0x%" PRIx64 " in context manager's hashmap! This handle is probably invalid.\n", VOGL_FUNCTION_NAME, cast_val_to_uint64(hglrc1));
+            else
+            {
+                while (!pShare_context->is_root_context())
+                    pShare_context = pShare_context->get_shared_state();
+
+                pVOGL_context->set_shared_context(pShare_context);
+
+                pShare_context->add_ref();
+            }
+
+            pVOGL_context->init();
+            context_manager.unlock();
+        }
+
+        if (g_vogl_pLog_stream)
+        {
+            // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
+            g_vogl_pLog_stream->flush();
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_NAME, vogl_get_current_kernel_thread_id());
+        }
+    }
+#endif
+
 
 //----------------------------------------------------------------------------------------------------------------------
 #define DEF_FUNCTION_CUSTOM_HANDLER_glGetError(exported, category, ret, ret_type_enum, num_params, name, args, params)
@@ -7902,13 +8774,13 @@ static void vogl_check_entrypoints()
 
 #define CUSTOM_FUNC_HANDLER_DEFINED(id) g_vogl_entrypoint_descs[id].m_has_custom_func_handler = true; //printf("%u %s\n", id, g_vogl_entrypoint_descs[id].m_pName);
 #define CUSTOM_FUNC_HANDLER_NOT_DEFINED(id)
-#include "gl_glx_custom_func_handler_validator.inc"
+#include "gl_glx_wgl_custom_func_handler_validator.inc"
 #undef CUSTOM_FUNC_HANDLER_DEFINED
 #undef CUSTOM_FUNC_HANDLER_NOT_DEFINED
 
 #define VALIDATE_ARRAY_SIZE_MACRO_DEFINED(name, index) defined_array_size_macros.insert(index, #name);
 #define VALIDATE_ARRAY_SIZE_MACRO_NOT_DEFINED(name, index) undefined_array_size_macros.insert(index, #name);
-#include "gl_glx_array_size_macros_validator.inc"
+#include "gl_glx_wgl_array_size_macros_validator.inc"
 #undef VALIDATE_ARRAY_SIZE_MACRO_DEFINED
 #undef VALIDATE_ARRAY_SIZE_MACRO_NOT_DEFINED
 
@@ -7916,7 +8788,7 @@ static void vogl_check_entrypoints()
 
 #define CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_DEFINED(macro_name, func_name)
 #define CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_NOT_DEFINED(macro_name, func_name) g_vogl_entrypoint_descs[VOGL_ENTRYPOINT_##func_name].m_custom_return_param_array_size_macro_is_missing = true;
-#include "gl_glx_custom_return_param_array_size_macro_validator.inc"
+#include "gl_glx_wgl_custom_return_param_array_size_macro_validator.inc"
 #undef CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_DEFINED
 #undef CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_NOT_DEFINED
 
@@ -8020,9 +8892,9 @@ static void vogl_check_entrypoints()
 //----------------------------------------------------------------------------------------------------------------------
 // Include generated macros to define the internal entrypoint funcs
 //----------------------------------------------------------------------------------------------------------------------
-#include "gl_glx_array_size_macros.inc"
-#include "gl_glx_func_return_param_array_size_macros.inc"
-#include "gl_glx_func_defs.inc"
+#include "gl_glx_wgl_array_size_macros.inc"
+#include "gl_glx_wgl_func_return_param_array_size_macros.inc"
+#include "gl_glx_wgl_func_defs.inc"
 
 #ifndef NO_PUBLIC_EXPORTS
 //----------------------------------------------------------------------------------------------------------------------
@@ -8056,8 +8928,8 @@ static void vogl_check_entrypoints()
 #define DEF_FUNCTION_END_VOID(exported, category, ret, ret_type_enum, num_params, name, args, params)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_GL_ENUM(pname) -1
 
-#include "gl_glx_array_size_macros.inc"
-#include "gl_glx_func_defs.inc"
+#include "gl_glx_wgl_array_size_macros.inc"
+#include "gl_glx_wgl_func_defs.inc"
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -8084,7 +8956,7 @@ static void vogl_init_wrapper_func_ptrs()
 #define DEF_PROTO_VOID(exported, category, ret, ret_type, num_params, name, args, params) \
     pDst->m_pWrapper_func = reinterpret_cast<vogl_void_func_ptr_t>(vogl_##name);            \
     ++pDst;
-#include "gl_glx_protos.inc"
+#include "gl_glx_wgl_protos.inc"
 #undef DEF_PROTO
 #undef DEF_PROTO_VOID
 }
@@ -8094,7 +8966,6 @@ static void vogl_init_wrapper_func_ptrs()
 //----------------------------------------------------------------------------------------------------------------------
 static void vogl_direct_gl_func_prolog(gl_entrypoint_id_t entrypoint_id, void *pUser_data, void **ppStack_data)
 {
-    VOGL_NOTE_UNUSED(entrypoint_id);
     VOGL_NOTE_UNUSED(pUser_data);
 
     if (g_dump_gl_calls_flag)

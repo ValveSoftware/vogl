@@ -139,7 +139,7 @@ GetLayerPaletteEntries( hdc, iLayerPlane, iStart, cEntries, pcr )
 	param		iLayerPlane	int in value
 	param		iStart		int in value
 	param		cEntries	int in value
-	param		pcr		COLORREF in reference
+	param		pcr		COLORREF out reference
 	category	wgl
 
 RealizeLayerPalette( hdc, iLayerPlane, bRealize )

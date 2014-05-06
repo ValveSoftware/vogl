@@ -25,7 +25,7 @@
 #pragma once
 
 
-#include "vogl_core.h"
+#include "vogl_build_options.h"
 
 // Int type large enough to hold a pointer
 typedef intptr_t GLsizeiptr;
@@ -127,6 +127,35 @@ typedef void (*__GLXextFuncPtr)(void);
 typedef XID GLXVideoCaptureDeviceNV;
 typedef unsigned int GLXVideoDeviceNV;
 
+#define DECLARE_WGL_HANDLE(name) struct name##__{int unused;}; typedef struct name##__ *name
+
+DECLARE_WGL_HANDLE(HPBUFFERARB);
+DECLARE_WGL_HANDLE(HPBUFFEREXT);
+DECLARE_WGL_HANDLE(HVIDEOINPUTDEVICENV);
+DECLARE_WGL_HANDLE(HVIDEOOUTPUTDEVICENV);
+DECLARE_WGL_HANDLE(HPVIDEODEV);
+DECLARE_WGL_HANDLE(HGPUNV);
+
+typedef unsigned long VOGL_WIN_DWORD;
+typedef char VOGL_WIN_CHAR;
+typedef long VOGL_WIN_LONG;
+
+typedef struct VOGL_WIN_RECT
+{
+    VOGL_WIN_LONG    left;
+    VOGL_WIN_LONG    top;
+    VOGL_WIN_LONG    right;
+    VOGL_WIN_LONG    bottom;
+} VOGL_WIN_RECT;
+
+typedef struct VOGL_WIN_GPU_DEVICE 
+{
+    VOGL_WIN_DWORD  cb;
+    VOGL_WIN_CHAR   DeviceName[32];
+    VOGL_WIN_CHAR   DeviceString[128];
+    VOGL_WIN_DWORD  Flags;
+    VOGL_WIN_RECT   rcVirtualScreen;
+} GPU_DEVICE, *PGPU_DEVICE;
 
 
 #include "gl_enums.inc"

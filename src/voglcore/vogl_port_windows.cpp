@@ -71,7 +71,6 @@ pid_t plat_getpid()
 
 pid_t plat_getppid()
 {
-    VOGL_VERIFY(!"impl");
     return 0;
 }
 
@@ -180,12 +179,37 @@ void plat_virtual_free(void* free_addr, size_t size)
 
 #endif
 
+HMODULE _load_opengl32_dll()
+{
+    char system_directory_root[_MAX_PATH];
+    char module_name[_MAX_PATH];
+    const char str_opengl32[] = "opengl32.dll";
+
+    // These are basically backwards. GG Microsoft.
+    #if defined(PLATFORM_64BIT)
+        GetSystemDirectoryA(system_directory_root, VOGL_ARRAY_SIZE(system_directory_root));
+    #else
+        VOGL_ASSUME(defined(PLATFORM_32BIT));
+        GetSystemWow64DirectoryA(system_directory_root, VOGL_ARRAY_SIZE(system_directory_root));
+    #endif
+
+    sprintf_s(module_name, VOGL_ARRAY_SIZE(module_name), "%s\\%s", system_directory_root, str_opengl32);
+    
+    HMODULE retModule = LoadLibraryEx(module_name, NULL, 0);
+    return retModule;
+}
 
 void* plat_dlsym(void* handle, const char* symbol)
 {
-    VOGL_VERIFY((handle != (void*)PLAT_RTLD_NEXT) && !!"plat_dlsym[Windows] was passed PLAT_RTLD_NEXT, which isn't actually implemented yet.");
+    // TODO: This leaks, need to not leak.
+    static HMODULE hOpenGL32 = _load_opengl32_dll();
+    if (handle == PLAT_RTLD_NEXT)
+    {
+        handle = hOpenGL32;
+    }
 
-    return GetProcAddress(*(HMODULE*)handle, symbol);
+    void* func = GetProcAddress((HMODULE)handle, symbol);
+    return func;
 }
 
 

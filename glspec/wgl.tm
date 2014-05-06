@@ -34,4 +34,8 @@ float,*,*,	    float,*,*
 int,*,*,	    int,*,*
 uint,*,*,	    unsigned int,*,*
 ulong,*,*,	    unsigned long,*,*
-void,*,*,	    *,*,*
+void,*,*,	    void,*,*
+PIXELFORMATDESCRIPTOR,*,*,   PIXELFORMATDESCRIPTOR,*,*
+LPCSTR,*,*,		LPCSTR,*,*
+LAYERPLANEDESCRIPTOR,*,*,	 LAYERPLANEDESCRIPTOR,*,*
+COLORREF,*,*,	 COLORREF,*,*

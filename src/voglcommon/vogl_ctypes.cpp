@@ -54,7 +54,7 @@ static vogl_ctype_desc_t g_vogl_ctype_descs[] =
         name, VOGL_INVALID_CTYPE, #name, #ctype, 0, false, false, false, false, false \
     }                                                                                \
     ,
-#include "gl_glx_ctypes.inc"
+#include "gl_glx_wgl_ctypes.inc"
 #undef DEF_TYPE
     };
 
@@ -232,13 +232,28 @@ static void vogl_define_special_ctypes()
     DEF_OPAQUE_PTR_TYPE(VOGL_DISPLAY_PTR)
     DEF_OPAQUE_PTR_TYPE(VOGL_STRUCT_CLCONTEXT_PTR)
     DEF_OPAQUE_PTR_TYPE(VOGL_STRUCT_CLEVENT_PTR)
-    //DEF_OPAQUE_PTR_TYPE(VOGL_CONST_XVISUALINFO_PTR)
-    //DEF_OPAQUE_PTR_TYPE(VOGL_XVISUALINFO_PTR)
+
+    DEF_OPAQUE_PTR_TYPE(VOGL_HANDLE)
+    DEF_OPAQUE_PTR_TYPE(VOGL_HDC)
+    DEF_OPAQUE_PTR_TYPE(VOGL_HGLRC)
+    DEF_OPAQUE_PTR_TYPE(VOGL_HGPUNV)
+    DEF_OPAQUE_PTR_TYPE(VOGL_HPBUFFERARB)
+    DEF_OPAQUE_PTR_TYPE(VOGL_HPBUFFEREXT)
+    DEF_OPAQUE_PTR_TYPE(VOGL_HPVIDEODEV)
+    DEF_OPAQUE_PTR_TYPE(VOGL_HVIDEOINPUTDEVICENV)
+    DEF_OPAQUE_PTR_TYPE(VOGL_HVIDEOOUTPUTDEVICENV)
+    DEF_OPAQUE_PTR_TYPE(VOGL_LPCSTR)
+    DEF_OPAQUE_PTR_TYPE(VOGL_LPVOID)
+    DEF_OPAQUE_PTR_TYPE(VOGL_PGPUDEVICE)
+    DEF_OPAQUE_PTR_TYPE(VOGL_PROC)
+
 
     DEF_OPAQUE_TYPE(VOGL_VOID)
     DEF_OPAQUE_TYPE(VOGL_WINDOW)
     DEF_OPAQUE_TYPE(VOGL_XVISUALINFO)
     DEF_OPAQUE_TYPE(VOGL_COLORMAP) // rg - added 11/14/13
+
+
 
 #undef DEF_OPAQUE_PTR_TYPE
 #undef DEF_OPAQUE_TYPE
@@ -267,12 +282,12 @@ void vogl_init_gl_ctypes()
         desc.m_is_pointer = ctype_traits::isPointer;      \
         desc.m_loki_type_flags = ctype_traits::typeFlags; \
     }
-#include "gl_glx_ctypes.inc"
+#include "gl_glx_wgl_ctypes.inc"
 #undef DEF_TYPE
 
 // Define ptr to pointee mappings
 #define DEF_PTR_TO_POINTEE_TYPE(ptr_ctype, pointee_ctype) g_vogl_ctype_descs[ptr_ctype].m_pointee_ctype = pointee_ctype;
-#include "gl_glx_ctypes_ptr_to_pointee.inc"
+#include "gl_glx_wgl_ctypes_ptr_to_pointee.inc"
 #undef DEF_PTR_TO_POINTEE_TYPE
 
     vogl_define_special_ctypes();
@@ -318,9 +333,7 @@ void vogl_init_gl_ctypes()
     {
         vogl_ctype_desc_t &desc = g_vogl_ctype_descs[ctype_iter];
         if ((desc.m_is_pointer_diff) ||
-            (desc.m_loki_type_flags & LOKI_TYPE_BITMASK(LOKI_IS_POINTER)) ||
-            (desc.m_loki_type_flags & LOKI_TYPE_BITMASK(LOKI_IS_SIGNED_LONG)) ||
-            (desc.m_loki_type_flags & LOKI_TYPE_BITMASK(LOKI_IS_UNSIGNED_LONG)))
+            (desc.m_loki_type_flags & LOKI_TYPE_BITMASK(LOKI_IS_POINTER)))
         {
             // This will fail on long long and unsigned long long, but GL/GLX don't use those types.
             VOGL_ASSERT(desc.m_size == sizeof(void *));

@@ -19,7 +19,8 @@ file( GLOB_RECURSE HDRS *.[h|inl] )
 
 set(SRC_LIST
     ${SRC_LIST}
-    ${HDRS}    
+    ${HDRS}
+	gl_types.cpp
     vogl_ctypes.cpp
     vogl_gl_utils.cpp
     vogl_entrypoints.cpp
