@@ -6548,12 +6548,15 @@ static void vogl_check_for_capture_trigger_file()
         uint64_t gl_begin_rdtsc = utils::RDTSC();
 
         // Call the driver directly, bypassing our GL/GLX wrappers which set m_calling_driver_entrypoint_id. The Steam Overlay may call us back!
-        DIRECT_GL_ENTRYPOINT(wglSwapBuffers)(hdc);
+        BOOL result = DIRECT_GL_ENTRYPOINT(wglSwapBuffers)(hdc);
 
         uint64_t gl_end_rdtsc = utils::RDTSC();
 
         if (get_vogl_trace_writer().is_opened())
         {
+            // Add the return parameter here.
+            serializer.add_return_param(VOGL_BOOL, &result, sizeof(result));
+
             serializer.set_begin_rdtsc(begin_rdtsc);
             serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
             serializer.end();
@@ -6587,6 +6590,8 @@ static void vogl_check_for_capture_trigger_file()
                 exit(0);
             }
         }
+
+        return result;
     }
     
     //----------------------------------------------------------------------------------------------------------------------

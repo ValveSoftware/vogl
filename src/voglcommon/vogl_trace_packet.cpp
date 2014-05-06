@@ -1318,6 +1318,7 @@ bool vogl_trace_packet::json_serialize_param(
             case VOGL_GLUBYTE_PTR:
             case VOGL_GLCHAR_PTR:
             case VOGL_CONST_GLCHARARB_PTR:
+            case VOGL_LPCSTR:
             {
                 if ((client_mem_size <= 8192) && (utils::is_buffer_printable(pClient_mem, client_mem_size, true, true)))
                 {
@@ -2244,6 +2245,7 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
                 case VOGL_GLUBYTE_PTR:
                 case VOGL_GLCHAR_PTR:
                 case VOGL_CONST_GLCHARARB_PTR:
+                case VOGL_LPCSTR:
                 {
                     if ((client_mem_size <= 64) && (utils::is_buffer_printable(pClient_mem, client_mem_size, true, true)))
                     {

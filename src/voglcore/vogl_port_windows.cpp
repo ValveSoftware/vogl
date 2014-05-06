@@ -88,9 +88,9 @@ char* plat_gettmpfname(char *buffer, int maxlen, const char *prefix)
 {
     const char *tmpdir = plat_gettmpdir();
     vogl::uint32 rnd32 = plat_rand();
-    unsigned int time32 = time(NULL);
+    unsigned int time32 = (unsigned int)time(NULL);
 
-    snprintf(buffer, maxlen, "%s\\_%s_%08x_%08x.tmp", tmpdir, prefix, time32, rnd32);
+    _snprintf(buffer, maxlen, "%s\\_%s_%08x_%08x.tmp", tmpdir, prefix, time32, rnd32);
     buffer[maxlen - 1] = 0;
     return buffer;
 }
