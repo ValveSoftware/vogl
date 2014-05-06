@@ -84,21 +84,31 @@ typedef void(GLAPIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLe
 typedef void(GLAPIENTRY *GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 typedef void(GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 
+enum PlatUndefinedType 
+{ 
+    PLATUNDEFINEDTYPE = 0
 #if (!VOGL_PLATFORM_HAS_GLX)
-    enum GlxUndefinedType { GLXUNDEFINEDTYPE = 0, None = 1 };
+  , None = 1 
+#endif
+};
+ 
 
-    #define UndefinedTypeThisPlatform(_typename) \
-        struct _typename \
-        { \
-            GlxUndefinedType unused; \
-            _typename(GlxUndefinedType _unused=GLXUNDEFINEDTYPE) : unused(_unused) { } \
-            _typename(int _ptr) : unused(GLXUNDEFINEDTYPE) { } \
-            bool operator==(const _typename& ) { return false; } \
-        }
+#define UndefinedTypeThisPlatform(_typename) \
+    struct _typename \
+    { \
+        PlatUndefinedType unused; \
+        _typename(PlatUndefinedType _unused=PLATUNDEFINEDTYPE) : unused(_unused) { } \
+        _typename(int _ptr) : unused(PLATUNDEFINEDTYPE) { } \
+        bool operator==(const _typename& ) { return false; } \
+    }
 
+#define UndefinedPointerTypeThisPlatform(_typename) \
+    typedef UndefinedTypeThisPlatform(_typename##__) *_typename
 
+typedef unsigned long XID;
+
+#if (!VOGL_PLATFORM_HAS_GLX)
     typedef int Bool;
-    typedef uint32_t XID;
 
     UndefinedTypeThisPlatform(Colormap);
     UndefinedTypeThisPlatform(Font);
@@ -111,6 +121,28 @@ typedef void(GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum seve
     UndefinedTypeThisPlatform(XVisualInfo);
 
     typedef _XDisplay Display;
+#endif
+
+#if (!VOGL_PLATFORM_HAS_WGL)
+
+    typedef char CHAR;
+    typedef unsigned long DWORD;
+    typedef int INT;
+    typedef float FLOAT;
+    typedef void* HANDLE;
+    typedef char* LPCSTR;
+    typedef void* LPVOID;
+    typedef uint32_t UINT;
+    typedef uint16_t USHORT;
+
+    UndefinedPointerTypeThisPlatform(HDC);
+    UndefinedPointerTypeThisPlatform(HGLRC);
+    UndefinedPointerTypeThisPlatform(PROC);
+
+    UndefinedTypeThisPlatform(COLORREF);
+    UndefinedTypeThisPlatform(LAYERPLANEDESCRIPTOR);
+    UndefinedTypeThisPlatform(PIXELFORMATDESCRIPTOR);
+    UndefinedTypeThisPlatform(RECT);
 #endif
 
 typedef struct __GLXcontextRec *GLXContext;
