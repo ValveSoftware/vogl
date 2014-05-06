@@ -1504,7 +1504,7 @@ namespace vogl
                 vogl::vector<uint> vals;
                 vals.reserve(n);
 
-                uint k = r.irand(0, math::minimum<uint>(16, n / 4));
+                uint k = r.irand(0, math::clamp<uint>(n / 4, 1, 16));
                 while ((k) && (a4.size()))
                 {
                     uint s = r.irand(0, a4.size());
@@ -1553,7 +1553,7 @@ namespace vogl
                 vogl::vector<uint> vals;
                 vals.reserve(n);
 
-                uint k = r.irand(0, math::minimum<uint>(16, n / 4));
+                uint k = r.irand(0, math::clamp<uint>(n / 4, 1, 16));
                 while ((k) && (a5.size()))
                 {
                     uint s = r.irand(0, a5.size());
