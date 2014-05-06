@@ -1149,7 +1149,14 @@ namespace vogl
             m_values.clear_no_destruction();
             m_hash_shift = 32;
 
-            swap(new_map);
+            m_values.swap(new_map.m_values);
+            utils::swap(m_hash_shift, new_map.m_hash_shift);
+            utils::swap(m_num_valid, new_map.m_num_valid);
+            utils::swap(m_grow_threshold, new_map.m_grow_threshold);
+            utils::swap(m_hasher, new_map.m_hasher);
+            utils::swap(m_equals, new_map.m_equals);
+
+            VOGL_ASSERT(check());
         }
 
         inline uint find_next(uint index) const

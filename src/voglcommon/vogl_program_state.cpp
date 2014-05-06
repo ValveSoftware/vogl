@@ -28,7 +28,7 @@
 
 #include "vogl_program_state.h"
 
-#define VOGL_PROGRAM_VERSION 0x0100
+#define VOGL_PROGRAM_VERSION 0x0101
 
 static bool get_program_bool(GLuint handle, GLenum pname)
 {
@@ -51,13 +51,15 @@ static int get_program_int(GLuint handle, GLenum pname)
 }
 
 vogl_program_state::vogl_program_state()
-    : m_snapshot_handle(0),
+    : m_link_entrypoint(VOGL_ENTRYPOINT_INVALID),
+      m_snapshot_handle(0),
       m_program_binary_format(GL_NONE),
       m_num_active_attribs(0),
       m_num_active_uniforms(0),
       m_num_active_uniform_blocks(0),
       m_transform_feedback_mode(GL_NONE),
       m_transform_feedback_num_varyings(0),
+      m_create_shader_program_type(GL_NONE),
       m_marked_for_deletion(false),
       m_link_status(false),
       m_verify_status(false),
@@ -68,13 +70,15 @@ vogl_program_state::vogl_program_state()
 }
 
 vogl_program_state::vogl_program_state(const vogl_program_state &other)
-    : m_snapshot_handle(0),
+    : m_link_entrypoint(VOGL_ENTRYPOINT_INVALID),
+      m_snapshot_handle(0),
       m_program_binary_format(GL_NONE),
       m_num_active_attribs(0),
       m_num_active_uniforms(0),
       m_num_active_uniform_blocks(0),
       m_transform_feedback_mode(GL_NONE),
       m_transform_feedback_num_varyings(0),
+      m_create_shader_program_type(GL_NONE),
       m_marked_for_deletion(false),
       m_link_status(false),
       m_verify_status(false),
@@ -101,6 +105,7 @@ vogl_program_state &vogl_program_state::operator=(const vogl_program_state &rhs)
 
 #define CPY(x) x = rhs.x;
 
+    CPY(m_link_entrypoint);
     CPY(m_snapshot_handle);
 
     CPY(m_program_binary);
@@ -124,6 +129,9 @@ vogl_program_state &vogl_program_state::operator=(const vogl_program_state &rhs)
     CPY(m_transform_feedback_mode);
     CPY(m_transform_feedback_num_varyings);
     CPY(m_varyings);
+
+    CPY(m_create_shader_program_type);
+    CPY(m_create_shader_program_strings);
 
     CPY(m_marked_for_deletion);
     CPY(m_link_status);
@@ -592,7 +600,7 @@ bool vogl_program_state::snapshot(const vogl_context_info &context_info, vogl_ha
     return true;
 }
 
-bool vogl_program_state::link_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint handle, const void *pBinary, uint binary_size, GLenum binary_format)
+bool vogl_program_state::link_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, const void *pBinary, uint binary_size, GLenum binary_format, GLenum type, GLsizei count, GLchar *const *strings)
 {
     VOGL_FUNC_TRACER
 
@@ -600,7 +608,18 @@ bool vogl_program_state::link_snapshot(const vogl_context_info &context_info, vo
 
     clear();
 
+    m_link_entrypoint = link_entrypoint;
     m_snapshot_handle = handle;
+
+    m_create_shader_program_type = type;
+    if (strings)
+    {
+        m_create_shader_program_strings.resize(count);
+        for (int i = 0; i < count; i++)
+        {
+            m_create_shader_program_strings[i].set(strings[i] ? reinterpret_cast<const char *>(strings[i]) : "");
+        }
+    }
 
     bool linked_using_binary = pBinary && binary_size;
 
@@ -660,12 +679,12 @@ bool vogl_program_state::link_snapshot(const vogl_context_info &context_info, vo
         return false;
     }
 
-    if ((m_link_status) && (!m_attached_shaders.size()) && (!linked_using_binary))
+    if ((m_link_status) && (!m_attached_shaders.size()) && (!linked_using_binary) && (type == GL_NONE))
     {
         vogl_error_printf("%s: Program %u was successfully linked, but there are no attached shaders!\n", VOGL_METHOD_NAME, m_snapshot_handle);
     }
 
-    // We don't care about the attached shader handlers, we've now snapshotted and copied the ACTUAL shaders.
+    // We don't care about the attached shader handles, we've now snapshotted and copied the ACTUAL shaders.
     m_attached_shaders.clear();
 
     m_link_snapshot = true;
@@ -1419,7 +1438,20 @@ bool vogl_program_state::restore(const vogl_context_info &context_info, vogl_han
 
     if (!handle)
     {
-        handle = GL_ENTRYPOINT(glCreateProgram)();
+        if (m_link_entrypoint == VOGL_ENTRYPOINT_glCreateShaderProgramv)
+        {
+            vogl::vector<GLchar *> string_ptrs(m_create_shader_program_strings.size());
+
+            for (uint i = 0; i < m_create_shader_program_strings.size(); i++)
+                string_ptrs[i] = (GLchar *)(m_create_shader_program_strings[i].get_ptr());
+
+            handle = GL_ENTRYPOINT(glCreateShaderProgramv)(m_create_shader_program_type, m_create_shader_program_strings.size(), string_ptrs.get_ptr());
+        }
+        else
+        {
+            handle = GL_ENTRYPOINT(glCreateProgram)();
+        }
+
         if ((vogl_check_gl_error()) || (!handle))
             return false;
 
@@ -1436,8 +1468,16 @@ bool vogl_program_state::restore(const vogl_context_info &context_info, vogl_han
     bool any_restore_warnings = false;
 
     bool link_succeeded = false;
-    if (!link_program(handle32, context_info, remapper, any_restore_warnings, any_gl_errors, link_succeeded))
-        goto handle_error;
+
+    if (m_link_entrypoint == VOGL_ENTRYPOINT_glCreateShaderProgramv)
+    {
+        link_succeeded = get_program_bool(handle32, GL_LINK_STATUS);
+    }
+    else
+    {
+        if (!link_program(handle32, context_info, remapper, any_restore_warnings, any_gl_errors, link_succeeded))
+            goto handle_error;
+    }
 
     if ((m_pLink_time_snapshot.get()) && (link_succeeded != m_pLink_time_snapshot->m_link_status))
     {
@@ -1555,6 +1595,8 @@ void vogl_program_state::clear()
 {
     VOGL_FUNC_TRACER
 
+    m_link_entrypoint = VOGL_ENTRYPOINT_INVALID;
+
     m_snapshot_handle = 0;
 
     m_program_binary.clear();
@@ -1582,6 +1624,9 @@ void vogl_program_state::clear()
     m_transform_feedback_num_varyings = 0;
     m_varyings.clear();
 
+    m_create_shader_program_type = GL_NONE;
+    m_create_shader_program_strings.clear();
+
     m_marked_for_deletion = false;
     m_link_status = false;
     m_verify_status = false;
@@ -1600,6 +1645,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
         return false;
 
     node.add_key_value("version", VOGL_PROGRAM_VERSION);
+    node.add_key_value("link_entrypoint", m_link_entrypoint);
     node.add_key_value("handle", m_snapshot_handle);
     node.add_key_value("link_snapshot", m_link_snapshot);
     node.add_key_value("link_status", m_link_status);
@@ -1609,6 +1655,9 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
     node.add_key_value("num_active_uniforms", m_num_active_uniforms);
     node.add_key_value("num_active_uniform_blocks", m_num_active_uniform_blocks);
     node.add_key_value("info_log", m_info_log);
+
+    node.add_key_value("create_shader_program_type", m_create_shader_program_type);
+    node.add_vector("create_shader_program_strings", m_create_shader_program_strings);
 
     node.add_key_value("program_binary_format", m_program_binary_format);
     if (m_program_binary.size())
@@ -1825,6 +1874,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
         return false;
 
     m_snapshot_handle = node.value_as_uint32("handle");
+    m_link_entrypoint = static_cast<gl_entrypoint_id_t>(node.value_as_uint32("link_entrypoint"));
     m_link_snapshot = node.value_as_bool("link_snapshot");
     m_link_status = node.value_as_bool("link_status");
     m_verify_status = node.value_as_bool("verify_status");
@@ -1833,6 +1883,9 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     m_num_active_uniforms = node.value_as_int("num_active_uniforms");
     m_num_active_uniform_blocks = node.value_as_int("num_active_uniform_blocks");
     m_info_log = node.value_as_string("info_log");
+
+    m_create_shader_program_type = node.value_as_uint32("create_shader_program_type");
+    node.get_vector("create_shader_program_strings", m_create_shader_program_strings);
 
     m_program_binary_format = node.value_as_uint32("program_binary_format");
     if (node.has_key("program_binary"))
@@ -2108,127 +2161,18 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     return true;
 }
 
-// TODO: This is not currently used for anything, needs more testing.
-// true if rhs is *exactly* the same.
+// Unused
 bool vogl_program_state::compare_full_state(const vogl_program_state &rhs) const
 {
-    VOGL_FUNC_TRACER
-
-#define CMP(x)      \
-    if (x != rhs.x) \
-        return false;
-    CMP(m_is_valid);
-    CMP(m_link_snapshot);
-
-    CMP(m_snapshot_handle);
-    CMP(m_attached_shaders);
-    CMP(m_attribs);
-    CMP(m_uniforms);
-    CMP(m_uniform_blocks);
-
-    CMP(m_info_log);
-
-    CMP(m_num_active_attribs);
-    CMP(m_num_active_uniforms);
-    CMP(m_num_active_uniform_blocks);
-
-    CMP(m_transform_feedback_mode);
-    CMP(m_transform_feedback_num_varyings);
-    CMP(m_varyings);
-
-    CMP(m_marked_for_deletion);
-    CMP(m_link_status);
-    CMP(m_verify_status);
-    CMP(m_outputs);
-#undef CMP
-
-    if ((m_pLink_time_snapshot.get() != NULL) != (rhs.m_pLink_time_snapshot.get() != NULL))
-        return false;
-
-    if (m_pLink_time_snapshot.get())
-    {
-        if (!m_pLink_time_snapshot->compare_full_state(*rhs.m_pLink_time_snapshot.get()))
-            return false;
-    }
-
-    if (m_shaders.size() != rhs.m_shaders.size())
-        return false;
-    for (uint i = 0; i < m_shaders.size(); i++)
-        if (!m_shaders[i].compare_full_state(rhs.m_shaders[i]))
-            return false;
-
-    return true;
+    VOGL_ASSERT_ALWAYS;
+    return false;
 }
 
-// TODO: This is not currently used for anything, needs more testing.
-// true if rhs is more or less GL equivalent (not everything in vogl_program_state is either restorable to a GL program object, or makes sense to restore).
-// Note that restoring a program on a different driver may result in the restored state's to not exactly match (due to different optimization levels for example).
+// Unused
 bool vogl_program_state::compare_restorable_state(const vogl_gl_object_state &rhs_obj) const
 {
-    VOGL_FUNC_TRACER
-
-    if ((!m_is_valid) || (!rhs_obj.is_valid()))
-        return false;
-
-    if (rhs_obj.get_type() != cGLSTProgram)
-        return false;
-
-    const vogl_program_state &rhs = static_cast<const vogl_program_state &>(rhs_obj);
-
-    if (this == &rhs)
-        return true;
-
-#define CMP(x)      \
-    if (x != rhs.x) \
-        return false;
-    CMP(m_link_status);
-    CMP(m_link_snapshot);
-    CMP(m_uniform_blocks);
-#undef CMP
-
-    for (uint i = 0; i < m_attribs.size(); i++)
-    {
-        if (m_attribs[i].m_name.begins_with("gl_", true))
-            continue;
-
-        uint j;
-        for (j = 0; j < rhs.m_attribs.size(); j++)
-            if (m_attribs[i].m_name.compare(rhs.m_attribs[j].m_name, true) == 0)
-                break;
-        if (j == rhs.m_attribs.size())
-            return false;
-
-        if (m_attribs[i].m_bound_location != rhs.m_attribs[j].m_bound_location)
-            return false;
-        if (m_attribs[i].m_size != rhs.m_attribs[j].m_size)
-            return false;
-        if (m_attribs[i].m_type != rhs.m_attribs[j].m_type)
-            return false;
-    }
-
-    for (uint i = 0; i < m_uniforms.size(); i++)
-    {
-        if (m_uniforms[i].m_name.begins_with("gl_", true))
-            continue;
-
-        uint j;
-        for (j = 0; j < rhs.m_uniforms.size(); j++)
-            if (m_uniforms[i].m_name.compare(rhs.m_uniforms[j].m_name, true) == 0)
-                break;
-        if (j == rhs.m_uniforms.size())
-            return false;
-
-        if (m_uniforms[i].m_base_location != rhs.m_uniforms[j].m_base_location)
-            return false;
-        if (m_uniforms[i].m_size != rhs.m_uniforms[j].m_size)
-            return false;
-        if (m_uniforms[i].m_type != rhs.m_uniforms[j].m_type)
-            return false;
-        if (m_uniforms[i].m_data != rhs.m_uniforms[j].m_data)
-            return false;
-    }
-
-    return true;
+    VOGL_ASSERT_ALWAYS;
+    return false;
 }
 
 vogl_linked_program_state::vogl_linked_program_state()
@@ -2274,7 +2218,7 @@ bool vogl_linked_program_state::add_snapshot(GLuint handle, const vogl_program_s
     return true;
 }
 
-bool vogl_linked_program_state::add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint handle, GLenum binary_format, const void *pBinary, uint binary_size)
+bool vogl_linked_program_state::add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum binary_format, const void *pBinary, uint binary_size)
 {
     VOGL_FUNC_TRACER
 
@@ -2282,7 +2226,24 @@ bool vogl_linked_program_state::add_snapshot(const vogl_context_info &context_in
 
     vogl_program_state &prog = (res.first)->second;
 
-    if (!prog.link_snapshot(context_info, remapper, handle, pBinary, binary_size, binary_format))
+    if (!prog.link_snapshot(context_info, remapper, link_entrypoint, handle, pBinary, binary_size, binary_format, GL_NONE, 0, NULL))
+    {
+        m_linked_programs.erase(handle);
+        return false;
+    }
+
+    return true;
+}
+
+bool vogl_linked_program_state::add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum type, GLsizei count, GLchar *const *strings)
+{
+    VOGL_FUNC_TRACER
+
+    vogl_program_state_map::insert_result res(m_linked_programs.insert(handle));
+
+    vogl_program_state &prog = (res.first)->second;
+
+    if (!prog.link_snapshot(context_info, remapper, link_entrypoint, handle, NULL, 0, GL_NONE, type, count, strings))
     {
         m_linked_programs.erase(handle);
         return false;

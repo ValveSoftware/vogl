@@ -2547,6 +2547,200 @@ void vogl_gl_replayer::handle_detach_shader(gl_entrypoint_id_t entrypoint_id)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// vogl_gl_replayer::handle_post_link_program
+//----------------------------------------------------------------------------------------------------------------------
+void vogl_gl_replayer::handle_post_link_program(gl_entrypoint_id_t entrypoint_id, GLuint trace_handle, GLuint replay_handle, GLenum type, GLsizei count, GLchar *const *strings)
+{
+    const json_document *pDoc = m_pCur_gl_packet->get_key_value_map().get_json_document("metadata");
+
+    GLint replay_link_status = 0;
+    GLint replay_active_attributes = 0;
+    if (entrypoint_id == VOGL_ENTRYPOINT_glLinkProgramARB)
+    {
+        GL_ENTRYPOINT(glGetObjectParameterivARB)(replay_handle, GL_OBJECT_LINK_STATUS_ARB, &replay_link_status);
+        check_gl_error();
+
+        GL_ENTRYPOINT(glGetObjectParameterivARB)(replay_handle, GL_OBJECT_ACTIVE_ATTRIBUTES_ARB, &replay_active_attributes);
+        check_gl_error();
+    }
+    else
+    {
+        GL_ENTRYPOINT(glGetProgramiv)(replay_handle, GL_LINK_STATUS, &replay_link_status);
+        check_gl_error();
+
+        GL_ENTRYPOINT(glGetProgramiv)(replay_handle, GL_ACTIVE_ATTRIBUTES, &replay_active_attributes);
+        check_gl_error();
+    }
+
+    if ((replay_link_status) || (!get_shared_state()->m_shadow_state.m_linked_programs.find_snapshot(replay_handle)))
+    {
+        bool success;
+        if (entrypoint_id == VOGL_ENTRYPOINT_glProgramBinary)
+            success = get_shared_state()->m_shadow_state.m_linked_programs.add_snapshot(m_pCur_context_state->m_context_info, m_replay_to_trace_remapper, entrypoint_id, replay_handle, m_pCur_gl_packet->get_param_value<GLenum>(1), m_pCur_gl_packet->get_param_client_memory<GLvoid>(2), m_pCur_gl_packet->get_param_value<GLsizei>(3));
+        else if (entrypoint_id == VOGL_ENTRYPOINT_glCreateShaderProgramv)
+            success = get_shared_state()->m_shadow_state.m_linked_programs.add_snapshot(m_pCur_context_state->m_context_info, m_replay_to_trace_remapper, entrypoint_id, replay_handle, type, count, strings);
+        else
+            success = get_shared_state()->m_shadow_state.m_linked_programs.add_snapshot(m_pCur_context_state->m_context_info, m_replay_to_trace_remapper, entrypoint_id, replay_handle);
+
+        if (!success)
+            process_entrypoint_warning("%s: Failed inserting into link time program shadow, trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, trace_handle, replay_handle);
+    }
+
+    int trace_active_attributes = 0;
+    int trace_active_uniforms = 0;
+    int trace_active_uniform_blocks = 0;
+    int trace_link_status = 1;
+
+    VOGL_NOTE_UNUSED(trace_active_uniforms);
+    VOGL_NOTE_UNUSED(trace_active_uniform_blocks);
+
+    if (pDoc)
+    {
+        const json_node &doc_root = *pDoc->get_root();
+
+        trace_link_status = doc_root.value_as_int("link_status");
+        trace_active_attributes = doc_root.value_as_int("total_active_attributes");
+        trace_active_uniforms = doc_root.value_as_int("total_active_uniforms");
+        trace_active_uniform_blocks = doc_root.value_as_int("active_uniform_blocks");
+
+        if (replay_link_status != trace_link_status)
+        {
+            process_entrypoint_warning("%s: Trace link status (%i) differs from replay link status (%i), trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, trace_link_status, replay_link_status, trace_handle, replay_handle);
+        }
+    }
+
+    if (!replay_link_status)
+    {
+        vogl::vector<GLchar> log;
+
+        if (entrypoint_id == VOGL_ENTRYPOINT_glLinkProgramARB)
+        {
+            GLsizei length = 0;
+            GL_ENTRYPOINT(glGetObjectParameterivARB)(replay_handle, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+            check_gl_error();
+
+            if (length)
+            {
+                log.resize(length);
+
+                GLint actual_length = 0;
+                GL_ENTRYPOINT(glGetInfoLogARB)(replay_handle, log.size(), &actual_length, reinterpret_cast<GLcharARB *>(log.get_ptr()));
+                check_gl_error();
+            }
+        }
+        else
+        {
+            GLint length = 0;
+            GL_ENTRYPOINT(glGetProgramiv)(replay_handle, GL_INFO_LOG_LENGTH, &length);
+            check_gl_error();
+
+            if (length)
+            {
+                log.resize(length);
+
+                GL_ENTRYPOINT(glGetProgramInfoLog)(replay_handle, log.size(), &length, log.get_ptr());
+                check_gl_error();
+            }
+        }
+
+        if ((log.size()) && (log[0]))
+        {
+            process_entrypoint_message("%s: Info log for trace object %u, replay object %u:\n%s\n", VOGL_METHOD_NAME, trace_handle, replay_handle, log.get_ptr());
+        }
+    }
+
+    if ((pDoc) && (replay_active_attributes != trace_active_attributes))
+    {
+        process_entrypoint_warning("%s: Number of trace active attributes (%i) differs from number of replay active attributes (%i) after linking program, trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, trace_active_attributes, replay_active_attributes, trace_handle, replay_handle);
+    }
+
+    const json_node *pUniforms_node = pDoc ? pDoc->get_root()->find_child_array("active_uniforms") : NULL;
+
+    if (pUniforms_node)
+    {
+        glsl_program_hash_map::iterator it = get_shared_state()->m_glsl_program_hash_map.find(trace_handle);
+        if (it == get_shared_state()->m_glsl_program_hash_map.end())
+            it = get_shared_state()->m_glsl_program_hash_map.insert(trace_handle).first;
+        glsl_program_state &prog_state = it->second;
+
+        for (uint i = 0; i < pUniforms_node->size(); i++)
+        {
+            const json_node *pUniform = pUniforms_node->get_child(i);
+            if (!pUniform)
+            {
+                VOGL_ASSERT_ALWAYS;
+                continue;
+            }
+
+            const char *pName = pUniform->value_as_string_ptr("name");
+            if (!pName)
+            {
+                VOGL_ASSERT_ALWAYS;
+                continue;
+            }
+            int trace_loc = pUniform->value_as_int("location");
+            int trace_array_size = pUniform->value_as_int("size");
+            //int trace_type = pUniform->value_as_int("type");
+
+            VOGL_ASSERT(trace_array_size >= 1);
+
+            if ((trace_loc < 0) || (trace_array_size <= 0))
+                continue;
+
+            if (trace_array_size > 1)
+            {
+                dynamic_string element_name;
+                for (int j = 0; j < trace_array_size; j++)
+                {
+                    element_name = pName;
+                    int start_bracket_ofs = element_name.find_right('[');
+                    if (start_bracket_ofs >= 0)
+                        element_name.left(start_bracket_ofs);
+                    element_name.format_append("[%u]", j);
+
+                    GLint element_trace_loc = trace_loc + j;
+                    GLint element_replay_loc;
+                    if (entrypoint_id == VOGL_ENTRYPOINT_glLinkProgramARB)
+                        element_replay_loc = GL_ENTRYPOINT(glGetUniformLocationARB)(replay_handle, reinterpret_cast<const GLcharARB *>(element_name.get_ptr()));
+                    else
+                        element_replay_loc = GL_ENTRYPOINT(glGetUniformLocation)(replay_handle, reinterpret_cast<const GLchar *>(element_name.get_ptr()));
+                    check_gl_error();
+
+                    if (element_replay_loc < 0)
+                    {
+                        process_entrypoint_warning("%s: glGetUniformLocation: Trace active array uniform %s trace location %i trace array size %i is not active during replay, trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, element_name.get_ptr(), trace_loc, trace_array_size, trace_handle, replay_handle);
+                    }
+                    else
+                    {
+                        prog_state.m_uniform_locations.erase(element_trace_loc);
+                        prog_state.m_uniform_locations.insert(element_trace_loc, element_replay_loc);
+                    }
+                }
+            }
+            else if (trace_array_size == 1)
+            {
+                GLint replay_loc;
+                if (entrypoint_id == VOGL_ENTRYPOINT_glLinkProgramARB)
+                    replay_loc = GL_ENTRYPOINT(glGetUniformLocationARB)(replay_handle, reinterpret_cast<const GLcharARB *>(pName));
+                else
+                    replay_loc = GL_ENTRYPOINT(glGetUniformLocation)(replay_handle, reinterpret_cast<const GLchar *>(pName));
+                check_gl_error();
+
+                if (replay_loc < 0)
+                {
+                    process_entrypoint_warning("%s: glGetUniformLocation: Trace active uniform %s trace location %i is not active during replay, trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, pName, trace_loc, trace_handle, replay_handle);
+                }
+                else
+                {
+                    prog_state.m_uniform_locations.erase(trace_loc);
+                    prog_state.m_uniform_locations.insert(trace_loc, replay_loc);
+                }
+            }
+        } // i
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 // vogl_gl_replayer::handle_link_program
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::handle_link_program(gl_entrypoint_id_t entrypoint_id)
@@ -2575,22 +2769,9 @@ void vogl_gl_replayer::handle_link_program(gl_entrypoint_id_t entrypoint_id)
         pDoc = NULL;
     }
 
-    int trace_active_attributes = 0;
-    int trace_active_uniforms = 0;
-    int trace_active_uniform_blocks = 0;
-    int trace_link_status = 1;
-
-    VOGL_NOTE_UNUSED(trace_active_uniforms);
-    VOGL_NOTE_UNUSED(trace_active_uniform_blocks);
-
     if (pDoc)
     {
         const json_node &doc_root = *pDoc->get_root();
-
-        trace_link_status = doc_root.value_as_int("link_status");
-        trace_active_attributes = doc_root.value_as_int("total_active_attributes");
-        trace_active_uniforms = doc_root.value_as_int("total_active_uniforms");
-        trace_active_uniform_blocks = doc_root.value_as_int("active_uniform_blocks");
 
         const json_node *pAttrib_node = doc_root.find_child_array("active_attribs");
         if (pAttrib_node)
@@ -2715,171 +2896,7 @@ void vogl_gl_replayer::handle_link_program(gl_entrypoint_id_t entrypoint_id)
 
     check_gl_error();
 
-    GLint replay_link_status = 0;
-    GLint replay_active_attributes = 0;
-    if (entrypoint_id == VOGL_ENTRYPOINT_glLinkProgramARB)
-    {
-        GL_ENTRYPOINT(glGetObjectParameterivARB)(replay_handle, GL_OBJECT_LINK_STATUS_ARB, &replay_link_status);
-        check_gl_error();
-
-        GL_ENTRYPOINT(glGetObjectParameterivARB)(replay_handle, GL_OBJECT_ACTIVE_ATTRIBUTES_ARB, &replay_active_attributes);
-        check_gl_error();
-    }
-    else
-    {
-        GL_ENTRYPOINT(glGetProgramiv)(replay_handle, GL_LINK_STATUS, &replay_link_status);
-        check_gl_error();
-
-        GL_ENTRYPOINT(glGetProgramiv)(replay_handle, GL_ACTIVE_ATTRIBUTES, &replay_active_attributes);
-        check_gl_error();
-    }
-
-    if ((replay_link_status) || (!get_shared_state()->m_shadow_state.m_linked_programs.find_snapshot(replay_handle)))
-    {
-        bool success;
-        if (entrypoint_id == VOGL_ENTRYPOINT_glProgramBinary)
-            success = get_shared_state()->m_shadow_state.m_linked_programs.add_snapshot(m_pCur_context_state->m_context_info, m_replay_to_trace_remapper, replay_handle, m_pCur_gl_packet->get_param_value<GLenum>(1), m_pCur_gl_packet->get_param_client_memory<GLvoid>(2), m_pCur_gl_packet->get_param_value<GLsizei>(3));
-        else
-            success = get_shared_state()->m_shadow_state.m_linked_programs.add_snapshot(m_pCur_context_state->m_context_info, m_replay_to_trace_remapper, replay_handle);
-
-        if (!success)
-            process_entrypoint_warning("%s: Failed inserting into link time program shadow, trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, trace_handle, replay_handle);
-    }
-
-    if ((pDoc) && (replay_link_status != trace_link_status))
-    {
-        process_entrypoint_warning("%s: Trace link status (%i) differs from replay link status (%i), trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, trace_link_status, replay_link_status, trace_handle, replay_handle);
-    }
-
-    if (!replay_link_status)
-    {
-        vogl::vector<GLchar> log;
-
-        if (entrypoint_id == VOGL_ENTRYPOINT_glLinkProgramARB)
-        {
-            GLsizei length = 0;
-            GL_ENTRYPOINT(glGetObjectParameterivARB)(replay_handle, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
-            check_gl_error();
-
-            if (length)
-            {
-                log.resize(length);
-
-                GLint actual_length = 0;
-                GL_ENTRYPOINT(glGetInfoLogARB)(replay_handle, log.size(), &actual_length, reinterpret_cast<GLcharARB *>(log.get_ptr()));
-                check_gl_error();
-            }
-        }
-        else
-        {
-            GLint length = 0;
-            GL_ENTRYPOINT(glGetProgramiv)(replay_handle, GL_INFO_LOG_LENGTH, &length);
-            check_gl_error();
-
-            if (length)
-            {
-                log.resize(length);
-
-                GL_ENTRYPOINT(glGetShaderInfoLog)(replay_handle, log.size(), &length, log.get_ptr());
-                check_gl_error();
-            }
-        }
-
-        if ((log.size()) && (log[0]))
-        {
-            process_entrypoint_message("%s: Info log for trace object %u, replay object %u:\n%s\n", VOGL_METHOD_NAME, trace_handle, replay_handle, log.get_ptr());
-        }
-    }
-
-    if ((pDoc) && (replay_active_attributes != trace_active_attributes))
-    {
-        process_entrypoint_warning("%s: Number of trace active attributes (%i) differs from number of replay active attributes (%i) after linking program, trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, trace_active_attributes, replay_active_attributes, trace_handle, replay_handle);
-    }
-
-    const json_node *pUniforms_node = pDoc ? pDoc->get_root()->find_child_array("active_uniforms") : NULL;
-
-    if (pUniforms_node)
-    {
-        glsl_program_hash_map::iterator it = get_shared_state()->m_glsl_program_hash_map.find(trace_handle);
-        if (it == get_shared_state()->m_glsl_program_hash_map.end())
-            it = get_shared_state()->m_glsl_program_hash_map.insert(trace_handle).first;
-        glsl_program_state &prog_state = it->second;
-
-        for (uint i = 0; i < pUniforms_node->size(); i++)
-        {
-            const json_node *pUniform = pUniforms_node->get_child(i);
-            if (!pUniform)
-            {
-                VOGL_ASSERT_ALWAYS;
-                continue;
-            }
-
-            const char *pName = pUniform->value_as_string_ptr("name");
-            if (!pName)
-            {
-                VOGL_ASSERT_ALWAYS;
-                continue;
-            }
-            int trace_loc = pUniform->value_as_int("location");
-            int trace_array_size = pUniform->value_as_int("size");
-            //int trace_type = pUniform->value_as_int("type");
-
-            VOGL_ASSERT(trace_array_size >= 1);
-
-            if ((trace_loc < 0) || (trace_array_size <= 0))
-                continue;
-
-            if (trace_array_size > 1)
-            {
-                dynamic_string element_name;
-                for (int j = 0; j < trace_array_size; j++)
-                {
-                    element_name = pName;
-                    int start_bracket_ofs = element_name.find_right('[');
-                    if (start_bracket_ofs >= 0)
-                        element_name.left(start_bracket_ofs);
-                    element_name.format_append("[%u]", j);
-
-                    GLint element_trace_loc = trace_loc + j;
-                    GLint element_replay_loc;
-                    if (entrypoint_id == VOGL_ENTRYPOINT_glLinkProgramARB)
-                        element_replay_loc = GL_ENTRYPOINT(glGetUniformLocationARB)(replay_handle, reinterpret_cast<const GLcharARB *>(element_name.get_ptr()));
-                    else
-                        element_replay_loc = GL_ENTRYPOINT(glGetUniformLocation)(replay_handle, reinterpret_cast<const GLchar *>(element_name.get_ptr()));
-                    check_gl_error();
-
-                    if (element_replay_loc < 0)
-                    {
-                        process_entrypoint_warning("%s: glGetUniformLocation: Trace active array uniform %s trace location %i trace array size %i is not active during replay, trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, element_name.get_ptr(), trace_loc, trace_array_size, trace_handle, replay_handle);
-                    }
-                    else
-                    {
-                        prog_state.m_uniform_locations.erase(element_trace_loc);
-                        prog_state.m_uniform_locations.insert(element_trace_loc, element_replay_loc);
-                    }
-                }
-            }
-            else if (trace_array_size == 1)
-            {
-                GLint replay_loc;
-                if (entrypoint_id == VOGL_ENTRYPOINT_glLinkProgramARB)
-                    replay_loc = GL_ENTRYPOINT(glGetUniformLocationARB)(replay_handle, reinterpret_cast<const GLcharARB *>(pName));
-                else
-                    replay_loc = GL_ENTRYPOINT(glGetUniformLocation)(replay_handle, reinterpret_cast<const GLchar *>(pName));
-                check_gl_error();
-
-                if (replay_loc < 0)
-                {
-                    process_entrypoint_warning("%s: glGetUniformLocation: Trace active uniform %s trace location %i is not active during replay, trace program 0x%X replay program 0x%X\n", VOGL_METHOD_NAME, pName, trace_loc, trace_handle, replay_handle);
-                }
-                else
-                {
-                    prog_state.m_uniform_locations.erase(trace_loc);
-                    prog_state.m_uniform_locations.insert(trace_loc, replay_loc);
-                }
-            }
-        } // i
-    }
+    handle_post_link_program(entrypoint_id, trace_handle, replay_handle, GL_NONE, 0, NULL);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -5712,6 +5729,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     case GL_VERTEX_ARRAY_BINDING:
                     case GL_VERTEX_ARRAY_BUFFER_BINDING:
                     case GL_CURRENT_PROGRAM:
+                    // Should be GL_TEXTURE_BUFFER_BINDING, see http://www.khronos.org/bugzilla/show_bug.cgi?id=844
+                    case GL_TEXTURE_BUFFER:
                     {
                         is_binding = true;
                         break;
@@ -9083,7 +9102,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         }
         case VOGL_ENTRYPOINT_glCopyImageSubData:
         {
-            VOGL_REPLAY_LOAD_PARAMS_HELPER_glCopyImageSubData
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glCopyImageSubData;
 
             GLuint trace_src_name = srcName;
             GLuint trace_dst_name = dstName;
@@ -9102,6 +9121,77 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+        case VOGL_ENTRYPOINT_glTextureView:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glTextureView;
+
+            GLuint trace_texture = texture;
+            GLuint trace_origtexture = origtexture;
+            map_handle(get_shared_state()->m_shadow_state.m_textures, trace_texture, texture);
+            map_handle(get_shared_state()->m_shadow_state.m_textures, trace_origtexture, origtexture);
+
+            VOGL_REPLAY_CALL_GL_HELPER_glTextureView;
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glCreateShaderProgramv:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glCreateShaderProgramv;
+
+            VOGL_NOTE_UNUSED(pTrace_strings);
+
+            const key_value_map &map = m_pCur_gl_packet->get_key_value_map();
+
+            dynamic_string_array strings;
+
+            for (GLsizei i = 0; i < count; i++)
+            {
+                key_value_map::const_iterator it = map.find(i);
+                if (it == map.end())
+                {
+                    process_entrypoint_error("%s: Failed finding all strings in packet's key value map\n", VOGL_METHOD_NAME);
+                    return cStatusHardFailure;
+                }
+
+                const uint8_vec *pBlob = it->second.get_blob();
+                if (!pBlob)
+                {
+                    process_entrypoint_error("%s: Can't convert string %i to a blob\n", VOGL_METHOD_NAME, i);
+                    return cStatusHardFailure;
+                }
+
+                if (pBlob->find('\0') < 0)
+                {
+                    process_entrypoint_error("%s: String %i is not null terminated\n", VOGL_METHOD_NAME, i);
+                    return cStatusHardFailure;
+                }
+
+                dynamic_string str;
+                str.set(reinterpret_cast<const char *>(pBlob->get_ptr()));
+
+                strings.enlarge(1)->swap(str);
+            }
+
+            vogl::vector<const GLchar *> string_ptrs(count);
+            for (int i = 0; i < count; i++)
+                string_ptrs[i] = reinterpret_cast<const GLchar *>(strings[i].get_ptr());
+
+            GLchar* const * pReplay_strings = (GLchar * const *)(string_ptrs.get_ptr());
+
+            GLuint replay_program = VOGL_REPLAY_CALL_GL_HELPER_glCreateShaderProgramv;
+            GLuint trace_program = m_pCur_gl_packet->get_return_value<GLuint>();
+
+            if (replay_program)
+            {
+                if (!gen_handle(get_shared_state()->m_shadow_state.m_objs, trace_program, replay_program, VOGL_PROGRAM_OBJECT))
+                    return cStatusHardFailure;
+
+                handle_post_link_program(VOGL_ENTRYPOINT_glCreateShaderProgramv, trace_program, replay_program, type, count, pReplay_strings);
+            }
+
+            break;
+        }
+
         case VOGL_ENTRYPOINT_glGetDebugMessageLogARB:
         case VOGL_ENTRYPOINT_glGetObjectLabel:
         case VOGL_ENTRYPOINT_glGetObjectPtrLabel:

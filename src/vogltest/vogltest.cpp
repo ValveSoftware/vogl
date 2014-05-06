@@ -1,11 +1,36 @@
-// File: vogltest.cpp
+/**************************************************************************
+ *
+ * Copyright 2013-2014 RAD Game Tools and Valve Software
+ * All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ **************************************************************************/
 
+// File: vogltest.cpp
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
 #include "vogl_core.h"
 #include "vogl_colorized_console.h"
+#include "vogl_command_line_params.h"
 
 #include <GL/gl.h>
 #include <GL/glx.h>
@@ -17,6 +42,9 @@
 #include "regex/regex.h"
 
 using namespace vogl;
+
+// External function which has a bunch of voglcore tests.
+int run_voglcore_tests(int argc, char *argv[]);
 
 #define PI 3.14159265
 
@@ -393,188 +421,20 @@ void Cleanup(RenderContext *rcx)
     rcx->dpy = 0;
 }
 
-// TODO: Move this stuff intro voglcore itself
-#include "vogl_regex.h"
-#include "vogl_rand.h"
-#include "vogl_bigint128.h"
-#include "vogl_sparse_vector.h"
-#include "vogl_strutils.h"
-#include "vogl_sort.h"
-#include "vogl_hash_map.h"
-#include "vogl_map.h"
-#include "vogl_timer.h"
-#include "vogl_md5.h"
-#include "vogl_rand.h"
-#include "vogl_introsort.h"
-#include "vogl_rh_hash_map.h"
-#include "vogl_object_pool.h"
-
-#include <map>
-
-static void print_sep()
-{
-    printf("-------------------------------------------------\n");
-}
-
-// TODO: Move this into its own tool.
-static int run_tests(int argc, char *argv[])
-{
-    VOGL_NOTE_UNUSED(argc);
-    VOGL_NOTE_UNUSED(argv);
-
-    get_random().seed(12345);
-
-    uint num_failures = 0;
-
-    print_sep();
-
-    if (!rh_hash_map_test())
-    {
-        printf("rh_hash_map_test failed!\n");
-        num_failures++;
-    }
-    else
-    {
-        printf("rh_hash_map_test passed\n");
-    }
-
-    print_sep();
-
-    if (!object_pool_test())
-    {
-        printf("object_pool_test failed!\n");
-        num_failures++;
-    }
-    else
-    {
-        printf("object_pool_test passed\n");
-    }
-
-    print_sep();
-
-    if (!dynamic_string_test())
-    {
-        printf("dynamic_string test failed!\n");
-        num_failures++;
-    }
-    else
-    {
-        printf("dynamic_string test passed\n");
-    }
-
-    print_sep();
-
-    printf("Running MD5 Test\n");
-    if (!md5_test())
-    {
-        printf("MD5 test failed!\n");
-        num_failures++;
-    }
-    else
-    {
-        printf("MD5 test passed\n");
-    }
-
-    print_sep();
-
-    printf("Running introsort test\n");
-    if (!introsort_test())
-    {
-        printf("Introsort test failed!\n");
-        num_failures++;
-    }
-    else
-    {
-        printf("Introsort test passed\n");
-    }
-
-    print_sep();
-
-    printf("rand test:\n");
-    bool rand_test_results = rand_test();
-    printf("%s\n", rand_test_results ? "Success" : "Failed");
-    num_failures += !rand_test_results;
-
-    print_sep();
-
-    printf("regexp tests:\n");
-    bool regext_test_results = regexp_test();
-    printf("%s\n", regext_test_results ? "Success" : "Failed");
-    num_failures += !regext_test_results;
-
-    print_sep();
-
-    printf("strutils test:\n");
-    bool strutils_test_results = strutils_test();
-    printf("%s\n", strutils_test_results ? "Success" : "Failed");
-    num_failures += !strutils_test_results;
-
-    print_sep();
-
-    map_perf_test(200);
-    map_perf_test(2000);
-    map_perf_test(20000);
-    //	map_perf_test(200000);
-    //	map_perf_test(2000000);
-
-    printf("skip_list tests:\n");
-    bool map_test_results = map_test();
-    printf("%s\n", map_test_results ? "Success" : "Failed");
-    num_failures += !map_test_results;
-
-    print_sep();
-
-    printf("hash_map tests:\n");
-    bool hashmap_test_results = hash_map_test();
-    printf("%s\n", hashmap_test_results ? "Success" : "Failed");
-    num_failures += !hashmap_test_results;
-
-    print_sep();
-
-    printf("sort tests:\n");
-    bool sort_test_results = sort_test();
-    printf("%s\n", sort_test_results ? "Success" : "Failed");
-    num_failures += !sort_test_results;
-
-    print_sep();
-
-    printf("sparse_vector tests:\n");
-    bool sparse_vector_results = sparse_vector_test();
-    printf("%s\n", sparse_vector_results ? "Success" : "Failed");
-    num_failures += !sparse_vector_results;
-
-    print_sep();
-
-    printf("bigint128 tests:\n");
-    bool bigint_test_results = bigint128_test();
-    printf("%s\n", bigint_test_results ? "Success" : "Failed");
-    num_failures += !bigint_test_results;
-
-    print_sep();
-
-    if (!num_failures)
-        printf("All tests succeeded\n");
-    else
-        fprintf(stderr, "**** %u test(s) failed!\n", num_failures);
-
-    return num_failures ? EXIT_FAILURE : EXIT_SUCCESS;
-}
-
 int main(int argc, char *argv[])
 {
-    // Initialize vogl_core.
     vogl_core_init();
+
+    if (argc > 1)
+    {
+        // If we were passed any args, send them to voglcore test function.
+        return run_voglcore_tests(argc, argv);
+    }
 
     colorized_console::init();
     colorized_console::set_exception_callback();
+
     console::set_tool_prefix("(vogltest) ");
-
-    if ((argc >= 2) &&
-        ((!vogl::vogl_stricmp(argv[1], "-test")) || (!vogl::vogl_stricmp(argv[1], "--test"))))
-        return run_tests(argc, argv);
-
-    (void)argc;
-    (void)argv;
 
     Bool bWinMapped = False;
     RenderContext rcx;

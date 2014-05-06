@@ -30,244 +30,8 @@
 #include "vogl_core.h"
 #include "vogl_threading.h"
 
-#define VOGL_SHR3 (jsr ^= (jsr << 17), jsr ^= (jsr >> 13), jsr ^= (jsr << 5))
-#define VOGL_CONG (jcong = 69069 * jcong + 1234567)
-
 namespace vogl
 {
-    class md5_hash;
-
-    class kiss99
-    {
-    public:
-        kiss99();
-
-        void seed(uint32 i, uint32 j, uint32 k);
-
-        inline uint32 next();
-
-    private:
-        uint32 x;
-        uint32 y;
-        uint32 z;
-        uint32 c;
-    };
-
-    class well512
-    {
-    public:
-        well512();
-
-        enum
-        {
-            cStateSize = 16
-        };
-        void seed(uint32 seed[cStateSize]);
-        void seed(uint32 seed);
-        void seed(uint32 seed1, uint32 seed2, uint32 seed3);
-        void seed(uint32 seed1, uint32 seed2, uint32 seed3, uint seed4);
-
-        inline uint32 next();
-
-    private:
-        uint32 m_state[cStateSize];
-        uint32 m_index;
-    };
-
-    class ranctx
-    {
-    public:
-        ranctx()
-        {
-            seed(0xDE149737);
-        }
-
-        void seed(uint32 seed);
-
-        inline uint32 next();
-
-    private:
-        uint32 a;
-        uint32 b;
-        uint32 c;
-        uint32 d;
-    };
-
-    // Originally from Numerical Recipes in C
-    // Interesting because the seed is just a 64-bit counter.
-    class pdes
-    {
-    public:
-        pdes()
-            : m_ctr(0)
-        {
-        }
-
-        void seed(uint64_t s)
-        {
-            m_ctr = s;
-        }
-
-        inline uint64_t get_seed() const
-        {
-            return m_ctr;
-        }
-
-        inline uint32 next32()
-        {
-            uint32 l = static_cast<uint32>(m_ctr);
-            uint32 h = static_cast<uint32>(m_ctr >> 32U);
-            psdes_hash_64(&h, &l);
-            m_ctr++;
-            return l;
-        }
-
-        inline uint64_t next64()
-        {
-            uint32 l = static_cast<uint32>(m_ctr);
-            uint32 h = static_cast<uint32>(m_ctr >> 32U);
-            psdes_hash_64(&h, &l);
-            m_ctr++;
-            return static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U);
-        }
-
-    private:
-        void psdes_hash_64(uint *pword0, uint *pword1)
-        {
-            const uint NITER = 4;
-            uint i, iswap, ia, iah, ial, ib, ic;
-            static const uint c1[NITER] = { 0xbaa96887, 0x1e17d32c, 0x03bcdc3c, 0x0f33d1b2 };
-            static const uint c2[NITER] = { 0x4b0f3b58, 0xe874f0c3, 0x6955c5a6, 0x55a7ca46 };
-            for (i = 0; i < NITER; i++)
-            {
-                iswap = *pword1;
-                ia = iswap ^ c1[i];
-                ial = ia & 0xffff;
-                iah = ia >> 16;
-                ib = ial * ial + ~(iah * iah);
-                ic = (ib >> 16) | ((ib & 0xffff) << 16);
-                *pword1 = (*pword0) ^ ((ic ^ c2[i]) + ial * iah);
-                *pword0 = iswap;
-            }
-        }
-
-        uint64_t m_ctr;
-    };
-
-    class random
-    {
-    public:
-        random();
-        random(uint32 i);
-
-        void seed();
-        void seed(uint32 i);
-        void seed(uint32 i1, uint32 i2, uint32 i3);
-        void seed(uint32 i1, uint32 i2, uint32 i3, uint32 i4);
-        void seed(const md5_hash &h);
-        void seed_from_urandom();
-
-        uint8 urand8()
-        {
-            return static_cast<uint8>(urand32());
-        }
-        uint16 urand16()
-        {
-            return static_cast<uint16>(urand32());
-        }
-        uint32 urand32();
-        uint64_t urand64();
-
-        // "Fast" variant uses no multiplies.
-        uint32 fast_urand32();
-
-        uint32 get_bit();
-
-        // Returns random double between [0, 1)
-        double drand(double l, double h);
-
-        float frand(float l, float h);
-
-        // Returns random signed int between [l, h)
-        int irand(int l, int h);
-
-        // Returns random signed int between [l, h]
-        int irand_inclusive(int l, int h);
-
-        // Returns random unsigned int between [l, h)
-        uint urand(uint l, uint h);
-
-        // Returns random unsigned int between [l, h]
-        uint urand_inclusive(uint l, uint h);
-
-        // Returns random 64-bit unsigned int between [l, h)
-        uint64_t urand64(uint64_t l, uint64_t h);
-
-        // Returns random 64-bit unsigned int between [l, h]
-        uint64_t urand64_inclusive(uint64_t l, uint64_t h);
-
-        double gaussian(double mean, double stddev);
-
-    private:
-        ranctx m_ranctx;
-        kiss99 m_kiss99;
-        well512 m_well512;
-        pdes m_pdes;
-    };
-
-    class thread_safe_random
-    {
-    public:
-        thread_safe_random();
-        thread_safe_random(uint32 i);
-
-        void seed();
-        void seed(uint32 i);
-        void seed(uint32 i1, uint32 i2, uint32 i3);
-        void seed(uint32 i1, uint32 i2, uint32 i3, uint32 i4);
-        void seed(const md5_hash &h);
-        void seed_from_urandom();
-
-        uint8 urand8();
-        uint16 urand16();
-        uint32 urand32();
-        uint64_t urand64();
-
-        // "Fast" variant uses no multiplies.
-        uint32 fast_urand32();
-
-        uint32 get_bit();
-
-        // Returns random double between [0, 1)
-        double drand(double l, double h);
-
-        float frand(float l, float h);
-
-        // Returns random signed int between [l, h)
-        int irand(int l, int h);
-
-        // Returns random signed int between [l, h]
-        int irand_inclusive(int l, int h);
-
-        // Returns random unsigned int between [l, h)
-        uint urand(uint l, uint h);
-
-        // Returns random unsigned int between [l, h]
-        uint urand_inclusive(uint l, uint h);
-
-        // Returns random 64-bit unsigned int between [l, h)
-        uint64_t urand64(uint64_t l, uint64_t h);
-
-        // Returns random 64-bit unsigned int between [l, h]
-        uint64_t urand64_inclusive(uint64_t l, uint64_t h);
-
-        double gaussian(double mean, double stddev);
-
-    private:
-        random m_rm;
-        spinlock m_spinlock;
-    };
-
     // Simpler, minimal state PRNG - combines SHR3 and CONG.
     // This thing fails many tests (Gorilla, Collision, Birthday).
     class fast_random
@@ -315,8 +79,61 @@ namespace vogl
         uint32 jcong;
     };
 
+    class random
+    {
+    public:
+        random();
+        random(uint32 i);
+
+        void seed();
+        void seed(uint32 i);
+
+        uint8 urand8()
+        {
+            return static_cast<uint8>(urand32());
+        }
+        uint16 urand16()
+        {
+            return static_cast<uint16>(urand32());
+        }
+        uint32 urand32();
+        uint64_t urand64();
+
+        uint32 get_bit();
+
+        // Returns random double between [0, 1)
+        double drand(double l, double h);
+
+        float frand(float l, float h);
+
+        // Returns random signed int between [l, h)
+        int irand(int l, int h);
+
+        // Returns random signed int between [l, h]
+        int irand_inclusive(int l, int h);
+
+        // Returns random unsigned int between [l, h)
+        uint urand(uint l, uint h);
+
+        // Returns random unsigned int between [l, h]
+        uint urand_inclusive(uint l, uint h);
+
+        // Returns random 64-bit unsigned int between [l, h)
+        uint64_t urand64(uint64_t l, uint64_t h);
+
+        // Returns random 64-bit unsigned int between [l, h]
+        uint64_t urand64_inclusive(uint64_t l, uint64_t h);
+
+        double gaussian(double mean, double stddev);
+
+    private:
+        fast_random m_frand;
+    };
+
     // inlines
 
+#define VOGL_SHR3 (jsr ^= (jsr << 17), jsr ^= (jsr >> 13), jsr ^= (jsr << 5))
+#define VOGL_CONG (jcong = 69069 * jcong + 1234567)
     inline void fast_random::seed(uint32 i)
     {
         jsr = i;
@@ -341,42 +158,6 @@ namespace vogl
         result <<= 32ULL;
         result |= urand32();
         return result;
-    }
-
-    inline void memset_random(fast_random &context, void *pDst, uint n)
-    {
-        while (n >= 4)
-        {
-            *reinterpret_cast<uint32 *>(pDst) = context.urand32();
-            pDst = reinterpret_cast<uint32 *>(pDst) + 1;
-            n -= 4;
-        }
-
-        while (n)
-        {
-            *reinterpret_cast<uint8 *>(pDst) = static_cast<uint8>(context.urand32());
-            pDst = reinterpret_cast<uint8 *>(pDst) + 1;
-            --n;
-        }
-    }
-
-    // non-thread safe global instances, for simplicity in single threaded tools/experiments
-    inline random &get_random()
-    {
-        static random s_random;
-        return s_random;
-    }
-
-    inline fast_random &get_fast_random()
-    {
-        static fast_random s_fast_random;
-        return s_fast_random;
-    }
-
-    inline thread_safe_random &get_thread_safe_random()
-    {
-        static thread_safe_random s_thread_safe_random;
-        return s_thread_safe_random;
     }
 
     bool rand_test();

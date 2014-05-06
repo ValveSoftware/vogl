@@ -97,7 +97,7 @@ bool vogl_trace_file_writer::open(const char *pFilename, vogl_archive_blob_manag
         m_pTrace_archive.reset(vogl_new(vogl_archive_blob_manager));
         m_delete_archive = true;
 
-        if (!m_pTrace_archive->init_file_temp(cBMFReadWrite, NULL))
+        if (!m_pTrace_archive->init_file_temp(cBMFReadWrite))
         {
             vogl_error_printf("%s: Failed opening temp archive!\n", VOGL_METHOD_NAME);
 

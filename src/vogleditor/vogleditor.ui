@@ -265,6 +265,11 @@
               <string>Programs</string>
              </attribute>
             </widget>
+            <widget class="QWidget" name="programArbTab">
+             <attribute name="title">
+              <string>ARB Programs</string>
+             </attribute>
+            </widget>
             <widget class="QWidget" name="shaderTab">
              <attribute name="title">
               <string>Shaders</string>

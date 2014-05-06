@@ -119,8 +119,8 @@ namespace vogl
         // write_string_to_file() doesn't write any line ending characters - you're on your own.
         static bool write_string_to_file(const char *pPath, const dynamic_string &str);
 
-        // pPath can be NULL, if so the system "/tmp/" path is used
-        static dynamic_string generate_temp_filename(const char *pPath = "");
+        // Return temporary filename prefixed with prefix string.
+        static dynamic_string generate_temp_filename(const char *prefix);
 
         static bool change_directory(const char *pPath);
 

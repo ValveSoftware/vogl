@@ -735,3 +735,5 @@ glGetObjectPtrLabel
 glGetDebugMessageLog
 glBindImageTexture
 glCopyImageSubData
+glCreateShaderProgramv
+glTextureView

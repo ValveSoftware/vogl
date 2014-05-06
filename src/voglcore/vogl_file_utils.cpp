@@ -901,15 +901,12 @@ namespace vogl
         return !stream.get_error();
     }
 
-    dynamic_string file_utils::generate_temp_filename(const char *pPath)
+    dynamic_string file_utils::generate_temp_filename(const char *prefix)
     {
-        if (!pPath)
-            pPath = "/tmp/";
+        char buffer[FILENAME_MAX];
 
-        random rm;
-        rm.seed_from_urandom();
-
-        return dynamic_string(cVarArg, "%s__temp_%016" PRIX64 "%016" PRIX64 "__", pPath, rm.urand64(), rm.urand64());
+        plat_gettmpfname(buffer, sizeof(buffer), prefix);
+        return dynamic_string(buffer);
     }
 
     bool file_utils::change_directory(const char *pPath)

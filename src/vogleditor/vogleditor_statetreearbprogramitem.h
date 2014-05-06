@@ -112,6 +112,7 @@ class vogleditor_stateTreeArbProgramItem : public vogleditor_stateTreeItem
 public:
    vogleditor_stateTreeArbProgramItem(QString name, QString value, vogleditor_stateTreeItem* parent, vogl_arb_program_state& state);
    virtual ~vogleditor_stateTreeArbProgramItem() { m_pState = NULL; m_pDiffBaseState = NULL; }
+   virtual state_tree_type getStateType() const { return vogleditor_stateTreeItem::cPROGRAMARB; }
 
    vogl_arb_program_state* get_current_state() const { return m_pState; }
    const vogl_arb_program_state* get_base_state() const { return m_pDiffBaseState; }

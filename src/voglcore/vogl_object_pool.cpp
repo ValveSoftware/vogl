@@ -57,8 +57,8 @@ bool object_pool_test()
 
     vogl::vector<uint *> ptrs;
     uint z = 0;
-    //for (uint t = 0; t < 10000; t++, z++)
-    for (uint t = 0; t < 1000000; t++, z++)
+    for (uint t = 0; t < 10000; t++, z++)
+//    for (uint t = 0; t < 1000000; t++, z++)
     {
         printf("%u %" PRIu64 " %" PRIu64 "\n", t, (uint64_t)pool.get_total_blocks(), (uint64_t)pool.get_total_heap_bytes());
 

@@ -89,6 +89,7 @@ public:
         cTEXTURE,
         cSHADER,
         cPROGRAM,
+        cPROGRAMARB,
         cFRAMEBUFFER
     } state_tree_type;
 

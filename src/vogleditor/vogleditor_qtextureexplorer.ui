@@ -76,16 +76,29 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="arrayElementSpinBox">
+      <widget class="QSpinBox" name="sampleSpinBox">
        <property name="prefix">
-        <string>Index </string>
+        <string>Sample </string>
+       </property>
+       <property name="maximum">
+        <number>0</number>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="sampleSpinBox">
+      <widget class="QSpinBox" name="arrayElementSpinBox">
        <property name="prefix">
-        <string>Sample </string>
+        <string>Index </string>
+       </property>
+       <property name="maximum">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="sliceSpinBox">
+       <property name="prefix">
+        <string>Slice </string>
        </property>
        <property name="maximum">
         <number>0</number>

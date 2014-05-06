@@ -827,11 +827,11 @@ bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, u
     return true;
 }
 
-bool vogl_archive_blob_manager::init_file_temp(uint32 flags, const char *pPath)
+bool vogl_archive_blob_manager::init_file_temp(uint32 flags)
 {
     VOGL_FUNC_TRACER
 
-    dynamic_string temp_filename(file_utils::generate_temp_filename(pPath));
+    dynamic_string temp_filename(file_utils::generate_temp_filename("voglblob"));
     return init_file(flags, temp_filename.get_ptr());
 }
 

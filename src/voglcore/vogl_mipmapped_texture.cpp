@@ -466,6 +466,8 @@ namespace vogl
     mipmapped_texture::mipmapped_texture()
         : m_width(0),
           m_height(0),
+          m_depth(0),
+          m_faces(0),
           m_array_size(0),
           m_comp_flags(pixel_format_helpers::cDefaultCompFlags),
           m_format(PIXEL_FMT_INVALID),
@@ -485,6 +487,8 @@ namespace vogl
         m_name.clear();
         m_width = 0;
         m_height = 0;
+        m_depth = 0;
+        m_faces = 0;
         m_array_size = 0;
         m_comp_flags = pixel_format_helpers::cDefaultCompFlags;
         m_format = PIXEL_FMT_INVALID;
@@ -505,6 +509,8 @@ namespace vogl
     mipmapped_texture::mipmapped_texture(const mipmapped_texture &other)
         : m_width(0),
           m_height(0),
+          m_depth(0),
+          m_faces(0),
           m_array_size(0),
           m_comp_flags(pixel_format_helpers::cDefaultCompFlags),
           m_format(PIXEL_FMT_INVALID)
@@ -522,6 +528,8 @@ namespace vogl
         m_name = rhs.m_name;
         m_width = rhs.m_width;
         m_height = rhs.m_height;
+        m_depth = rhs.m_depth;
+        m_faces = rhs.m_faces;
         m_array_size = rhs.m_array_size;
 
         m_comp_flags = rhs.m_comp_flags;
@@ -1374,23 +1382,18 @@ namespace vogl
         if (!kt.read_from_stream(serializer))
             return false;
 
-        if ((kt.get_depth() > 1) || (kt.get_array_size() > 1))
-        {
-            set_last_error("read_ktx: 3D and array textures are not supported");
-            return false;
-        }
-
         return read_ktx(kt);
     }
 
     bool mipmapped_texture::read_ktx(const vogl::ktx_texture &ktx)
     {
-        // Must be 1D, 2D, or a cubemap, with or without mipmaps.
+        // Must be 1D, 2D, 3D, or a cubemap, array or non-array, with or without mipmaps.
         m_width = ktx.get_width();
         m_height = ktx.get_height();
+        m_depth = ktx.get_depth();
+        m_faces = ktx.get_num_faces();
 
         uint num_mip_levels = ktx.get_num_mips();
-        uint num_faces = ktx.get_num_faces();
 
         uint32 vogl_fourcc = 0;
         dynamic_string vogl_fourcc_str;
@@ -1704,6 +1707,8 @@ namespace vogl
         m_array_size = ktx.get_array_size();
         m_face_array.resize(ktx.get_array_size());
 
+        uint num_faces = is_cubemap() ? m_faces : m_depth;
+
         for (uint array_index = 0; array_index < m_face_array.size(); array_index++)
         {
             m_face_array[array_index].resize(num_faces);
@@ -1711,6 +1716,15 @@ namespace vogl
             for (uint face_index = 0; face_index < num_faces; face_index++)
             {
                 m_face_array[array_index][face_index].resize(num_mip_levels);
+
+                uint ktx_face_index = face_index;
+                uint ktx_zslice_index = 0;
+                if (!is_cubemap())
+                {
+                    // If the mipmapped texture is not for a cube map, then the face_index actually represents the zslice, so set variables appropriately.
+                    ktx_face_index = 0;
+                    ktx_zslice_index = face_index;
+                }
 
                 for (uint level_index = 0; level_index < num_mip_levels; level_index++)
                 {
@@ -1720,7 +1734,7 @@ namespace vogl
                     mip_level *pMip = vogl_new(mip_level);
                     m_face_array[array_index][face_index][level_index] = pMip;
 
-                    const vogl::vector<uint8> &image_data = ktx.get_image_data(level_index, array_index, face_index, 0);
+                    const vogl::vector<uint8> &image_data = ktx.get_image_data(level_index, array_index, ktx_face_index, ktx_zslice_index);
 
                     if (is_compressed_texture)
                     {
@@ -1898,10 +1912,22 @@ namespace vogl
 
         ktx_texture kt;
         bool success;
-        if (determine_texture_type() == cTextureTypeCubemap)
-            success = kt.init_cubemap(get_width(), get_num_levels(), ogl_internal_fmt, ogl_fmt, ogl_type);
+        if (m_array_size == 1)
+        {
+            if (determine_texture_type() == cTextureTypeCubemap)
+                success = kt.init_cubemap(get_width(), get_num_levels(), ogl_internal_fmt, ogl_fmt, ogl_type);
+            else if (m_depth == 1)
+                success = kt.init_2D(get_width(), get_height(), get_num_levels(), ogl_internal_fmt, ogl_fmt, ogl_type);
+            else
+                success = kt.init_3D(get_width(), get_height(), get_depth(), get_num_levels(), ogl_internal_fmt, ogl_fmt, ogl_type);
+        }
         else
-            success = kt.init_2D(get_width(), get_height(), get_num_levels(), ogl_internal_fmt, ogl_fmt, ogl_type);
+        {
+            if (determine_texture_type() == cTextureTypeCubemap)
+                success = kt.init_cubemap_array(get_width(), get_num_levels(), get_array_size(), ogl_internal_fmt, ogl_fmt, ogl_type);
+            else
+                success = kt.init_2D_array(get_width(), get_height(), get_num_levels(), get_array_size(), ogl_internal_fmt, ogl_fmt, ogl_type);
+        }
         if (!success)
             return false;
 
@@ -2049,7 +2075,7 @@ namespace vogl
         if (!is_valid())
             return cTextureTypeUnknown;
 
-        if (get_num_faces() == 6)
+        if (is_cubemap())
             return cTextureTypeCubemap;
         else if (is_vertical_cross())
             return cTextureTypeVerticalCrossCubemap;
@@ -2078,15 +2104,17 @@ namespace vogl
         VOGL_ASSERT(check());
     }
 
-    void mipmapped_texture::init(uint width, uint height, uint levels, uint faces, uint array_size, pixel_format fmt, const char *pName, orientation_flags_t orient_flags)
+    void mipmapped_texture::init(uint width, uint height, uint depth, uint levels, uint faces, uint array_size, pixel_format fmt, const char *pName, orientation_flags_t orient_flags)
     {
         clear();
 
-        VOGL_ASSERT((width > 0) && (height > 0) && (levels > 0));
-        VOGL_ASSERT((faces == 1) || (faces == 6));
+        VOGL_ASSERT((width > 0) && (height > 0) && (depth > 0) && (levels > 0));
+        VOGL_ASSERT((faces == 1) || (faces == 6 && depth == 1));
 
         m_width = width;
         m_height = height;
+        m_depth = depth;
+        m_faces = faces;
         m_comp_flags = pixel_format_helpers::get_component_flags(fmt);
         m_format = fmt;
         if (pName)
@@ -2099,12 +2127,15 @@ namespace vogl
             array_size = 1;
         }
 
+        // if the texture has 6 faces, then it must be a cube map, otherwise use the depth to determine how many "faces" there are.
+        uint num_faces = is_cubemap() ? faces : depth;
+
         m_face_array.resize(array_size);
         for (uint a = 0; a < array_size; a++)
         {
-            m_face_array[a].resize(faces);
+            m_face_array[a].resize(num_faces);
 
-            for (uint f = 0; f < faces; f++)
+            for (uint f = 0; f < num_faces; f++)
             {
                 m_face_array[a][f].resize(levels);
                 for (uint l = 0; l < levels; l++)
@@ -2336,6 +2367,15 @@ namespace vogl
         return true;
     }
 
+    bool mipmapped_texture::is_cubemap() const
+    {
+        VOGL_ASSERT(is_valid());
+        if (!is_valid())
+            return false;
+
+        return m_faces == 6;
+    }
+
     bool mipmapped_texture::resize(uint new_width, uint new_height, const resample_params &params)
     {
         VOGL_ASSERT(is_valid());
@@ -2542,7 +2582,7 @@ namespace vogl
         pixel_format fmt = alpha_is_valid ? PIXEL_FMT_A8R8G8B8 : PIXEL_FMT_R8G8B8;
 
         uint array_size = m_face_array.size();
-        cubemap.init(face_width, face_width, 1, 6, array_size, fmt, m_name.get_ptr(), cDefaultOrientationFlags);
+        cubemap.init(face_width, face_width, 1, 1, 6, array_size, fmt, m_name.get_ptr(), cDefaultOrientationFlags);
 
         // +x -x +y -y +z -z
         //     0  1  2

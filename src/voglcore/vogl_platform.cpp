@@ -84,7 +84,9 @@ static void OutputDebugStringA(const char *p)
 
 void vogl_debug_break_if_debugging(void)
 {
-    if (vogl_is_debugger_present())
+    static const char *vogl_break_on_assert = getenv("VOGL_BREAK_ON_ASSERT");
+
+    if (vogl_break_on_assert || vogl_is_debugger_present())
     {
         VOGL_BREAKPOINT
     }

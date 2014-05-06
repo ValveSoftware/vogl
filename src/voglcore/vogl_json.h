@@ -613,7 +613,7 @@ namespace vogl
         template <typename T>
         bool add_vector(const char *pKey, const T &vec);
 
-        // If pKey is NULL, the hash mode is added to the current node, otherwise it's added to a child named pKey.
+        // If pKey is NULL, the hash mode is read from the current node, otherwise it's read from a child named pKey.
         template <typename T>
         bool get_vector(const char *pKey, T &vec) const;
 

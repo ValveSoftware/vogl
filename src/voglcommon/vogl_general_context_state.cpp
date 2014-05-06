@@ -600,6 +600,7 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
                 case GL_TEXTURE_BINDING_1D:
                 case GL_TEXTURE_BINDING_2D:
                 case GL_TEXTURE_BINDING_3D:
+                case GL_TEXTURE_BUFFER: // Should eventually be changed to GL_TEXTURE_BUFFER_BINDING, see http://www.khronos.org/bugzilla/show_bug.cgi?id=844
                 {
                     int handle = *p;
                     if (handle < 0)
@@ -1862,6 +1863,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     restore_buffer_binding(GL_ELEMENT_ARRAY_BUFFER_BINDING, GL_ELEMENT_ARRAY_BUFFER, remapper);
     ADD_PROCESSED_STATE(GL_ELEMENT_ARRAY_BUFFER_BINDING, 0);
 
+    // Not GL_TEXTURE_BUFFER_BINDING due to this bug: http://www.khronos.org/bugzilla/show_bug.cgi?id=844
+    restore_buffer_binding(GL_TEXTURE_BUFFER, GL_TEXTURE_BUFFER, remapper);
+    ADD_PROCESSED_STATE(GL_TEXTURE_BUFFER, 0);
+
     // restore transform feedback targets
     for (uint i = 0; i < context_info.get_max_transform_feedback_separate_attribs(); i++)
     {
@@ -2618,6 +2623,7 @@ bool vogl_general_context_state::remap_handles(vogl_handle_remapper &remapper)
             case GL_UNIFORM_BUFFER_BINDING:
             case GL_ATOMIC_COUNTER_BUFFER_BINDING:
             case GL_SHADER_STORAGE_BUFFER_BINDING:
+            case GL_TEXTURE_BUFFER: // should eventually be changed to GL_TEXTURE_BUFFER_BINDING, see http://www.khronos.org/bugzilla/show_bug.cgi?id=844
 
             case GL_VERTEX_ARRAY_BUFFER_BINDING:
             case GL_COLOR_ARRAY_BUFFER_BINDING:
@@ -2627,6 +2633,7 @@ bool vogl_general_context_state::remap_handles(vogl_handle_remapper &remapper)
             case GL_FOG_COORD_ARRAY_BUFFER_BINDING:
             case GL_NORMAL_ARRAY_BUFFER_BINDING:
             case GL_EDGE_FLAG_ARRAY_BUFFER_BINDING:
+
                 handle_namespace = VOGL_NAMESPACE_BUFFERS;
                 break;
 
