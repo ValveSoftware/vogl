@@ -1944,9 +1944,9 @@ public:
                 pGLType = gl_typemap.find(enum_it->first.get_ptr());
                 if (!pGLType)
                 {
-                    for (int i = 0; i < num_alts; ++i)
+                    for (int t = 0; t < num_alts; ++t)
                     {
-                        pGLType = alt_gl_typemaps[i]->find(enum_it->first.get_ptr());
+                        pGLType = alt_gl_typemaps[t]->find(enum_it->first.get_ptr());
                         if (pGLType)
                             break;
                     }
