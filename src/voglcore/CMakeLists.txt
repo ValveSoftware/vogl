@@ -8,8 +8,6 @@ include("${SRC_DIR}/build_options.cmake")
 require_pthreads()
 
 include_directories(
-    ${LZMA_INCLUDE_DIR}
-    ${LZMADEC_INCLUDE_DIR}
    "${SRC_DIR}/chromiumlib"
 )
 
@@ -42,7 +40,6 @@ set(SRC_LIST
     vogl_json.cpp
     vogl_ktx_texture.cpp
     vogl.cpp
-    vogl_lzma_codec.cpp
     vogl_math.cpp
     vogl_mem.cpp
     vogl_miniz.cpp
@@ -129,8 +126,6 @@ target_link_libraries(${PROJECT_NAME}
     ${CMAKE_THREAD_LIBS_INIT}
     ${LIBRT}
     ${LIBDL}
-    ${LZMA_LIBRARIES}
-    ${LZMADEC_LIBRARIES}
 )
 
 build_options_finalize()

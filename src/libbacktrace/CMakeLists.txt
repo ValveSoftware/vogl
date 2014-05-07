@@ -35,6 +35,8 @@ project (libbacktracevogl)
 
 include("${SRC_DIR}/build_options.cmake")
 
+find_package(LibLZMA REQUIRED)
+
 set (BACKTRACE_SUPPORTED 1)
 
 include (CheckSymbolExists)
