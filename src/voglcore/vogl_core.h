@@ -38,6 +38,10 @@
     #define VOGL_METHOD_NAME __PRETTY_FUNCTION__ 
 #endif
 
+// Will return a string with the function, filename, line number. Like this:
+//   main():voglbench.cpp:675
+// Usually used in error printf functions, etc.
+#define VOGL_FUNCTION_INFO_CSTR vogl::vogl_function_info(__FILE__, __LINE__, __func__).c_str()
 
 #include <stdlib.h>
 #include <stdio.h>
