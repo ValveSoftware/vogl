@@ -41,8 +41,10 @@ class vogleditor_QApiCallTreeModel : public QAbstractItemModel
    Q_OBJECT
 
 public:
-   vogleditor_QApiCallTreeModel(vogl_trace_file_reader* reader, QObject* parent = 0);
+   vogleditor_QApiCallTreeModel(QObject* parent = 0);
    ~vogleditor_QApiCallTreeModel();
+
+   bool init(vogl_trace_file_reader* pTrace_reader);
 
    virtual QVariant data(const QModelIndex &index, int role) const;
    virtual Qt::ItemFlags flags(const QModelIndex &index) const;
@@ -81,9 +83,6 @@ private:
    vogl_ctypes m_trace_ctypes;
    QLinkedList<vogleditor_apiCallTreeItem*> m_itemList;
    QString m_searchString;
-
-   void setupModelData(vogl_trace_file_reader* pTrace_reader, vogleditor_apiCallTreeItem* parent);
-
 };
 
 #endif // VOGLEDITOR_QAPICALLTREEMODEL_H

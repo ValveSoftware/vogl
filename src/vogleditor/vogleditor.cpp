@@ -1102,10 +1102,6 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
       this->setCursor(origCursor);
       return false;
    }
-   else
-   {
-       vogleditor_output_message("... success!");
-   }
 
    if (tmpReader->get_max_frame_index() > g_settings.trim_large_trace_prompt_size())
    {
@@ -1149,7 +1145,23 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
    vogl_ctypes trace_ctypes;
    trace_ctypes.init(m_pTraceReader->get_sof_packet().m_pointer_sizes);
 
-   m_pApiCallTreeModel = new vogleditor_QApiCallTreeModel(m_pTraceReader);
+   m_pApiCallTreeModel = new vogleditor_QApiCallTreeModel();
+   if (m_pApiCallTreeModel == NULL)
+   {
+       vogleditor_output_error("Out of memory.");
+       close_trace_file();
+       this->setCursor(origCursor);
+       return false;
+   }
+
+   if (!m_pApiCallTreeModel->init(m_pTraceReader))
+   {
+      vogleditor_output_error("The API calls within the trace could not be parsed properly.");
+      close_trace_file();
+      this->setCursor(origCursor);
+      return false;
+   }
+
    ui->treeView->setModel(m_pApiCallTreeModel);
 
    if (ui->treeView->selectionModel() != NULL)
@@ -1240,10 +1252,6 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
         displayMachineInfo();
    }
 
-   m_openFilename = filename.c_str();
-
-   setWindowTitle(m_openFilename + " - " + g_PROJECT_NAME);
-
    ui->tabWidget->setCurrentWidget(ui->framebufferTab);
 
    // update toolbar
@@ -1254,6 +1262,10 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
    m_pTimelineModel = new vogleditor_apiCallTimelineModel(m_pApiCallTreeModel->root());
    m_timeline->setModel(m_pTimelineModel);
    m_timeline->repaint();
+
+   m_openFilename = filename.c_str();
+   setWindowTitle(m_openFilename + " - " + g_PROJECT_NAME);
+   vogleditor_output_message("...opened successfully!");
 
    this->setCursor(origCursor);
    return true;

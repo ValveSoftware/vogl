@@ -34,12 +34,12 @@
 #include "vogleditor_gl_state_snapshot.h"
 #include "vogleditor_frameitem.h"
 #include "vogleditor_apicalltreeitem.h"
+#include "vogleditor_output.h"
 
-vogleditor_QApiCallTreeModel::vogleditor_QApiCallTreeModel(vogl_trace_file_reader* reader, QObject *parent)
+vogleditor_QApiCallTreeModel::vogleditor_QApiCallTreeModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
     m_rootItem = vogl_new(vogleditor_apiCallTreeItem, this);
-    setupModelData(reader, m_rootItem);
 }
 
 vogleditor_QApiCallTreeModel::~vogleditor_QApiCallTreeModel()
@@ -53,15 +53,14 @@ vogleditor_QApiCallTreeModel::~vogleditor_QApiCallTreeModel()
    m_itemList.clear();
 }
 
-// TODO: return bool
-void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace_reader, vogleditor_apiCallTreeItem *parent)
+bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
 {
+   vogleditor_apiCallTreeItem* parent = m_rootItem;
    const vogl_trace_stream_start_of_file_packet &sof_packet = pTrace_reader->get_sof_packet();
    VOGL_NOTE_UNUSED(sof_packet);
 
    uint64_t total_swaps = 0;
-   // TODO probably need to handle eof_packet
-   //bool found_eof_packet = false;
+   bool found_eof_packet = false;
 
    // make a PendingFrame node to hold the api calls
    // this will remain in the pending state until the first
@@ -82,14 +81,14 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
 
       if ((read_status != vogl_trace_file_reader::cOK) && (read_status != vogl_trace_file_reader::cEOF))
       {
-         vogl_error_printf("Failed reading from trace file!\n");
-         break;
+         vogleditor_output_error("Failed reading from trace file!");
+         return false;
       }
 
       if (read_status == vogl_trace_file_reader::cEOF)
       {
          vogl_printf("At trace file EOF on swap %" PRIu64 "\n", total_swaps);
-         break;
+         return false;
       }
 
       const vogl::vector<uint8> &packet_buf = pTrace_reader->get_packet_buf(); VOGL_NOTE_UNUSED(packet_buf);
@@ -103,8 +102,14 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
 
          if (!pTrace_packet->deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
          {
-            console::error("%s: Failed parsing GL entrypoint packet\n", VOGL_FUNCTION_NAME);
-            break;
+             vogleditor_output_error("Failed parsing GL entrypoint packet.");
+             return false;
+         }
+
+         if (!pTrace_packet->check())
+         {
+             vogleditor_output_error("GL entrypoint packet failed consistency check. Please make sure the trace was made with the most recent version of VOGL.");
+             return false;
          }
 
          pGL_packet = &pTrace_reader->get_packet<vogl_trace_gl_entrypoint_packet>();
@@ -128,7 +133,7 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
                   dynamic_string id(kvm.get_string("binary_id"));
                   if (id.is_empty())
                   {
-                     vogl_warning_printf("%s: Missing binary_id field in glInternalTraceCommandRAD key_valye_map command type: \"%s\"\n", VOGL_FUNCTION_NAME, cmd_type.get_ptr());
+                     vogl_warning_printf("%s: Missing binary_id field in glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", VOGL_FUNCTION_NAME, cmd_type.get_ptr());
                      continue;
                   }
 
@@ -256,11 +261,13 @@ void vogleditor_QApiCallTreeModel::setupModelData(vogl_trace_file_reader* pTrace
 
       if (pTrace_reader->get_packet_type() == cTSPTEOF)
       {
-          //found_eof_packet = true;
+          found_eof_packet = true;
           vogl_printf("Found trace file EOF packet on swap %" PRIu64 "\n", total_swaps);
           break;
       }
    }
+
+   return found_eof_packet;
 }
 
 QModelIndex vogleditor_QApiCallTreeModel::index(int row, int column, const QModelIndex &parent) const
