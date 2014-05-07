@@ -47,6 +47,7 @@ class vogl_arb_program_state;
 class vogl_program_state;
 class vogleditor_apiCallTimelineModel;
 class vogleditor_QApiCallTreeModel;
+class vogleditor_QBufferExplorer;
 class vogleditor_QStateTreeModel;
 class vogleditor_QProgramArbExplorer;
 class vogleditor_QProgramExplorer;
@@ -113,6 +114,7 @@ private:
    bool displayShader(GLuint64 shaderHandle, bool bBringTabToFront);
    void displayProgramArb(GLuint64 programArbHandle, bool bBringTabToFront);
    void displayProgram(GLuint64 programHandle, bool bBringTabToFront);
+   bool displayBuffer(GLuint64 bufferHandle, bool bBringTabToFront);
 
    // temp?
    vogl_gl_state_snapshot *read_state_snapshot_from_trace(vogl_trace_file_reader* pTrace_reader);
@@ -146,6 +148,7 @@ private:
    vogleditor_QProgramArbExplorer* m_pProgramArbExplorer;
    vogleditor_QProgramExplorer* m_pProgramExplorer;
    vogleditor_QShaderExplorer* m_pShaderExplorer;
+   vogleditor_QBufferExplorer* m_pBufferExplorer;
    vogleditor_QTimelineView* m_timeline;
 
    QGridLayout* m_pFramebufferTab_layout;
@@ -154,6 +157,7 @@ private:
    QGridLayout* m_pProgramArbTab_layout;
    QGridLayout* m_pProgramTab_layout;
    QGridLayout* m_pShaderTab_layout;
+   QGridLayout* m_pBufferTab_layout;
 
    vogleditor_gl_state_snapshot* m_currentSnapshot;
    vogleditor_apiCallTreeItem* m_pCurrentCallTreeItem;

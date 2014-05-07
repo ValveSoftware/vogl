@@ -46,6 +46,7 @@ set(SRC_LIST
     vogleditor_apicalltimelinemodel.cpp
     vogleditor_gl_state_snapshot.cpp
     vogleditor_qapicalltreemodel.cpp
+    vogleditor_qbufferexplorer.cpp
     vogleditor_qframebufferexplorer.cpp
     vogleditor_qprogramarbexplorer.cpp
     vogleditor_qprogramexplorer.cpp
@@ -88,6 +89,7 @@ set(SRC_LIST
 set(UI_HEADER_LIST
     vogleditor.h
     vogleditor_qapicalltreemodel.h
+    vogleditor_qbufferexplorer.h
     vogleditor_qframebufferexplorer.h
     vogleditor_qprogramarbexplorer.h
     vogleditor_qprogramexplorer.h
@@ -138,6 +140,7 @@ set(HEADER_LIST
 
 set(FORM_LIST
     vogleditor.ui
+    vogleditor_qbufferexplorer.ui
     vogleditor_qframebufferexplorer.ui
     vogleditor_qprogramarbexplorer.ui
     vogleditor_qprogramexplorer.ui

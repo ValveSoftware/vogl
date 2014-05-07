@@ -10,6 +10,7 @@ class vogleditor_stateTreeBufferItem : public vogleditor_stateTreeItem
 public:
    vogleditor_stateTreeBufferItem(QString name, QString value, vogleditor_stateTreeItem* parent, const vogl_buffer_state* pState);
    virtual ~vogleditor_stateTreeBufferItem() { m_pState = NULL; m_pDiffBaseState = NULL; }
+   virtual state_tree_type getStateType() const { return vogleditor_stateTreeItem::cBUFFER; }
 
    const vogl_buffer_state* get_buffer_state() const { return m_pState; }
 

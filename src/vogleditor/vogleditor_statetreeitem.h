@@ -90,7 +90,8 @@ public:
         cSHADER,
         cPROGRAM,
         cPROGRAMARB,
-        cFRAMEBUFFER
+        cFRAMEBUFFER,
+        cBUFFER
     } state_tree_type;
 
     virtual vogleditor_stateTreeItem::state_tree_type getStateType() const { return cDEFAULT; }

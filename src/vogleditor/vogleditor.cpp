@@ -40,11 +40,13 @@
 
 #include "vogleditor_output.h"
 #include "vogleditor_settings.h"
-#include "vogleditor_statetreetextureitem.h"
 #include "vogleditor_statetreearbprogramitem.h"
 #include "vogleditor_statetreeprogramitem.h"
+#include "vogleditor_statetreebufferitem.h"
 #include "vogleditor_statetreeshaderitem.h"
 #include "vogleditor_statetreeframebufferitem.h"
+#include "vogleditor_statetreetextureitem.h"
+#include "vogleditor_qbufferexplorer.h"
 #include "vogleditor_qstatetreemodel.h"
 #include "vogleditor_qtrimdialog.h"
 #include "vogleditor_qframebufferexplorer.h"
@@ -117,12 +119,14 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pRenderbufferExplorer(NULL),
    m_pProgramExplorer(NULL),
    m_pShaderExplorer(NULL),
+   m_pBufferExplorer(NULL),
    m_timeline(NULL),
    m_pFramebufferTab_layout(NULL),
    m_pTextureTab_layout(NULL),
    m_pRenderbufferTab_layout(NULL),
    m_pProgramTab_layout(NULL),
    m_pShaderTab_layout(NULL),
+   m_pBufferTab_layout(NULL),
    m_currentSnapshot(NULL),
    m_pCurrentCallTreeItem(NULL),
    m_pVoglReplayProcess(new QProcess()),
@@ -191,6 +195,12 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pShaderExplorer = new vogleditor_QShaderExplorer(ui->shaderTab);
    m_pShaderTab_layout->addWidget(m_pShaderExplorer, 0, 0);
    ui->shaderTab->setLayout(m_pShaderTab_layout);
+
+   // setup buffer tab
+   m_pBufferTab_layout = new QGridLayout();
+   m_pBufferExplorer = new vogleditor_QBufferExplorer(ui->bufferTab);
+   m_pBufferTab_layout->addWidget(m_pBufferExplorer, 0, 0);
+   ui->bufferTab->setLayout(m_pBufferTab_layout);
 
    // setup timeline
    m_timeline = new vogleditor_QTimelineView();
@@ -273,6 +283,12 @@ VoglEditor::~VoglEditor()
         m_pShaderExplorer = NULL;
     }
 
+    if (m_pBufferExplorer != NULL)
+    {
+        delete m_pBufferExplorer;
+        m_pBufferExplorer = NULL;
+    }
+
     if (m_pPlayButton != NULL)
     {
         delete m_pPlayButton;
@@ -319,6 +335,12 @@ VoglEditor::~VoglEditor()
     {
         delete m_pShaderTab_layout;
         m_pShaderTab_layout = NULL;
+    }
+
+    if (m_pBufferTab_layout != NULL)
+    {
+        delete m_pBufferTab_layout;
+        m_pBufferTab_layout = NULL;
     }
 
     if (m_pStateTreeModel != NULL)
@@ -1408,6 +1430,7 @@ void VoglEditor::reset_snapshot_ui()
     m_pProgramArbExplorer->clear();
     m_pProgramExplorer->clear();
     m_pShaderExplorer->clear();
+    m_pBufferExplorer->clear();
     ui->contextComboBox->clear();
     ui->contextComboBox->setEnabled(false);
 
@@ -1416,6 +1439,7 @@ void VoglEditor::reset_snapshot_ui()
     QWidget* pCurrentTab = ui->tabWidget->currentWidget();
 
     VOGLEDITOR_DISABLE_STATE_TAB(ui->stateTab);
+    VOGLEDITOR_DISABLE_STATE_TAB(ui->bufferTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->framebufferTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->programArbTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->programTab);
@@ -1687,6 +1711,12 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
         }
     }
     if (shaderCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->shaderTab); }
+
+    // buffers
+    m_pBufferExplorer->clear();
+    uint bufferCount = m_pBufferExplorer->set_buffer_objects(sharingContexts);
+    if (bufferCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->bufferTab); }
+
 }
 
 void VoglEditor::on_stateTreeView_clicked(const QModelIndex &index)
@@ -1759,6 +1789,18 @@ void VoglEditor::on_stateTreeView_clicked(const QModelIndex &index)
 
       break;
    }
+   case vogleditor_stateTreeItem::cBUFFER:
+   {
+      vogleditor_stateTreeBufferItem* pBufferItem = static_cast<vogleditor_stateTreeBufferItem*>(pStateItem);
+      if (pBufferItem == NULL)
+      {
+         break;
+      }
+
+      displayBuffer(pBufferItem->get_buffer_state()->get_snapshot_handle(), true);
+
+      break;
+   }
    case vogleditor_stateTreeItem::cDEFAULT:
    {
       return;
@@ -1774,6 +1816,20 @@ bool VoglEditor::displayShader(GLuint64 shaderHandle, bool bBringTabToFront)
         if (bBringTabToFront)
         {
             ui->tabWidget->setCurrentWidget(ui->shaderTab);
+        }
+    }
+
+    return bDisplayed;
+}
+
+bool VoglEditor::displayBuffer(GLuint64 bufferHandle, bool bBringTabToFront)
+{
+    bool bDisplayed = false;
+    if (m_pBufferExplorer->set_active_buffer(bufferHandle))
+    {
+        if (bBringTabToFront)
+        {
+            ui->tabWidget->setCurrentWidget(ui->bufferTab);
         }
     }
 

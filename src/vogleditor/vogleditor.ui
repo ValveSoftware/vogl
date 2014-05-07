@@ -285,6 +285,11 @@
               <string>Renderbuffers</string>
              </attribute>
             </widget>
+            <widget class="QWidget" name="bufferTab">
+             <attribute name="title">
+              <string>Buffers</string>
+             </attribute>
+            </widget>
            </widget>
           </item>
          </layout>
