@@ -51,7 +51,7 @@
     #include <X11/Xatom.h>
 #endif
 
-#if VOGL_REMOTING
+#ifdef VOGL_REMOTING
 #include "vogl_remote.h"
 #endif
 
@@ -928,7 +928,7 @@ static void vogl_global_init()
         g_vogl_pPrev_exception_callback = vogl_set_exception_callback(vogl_exception_callback);
     }
 
-#if VOGL_REMOTING
+#ifdef VOGL_REMOTING
     console::message("vogl_traceport = %d\n", g_command_line_params().get_value_as_int("vogl_traceport"));
     vogl_init_listener(g_command_line_params().get_value_as_int("vogl_traceport"));
 #endif

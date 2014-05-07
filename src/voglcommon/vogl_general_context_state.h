@@ -96,7 +96,7 @@ public:
     bool deserialize(const json_node &node, const vogl_blob_manager &blob_manager);
 
     uint get_num_pattern_rows() const;
-    uint32 get_pattern_row(uint row_index) const;
+    uint32_t get_pattern_row(uint row_index) const;
 
 private:
     bool m_valid;

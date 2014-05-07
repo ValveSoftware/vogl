@@ -482,7 +482,7 @@ namespace vogl
         if (w.is_empty())
             return false;
 
-#if VOGL_CMD_LINE_ALLOW_SLASH_PARAMS
+#ifdef VOGL_CMD_LINE_ALLOW_SLASH_PARAMS
         return (w.get_len() >= 2) && ((w[0] == '-') || (w[0] == '/'));
 #else
         return (w.get_len() >= 2) && (w[0] == '-');

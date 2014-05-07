@@ -47,7 +47,7 @@
 #include "vogl_json.h"
 #include "vogl_blob_manager.h"
 
-#if VOGL_REMOTING
+#ifdef VOGL_REMOTING
 #include "vogl_remote.h"
 #endif // VOGL_REMOTING
 
@@ -3387,7 +3387,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-#if VOGL_REMOTING
+#ifdef VOGL_REMOTING
     vogl_init_listener();
 #endif // VOGL_REMOTING
 

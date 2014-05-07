@@ -119,6 +119,10 @@
 #include <stdio.h>
 #endif
 
+#ifndef STBI_SIMD
+#define STBI_SIMD 0
+#endif
+
 namespace vogl
 {
 

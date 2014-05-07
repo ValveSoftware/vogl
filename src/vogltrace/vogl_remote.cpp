@@ -23,7 +23,7 @@
  *
  **************************************************************************/
 
-#if VOGL_REMOTING
+#ifdef VOGL_REMOTING
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>

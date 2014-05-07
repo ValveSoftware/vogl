@@ -33,6 +33,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__linux__)
+
+#include <endian.h>
+
+#define ELFTC_BYTE_ORDER                        __BYTE_ORDER
+#define ELFTC_BYTE_ORDER_LITTLE_ENDIAN          __LITTLE_ENDIAN
+#define ELFTC_BYTE_ORDER_BIG_ENDIAN             __BIG_ENDIAN
+
+#endif
+
 /**
  * @file cpp_demangle.c
  * @brief Decode IA-64 C++ ABI style implementation.

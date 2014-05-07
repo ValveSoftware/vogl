@@ -27,6 +27,6 @@
 //  Initialization function for GLI listener
 //
 
-#if VOGL_REMOTING
+#ifdef VOGL_REMOTING
 void vogl_init_listener(int vogl_traceport);
 #endif

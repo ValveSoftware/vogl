@@ -103,7 +103,7 @@ void vogl_ctypes::change_pointer_sizes(uint trace_ptr_size)
     VOGL_ASSUME(sizeof(long) == sizeof(void *));
     VOGL_ASSUME(sizeof(long long) == sizeof(uint64_t));
 
-    VOGL_ASSERT((trace_ptr_size == sizeof(uint32)) || (trace_ptr_size == sizeof(uint64_t)));
+    VOGL_ASSERT((trace_ptr_size == sizeof(uint32_t)) || (trace_ptr_size == sizeof(uint64_t)));
 
     m_pointer_size = trace_ptr_size;
 
