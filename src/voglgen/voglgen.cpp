@@ -53,6 +53,14 @@ using namespace vogl;
 
 FILE *fopen_and_log_generic(const dynamic_string& outDirectory, const char* filename, const char* mode);
 
+// If you want to debug a function as it flows through codegen, set this and the debugger will break at various
+// points of interest for you.
+const char* gDebugFunctionName = NULL;
+
+
+#define VOGL_DEBUG_BREAK_ON_FUNCTION(_funcNameVar, _funcToBreakOn) VOGL_CONDITIONAL_BREAKPOINT( (_funcToBreakOn != NULL && (_funcNameVar.begins_with(_funcToBreakOn))) )
+
+
 //-------------------------------------------------------------------------------------------------------------------------------
 // Command line options
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -380,6 +388,8 @@ public:
 
             line_str.trim_end();
 
+            VOGL_DEBUG_BREAK_ON_FUNCTION(line_str, gDebugFunctionName);
+
             int comment_ofs = line_str.find_left('#');
             if (comment_ofs >= 0)
             {
@@ -533,19 +543,27 @@ public:
                         pParam->m_semantic = func_attribute_tokens[4];
                         if (pParam->m_semantic == "array")
                         {
-                            if ((func_attribute_tokens[5][0] != '[') || (func_attribute_tokens[5].back() != ']'))
+                            if (func_attribute_tokens.size() > 5) 
                             {
-                                console::error("Unexpected array size on line: %s\n", line_str.get_ptr());
-                                return false;
-                            }
+                                if ((func_attribute_tokens[5][0] != '[') || (func_attribute_tokens[5].back() != ']'))
+                                {
+                                    console::error("Unexpected array size on line: %s\n", line_str.get_ptr());
+                                    return false;
+                                }
 
-                            pParam->m_array_size = func_attribute_tokens[5];
-                            for (;;)
+
+                                pParam->m_array_size = func_attribute_tokens[5];
+                                for (;;)
+                                {
+                                    int slash_ofs = pParam->m_array_size.find_left('/');
+                                    if (slash_ofs < 0)
+                                        break;
+                                    pParam->m_array_size.set_char(slash_ofs, ',');
+                                }
+                            }
+                            else
                             {
-                                int slash_ofs = pParam->m_array_size.find_left('/');
-                                if (slash_ofs < 0)
-                                    break;
-                                pParam->m_array_size.set_char(slash_ofs, ',');
+                                pParam->m_array_size.set("");
                             }
                         }
                         else if (func_attribute_tokens.size() != 5)
@@ -603,19 +621,25 @@ public:
                     }
                     else if (func_attribute_tokens[0] == "dlflags")
                     {
-                        if (func_attribute_tokens.size() != 2)
+                        if (func_attribute_tokens.size() < 2)
                         {
-                            console::error("Invalid dlflags on line: %s\n", line_str.get_ptr());
+                            console::error("Empty dlflags on line: %s. What?\n", line_str.get_ptr());
                             return false;
                         }
 
-                        if ((func_attribute_tokens[1] != "notlistable") && (func_attribute_tokens[1] != "handcode") && (func_attribute_tokens[1] != "prepad"))
+                        for (vogl::uint i = 1; i < func_attribute_tokens.size(); ++i) 
                         {
-                            console::error("Unrecognized dlflags on line: %s\n", line_str.get_ptr());
-                            return false;
-                        }
+                            if ((func_attribute_tokens[i] != "notlistable") 
+                                && (func_attribute_tokens[i] != "handcode") 
+                                && (func_attribute_tokens[i] != "prepad")
+                                && (func_attribute_tokens[i] != "nop"))
+                            {
+                                console::error("Unrecognized dlflags (%s) on line: %s\n", func_attribute_tokens[i].get_ptr(), line_str.get_ptr());
+                                return false;
+                            }
 
-                        pCur_func_def->m_notlistable = (func_attribute_tokens[1] == "notlistable");
+                            pCur_func_def->m_notlistable = pCur_func_def->m_notlistable || (func_attribute_tokens[i] == "notlistable");
+                        }
                     }
                 }
             }
@@ -1897,6 +1921,15 @@ public:
 
     bool dump_to_description_macro_file(const dynamic_string& outDirName, const char *pFilename, const char *pPrefix, const gl_types &gl_typemap, const gl_types &alt_gl_typemap) const
     {
+        const gl_types* ptr_alt_gltypemap = &alt_gl_typemap;
+        return dump_to_description_macro_file(outDirName, pFilename, pPrefix, gl_typemap, 1, &ptr_alt_gltypemap);
+    }
+
+    bool dump_to_description_macro_file(const dynamic_string& outDirName, const char *pFilename, const char *pPrefix, const gl_types &gl_typemap, int num_alts, const gl_types** alt_gl_typemaps) const
+    {
+        VOGL_ASSERT(num_alts == 0 || alt_gl_typemaps != NULL);
+        for (int i = 0; i < num_alts; ++i) { VOGL_ASSERT(alt_gl_typemaps[i] != NULL); }
+
         FILE *pFile = fopen_and_log_generic(outDirName, pFilename, "w");
         if (!pFile)
             return false;
@@ -1910,7 +1943,14 @@ public:
                 const dynamic_string *pGLType = NULL;
                 pGLType = gl_typemap.find(enum_it->first.get_ptr());
                 if (!pGLType)
-                    pGLType = alt_gl_typemap.find(enum_it->first.get_ptr());
+                {
+                    for (int t = 0; t < num_alts; ++t)
+                    {
+                        pGLType = alt_gl_typemaps[t]->find(enum_it->first.get_ptr());
+                        if (pGLType)
+                            break;
+                    }
+                }
 
                 if (enum_it->second[i].m_define_flag)
                 {
@@ -1953,10 +1993,14 @@ class vogl_gen
     gl_enums m_gl_enumerations;
     gl_enums m_glx_enumerations;
     gl_enums m_glx_ext_enumerations;
+    gl_enums m_wgl_enumerations;
+    gl_enums m_wgl_ext_enumerations;
 
     gl_function_specs m_gl_funcs;
     gl_function_specs m_glx_funcs;
     gl_function_specs m_glxext_funcs;
+    gl_function_specs m_wgl_funcs;
+    gl_function_specs m_wglext_funcs;
 
     gl_function_specs m_all_gl_funcs;
 
@@ -1966,8 +2010,9 @@ class vogl_gen
 
     gl_types m_gl_typemap;
     gl_types m_glx_typemap;
+    gl_types m_wgl_typemap;
 
-    dynamic_string_array m_gl_so_function_exports;
+    dynamic_string_array m_gl_so_dll_function_exports;
 
     gl_string_set m_all_gl_ctypes;
     gl_string_set m_all_gl_categories;
@@ -2027,6 +2072,22 @@ public:
     {
     }
 
+    // I would much rather this not be a class method at all, but this code base makes it a lot easier to be one. :|
+    void cleanup_redundant_functions(gl_function_specs* spec_to_clean, const gl_function_specs& override_funcs, const char* func_class) const
+    {
+        VOGL_ASSERT(spec_to_clean != NULL);
+
+        for (uint i = 0; i < override_funcs.size(); i++)
+        {
+            int func_index = (*spec_to_clean).find_index(override_funcs[i].m_name.get_ptr());
+            if (func_index < 0)
+                continue;
+
+            console::warning("Extension func %s overriding %s definition\n", override_funcs[i].m_name.get_ptr(), func_class);
+            (*spec_to_clean).get_funcs_vec().erase_unordered(func_index);
+        }
+    }
+
     bool init()
     {
         // TODO: I'm going to move the "glspec" dir from under bin to raddebugger/glspec (or whatever)
@@ -2072,6 +2133,8 @@ public:
         m_gl_enumerations.parse_file("enum.spec");
         m_glx_enumerations.parse_file("glxenum.spec");
         m_glx_ext_enumerations.parse_file("glxenumext.spec");
+        m_wgl_enumerations.parse_file("wglenum.spec");
+        m_wgl_ext_enumerations.parse_file("wglenumext.spec");
 
         // -- Load the various GL/GLX/GLXEXT func spec files
         bool success = m_gl_funcs.parse_spec_file("gl.spec", cGL);
@@ -2086,31 +2149,33 @@ public:
             console::error("Failed parsing glx.spec!\n");
             return false;
         }
-
         success = m_glxext_funcs.parse_spec_file("glxext.spec", cGLX);
         if (!success)
         {
             console::error("Failed parsing glxext.spec!\n");
             return false;
         }
-
-        // -- Clean up the GLX func definitions
-        for (uint i = 0; i < m_glxext_funcs.size(); i++)
+        success = m_wgl_funcs.parse_spec_file("wgl.spec", cWGL);
+        if (!success)
         {
-            int glx_index = m_glx_funcs.find_index(m_glxext_funcs[i].m_name.get_ptr());
-            if (glx_index >= 0)
-            {
-                console::warning("glxext func %s overriding glx definition\n", m_glxext_funcs[i].m_name.get_ptr());
-                m_glx_funcs.get_funcs_vec().erase_unordered(glx_index);
-            }
-
-            int gl_index = m_gl_funcs.find_index(m_glxext_funcs[i].m_name.get_ptr());
-            if (gl_index >= 0)
-            {
-                console::warning("glxext func %s overriding definition\n", m_glxext_funcs[i].m_name.get_ptr());
-                m_gl_funcs.get_funcs_vec().erase_unordered(gl_index);
-            }
+            console::error("Failed parsing wgl.spec!\n");
+            return false;
         }
+        success = m_wglext_funcs.parse_spec_file("wglext.spec", cWGL);
+        if (!success)
+        {
+            console::error("Failed parsing wglext.spec!\n");
+            return false;
+        }
+
+
+        // -- Clean up functions that appears both as window extension funcs and either 
+        // plain GLX or WGL functions.
+        cleanup_redundant_functions(&m_glx_funcs, m_glxext_funcs, "glx");
+        cleanup_redundant_functions(&m_gl_funcs, m_glxext_funcs, "gl");
+        cleanup_redundant_functions(&m_wgl_funcs, m_wglext_funcs, "wgl");
+        cleanup_redundant_functions(&m_gl_funcs, m_wglext_funcs, "gl");
+
 
         // Cleanup the DepthRange function. It uses parameters called 'near' and 'far', and this messes up windows 
         // because they are defined to be empty. We fix it for all platforms.
@@ -2140,6 +2205,17 @@ public:
             }
         }
 
+        for (uint j = 0; j < m_wglext_funcs.size(); j++)
+        {
+            if (m_wglext_funcs[j].m_name.ends_with("SGIX"))
+            {
+                gl_ext_func_deleted.push_back(m_wglext_funcs[j].m_name);
+
+                m_wglext_funcs.get_funcs_vec().erase_unordered(j);
+                j--;
+            }
+        }
+
         // -- Parse the various spec typemap files
         success = m_gl_typemap.parse_file("gl.tm");
         if (!success)
@@ -2155,8 +2231,17 @@ public:
             return false;
         }
 
-        // -- Determine the ctypes used by all the GL/GLX functions
-        if (!determine_ctypes("gl", m_gl_funcs, m_gl_typemap, m_glx_typemap))
+        success = m_wgl_typemap.parse_file("wgl.tm");
+        if (!success)
+        {
+            console::error("Failed parsing wgl.tm!\n");
+            return false;
+        }
+
+        const gl_types* glx_wgl_typemaps[] = { &m_glx_typemap, &m_wgl_typemap };
+
+        // -- Determine the ctypes used by all the GL/GLX/WGL functions
+        if (!determine_ctypes("gl", m_gl_funcs, m_gl_typemap, VOGL_ARRAY_SIZE(glx_wgl_typemaps), glx_wgl_typemaps))
         {
             console::error("Failed determined gl c types!\n");
             return false;
@@ -2174,10 +2259,26 @@ public:
             return false;
         }
 
-        // -- Create master list of all GL/GLX/GLXEXT functions
+        if (!determine_ctypes("wgl", m_wgl_funcs, m_wgl_typemap, m_gl_typemap))
+        {
+            console::error("Failed determined wgl c types!\n");
+            return false;
+        }
+
+        if (!determine_ctypes("wgl", m_wglext_funcs, m_wgl_typemap, m_gl_typemap))
+        {
+            console::error("Failed determined wgl c types!\n");
+            return false;
+        }
+
+
+        // -- Create master list of all GL/GLX/GLXEXT/WGL/WGLEXT functions
         m_all_gl_funcs = m_gl_funcs;
         m_all_gl_funcs += m_glx_funcs;
         m_all_gl_funcs += m_glxext_funcs;
+        m_all_gl_funcs += m_wgl_funcs;
+        m_all_gl_funcs += m_wglext_funcs;
+
 
         // -- Determine the unique list of function API categories
         for (uint i = 0; i < m_all_gl_funcs.size(); i++)
@@ -2189,15 +2290,24 @@ public:
         m_unique_categories.sort();
 
         // -- Load the GL/GLX function export table, generated by dumping the headers of various drivers
-        if (!load_gl_so_function_export_list("gl_glx_so_export_list.txt", m_gl_so_function_exports))
+        if (!load_gl_so_function_export_list("gl_glx_so_export_list.txt", m_gl_so_dll_function_exports))
         {
-            console::error("Failed parsing glx.tm!\n");
+            console::error("Failed parsing gl_glx_so_export_list.txt!\n");
             return false;
         }
 
-        process_func_protos("gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_gl_so_function_exports, m_all_gl_ctypes, m_all_gl_categories, m_all_array_sizes);
-        process_func_protos("glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, m_all_gl_ctypes, m_all_gl_categories, m_all_array_sizes);
-        process_func_protos("glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, m_all_gl_ctypes, m_all_gl_categories, m_all_array_sizes);
+        // Concatenate the set of functions we will export from the DLL to the same list. 
+        if (!load_gl_so_function_export_list("gl_wgl_dll_export_list.txt", m_gl_so_dll_function_exports))
+        {
+            console::error("Failed parsing gl_wgl_dll_export_list.txt!\n");
+            return false;
+        }
+
+        process_func_protos(m_gl_funcs, m_all_gl_ctypes, m_all_gl_categories, m_all_array_sizes);
+        process_func_protos(m_glx_funcs, m_all_gl_ctypes, m_all_gl_categories, m_all_array_sizes);
+        process_func_protos(m_glxext_funcs, m_all_gl_ctypes, m_all_gl_categories, m_all_array_sizes);
+        process_func_protos(m_wgl_funcs, m_all_gl_ctypes, m_all_gl_categories, m_all_array_sizes);
+        process_func_protos(m_wglext_funcs, m_all_gl_ctypes, m_all_gl_categories, m_all_array_sizes);
 
         // -- Create the m_unique_ctype_enums table
         for (uint i = 0; i < m_all_gl_funcs.size(); i++)
@@ -2268,48 +2378,60 @@ public:
             }
         }
 
-        // these are NOT actually pointers, they are just big enough to hold pointers (like intptr_t)
-        //m_pointee_types.insert(std::make_pair("VOGL_GLINTPTR", "VOGL_GLINT"));
-        //m_pointee_types.insert(std::make_pair("VOGL_GLINTPTRARB", "VOGL_GLINT"));
-        //m_pointee_types.insert(std::make_pair("VOGL_GLSIZEIPTR", "VOGL_GLSIZEI"));
+        m_pointee_types.insert(std::make_pair("VOGL_LPCSTR", "VOGL_CHAR"));
 
-        // -- Read the GL/GLX whitelisted and nullable funcs file
-        //file_utils::read_text_file("gl_glx_whitelisted_funcs.txt", m_whitelisted_funcs, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintWarningMessages);
+
+        // -- Read the GL/GLX/WGL whitelisted and nullable funcs file
         if (!read_regex_function_array("gl_glx_whitelisted_funcs.txt", m_whitelisted_funcs))
             return false;
 
+        if (!read_regex_function_array("gl_wgl_whitelisted_funcs.txt", m_whitelisted_funcs))
+            return false;
+
         // -- Read the display list whitelist
-        //file_utils::read_text_file("gl_glx_displaylist_whitelist.txt", m_whitelisted_displaylist_funcs, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintWarningMessages);
         if (!read_regex_function_array("gl_glx_displaylist_whitelist.txt", m_whitelisted_displaylist_funcs))
             return false;
 
-        //file_utils::read_text_file("gl_glx_nullable_funcs.txt", m_nullable_funcs, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintWarningMessages);
+        if (!read_regex_function_array("gl_wgl_displaylist_whitelist.txt", m_whitelisted_displaylist_funcs))
+            return false;
+
         if (!read_regex_function_array("gl_glx_nullable_funcs.txt", m_nullable_funcs))
             return false;
 
+        if (!read_regex_function_array("gl_wgl_nullable_funcs.txt", m_nullable_funcs))
+            return false;
+
         if (!read_regex_function_array("gl_glx_simple_replay_funcs.txt", m_simple_replay_funcs))
+            return false;
+
+        if (!read_regex_function_array("gl_wgl_simple_replay_funcs.txt", m_simple_replay_funcs))
             return false;
 
         update_whitelisted_funcs(m_gl_funcs, m_unique_ctype_enums, m_pointee_types, m_whitelisted_funcs);
 
         m_whitelisted_funcs.sort();
 
-        process_func_defs("gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
-        process_func_defs("glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
-        process_func_defs("glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
+        process_func_defs("gl", m_gl_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
+        process_func_defs("glX", m_glx_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
+        process_func_defs("glX", m_glxext_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
+        process_func_defs("wgl", m_wgl_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
+        process_func_defs("wgl", m_wglext_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
+
 
         uint cur_func_id = 0;
-        create_array_size_macros("gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_gl_so_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
-        create_array_size_macros("glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
-        create_array_size_macros("glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
+        create_array_size_macros("gl", m_gl_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
+        create_array_size_macros("glX", m_glx_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
+        create_array_size_macros("glX", m_glxext_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
+        create_array_size_macros("wgl", m_wgl_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
+        create_array_size_macros("wgl", m_wglext_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
+
 
         //$ TODO: Why are some of these console::messages, printf, and console::printf?
         if (g_command_line_params().get_value_as_bool("verbose"))
         {
-            // console::message("deleting glxext func %s\n", m_glxext_funcs[j].m_name.get_ptr());
             if (gl_ext_func_deleted.size())
             {
-                console::message("\nDeleted glxext funcs: ");
+                console::message("\nDeleted glxext/wglext funcs: ");
                 for (uint i = 0; i < gl_ext_func_deleted.size(); i++)
                     console::message("%s ", gl_ext_func_deleted[i].get_ptr());
                 console::message("\n");
@@ -2334,8 +2456,12 @@ public:
             }
         }
 
+
+        gl_types os_specific_typemap = m_glx_typemap;
+        os_specific_typemap.get_type_map().insert(m_wgl_typemap.get_type_map().begin(), m_wgl_typemap.get_type_map().end());
+        
         // -- Cross reference the GL spec vs. XML files, for validation
-        if (!validate_functions(m_gl_xml_functions, m_all_gl_funcs, m_apitrace_gl_func_specs, m_gl_typemap, m_glx_typemap))
+        if (!validate_functions(m_gl_xml_functions, m_all_gl_funcs, m_apitrace_gl_func_specs, m_gl_typemap, os_specific_typemap))
         {
             console::error("Failed validating functions!\n");
             return false;
@@ -2511,16 +2637,22 @@ public:
         m_gl_enumerations.dump_to_text_file("dbg_enums.txt");
         m_glx_enumerations.dump_to_text_file("dbg_glx_enums.txt");
         m_glx_ext_enumerations.dump_to_text_file("dbg_glx_ext_enums.txt");
+        m_wgl_enumerations.dump_to_text_file("dbg_wgl_enums.txt");
+        m_wgl_ext_enumerations.dump_to_text_file("dbg_wgl_ext_enums.txt");
+
 
         // -- Dump the definitions for debugging
         m_gl_xml_functions.dump_to_file("dbg_gl_xml_funcs.txt");
         m_gl_funcs.dump_to_file("dbg_gl_funcs.txt");
         m_glx_funcs.dump_to_file("dbg_glx_funcs.txt");
         m_glxext_funcs.dump_to_file("dbg_glxext_funcs.txt");
+        m_wgl_funcs.dump_to_file("dbg_wgl_funcs.txt");
+        m_wglext_funcs.dump_to_file("dbg_wglext_funcs.txt");
 
         // -- Dump the spec typemap files, for debugging
         m_gl_typemap.dump_to_file("dbg_gl_typemap.txt");
         m_glx_typemap.dump_to_file("dbg_glx_typemap.txt");
+        m_wgl_typemap.dump_to_file("dbg_wgl_typemap.txt");
 
         m_all_gl_funcs.dump_to_file("dbg_gl_all_funcs.txt");
 
@@ -2529,7 +2661,7 @@ public:
         // Write a simple macro file line this:
         //GL_FUNC(OpenGL,true,GLenum,glGetError,(void),())
         //GL_FUNC_VOID(OpenGL,true,glActiveTexture,(GLenum a),(a))
-        pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_simple_func_macros.txt", "w");
+        pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_wgl_simple_func_macros.txt", "w");
         for (uint i = 0; i < m_all_gl_funcs.size(); i++)
         {
             const gl_function_def &def = m_all_gl_funcs[i];
@@ -2540,12 +2672,12 @@ public:
         }
         fclose(pFile);
 
-        pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_types.txt", "w");
+        pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_wgl_types.txt", "w");
         for (gl_string_set::const_iterator it = m_all_gl_ctypes.begin(); it != m_all_gl_ctypes.end(); ++it)
             vogl_fprintf(pFile, "%s\n", it->get_ptr());
         vogl_fclose(pFile);
 
-        pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_array_sizes.txt", "w");
+        pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_wgl_array_sizes.txt", "w");
         for (gl_string_set::const_iterator it = m_all_array_sizes.begin(); it != m_all_array_sizes.end(); ++it)
             vogl_fprintf(pFile, "%s\n", it->get_ptr());
         vogl_fclose(pFile);
@@ -2571,7 +2703,7 @@ public:
         printf("---\n");
 
         // -- Write the final whitelist to a file for debugging
-        file_utils::write_text_file("dbg_final_gl_glx_whitelisted_funcs.txt", m_whitelisted_funcs, true);
+        file_utils::write_text_file("dbg_final_gl_glx_wgl_whitelisted_funcs.txt", m_whitelisted_funcs, true);
 
         VOGL_ASSERT(m_whitelisted_funcs.is_sorted());
 
@@ -2623,23 +2755,36 @@ public:
             return false;
         if (!m_glx_ext_enumerations.dump_to_definition_macro_file(out_inc_dir, "glx_ext_enums.inc", "GLX"))
             return false;
+        if (!m_wgl_enumerations.dump_to_definition_macro_file(out_inc_dir, "wgl_enums.inc", "WGL"))
+            return false;
+        if (!m_wgl_ext_enumerations.dump_to_definition_macro_file(out_inc_dir, "wgl_ext_enums.inc", "WGL"))
+            return false;
 
-        if (!m_gl_enumerations.dump_to_description_macro_file(out_inc_dir, "gl_enum_desc.inc", "GL", m_gl_typemap, m_glx_typemap))
+        const gl_types* glx_wgl_typemaps[] = { &m_glx_typemap, &m_wgl_typemap };
+        if (!m_gl_enumerations.dump_to_description_macro_file(out_inc_dir, "gl_enum_desc.inc", "GL", m_gl_typemap, VOGL_ARRAY_SIZE(glx_wgl_typemaps), glx_wgl_typemaps))
             return false;
         if (!m_glx_enumerations.dump_to_description_macro_file(out_inc_dir, "glx_enum_desc.inc", "GLX", m_glx_typemap, m_gl_typemap))
             return false;
         if (!m_glx_ext_enumerations.dump_to_description_macro_file(out_inc_dir, "glx_ext_desc.inc", "GLX", m_glx_typemap, m_gl_typemap))
             return false;
+        if (!m_wgl_enumerations.dump_to_description_macro_file(out_inc_dir, "wgl_enum_desc.inc", "WGL", m_wgl_typemap, m_gl_typemap))
+            return false;
+        if (!m_wgl_ext_enumerations.dump_to_description_macro_file(out_inc_dir, "wgl_ext_desc.inc", "WGL", m_wgl_typemap, m_gl_typemap))
+            return false;
+
 
         // -- Generate the gl_glx_protos.inc include file
         
-        FILE *pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_protos.inc", "w");
+        FILE *pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_protos.inc", "w");
         if (!pFile)
             return false;
 
-        dump_func_proto_macros(pFile, "gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_gl_so_function_exports);
-        dump_func_proto_macros(pFile, "glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports);
-        dump_func_proto_macros(pFile, "glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports);
+        dump_func_proto_macros(pFile, "gl", m_gl_funcs, m_gl_so_dll_function_exports);
+        dump_func_proto_macros(pFile, "glX", m_glx_funcs, m_gl_so_dll_function_exports);
+        dump_func_proto_macros(pFile, "glX", m_glxext_funcs, m_gl_so_dll_function_exports);
+        dump_func_proto_macros(pFile, "wgl", m_wgl_funcs, m_gl_so_dll_function_exports);
+        dump_func_proto_macros(pFile, "wgl", m_wglext_funcs, m_gl_so_dll_function_exports);
+
         vogl_fprintf(pFile, "#undef DEF_PROTO_EXPORTED\n");
         vogl_fprintf(pFile, "#undef DEF_PROTO_EXPORTED_VOID\n");
         vogl_fprintf(pFile, "#undef DEF_PROTO_INTERNAL\n");
@@ -2648,8 +2793,8 @@ public:
         vogl_fprintf(pFile, "#undef DEF_PROTO_VOID\n");
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_ctypes.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_ctypes.inc", "w");
+        // -- Generate the gl_glx_wgl_ctypes.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_ctypes.inc", "w");
         if (!pFile)
             return false;
 
@@ -2658,8 +2803,8 @@ public:
             vogl_fprintf(pFile, "DEF_TYPE(%s, %s)\n", it->first.get_ptr(), it->second.get_ptr());
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_ctypes_ptr_to_pointee.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_ctypes_ptr_to_pointee.inc", "w");
+        // -- Generate the gl_glx_wgl_ctypes_ptr_to_pointee.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_ctypes_ptr_to_pointee.inc", "w");
         if (!pFile)
             return false;
 
@@ -2667,26 +2812,28 @@ public:
             vogl_fprintf(pFile, "DEF_PTR_TO_POINTEE_TYPE(%s, %s)\n", it->first.get_ptr(), it->second.get_ptr());
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_simple_replay_funcs.inc simple replay funcs file, and update the whitelist
+        // -- Generate the gl_glx_wgl_simple_replay_funcs.inc simple replay funcs file, and update the whitelist
         generate_simple_replay_funcs(out_inc_dir, m_all_gl_funcs, m_unique_ctype_enums, m_pointee_types, m_whitelisted_funcs);
 
         // -- Generate replayer helper macros
         generate_replay_func_load_macros(out_inc_dir, m_all_gl_funcs, m_unique_ctype_enums, m_pointee_types, m_whitelisted_funcs);
 
-        // -- Generate the gl_glx_func_defs.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_func_defs.inc", "w");
+        // -- Generate the gl_glx_wgl_func_defs.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_func_defs.inc", "w");
         if (!pFile)
             return false;
 
         dump_inc_file_header(pFile);
-        dump_func_def_macros(pFile, "gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs);
-        dump_func_def_macros(pFile, "glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs);
-        dump_func_def_macros(pFile, "glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs);
+        dump_func_def_macros(pFile, "gl", m_gl_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs);
+        dump_func_def_macros(pFile, "glX", m_glx_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs);
+        dump_func_def_macros(pFile, "glX", m_glxext_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs);
+        dump_func_def_macros(pFile, "wgl", m_wgl_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs);
+        dump_func_def_macros(pFile, "wgl", m_wglext_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs);
         dump_function_def_undef_macros(pFile);
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_func_return_param_array_size_macros.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_func_return_param_array_size_macros.inc", "w");
+        // -- Generate the gl_glx_wgl_func_return_param_array_size_macros.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_func_return_param_array_size_macros.inc", "w");
         if (!pFile)
             return false;
 
@@ -2717,19 +2864,21 @@ public:
         }
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_func_descs.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_func_descs.inc", "w");
+        // -- Generate the gl_glx_wgl_func_descs.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_func_descs.inc", "w");
         if (!pFile)
             return false;
 
         dump_inc_file_header(pFile);
-        dump_func_desc_macros(pFile, "gl", m_gl_funcs, m_gl_typemap, m_glx_typemap, m_apitrace_gl_func_specs, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
-        dump_func_desc_macros(pFile, "glX", m_glx_funcs, m_glx_typemap, m_gl_typemap, m_apitrace_gl_func_specs, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
-        dump_func_desc_macros(pFile, "glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap, m_apitrace_gl_func_specs, m_gl_so_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
+        dump_func_desc_macros(pFile, "gl", m_gl_funcs, m_apitrace_gl_func_specs, m_gl_so_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
+        dump_func_desc_macros(pFile, "glX", m_glx_funcs, m_apitrace_gl_func_specs, m_gl_so_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
+        dump_func_desc_macros(pFile, "glX", m_glxext_funcs, m_apitrace_gl_func_specs, m_gl_so_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
+        dump_func_desc_macros(pFile, "wgl", m_wgl_funcs, m_apitrace_gl_func_specs, m_gl_so_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
+        dump_func_desc_macros(pFile, "wgl", m_wglext_funcs, m_apitrace_gl_func_specs, m_gl_so_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
         dump_function_def_undef_macros(pFile);
         vogl_fclose(pFile);
 
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_categories.inc", "w");
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_categories.inc", "w");
         if (!pFile)
             return false;
 
@@ -2737,8 +2886,8 @@ public:
             vogl_fprintf(pFile, "DEF_CATEGORY(%s)\n", it->get_ptr());
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_array_size_macros.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_array_size_macros.inc", "w");
+        // -- Generate the gl_glx_wgl_array_size_macros.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_array_size_macros.inc", "w");
         if (!pFile)
             return false;
 
@@ -2752,8 +2901,8 @@ public:
         }
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_array_size_macros_validator.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_array_size_macros_validator.inc", "w");
+        // -- Generate the gl_glx_wgl_array_size_macros_validator.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_array_size_macros_validator.inc", "w");
         if (!pFile)
             return false;
 
@@ -2776,8 +2925,8 @@ public:
         }
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_custom_return_param_array_size_macro_validator.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_custom_return_param_array_size_macro_validator.inc", "w");
+        // -- Generate the gl_glx_wgl_custom_return_param_array_size_macro_validator.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_custom_return_param_array_size_macro_validator.inc", "w");
         if (!pFile)
             return false;
 
@@ -2796,8 +2945,8 @@ public:
         }
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_custom_func_handler_validator.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_custom_func_handler_validator.inc", "w");
+        // -- Generate the gl_glx_wgl_custom_func_handler_validator.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_custom_func_handler_validator.inc", "w");
         if (!pFile)
             return false;
 
@@ -2811,8 +2960,8 @@ public:
         }
         vogl_fclose(pFile);
 
-        // -- Generate the gl_glx_array_size_macro_func_param_indices.inc include file
-        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_array_size_macro_func_param_indices.inc", "w");
+        // -- Generate the gl_glx_wgl_array_size_macro_func_param_indices.inc include file
+        pFile = fopen_and_log_generic(out_inc_dir, "gl_glx_wgl_array_size_macro_func_param_indices.inc", "w");
         if (!pFile)
             return false;
 
@@ -2904,9 +3053,8 @@ local:
 			*;
 		};
 #endif
-        // Read these first, before we change the working directory.
         dynamic_string_array nongenerated_exports;
-        file_utils::read_text_file("gl_glx_nongenerated_so_export_list.txt", nongenerated_exports, file_utils::cRTFPrintWarningMessages);
+        file_utils::read_text_file("gl_glx_wgl_nongenerated_so_export_list.txt", nongenerated_exports, file_utils::cRTFPrintWarningMessages);
 
         dynamic_string out_linker_dir;
         g_command_line_params().get_value_as_string(out_linker_dir, "outlinker", 0, ".");
@@ -2921,8 +3069,8 @@ local:
         fputs("{\n", pFile);
         fputs("  global:\n", pFile);
 
-        for (uint i = 0; i < m_gl_so_function_exports.size(); i++)
-            fprintf(pFile, "    %s;\n", m_gl_so_function_exports[i].get_ptr());
+        for (uint i = 0; i < m_gl_so_dll_function_exports.size(); i++)
+            fprintf(pFile, "    %s;\n", m_gl_so_dll_function_exports[i].get_ptr());
 
         for (uint i = 0; i < nongenerated_exports.size(); i++)
             fprintf(pFile, "    %s;\n", nongenerated_exports[i].get_ptr());
@@ -2970,9 +3118,11 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     // ensure_gl_exports_are_defined
     //-----------------------------------------------------------------------------------------------------------------------
-    bool ensure_gl_exports_are_defined(gl_function_specs &gl_funcs, const gl_function_specs &glx_funcs, const gl_function_specs &glxext_funcs)
+    bool ensure_gl_exports_are_defined(gl_function_specs &gl_funcs, 
+                                       const gl_function_specs &glx_funcs, const gl_function_specs &glxext_funcs, 
+                                       const gl_function_specs &wgl_funcs, const gl_function_specs &wglext_funcs)
     {
-        cfile_stream list_file("gl_glx_so_export_list.txt", cDataStreamReadable);
+        cfile_stream list_file("gl_glx_wgl_so_export_list.txt", cDataStreamReadable);
         if (!list_file.is_opened())
             return false;
 
@@ -2998,6 +3148,11 @@ local:
                 func.set(line_str).right(2);
                 pSpecs = &gl_funcs;
             }
+            else if (line_str.find_left("wgl") == 0)
+            {
+                func.set(line_str).right(3);
+                pSpecs = &wgl_funcs;
+            }
 
             if (!pSpecs)
             {
@@ -3009,6 +3164,12 @@ local:
             if ((!pFunc) && (pSpecs == &glx_funcs))
             {
                 pSpecs = &glxext_funcs;
+                pFunc = pSpecs->find(func.get_ptr());
+            }
+
+            if ((!pFunc) && (pSpecs == &wgl_funcs))
+            {
+                pSpecs = &wglext_funcs;
                 pFunc = pSpecs->find(func.get_ptr());
             }
 
@@ -3054,7 +3215,8 @@ local:
             gl_so_function_exports.push_back(line_str);
         }
 
-        gl_so_function_exports.sort();
+        // unique will sort and remove duplicates.
+        gl_so_function_exports.unique();
 
         return true;
     }
@@ -3088,11 +3250,25 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     bool determine_ctypes(const char *pFunc_prefix, gl_function_specs &gl_funcs, const gl_types &typemap, const gl_types &alt_typemap)
     {
+        const gl_types* alt_typemap_ptr = &alt_typemap;
+        return determine_ctypes(pFunc_prefix, gl_funcs, typemap, 1, &alt_typemap_ptr);
+    }
+
+    bool determine_ctypes(const char *pFunc_prefix, gl_function_specs &gl_funcs, const gl_types &typemap, int num_alts, const gl_types **alt_typemaps)
+    {
+        const dynamic_string str_wglDescribeLayerPlane = "wglDescribeLayerPlane";
+        const dynamic_string str_LAYERPLANEDESCRIPTOR = "LAYERPLANEDESCRIPTOR";
+
+        VOGL_ASSERT(num_alts == 0 || alt_typemaps != NULL);
+        for (int i = 0; i < num_alts; ++i) { VOGL_ASSERT(alt_typemaps[i] != NULL); }
+
         for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             gl_function_def &func = gl_funcs[func_index];
 
             dynamic_string full_func_name(cVarArg, "%s%s", pFunc_prefix, func.m_name.get_ptr());
+            
+            VOGL_DEBUG_BREAK_ON_FUNCTION(func.m_name, gDebugFunctionName);
 
             if (func.m_return == "void")
                 func.m_return_ctype = "void";
@@ -3100,7 +3276,14 @@ local:
             {
                 const dynamic_string *pCType = typemap.find(func.m_return);
                 if (!pCType)
-                    pCType = alt_typemap.find(func.m_return);
+                {
+                    for (int i = 0; i < num_alts; ++i)
+                    {
+                        pCType = alt_typemaps[i]->find(func.m_return);
+                        if (pCType)
+                            break;
+                    }
+                }
                 if (!pCType)
                 {
                     console::warning("Unable to map spec type %s\n", func.m_return.get_ptr());
@@ -3117,7 +3300,15 @@ local:
 
                 const dynamic_string *pCType = typemap.find(param.m_type);
                 if (!pCType)
-                    pCType = alt_typemap.find(param.m_type);
+                {
+                    for (int i = 0; i < num_alts; ++i)
+                    {
+                        pCType = alt_typemaps[i]->find(param.m_type);
+                        if (pCType)
+                            break;
+                    }
+                }
+
                 if (!pCType)
                 {
                     console::warning("Unable to map spec type %s\n", param.m_type.get_ptr());
@@ -3131,7 +3322,8 @@ local:
                 {
                     type_suffix = " *";
 
-                    if (param.m_direction == "in")
+                    // wglDescribePlayerPlane.params[4] doesn't agree with this otherwise always correct rule.
+                    if (param.m_direction == "in" && (full_func_name != str_wglDescribeLayerPlane && param.m_type != str_LAYERPLANEDESCRIPTOR))
                     {
                         if (!pCType->ends_with("const"))
                             type_prefix = "const ";
@@ -3196,14 +3388,8 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     // process_func_protos
     //-----------------------------------------------------------------------------------------------------------------------
-    bool process_func_protos(
-        const char *pFunc_prefix, const gl_function_specs &gl_funcs, const gl_types &typemap, const gl_types &alt_typemap, const dynamic_string_array &sorted_gl_so_function_exports,
-        gl_string_set &all_gl_ctypes, gl_string_set &all_gl_categories, gl_string_set &array_sizes)
+    bool process_func_protos(const gl_function_specs &gl_funcs, gl_string_set &all_gl_ctypes, gl_string_set &all_gl_categories, gl_string_set &array_sizes)
     {
-        VOGL_NOTE_UNUSED(pFunc_prefix);
-        VOGL_NOTE_UNUSED(typemap);
-        VOGL_NOTE_UNUSED(alt_typemap);
-        VOGL_NOTE_UNUSED(sorted_gl_so_function_exports);
 
         for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
@@ -3225,11 +3411,8 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     // dump_func_proto_macros
     //-----------------------------------------------------------------------------------------------------------------------
-    bool dump_func_proto_macros(FILE *pFile, const char *pFunc_prefix, const gl_function_specs &gl_funcs, const gl_types &typemap, const gl_types &alt_typemap, const dynamic_string_array &sorted_gl_so_function_exports) const
+    bool dump_func_proto_macros(FILE *pFile, const char *pFunc_prefix, const gl_function_specs &gl_funcs, const dynamic_string_array &sorted_gl_so_function_exports) const
     {
-        VOGL_NOTE_UNUSED(typemap);
-        VOGL_NOTE_UNUSED(alt_typemap);
-
         for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
@@ -3326,12 +3509,9 @@ local:
     // create_array_size_macros
     // TODO: use funcs_with_custom_array_size_macros[] vs. scanning for DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_
     //-----------------------------------------------------------------------------------------------------------------------
-    void create_array_size_macros(const char *pFunc_prefix, const gl_function_specs &gl_funcs, const gl_types &typemap, const gl_types &alt_typemap, const dynamic_string_array &sorted_gl_so_function_exports,
+    void create_array_size_macros(const char *pFunc_prefix, const gl_function_specs &gl_funcs, const dynamic_string_array &sorted_gl_so_function_exports,
                                   gl_string_set &_custom_array_size_macros, vogl::vector<uint> &_custom_array_size_macro_indices, dynamic_string_array &_custom_array_size_macro_names, uint &cur_func_id) const
     {
-        VOGL_NOTE_UNUSED(typemap);
-        VOGL_NOTE_UNUSED(alt_typemap);
-
         for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
@@ -3368,17 +3548,12 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     // process_func_defs
     //-----------------------------------------------------------------------------------------------------------------------
-    bool process_func_defs(const char *pFunc_prefix, const gl_function_specs &gl_funcs, const gl_types &typemap, const gl_types &alt_typemap, const dynamic_string_array &sorted_gl_so_function_exports,
+    bool process_func_defs(const char *pFunc_prefix, const gl_function_specs &gl_funcs, const dynamic_string_array &sorted_gl_so_function_exports,
                            const dynamic_string_array &whitelisted_funcs,
-                           const dynamic_string_array &nullable_funcs,
                            dynamic_string_array &_funcs_with_custom_array_size_macros,
                            dynamic_string_array &_custom_return_param_array_size_macros,
                            dynamic_string_array &_funcs_with_return_param_array_size_macros)
     {
-        VOGL_NOTE_UNUSED(typemap);
-        VOGL_NOTE_UNUSED(alt_typemap);
-        VOGL_NOTE_UNUSED(nullable_funcs);
-
         for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
@@ -3432,14 +3607,9 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     // dump_func_def_macros
     //-----------------------------------------------------------------------------------------------------------------------
-    bool dump_func_def_macros(FILE *pFile, const char *pFunc_prefix, const gl_function_specs &gl_funcs, const gl_types &typemap, const gl_types &alt_typemap, const dynamic_string_array &sorted_gl_so_function_exports,
-                              const dynamic_string_array &whitelisted_funcs,
-                              const dynamic_string_array &nullable_funcs) const
+    bool dump_func_def_macros(FILE *pFile, const char *pFunc_prefix, const gl_function_specs &gl_funcs, const dynamic_string_array &sorted_gl_so_function_exports,
+                              const dynamic_string_array &whitelisted_funcs) const
     {
-        VOGL_NOTE_UNUSED(typemap);
-        VOGL_NOTE_UNUSED(alt_typemap);
-        VOGL_NOTE_UNUSED(nullable_funcs);
-
         for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
@@ -3575,12 +3745,9 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     bool dump_func_desc_macros(
         FILE *pFile, const char *pFunc_prefix,
-        const gl_function_specs &gl_funcs, const gl_types &typemap, const gl_types &alt_typemap, const apitrace_func_specs &apitrace_gl_func_specs,
+        const gl_function_specs &gl_funcs, const apitrace_func_specs &apitrace_gl_func_specs, 
         const dynamic_string_array &sorted_gl_so_function_exports, const dynamic_string_array &whitelisted_funcs, const dynamic_string_array &nullable_funcs, const dynamic_string_array &whitelisted_displaylists_funcs) const
     {
-        VOGL_NOTE_UNUSED(typemap);
-        VOGL_NOTE_UNUSED(alt_typemap);
-
         for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
@@ -3823,6 +3990,18 @@ local:
                 { "const GLchar * *", "const char **" },
                 { "cl_context", "struct _cl_context *" }, // Correct in spec, bad in scraped XML.
                 { "cl_event", "struct _cl_event *" },     // Correct in spec, bad in scraped XML.
+
+                /* Ugly types from windows. */
+                { "UINT* ", "unsigned int *" },
+                { "UINT *", "unsigned int *" },
+                { "UINT", "unsigned int" },
+                { "INT32*", "int *" },
+                { "INT32 *", "int *" },
+                { "INT32", "int" },
+                { "INT64*", "int64_t *" },
+                { "INT64 *", "int64_t *" },
+                { "INT64", "int64_t" },
+
             };
 
         // See if the ctype can be aliased to a simpler, hopefully equivalent ctype.
@@ -4107,7 +4286,7 @@ local:
                 {
                     xml_param_type = "GLint *";
                 }
-                if ((param_index == 1) && (func.m_name == "CreateContextAttribsARB"))
+                if ((param_index == 1) && (func.m_full_name == "glXCreateContextAttribsARB"))
                 {
                     xml_param_type = "GLXFBConfig";
                 }
@@ -4248,7 +4427,7 @@ local:
     {
         dynamic_string_array new_whitelisted_funcs(whitelisted_funcs);
 
-        FILE *pFile = fopen_and_log_generic(out_dir, "gl_glx_simple_replay_funcs.inc", "w");
+        FILE *pFile = fopen_and_log_generic(out_dir, "gl_glx_wgl_simple_replay_funcs.inc", "w");
         if (!pFile)
             return false;
 
@@ -4338,9 +4517,7 @@ local:
 
         dynamic_string_array new_whitelisted_funcs(whitelisted_funcs);
 
-        
-
-        FILE *pFile = fopen_and_log_generic(out_dir, "gl_glx_replay_helper_macros.inc", "w");
+        FILE *pFile = fopen_and_log_generic(out_dir, "gl_glx_wgl_replay_helper_macros.inc", "w");
         if (!pFile)
             return false;
 
@@ -4659,7 +4836,7 @@ int main(int argc, char *argv[])
         }
         __except(EXCEPTION_EXECUTE_HANDLER)
         {
-            console::error("Uncached exception! voglgen command line tool failed!\n");
+            console::error("Uncaught exception! voglgen command line tool failed!\n");
         }
 #else
         status = main_internal(argc, argv);

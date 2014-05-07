@@ -172,11 +172,11 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
     #if (VOGL_PLATFORM_HAS_GLX)
         if ((!pFunc) && (g_vogl_actual_gl_entrypoints.m_glXGetProcAddress))
             pFunc = reinterpret_cast<vogl_void_func_ptr_t>(g_vogl_actual_gl_entrypoints.m_glXGetProcAddress(reinterpret_cast<const GLubyte *>(pName)));
-    #elif 0 && (VOGL_PLATFORM_HAS_WGL)
+    #elif (VOGL_PLATFORM_HAS_WGL)
         if ((!pFunc) && (g_vogl_actual_gl_entrypoints.m_wglGetProcAddress))
-            pFunc = reinterpret_cast<vogl_void_func_ptr_t>(g_vogl_actual_gl_entrypoints.m_wglGetProcAddress(reinterpret_cast<const GLubyte *>(pName)));
+            pFunc = reinterpret_cast<vogl_void_func_ptr_t>(g_vogl_actual_gl_entrypoints.m_wglGetProcAddress(pName));
     #else
-        VOGL_VERIFY(!"impl wgl functions in g_vogl_actual_gl_entrypoints");
+        #error "impl get_proc_address functions in g_vogl_actual_gl_entrypoints for this platform"
     #endif
 
     return pFunc;
@@ -205,4 +205,31 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
             vogl_deinit();
         }
     }
+#elif defined(PLATFORM_WINDOWS)
+BOOL WINAPI DllMain(_In_  HINSTANCE hinstDLL, _In_  DWORD fdwReason, _In_  LPVOID lpvReserved)
+{
+    switch (fdwReason)
+    {
+        case DLL_PROCESS_ATTACH:
+            vogl_init();
+            break;
+        case DLL_PROCESS_DETACH:    
+            vogl_deinit();
+            break;
+
+        case DLL_THREAD_ATTACH:
+        case DLL_THREAD_DETACH:
+            // Nothing to do for this case.
+            break;
+
+        default:
+            VOGL_ASSERT(!"Unexpected fdwReason passed to DllMain.");
+            break;
+    };
+
+    return TRUE;
+}
+
+#else
+    #error "Need a way to call vogl_init and vogl_deinit for this platform."
 #endif

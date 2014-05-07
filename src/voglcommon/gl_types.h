@@ -25,7 +25,7 @@
 #pragma once
 
 
-#include "vogl_core.h"
+#include "vogl_build_options.h"
 
 // Int type large enough to hold a pointer
 typedef intptr_t GLsizeiptr;
@@ -84,21 +84,31 @@ typedef void(GLAPIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLe
 typedef void(GLAPIENTRY *GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 typedef void(GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 
+enum PlatUndefinedType 
+{ 
+    PLATUNDEFINEDTYPE = 0
 #if (!VOGL_PLATFORM_HAS_GLX)
-    enum GlxUndefinedType { GLXUNDEFINEDTYPE = 0, None = 1 };
+  , None = 1 
+#endif
+};
+ 
 
-    #define UndefinedTypeThisPlatform(_typename) \
-        struct _typename \
-        { \
-            GlxUndefinedType unused; \
-            _typename(GlxUndefinedType _unused=GLXUNDEFINEDTYPE) : unused(_unused) { } \
-            _typename(int _ptr) : unused(GLXUNDEFINEDTYPE) { } \
-            bool operator==(const _typename& ) { return false; } \
-        }
+#define UndefinedTypeThisPlatform(_typename) \
+    struct _typename \
+    { \
+        PlatUndefinedType unused; \
+        _typename(PlatUndefinedType _unused=PLATUNDEFINEDTYPE) : unused(_unused) { } \
+        _typename(int _ptr) : unused(PLATUNDEFINEDTYPE) { } \
+        bool operator==(const _typename& ) { return false; } \
+    }
 
+#define UndefinedPointerTypeThisPlatform(_typename) \
+    typedef UndefinedTypeThisPlatform(_typename##__) *_typename
 
+typedef unsigned long XID;
+
+#if (!VOGL_PLATFORM_HAS_GLX)
     typedef int Bool;
-    typedef uint32_t XID;
 
     UndefinedTypeThisPlatform(Colormap);
     UndefinedTypeThisPlatform(Font);
@@ -111,6 +121,29 @@ typedef void(GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum seve
     UndefinedTypeThisPlatform(XVisualInfo);
 
     typedef _XDisplay Display;
+#endif
+
+#if (!VOGL_PLATFORM_HAS_WGL)
+
+    typedef char CHAR;
+    typedef unsigned long DWORD;
+    typedef int INT;
+    typedef int64_t INT64;
+    typedef float FLOAT;
+    typedef void* HANDLE;
+    typedef char* LPCSTR;
+    typedef void* LPVOID;
+    typedef uint32_t UINT;
+    typedef uint16_t USHORT;
+
+    UndefinedPointerTypeThisPlatform(HDC);
+    UndefinedPointerTypeThisPlatform(HGLRC);
+    UndefinedPointerTypeThisPlatform(PROC);
+
+    UndefinedTypeThisPlatform(COLORREF);
+    UndefinedTypeThisPlatform(LAYERPLANEDESCRIPTOR);
+    UndefinedTypeThisPlatform(PIXELFORMATDESCRIPTOR);
+    UndefinedTypeThisPlatform(RECT);
 #endif
 
 typedef struct __GLXcontextRec *GLXContext;
@@ -127,6 +160,35 @@ typedef void (*__GLXextFuncPtr)(void);
 typedef XID GLXVideoCaptureDeviceNV;
 typedef unsigned int GLXVideoDeviceNV;
 
+#define DECLARE_WGL_HANDLE(name) struct name##__{int unused;}; typedef struct name##__ *name
+
+DECLARE_WGL_HANDLE(HPBUFFERARB);
+DECLARE_WGL_HANDLE(HPBUFFEREXT);
+DECLARE_WGL_HANDLE(HVIDEOINPUTDEVICENV);
+DECLARE_WGL_HANDLE(HVIDEOOUTPUTDEVICENV);
+DECLARE_WGL_HANDLE(HPVIDEODEV);
+DECLARE_WGL_HANDLE(HGPUNV);
+
+typedef unsigned long VOGL_WIN_DWORD;
+typedef char VOGL_WIN_CHAR;
+typedef long VOGL_WIN_LONG;
+
+typedef struct VOGL_WIN_RECT
+{
+    VOGL_WIN_LONG    left;
+    VOGL_WIN_LONG    top;
+    VOGL_WIN_LONG    right;
+    VOGL_WIN_LONG    bottom;
+} VOGL_WIN_RECT;
+
+typedef struct VOGL_WIN_GPU_DEVICE 
+{
+    VOGL_WIN_DWORD  cb;
+    VOGL_WIN_CHAR   DeviceName[32];
+    VOGL_WIN_CHAR   DeviceString[128];
+    VOGL_WIN_DWORD  Flags;
+    VOGL_WIN_RECT   rcVirtualScreen;
+} GPU_DEVICE, *PGPU_DEVICE;
 
 
 #include "gl_enums.inc"

@@ -90,6 +90,8 @@ const bool c_vogl_big_endian_platform = !c_vogl_little_endian_platform;
     #define VOGL_BUILTIN_EXPECT(c, v) c
 #endif
 
+#define VOGL_CONDITIONAL_BREAKPOINT(_cond) do { if (!!(_cond)) { VOGL_BREAKPOINT; } } while(0)
+
 #if defined(COMPILER_GCCLIKE)
     #define VOGL_ALIGNED(x) __attribute__((aligned(x)))
     #define VOGL_ALIGNED_BEGIN(x)

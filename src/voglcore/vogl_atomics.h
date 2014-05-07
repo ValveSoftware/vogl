@@ -30,7 +30,7 @@
 #include "vogl_core.h"
 
 #ifdef PLATFORM_WINDOWS
-#include "vogl_winhdr.h"
+    #include "vogl_winhdr.h"
 #endif
 
 #if defined(COMPILER_GCCLIKE) && VOGL_PLATFORM_PC
