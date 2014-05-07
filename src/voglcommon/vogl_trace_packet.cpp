@@ -358,7 +358,7 @@ bool vogl_trace_packet::deserialize(const uint8 *pPacket_data, uint packet_data_
 
     m_is_valid = true;
 
-    VOGL_ASSERT(check());
+//    VOGL_ASSERT(check());
 
     return true;
 }
@@ -1718,9 +1718,27 @@ bool vogl_trace_packet::json_deserialize_param(
     int param_index = params_node.find_key(pParam_name);
     if (param_index < 0)
     {
-        vogl_error_printf("Failed finding function parameter \"%s\"\n", pParam_name);
-        print_json_context(pDocument_filename, params_node);
-        return false;
+        // HACK HACK
+        bool fixed = false;
+        if (strncmp(pParam_name, "_near", 5) == 0)
+        {
+            vogl_warning_printf("Failed finding function parameter \"_near\", attempting to use \"near\" instead\n");
+            param_index = params_node.find_key("near");
+            fixed = (param_index >= 0);
+        }
+        else if (strncmp(pParam_name, "_far", 4) == 0)
+        {
+            vogl_warning_printf("Failed finding function parameter \"_far\", attempting to use \"far\" instead\n");
+            param_index = params_node.find_key("far");
+            fixed = (param_index >= 0);
+        }
+
+        if (!fixed)
+        {
+            vogl_error_printf("Failed finding function parameter \"%s\"\n", pParam_name);
+            print_json_context(pDocument_filename, params_node);
+            return false;
+        }
     }
 
     const json_value &val = params_node.get_value(param_index);
