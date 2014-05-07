@@ -199,7 +199,7 @@ static bool init_logfile()
 
     if (!g_vogl_pLog_stream->open(filename.get_ptr(), cDataStreamWritable, !log_file_append.is_empty()))
     {
-        vogl_error_printf("%s: Failed opening log file \"%s\"\n", VOGL_FUNCTION_NAME, filename.get_ptr());
+        vogl_error_printf("%s: Failed opening log file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr());
         return false;
     }
     else
@@ -263,7 +263,7 @@ static bool init_command_line_params(int argc, char *argv[])
 
     if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
-        vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
@@ -289,14 +289,14 @@ static bool load_gl()
     g_actual_libgl_module_handle = dlopen("libGL.so.1", RTLD_LAZY);
     if (!g_actual_libgl_module_handle)
     {
-        vogl_error_printf("%s: Failed loading libGL.so.1!\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: Failed loading libGL.so.1!\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
     GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
     if (!GL_ENTRYPOINT(glXGetProcAddress))
     {
-        vogl_error_printf("%s: Failed getting address of glXGetProcAddress() from libGL.so.1!\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: Failed getting address of glXGetProcAddress() from libGL.so.1!\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
@@ -459,7 +459,7 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
 {
     VOGL_FUNC_TRACER
 
-    timed_scope ts(VOGL_FUNCTION_NAME);
+    timed_scope ts(VOGL_FUNCTION_INFO_CSTR);
 
     vogl_gl_state_snapshot *pSnapshot = NULL;
 
@@ -471,7 +471,7 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
     vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(filename, actual_keyframe_filename, NULL));
     if (!pTrace_reader.get())
     {
-        vogl_error_printf("%s: Failed reading keyframe file %s!\n", VOGL_FUNCTION_NAME, filename.get_ptr());
+        vogl_error_printf("%s: Failed reading keyframe file %s!\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr());
         return NULL;
     }
 
@@ -486,13 +486,13 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
 
         if ((read_status != vogl_trace_file_reader::cOK) && (read_status != vogl_trace_file_reader::cEOF))
         {
-            vogl_error_printf("%s: Failed reading from keyframe trace file!\n", VOGL_FUNCTION_NAME);
+            vogl_error_printf("%s: Failed reading from keyframe trace file!\n", VOGL_FUNCTION_INFO_CSTR);
             return NULL;
         }
 
         if ((read_status == vogl_trace_file_reader::cEOF) || (pTrace_reader->get_packet_type() == cTSPTEOF))
         {
-            vogl_error_printf("%s: Failed finding state snapshot in keyframe file!\n", VOGL_FUNCTION_NAME);
+            vogl_error_printf("%s: Failed finding state snapshot in keyframe file!\n", VOGL_FUNCTION_INFO_CSTR);
             return NULL;
         }
 
@@ -501,7 +501,7 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
 
         if (!keyframe_trace_packet.deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
         {
-            vogl_error_printf("%s: Failed parsing GL entrypoint packet in keyframe file\n", VOGL_FUNCTION_NAME);
+            vogl_error_printf("%s: Failed parsing GL entrypoint packet in keyframe file\n", VOGL_FUNCTION_INFO_CSTR);
             return NULL;
         }
 
@@ -534,7 +534,7 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
                         dynamic_string id(kvm.get_string("binary_id"));
                         if (id.is_empty())
                         {
-                            vogl_error_printf("%s: Missing binary_id field in glInternalTraceCommandRAD key_valye_map command type: \"%s\"\n", VOGL_FUNCTION_NAME, cmd_type.get_ptr());
+                            vogl_error_printf("%s: Missing binary_id field in glInternalTraceCommandRAD key_valye_map command type: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, cmd_type.get_ptr());
                             return NULL;
                         }
 
@@ -543,19 +543,19 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
                             timed_scope ts2("get_multi_blob_manager().get");
                             if (!pTrace_reader->get_multi_blob_manager().get(id, snapshot_data) || (snapshot_data.is_empty()))
                             {
-                                vogl_error_printf("%s: Failed reading snapshot blob data \"%s\"!\n", VOGL_FUNCTION_NAME, id.get_ptr());
+                                vogl_error_printf("%s: Failed reading snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
                                 return NULL;
                             }
                         }
 
-                        vogl_message_printf("%s: Deserializing state snapshot \"%s\", %u bytes\n", VOGL_FUNCTION_NAME, id.get_ptr(), snapshot_data.size());
+                        vogl_message_printf("%s: Deserializing state snapshot \"%s\", %u bytes\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr(), snapshot_data.size());
 
                         json_document doc;
                         {
                             timed_scope ts2("doc.binary_deserialize");
                             if (!doc.binary_deserialize(snapshot_data) || (!doc.get_root()))
                             {
-                                vogl_error_printf("%s: Failed deserializing JSON snapshot blob data \"%s\"!\n", VOGL_FUNCTION_NAME, id.get_ptr());
+                                vogl_error_printf("%s: Failed deserializing JSON snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
                                 return NULL;
                             }
                         }
@@ -568,7 +568,7 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
                             vogl_delete(pSnapshot);
                             pSnapshot = NULL;
 
-                            vogl_error_printf("%s: Failed deserializing snapshot blob data \"%s\"!\n", VOGL_FUNCTION_NAME, id.get_ptr());
+                            vogl_error_printf("%s: Failed deserializing snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
                             return NULL;
                         }
 
@@ -639,7 +639,7 @@ static bool tool_replay_mode()
     dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (trace_filename.is_empty())
     {
-        vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
@@ -647,7 +647,7 @@ static bool tool_replay_mode()
     vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(trace_filename, actual_trace_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
-        vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_NAME, trace_filename.get_ptr());
+        vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, trace_filename.get_ptr());
         return false;
     }
 
@@ -666,13 +666,13 @@ static bool tool_replay_mode()
     // Also, this design only supports a single window, which is going to be a problem with multiple window traces.
     if (!window.open(g_command_line_params().get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params().get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params().get_value_as_int("msaa", 0, 0, 0, 65535)))
     {
-        vogl_error_printf("%s: Failed initializing replay window\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: Failed initializing replay window\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
     if (!replayer.init(replayer_flags, &window, pTrace_reader->get_sof_packet(), pTrace_reader->get_multi_blob_manager()))
     {
-        vogl_error_printf("%s: Failed initializing GL replayer\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: Failed initializing GL replayer\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
@@ -770,7 +770,7 @@ static bool tool_replay_mode()
         trim_frames[i] = g_command_line_params().get_value_as_uint("trim_frame", i, 0, 0, cUINT32_MAX, 0, &parsed_successfully);
         if (!parsed_successfully)
         {
-            vogl_error_printf("%s: Failed parsing -trim_frame at index %u\n", VOGL_FUNCTION_NAME, i);
+            vogl_error_printf("%s: Failed parsing -trim_frame at index %u\n", VOGL_FUNCTION_INFO_CSTR, i);
             return false;
         }
     }
@@ -782,14 +782,14 @@ static bool tool_replay_mode()
 
         if (filename.is_empty())
         {
-            vogl_error_printf("%s: Invalid trim filename\n", VOGL_FUNCTION_NAME);
+            vogl_error_printf("%s: Invalid trim filename\n", VOGL_FUNCTION_INFO_CSTR);
             return false;
         }
 
         trim_filenames[i] = filename;
 
         if (file_utils::add_default_extension(trim_filenames[i], ".bin"))
-            vogl_message_printf("%s: Trim output filename \"%s\", didn't have an extension, appended \".bin\" to the filename: %s\n", VOGL_FUNCTION_NAME, filename.get_ptr(), trim_filenames[i].get_ptr());
+            vogl_message_printf("%s: Trim output filename \"%s\", didn't have an extension, appended \".bin\" to the filename: %s\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr(), trim_filenames[i].get_ptr());
     }
 
     vogl::vector<uint> trim_lens(g_command_line_params().get_count("trim_len"));
@@ -799,7 +799,7 @@ static bool tool_replay_mode()
         trim_lens[i] = g_command_line_params().get_value_as_uint("trim_len", i, 1, 0, cUINT32_MAX, 0, &parsed_successfully);
         if (!parsed_successfully)
         {
-            vogl_error_printf("%s: Failed parsing -trim_len at index %u\n", VOGL_FUNCTION_NAME, i);
+            vogl_error_printf("%s: Failed parsing -trim_len at index %u\n", VOGL_FUNCTION_INFO_CSTR, i);
             return false;
         }
     }
@@ -815,7 +815,7 @@ static bool tool_replay_mode()
     {
         if (trim_filenames.is_empty())
         {
-            console::error("%s: -trim_frame specified without specifying at least one -trim_file or -trim_call\n", VOGL_FUNCTION_NAME);
+            console::error("%s: -trim_frame specified without specifying at least one -trim_file or -trim_call\n", VOGL_FUNCTION_INFO_CSTR);
             return false;
         }
     }
@@ -824,7 +824,7 @@ static bool tool_replay_mode()
     {
         if ((multitrim_mode) || (trim_frames.size()) || (trim_lens.size()) || (trim_call_index >= 0))
         {
-            console::warning("%s: Can't write snapshot and trim at the same time, disabling trimming\n", VOGL_FUNCTION_NAME);
+            console::warning("%s: Can't write snapshot and trim at the same time, disabling trimming\n", VOGL_FUNCTION_INFO_CSTR);
 
             multitrim_mode = false;
             trim_frames.clear();
@@ -834,13 +834,13 @@ static bool tool_replay_mode()
 
         if (draw_kill_max_thresh > 0)
         {
-            console::warning("%s: Write snapshot mode is enabled, disabling -draw_kill_max_thresh\n", VOGL_FUNCTION_NAME);
+            console::warning("%s: Write snapshot mode is enabled, disabling -draw_kill_max_thresh\n", VOGL_FUNCTION_INFO_CSTR);
             draw_kill_max_thresh = -1;
         }
 
         if (endless_mode)
         {
-            console::warning("%s: Write snapshot mode is enabled, disabling -endless\n", VOGL_FUNCTION_NAME);
+            console::warning("%s: Write snapshot mode is enabled, disabling -endless\n", VOGL_FUNCTION_INFO_CSTR);
             endless_mode = false;
         }
     }
@@ -848,7 +848,7 @@ static bool tool_replay_mode()
     {
         if (trim_filenames.is_empty())
         {
-            console::error("%s: Must also specify at least one -trim_file\n", VOGL_FUNCTION_NAME);
+            console::error("%s: Must also specify at least one -trim_file\n", VOGL_FUNCTION_INFO_CSTR);
             return false;
         }
 
@@ -856,19 +856,19 @@ static bool tool_replay_mode()
         {
             if (trim_frames.size())
             {
-                console::error("%s: Can't specify both -trim_call and -trim_frame\n", VOGL_FUNCTION_NAME);
+                console::error("%s: Can't specify both -trim_call and -trim_frame\n", VOGL_FUNCTION_INFO_CSTR);
                 return false;
             }
 
             if (multitrim_mode)
             {
-                console::error("%s: Can't specify both -trim_call and -multitrim\n", VOGL_FUNCTION_NAME);
+                console::error("%s: Can't specify both -trim_call and -multitrim\n", VOGL_FUNCTION_INFO_CSTR);
                 return false;
             }
 
             if (trim_filenames.size() > 1)
             {
-                console::warning("%s: -trim_call specified but more than 1 -trim_file specified - ignoring all but first -trim_file's\n", VOGL_FUNCTION_NAME);
+                console::warning("%s: -trim_call specified but more than 1 -trim_file specified - ignoring all but first -trim_file's\n", VOGL_FUNCTION_INFO_CSTR);
                 trim_filenames.resize(1);
             }
         }
@@ -879,25 +879,25 @@ static bool tool_replay_mode()
         {
             if ((trim_filenames.size() > 1) && (trim_filenames.size() != trim_frames.size()))
             {
-                console::error("%s: More than 1 -trim_frame was specified, and more than 1 -trim_file was specified, but the number of -trim_file's must match the number of -trim_frame's (or only specify one -trim_file to use it as a base filename)\n", VOGL_FUNCTION_NAME);
+                console::error("%s: More than 1 -trim_frame was specified, and more than 1 -trim_file was specified, but the number of -trim_file's must match the number of -trim_frame's (or only specify one -trim_file to use it as a base filename)\n", VOGL_FUNCTION_INFO_CSTR);
                 return false;
             }
 
             if ((trim_lens.size() > 1) && (trim_lens.size() != trim_frames.size()))
             {
-                console::error("%s: More than 1 -trim_frame was specified, and more than 1 -trim_len's was specified, but the number of -trim_len's must match the number of -trim_frame's (or only specify one -trim_len to use it for all trims)\n", VOGL_FUNCTION_NAME);
+                console::error("%s: More than 1 -trim_frame was specified, and more than 1 -trim_len's was specified, but the number of -trim_len's must match the number of -trim_frame's (or only specify one -trim_len to use it for all trims)\n", VOGL_FUNCTION_INFO_CSTR);
                 return false;
             }
         }
 
         if ((multitrim_mode) && (trim_filenames.size() > 1))
         {
-            console::warning("%s: Only 1 filename needs to be specified in -multitrim mode\n", VOGL_FUNCTION_NAME);
+            console::warning("%s: Only 1 filename needs to be specified in -multitrim mode\n", VOGL_FUNCTION_INFO_CSTR);
         }
 
         if (loop_frame != -1)
         {
-            console::warning("%s: Trim is enabled, disabling -loop_frame\n", VOGL_FUNCTION_NAME);
+            console::warning("%s: Trim is enabled, disabling -loop_frame\n", VOGL_FUNCTION_INFO_CSTR);
             loop_frame = -1;
             loop_len = 1;
             loop_count = 1;
@@ -905,13 +905,13 @@ static bool tool_replay_mode()
 
         if (draw_kill_max_thresh > 0)
         {
-            console::warning("%s: Trim is enabled, disabling -draw_kill_max_thresh\n", VOGL_FUNCTION_NAME);
+            console::warning("%s: Trim is enabled, disabling -draw_kill_max_thresh\n", VOGL_FUNCTION_INFO_CSTR);
             draw_kill_max_thresh = -1;
         }
 
         if (endless_mode)
         {
-            console::warning("%s: Trim is enabled, disabling -endless\n", VOGL_FUNCTION_NAME);
+            console::warning("%s: Trim is enabled, disabling -endless\n", VOGL_FUNCTION_INFO_CSTR);
             endless_mode = false;
         }
 
@@ -935,9 +935,9 @@ static bool tool_replay_mode()
     else
     {
         if (trim_filenames.size())
-            console::warning("%s: -trim_file was specified, but -trim_frame was not specified so ignoring\n", VOGL_FUNCTION_NAME);
+            console::warning("%s: -trim_file was specified, but -trim_frame was not specified so ignoring\n", VOGL_FUNCTION_INFO_CSTR);
         if (trim_lens.size())
-            console::warning("%s: -trim_len was specified, but -trim_frame was not specified so ignoring\n", VOGL_FUNCTION_NAME);
+            console::warning("%s: -trim_len was specified, but -trim_frame was not specified so ignoring\n", VOGL_FUNCTION_INFO_CSTR);
 
         trim_filenames.clear();
         trim_lens.clear();
@@ -1056,7 +1056,7 @@ static bool tool_replay_mode()
 
             // Interactive mode is more of a test bad to validate a bunch of classes. It's kind of narly because the replayer's object can be in odd intermediate/pending states during window
             // resizes - hopefully this complexity will go away once we get pbuffer's or whatever in.
-            vogl_debug_printf("%s: At frame boundary: %u, beginning of frame %u, pause frame %" PRIi64 ", taking snapshot at frame %" PRIi64 "\n", VOGL_FUNCTION_NAME, replayer.get_at_frame_boundary(), replayer.get_frame_index(), paused_mode_frame_index, take_snapshot_at_frame_index);
+            vogl_debug_printf("%s: At frame boundary: %u, beginning of frame %u, pause frame %" PRIi64 ", taking snapshot at frame %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_at_frame_boundary(), replayer.get_frame_index(), paused_mode_frame_index, take_snapshot_at_frame_index);
 
             if (keys_pressed.contains('c'))
             {
@@ -1130,7 +1130,7 @@ static bool tool_replay_mode()
                     pSnapshot = replayer.snapshot_state();
                     if (!pSnapshot)
                     {
-                        vogl_error_printf("%s: Snapshot failed!\n", VOGL_FUNCTION_NAME);
+                        vogl_error_printf("%s: Snapshot failed!\n", VOGL_FUNCTION_INFO_CSTR);
                         goto error_exit;
                     }
 
@@ -1143,7 +1143,7 @@ static bool tool_replay_mode()
                         json_document temp_json_doc;
                         if (!pSnapshot->serialize(*temp_json_doc.get_root(), mem_blob_manager, &replayer.get_trace_gl_ctypes()))
                         {
-                            console::error("%s: Failed serializing state snapshot!\n", VOGL_FUNCTION_NAME);
+                            console::error("%s: Failed serializing state snapshot!\n", VOGL_FUNCTION_INFO_CSTR);
                         }
                         else
                         {
@@ -1156,7 +1156,7 @@ static bool tool_replay_mode()
 
                             if (!pNew_snapshot->deserialize(*temp_json_doc.get_root(), mem_blob_manager, &replayer.get_trace_gl_ctypes()))
                             {
-                                console::error("%s: Failed deserializing state snapshot!\n", VOGL_FUNCTION_NAME);
+                                console::error("%s: Failed deserializing state snapshot!\n", VOGL_FUNCTION_INFO_CSTR);
                             }
                             else
                             {
@@ -1206,7 +1206,7 @@ static bool tool_replay_mode()
 
                     if (!file_utils::create_directory(trim_name.get_ptr()))
                     {
-                        vogl_error_printf("%s: Failed creating trim directory %s\n", VOGL_FUNCTION_NAME, trim_name.get_ptr());
+                        vogl_error_printf("%s: Failed creating trim directory %s\n", VOGL_FUNCTION_INFO_CSTR, trim_name.get_ptr());
                     }
                     else
                     {
@@ -1223,7 +1223,7 @@ static bool tool_replay_mode()
                             dynamic_string convert_to_json_spawn_str(cVarArg, "%s --dump \"%s\" \"%s\"", voglreplay_exec_filename, trim_filename.get_ptr(), json_trim_base_filename.get_ptr());
                             if (system(convert_to_json_spawn_str.get_ptr()) != 0)
                             {
-                                vogl_error_printf("%s: Failed running voglreplay: %s\n", VOGL_FUNCTION_NAME, convert_to_json_spawn_str.get_ptr());
+                                vogl_error_printf("%s: Failed running voglreplay: %s\n", VOGL_FUNCTION_INFO_CSTR, convert_to_json_spawn_str.get_ptr());
                             }
                             else
                             {
@@ -1264,7 +1264,7 @@ static bool tool_replay_mode()
 
             if (status == vogl_gl_replayer::cStatusAtEOF)
             {
-                vogl_message_printf("%s: At trace EOF, frame index %u\n", VOGL_FUNCTION_NAME, replayer.get_frame_index());
+                vogl_message_printf("%s: At trace EOF, frame index %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
 
                 // Right after the last swap in the file, either rewind or pause back on the last frame
                 if ((paused_mode) && (replayer.get_frame_index()))
@@ -1280,7 +1280,7 @@ static bool tool_replay_mode()
 
                     if (!pTrace_reader->seek_to_frame(0))
                     {
-                        vogl_error_printf("%s: Failed rewinding trace reader!\n", VOGL_FUNCTION_NAME);
+                        vogl_error_printf("%s: Failed rewinding trace reader!\n", VOGL_FUNCTION_INFO_CSTR);
                         goto error_exit;
                     }
 
@@ -1316,7 +1316,7 @@ static bool tool_replay_mode()
 
                     if (!pTrace_reader->seek_to_frame(0))
                     {
-                        vogl_error_printf("%s: Failed rewinding trace reader!\n", VOGL_FUNCTION_NAME);
+                        vogl_error_printf("%s: Failed rewinding trace reader!\n", VOGL_FUNCTION_INFO_CSTR);
                         goto error_exit;
                     }
                 }
@@ -1338,7 +1338,7 @@ static bool tool_replay_mode()
                         int64_t max_frame_index = pTrace_reader->get_max_frame_index();
                         if (max_frame_index < 0)
                         {
-                            vogl_error_printf("%s: Failed determining the total number of trace frames!\n", VOGL_FUNCTION_NAME);
+                            vogl_error_printf("%s: Failed determining the total number of trace frames!\n", VOGL_FUNCTION_INFO_CSTR);
                             goto error_exit;
                         }
 
@@ -1364,7 +1364,7 @@ static bool tool_replay_mode()
                         int64_t max_frame_index = pTrace_reader->get_max_frame_index();
                         if (max_frame_index < 0)
                         {
-                            vogl_error_printf("%s: Failed determining the total number of trace frames!\n", VOGL_FUNCTION_NAME);
+                            vogl_error_printf("%s: Failed determining the total number of trace frames!\n", VOGL_FUNCTION_INFO_CSTR);
                             goto error_exit;
                         }
 
@@ -1458,7 +1458,7 @@ static bool tool_replay_mode()
                         status = replayer.begin_applying_snapshot(pSnapshot, false);
                         if ((status != vogl_gl_replayer::cStatusOK) && (status != vogl_gl_replayer::cStatusResizeWindow))
                         {
-                            vogl_error_printf("%s: Failed applying snapshot!\n", VOGL_FUNCTION_NAME);
+                            vogl_error_printf("%s: Failed applying snapshot!\n", VOGL_FUNCTION_INFO_CSTR);
                             goto error_exit;
                         }
 
@@ -1531,7 +1531,7 @@ static bool tool_replay_mode()
                         status = replayer.begin_applying_snapshot(pKeyframe_snapshot, delete_snapshot_after_applying);
                         if ((status != vogl_gl_replayer::cStatusOK) && (status != vogl_gl_replayer::cStatusResizeWindow))
                         {
-                            vogl_error_printf("%s: Failed applying snapshot!\n", VOGL_FUNCTION_NAME);
+                            vogl_error_printf("%s: Failed applying snapshot!\n", VOGL_FUNCTION_INFO_CSTR);
                             goto error_exit;
                         }
 
@@ -1539,7 +1539,7 @@ static bool tool_replay_mode()
 
                         if (!pTrace_reader->seek_to_frame(static_cast<uint>(keyframe_index)))
                         {
-                            vogl_error_printf("%s: Failed seeking to keyframe!\n", VOGL_FUNCTION_NAME);
+                            vogl_error_printf("%s: Failed seeking to keyframe!\n", VOGL_FUNCTION_INFO_CSTR);
                             goto error_exit;
                         }
 
@@ -1665,7 +1665,7 @@ static bool tool_replay_mode()
                         {
                             if (num_trim_files_written == trim_frames.size())
                             {
-                                vogl_message_printf("%s: All requested trim files written, stopping replay\n", VOGL_FUNCTION_NAME);
+                                vogl_message_printf("%s: All requested trim files written, stopping replay\n", VOGL_FUNCTION_INFO_CSTR);
                                 goto normal_exit;
                             }
                         }
@@ -1677,7 +1677,7 @@ static bool tool_replay_mode()
 
                         if (next_frame_index > highest_frame_to_trim)
                         {
-                            vogl_message_printf("%s: No more frames to trim, stopping replay\n", VOGL_FUNCTION_NAME);
+                            vogl_message_printf("%s: No more frames to trim, stopping replay\n", VOGL_FUNCTION_INFO_CSTR);
                             goto normal_exit;
                         }
                     }
@@ -1685,7 +1685,7 @@ static bool tool_replay_mode()
 
                 if ((!pSnapshot) && (loop_frame != -1) && (static_cast<int64_t>(replayer.get_frame_index()) == loop_frame))
                 {
-                    vogl_debug_printf("%s: Capturing replayer state at start of frame %u\n", VOGL_FUNCTION_NAME, replayer.get_frame_index());
+                    vogl_debug_printf("%s: Capturing replayer state at start of frame %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
 
                     pSnapshot = replayer.snapshot_state();
 
@@ -1701,7 +1701,7 @@ static bool tool_replay_mode()
                             replayer.set_frame_draw_counter_kill_threshold(0);
                         }
 
-                        vogl_debug_printf("%s: Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", VOGL_FUNCTION_NAME, snapshot_loop_start_frame, snapshot_loop_end_frame);
+                        vogl_debug_printf("%s: Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, snapshot_loop_start_frame, snapshot_loop_end_frame);
                     }
                     else
                     {
@@ -1776,7 +1776,7 @@ static bool tool_replay_mode()
                             if (!replayer.write_trim_file(0, filename, trim_lens.size() ? trim_lens[0] : 1, *pTrace_reader, NULL))
                                 goto error_exit;
 
-                            vogl_message_printf("%s: Trim file written, stopping replay\n", VOGL_FUNCTION_NAME);
+                            vogl_message_printf("%s: Trim file written, stopping replay\n", VOGL_FUNCTION_INFO_CSTR);
                             goto normal_exit;
                         }
                     }
@@ -1791,7 +1791,7 @@ static bool tool_replay_mode()
 
             if (status == vogl_gl_replayer::cStatusAtEOF)
             {
-                vogl_message_printf("%s: At trace EOF, frame index %u\n", VOGL_FUNCTION_NAME, replayer.get_frame_index());
+                vogl_message_printf("%s: At trace EOF, frame index %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
             }
 
             if ((replayer.get_at_frame_boundary()) && (pSnapshot) && (loop_count > 0) && ((pTrace_reader->get_cur_frame() == snapshot_loop_end_frame) || (status == vogl_gl_replayer::cStatusAtEOF)))
@@ -1810,10 +1810,10 @@ static bool tool_replay_mode()
                         thresh = 0;
                     replayer.set_frame_draw_counter_kill_threshold(thresh);
 
-                    vogl_debug_printf("%s: Applying snapshot and seeking back to frame %" PRIi64 " draw kill thresh %" PRIu64 "\n", VOGL_FUNCTION_NAME, snapshot_loop_start_frame, thresh);
+                    vogl_debug_printf("%s: Applying snapshot and seeking back to frame %" PRIi64 " draw kill thresh %" PRIu64 "\n", VOGL_FUNCTION_INFO_CSTR, snapshot_loop_start_frame, thresh);
                 }
                 else
-                    vogl_debug_printf("%s: Applying snapshot and seeking back to frame %" PRIi64 "\n", VOGL_FUNCTION_NAME, snapshot_loop_start_frame);
+                    vogl_debug_printf("%s: Applying snapshot and seeking back to frame %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, snapshot_loop_start_frame);
 
                 loop_count--;
             }
@@ -1851,7 +1851,7 @@ static bool tool_replay_mode()
 
                     if (!pTrace_reader->seek_to_frame(0))
                     {
-                        vogl_error_printf("%s: Failed rewinding trace reader!\n", VOGL_FUNCTION_NAME);
+                        vogl_error_printf("%s: Failed rewinding trace reader!\n", VOGL_FUNCTION_INFO_CSTR);
                         goto error_exit;
                     }
                 }
@@ -1941,7 +1941,7 @@ static bool tool_dump_mode()
     vogl_loose_file_blob_manager output_file_blob_manager;
 
     dynamic_string output_trace_path(file_utils::get_pathname(output_base_filename.get_ptr()));
-    vogl_debug_printf("%s: Output trace path: %s\n", VOGL_FUNCTION_NAME, output_trace_path.get_ptr());
+    vogl_debug_printf("%s: Output trace path: %s\n", VOGL_FUNCTION_INFO_CSTR, output_trace_path.get_ptr());
     output_file_blob_manager.init(cBMFReadWrite, output_trace_path.get_ptr());
 
     file_utils::create_directories(output_trace_path, false);
@@ -1950,7 +1950,7 @@ static bool tool_dump_mode()
     vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_trace_filename, actual_input_trace_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
-        vogl_error_printf("%s: Failed opening input trace file \"%s\"\n", VOGL_FUNCTION_NAME, input_trace_filename.get_ptr());
+        vogl_error_printf("%s: Failed opening input trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, input_trace_filename.get_ptr());
         return false;
     }
 
@@ -1972,19 +1972,19 @@ static bool tool_dump_mode()
         cfile_stream archive_stream;
         if (!archive_stream.open(archive_filename.get_ptr(), cDataStreamWritable | cDataStreamSeekable))
         {
-            vogl_error_printf("%s: Failed opening output trace archive \"%s\"!\n", VOGL_FUNCTION_NAME, archive_filename.get_ptr());
+            vogl_error_printf("%s: Failed opening output trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
             return false;
         }
 
         if (!pTrace_reader->get_archive_blob_manager().write_archive_to_stream(archive_stream))
         {
-            vogl_error_printf("%s: Failed writing to output trace archive \"%s\"!\n", VOGL_FUNCTION_NAME, archive_filename.get_ptr());
+            vogl_error_printf("%s: Failed writing to output trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
             return false;
         }
 
         if (!archive_stream.close())
         {
-            vogl_error_printf("%s: Failed writing to output trace archive \"%s\"!\n", VOGL_FUNCTION_NAME, archive_filename.get_ptr());
+            vogl_error_printf("%s: Failed writing to output trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
             return false;
         }
     }
@@ -2064,14 +2064,14 @@ static bool tool_dump_mode()
 
             if (!cur_doc.serialize_to_file(output_filename.get_ptr(), true))
             {
-                vogl_error_printf("%s: Failed serializing JSON document to file %s\n", VOGL_FUNCTION_NAME, output_filename.get_ptr());
+                vogl_error_printf("%s: Failed serializing JSON document to file %s\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
 
                 status = false;
                 break;
             }
 
             if (cur_doc.get_root()->check_for_duplicate_keys())
-                vogl_warning_printf("%s: JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", VOGL_FUNCTION_NAME, output_filename.get_ptr());
+                vogl_warning_printf("%s: JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
 
             cur_file_index++;
 
@@ -2271,13 +2271,13 @@ static bool tool_dump_mode()
 
         if (!cur_doc.serialize_to_file(output_filename.get_ptr(), true))
         {
-            vogl_error_printf("%s: Failed serializing JSON document to file %s\n", VOGL_FUNCTION_NAME, output_filename.get_ptr());
+            vogl_error_printf("%s: Failed serializing JSON document to file %s\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
 
             status = false;
         }
 
         if (cur_doc.get_root()->check_for_duplicate_keys())
-            vogl_warning_printf("%s: JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", VOGL_FUNCTION_NAME, output_filename.get_ptr());
+            vogl_warning_printf("%s: JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
 
         cur_file_index++;
     }
@@ -2347,13 +2347,13 @@ static bool tool_parse_mode()
             {
                 if (trace_writer.get_trace_archive()->add_buf_using_id(blob_data.get_ptr(), blob_data.size(), blob_files[i]).is_empty())
                 {
-                    vogl_error_printf("%s: Failed writing blob data %s to output trace archive!\n", VOGL_FUNCTION_NAME, blob_files[i].get_ptr());
+                    vogl_error_printf("%s: Failed writing blob data %s to output trace archive!\n", VOGL_FUNCTION_INFO_CSTR, blob_files[i].get_ptr());
                     return false;
                 }
             }
             else
             {
-                vogl_error_printf("%s: Failed reading blob data %s from trace archive!\n", VOGL_FUNCTION_NAME, blob_files[i].get_ptr());
+                vogl_error_printf("%s: Failed reading blob data %s from trace archive!\n", VOGL_FUNCTION_INFO_CSTR, blob_files[i].get_ptr());
                 return false;
             }
         }
@@ -2587,7 +2587,7 @@ static bool tool_info_mode()
         {
             if (!trace_packet.deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
             {
-                console::error("%s: Failed parsing GL entrypoint packet\n", VOGL_FUNCTION_NAME);
+                console::error("%s: Failed parsing GL entrypoint packet\n", VOGL_FUNCTION_INFO_CSTR);
                 goto done;
             }
 
@@ -3030,7 +3030,7 @@ static bool tool_find_mode()
 
         if (!trace_packet.deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
         {
-            console::error("%s: Failed parsing GL entrypoint packet\n", VOGL_FUNCTION_NAME);
+            console::error("%s: Failed parsing GL entrypoint packet\n", VOGL_FUNCTION_INFO_CSTR);
             goto done;
         }
 
@@ -3141,7 +3141,7 @@ static bool tool_compare_hash_files()
     dynamic_string_array src1_lines;
     if (!file_utils::read_text_file(src1_filename.get_ptr(), src1_lines, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintErrorMessages))
     {
-        console::error("%s: Failed reading source file %s!\n", VOGL_FUNCTION_NAME, src1_filename.get_ptr());
+        console::error("%s: Failed reading source file %s!\n", VOGL_FUNCTION_INFO_CSTR, src1_filename.get_ptr());
         return false;
     }
 
@@ -3150,7 +3150,7 @@ static bool tool_compare_hash_files()
     dynamic_string_array src2_lines;
     if (!file_utils::read_text_file(src2_filename.get_ptr(), src2_lines, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintErrorMessages))
     {
-        console::error("%s: Failed reading source file %s!\n", VOGL_FUNCTION_NAME, src2_filename.get_ptr());
+        console::error("%s: Failed reading source file %s!\n", VOGL_FUNCTION_INFO_CSTR, src2_filename.get_ptr());
         return false;
     }
 
@@ -3161,7 +3161,7 @@ static bool tool_compare_hash_files()
     const uint compare_first_frame = g_command_line_params().get_value_as_uint("compare_first_frame");
     if (compare_first_frame > src2_lines.size())
     {
-        vogl_error_printf("%s: -compare_first_frame is %u, but the second file only has %u frames!\n", VOGL_FUNCTION_NAME, compare_first_frame, src2_lines.size());
+        vogl_error_printf("%s: -compare_first_frame is %u, but the second file only has %u frames!\n", VOGL_FUNCTION_INFO_CSTR, compare_first_frame, src2_lines.size());
         return false;
     }
 
@@ -3172,19 +3172,19 @@ static bool tool_compare_hash_files()
         // FIXME: When we replay q2, we get 2 more frames vs. tracing. Not sure why, this needs to be investigated.
         if ( (!g_command_line_params().get_value_as_bool("ignore_line_count_differences")) && (labs(src1_lines.size() - src2_lines.size()) > 3) )
         {
-            vogl_error_printf("%s: Input files have a different number of lines! (%u vs %u)\n", VOGL_FUNCTION_NAME, src1_lines.size(), src2_lines.size());
+            vogl_error_printf("%s: Input files have a different number of lines! (%u vs %u)\n", VOGL_FUNCTION_INFO_CSTR, src1_lines.size(), src2_lines.size());
             return false;
         }
         else
         {
-            vogl_warning_printf("%s: Input files have a different number of lines! (%u vs %u)\n", VOGL_FUNCTION_NAME, src1_lines.size(), src2_lines.size());
+            vogl_warning_printf("%s: Input files have a different number of lines! (%u vs %u)\n", VOGL_FUNCTION_INFO_CSTR, src1_lines.size(), src2_lines.size());
         }
     }
 
     const uint compare_ignore_frames = g_command_line_params().get_value_as_uint("compare_ignore_frames");
     if (compare_ignore_frames > lines_to_comp)
     {
-        vogl_error_printf("%s: -compare_ignore_frames is too large!\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: -compare_ignore_frames is too large!\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
@@ -3195,7 +3195,7 @@ static bool tool_compare_hash_files()
         const uint compare_expected_frames = g_command_line_params().get_value_as_uint("compare_expected_frames");
         if ((src1_lines.size() != compare_expected_frames) || (src2_lines.size() != compare_expected_frames))
         {
-            vogl_warning_printf("%s: Expected %u frames! First file has %u frames, second file has %u frames.\n", VOGL_FUNCTION_NAME, compare_expected_frames, src1_lines.size(), src2_lines.size());
+            vogl_warning_printf("%s: Expected %u frames! First file has %u frames, second file has %u frames.\n", VOGL_FUNCTION_INFO_CSTR, compare_expected_frames, src1_lines.size(), src2_lines.size());
             return false;
         }
     }
@@ -3211,13 +3211,13 @@ static bool tool_compare_hash_files()
         uint64_t val1 = 0, val2 = 0;
         if (!string_ptr_to_uint64(pStr1, val1))
         {
-            vogl_error_printf("%s: Failed parsing line at index %u of first source file!\n", VOGL_FUNCTION_NAME, i);
+            vogl_error_printf("%s: Failed parsing line at index %u of first source file!\n", VOGL_FUNCTION_INFO_CSTR, i);
             return false;
         }
 
         if (!string_ptr_to_uint64(pStr2, val2))
         {
-            vogl_error_printf("%s: Failed parsing line at index %u of second source file!\n", VOGL_FUNCTION_NAME, i);
+            vogl_error_printf("%s: Failed parsing line at index %u of second source file!\n", VOGL_FUNCTION_INFO_CSTR, i);
             return false;
         }
 

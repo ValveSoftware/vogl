@@ -417,7 +417,7 @@ namespace vogl
         fast_rand_test_obj(fast_random &r)
             : m_r(r)
         {
-            printf("%s:\n", VOGL_METHOD_NAME);
+            printf("%s:\n", VOGL_FUNCTION_INFO_CSTR);
         }
         int operator()(int limit)
         {
@@ -431,7 +431,7 @@ namespace vogl
         rand_test_obj(random &r)
             : m_r(r)
         {
-            printf("%s:\n", VOGL_METHOD_NAME);
+            printf("%s:\n", VOGL_FUNCTION_INFO_CSTR);
         }
         int operator()(int limit)
         {
@@ -445,7 +445,7 @@ namespace vogl
         rand_test_obj2(random &r)
             : m_r(r)
         {
-            printf("%s:\n", VOGL_METHOD_NAME);
+            printf("%s:\n", VOGL_FUNCTION_INFO_CSTR);
         }
         int operator()(int limit)
         {
@@ -462,7 +462,7 @@ namespace vogl
         dbl_rand_test_obj(random &r)
             : m_r(r)
         {
-            printf("%s:\n", VOGL_METHOD_NAME);
+            printf("%s:\n", VOGL_FUNCTION_INFO_CSTR);
         }
         int operator()(int limit)
         {

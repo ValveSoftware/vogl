@@ -1564,7 +1564,7 @@ namespace vogl
                     else
                         unpacker.init("A8B8G8R8", type_size);
 
-                    console::debug("%s: Hacked pixel format decoding for OGL type 0x%X fmt 0x%X internal fmt 0x%X base internal fmt 0x%X\n", VOGL_METHOD_NAME,
+                    console::debug("%s: Hacked pixel format decoding for OGL type 0x%X fmt 0x%X internal fmt 0x%X base internal fmt 0x%X\n", VOGL_FUNCTION_INFO_CSTR,
                                    ktx.get_ogl_type(),
                                    ktx.get_ogl_fmt(),
                                    ktx.get_ogl_internal_fmt(),

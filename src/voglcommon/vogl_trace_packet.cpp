@@ -258,7 +258,7 @@ bool vogl_trace_packet::deserialize(const uint8 *pPacket_data, uint packet_data_
     {
         if (!pTrace_gl_entrypoint_packet->full_validation(packet_data_buf_size))
         {
-            vogl_error_printf("%s: Trace packet failed basic validation!\n", VOGL_METHOD_NAME);
+            vogl_error_printf("%s: Trace packet failed basic validation!\n", VOGL_FUNCTION_INFO_CSTR);
             return false;
         }
     }
@@ -266,7 +266,7 @@ bool vogl_trace_packet::deserialize(const uint8 *pPacket_data, uint packet_data_
     {
         if (!pTrace_gl_entrypoint_packet->basic_validation())
         {
-            vogl_error_printf("%s: Trace packet failed basic validation!\n", VOGL_METHOD_NAME);
+            vogl_error_printf("%s: Trace packet failed basic validation!\n", VOGL_FUNCTION_INFO_CSTR);
             return false;
         }
     }
@@ -596,11 +596,11 @@ bool vogl_trace_packet::json_serialize(json_node &node, const json_serialize_par
                     id = params.m_pBlob_manager->add_buf_compute_unique_id(val.get_blob()->get_ptr(), val.get_blob()->size(), prefix, "blob", &blob_crc64);
                     if (id.is_empty())
                     {
-                        vogl_error_printf("%s: Failed adding blob %s to blob manager\n", VOGL_METHOD_NAME, prefix.get_ptr());
+                        vogl_error_printf("%s: Failed adding blob %s to blob manager\n", VOGL_FUNCTION_INFO_CSTR, prefix.get_ptr());
                         return false;
                     }
 
-                    vogl_message_printf("%s: Wrote blob id %s\n", VOGL_METHOD_NAME, id.get_ptr());
+                    vogl_message_printf("%s: Wrote blob id %s\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
                 }
                 else
                 {
@@ -764,7 +764,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
     const dynamic_string gl_func_name(node.value_as_string("func"));
     if (gl_func_name.is_empty())
     {
-        vogl_error_printf("%s: Missing \"func\" node\n", VOGL_METHOD_NAME);
+        vogl_error_printf("%s: Missing \"func\" node\n", VOGL_FUNCTION_INFO_CSTR);
         print_json_context(pDocument_filename, node);
         return false;
     }
@@ -772,7 +772,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
     entrypoint_name_hash_map_t::const_iterator it = get_vogl_entrypoint_hashmap().find(gl_func_name);
     if (it == get_vogl_entrypoint_hashmap().end())
     {
-        vogl_error_printf("%s: Unknown GL function name: \"%s\"\n", VOGL_METHOD_NAME, gl_func_name.get_ptr());
+        vogl_error_printf("%s: Unknown GL function name: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, gl_func_name.get_ptr());
         print_json_context(pDocument_filename, node);
         return false;
     }
@@ -798,13 +798,13 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
     {
         if (entrypoint_desc.m_num_params)
         {
-            vogl_error_printf("%s: Failed finding params key!\n", VOGL_METHOD_NAME);
+            vogl_error_printf("%s: Failed finding params key!\n", VOGL_FUNCTION_INFO_CSTR);
             print_json_context(pDocument_filename, node);
             return false;
         }
         else
         {
-            vogl_warning_printf("%s: Failed finding params key! Substituting a dummy empty node and trying to deserialize anyway.\n", VOGL_METHOD_NAME);
+            vogl_warning_printf("%s: Failed finding params key! Substituting a dummy empty node and trying to deserialize anyway.\n", VOGL_FUNCTION_INFO_CSTR);
         }
         dummy_node.init_object();
         pParams_node = &dummy_node;
@@ -812,7 +812,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
 
     if (!pParams_node->is_object())
     {
-        vogl_error_printf("%s: Failed finding params key!\n", VOGL_METHOD_NAME);
+        vogl_error_printf("%s: Failed finding params key!\n", VOGL_FUNCTION_INFO_CSTR);
         print_json_context(pDocument_filename, *pParams_node);
         return false;
     }
@@ -820,7 +820,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
     uint num_params = pParams_node->size();
     if (num_params != entrypoint_desc.m_num_params)
     {
-        vogl_error_printf("%s: Unexpected number of param keys (expected %u, found %u)\n", VOGL_METHOD_NAME, entrypoint_desc.m_num_params, num_params);
+        vogl_error_printf("%s: Unexpected number of param keys (expected %u, found %u)\n", VOGL_FUNCTION_INFO_CSTR, entrypoint_desc.m_num_params, num_params);
         print_json_context(pDocument_filename, *pParams_node);
         return false;
     }
@@ -830,14 +830,14 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
     {
         if (has_return_key)
         {
-            vogl_error_printf("%s: Unexpected return key\n", VOGL_METHOD_NAME);
+            vogl_error_printf("%s: Unexpected return key\n", VOGL_FUNCTION_INFO_CSTR);
             print_json_context(pDocument_filename, node);
             return false;
         }
     }
     else if (!has_return_key)
     {
-        vogl_error_printf("%s: Missing return key\n", VOGL_METHOD_NAME);
+        vogl_error_printf("%s: Missing return key\n", VOGL_FUNCTION_INFO_CSTR);
         print_json_context(pDocument_filename, node);
         return false;
     }
@@ -859,7 +859,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
     // The rnd value can't be 0,
     if (m_packet.m_rnd < vogl_trace_stream_packet_base::cMinimumPossibleRnd)
     {
-        vogl_warning_printf("%s: rnd_check value cannot be 0\n", VOGL_METHOD_NAME);
+        vogl_warning_printf("%s: rnd_check value cannot be 0\n", VOGL_FUNCTION_INFO_CSTR);
         print_json_context(pDocument_filename, node, cWarningConsoleMessage);
         m_packet.m_rnd = vogl_trace_stream_packet_base::cMinimumPossibleRnd;
     }
@@ -897,7 +897,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
     {
         if (!pName_value_array->is_array())
         {
-            vogl_error_printf("%s: name_value_map is not an array\n", VOGL_METHOD_NAME);
+            vogl_error_printf("%s: name_value_map is not an array\n", VOGL_FUNCTION_INFO_CSTR);
             print_json_context(pDocument_filename, *pName_value_array);
             return false;
         }
@@ -912,7 +912,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
             const json_node *pItem_node = pName_value_array->get_value_as_object(name_value_node_iter);
             if (!pItem_node)
             {
-                vogl_error_printf("%s: Expected object in name_value_map array\n", VOGL_METHOD_NAME);
+                vogl_error_printf("%s: Expected object in name_value_map array\n", VOGL_FUNCTION_INFO_CSTR);
                 print_json_context(pDocument_filename, *pName_value_array, name_value_node_iter);
                 return false;
             }
@@ -921,7 +921,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
             dynamic_string key_str(item_node.value_as_string("key"));
             if (key_str.is_empty())
             {
-                vogl_error_printf("%s: Expected key in name_value_map array\n", VOGL_METHOD_NAME);
+                vogl_error_printf("%s: Expected key in name_value_map array\n", VOGL_FUNCTION_INFO_CSTR);
                 print_json_context(pDocument_filename, *pName_value_array, name_value_node_iter);
                 return false;
             }
@@ -931,7 +931,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
 
             if ((!pKey_type_str) || (!pValue_type_str))
             {
-                vogl_error_printf("%s: Invalid data_types array in name_value_map object\n", VOGL_METHOD_NAME);
+                vogl_error_printf("%s: Invalid data_types array in name_value_map object\n", VOGL_FUNCTION_INFO_CSTR);
                 print_json_context(pDocument_filename, *pName_value_array, name_value_node_iter);
                 return false;
             }
@@ -940,7 +940,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
             value_data_type value_type = string_to_value_data_type(pValue_type_str);
             if ((key_type == cDTInvalid) || (value_type == cDTInvalid))
             {
-                vogl_error_printf("%s: Invalid data_types array in name_value_map object\n", VOGL_METHOD_NAME);
+                vogl_error_printf("%s: Invalid data_types array in name_value_map object\n", VOGL_FUNCTION_INFO_CSTR);
                 print_json_context(pDocument_filename, *pName_value_array, name_value_node_iter);
                 return false;
             }
@@ -948,14 +948,14 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
             value key, val;
             if (!key.parse(key_str.get_ptr()))
             {
-                vogl_error_printf("%s: Failed parsing name_value_map key string %s\n", VOGL_METHOD_NAME, key_str.get_ptr());
+                vogl_error_printf("%s: Failed parsing name_value_map key string %s\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
                 print_json_context(pDocument_filename, *pName_value_array, name_value_node_iter);
                 return false;
             }
 
             if (!force_value_to_type(key, key_type))
             {
-                vogl_error_printf("%s: Failed parsing name_value_map key %s\n", VOGL_METHOD_NAME, key_str.get_ptr());
+                vogl_error_printf("%s: Failed parsing name_value_map key %s\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
                 print_json_context(pDocument_filename, *pName_value_array, name_value_node_iter);
                 return false;
             }
@@ -964,7 +964,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
 
             if ((value_type == cDTBlob) && (json_val.is_object()))
             {
-                //vogl_error_printf("%s: Expected JSON object for name_value_map node key %s\n", VOGL_METHOD_NAME, key_str.get_ptr());
+                //vogl_error_printf("%s: Expected JSON object for name_value_map node key %s\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
                 //print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                 //return false;
 
@@ -973,7 +973,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
                 dynamic_string blob_id;
                 if (!blob_node.get_value_as_string("blob_id", blob_id))
                 {
-                    vogl_error_printf("%s: Failed parsing blob_file key in name_value_map node key %s\n", VOGL_METHOD_NAME, key_str.get_ptr());
+                    vogl_error_printf("%s: Failed parsing blob_file key in name_value_map node key %s\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
                     print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                     return false;
                 }
@@ -981,7 +981,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
                 uint64_t blob_crc64 = 0;
                 if (!get_uint64_from_json_node(blob_node, "crc64", blob_crc64))
                 {
-                    vogl_error_printf("%s: Failed parsing crc64 key in name_value_map node key %s\n", VOGL_METHOD_NAME, key_str.get_ptr());
+                    vogl_error_printf("%s: Failed parsing crc64 key in name_value_map node key %s\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
                     print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                     return false;
                 }
@@ -989,21 +989,21 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
                 uint64_t blob_size = 0;
                 if (!get_uint64_from_json_node(blob_node, "size", blob_size))
                 {
-                    vogl_error_printf("%s: Failed parsing size key in name_value_map node key %s\n", VOGL_METHOD_NAME, key_str.get_ptr());
+                    vogl_error_printf("%s: Failed parsing size key in name_value_map node key %s\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
                     print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                     return false;
                 }
 
                 if (blob_size > cUINT32_MAX)
                 {
-                    vogl_error_printf("%s: Blob size is too large (%" PRIu64 "), blob id %s key %s\n", VOGL_METHOD_NAME, blob_size, blob_id.get_ptr(), key_str.get_ptr());
+                    vogl_error_printf("%s: Blob size is too large (%" PRIu64 "), blob id %s key %s\n", VOGL_FUNCTION_INFO_CSTR, blob_size, blob_id.get_ptr(), key_str.get_ptr());
                     print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                     return false;
                 }
 
                 if (!pBlob_manager)
                 {
-                    vogl_error_printf("%s: Encountered data blob in packet but no blob manager was specified, blob size %" PRIu64 " blob id %s key %s\n", VOGL_METHOD_NAME, blob_size, blob_id.get_ptr(), key_str.get_ptr());
+                    vogl_error_printf("%s: Encountered data blob in packet but no blob manager was specified, blob size %" PRIu64 " blob id %s key %s\n", VOGL_FUNCTION_INFO_CSTR, blob_size, blob_id.get_ptr(), key_str.get_ptr());
                     print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                     return false;
                 }
@@ -1011,7 +1011,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
                 uint8_vec blob;
                 if (!pBlob_manager->get(blob_id, blob))
                 {
-                    vogl_error_printf("%s: Failed retrieving data blob, blob size %" PRIu64 " blob id %s key %s CRC64 0x%" PRIX64 "\n", VOGL_METHOD_NAME, blob_size, blob_id.get_ptr(), key_str.get_ptr(), blob_crc64);
+                    vogl_error_printf("%s: Failed retrieving data blob, blob size %" PRIu64 " blob id %s key %s CRC64 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, blob_size, blob_id.get_ptr(), key_str.get_ptr(), blob_crc64);
                     print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                     return false;
                 }
@@ -1021,21 +1021,21 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
                 // TODO: We'll eventually support enormous blob files
                 if (actual_blob_size > cUINT32_MAX)
                 {
-                    vogl_error_printf("%s: Blob size is too large (%" PRIu64 "), blob id %s key %s\n", VOGL_METHOD_NAME, actual_blob_size, blob_id.get_ptr(), key_str.get_ptr());
+                    vogl_error_printf("%s: Blob size is too large (%" PRIu64 "), blob id %s key %s\n", VOGL_FUNCTION_INFO_CSTR, actual_blob_size, blob_id.get_ptr(), key_str.get_ptr());
                     print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                     return false;
                 }
 
                 if (actual_blob_size != blob_size)
                 {
-                    vogl_warning_printf("%s: Unexpected size of blob id %s (should be %" PRIu64 " bytes, but is %" PRIu64 " bytes), reading all of file and hoping for the best\n", VOGL_METHOD_NAME, blob_id.get_ptr(), blob_size, actual_blob_size);
+                    vogl_warning_printf("%s: Unexpected size of blob id %s (should be %" PRIu64 " bytes, but is %" PRIu64 " bytes), reading all of file and hoping for the best\n", VOGL_FUNCTION_INFO_CSTR, blob_id.get_ptr(), blob_size, actual_blob_size);
                     print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter, cWarningConsoleMessage);
                 }
 
                 uint64_t check_crc64 = calc_crc64(CRC64_INIT, blob.get_ptr(), blob.size());
                 if (check_crc64 != blob_crc64)
                 {
-                    vogl_warning_printf("%s: name_value_map blob file %s's CRC64 is bad (expected 0x%016" PRIX64 " got 0x%016" PRIX64 ")\n", VOGL_METHOD_NAME, blob_id.get_ptr(), blob_crc64, check_crc64);
+                    vogl_warning_printf("%s: name_value_map blob file %s's CRC64 is bad (expected 0x%016" PRIX64 " got 0x%016" PRIX64 ")\n", VOGL_FUNCTION_INFO_CSTR, blob_id.get_ptr(), blob_crc64, check_crc64);
                     print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter, cWarningConsoleMessage);
                 }
 
@@ -1065,7 +1065,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
                         const char *pStr = json_val.as_string_ptr();
                         if (!pStr || !val.parse(pStr))
                         {
-                            vogl_error_printf("%s: Failed parsing name_value_map value type for key %s\n", VOGL_METHOD_NAME, key_str.get_ptr());
+                            vogl_error_printf("%s: Failed parsing name_value_map value type for key %s\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
                             print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                             return false;
                         }
@@ -1074,7 +1074,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
                     default:
                     {
                         // Just skip it.
-                        vogl_error_printf("%s: Unexpected name_value_map value type for key %s\n", VOGL_METHOD_NAME, key_str.get_ptr());
+                        vogl_error_printf("%s: Unexpected name_value_map value type for key %s\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
                         print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                         break;
                     }
@@ -1083,7 +1083,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
 
             if (!force_value_to_type(val, value_type))
             {
-                vogl_error_printf("%s: Failed parsing value for name_value_map key %s\n", VOGL_METHOD_NAME, key_str.get_ptr());
+                vogl_error_printf("%s: Failed parsing value for name_value_map key %s\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
                 print_json_context(pDocument_filename, json_val, *pName_value_array, name_value_node_iter);
                 return false;
             }
@@ -1417,11 +1417,11 @@ bool vogl_trace_packet::json_serialize_param(
                         id = params.m_pBlob_manager->add_buf_compute_unique_id(pClient_mem, client_mem_size, prefix, "blob", &client_mem_crc64);
                         if (id.is_empty())
                         {
-                            vogl_error_printf("%s: Failed adding blob %s to blob manager\n", VOGL_METHOD_NAME, prefix.get_ptr());
+                            vogl_error_printf("%s: Failed adding blob %s to blob manager\n", VOGL_FUNCTION_INFO_CSTR, prefix.get_ptr());
                             return false;
                         }
 
-                        vogl_message_printf("%s: Wrote blob id %s\n", VOGL_METHOD_NAME, id.get_ptr());
+                        vogl_message_printf("%s: Wrote blob id %s\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
                     }
                     else
                     {
@@ -1846,7 +1846,7 @@ bool vogl_trace_packet::json_deserialize_param(
 
                 if (!pBlob_manager)
                 {
-                    vogl_error_printf("%s: No blob manager specified, blob id %s\n", VOGL_METHOD_NAME, blob_id.get_ptr());
+                    vogl_error_printf("%s: No blob manager specified, blob id %s\n", VOGL_FUNCTION_INFO_CSTR, blob_id.get_ptr());
                     print_json_context(pDocument_filename, *pParam_obj);
                     return false;
                 }
@@ -1854,7 +1854,7 @@ bool vogl_trace_packet::json_deserialize_param(
                 uint8_vec data_blob;
                 if (!pBlob_manager->get(blob_id, data_blob))
                 {
-                    vogl_error_printf("%s: Failed retrieving data blob, blob size %" PRIu64 " blob id %s CRC64 0x%" PRIX64 "\n", VOGL_METHOD_NAME, mem_size, blob_id.get_ptr(), blob_crc64);
+                    vogl_error_printf("%s: Failed retrieving data blob, blob size %" PRIu64 " blob id %s CRC64 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, mem_size, blob_id.get_ptr(), blob_crc64);
                     print_json_context(pDocument_filename, *pParam_obj);
                     return false;
                 }
@@ -1863,7 +1863,7 @@ bool vogl_trace_packet::json_deserialize_param(
                 uint64_t file_size = data_blob.size();
                 if (file_size > cUINT32_MAX)
                 {
-                    vogl_error_printf("%s: Blob file %s is too large (%" PRIu64 ")\n", VOGL_METHOD_NAME, blob_id.get_ptr(), file_size);
+                    vogl_error_printf("%s: Blob file %s is too large (%" PRIu64 ")\n", VOGL_FUNCTION_INFO_CSTR, blob_id.get_ptr(), file_size);
                     print_json_context(pDocument_filename, *pParam_obj);
                     return false;
                 }
@@ -2489,7 +2489,7 @@ bool vogl_write_glInternalTraceCommandRAD(data_stream &stream, const vogl_ctypes
         }
         default:
         {
-            vogl_error_printf("%s: Unknown trace command type %u\n", VOGL_FUNCTION_NAME, cmd);
+            vogl_error_printf("%s: Unknown trace command type %u\n", VOGL_FUNCTION_INFO_CSTR, cmd);
             VOGL_ASSERT_ALWAYS;
             return false;
         }

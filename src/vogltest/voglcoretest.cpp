@@ -116,7 +116,7 @@ static bool init_command_line_params(int argc, char *argv[])
 
     if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
-        console::error("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_NAME);
+        console::error("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 

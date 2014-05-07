@@ -538,7 +538,7 @@ void vogleditor_QProgramExplorer::update_uniforms_for_program(vogl_program_state
                 default:
                 {
                     VOGL_ASSERT_ALWAYS;
-                    vogl_warning_printf("%s: Unknown uniform type 0x%04X\n", VOGL_FUNCTION_NAME, uniformVec[i].m_type);
+                    vogl_warning_printf("%s: Unknown uniform type 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, uniformVec[i].m_type);
                     continue;
                 }
             } // end switch

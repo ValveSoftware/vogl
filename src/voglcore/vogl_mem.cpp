@@ -404,7 +404,7 @@ void vogl_init_heap()
 void vogl_mem_error(const char *pMsg, const char *pFile_line)
 {
     char buf[512];
-    vogl::vogl_sprintf_s(buf, sizeof(buf), "%s: Fatal error: %s. Originally called from %s.\n", VOGL_FUNCTION_NAME, pMsg, pFile_line ? pFile_line : "?");
+    vogl::vogl_sprintf_s(buf, sizeof(buf), "%s: Fatal error: %s. Originally called from %s.\n", VOGL_FUNCTION_INFO_CSTR, pMsg, pFile_line ? pFile_line : "?");
     vogl_fail(buf, __FILE__, __LINE__);
     abort();
 }

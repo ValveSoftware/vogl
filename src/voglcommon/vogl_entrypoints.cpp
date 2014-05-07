@@ -253,7 +253,7 @@ void vogl_init_gl_entrypoint_descs()
         {
             if (g_vogl_entrypoint_param_descs[i][1].m_namespace != VOGL_NAMESPACE_TEXTURES)
             {
-                vogl_error_printf("%s: vogl_namespace_t enum is bad, please rebuild", VOGL_FUNCTION_NAME);
+                vogl_error_printf("%s: vogl_namespace_t enum is bad, please rebuild", VOGL_FUNCTION_INFO_CSTR);
                 exit(EXIT_FAILURE);
             }
         }
@@ -261,19 +261,19 @@ void vogl_init_gl_entrypoint_descs()
         if (desc.m_return_ctype != VOGL_VOID)
         {
             if ((size_t)get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_size < 1)
-                vogl_warning_printf("%s: function %s's return ctype %s is too small\n", VOGL_FUNCTION_NAME, desc.m_pName, get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_pName);
+                vogl_warning_printf("%s: function %s's return ctype %s is too small\n", VOGL_FUNCTION_INFO_CSTR, desc.m_pName, get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_pName);
 
             if ((size_t)get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_size > sizeof(uint64_t))
-                vogl_warning_printf("%s: function %s's return ctype %s is too large\n", VOGL_FUNCTION_NAME, desc.m_pName, get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_pName);
+                vogl_warning_printf("%s: function %s's return ctype %s is too large\n", VOGL_FUNCTION_INFO_CSTR, desc.m_pName, get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_pName);
         }
 
         for (uint j = 0; j < desc.m_num_params; j++)
         {
             if ((size_t)get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_size < 1)
-                vogl_warning_printf("%s: param %u of function %s ctype %s is too small\n", VOGL_FUNCTION_NAME, j, desc.m_pName, get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_pName);
+                vogl_warning_printf("%s: param %u of function %s ctype %s is too small\n", VOGL_FUNCTION_INFO_CSTR, j, desc.m_pName, get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_pName);
 
             if ((size_t)get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_size > sizeof(uint64_t))
-                vogl_warning_printf("%s: param %u of function %s ctype %s is too large\n", VOGL_FUNCTION_NAME, j, desc.m_pName, get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_pName);
+                vogl_warning_printf("%s: param %u of function %s ctype %s is too large\n", VOGL_FUNCTION_INFO_CSTR, j, desc.m_pName, get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_pName);
         }
 
         desc.m_pAPI_prefix = "GL";
@@ -288,7 +288,7 @@ void vogl_init_gl_entrypoint_descs()
             desc.m_pAPI_prefix = "GL";
         else
         {
-            vogl_warning_printf("%s: Unknown function prefix: %s\n", VOGL_FUNCTION_NAME, desc.m_pName);
+            vogl_warning_printf("%s: Unknown function prefix: %s\n", VOGL_FUNCTION_INFO_CSTR, desc.m_pName);
         }
     }
 

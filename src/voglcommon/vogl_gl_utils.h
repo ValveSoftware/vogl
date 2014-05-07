@@ -386,8 +386,8 @@ extern bool g_gl_get_error_enabled;
 
 // Returns *true* if there was an error.
 bool vogl_check_gl_error_internal(bool suppress_error_message = false, const char *pFile = "", uint line = 0, const char *pFunc = "");
-#define vogl_check_gl_error() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(false, __FILE__, __LINE__, VOGL_METHOD_NAME) : false)
-#define vogl_check_gl_error_suppress_message() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(true, __FILE__, __LINE__, VOGL_METHOD_NAME) : false)
+#define vogl_check_gl_error() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(false, __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR) : false)
+#define vogl_check_gl_error_suppress_message() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(true, __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR) : false)
 
 #define VOGL_CHECK_GL_ERROR                          \
     do                                               \

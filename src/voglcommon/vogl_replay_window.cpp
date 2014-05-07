@@ -82,7 +82,7 @@ bool vogl_replay_window::open(int width, int height, int samples)
         m_dpy = XOpenDisplay(NULL);
         if (!m_dpy)
         {
-            console::error("%s: XOpenDisplay() failed!\n", VOGL_METHOD_NAME);
+            console::error("%s: XOpenDisplay() failed!\n", VOGL_FUNCTION_INFO_CSTR);
             return false;
         }
 
@@ -91,14 +91,14 @@ bool vogl_replay_window::open(int width, int height, int samples)
         m_pFB_configs = GL_ENTRYPOINT(glXChooseFBConfig)(m_dpy, DefaultScreen(m_dpy), fbAttribs, &m_num_fb_configs);
         if ((!m_pFB_configs) || (!m_num_fb_configs))
         {
-            console::error("%s: glXChooseFBConfig() failed!\n", VOGL_METHOD_NAME);
+            console::error("%s: glXChooseFBConfig() failed!\n", VOGL_FUNCTION_INFO_CSTR);
             return false;
         }
 
         XVisualInfo *pVisual_info = GL_ENTRYPOINT(glXGetVisualFromFBConfig)(m_dpy, m_pFB_configs[0]);
         if (!pVisual_info)
         {
-            console::error("%s: glXGetVisualFromFBConfig() failed!\n", VOGL_METHOD_NAME);
+            console::error("%s: glXGetVisualFromFBConfig() failed!\n", VOGL_FUNCTION_INFO_CSTR);
             return false;
         }
 
@@ -144,7 +144,7 @@ bool vogl_replay_window::open(int width, int height, int samples)
 
         uint actual_width = 0, actual_height = 0;
         vogl_replay_window::get_actual_dimensions(actual_width, actual_height);
-        vogl_debug_printf("%s: Created window, requested dimensions %ux%u, actual dimensions %ux%u\n", VOGL_METHOD_NAME, m_width, m_height, actual_width, actual_height);
+        vogl_debug_printf("%s: Created window, requested dimensions %ux%u, actual dimensions %ux%u\n", VOGL_FUNCTION_INFO_CSTR, m_width, m_height, actual_width, actual_height);
 
         return true;
     #else

@@ -301,7 +301,7 @@ void vogl_init_gl_ctypes()
             if (!has_pointee_ctype)
             {
                 if (!desc.m_is_opaque_pointer)
-                    vogl_warning_printf("%s: ctype %s is a non-opaque pointer, but does not have a valid pointee ctype!\n", VOGL_FUNCTION_NAME, desc.m_pName);
+                    vogl_warning_printf("%s: ctype %s is a non-opaque pointer, but does not have a valid pointee ctype!\n", VOGL_FUNCTION_INFO_CSTR, desc.m_pName);
             }
             else
             {
@@ -309,17 +309,17 @@ void vogl_init_gl_ctypes()
 
                 if ((desc.m_is_opaque_pointer) && (pointee_desc.m_size > 0))
                 {
-                    vogl_warning_printf("%s: ctype %s is a pointer with a valid pointee ctype %s size %i, but has been marked as an opaque ptr!\n", VOGL_FUNCTION_NAME, desc.m_pName, g_vogl_ctype_descs[desc.m_pointee_ctype].m_pName, pointee_desc.m_size);
+                    vogl_warning_printf("%s: ctype %s is a pointer with a valid pointee ctype %s size %i, but has been marked as an opaque ptr!\n", VOGL_FUNCTION_INFO_CSTR, desc.m_pName, g_vogl_ctype_descs[desc.m_pointee_ctype].m_pName, pointee_desc.m_size);
                 }
 
                 if ((!pointee_desc.m_size) && (desc.m_pointee_ctype != VOGL_GLVOID) && (desc.m_pointee_ctype != VOGL_VOID))
-                    vogl_warning_printf("%s: ctype %s is a pointer with a valid pointee ctype, but the pointee type has a size of zero\n", VOGL_FUNCTION_NAME, desc.m_pName);
+                    vogl_warning_printf("%s: ctype %s is a pointer with a valid pointee ctype, but the pointee type has a size of zero\n", VOGL_FUNCTION_INFO_CSTR, desc.m_pName);
             }
         }
         else if (has_pointee_ctype)
-            vogl_warning_printf("%s: ctype %s is not a pointer, but has a pointee ctype!\n", VOGL_FUNCTION_NAME, desc.m_pName);
+            vogl_warning_printf("%s: ctype %s is not a pointer, but has a pointee ctype!\n", VOGL_FUNCTION_INFO_CSTR, desc.m_pName);
         else if (desc.m_is_opaque_pointer)
-            vogl_warning_printf("%s: ctype %s is not a pointer, but has been marked as an opaque pointer!\n", VOGL_FUNCTION_NAME, desc.m_pName);
+            vogl_warning_printf("%s: ctype %s is not a pointer, but has been marked as an opaque pointer!\n", VOGL_FUNCTION_INFO_CSTR, desc.m_pName);
     }
 
     get_vogl_process_gl_ctypes().init();

@@ -520,7 +520,7 @@ public:
         {
             if (!validate_value_conversion(sizeof(T), Loki::TypeTraits<T>::typeFlags, param_index))
             {
-                console::warning("%s: Parameter value conversion of call counter %llu func %s parameter \"%s %s\" to dest type size %u will fail, size %u value=0x%08llx\n", VOGL_METHOD_NAME,
+                console::warning("%s: Parameter value conversion of call counter %llu func %s parameter \"%s %s\" to dest type size %u will fail, size %u value=0x%08llx\n", VOGL_FUNCTION_INFO_CSTR,
                                  (unsigned long long)m_packet.m_call_counter,
                                  get_entrypoint_desc().m_pName,
                                  get_param_ctype_desc(param_index).m_pName, get_param_desc(param_index).m_pName,
@@ -600,7 +600,7 @@ public:
         {
             if (!validate_value_conversion(sizeof(T), Loki::TypeTraits<T>::typeFlags, -1))
             {
-                console::warning("%s: Return value conversion of call counter %llu func %s return value type \"%s\" to dest type size %u will fail, size %u value=0x%08llx\n", VOGL_METHOD_NAME,
+                console::warning("%s: Return value conversion of call counter %llu func %s return value type \"%s\" to dest type size %u will fail, size %u value=0x%08llx\n", VOGL_FUNCTION_INFO_CSTR,
                                  (unsigned long long)m_packet.m_call_counter,
                                  get_entrypoint_desc().m_pName,
                                  get_return_value_ctype_desc().m_pName,

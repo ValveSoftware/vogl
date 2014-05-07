@@ -178,7 +178,7 @@ bool vogl_arb_program_state::restore(const vogl_context_info &context_info, vogl
 
                 m_error_string.set(pError_string ? reinterpret_cast<const char *>(pError_string) : "");
 
-                vogl_error_printf("%s: Failed restoring ARB %s shader, GL handle %u, error position %i, is native: %u, error string: %s\n", VOGL_METHOD_NAME,
+                vogl_error_printf("%s: Failed restoring ARB %s shader, GL handle %u, error position %i, is native: %u, error string: %s\n", VOGL_FUNCTION_INFO_CSTR,
                                  vogl_get_arb_program_target_name(m_target), handle32, m_error_position, m_is_native, m_error_string.get_ptr());
             }
         }
@@ -414,7 +414,7 @@ bool vogl_arb_program_environment_state::restore(const vogl_context_info &contex
         GLuint num = (i == cVertexTarget) ? context_info.get_max_arb_vertex_program_env_params() : context_info.get_max_arb_fragment_program_env_params();
 
         if (m_env_params[i].size() > num)
-            vogl_error_printf("%s: Context only supports %u max ARB program env programs, but the snapshot has %u params\n", VOGL_METHOD_NAME, num, m_env_params[i].size());
+            vogl_error_printf("%s: Context only supports %u max ARB program env programs, but the snapshot has %u params\n", VOGL_FUNCTION_INFO_CSTR, num, m_env_params[i].size());
 
         num = math::minimum<uint>(num, m_env_params[i].size());
 

@@ -196,7 +196,7 @@ void* plat_virtual_alloc(size_t size_requested, vogl::uint32 access_flags, size_
         char *pError_desc = strerror(e);
 
         char buf[256];
-        sprintf(buf, "%s: mmap() of %zu bytes failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_NAME, size_requested, pError_desc, e);
+        sprintf(buf, "%s: mmap() of %zu bytes failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_INFO_CSTR, size_requested, pError_desc, e);
 
         write(STDERR_FILENO, buf, strlen(buf));
         abort();
@@ -218,7 +218,7 @@ void plat_virtual_free(void* free_addr, size_t size)
         char *pError_desc = strerror(e);
 
         char buf[256];
-        sprintf(buf, "%s: munmap() free_addr 0x%" PRIxPTR " size 0x%" PRIxPTR " failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_NAME, (uintptr_t)free_addr, size, pError_desc, e);
+        sprintf(buf, "%s: munmap() free_addr 0x%" PRIxPTR " size 0x%" PRIxPTR " failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_INFO_CSTR, (uintptr_t)free_addr, size, pError_desc, e);
 
         write(STDERR_FILENO, buf, strlen(buf));
         abort();

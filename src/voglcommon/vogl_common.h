@@ -98,10 +98,10 @@ public:
 };
 
 #define VOGL_FUNC_TRACER                                                                          \
-    vogl_scoped_func_tracer VOGL_JOIN(func_tracer, __COUNTER__)(VOGL_METHOD_NAME, __LINE__); \
-    tmZone(TELEMETRY_LEVEL1, TMZF_NONE, "%s", VOGL_METHOD_NAME);
+    vogl_scoped_func_tracer VOGL_JOIN(func_tracer, __COUNTER__)(VOGL_FUNCTION_INFO_CSTR, __LINE__); \
+    tmZone(TELEMETRY_LEVEL1, TMZF_NONE, "%s", VOGL_FUNCTION_INFO_CSTR);
 #else
-#define VOGL_FUNC_TRACER tmZone(TELEMETRY_LEVEL1, TMZF_NONE, "%s", VOGL_METHOD_NAME);
+#define VOGL_FUNC_TRACER tmZone(TELEMETRY_LEVEL1, TMZF_NONE, "%s", VOGL_FUNCTION_INFO_CSTR);
 #endif
 
 #define VOGL_NAMESPACES_HEADER
