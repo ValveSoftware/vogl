@@ -29,7 +29,7 @@
 #include "vogl_sync_object.h"
 #include "vogl_trace_file_writer.h"
 #include "vogl_texture_format.h"
-#include "gl_glx_replay_helper_macros.inc"
+#include "gl_glx_wgl_replay_helper_macros.inc"
 #include "vogl_backtrace.h"
 
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
@@ -4181,7 +4181,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 #define VOGL_SIMPLE_REPLAY_FUNC_END(name) ); \
     break;                                  \
     }
-#include "gl_glx_simple_replay_funcs.inc"
+#include "gl_glx_wgl_simple_replay_funcs.inc"
 #undef VOGL_SIMPLE_REPLAY_FUNC_BEGIN
 #undef VOGL_SIMPLE_REPLAY_FUNC_PARAM_VALUE
 #undef VOGL_SIMPLE_REPLAY_FUNC_PARAM_SEPERATOR

@@ -1,0 +1,8 @@
+wglChoosePixelFormat
+wglCreateContext
+wglDescribePixelFormat
+wglGetPixelFormat
+wglGetProcAddress
+wglMakeCurrent
+wglSetPixelFormat
+wglSwapBuffers

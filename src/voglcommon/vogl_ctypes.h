@@ -81,7 +81,7 @@ typedef uint64_t vogl_trace_ptr_value;
 enum vogl_ctype_t
 {
 #define DEF_TYPE(name, ctype) name,
-#include "gl_glx_ctypes.inc"
+#include "gl_glx_wgl_ctypes.inc"
 #undef DEF_TYPE
     VOGL_NUM_CTYPES
 };

@@ -127,10 +127,7 @@ template <typename T>
 static inline uint64_t cast_val_to_uint64(const T &value)
 {
     int64_t res = 0;
-    uint n = sizeof(T);
-    if (n > sizeof(uint64_t))
-        n = sizeof(uint64_t);
-    memcpy(&res, &value, n);
+    memcpy(&res, &value, VOGL_MIN(sizeof(uint64_t), sizeof(T)));
     return res;
 }
 
