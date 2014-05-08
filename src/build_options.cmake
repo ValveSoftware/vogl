@@ -343,6 +343,12 @@ function(require_pthreads)
 
     if (MSVC)
         include_directories("${WIN32_PTHREADS_INCLUDE_PATH}")
+        if (BUILD_X64)
+            set(PTHREAD_SRC_DLL "${WIN32_PTHREADS_PATH}/dll/x64/pthreadVC2.dll" PARENT_SCOPE)
+        else()
+            set(PTHREAD_SRC_DLL "${WIN32_PTHREADS_PATH}/dll/x86/pthreadVC2.dll" PARENT_SCOPE)
+        endif()
+
     else()
         # Export the variable to the parent scope so the linker knows where to find the library.
         set(CMAKE_THREAD_LIBS_INIT ${CMAKE_THREAD_LIBS_INIT} PARENT_SCOPE)

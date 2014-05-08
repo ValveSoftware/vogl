@@ -117,11 +117,6 @@ pid_t plat_getpid()
     return static_cast<pid_t>(GetCurrentProcessId());
 }
 
-pid_t plat_getppid()
-{
-    return 0;
-}
-
 size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length)
 {
     VOGL_ASSUME(sizeof(vogl::uint32) == sizeof(unsigned int));
@@ -237,7 +232,6 @@ HMODULE _load_opengl32_dll()
 {
     char system_directory_root[_MAX_PATH];
     char module_name[_MAX_PATH];
-    const char str_opengl32[] = "opengl32.dll";
 
     // These are basically backwards. GG Microsoft.
     #if defined(PLATFORM_64BIT)
@@ -247,10 +241,9 @@ HMODULE _load_opengl32_dll()
         // and we can use that cue to go ask for the regular ol' 32-bit variant.
         if (GetSystemWow64DirectoryA(system_directory_root, VOGL_ARRAY_SIZE(system_directory_root)) == 0)
             GetSystemDirectoryA(system_directory_root, VOGL_ARRAY_SIZE(system_directory_root));
-
     #endif
 
-    sprintf_s(module_name, VOGL_ARRAY_SIZE(module_name), "%s\\%s", system_directory_root, str_opengl32);
+    sprintf_s(module_name, VOGL_ARRAY_SIZE(module_name), "%s\\%s", system_directory_root, plat_get_system_gl_module_name());
     
     HMODULE retModule = LoadLibraryEx(module_name, NULL, 0);
     return retModule;
@@ -258,10 +251,10 @@ HMODULE _load_opengl32_dll()
 
 void* plat_dlsym(void* handle, const char* symbol)
 {
-    // TODO: This leaks, need to not leak.
-    static HMODULE hOpenGL32 = _load_opengl32_dll();
     if (handle == PLAT_RTLD_NEXT)
     {
+        // TODO: This leaks, we shouldn't leak.
+        static HMODULE hOpenGL32 = _load_opengl32_dll();
         handle = hOpenGL32;
     }
 
@@ -269,4 +262,9 @@ void* plat_dlsym(void* handle, const char* symbol)
     return func;
 }
 
+void* plat_load_system_gl(int _flags)
+{
+    VOGL_NOTE_UNUSED(_flags);
 
+    return (void*)_load_opengl32_dll();
+}

@@ -9,7 +9,7 @@ find_package(X11 REQUIRED)
 
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
-    )
+)
 
 include_directories(
     ${SRC_DIR}/voglcore
@@ -17,7 +17,7 @@ include_directories(
     ${SRC_DIR}/voglcommon
 	${SRC_DIR}/libtelemetry
 	${SRC_DIR}/extlib/loki/include/loki
-    )
+)
 
 set(SRC_LIST
     ${SRC_LIST}
@@ -33,13 +33,11 @@ add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
 target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
-    backtracevogl
     voglcommon
     ${CMAKE_DL_LIBS}
     ${X11_X11_LIB}
     ${CMAKE_THREAD_LIBS_INIT}
     voglcore
-    rt
     )
 
 build_options_finalize()

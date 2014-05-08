@@ -158,7 +158,7 @@ add_custom_command(OUTPUT ${GENERATED_FILES}
 
 add_custom_target(voglgen_make_inc
                   ALL 
-                  DEPENDS ${PROJECT_NAME} ${GENERATED_FILES}
+                  DEPENDS voglgen ${GENERATED_FILES}
 )
 
 build_options_finalize()
