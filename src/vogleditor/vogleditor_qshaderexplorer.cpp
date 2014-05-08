@@ -53,6 +53,7 @@ void vogleditor_QShaderExplorer::clear()
 {
     ui->shaderListbox->clear();
     ui->shaderTextEdit->clear();
+    m_objects.clear();
 }
 
 uint vogleditor_QShaderExplorer::set_shader_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
@@ -92,7 +93,7 @@ uint vogleditor_QShaderExplorer::add_shader_objects(vogl_gl_object_state_ptr_vec
         }
     }
 
-    return m_objects.size();
+    return objects.size();
 }
 
 
