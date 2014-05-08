@@ -413,7 +413,7 @@ extern "C" {
 
 typedef unsigned char stbm__uint8;
 
-#if __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
 #include <stdint.h>
 
 #ifndef STBM_UINT32

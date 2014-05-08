@@ -543,7 +543,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             VOGL_ASSERT(f.m_actual_internal_fmt != GL_NONE);
 
             if ((f.m_optimum_get_image_fmt == GL_NONE) || (f.m_optimum_get_image_type == GL_NONE))
-                vogl_warning_printf("%s: Don't have an optimal get format/type for internal format %s\n", VOGL_FUNCTION_NAME, get_gl_enums().find_gl_name(fmt));
+                vogl_warning_printf("%s: Don't have an optimal get format/type for internal format %s\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(fmt));
 
             VOGL_ASSERT(fmt != GL_LUMINANCE);
 

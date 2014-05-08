@@ -1222,7 +1222,7 @@ public:
 					GLDEBUGPROC
 #endif
 
-                    //console::warning("%s: Couldn't map namespace %s\n", VOGL_METHOD_NAME, func_def.m_return_gl_type.get_ptr());
+                    //console::warning("%s: Couldn't map namespace %s\n", VOGL_FUNCTION_INFO_CSTR, func_def.m_return_gl_type.get_ptr());
                 }
             }
 
@@ -1430,7 +1430,7 @@ public:
                 param_def.m_namespace = vogl_find_namespace_from_gl_type(gl_param_type.get_ptr());
                 if (param_def.m_namespace == VOGL_NAMESPACE_INVALID)
                 {
-                    //console::warning("%s: Couldn't map namespace %s\n", VOGL_METHOD_NAME, gl_param_type.get_ptr());
+                    //console::warning("%s: Couldn't map namespace %s\n", VOGL_FUNCTION_INFO_CSTR, gl_param_type.get_ptr());
                 }
 
                 for (uint k = 0; k < APITRACE_PARAM_TYPE_ALIASES_ARRAY_SIZE; k++)
@@ -3774,7 +3774,7 @@ local:
             {
                 if (func.m_notlistable)
                 {
-                    console::error("%s: Func's %s m_notlistable and is_whitelisted_for_displaylists flags are not compatible!\n", VOGL_METHOD_NAME, full_func_name.get_ptr());
+                    console::error("%s: Func's %s m_notlistable and is_whitelisted_for_displaylists flags are not compatible!\n", VOGL_FUNCTION_INFO_CSTR, full_func_name.get_ptr());
                 }
             }
 
@@ -4633,7 +4633,7 @@ local:
 
         for (uint i = 0; i < used_flags.size(); i++)
             if (!used_flags[i])
-                console::warning("%s: Regex pattern \"%s\" from file \"%s\" did not match any function names!\n", VOGL_METHOD_NAME, regex_func_patterns[i].get_ptr(), pFilename);
+                console::warning("%s: Regex pattern \"%s\" from file \"%s\" did not match any function names!\n", VOGL_FUNCTION_INFO_CSTR, regex_func_patterns[i].get_ptr(), pFilename);
 
         return true;
     }
@@ -4650,7 +4650,7 @@ static bool init_command_line_params(int argc, char *argv[])
 
     if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
-        console::error("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_NAME);
+        console::error("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 

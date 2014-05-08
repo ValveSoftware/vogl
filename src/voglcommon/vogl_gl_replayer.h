@@ -508,8 +508,8 @@ private:
 
     // Returns *true* if any errors occurred.
     bool check_gl_error_internal(bool quietly = false, const char *pFile = "", uint line = 0, const char *pFunc = "");
-#define check_gl_error() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(false, __FILE__, __LINE__, VOGL_METHOD_NAME) : false)
-#define check_gl_error_quietly() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(true, __FILE__, __LINE__, VOGL_METHOD_NAME) : false)
+#define check_gl_error() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(false, __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR) : false)
+#define check_gl_error_quietly() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(true, __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR) : false)
 
     void destroy_contexts();
     void clear_contexts();
@@ -621,7 +621,7 @@ private:
 
         if (!replay_handle)
         {
-            process_entrypoint_error("%s: Handle gen failed during replay, but succeeded during trace! Trace handle: %u\n", VOGL_METHOD_NAME, trace_handle);
+            process_entrypoint_error("%s: Handle gen failed during replay, but succeeded during trace! Trace handle: %u\n", VOGL_FUNCTION_INFO_CSTR, trace_handle);
             return false;
         }
         else
@@ -629,7 +629,7 @@ private:
             gl_handle_hash_map::insert_result result(handle_hash_map.insert(trace_handle, replay_handle));
             if (!result.second)
             {
-                process_entrypoint_error("%s: Replacing genned GL handle %u trace handle %u in handle hash map (this indicates a handle shadowing error)\n", VOGL_METHOD_NAME, replay_handle, trace_handle);
+                process_entrypoint_error("%s: Replacing genned GL handle %u trace handle %u in handle hash map (this indicates a handle shadowing error)\n", VOGL_FUNCTION_INFO_CSTR, replay_handle, trace_handle);
 
                 gl_handle_hash_map::iterator it = result.first;
                 it->second = replay_handle;
@@ -657,7 +657,7 @@ private:
 
             if (!replay_id)
             {
-                process_entrypoint_error("%s: GL handle gen call failed, but succeeded in the trace!\n", VOGL_METHOD_NAME);
+                process_entrypoint_error("%s: GL handle gen call failed, but succeeded in the trace!\n", VOGL_FUNCTION_INFO_CSTR);
                 return false;
             }
 
@@ -667,7 +667,7 @@ private:
             gl_handle_hash_map::insert_result result(handle_hash_map.insert(pTrace_ids[i], replay_id));
             if (!result.second)
             {
-                process_entrypoint_error("%s: TODO: Replacing genned GL handle %u trace handle %u in handle hash map (this indicates a handle shadowing error)\n", VOGL_METHOD_NAME, replay_id, pTrace_ids[i]);
+                process_entrypoint_error("%s: TODO: Replacing genned GL handle %u trace handle %u in handle hash map (this indicates a handle shadowing error)\n", VOGL_FUNCTION_INFO_CSTR, replay_id, pTrace_ids[i]);
 
                 gl_handle_hash_map::iterator it = result.first;
                 it->second = replay_id;
@@ -703,7 +703,7 @@ private:
             {
                 replay_ids.push_back(trace_id);
 
-                process_entrypoint_warning("%s: Couldn't map trace GL handle %u to replay GL handle, using trace handle instead\n", VOGL_METHOD_NAME, pTrace_ids[i]);
+                process_entrypoint_warning("%s: Couldn't map trace GL handle %u to replay GL handle, using trace handle instead\n", VOGL_FUNCTION_INFO_CSTR, pTrace_ids[i]);
             }
         }
 
@@ -737,7 +737,7 @@ private:
 
             if (!replay_id)
             {
-                process_entrypoint_error("%s: GL handle gen call failed, but succeeded in the trace!\n", VOGL_METHOD_NAME);
+                process_entrypoint_error("%s: GL handle gen call failed, but succeeded in the trace!\n", VOGL_FUNCTION_INFO_CSTR);
                 return false;
             }
 
@@ -746,7 +746,7 @@ private:
 
             if (!handle_tracker.insert(pTrace_ids[i], replay_id, def_target))
             {
-                process_entrypoint_error("%s: Replacing genned GL handle %u trace handle %u in handle hash map (this indicates a handle shadowing error)\n", VOGL_METHOD_NAME, replay_id, pTrace_ids[i]);
+                process_entrypoint_error("%s: Replacing genned GL handle %u trace handle %u in handle hash map (this indicates a handle shadowing error)\n", VOGL_FUNCTION_INFO_CSTR, replay_id, pTrace_ids[i]);
 
                 handle_tracker.erase(pTrace_ids[i]);
 
@@ -771,7 +771,7 @@ private:
 
         if (!handle_tracker.insert(trace_id, replay_id, def_target))
         {
-            process_entrypoint_error("%s: Replacing genned GL handle %u trace handle %u in handle hash map, namespace %s (this indicates a handle shadowing error)\n", VOGL_METHOD_NAME, replay_id, trace_id, vogl_get_namespace_name(handle_tracker.get_namespace()));
+            process_entrypoint_error("%s: Replacing genned GL handle %u trace handle %u in handle hash map, namespace %s (this indicates a handle shadowing error)\n", VOGL_FUNCTION_INFO_CSTR, replay_id, trace_id, vogl_get_namespace_name(handle_tracker.get_namespace()));
 
             handle_tracker.erase(trace_id);
 
@@ -799,7 +799,7 @@ private:
 
             GLuint replay_id = trace_id;
             if (!handle_tracker.map_handle_to_inv_handle(trace_id, replay_id))
-                process_entrypoint_warning("%s: Couldn't map trace GL handle %u to replay GL handle, using trace handle instead, namespace %s\n", VOGL_METHOD_NAME, pTrace_ids[i], vogl_get_namespace_name(handle_tracker.get_namespace()));
+                process_entrypoint_warning("%s: Couldn't map trace GL handle %u to replay GL handle, using trace handle instead, namespace %s\n", VOGL_FUNCTION_INFO_CSTR, pTrace_ids[i], vogl_get_namespace_name(handle_tracker.get_namespace()));
             else
                 handle_tracker.erase(trace_id);
 
@@ -837,7 +837,7 @@ private:
         gl_handle_hash_map::const_iterator it = handle_hash_map.find(trace_handle);
         if (it == handle_hash_map.end())
         {
-            process_entrypoint_warning("%s: Couldn't map trace GL handle %u to GL handle, using trace handle instead (handle may not have been genned)\n", VOGL_METHOD_NAME, trace_handle);
+            process_entrypoint_warning("%s: Couldn't map trace GL handle %u to GL handle, using trace handle instead (handle may not have been genned)\n", VOGL_FUNCTION_INFO_CSTR, trace_handle);
 
             if (insert_if_not_found)
                 handle_hash_map.insert(trace_handle, trace_handle);
@@ -859,7 +859,7 @@ private:
 
         if (!handle_tracker.map_handle_to_inv_handle(trace_handle, replay_handle))
         {
-            process_entrypoint_warning("%s: Couldn't map trace GL handle %u to GL handle, using trace handle instead (handle may not have been genned), namespace: %s\n", VOGL_METHOD_NAME, trace_handle, vogl_get_namespace_name(handle_tracker.get_namespace()));
+            process_entrypoint_warning("%s: Couldn't map trace GL handle %u to GL handle, using trace handle instead (handle may not have been genned), namespace: %s\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, vogl_get_namespace_name(handle_tracker.get_namespace()));
             return false;
         }
 
@@ -882,7 +882,7 @@ private:
         {
             if (pSuccess)
                 *pSuccess = false;
-            process_entrypoint_warning("%s: Couldn't map trace GL handle %u to GL handle, using trace handle instead (handle may not have been genned), namespace: %s\n", VOGL_METHOD_NAME, trace_handle, vogl_get_namespace_name(handle_tracker.get_namespace()));
+            process_entrypoint_warning("%s: Couldn't map trace GL handle %u to GL handle, using trace handle instead (handle may not have been genned), namespace: %s\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, vogl_get_namespace_name(handle_tracker.get_namespace()));
             return replay_handle;
         }
 
@@ -1086,7 +1086,7 @@ private:
         int n = get_gl_enums().get_pname_count(pname);
         if (n <= 0)
         {
-            process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_METHOD_NAME, pname);
+            process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
             return cStatusSoftFailure;
         }
 
@@ -1095,19 +1095,19 @@ private:
 
         if (num_trace_params < static_cast<uint>(n))
         {
-            process_entrypoint_error("%s: Was expecting at least %u params for GL pname 0x%08X, but only got %u params in the trace\n", VOGL_METHOD_NAME, n, pname, num_trace_params);
+            process_entrypoint_error("%s: Was expecting at least %u params for GL pname 0x%08X, but only got %u params in the trace\n", VOGL_FUNCTION_INFO_CSTR, n, pname, num_trace_params);
             return cStatusSoftFailure;
         }
         else if (!pTrace_params)
         {
-            process_entrypoint_error("%s: Trace has NULL params field, can't diff trace vs. replay's params\n", VOGL_METHOD_NAME);
+            process_entrypoint_error("%s: Trace has NULL params field, can't diff trace vs. replay's params\n", VOGL_FUNCTION_INFO_CSTR);
             return cStatusSoftFailure;
         }
         else
         {
             if (memcmp(pTrace_params, params.get_ptr(), n * sizeof(T)) != 0)
             {
-                process_entrypoint_error("%s: Replay's results differ from trace's\n", VOGL_METHOD_NAME);
+                process_entrypoint_error("%s: Replay's results differ from trace's\n", VOGL_FUNCTION_INFO_CSTR);
                 return cStatusSoftFailure;
             }
         }

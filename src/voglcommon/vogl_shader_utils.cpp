@@ -55,7 +55,7 @@ GLuint vogl_create_program(const char *pVertex_shader_source, const char *pFragm
     {
         GL_ENTRYPOINT(glGetShaderInfoLog)(vert_shader, sizeof(msg), NULL, msg);
         VOGL_CHECK_GL_ERROR;
-        vogl_error_printf("%s: Error compiling vertex shader:\n%s\n", VOGL_FUNCTION_NAME, msg);
+        vogl_error_printf("%s: Error compiling vertex shader:\n%s\n", VOGL_FUNCTION_INFO_CSTR, msg);
 
         goto failure;
     }
@@ -74,7 +74,7 @@ GLuint vogl_create_program(const char *pVertex_shader_source, const char *pFragm
     {
         GL_ENTRYPOINT(glGetShaderInfoLog)(frag_shader, sizeof(msg), NULL, msg);
         VOGL_CHECK_GL_ERROR;
-        vogl_error_printf("%s: Error compiling fragment shader:\n%s\n", VOGL_FUNCTION_NAME, msg);
+        vogl_error_printf("%s: Error compiling fragment shader:\n%s\n", VOGL_FUNCTION_INFO_CSTR, msg);
 
         goto failure;
     }
@@ -109,7 +109,7 @@ GLuint vogl_create_program(const char *pVertex_shader_source, const char *pFragm
     {
         GL_ENTRYPOINT(glGetProgramInfoLog)(program, sizeof(msg), NULL, msg);
         VOGL_CHECK_GL_ERROR;
-        vogl_error_printf("%s: Error linking program:\n%s\n", VOGL_FUNCTION_NAME, msg);
+        vogl_error_printf("%s: Error linking program:\n%s\n", VOGL_FUNCTION_INFO_CSTR, msg);
 
         goto failure;
     }
@@ -135,7 +135,7 @@ failure:
         VOGL_CHECK_GL_ERROR;
     }
 
-    vogl_error_printf("%s: Failed creating program!\n", VOGL_FUNCTION_NAME);
+    vogl_error_printf("%s: Failed creating program!\n", VOGL_FUNCTION_INFO_CSTR);
 
     VOGL_CHECK_GL_ERROR;
     return 0;

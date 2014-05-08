@@ -266,12 +266,12 @@ bool vogl_default_framebuffer_state::snapshot(const vogl_context_info &context_i
 
             if (!status)
             {
-                vogl_error_printf("%s: Failed snapshotting texture for default framebuffer %s\n", VOGL_METHOD_NAME, get_gl_enums().find_gl_name(g_def_framebuffer_enums[i]));
+                vogl_error_printf("%s: Failed snapshotting texture for default framebuffer %s\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(g_def_framebuffer_enums[i]));
             }
         }
         else
         {
-            vogl_warning_printf("%s: Failed blitting framebuffer %u\n", VOGL_METHOD_NAME, i);
+            vogl_warning_printf("%s: Failed blitting framebuffer %u\n", VOGL_FUNCTION_INFO_CSTR, i);
         }
 
         // Delete FBO
@@ -331,7 +331,7 @@ bool vogl_default_framebuffer_state::restore(const vogl_context_info &context_in
         vogl_handle_remapper def_handle_remapper;
         if (!m_textures[i].restore(context_info, def_handle_remapper, tex_handle64))
         {
-            vogl_error_printf("%s: Failed restoring texture %u\n", VOGL_METHOD_NAME, i);
+            vogl_error_printf("%s: Failed restoring texture %u\n", VOGL_FUNCTION_INFO_CSTR, i);
             continue;
         }
 
@@ -372,7 +372,7 @@ bool vogl_default_framebuffer_state::restore(const vogl_context_info &context_in
 
         if (!status)
         {
-            vogl_warning_printf("%s: Failed blitting framebuffer %u\n", VOGL_METHOD_NAME, i);
+            vogl_warning_printf("%s: Failed blitting framebuffer %u\n", VOGL_FUNCTION_INFO_CSTR, i);
         }
 
         // Delete FBO

@@ -823,7 +823,7 @@ namespace vogl
         inline void set_all(const T &o)
         {
             if ((sizeof(T) == 1) && (scalar_type<T>::cFlag))
-                memset(m_p, *reinterpret_cast<const uint8 *>(&o), m_size);
+                memset(m_p, *reinterpret_cast<const uint8_t *>(&o), m_size);
             else
             {
                 T *pDst = m_p;
@@ -959,12 +959,12 @@ namespace vogl
         }
     };
 
-    typedef vogl::vector<uint8> uint8_vec;
+    typedef vogl::vector<uint8_t> uint8_vec;
     typedef vogl::vector<char> char_vec;
     typedef vogl::vector<int> int_vec;
     typedef vogl::vector<uint> uint_vec;
-    typedef vogl::vector<int32> int32_vec;
-    typedef vogl::vector<uint32> uint32_vec;
+    typedef vogl::vector<int32_t> int32_vec;
+    typedef vogl::vector<uint32_t> uint32_vec;
     typedef vogl::vector<int64_t> int64_vec;
     typedef vogl::vector<uint64_t> uint64_vec;
     typedef vogl::vector<float> float_vec;

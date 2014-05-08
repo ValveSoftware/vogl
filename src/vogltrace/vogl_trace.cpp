@@ -199,7 +199,7 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
         {
             // This shouldn't ever happen hopefully. Ie, our atexit() handler or exit() hooks should call vogl_deinit()
             //  well before this destructor is called.
-            vogl_warning_printf_once("ERROR: %s called with open trace file. Somehow vogl_deinit() hasn't been called?", VOGL_FUNCTION_NAME);
+            vogl_warning_printf_once("ERROR: %s called with open trace file. Somehow vogl_deinit() hasn't been called?", VOGL_FUNCTION_INFO_CSTR);
 
             // Try to do vogl_deinit().
             vogl_deinit();

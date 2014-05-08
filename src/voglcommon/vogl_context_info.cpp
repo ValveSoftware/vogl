@@ -290,7 +290,7 @@ vogl_gl_version_t vogl_context_info::parse_version_string(const vogl::dynamic_st
     uint n = sscanf(str.get_ptr(), "%d.%d", &major, &minor);
     if ((n < 2) || (major < 1) || (minor < 0) || (minor > 255))
     {
-        console::error("%s: Failed parsing GL/GLSL version string \"%s\"!\n", VOGL_METHOD_NAME, str.get_ptr());
+        console::error("%s: Failed parsing GL/GLSL version string \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, str.get_ptr());
 
         return VOGL_GL_VERSION_UNKNOWN;
     }
@@ -330,7 +330,7 @@ bool vogl_context_info::init(const vogl_context_desc &desc)
 
     if (vogl_check_gl_error())
     {
-        console::warning("%s: GL error querying context vendor/renderer/version strings!\n", VOGL_METHOD_NAME);
+        console::warning("%s: GL error querying context vendor/renderer/version strings!\n", VOGL_FUNCTION_INFO_CSTR);
     }
 
     m_forward_compatible = false;
@@ -776,7 +776,7 @@ bool vogl_context_info::supports_extension(const char *pExt) const
 
     if (!ext.begins_with("GL_", true))
     {
-        vogl_warning_printf("%s: Extension does not begin with \"GL_\" prefix, was this intended?\n", VOGL_METHOD_NAME);
+        vogl_warning_printf("%s: Extension does not begin with \"GL_\" prefix, was this intended?\n", VOGL_FUNCTION_INFO_CSTR);
     }
 
 #if 0

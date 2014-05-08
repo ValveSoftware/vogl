@@ -520,6 +520,15 @@ namespace vogl
 
     bool dynamic_string_test();
 
+    inline dynamic_string vogl_function_info(const char *file, int line, const char *function)
+    {
+        const char *fname = strrchr(file, '/');
+        if (!fname)
+            fname = strrchr(file, '\\');
+        fname = fname ? (fname + 1) : file;
+
+        return dynamic_string(cVarArg, "%s():%s:%d", function, fname, line);
+    }
 } // namespace vogl
 
 namespace std

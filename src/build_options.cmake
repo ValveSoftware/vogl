@@ -99,7 +99,6 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
           "-Wno-variadic-macros"
           "-Wno-missing-variable-declarations"
           "-Wno-missing-prototypes"
-          "-Wno-pedantic"
           "-Wno-sign-conversion"
           "-Wno-conversion"
           "-Wno-cast-align"
@@ -108,21 +107,31 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
           "-Wno-documentation-unknown-command"
 
           # TODO: Would be great to start enabling some of these warnings...
-          "-Wno-undef"
           "-Wno-undefined-reinterpret-cast"
           "-Wno-incompatible-pointer-types-discards-qualifiers"
-          "-Wno-switch-enum"
-          "-Wno-duplicate-enum"
           "-Wno-float-equal"
-          "-Wno-header-hygiene"
           "-Wno-unreachable-code"
           "-Wno-weak-vtables"
           "-Wno-extra-semi"
           "-Wno-disabled-macro-expansion"
           "-Wno-format-nonliteral"
           "-Wno-packed"
+          "-Wno-c++11-long-long"
+          "-Wno-c++11-extensions"
+          "-Wno-gnu-anonymous-struct"
+          "-Wno-gnu-zero-variadic-macro-arguments"
+          "-Wno-nested-anon-types"
+          "-Wno-gnu-redeclared-enum"
+
+          "-Wno-pedantic"
+          "-Wno-header-hygiene"
           "-Wno-covered-switch-default"
-          "-Wno-shift-sign-overflow"
+          "-Wno-duplicate-enum"
+          "-Wno-switch-enum"
+          "-Wno-extra-tokens"
+
+          # This needs to be removed after fixing the VOGL_NO_ATOMICS, etc.
+          "-Wno-undef"
           )
   endif()
 

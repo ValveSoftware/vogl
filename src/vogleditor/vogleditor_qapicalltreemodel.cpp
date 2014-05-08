@@ -133,7 +133,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
                   dynamic_string id(kvm.get_string("binary_id"));
                   if (id.is_empty())
                   {
-                     vogl_warning_printf("%s: Missing binary_id field in glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", VOGL_FUNCTION_NAME, cmd_type.get_ptr());
+                     vogl_warning_printf("%s: Missing binary_id field in glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, cmd_type.get_ptr());
                      continue;
                   }
 
@@ -142,7 +142,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
                      timed_scope ts("get_multi_blob_manager().get");
                      if (!pTrace_reader->get_multi_blob_manager().get(id, snapshot_data) || (snapshot_data.is_empty()))
                      {
-                        vogl_warning_printf("%s: Failed reading snapshot blob data \"%s\"!\n", VOGL_FUNCTION_NAME, id.get_ptr());
+                        vogl_warning_printf("%s: Failed reading snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
                         continue;
                      }
                   }
@@ -152,7 +152,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
                      timed_scope ts("doc.binary_deserialize");
                      if (!doc.binary_deserialize(snapshot_data) || (!doc.get_root()))
                      {
-                        vogl_warning_printf("%s: Failed deserializing JSON snapshot blob data \"%s\"!\n", VOGL_FUNCTION_NAME, id.get_ptr());
+                        vogl_warning_printf("%s: Failed deserializing JSON snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
                         continue;
                      }
                   }
@@ -166,7 +166,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
                      vogl_delete(pPendingSnapshot);
                      pPendingSnapshot = NULL;
 
-                     vogl_warning_printf("%s: Failed deserializing snapshot blob data \"%s\"!\n", VOGL_FUNCTION_NAME, id.get_ptr());
+                     vogl_warning_printf("%s: Failed deserializing snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
                   }
                }
             }

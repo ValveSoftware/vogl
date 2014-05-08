@@ -15,6 +15,7 @@ src/voglcore/libvoglcore.a
 src/voglcommon/libvoglcommon.a
 src/vogleditor/moc_vogleditor*
 src/vogleditor/ui_vogleditor*
+src/telemetry/
 vogl_build/*
 voglinc/
 *~

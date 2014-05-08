@@ -296,7 +296,7 @@ bool vogl_renderbuffer_state::snapshot(const vogl_context_info &context_info, vo
     if ((!m_desc.m_width) || (!m_desc.m_height) || (!m_desc.m_internal_format))
     {
         // Renderbuffer was only genned - no need to spit out warning
-        //vogl_warning_printf("%s: Unable to retrieve description renderbuffer %" PRIu64 "\n", VOGL_METHOD_NAME, static_cast<uint64_t>(handle));
+        //vogl_warning_printf("%s: Unable to retrieve description renderbuffer %" PRIu64 "\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint64_t>(handle));
     }
     else
     {
@@ -442,7 +442,7 @@ bool vogl_renderbuffer_state::snapshot(const vogl_context_info &context_info, vo
 
         if (!capture_status)
         {
-            vogl_error_printf("%s: Failed blitting renderbuffer data to texture for renderbuffer %" PRIu64 "\n", VOGL_METHOD_NAME, static_cast<uint64_t>(handle));
+            vogl_error_printf("%s: Failed blitting renderbuffer data to texture for renderbuffer %" PRIu64 "\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint64_t>(handle));
         }
     }
 
@@ -626,7 +626,7 @@ bool vogl_renderbuffer_state::restore(const vogl_context_info &context_info, vog
 
             if (!restore_status)
             {
-                vogl_error_printf("%s: Failed restoring contents of renderbuffer %u\n", VOGL_METHOD_NAME, static_cast<GLuint>(handle));
+                vogl_error_printf("%s: Failed restoring contents of renderbuffer %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<GLuint>(handle));
             }
         }
     }

@@ -106,7 +106,7 @@ bool vogl_blob_manager::get(const dynamic_string &id, uint8_vec &data) const
     if (!pStream)
     {
         data.resize(0);
-        vogl_error_printf("%s: Failed finding blob ID %s\n", VOGL_METHOD_NAME, id.get_ptr());
+        vogl_error_printf("%s: Failed finding blob ID %s\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
         return false;
     }
 
@@ -117,7 +117,7 @@ bool vogl_blob_manager::get(const dynamic_string &id, uint8_vec &data) const
 
         VOGL_ASSERT_ALWAYS;
 
-        vogl_error_printf("%s: Blob is too large: blob ID %s, size %" PRIu64 "\n", VOGL_METHOD_NAME, id.get_ptr(), pStream->get_size());
+        vogl_error_printf("%s: Blob is too large: blob ID %s, size %" PRIu64 "\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr(), pStream->get_size());
 
         return false;
     }
@@ -127,7 +127,7 @@ bool vogl_blob_manager::get(const dynamic_string &id, uint8_vec &data) const
     if (!data.try_resize(size))
     {
         VOGL_ASSERT_ALWAYS;
-        vogl_error_printf("%s: Out of memory while trying to read blob ID %s, size %u\n", VOGL_METHOD_NAME, id.get_ptr(), size);
+        vogl_error_printf("%s: Out of memory while trying to read blob ID %s, size %u\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr(), size);
         return false;
     }
 
@@ -139,7 +139,7 @@ bool vogl_blob_manager::get(const dynamic_string &id, uint8_vec &data) const
 
             data.clear();
 
-            vogl_error_printf("%s: Failed reading blob ID %s, size %u\n", VOGL_METHOD_NAME, id.get_ptr(), size);
+            vogl_error_printf("%s: Failed reading blob ID %s, size %u\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr(), size);
 
             return false;
         }
@@ -486,16 +486,16 @@ dynamic_string vogl_loose_file_blob_manager::add_buf_using_id(const void *pData,
     {
         uint64_t cur_size = get_size(actual_id);
         if (cur_size != size)
-            vogl_error_printf("%s: Not overwrite already existing blob %s desired size %u, but it has the wrong size on disk (%" PRIu64 " bytes)!\n", VOGL_METHOD_NAME, filename.get_ptr(), size, cur_size);
+            vogl_error_printf("%s: Not overwrite already existing blob %s desired size %u, but it has the wrong size on disk (%" PRIu64 " bytes)!\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr(), size, cur_size);
         else
-            vogl_message_printf("%s: Not overwriting already existing blob %s size %u\n", VOGL_METHOD_NAME, filename.get_ptr(), size);
+            vogl_message_printf("%s: Not overwriting already existing blob %s size %u\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr(), size);
         return actual_id;
     }
 
     cfile_stream out_file(filename.get_ptr(), cDataStreamWritable);
     if (!out_file.is_opened())
     {
-        vogl_error_printf("%s: Failed creating file \"%s\"!\n", VOGL_METHOD_NAME, filename.get_ptr());
+        vogl_error_printf("%s: Failed creating file \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr());
         return "";
     }
 
@@ -506,7 +506,7 @@ dynamic_string vogl_loose_file_blob_manager::add_buf_using_id(const void *pData,
         out_file.close();
         file_utils::delete_file(filename.get_ptr());
 
-        vogl_error_printf("%s: Failed writing to file \"%s\"!\n", VOGL_METHOD_NAME, filename.get_ptr());
+        vogl_error_printf("%s: Failed writing to file \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr());
 
         return "";
     }
@@ -517,7 +517,7 @@ dynamic_string vogl_loose_file_blob_manager::add_buf_using_id(const void *pData,
 
         file_utils::delete_file(filename.get_ptr());
 
-        vogl_error_printf("%s: Failed writing to file \"%s\"!\n", VOGL_METHOD_NAME, filename.get_ptr());
+        vogl_error_printf("%s: Failed writing to file \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr());
 
         return "";
     }
@@ -658,7 +658,7 @@ bool vogl_archive_blob_manager::init_memory(uint32 flags, const void *pZip_data,
     if (!mz_zip_reader_init_mem(&m_zip, pZip_data, size, 0))
     {
         mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-        vogl_error_printf("%s: mz_zip_reader_init_mem() failed initing memory size %" PRIu64 ", error 0x%X (%s)\n", VOGL_METHOD_NAME, cast_val_to_uint64(size), mz_err, mz_zip_get_error_string(mz_err));
+        vogl_error_printf("%s: mz_zip_reader_init_mem() failed initing memory size %" PRIu64 ", error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(size), mz_err, mz_zip_get_error_string(mz_err));
 
         deinit();
         return false;
@@ -689,7 +689,7 @@ bool vogl_archive_blob_manager::init_heap(uint32 flags)
     if (!mz_zip_writer_init_heap(&m_zip, 0, 1024, MZ_ZIP_FLAG_WRITE_ALLOW_READING | MZ_ZIP_FLAG_WRITE_ZIP64))
     {
         mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-        vogl_error_printf("%s: mz_zip_writer_init_heap() failed initing heap with flags 0x%x, error 0x%X (%s)\n", VOGL_METHOD_NAME, flags, mz_err, mz_zip_get_error_string(mz_err));
+        vogl_error_printf("%s: mz_zip_writer_init_heap() failed initing heap with flags 0x%x, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, flags, mz_err, mz_zip_get_error_string(mz_err));
 
         deinit();
         return false;
@@ -713,7 +713,7 @@ void *vogl_archive_blob_manager::deinit_heap(size_t &size)
     if (!mz_zip_writer_finalize_heap_archive(&m_zip, &pBuf, &size))
     {
         mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-        vogl_error_printf("%s: mz_zip_writer_finalize_heap_archive() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+        vogl_error_printf("%s: mz_zip_writer_finalize_heap_archive() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
         pBuf = NULL;
     }
@@ -748,7 +748,7 @@ bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, u
             if (!mz_zip_reader_init_file(&m_zip, pFilename, 0, file_start_ofs, actual_archive_size))
             {
                 mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-                vogl_error_printf("%s: mz_zip_reader_init_file() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_METHOD_NAME, pFilename, mz_err, mz_zip_get_error_string(mz_err));
+                vogl_error_printf("%s: mz_zip_reader_init_file() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, pFilename, mz_err, mz_zip_get_error_string(mz_err));
 
                 deinit();
                 return false;
@@ -757,7 +757,7 @@ bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, u
             if (!mz_zip_writer_init_from_reader(&m_zip, pFilename, MZ_ZIP_FLAG_WRITE_ZIP64))
             {
                 mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-                vogl_error_printf("%s: mz_zip_writer_init_from_reader() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_METHOD_NAME, pFilename, mz_err, mz_zip_get_error_string(mz_err));
+                vogl_error_printf("%s: mz_zip_writer_init_from_reader() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, pFilename, mz_err, mz_zip_get_error_string(mz_err));
 
                 deinit();
                 return false;
@@ -776,7 +776,7 @@ bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, u
             if (!mz_zip_writer_init_file(&m_zip, pFilename, file_start_ofs, (is_readable() ? MZ_ZIP_FLAG_WRITE_ALLOW_READING : 0) | MZ_ZIP_FLAG_WRITE_ZIP64))
             {
                 mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-                vogl_error_printf("%s: mz_zip_writer_init_file() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_METHOD_NAME, pFilename, mz_err, mz_zip_get_error_string(mz_err));
+                vogl_error_printf("%s: mz_zip_writer_init_file() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, pFilename, mz_err, mz_zip_get_error_string(mz_err));
 
                 deinit();
                 return false;
@@ -795,7 +795,7 @@ bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, u
         if (!mz_zip_reader_init_file(&m_zip, pFilename, 0, file_start_ofs, actual_archive_size))
         {
             mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-            vogl_error_printf("%s: mz_zip_reader_init_file() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_METHOD_NAME, pFilename, mz_err, mz_zip_get_error_string(mz_err));
+            vogl_error_printf("%s: mz_zip_reader_init_file() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, pFilename, mz_err, mz_zip_get_error_string(mz_err));
 
             deinit();
             return false;
@@ -809,7 +809,7 @@ bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, u
         if (!mz_zip_writer_init_file(&m_zip, pFilename, file_start_ofs, (is_readable() ? MZ_ZIP_FLAG_WRITE_ALLOW_READING : 0) | MZ_ZIP_FLAG_WRITE_ZIP64))
         {
             mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-            vogl_error_printf("%s: mz_zip_writer_init_file() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_METHOD_NAME, pFilename, mz_err, mz_zip_get_error_string(mz_err));
+            vogl_error_printf("%s: mz_zip_writer_init_file() failed with filename \"%s\", error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, pFilename, mz_err, mz_zip_get_error_string(mz_err));
 
             deinit();
             return false;
@@ -854,7 +854,7 @@ bool vogl_archive_blob_manager::init_cfile(uint32 flags, FILE *pFile, uint64_t c
             if (!mz_zip_reader_init_cfile(&m_zip, pFile, cur_size, 0))
             {
                 mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-                vogl_error_printf("%s: mz_zip_reader_init_cfile() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+                vogl_error_printf("%s: mz_zip_reader_init_cfile() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
                 deinit();
                 return false;
@@ -863,7 +863,7 @@ bool vogl_archive_blob_manager::init_cfile(uint32 flags, FILE *pFile, uint64_t c
             if (!mz_zip_writer_init_from_reader(&m_zip, NULL, MZ_ZIP_FLAG_WRITE_ZIP64))
             {
                 mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-                vogl_error_printf("%s: mz_zip_writer_init_from_reader() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+                vogl_error_printf("%s: mz_zip_writer_init_from_reader() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
                 deinit();
                 return false;
@@ -875,7 +875,7 @@ bool vogl_archive_blob_manager::init_cfile(uint32 flags, FILE *pFile, uint64_t c
             if (!mz_zip_writer_init_cfile(&m_zip, pFile, (is_readable() ? MZ_ZIP_FLAG_WRITE_ALLOW_READING : 0) | MZ_ZIP_FLAG_WRITE_ZIP64))
             {
                 mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-                vogl_error_printf("%s: mz_zip_writer_init_cfile() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+                vogl_error_printf("%s: mz_zip_writer_init_cfile() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
                 deinit();
                 return false;
@@ -888,7 +888,7 @@ bool vogl_archive_blob_manager::init_cfile(uint32 flags, FILE *pFile, uint64_t c
         if (!mz_zip_reader_init_cfile(&m_zip, pFile, cur_size, 0))
         {
             mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-            vogl_error_printf("%s: mz_zip_reader_init_cfile() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+            vogl_error_printf("%s: mz_zip_reader_init_cfile() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
             deinit();
             return false;
@@ -906,7 +906,7 @@ bool vogl_archive_blob_manager::init_cfile(uint32 flags, FILE *pFile, uint64_t c
         if (!mz_zip_writer_init_cfile(&m_zip, pFile, (is_readable() ? MZ_ZIP_FLAG_WRITE_ALLOW_READING : 0) | MZ_ZIP_FLAG_WRITE_ZIP64))
         {
             mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-            vogl_error_printf("%s: mz_zip_writer_init_cfile() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+            vogl_error_printf("%s: mz_zip_writer_init_cfile() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
             deinit();
             return false;
@@ -934,14 +934,14 @@ bool vogl_archive_blob_manager::populate_blob_map()
         if (!mz_zip_file_stat(&m_zip, file_index, &stat))
         {
             mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-            vogl_error_printf("%s: mz_zip_file_stat() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+            vogl_error_printf("%s: mz_zip_file_stat() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
             return false;
         }
 
         if (!m_blobs.insert(stat.m_filename, blob(stat.m_filename, file_index, stat.m_uncomp_size)).second)
         {
-            vogl_warning_printf("%s: Duplicate file %s in blob archive %s\n", VOGL_METHOD_NAME, stat.m_filename, m_archive_filename.get_ptr());
+            vogl_warning_printf("%s: Duplicate file %s in blob archive %s\n", VOGL_FUNCTION_INFO_CSTR, stat.m_filename, m_archive_filename.get_ptr());
         }
     }
 
@@ -962,7 +962,7 @@ bool vogl_archive_blob_manager::deinit()
             if (!mz_zip_writer_finalize_archive(&m_zip))
             {
                 mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-                vogl_error_printf("%s: mz_zip_writer_finalize_archive() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+                vogl_error_printf("%s: mz_zip_writer_finalize_archive() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
                 status = false;
             }
@@ -971,7 +971,7 @@ bool vogl_archive_blob_manager::deinit()
         if (!mz_zip_end(&m_zip))
         {
             mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-            vogl_error_printf("%s: mz_zip_end() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+            vogl_error_printf("%s: mz_zip_end() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
             status = false;
         }
@@ -1007,7 +1007,7 @@ vogl::dynamic_string vogl_archive_blob_manager::add_buf_using_id(const void *pDa
     // We could support orphaning the previous copy of the file and updating the archive to point to the latest version, though.
     if (m_blobs.contains(actual_id))
     {
-        vogl_debug_printf("%s: Archive already contains blob id \"%s\"! Not replacing file.\n", VOGL_METHOD_NAME, actual_id.get_ptr());
+        vogl_debug_printf("%s: Archive already contains blob id \"%s\"! Not replacing file.\n", VOGL_FUNCTION_INFO_CSTR, actual_id.get_ptr());
         return actual_id;
     }
 
@@ -1018,7 +1018,7 @@ vogl::dynamic_string vogl_archive_blob_manager::add_buf_using_id(const void *pDa
     //if (!mz_zip_writer_add_mem(&m_zip, actual_id.get_ptr(), pData, size, 0))
     {
         mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-        vogl_error_printf("%s: mz_zip_writer_add_mem() failed adding blob \"%s\" size %u, error 0x%X (%s)\n", VOGL_METHOD_NAME, id.get_ptr(), size, mz_err, mz_zip_get_error_string(mz_err));
+        vogl_error_printf("%s: mz_zip_writer_add_mem() failed adding blob \"%s\" size %u, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr(), size, mz_err, mz_zip_get_error_string(mz_err));
 
         return "";
     }
@@ -1053,7 +1053,7 @@ vogl::data_stream *vogl_archive_blob_manager::open(const vogl::dynamic_string &i
     if (!pBuf)
     {
         mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-        vogl_error_printf("%s: mz_zip_extract_to_heap() failed opening blob \"%s\", error 0x%X (%s)\n", VOGL_METHOD_NAME, id.get_ptr(), mz_err, mz_zip_get_error_string(mz_err));
+        vogl_error_printf("%s: mz_zip_extract_to_heap() failed opening blob \"%s\", error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr(), mz_err, mz_zip_get_error_string(mz_err));
 
         return NULL;
     }
@@ -1155,7 +1155,7 @@ bool vogl_archive_blob_manager::write_archive_to_stream(vogl::data_stream &strea
         if (mz_zip_read_archive_data(&m_zip, src_file_ofs, buf.get_ptr(), n) != n)
         {
             mz_zip_error mz_err = mz_zip_get_last_error(&m_zip);
-            vogl_error_printf("%s: mz_zip_read_archive_data() failed, error 0x%X (%s)\n", VOGL_METHOD_NAME, mz_err, mz_zip_get_error_string(mz_err));
+            vogl_error_printf("%s: mz_zip_read_archive_data() failed, error 0x%X (%s)\n", VOGL_FUNCTION_INFO_CSTR, mz_err, mz_zip_get_error_string(mz_err));
 
             return false;
         }

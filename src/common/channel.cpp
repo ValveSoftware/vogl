@@ -195,7 +195,7 @@ channel::acceptConnection()
         if (-1 == m_listenSocket)
         {
             m_listenSocket = 0;
-            DEBUG_PRINT("%s %d: %s socket() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+            DEBUG_PRINT("%s %d: %s socket() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
             ec = EC_NETWORK;
             goto out;
         }
@@ -206,7 +206,7 @@ channel::acceptConnection()
         {
             close(m_listenSocket);
             m_listenSocket = 0;
-            DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+            DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
             ec = EC_NETWORK;
             goto out;
         }
@@ -216,7 +216,7 @@ channel::acceptConnection()
         {
             close(m_listenSocket);
             m_listenSocket = 0;
-            DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+            DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
             ec = EC_NETWORK;
             goto out;
         }
@@ -238,7 +238,7 @@ channel::acceptConnection()
         {
             close(m_listenSocket);
             m_listenSocket = 0;
-            DEBUG_PRINT("%s %d: %s bind() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+            DEBUG_PRINT("%s %d: %s bind() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
             ec = EC_NETWORK;
             goto out;
         }
@@ -248,7 +248,7 @@ channel::acceptConnection()
         {
             close(m_listenSocket);
             m_listenSocket = 0;
-            DEBUG_PRINT("%s %d: %s listen() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+            DEBUG_PRINT("%s %d: %s listen() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
             ec = EC_NETWORK;
             goto out;
         }
@@ -273,14 +273,14 @@ channel::acceptConnection()
             ret = fcntl(m_listenSocket, F_SETFL, flags);
         }
 #endif // NOTYET
-        DEBUG_PRINT("%s %d: %s accept() attempt on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, m_port);
+        DEBUG_PRINT("%s %d: %s accept() attempt on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, m_port);
         m_socket = accept(m_listenSocket, (struct sockaddr *)NULL, NULL);
 
         if (-1 == m_socket)
         {
             m_socket = 0;
 
-            DEBUG_PRINT("%s %d: %s accept() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+            DEBUG_PRINT("%s %d: %s accept() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
             ec = EC_NETWORK;
             //if (EAGAIN == errno || EWOULDBLOCK == errno)
             //    ec = EC_TIMEOUT;
@@ -294,7 +294,7 @@ channel::acceptConnection()
         {
             close(m_socket);
             m_socket = 0;
-            DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+            DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
             ec = EC_NETWORK;
             goto out;
         }
@@ -305,12 +305,12 @@ channel::acceptConnection()
         {
             close(m_socket);
             m_socket = 0;
-            DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+            DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
             ec = EC_NETWORK;
             goto out;
         }
 
-        DEBUG_PRINT("%s %d: %s accept() succeeded to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, m_socket, m_port);
+        DEBUG_PRINT("%s %d: %s accept() succeeded to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, m_socket, m_port);
     }
 
 out:
@@ -331,7 +331,7 @@ channel::connectConnection()
 
     if (m_socket < 0)
     {
-        DEBUG_PRINT("\n %s %d: %s  Error : Could not create socket \n", __FILE__, __LINE__, VOGL_FUNCTION_NAME);
+        DEBUG_PRINT("\n %s %d: %s  Error : Could not create socket \n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR);
         m_socket = 0;
 
         ec = EC_NETWORK;
@@ -344,7 +344,7 @@ channel::connectConnection()
     {
         close(m_socket);
         m_socket = 0;
-        DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+        DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
         ec = EC_NETWORK;
         goto out;
     }
@@ -354,7 +354,7 @@ channel::connectConnection()
     {
         close(m_socket);
         m_socket = 0;
-        DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+        DEBUG_PRINT("%s %d: %s setsockopt() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
         ec = EC_NETWORK;
         goto out;
     }
@@ -372,14 +372,14 @@ channel::connectConnection()
     rv = inet_pton(AF_INET, ip, &serv_addr.sin_addr);
     if (-1 == rv)
     {
-        DEBUG_PRINT("%s %d: %s inet_pton() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno);
+        DEBUG_PRINT("%s %d: %s inet_pton() failed with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno);
         ec = EC_NETWORK;
         Disconnect();
         goto out;
     }
     if (0 == rv)
     {
-        DEBUG_PRINT("%s %d: %s inet_pton() \"%s\" does not contain a character string representing a valid network address in the AF_INET address family.", __FILE__, __LINE__, VOGL_FUNCTION_NAME, ip);
+        DEBUG_PRINT("%s %d: %s inet_pton() \"%s\" does not contain a character string representing a valid network address in the AF_INET address family.", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, ip);
         ec = EC_NETWORK;
         Disconnect();
         goto out;
@@ -390,7 +390,7 @@ channel::connectConnection()
     {
         int tErrno = errno;
         ec = EC_NETWORK;
-        DEBUG_PRINT("%s %d: %s connect() failed on port %d with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, m_port, tErrno);
+        DEBUG_PRINT("%s %d: %s connect() failed on port %d with %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, m_port, tErrno);
         if (ECONNREFUSED == tErrno)
         {
             ec = EC_TIMEOUT;
@@ -399,7 +399,7 @@ channel::connectConnection()
         goto out;
     }
 
-    DEBUG_PRINT("%s %d: %s connect() to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, m_socket, m_port);
+    DEBUG_PRINT("%s %d: %s connect() to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, m_socket, m_port);
 
 out:
     return ec;
@@ -410,7 +410,7 @@ channel::Disconnect()
 {
     if (0 != m_socket)
     {
-        DEBUG_PRINT("%s %d: %s closing down socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, m_socket, m_port);
+        DEBUG_PRINT("%s %d: %s closing down socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, m_socket, m_port);
         shutdown(m_socket, SHUT_RDWR);
         close(m_socket);
         m_socket = 0;
@@ -494,7 +494,7 @@ channel::readMsgLoop(unsigned int *pcbBufOut, char **ppBufOut, int timeoutMS)
     if (EC_NONE != ec)
     {
         my_free(pRecBuff);
-        DEBUG_PRINT("%s %d: %s  Error from read(data) = %d (%d).", __FILE__, __LINE__, VOGL_FUNCTION_NAME, ec, errno);
+        DEBUG_PRINT("%s %d: %s  Error from read(data) = %d (%d).", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, ec, errno);
 
         goto out;
     }
@@ -551,7 +551,7 @@ channel::readMsgTimeout(unsigned int cbSize, char *pBuff, int timeoutMS)
             if (EWOULDBLOCK != errno && EAGAIN != errno)
             {
                 ec = EC_NETWORK;
-                DEBUG_PRINT("%s %d: %s Error from read() on port %d = %d. \n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, m_port, errno);
+                DEBUG_PRINT("%s %d: %s Error from read() on port %d = %d. \n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, m_port, errno);
                 goto out;
             }
 
@@ -578,7 +578,7 @@ channel::readMsgTimeout(unsigned int cbSize, char *pBuff, int timeoutMS)
 
 out:
     if (EC_NONE == ec)
-        DEBUG_PRINT("%s %d: %s recv'd(%d bytes) on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, bRead, m_port);
+        DEBUG_PRINT("%s %d: %s recv'd(%d bytes) on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, bRead, m_port);
 
     return ec;
 }
@@ -628,14 +628,14 @@ channel::writeMsgLoop(unsigned int cbBufIn, const char *pbBufIn, int timeoutMS)
     ec = writeMsgTimeout(sizeof(uint64_t), (char *)&cbToWrite, timeoutMS);
     if (EC_NONE != ec)
     {
-        DEBUG_PRINT("%s %d: %s  Error from write(buffersize) = %d (%d) on port %d.", __FILE__, __LINE__, VOGL_FUNCTION_NAME, ec, errno, m_port);
+        DEBUG_PRINT("%s %d: %s  Error from write(buffersize) = %d (%d) on port %d.", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, ec, errno, m_port);
         goto out;
     }
 
     ec = writeMsgTimeout(cbBufIn, pbBufIn, timeoutMS);
     if (EC_NONE != ec)
     {
-        DEBUG_PRINT("%s %d: %s  Error from write(data) = %d (%d) on port %d.", __FILE__, __LINE__, VOGL_FUNCTION_NAME, ec, errno, m_port);
+        DEBUG_PRINT("%s %d: %s  Error from write(data) = %d (%d) on port %d.", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, ec, errno, m_port);
         goto out;
     }
 
@@ -666,7 +666,7 @@ channel::writeMsgTimeout(unsigned int cbSize, const char *pBuff, int timeoutMS)
     // baseline time
     clock_gettime(CLOCK_MONOTONIC, &tspecBefore);
 
-    DEBUG_PRINT("%s %d: %s attempting to send (%d bytes) to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, cbSize, m_socket, m_port);
+    DEBUG_PRINT("%s %d: %s attempting to send (%d bytes) to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, cbSize, m_socket, m_port);
     while (bWritten < cbSize)
     {
         int bWrote = 0;
@@ -679,7 +679,7 @@ channel::writeMsgTimeout(unsigned int cbSize, const char *pBuff, int timeoutMS)
             if (EWOULDBLOCK != errno && EAGAIN != errno)
             {
                 ec = EC_NETWORK;
-                DEBUG_PRINT("%s %d: %s  Error %d from write() to socket %d on port %d.\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno, m_socket, m_port);
+                DEBUG_PRINT("%s %d: %s  Error %d from write() to socket %d on port %d.\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno, m_socket, m_port);
                 goto out;
             }
 
@@ -704,9 +704,9 @@ channel::writeMsgTimeout(unsigned int cbSize, const char *pBuff, int timeoutMS)
 
 out:
     if (EC_NONE == ec)
-        DEBUG_PRINT("%s %d: %s sent (%d bytes) to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, bWritten, m_socket, m_port);
+        DEBUG_PRINT("%s %d: %s sent (%d bytes) to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, bWritten, m_socket, m_port);
     else
-        DEBUG_PRINT("%s %d: %s error (%d) sending (%d bytes) to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_NAME, errno, cbSize, m_socket, m_port);
+        DEBUG_PRINT("%s %d: %s error (%d) sending (%d bytes) to socket %d on port %d\n", __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR, errno, cbSize, m_socket, m_port);
 
     return ec;
 }

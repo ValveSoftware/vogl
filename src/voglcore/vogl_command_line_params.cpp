@@ -482,7 +482,7 @@ namespace vogl
         if (w.is_empty())
             return false;
 
-#if VOGL_CMD_LINE_ALLOW_SLASH_PARAMS
+#ifdef VOGL_CMD_LINE_ALLOW_SLASH_PARAMS
         return (w.get_len() >= 2) && ((w[0] == '-') || (w[0] == '/'));
 #else
         return (w.get_len() >= 2) && (w[0] == '-');
@@ -572,7 +572,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_METHOD_NAME, value_index, pKey, it->second.m_values.size());
+            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -614,7 +614,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_METHOD_NAME, value_index, pKey, it->second.m_values.size());
+            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -656,7 +656,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_METHOD_NAME, value_index, pKey, it->second.m_values.size());
+            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -698,7 +698,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_METHOD_NAME, value_index, pKey, it->second.m_values.size());
+            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -740,7 +740,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_METHOD_NAME, value_index, pKey, it->second.m_values.size());
+            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -777,7 +777,7 @@ namespace vogl
             return false;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_METHOD_NAME, value_index, pKey, it->second.m_values.size());
+            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
             value.set(pDef);
             return false;
         }
@@ -793,7 +793,7 @@ namespace vogl
             return dynamic_string(pDef);
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_METHOD_NAME, value_index, pKey, it->second.m_values.size());
+            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
             return dynamic_string(pDef);
         }
 
@@ -808,7 +808,7 @@ namespace vogl
 
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_METHOD_NAME, value_index, pKey, it->second.m_values.size());
+            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
             return get_empty_dynamic_string();
         }
 

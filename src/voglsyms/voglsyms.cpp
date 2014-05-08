@@ -82,7 +82,7 @@ static bool init_logfile()
 
     if (!g_vogl_pLog_stream->open(filename.get_ptr(), cDataStreamWritable, !log_file_append.is_empty()))
     {
-        vogl_error_printf("%s: Failed opening log file \"%s\"\n", VOGL_FUNCTION_NAME, filename.get_ptr());
+        vogl_error_printf("%s: Failed opening log file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr());
         return false;
     }
     else
@@ -144,7 +144,7 @@ static bool init_command_line_params(int argc, char *argv[])
                                      VOGL_ARRAY_SIZE(g_command_line_param_descs),
                                      g_command_line_param_descs, parse_cfg))
     {
-        vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
@@ -449,7 +449,7 @@ voglsym_main_loop(char *argv[])
     dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (trace_filename.is_empty())
     {
-        vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
@@ -459,7 +459,7 @@ voglsym_main_loop(char *argv[])
         g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
-        vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_NAME, trace_filename.get_ptr());
+        vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, trace_filename.get_ptr());
         return false;
     }
 

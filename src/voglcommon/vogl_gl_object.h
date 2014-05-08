@@ -61,7 +61,7 @@ struct vogl_handle_remapper
         return false;
     }
 
-    virtual int32 remap_location(uint32 program, int32 from_location)
+    virtual int32_t remap_location(uint32_t program, int32_t from_location)
     {
         VOGL_FUNC_TRACER
 
@@ -98,7 +98,7 @@ struct vogl_handle_remapper
 
     virtual void delete_handle_and_object(vogl_namespace_t handle_namespace, uint64_t from_handle, uint64_t to_handle);
 
-    virtual void declare_location(uint32 from_program_handle, uint32 to_program_handle, int32 from_location, int32 to_location)
+    virtual void declare_location(uint32_t from_program_handle, uint32_t to_program_handle, int32_t from_location, int32_t to_location)
     {
         VOGL_FUNC_TRACER
 

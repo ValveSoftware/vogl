@@ -842,7 +842,7 @@ private:
 
     void check_failure(uint line) const
     {
-        console::debug("%s: check_failure() obj %p on line %u\n", VOGL_METHOD_NAME, this, line);
+        console::debug("%s: check_failure() obj %p on line %u\n", VOGL_FUNCTION_INFO_CSTR, this, line);
         VOGL_ASSERT_ALWAYS;
     }
 

@@ -12,10 +12,6 @@ if (WIN32)
     set(WIN32_PTHREADS_LIB_PATH "${WIN32_PTHREADS_PATH}/lib/x86")
 endif()
 
-if (NOT WIN32)
-    find_package(LibLZMA REQUIRED)
-endif()
-
 # Always look. It won't be found on Windows. Later build scripts will understand how to 
 # WAR it being missing.
 find_package(TinyXML)

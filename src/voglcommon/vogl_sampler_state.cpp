@@ -101,7 +101,7 @@ bool vogl_sampler_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         clear();
 
-        vogl_error_printf("%s: GL error while enumerating sampler %" PRIu64 "'s' params\n", VOGL_METHOD_NAME, (uint64_t)handle);
+        vogl_error_printf("%s: GL error while enumerating sampler %" PRIu64 "'s' params\n", VOGL_FUNCTION_INFO_CSTR, (uint64_t)handle);
         return false;
     }
 
@@ -209,7 +209,7 @@ bool vogl_sampler_state::restore(const vogl_context_info &context_info, vogl_han
 
     if (any_failures)
     {
-        vogl_warning_printf("%s: One or more sampler params could not be set on trace sampler %u, replay sampler %" PRIu64 "\n", VOGL_METHOD_NAME,
+        vogl_warning_printf("%s: One or more sampler params could not be set on trace sampler %u, replay sampler %" PRIu64 "\n", VOGL_FUNCTION_INFO_CSTR,
                            m_snapshot_handle, (uint64_t)handle);
     }
 

@@ -314,7 +314,7 @@ bool vogl_display_list_state::gen_lists(GLuint first, GLsizei n, GLuint *pObject
         vogl_display_list_map::insert_result res(m_display_lists.insert(first + i));
         if (!res.second)
         {
-            vogl_error_printf("%s: Failed inserting list handle %u into display list shadow!\n", VOGL_METHOD_NAME, first + i);
+            vogl_error_printf("%s: Failed inserting list handle %u into display list shadow!\n", VOGL_FUNCTION_INFO_CSTR, first + i);
             success = false;
         }
         else
@@ -348,7 +348,7 @@ bool vogl_display_list_state::glx_font(const char *pFont, int first, int count, 
         int handle = listBase + i;
         if (handle < 1)
         {
-            vogl_error_printf("%s: Invalid display list handle %i\n", VOGL_METHOD_NAME, handle);
+            vogl_error_printf("%s: Invalid display list handle %i\n", VOGL_FUNCTION_INFO_CSTR, handle);
             success = false;
             continue;
         }
@@ -387,14 +387,14 @@ bool vogl_display_list_state::add_packet_to_list(GLuint handle, gl_entrypoint_id
     VOGL_ASSERT(pList);
     if (!pList)
     {
-        vogl_error_printf("%s: Failed serializing trace packet into display list shadow! List %u was not genned.\n", VOGL_FUNCTION_NAME, handle);
+        vogl_error_printf("%s: Failed serializing trace packet into display list shadow! List %u was not genned.\n", VOGL_FUNCTION_INFO_CSTR, handle);
         return false;
     }
 
     uint8_vec buf;
     if (!packet.serialize(buf))
     {
-        vogl_error_printf("%s: Failed serializing trace packet into display list shadow! List handle %u.\n", VOGL_FUNCTION_NAME, handle);
+        vogl_error_printf("%s: Failed serializing trace packet into display list shadow! List handle %u.\n", VOGL_FUNCTION_INFO_CSTR, handle);
         return false;
     }
 
@@ -445,7 +445,7 @@ bool vogl_display_list_state::parse_list_and_update_shadows(GLuint handle, pBind
 
         if (!trace_packet.deserialize(packets.get_packet_buf(packet_index), false))
         {
-            vogl_error_printf("%s: Failed parsing GL entrypoint packet in display list %u\n", VOGL_FUNCTION_NAME, handle);
+            vogl_error_printf("%s: Failed parsing GL entrypoint packet in display list %u\n", VOGL_FUNCTION_INFO_CSTR, handle);
             VOGL_ASSERT_ALWAYS;
             return false;
         }
@@ -482,7 +482,7 @@ bool vogl_display_list_state::parse_list_and_update_shadows(GLuint handle, pBind
             case VOGL_ENTRYPOINT_glCallList:
             case VOGL_ENTRYPOINT_glCallLists:
             {
-                vogl_warning_printf("%s: Recursive display lists are not currently supported\n", VOGL_METHOD_NAME);
+                vogl_warning_printf("%s: Recursive display lists are not currently supported\n", VOGL_FUNCTION_INFO_CSTR);
                 VOGL_ASSERT_ALWAYS;
                 return false;
             }
@@ -504,13 +504,13 @@ bool vogl_display_list_state::parse_lists_and_update_shadows(GLsizei n, GLenum t
     uint type_size = vogl_get_gl_type_size(type);
     if (!type_size)
     {
-        vogl_error_printf("%s: type is invalid\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: type is invalid\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
     if ((n) && (!lists))
     {
-        vogl_error_printf("%s: lists param is NULL\n", VOGL_FUNCTION_NAME);
+        vogl_error_printf("%s: lists param is NULL\n", VOGL_FUNCTION_INFO_CSTR);
         return false;
     }
 
@@ -590,14 +590,14 @@ bool vogl_display_list_state::parse_lists_and_update_shadows(GLsizei n, GLenum t
             }
             default:
             {
-                vogl_error_printf("%s: Invalid type parameter (0x%08X)\n", VOGL_FUNCTION_NAME, type);
+                vogl_error_printf("%s: Invalid type parameter (0x%08X)\n", VOGL_FUNCTION_INFO_CSTR, type);
                 return false;
             }
         }
 
         if (handle <= 0)
         {
-            vogl_error_printf("%s: Trace handle after adding list base is negative (%i), skipping this list index\n", VOGL_FUNCTION_NAME, handle);
+            vogl_error_printf("%s: Trace handle after adding list base is negative (%i), skipping this list index\n", VOGL_FUNCTION_INFO_CSTR, handle);
             success = false;
         }
         else

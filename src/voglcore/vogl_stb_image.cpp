@@ -3196,7 +3196,7 @@ namespace vogl
                             mr = 0xff << 16;
                             mg = 0xff << 8;
                             mb = 0xff << 0;
-                            ma = 0xff << 24;
+                            ma = (unsigned int)0xff << 24;
                             fake_a = 1; // @TODO: check for cases like alpha value is all 0 and switch it to 255
                         }
                         else

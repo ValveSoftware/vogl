@@ -66,9 +66,9 @@ struct vogl_internal_tex_format
     GLenum m_optimum_get_image_fmt;
     GLenum m_optimum_get_image_type;
     // 0 for compressed formats, otherwise this is the number of bytes per pixel written by the get_fmt/get_type (NOT the internal format)
-    uint8 m_image_bytes_per_pixel_or_block;
-    uint8 m_block_width;
-    uint8 m_block_height;
+    uint8_t m_image_bytes_per_pixel_or_block;
+    uint8_t m_block_width;
+    uint8_t m_block_height;
     bool m_compressed;
 
     vogl_internal_tex_format()

@@ -65,7 +65,7 @@ namespace vogl
                 return false;
 
             char buf[256];
-            sprintf(buf, "%s: Can't increase capacity to %" PRIu64 " items, %" PRIu64 " bytes", VOGL_METHOD_NAME, static_cast<uint64_t>(new_capacity), desired_size64);
+            sprintf(buf, "%s: Can't increase capacity to %" PRIu64 " items, %" PRIu64 " bytes", VOGL_FUNCTION_INFO_CSTR, static_cast<uint64_t>(new_capacity), desired_size64);
             VOGL_FAIL(buf);
         }
 
@@ -81,7 +81,7 @@ namespace vogl
                     return false;
 
                 char buf[256];
-                sprintf(buf, "%s: vogl_realloc() failed allocating %u bytes", VOGL_METHOD_NAME, (uint)desired_size);
+                sprintf(buf, "%s: vogl_realloc() failed allocating %u bytes", VOGL_FUNCTION_INFO_CSTR, (uint)desired_size);
                 VOGL_FAIL(buf);
             }
             m_p = new_p;
@@ -95,7 +95,7 @@ namespace vogl
                     return false;
 
                 char buf[256];
-                sprintf(buf, "%s: vogl_malloc() failed allocating %u bytes", VOGL_METHOD_NAME, (uint)desired_size);
+                sprintf(buf, "%s: vogl_malloc() failed allocating %u bytes", VOGL_FUNCTION_INFO_CSTR, (uint)desired_size);
                 VOGL_FAIL(buf);
             }
 

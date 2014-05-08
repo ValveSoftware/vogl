@@ -67,7 +67,7 @@ typedef struct RenderContextRec
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display *, GLXFBConfig, GLXContext, Bool, const int *);
 static glXCreateContextAttribsARBProc glXCreateContextAttribsARBFuncPtr;
 
-#if LOAD_LIBGLITRACE
+#ifdef LOAD_LIBGLITRACE
 typedef __GLXextFuncPtr (*glXGetProcAddressARBProc)(const GLubyte *procName);
 static glXGetProcAddressARBProc glXGetProcAddressARBFuncPtr;
 
