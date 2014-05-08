@@ -258,7 +258,7 @@ bool vogl_trace_packet::deserialize(const uint8 *pPacket_data, uint packet_data_
     {
         if (!pTrace_gl_entrypoint_packet->full_validation(packet_data_buf_size))
         {
-            vogl_error_printf("%s: Trace packet failed basic validation!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("%s: Trace packet failed full validation!\n", VOGL_FUNCTION_INFO_CSTR);
             return false;
         }
     }
@@ -358,7 +358,7 @@ bool vogl_trace_packet::deserialize(const uint8 *pPacket_data, uint packet_data_
 
     m_is_valid = true;
 
-//    VOGL_ASSERT(check());
+    VOGL_ASSERT(check());
 
     return true;
 }
