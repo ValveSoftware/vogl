@@ -630,10 +630,10 @@ void vogl_init()
     // Cannot telemetry this function, too early.
     g_vogl_initializing_flag = true;
 
-    printf("(vogltrace) %s\n", VOGL_FUNCTION_INFO_CSTR);
-
     // Initialize vogl_core.
     vogl_core_init();
+
+    printf("(vogltrace) %s\n", VOGL_FUNCTION_INFO_CSTR);
 
     // can't call vogl::colorized_console::init() because its global arrays will be cleared after this func returns
     vogl::console::set_tool_prefix("(vogltrace) ");
