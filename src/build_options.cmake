@@ -211,7 +211,7 @@ else()
         "-Wno-unused-parameter -Wno-unused-function"
         "-fno-strict-aliasing" # DO NOT remove this, we have lots of code that will fail in obscure ways otherwise because it was developed with MSVC first.
         "-fno-math-errno"
-    	"-fvisibility=hidden"
+    	  "-fvisibility=hidden"
         # "-fno-exceptions" # Exceptions are enabled by default for c++ files, disabled for c files.
     )
 endif()

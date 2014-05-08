@@ -60,8 +60,10 @@ using namespace vogl;
 
 #if defined(COMPILER_GCCLIKE)
     #define VOGL_API_EXPORT extern "C" __attribute__((visibility("default")))
-#else
+    #define VOGL_API_CALLCONV
+#elif defined(COMPILER_MSVC)
     #define VOGL_API_EXPORT extern "C" __declspec(dllexport)
+    #define VOGL_API_CALLCONV __stdcall
 #endif
 
 // DO NOT leave this enabled when you check in!

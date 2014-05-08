@@ -8956,14 +8956,14 @@ static void vogl_check_entrypoints()
 // Declare exported gl/glx functions (each exported func immediately calls one of the internal vogl_* functions)
 //----------------------------------------------------------------------------------------------------------------------
 #define DEF_PROTO_EXPORTED(ret, name, args, params) \
-    VOGL_API_EXPORT ret name args                    \
+    VOGL_API_EXPORT ret VOGL_API_CALLCONV name args \
     {                                               \
-        return VOGL_GLUER(vogl_, name) params;     \
+        return VOGL_GLUER(vogl_, name) params;      \
     }
 #define DEF_PROTO_EXPORTED_VOID(ret, name, args, params) \
-    VOGL_API_EXPORT ret name args                         \
+    VOGL_API_EXPORT ret VOGL_API_CALLCONV name args      \
     {                                                    \
-        VOGL_GLUER(vogl_, name) params;                 \
+        VOGL_GLUER(vogl_, name) params;                  \
     }
 #define DEF_PROTO_INTERNAL(ret, name, args, params)
 #define DEF_PROTO_INTERNAL_VOID(ret, name, args, params)

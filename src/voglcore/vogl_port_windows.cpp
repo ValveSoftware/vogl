@@ -243,8 +243,11 @@ HMODULE _load_opengl32_dll()
     #if defined(PLATFORM_64BIT)
         GetSystemDirectoryA(system_directory_root, VOGL_ARRAY_SIZE(system_directory_root));
     #else
-        VOGL_ASSUME(defined(PLATFORM_32BIT));
-        GetSystemWow64DirectoryA(system_directory_root, VOGL_ARRAY_SIZE(system_directory_root));
+        // On 32-bit windows (which apparently some people still use), the SysWow64 directory call will fail
+        // and we can use that cue to go ask for the regular ol' 32-bit variant.
+        if (GetSystemWow64DirectoryA(system_directory_root, VOGL_ARRAY_SIZE(system_directory_root)) == 0)
+            GetSystemDirectoryA(system_directory_root, VOGL_ARRAY_SIZE(system_directory_root));
+
     #endif
 
     sprintf_s(module_name, VOGL_ARRAY_SIZE(module_name), "%s\\%s", system_directory_root, str_opengl32);
