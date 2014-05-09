@@ -55,11 +55,44 @@ namespace vogl
             NULL,
         };
 
+    const char *g_value_data_classic_type_strings[cDTTotal + 1] =
+        {
+            "invalid",
+            "bool",
+            "int8",
+            "uint8",
+            "int16",
+            "uint16",
+            "int",
+            "uint32",
+            "int64",
+            "uint64",
+            "float",
+            "double",
+            "void*",
+            "string_hash",
+            "string",
+            "vec3f",
+            "vec3i",
+            "blob",
+            "json",
+            NULL,
+        };
+
+
     value_data_type string_to_value_data_type(const char *pStr)
     {
-        for (uint32_t i = 0; i < cDTTotal; i++)
-            if (!vogl_stricmp(pStr, g_value_data_type_strings[i]))
-                return static_cast<value_data_type>(i);
+        const char ** value_type_strings[] = 
+        { 
+            g_value_data_type_strings, 
+            g_value_data_classic_type_strings, 
+            NULL 
+        };
+
+        for (int vts = 0; value_type_strings[vts] != NULL; ++vts )
+            for (uint32_t i = 0; i < cDTTotal; i++)
+                if (!vogl_stricmp(pStr, value_type_strings[vts][i]))
+                    return static_cast<value_data_type>(i);
         return cDTInvalid;
     }
 
