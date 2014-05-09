@@ -2317,7 +2317,14 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
             }
             else
             {
-                str.format_append("ptr=0x%" PRIX64 " size=%u pointee_type=%s", val_data, client_mem_size, pointee_ctype_desc.m_pName);
+                dynamic_string shortened_ctype(pointee_ctype_desc.m_pName);
+                if (shortened_ctype.begins_with("VOGL_"))
+                    shortened_ctype.right(5);
+
+                if ((pointee_size > 1) && ((client_mem_size % pointee_size) == 0))
+                    str.format_append("ptr=0x%" PRIX64 " size=%u elements=%u pointee_type=%s", val_data, client_mem_size, client_mem_size / pointee_size, shortened_ctype.get_ptr());
+                else
+                    str.format_append("ptr=0x%" PRIX64 " size=%u pointee_type=%s", val_data, client_mem_size, shortened_ctype.get_ptr());
 
                 uint bytes_to_dump = math::minimum<uint>(64, client_mem_size);
                 if ((pClient_mem) && (bytes_to_dump))
@@ -2362,6 +2369,8 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
                     }
                     else
                     {
+                        bytes_to_dump = math::minimum<uint>(16, client_mem_size);
+
                         for (uint i = 0; i < bytes_to_dump; i++)
                         {
                             if (i)
