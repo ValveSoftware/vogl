@@ -15,7 +15,9 @@ set(SRC_LIST
     pxfmt_case_statements.inl
 )
 
+if (NOT MSVC)
 add_compiler_flag("-fPIC")
+endif()
 
 add_library(${PROJECT_NAME} ${SRC_LIST})
 
