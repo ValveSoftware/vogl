@@ -49,11 +49,6 @@ namespace vogl
     const int64_t cINT64_MIN = (int64_t)0x8000000000000000ULL; //(-9223372036854775807i64 - 1);
     const int64_t cINT64_MAX = (int64_t)0x7FFFFFFFFFFFFFFFULL; // 9223372036854775807i64;
 
-    typedef uintptr_t uint_ptr;
-    typedef uintptr_t uint32_ptr;
-    typedef std::ptrdiff_t signed_size_t;
-    typedef uintptr_t ptr_bits_t;
-
     enum eVarArg
     {
         cVarArg

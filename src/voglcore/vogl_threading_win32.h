@@ -169,7 +169,7 @@ namespace vogl
         inline tsstack(bool use_freelist = true)
             : m_use_freelist(use_freelist)
         {
-            VOGL_VERIFY(((ptr_bits_t) this & (VOGL_GET_ALIGNMENT(tsstack) - 1)) == 0);
+            VOGL_VERIFY(((uintptr_t) this & (VOGL_GET_ALIGNMENT(tsstack) - 1)) == 0);
             InitializeSListHead(&m_stack_head);
             InitializeSListHead(&m_freelist_head);
         }

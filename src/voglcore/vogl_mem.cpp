@@ -469,7 +469,7 @@ void *vogl_tracked_malloc(const char *pFile_line, size_t size, size_t *pActual_s
 
     uint8_t *p_new = (uint8_t *)malloc_block(size, pFile_line);
 
-    VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(p_new) & (VOGL_MIN_ALLOC_ALIGNMENT - 1)) == 0);
+    VOGL_ASSERT((reinterpret_cast<uintptr_t>(p_new) & (VOGL_MIN_ALLOC_ALIGNMENT - 1)) == 0);
 
     if (!p_new)
     {
@@ -497,7 +497,7 @@ void *vogl_tracked_malloc(const char *pFile_line, size_t size, size_t *pActual_s
 
 void *vogl_tracked_realloc(const char *pFile_line, void *p, size_t size, size_t *pActual_size)
 {
-    if ((ptr_bits_t)p & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
+    if ((uintptr_t)p & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
     {
         vogl_mem_error("vogl_realloc: bad ptr", pFile_line);
         return NULL;
@@ -523,7 +523,7 @@ void *vogl_tracked_realloc(const char *pFile_line, void *p, size_t size, size_t 
 
     void *p_new = realloc_block(p, size, pFile_line);
 
-    VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(p_new) & (VOGL_MIN_ALLOC_ALIGNMENT - 1)) == 0);
+    VOGL_ASSERT((reinterpret_cast<uintptr_t>(p_new) & (VOGL_MIN_ALLOC_ALIGNMENT - 1)) == 0);
 
     if (pActual_size)
     {
@@ -571,7 +571,7 @@ void vogl_tracked_free(const char *pFile_line, void *p)
     if (!p)
         return;
 
-    if (reinterpret_cast<ptr_bits_t>(p) & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
+    if (reinterpret_cast<uintptr_t>(p) & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
     {
         vogl_mem_error("vogl_free: bad ptr", pFile_line);
         return;
@@ -589,7 +589,7 @@ size_t vogl_msize(void *p)
     if (!p)
         return 0;
 
-    if (reinterpret_cast<ptr_bits_t>(p) & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
+    if (reinterpret_cast<uintptr_t>(p) & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
     {
         vogl_mem_error("vogl_msize: bad ptr", VOGL_FILE_POS_STRING);
         return 0;

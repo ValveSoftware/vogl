@@ -69,49 +69,49 @@ namespace vogl
     // Returns the original value.
     inline atomic32_t atomic_compare_exchange32(atomic32_t volatile *pDest, atomic32_t exchange, atomic32_t comparand)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return InterlockedCompareExchange(pDest, exchange, comparand);
     }
 
     // Returns the original value.
     inline atomic64_t atomic_compare_exchange64(atomic64_t volatile *pDest, atomic64_t exchange, atomic64_t comparand)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 7) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 7) == 0);
         return _InterlockedCompareExchange64(pDest, exchange, comparand);
     }
 
     // Returns the resulting incremented value.
     inline atomic32_t atomic_increment32(atomic32_t volatile *pDest)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return InterlockedIncrement(pDest);
     }
 
     // Returns the resulting decremented value.
     inline atomic32_t atomic_decrement32(atomic32_t volatile *pDest)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return InterlockedDecrement(pDest);
     }
 
     // Returns the original value.
     inline atomic32_t atomic_exchange32(atomic32_t volatile *pDest, atomic32_t val)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return InterlockedExchange(pDest, val);
     }
 
     // Returns the resulting value.
     inline atomic32_t atomic_add32(atomic32_t volatile *pDest, atomic32_t val)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return InterlockedExchangeAdd(pDest, val) + val;
     }
 
     // Returns the original value.
     inline atomic32_t atomic_exchange_add32(atomic32_t volatile *pDest, atomic32_t val)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return InterlockedExchangeAdd(pDest, val);
     }
 #elif VOGL_USE_GCC_ATOMIC_BUILTINS
@@ -123,49 +123,49 @@ namespace vogl
     // Returns the original value.
     inline nonvolatile_atomic32_t atomic_compare_exchange32(atomic32_t volatile *pDest, atomic32_t exchange, atomic32_t comparand)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return __sync_val_compare_and_swap(pDest, comparand, exchange);
     }
 
     // Returns the original value.
     inline nonvolatile_atomic64_t atomic_compare_exchange64(atomic64_t volatile *pDest, atomic64_t exchange, atomic64_t comparand)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 7) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 7) == 0);
         return __sync_val_compare_and_swap(pDest, comparand, exchange);
     }
 
     // Returns the resulting incremented value.
     inline nonvolatile_atomic32_t atomic_increment32(atomic32_t volatile *pDest)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return __sync_add_and_fetch(pDest, 1);
     }
 
     // Returns the resulting decremented value.
     inline nonvolatile_atomic32_t atomic_decrement32(atomic32_t volatile *pDest)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return __sync_sub_and_fetch(pDest, 1);
     }
 
     // Returns the original value.
     inline nonvolatile_atomic32_t atomic_exchange32(atomic32_t volatile *pDest, atomic32_t val)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return __sync_lock_test_and_set(pDest, val);
     }
 
     // Returns the resulting value.
     inline nonvolatile_atomic32_t atomic_add32(atomic32_t volatile *pDest, atomic32_t val)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return __sync_add_and_fetch(pDest, val);
     }
 
     // Returns the original value.
     inline nonvolatile_atomic32_t atomic_exchange_add32(atomic32_t volatile *pDest, atomic32_t val)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return __sync_fetch_and_add(pDest, val);
     }
 #else
@@ -177,7 +177,7 @@ namespace vogl
 
     inline atomic32_t atomic_compare_exchange32(atomic32_t volatile *pDest, atomic32_t exchange, atomic32_t comparand)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         atomic32_t cur = *pDest;
         if (cur == comparand)
             *pDest = exchange;
@@ -186,7 +186,7 @@ namespace vogl
 
     inline atomic64_t atomic_compare_exchange64(atomic64_t volatile *pDest, atomic64_t exchange, atomic64_t comparand)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 7) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 7) == 0);
         atomic64_t cur = *pDest;
         if (cur == comparand)
             *pDest = exchange;
@@ -195,19 +195,19 @@ namespace vogl
 
     inline atomic32_t atomic_increment32(atomic32_t volatile *pDest)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return (*pDest += 1);
     }
 
     inline atomic32_t atomic_decrement32(atomic32_t volatile *pDest)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return (*pDest -= 1);
     }
 
     inline atomic32_t atomic_exchange32(atomic32_t volatile *pDest, atomic32_t val)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         atomic32_t cur = *pDest;
         *pDest = val;
         return cur;
@@ -215,13 +215,13 @@ namespace vogl
 
     inline atomic32_t atomic_add32(atomic32_t volatile *pDest, atomic32_t val)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         return (*pDest += val);
     }
 
     inline atomic32_t atomic_exchange_add32(atomic32_t volatile *pDest, atomic32_t val)
     {
-        VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(pDest) & 3) == 0);
+        VOGL_ASSERT((reinterpret_cast<uintptr_t>(pDest) & 3) == 0);
         atomic32_t cur = *pDest;
         *pDest += val;
         return cur;
