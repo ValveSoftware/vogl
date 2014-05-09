@@ -1548,7 +1548,7 @@ ARB_ES2_compatibility enum: (additional; see below)
 OES_fixed_point enum: (OpenGL ES only)
 	FIXED_OES					= 0x140C
 
-# Leave a gap to preserve even/odd int/uint32_t token values
+# Leave a gap to preserve even/odd int/uint token values
 # ARB_future_use: 0x140D
 
 NV_gpu_shader5 enum:

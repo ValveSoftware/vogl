@@ -846,7 +846,7 @@ EnumerateVideoDevicesNV(hDC, phDeviceList)
 BindVideoDeviceNV(hDC, uVideoSlot, hVideoDevice, piAttribList)
 	return		BOOL
 	param		hDC		HDC in value
-	param		uVideoSlot	uint32_t in value
+	param		uVideoSlot	uint in value
 	param		hVideoDevice	HVIDEOOUTPUTDEVICENV in value
 	param		piAttribList	int in array [COMPSIZE()]
 	category	NV_present_video
