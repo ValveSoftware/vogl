@@ -78,7 +78,7 @@ namespace vogl
 
             dynamic_string_array m_values;
             uint m_split_param_index;
-            int8 m_modifier;
+            int8_t m_modifier;
         };
 
         // TODO: Get rid of std::multimap!

@@ -43,7 +43,7 @@ namespace vogl
     };
 
     template <>
-    struct int_traits<int8>
+    struct int_traits<int8_t>
     {
         enum
         {

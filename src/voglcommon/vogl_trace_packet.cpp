@@ -1266,7 +1266,7 @@ void vogl_trace_packet::ctype_to_json_value(json_value &val, gl_entrypoint_id_t 
         }
         case VOGL_GLBYTE:
         {
-            val.set_value(static_cast<int8>(data));
+            val.set_value(static_cast<int8_t>(data));
             return;
         }
         case VOGL_GLINT64:
@@ -2352,7 +2352,7 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
             }
             case VOGL_GLBYTE:
             {
-                str.format_append("%i", *reinterpret_cast<const int8 *>(&val_data));
+                str.format_append("%i", *reinterpret_cast<const int8_t *>(&val_data));
                 handled = true;
                 break;
             }

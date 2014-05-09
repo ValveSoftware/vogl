@@ -2903,7 +2903,7 @@ static bool param_value_matches(const bigint128 &value_to_find, vogl_namespace_t
         }
         case VOGL_GLBYTE:
         {
-            value = static_cast<int8>(value_data);
+            value = static_cast<int8_t>(value_data);
             break;
         }
         case VOGL_GLINT64:

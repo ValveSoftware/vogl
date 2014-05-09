@@ -44,7 +44,7 @@ namespace vogl
     };
 
     template <>
-    struct color_quad_component_traits<int8>
+    struct color_quad_component_traits<int8_t>
     {
         enum
         {
@@ -633,7 +633,7 @@ namespace vogl
     };
 
     typedef color_quad<uint8_t, int> color_quad_u8;
-    typedef color_quad<int8, int> color_quad_i8;
+    typedef color_quad<int8_t, int> color_quad_i8;
     typedef color_quad<int16, int> color_quad_i16;
     typedef color_quad<uint16, int> color_quad_u16;
     typedef color_quad<int32, int> color_quad_i32;

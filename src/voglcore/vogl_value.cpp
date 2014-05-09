@@ -35,7 +35,7 @@ namespace vogl
         {
             "invalid",
             "bool",
-            "int8",
+            "int8_t",
             "uint8_t",
             "int16",
             "uint16",
@@ -488,14 +488,14 @@ namespace vogl
         return dst;
     }
 
-    bool value::get_int8_or_fail(int8 &val, uint component) const
+    bool value::get_int8_or_fail(int8_t &val, uint component) const
     {
         int64_t i64_val;
         bool success = get_int64_or_fail(i64_val, component);
         if ((!success) || (i64_val < cINT8_MIN) || (i64_val > cINT8_MAX))
             return false;
 
-        val = static_cast<int8>(i64_val);
+        val = static_cast<int8_t>(i64_val);
         return true;
     }
 

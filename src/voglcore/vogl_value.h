@@ -122,7 +122,7 @@ namespace vogl
         {
         }
 
-        inline value(int8 v)
+        inline value(int8_t v)
             : m_int8(v), m_user_data(0), m_type(cDTInt8), m_flags(0)
         {
         }
@@ -232,7 +232,7 @@ namespace vogl
             m_bool = v;
         }
 
-        inline void set_int8(int8 v)
+        inline void set_int8(int8_t v)
         {
             clear_dynamic();
             m_type = cDTInt8;
@@ -481,7 +481,7 @@ namespace vogl
         }
 
         // on failure, the destination val is NOT modified
-        bool get_int8_or_fail(int8 &val, uint component) const;
+        bool get_int8_or_fail(int8_t &val, uint component) const;
         bool get_uint8_or_fail(uint8_t &val, uint component) const;
         bool get_int16_or_fail(int16 &val, uint component) const;
         bool get_uint16_or_fail(uint16 &val, uint component) const;
@@ -496,9 +496,9 @@ namespace vogl
         bool get_vec3I_or_fail(vec3I &val) const;
         bool get_string_hash_or_fail(string_hash &hash) const;
 
-        inline int8 get_int8(int8 def = 0, uint component = 0) const
+        inline int8_t get_int8(int8_t def = 0, uint component = 0) const
         {
-            int8 result = def;
+            int8_t result = def;
             get_int8_or_fail(result, component);
             return result;
         }
@@ -1018,7 +1018,7 @@ namespace vogl
         {
             bool m_bool;
 
-            int8 m_int8;
+            int8_t m_int8;
             uint8_t m_uint8;
 
             int16 m_int16;

@@ -188,9 +188,9 @@ namespace vogl
             return result;
         }
 
-        int8 read_int8(int8 def = 0)
+        int8_t read_int8(int8_t def = 0)
         {
-            int8 result;
+            int8_t result;
             if (!read_object(result))
                 result = def;
             return result;
@@ -536,7 +536,7 @@ namespace vogl
         serializer.write_value(val);
         return serializer;
     }
-    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, int8 val)
+    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, int8_t val)
     {
         serializer.write_value(val);
         return serializer;
@@ -618,7 +618,7 @@ namespace vogl
         serializer.read_object(val);
         return serializer;
     }
-    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, int8 &val)
+    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, int8_t &val)
     {
         serializer.read_object(val);
         return serializer;

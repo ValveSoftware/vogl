@@ -435,7 +435,7 @@ namespace vogl
                 param_value pv;
                 pv.m_values.swap(strings);
                 pv.m_split_param_index = cur_arg_index;
-                pv.m_modifier = (int8)modifier;
+                pv.m_modifier = (int8_t)modifier;
                 m_param_map.insert(std::make_pair(key_str, pv));
             }
             else if (!config.m_ignore_non_params)

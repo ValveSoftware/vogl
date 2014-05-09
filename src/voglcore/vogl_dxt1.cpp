@@ -643,7 +643,7 @@ namespace vogl
     // Voxel adjacency delta coordinations.
     static const struct adjacent_coords
     {
-        int8 x, y, z;
+        int8_t x, y, z;
     } g_adjacency[26] =
           {
               { -1, -1, -1 },

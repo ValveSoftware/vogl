@@ -721,7 +721,7 @@ namespace vogl
         return true;
     }
 
-    bool json_value::get_numeric(int8 &val, int8 def) const
+    bool json_value::get_numeric(int8_t &val, int8_t def) const
     {
         int64_t val64;
         if (!get_numeric(val64))
@@ -734,7 +734,7 @@ namespace vogl
             val = def;
             return false;
         }
-        val = static_cast<int8>(val64);
+        val = static_cast<int8_t>(val64);
         return true;
     }
 

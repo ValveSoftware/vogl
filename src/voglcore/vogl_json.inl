@@ -231,21 +231,21 @@ namespace vogl
         m_type = cJSONValueTypeBool;
     }
 
-    inline void json_value::set_value(int8 nVal)
+    inline void json_value::set_value(int8_t nVal)
     {
         free_data();
         m_data.m_nVal = nVal;
         m_type = cJSONValueTypeInt;
     }
 
-    inline void json_value::set_value(int16 nVal)
+    inline void json_value::set_value(int16_t nVal)
     {
         free_data();
         m_data.m_nVal = nVal;
         m_type = cJSONValueTypeInt;
     }
 
-    inline void json_value::set_value(int32 nVal)
+    inline void json_value::set_value(int32_t nVal)
     {
         free_data();
         m_data.m_nVal = nVal;
@@ -1042,35 +1042,35 @@ namespace vogl
         return v.json_deserialize(val);
     }
 
-    inline bool json_serialize(const int8 &v, json_value &val)
+    inline bool json_serialize(const int8_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(int8 &v, const json_value &val)
+    inline bool json_deserialize(int8_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const int16 &v, json_value &val)
+    inline bool json_serialize(const int16_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(int16 &v, const json_value &val)
+    inline bool json_deserialize(int16_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const int32 &v, json_value &val)
+    inline bool json_serialize(const int32_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(int32 &v, const json_value &val)
+    inline bool json_deserialize(int32_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }

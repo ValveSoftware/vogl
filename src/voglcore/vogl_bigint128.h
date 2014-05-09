@@ -152,9 +152,9 @@ namespace vogl
             return *this;
         }
 
-        inline operator int8() const
+        inline operator int8_t() const
         {
-            return static_cast<int8>(m_v[0]);
+            return static_cast<int8_t>(m_v[0]);
         }
 
         inline operator int16() const

@@ -113,7 +113,7 @@ namespace vogl
         }
 
         //Returns -1 for RGB, or [0,3]
-        int8 get_element_component_index(uint element_index) const
+        int8_t get_element_component_index(uint element_index) const
         {
             VOGL_ASSERT(element_index < m_num_elements_per_block);
             return m_element_component_index[element_index];
@@ -323,7 +323,7 @@ namespace vogl
         uint m_num_elements_per_block; // 1 or 2
         uint m_bytes_per_block;        // 8 or 16
 
-        int8 m_element_component_index[2];
+        int8_t m_element_component_index[2];
         element_type m_element_type[2];
 
         dxt_format m_format; // DXT1, 1A, 3, 5, N/3DC, or 5A
