@@ -1261,7 +1261,7 @@ void vogl_trace_packet::ctype_to_json_value(json_value &val, gl_entrypoint_id_t 
         }
         case VOGL_GLSHORT:
         {
-            val.set_value(static_cast<int16>(data));
+            val.set_value(static_cast<int16_t>(data));
             return;
         }
         case VOGL_GLBYTE:
@@ -2346,7 +2346,7 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
             }
             case VOGL_GLSHORT:
             {
-                str.format_append("%i", *reinterpret_cast<const int16 *>(&val_data));
+                str.format_append("%i", *reinterpret_cast<const int16_t *>(&val_data));
                 handled = true;
                 break;
             }

@@ -7976,8 +7976,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                     case GL_SHORT:
                     {
-                        trace_handle += *reinterpret_cast<const int16 *>(pTrace_lists_ptr);
-                        pTrace_lists_ptr += sizeof(int16);
+                        trace_handle += *reinterpret_cast<const int16_t *>(pTrace_lists_ptr);
+                        pTrace_lists_ptr += sizeof(int16_t);
                         break;
                     }
                     case GL_UNSIGNED_SHORT:

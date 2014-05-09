@@ -738,7 +738,7 @@ namespace vogl
         return true;
     }
 
-    bool json_value::get_numeric(int16 &val, int16 def) const
+    bool json_value::get_numeric(int16_t &val, int16_t def) const
     {
         int64_t val64;
         if (!get_numeric(val64))
@@ -751,7 +751,7 @@ namespace vogl
             val = def;
             return false;
         }
-        val = static_cast<int16>(val64);
+        val = static_cast<int16_t>(val64);
         return true;
     }
 
@@ -1232,7 +1232,7 @@ namespace vogl
                 if (n < 2)
                     JSON_BD_FAIL();
                 m_type = cJSONValueTypeInt;
-                m_data.m_nVal = static_cast<int16>((pSrc[0] << 8) | pSrc[1]);
+                m_data.m_nVal = static_cast<int16_t>((pSrc[0] << 8) | pSrc[1]);
                 pSrc += 2;
                 break;
             }
@@ -3106,7 +3106,7 @@ namespace vogl
         ss.insert("blah");
         pRoot->add_map("set", ss);
 
-        typedef vogl::vector<int16> cool_vec;
+        typedef vogl::vector<int16_t> cool_vec;
         cool_vec blah;
         blah.push_back(1);
         blah.push_back(3);

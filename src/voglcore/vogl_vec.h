@@ -1276,8 +1276,8 @@ namespace vogl
     typedef vec<3, int> vec3I;
     typedef vec<4, int> vec4I;
 
-    typedef vec<2, int16> vec2I16;
-    typedef vec<3, int16> vec3I16;
+    typedef vec<2, int16_t> vec2I16;
+    typedef vec<3, int16_t> vec3I16;
 
     template <uint N, typename T>
     struct scalar_type<vec<N, T> >

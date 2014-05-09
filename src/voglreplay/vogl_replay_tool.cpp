@@ -2898,7 +2898,7 @@ static bool param_value_matches(const bigint128 &value_to_find, vogl_namespace_t
         }
         case VOGL_GLSHORT:
         {
-            value = static_cast<int16>(value_data);
+            value = static_cast<int16_t>(value_data);
             break;
         }
         case VOGL_GLBYTE:

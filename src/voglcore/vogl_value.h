@@ -132,7 +132,7 @@ namespace vogl
         {
         }
 
-        inline value(int16 v)
+        inline value(int16_t v)
             : m_int16(v), m_user_data(0), m_type(cDTInt16), m_flags(0)
         {
         }
@@ -246,7 +246,7 @@ namespace vogl
             m_uint8 = v;
         }
 
-        inline void set_int16(int16 v)
+        inline void set_int16(int16_t v)
         {
             clear_dynamic();
             m_type = cDTInt16;
@@ -384,7 +384,7 @@ namespace vogl
             set_uint8(value);
             return *this;
         }
-        inline value &operator=(int16 value)
+        inline value &operator=(int16_t value)
         {
             set_int16(value);
             return *this;
@@ -483,7 +483,7 @@ namespace vogl
         // on failure, the destination val is NOT modified
         bool get_int8_or_fail(int8_t &val, uint component) const;
         bool get_uint8_or_fail(uint8_t &val, uint component) const;
-        bool get_int16_or_fail(int16 &val, uint component) const;
+        bool get_int16_or_fail(int16_t &val, uint component) const;
         bool get_uint16_or_fail(uint16_t &val, uint component) const;
         bool get_int_or_fail(int &val, uint component = 0) const;
         bool get_int64_or_fail(int64_t &val, uint component = 0) const;
@@ -502,9 +502,9 @@ namespace vogl
             get_int8_or_fail(result, component);
             return result;
         }
-        inline int16 get_int16(int16 def = 0, uint component = 0) const
+        inline int16_t get_int16(int16_t def = 0, uint component = 0) const
         {
-            int16 result = def;
+            int16_t result = def;
             get_int16_or_fail(result, component);
             return result;
         }
@@ -1021,7 +1021,7 @@ namespace vogl
             int8_t m_int8;
             uint8_t m_uint8;
 
-            int16 m_int16;
+            int16_t m_int16;
             uint16_t m_uint16;
 
             int m_int;

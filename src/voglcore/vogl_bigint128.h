@@ -157,9 +157,9 @@ namespace vogl
             return static_cast<int8_t>(m_v[0]);
         }
 
-        inline operator int16() const
+        inline operator int16_t() const
         {
-            return static_cast<int16>(m_v[0]);
+            return static_cast<int16_t>(m_v[0]);
         }
 
         inline operator int32() const

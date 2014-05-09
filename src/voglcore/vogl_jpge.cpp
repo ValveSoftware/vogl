@@ -77,8 +77,8 @@ namespace jpge
     };
 
     static uint8_t s_zag[64] = { 0, 1, 8, 16, 9, 2, 3, 10, 17, 24, 32, 25, 18, 11, 4, 5, 12, 19, 26, 33, 40, 48, 41, 34, 27, 20, 13, 6, 7, 14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23, 30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63 };
-    static int16 s_std_lum_quant[64] = { 16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22, 24, 49, 35, 37, 29, 40, 58, 51, 61, 60, 57, 51, 56, 55, 64, 72, 92, 78, 64, 68, 87, 69, 55, 56, 80, 109, 81, 87, 95, 98, 103, 104, 103, 62, 77, 113, 121, 112, 100, 120, 92, 101, 103, 99 };
-    static int16 s_std_croma_quant[64] = { 17, 18, 18, 24, 21, 24, 47, 26, 26, 47, 99, 66, 56, 66, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99 };
+    static int16_t s_std_lum_quant[64] = { 16, 11, 12, 14, 12, 10, 16, 14, 13, 14, 18, 17, 16, 19, 24, 40, 26, 24, 22, 22, 24, 49, 35, 37, 29, 40, 58, 51, 61, 60, 57, 51, 56, 55, 64, 72, 92, 78, 64, 68, 87, 69, 55, 56, 80, 109, 81, 87, 95, 98, 103, 104, 103, 62, 77, 113, 121, 112, 100, 120, 92, 101, 103, 99 };
+    static int16_t s_std_croma_quant[64] = { 17, 18, 18, 24, 21, 24, 47, 26, 26, 47, 99, 66, 56, 66, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99 };
     static uint8_t s_dc_lum_bits[17] = { 0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
     static uint8_t s_dc_lum_val[DC_LUM_CODES] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
     static uint8_t s_ac_lum_bits[17] = { 0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d };
@@ -175,7 +175,7 @@ namespace jpge
         ROW_BITS = 2
     };
 #define DCT_DESCALE(x, n) (((x) + (((int32)1) << ((n) - 1))) >> (n))
-#define DCT_MUL(var, c) (static_cast<int16>(var) * static_cast<int32>(c))
+#define DCT_MUL(var, c) (static_cast<int16_t>(var) * static_cast<int32>(c))
 #define DCT1D(s0, s1, s2, s3, s4, s5, s6, s7)                                                                             \
     int32 t0 = s0 + s7, t7 = s0 - s7, t1 = s1 + s6, t6 = s1 - s6, t2 = s2 + s5, t5 = s2 - s5, t3 = s3 + s4, t4 = s3 - s4; \
     int32 t10 = t0 + t3, t13 = t0 - t3, t11 = t1 + t2, t12 = t1 - t2;                                                     \
@@ -571,7 +571,7 @@ namespace jpge
     }
 
     // Quantization table generation.
-    void jpeg_encoder::compute_quant_table(int32 *pDst, int16 *pSrc)
+    void jpeg_encoder::compute_quant_table(int32 *pDst, int16_t *pSrc)
     {
         int32 q;
         if (m_params.m_quality < 50)
@@ -789,7 +789,7 @@ namespace jpge
     void jpeg_encoder::load_quantized_coefficients(int component_num)
     {
         int32 *q = m_quantization_tables[component_num > 0];
-        int16 *pDst = m_coefficient_array;
+        int16_t *pDst = m_coefficient_array;
         for (int i = 0; i < 64; i++)
         {
             sample_array_t j = m_sample_array[s_zag[i]];
@@ -798,14 +798,14 @@ namespace jpge
                 if ((j = -j + (*q >> 1)) < *q)
                     *pDst++ = 0;
                 else
-                    *pDst++ = static_cast<int16>(-(j / *q));
+                    *pDst++ = static_cast<int16_t>(-(j / *q));
             }
             else
             {
                 if ((j = j + (*q >> 1)) < *q)
                     *pDst++ = 0;
                 else
-                    *pDst++ = static_cast<int16>((j / *q));
+                    *pDst++ = static_cast<int16_t>((j / *q));
             }
             q++;
         }
@@ -844,7 +844,7 @@ namespace jpge
         if (component_num >= 3)
             return; // just to shut up static analysis
         int i, run_len, nbits, temp1;
-        int16 *src = m_coefficient_array;
+        int16_t *src = m_coefficient_array;
         uint32 *dc_count = component_num ? m_huff_count[0 + 1] : m_huff_count[0 + 0], *ac_count = component_num ? m_huff_count[2 + 1] : m_huff_count[2 + 0];
 
         temp1 = src[0] - m_last_dc_val[component_num];
@@ -887,7 +887,7 @@ namespace jpge
     void jpeg_encoder::code_coefficients_pass_two(int component_num)
     {
         int i, j, run_len, nbits, temp1, temp2;
-        int16 *pSrc = m_coefficient_array;
+        int16_t *pSrc = m_coefficient_array;
         uint *codes[2];
         uint8_t *code_sizes[2];
 

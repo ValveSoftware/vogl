@@ -34,7 +34,7 @@
 namespace jpge
 {
     typedef unsigned char uint8_t;
-    typedef signed short int16;
+    typedef signed short int16_t;
     typedef signed int int32;
     typedef unsigned short uint16_t;
     typedef unsigned int uint32;
@@ -162,7 +162,7 @@ namespace jpge
         uint8_t *m_mcu_lines[16];
         uint8_t m_mcu_y_ofs;
         sample_array_t m_sample_array[64];
-        int16 m_coefficient_array[64];
+        int16_t m_coefficient_array[64];
         int32 m_quantization_tables[2][64];
         uint m_huff_codes[4][256];
         uint8_t m_huff_code_sizes[4][256];
@@ -194,7 +194,7 @@ namespace jpge
         void emit_sos();
         void emit_markers();
         void compute_huffman_table(uint *codes, uint8_t *code_sizes, uint8_t *bits, uint8_t *val);
-        void compute_quant_table(int32 *dst, int16 *src);
+        void compute_quant_table(int32 *dst, int16_t *src);
         void adjust_quant_table(int32 *dst, int32 *src);
         void first_pass_init();
         bool second_pass_init();

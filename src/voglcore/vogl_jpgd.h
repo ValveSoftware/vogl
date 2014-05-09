@@ -44,7 +44,7 @@
 namespace jpgd
 {
     typedef unsigned char uint8_t;
-    typedef signed short int16;
+    typedef signed short int16_t;
     typedef unsigned short uint16_t;
     typedef unsigned int uint;
     typedef signed int int32;
@@ -189,8 +189,8 @@ namespace jpgd
         JPGD_MAX_WIDTH = 16384
     };
 
-    typedef int16 jpgd_quant_t;
-    typedef int16 jpgd_block_t;
+    typedef int16_t jpgd_quant_t;
+    typedef int16_t jpgd_block_t;
 
     class jpeg_decoder
     {

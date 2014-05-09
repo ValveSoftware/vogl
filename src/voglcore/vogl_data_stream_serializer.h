@@ -204,9 +204,9 @@ namespace vogl
             return result;
         }
 
-        int16 read_int16(int16 def = 0)
+        int16_t read_int16(int16_t def = 0)
         {
-            int16 result;
+            int16_t result;
             if (!read_object(result))
                 result = def;
             return result;
@@ -546,7 +546,7 @@ namespace vogl
         serializer.write_value(val);
         return serializer;
     }
-    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, int16 val)
+    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, int16_t val)
     {
         serializer.write_value(val);
         return serializer;
@@ -628,7 +628,7 @@ namespace vogl
         serializer.read_object(val);
         return serializer;
     }
-    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, int16 &val)
+    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, int16_t &val)
     {
         serializer.read_object(val);
         return serializer;

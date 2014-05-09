@@ -137,7 +137,7 @@ namespace vogl
     // implementation:
     typedef unsigned char uint8_t;
     typedef unsigned short uint16_t;
-    typedef signed short int16;
+    typedef signed short int16_t;
     typedef unsigned int uint32;
     typedef signed int int32;
     typedef unsigned int uint;
@@ -4233,7 +4233,7 @@ namespace vogl
                 }
                 case '2':
                 {
-                    int16 x = va_arg(v, int);
+                    int16_t x = va_arg(v, int);
                     write8(f, x);
                     write8(f, x >> 8);
                     break;

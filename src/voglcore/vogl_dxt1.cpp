@@ -44,16 +44,16 @@ namespace vogl
 {
     //-----------------------------------------------------------------------------------------------------------------------------------------
 
-    static const int16 g_fast_probe_table[] = { 0, 1, 2, 3 };
+    static const int16_t g_fast_probe_table[] = { 0, 1, 2, 3 };
     static const uint cFastProbeTableSize = sizeof(g_fast_probe_table) / sizeof(g_fast_probe_table[0]);
 
-    static const int16 g_normal_probe_table[] = { 0, 1, 3, 5, 7 };
+    static const int16_t g_normal_probe_table[] = { 0, 1, 3, 5, 7 };
     static const uint cNormalProbeTableSize = sizeof(g_normal_probe_table) / sizeof(g_normal_probe_table[0]);
 
-    static const int16 g_better_probe_table[] = { 0, 1, 2, 3, 5, 9, 15, 19, 27, 43 };
+    static const int16_t g_better_probe_table[] = { 0, 1, 2, 3, 5, 9, 15, 19, 27, 43 };
     static const uint cBetterProbeTableSize = sizeof(g_better_probe_table) / sizeof(g_better_probe_table[0]);
 
-    static const int16 g_uber_probe_table[] = { 0, 1, 2, 3, 5, 7, 9, 10, 13, 15, 19, 27, 43, 59, 91 };
+    static const int16_t g_uber_probe_table[] = { 0, 1, 2, 3, 5, 7, 9, 10, 13, 15, 19, 27, 43, 59, 91 };
     static const uint cUberProbeTableSize = sizeof(g_uber_probe_table) / sizeof(g_uber_probe_table[0]);
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -863,7 +863,7 @@ namespace vogl
         m_trial_solution.clear();
 
         uint num_passes;
-        const int16 *pProbe_table = g_uber_probe_table;
+        const int16_t *pProbe_table = g_uber_probe_table;
         uint probe_range;
         float dist_per_trial = .015625f;
 

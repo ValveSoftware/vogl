@@ -169,7 +169,7 @@ namespace vogl
         inline void set_value_to_null();
         inline void set_value(bool val);
         inline void set_value(int8_t nVal);
-        inline void set_value(int16 nVal);
+        inline void set_value(int16_t nVal);
         inline void set_value(int32 nVal);
         inline void set_value(int64_t nVal);
 
@@ -203,7 +203,7 @@ namespace vogl
         // Note that if trying to convert a negative value to an unsigned type, or a value which is too large will fail and you'll get the default.
         inline bool get_bool(bool &val, bool def = false) const;
         bool get_numeric(int8_t &val, int8_t def = 0) const;
-        bool get_numeric(int16 &val, int16 def = 0) const;
+        bool get_numeric(int16_t &val, int16_t def = 0) const;
         inline bool get_numeric(int32 &val, int32 def = 0) const;
         inline bool get_numeric(int64_t &val, int64_t def = 0) const;
 
@@ -444,7 +444,7 @@ namespace vogl
         bool get_value_as_string(const char *pKey, dynamic_string &val, const char *pDef = "") const;
         bool get_value_as_enum(const char *pKey, const char **pStringList, int &val, int def = 0) const;
 
-        // T may be int8_t, int16, int32 or uint8_t, uint16_t, uint32
+        // T may be int8_t, int16_t, int32 or uint8_t, uint16_t, uint32
         // Internally this fetches the value as int64_t and attempts to convert. Returns false and sets val to def if out of range.
         template <typename T>
         bool get_value_as_int(const char *pKey, T &val, T def = 0) const;

@@ -542,8 +542,8 @@ bool vogl_display_list_state::parse_lists_and_update_shadows(GLsizei n, GLenum t
             }
             case GL_SHORT:
             {
-                handle += *reinterpret_cast<const int16 *>(pTrace_lists_ptr);
-                pTrace_lists_ptr += sizeof(int16);
+                handle += *reinterpret_cast<const int16_t *>(pTrace_lists_ptr);
+                pTrace_lists_ptr += sizeof(int16_t);
                 break;
             }
             case GL_UNSIGNED_SHORT:
