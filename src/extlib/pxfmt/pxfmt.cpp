@@ -25,10 +25,15 @@
  *
  **************************************************************************/
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #include <algorithm> // For std::max()
 #include <assert.h>
 
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include "pxfmt.h"
 
 // The internal data structures and functions are put into the following
@@ -43,6 +48,7 @@ typedef unsigned short uint16;
 typedef signed short int16;
 typedef unsigned int uint32;
 typedef signed int int32;
+typedef unsigned int uint;
 
 /******************************************************************************
  *
@@ -473,7 +479,7 @@ void to_int_comp_packed(Tint *dst, const Tsrc *src, const uint32 c)
         dst[index] = (double) raw / (double) max;
         if (pxfmt_per_fmt_info<F>::m_is_signed)
         {
-            dst[index] = std::max((double) dst[index], -1.0);
+            dst[index] = std::max<double>(dst[index], -1.0);
         }
     }
     else
@@ -495,7 +501,7 @@ void to_int_comp_norm_unpacked(Tint *dst, const Tsrc *src, const uint32 c)
     dst[index] = (double) raw / (double) max;
     if (pxfmt_per_fmt_info<F>::m_is_signed)
     {
-        dst[index] = std::max((double) dst[index], -1.0);
+        dst[index] = std::max<double>(dst[index], -1.0);
     }
 }
 
