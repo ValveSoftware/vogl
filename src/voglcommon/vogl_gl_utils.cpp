@@ -2432,7 +2432,130 @@ int vogl_get_max_supported_mip_levels()
     return math::floor_log2i(max_texture_size);
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// pretty_print_param_val
+// Assumes CPU is little endian.
+//----------------------------------------------------------------------------------------------------------------------
+bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_desc, uint64_t val_data, gl_entrypoint_id_t entrypoint_id, int param_index)
+{
+    bool handled = false;
+    switch (ctype_desc.m_ctype)
+    {
+        case VOGL_BOOL:
+        case VOGL_GLBOOLEAN:
+        {
+            if (val_data == 0)
+            {
+                str += "false";
+                handled = true;
+            }
+            else if (val_data == 1)
+            {
+                str += "true";
+                handled = true;
+            }
 
+            break;
+        }
+        case VOGL_GLENUM:
+        {
+            const char *pName;
+
+            if (entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+                pName = get_gl_enums().find_name(val_data, entrypoint_id, param_index);
+            else
+                pName = get_gl_enums().find_name(val_data);
+
+            if (pName)
+            {
+                VOGL_ASSERT(get_gl_enums().find_enum(pName) == val_data);
+
+                str += pName;
+                handled = true;
+            }
+
+            break;
+        }
+        case VOGL_FLOAT:
+        case VOGL_GLFLOAT:
+        case VOGL_GLCLAMPF:
+        {
+            str.format_append("%f", *reinterpret_cast<const float *>(&val_data));
+            handled = true;
+            break;
+        }
+        case VOGL_GLDOUBLE:
+        case VOGL_GLCLAMPD:
+        {
+            str.format_append("%f", *reinterpret_cast<const double *>(&val_data));
+            handled = true;
+            break;
+        }
+        case VOGL_GLHANDLEARB:
+        case VOGL_GLUINT:
+        case VOGL_GLBITFIELD:
+        {
+            str.format_append("%u", *reinterpret_cast<const uint32_t *>(&val_data));
+            handled = true;
+            break;
+        }
+        case VOGL_GLCHAR:
+        {
+            uint32_t v = *reinterpret_cast<const uint8_t *>(&val_data);
+            if ((v >= 32) && (v < 128))
+                str.format_append("'%c'", v);
+            else
+                str.format_append("%u", v);
+            handled = true;
+            break;
+        }
+        case VOGL_GLUBYTE:
+        {
+            str.format_append("%u", *reinterpret_cast<const uint8_t *>(&val_data));
+            handled = true;
+            break;
+        }
+        case VOGL_GLUSHORT:
+        {
+            str.format_append("%u", *reinterpret_cast<const uint16_t *>(&val_data));
+            handled = true;
+            break;
+        }
+        case VOGL_GLINT:
+        case VOGL_INT:
+        case VOGL_INT32T:
+        case VOGL_GLSIZEI:
+        case VOGL_GLFIXED:
+        {
+            str.format_append("%i", *reinterpret_cast<const int32_t *>(&val_data));
+            handled = true;
+            break;
+        }
+        case VOGL_GLSHORT:
+        {
+            str.format_append("%i", *reinterpret_cast<const int16_t *>(&val_data));
+            handled = true;
+            break;
+        }
+        case VOGL_GLBYTE:
+        {
+            str.format_append("%i", *reinterpret_cast<const int8_t *>(&val_data));
+            handled = true;
+            break;
+        }
+        case VOGL_GLINT64:
+        case VOGL_GLINT64EXT:
+        {
+            str.format_append("%" PRIi64, val_data);
+            handled = true;
+            break;
+        }
+        default:
+            break;
+    }
+
+    return handled;
+}
 
 
 

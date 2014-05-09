@@ -975,6 +975,13 @@ void vogl_destroy_context(vogl_gl_display display, vogl_gl_context context);
 //----------------------------------------------------------------------------------------------------------------------
 int vogl_get_max_supported_mip_levels();
 
+//----------------------------------------------------------------------------------------------------------------------
+// pretty_print_param_val
+// entrypoint_id and param_index are to assist the GL enum to string conversion only, set param_index to -1 == return param.
+// Set entrypoint_id to VOGL_ENTRYPOINT_INVALID if the value is not a call parameter.
+//----------------------------------------------------------------------------------------------------------------------
+bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_desc, uint64_t val_data, gl_entrypoint_id_t entrypoint_id, int param_index);
+
 #endif // VOGL_GL_UTILS_H
 
 

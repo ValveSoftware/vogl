@@ -6,6 +6,7 @@ include("${SRC_DIR}/build_options.cmake")
 require_pthreads()
 
 include_directories(
+    "${SRC_DIR}/extlib/include"
     )
 
 set(SRC_LIST
