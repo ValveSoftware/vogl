@@ -4010,7 +4010,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
 //----------------------------------------------------------------------------------------------------------------------
 // func begin
 #define DEF_PROTO_EXPORTED(ret, name, args, params)    \
-    static ret VOGL_GLUER(vogl_, name) args           \
+    static ret VOGL_API_CALLCONV VOGL_GLUER(vogl_, name) args           \
     {                                                  \
         if (vogl_func_is_nulled(VOGL_ENTRYPOINT_##name)) \
         {                                              \
@@ -4018,12 +4018,12 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
         }                                              \
         ret result;
 #define DEF_PROTO_EXPORTED_VOID(ret, name, args, params) \
-    static ret VOGL_GLUER(vogl_, name) args             \
+    static ret VOGL_API_CALLCONV VOGL_GLUER(vogl_, name) args             \
     {                                                    \
         if (vogl_func_is_nulled(VOGL_ENTRYPOINT_##name))   \
             return;
 #define DEF_PROTO_INTERNAL(ret, name, args, params)    \
-    static ret VOGL_GLUER(vogl_, name) args           \
+    static ret VOGL_API_CALLCONV VOGL_GLUER(vogl_, name) args           \
     {                                                  \
         if (vogl_func_is_nulled(VOGL_ENTRYPOINT_##name)) \
         {                                              \
@@ -4031,7 +4031,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
         }                                              \
         ret result;
 #define DEF_PROTO_INTERNAL_VOID(ret, name, args, params) \
-    static ret VOGL_GLUER(vogl_, name) args             \
+    static ret VOGL_API_CALLCONV VOGL_GLUER(vogl_, name) args             \
     {                                                    \
         if (vogl_func_is_nulled(VOGL_ENTRYPOINT_##name))   \
             return;
@@ -9136,3 +9136,4 @@ void vogl_early_init()
 
     vogl_check_entrypoints();
 }
+
