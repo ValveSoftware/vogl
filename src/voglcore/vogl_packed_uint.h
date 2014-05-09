@@ -66,12 +66,12 @@ namespace vogl
             if (big_endian)
             {
                 for (uint i = 0; i < N; ++i, val >>= 8U)
-                    m_buf[(N - 1) - i] = static_cast<uint8>(val);
+                    m_buf[(N - 1) - i] = static_cast<uint8_t>(val);
             }
             else
             {
                 for (uint i = 0; i < N; ++i, val >>= 8U)
-                    m_buf[i] = static_cast<uint8>(val);
+                    m_buf[i] = static_cast<uint8_t>(val);
             }
 
             VOGL_ASSERT(!val);
@@ -124,7 +124,7 @@ namespace vogl
             return *this;
         }
 
-        uint8 m_buf[N];
+        uint8_t m_buf[N];
     };
 
     inline void packed_uint_test()

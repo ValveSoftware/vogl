@@ -88,9 +88,9 @@ namespace vogl
         void seed();
         void seed(uint32 i);
 
-        uint8 urand8()
+        uint8_t urand8()
         {
-            return static_cast<uint8>(urand32());
+            return static_cast<uint8_t>(urand32());
         }
         uint16 urand16()
         {

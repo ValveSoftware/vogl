@@ -31,7 +31,7 @@
 
 namespace vogl
 {
-    typedef uint8_t uint8;
+    // typedef uint8_t uint8_t;
     typedef int8_t int8;
     typedef uint16_t uint16;
     typedef int16_t int16;
@@ -39,8 +39,8 @@ namespace vogl
     typedef uint32 uint;
     typedef int32_t int32;
 
-    const uint8 cUINT8_MIN = 0;
-    const uint8 cUINT8_MAX = 0xFFU;
+    const uint8_t cUINT8_MIN = 0;
+    const uint8_t cUINT8_MAX = 0xFFU;
     const uint16 cUINT16_MIN = 0;
     const uint16 cUINT16_MAX = 0xFFFFU;
     const uint32 cUINT32_MIN = 0;

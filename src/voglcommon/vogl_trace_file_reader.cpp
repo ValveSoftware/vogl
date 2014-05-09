@@ -96,7 +96,7 @@ void vogl_trace_file_reader::create_eof_packet()
     eof_packet.init(cTSPTEOF, sizeof(vogl_trace_stream_packet_base));
     eof_packet.finalize();
     m_packet_buf.resize(0);
-    m_packet_buf.append(reinterpret_cast<uint8 *>(&eof_packet), sizeof(eof_packet));
+    m_packet_buf.append(reinterpret_cast<uint8_t *>(&eof_packet), sizeof(eof_packet));
 }
 
 bool vogl_trace_file_reader::init_loose_file_blob_manager(const char *pTrace_filename, const char *pLoose_file_path)

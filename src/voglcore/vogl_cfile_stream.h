@@ -264,7 +264,7 @@ namespace vogl
             return true;
         }
 
-        static bool read_file_into_array(const char *pFilename, vector<uint8> &buf)
+        static bool read_file_into_array(const char *pFilename, vector<uint8_t> &buf)
         {
             cfile_stream in_stream(pFilename);
             if (!in_stream.is_opened())
@@ -272,7 +272,7 @@ namespace vogl
             return in_stream.read_array(buf);
         }
 
-        static bool write_array_to_file(const char *pFilename, const vector<uint8> &buf)
+        static bool write_array_to_file(const char *pFilename, const vector<uint8_t> &buf)
         {
             cfile_stream out_stream(pFilename, cDataStreamWritable | cDataStreamSeekable);
             if (!out_stream.is_opened())

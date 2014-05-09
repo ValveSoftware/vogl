@@ -35,11 +35,11 @@
 
 namespace vogl
 {
-    extern const uint8 s_ktx_file_id[12];
+    extern const uint8_t s_ktx_file_id[12];
 
     struct ktx_header
     {
-        uint8 m_identifier[12];
+        uint8_t m_identifier[12];
         uint32 m_endianness;
         uint32 m_glType;
         uint32 m_glTypeSize;

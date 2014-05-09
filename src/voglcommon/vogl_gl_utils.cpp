@@ -1186,12 +1186,12 @@ bool vogl_copy_buffer_to_image(void *pDst, uint dst_size, uint width, uint heigh
 
         if ((pitch) && ((image_size / pitch) == height))
         {
-            vogl::vector<uint8> row_buf(static_cast<uint>(pitch));
+            vogl::vector<uint8_t> row_buf(static_cast<uint>(pitch));
 
             for (uint y = 0; y < (height / 2); y++)
             {
-                uint8 *pA = reinterpret_cast<uint8 *>(pDst) + y * pitch;
-                uint8 *pB = reinterpret_cast<uint8 *>(pDst) + (height - 1 - y) * pitch;
+                uint8_t *pA = reinterpret_cast<uint8_t *>(pDst) + y * pitch;
+                uint8_t *pB = reinterpret_cast<uint8_t *>(pDst) + (height - 1 - y) * pitch;
                 memcpy(row_buf.get_ptr(), pA, pitch);
                 memcpy(pA, pB, pitch);
                 memcpy(pB, row_buf.get_ptr(), pitch);

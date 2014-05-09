@@ -133,12 +133,12 @@ namespace vogl
 
         inline int read_byte()
         {
-            uint8 c;
+            uint8_t c;
             if (read(&c, 1) != 1)
                 return -1;
             return c;
         }
-        inline bool write_byte(uint8 c)
+        inline bool write_byte(uint8_t c)
         {
             return write(&c, 1) == 1;
         }
@@ -160,8 +160,8 @@ namespace vogl
             return write(&bom, sizeof(bom)) == sizeof(bom);
         }
 
-        bool read_array(vector<uint8> &buf);
-        bool write_array(const vector<uint8> &buf);
+        bool read_array(vector<uint8_t> &buf);
+        bool write_array(const vector<uint8_t> &buf);
 
         void set_user_data(void *p)
         {

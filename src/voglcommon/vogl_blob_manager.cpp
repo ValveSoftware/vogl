@@ -58,7 +58,7 @@ dynamic_string vogl_blob_manager::compute_unique_id(const void *pData, uint size
     VOGL_ASSERT(!prefix.contains('['));
     VOGL_ASSERT(!prefix.contains(']'));
 
-    uint64_t crc64 = pCRC64 ? *pCRC64 : calc_crc64(CRC64_INIT, static_cast<const uint8 *>(pData), size);
+    uint64_t crc64 = pCRC64 ? *pCRC64 : calc_crc64(CRC64_INIT, static_cast<const uint8_t *>(pData), size);
 
     dynamic_string actual_ext(ext);
     if ((actual_ext.get_len() > 1) && (actual_ext[0] == '.'))
@@ -359,7 +359,7 @@ dynamic_string vogl_memory_blob_manager::add_buf_using_id(const void *pData, uin
 
     blob &new_blob = (insert_res.first)->second;
     new_blob.m_id = actual_id;
-    new_blob.m_blob.append(static_cast<const uint8 *>(pData), static_cast<uint32>(size));
+    new_blob.m_blob.append(static_cast<const uint8_t *>(pData), static_cast<uint32>(size));
 
     return actual_id;
 }

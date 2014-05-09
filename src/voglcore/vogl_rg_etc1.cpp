@@ -55,7 +55,7 @@ namespace vogl
 
     namespace rg_etc1
     {
-        typedef unsigned char uint8;
+        typedef unsigned char uint8_t;
         typedef unsigned short uint16;
         typedef unsigned int uint;
         typedef unsigned int uint32;
@@ -478,7 +478,7 @@ namespace vogl
             // 0   1   2   3   -4  -3  -2  -1
         };
 
-        static uint8 g_quant5_tab[256 + 16];
+        static uint8_t g_quant5_tab[256 + 16];
 
         static const int g_etc1_inten_tables[cETC1IntenModifierValues][cETC1SelectorValues] =
             {
@@ -486,8 +486,8 @@ namespace vogl
                 { -60, -18, 18, 60 }, { -80, -24, 24, 80 }, { -106, -33, 33, 106 }, { -183, -47, 47, 183 }
             };
 
-        static const uint8 g_etc1_to_selector_index[cETC1SelectorValues] = { 2, 3, 1, 0 };
-        static const uint8 g_selector_index_to_etc1[cETC1SelectorValues] = { 3, 2, 0, 1 };
+        static const uint8_t g_etc1_to_selector_index[cETC1SelectorValues] = { 2, 3, 1, 0 };
+        static const uint8_t g_selector_index_to_etc1[cETC1SelectorValues] = { 3, 2, 0, 1 };
 
         // Given an ETC1 diff/inten_table/selector, and an 8-bit desired color, this table encodes the best packed_color in the low byte, and the abs error in the high byte.
         static uint16 g_etc1_inverse_lookup[2 * 8 * 4][256]; // [diff/inten_table/selector][desired_color]
@@ -686,17 +686,17 @@ namespace vogl
             union
             {
                 uint64_t m_uint64;
-                uint8 m_bytes[8];
+                uint8_t m_bytes[8];
             };
 
-            uint8 m_low_color[2];
-            uint8 m_high_color[2];
+            uint8_t m_low_color[2];
+            uint8_t m_high_color[2];
 
             enum
             {
                 cNumSelectorBytes = 4
             };
-            uint8 m_selectors[cNumSelectorBytes];
+            uint8_t m_selectors[cNumSelectorBytes];
 
             inline void clear()
             {
@@ -736,7 +736,7 @@ namespace vogl
             inline void set_flip_bit(bool flip)
             {
                 m_bytes[3] &= ~1;
-                m_bytes[3] |= static_cast<uint8>(flip);
+                m_bytes[3] |= static_cast<uint8_t>(flip);
             }
 
             inline bool get_diff_bit() const
@@ -776,7 +776,7 @@ namespace vogl
 
                 const uint bit_index = x * 4 + y;
                 const uint byte_bit_ofs = bit_index & 7;
-                const uint8 *p = &m_bytes[7 - (bit_index >> 3)];
+                const uint8_t *p = &m_bytes[7 - (bit_index >> 3)];
                 const uint lsb = (p[0] >> byte_bit_ofs) & 1;
                 const uint msb = (p[-2] >> byte_bit_ofs) & 1;
                 const uint val = lsb | (msb << 1);
@@ -790,7 +790,7 @@ namespace vogl
                 RG_ETC1_ASSERT((x | y | val) < 4);
                 const uint bit_index = x * 4 + y;
 
-                uint8 *p = &m_bytes[7 - (bit_index >> 3)];
+                uint8_t *p = &m_bytes[7 - (bit_index >> 3)];
 
                 const uint byte_bit_ofs = bit_index & 7;
                 const uint mask = 1 << byte_bit_ofs;
@@ -945,8 +945,8 @@ namespace vogl
 
             memset(hist, 0, sizeof(hist[0]) * 256 * key_size);
 
-#define RG_ETC1_GET_KEY(p) (*(const uint *)((const uint8 *)(pKeys + *(p)) + key_ofs))
-#define RG_ETC1_GET_KEY_FROM_INDEX(i) (*(const uint *)((const uint8 *)(pKeys + (i)) + key_ofs))
+#define RG_ETC1_GET_KEY(p) (*(const uint *)((const uint8_t *)(pKeys + *(p)) + key_ofs))
+#define RG_ETC1_GET_KEY_FROM_INDEX(i) (*(const uint *)((const uint8_t *)(pKeys + (i)) + key_ofs))
 
             if (key_size == 4)
             {
@@ -1595,7 +1595,7 @@ namespace vogl
                 color_quad_u8 m_block_color_unscaled;
                 uint m_block_inten_table;
                 uint m_n;
-                uint8 *m_pSelectors;
+                uint8_t *m_pSelectors;
                 bool m_block_color4;
 
                 inline results &operator=(const results &rhs)
@@ -1622,7 +1622,7 @@ namespace vogl
                 }
 
                 etc1_solution_coordinates m_coords;
-                uint8 m_selectors[8];
+                uint8_t m_selectors[8];
                 uint64_t m_error;
                 bool m_valid;
 
@@ -1646,12 +1646,12 @@ namespace vogl
             const uint32 *m_pSorted_luma_indices;
             uint32 *m_pSorted_luma;
 
-            uint8 m_selectors[8];
-            uint8 m_best_selectors[8];
+            uint8_t m_selectors[8];
+            uint8_t m_best_selectors[8];
 
             potential_solution m_best_solution;
             potential_solution m_trial_solution;
-            uint8 m_temp_selectors[8];
+            uint8_t m_temp_selectors[8];
 
             bool evaluate_solution(const etc1_solution_coordinates &coords, potential_solution &trial_solution, potential_solution *pBest_solution);
             bool evaluate_solution_fast(const etc1_solution_coordinates &coords, potential_solution &trial_solution, potential_solution *pBest_solution);
@@ -1723,7 +1723,7 @@ namespace vogl
                         const uint max_refinement_trials = (m_pParams->m_quality == cLowQuality) ? 2 : (((xd | yd | zd) == 0) ? 4 : 2);
                         for (uint refinement_trial = 0; refinement_trial < max_refinement_trials; refinement_trial++)
                         {
-                            const uint8 *pSelectors = m_best_solution.m_selectors;
+                            const uint8_t *pSelectors = m_best_solution.m_selectors;
                             const int *pInten_table = g_etc1_inten_tables[m_best_solution.m_coords.m_inten_table];
 
                             int delta_sum_r = 0, delta_sum_g = 0, delta_sum_b = 0;
@@ -1782,7 +1782,7 @@ namespace vogl
                 return false;
             }
 
-            const uint8 *pSelectors = m_best_solution.m_selectors;
+            const uint8_t *pSelectors = m_best_solution.m_selectors;
 
 #ifdef RG_ETC1_BUILD_DEBUG
             {
@@ -1919,7 +1919,7 @@ namespace vogl
                         best_selector_index = 3;
                     }
 
-                    m_temp_selectors[c] = static_cast<uint8>(best_selector_index);
+                    m_temp_selectors[c] = static_cast<uint8_t>(best_selector_index);
 
                     total_error += best_error;
                     if (total_error >= trial_solution.m_error)
@@ -2031,7 +2031,7 @@ namespace vogl
                             if (++cur_selector > 2)
                                 goto done;
                         const uint sorted_pixel_index = m_pSorted_luma_indices[c];
-                        m_temp_selectors[sorted_pixel_index] = static_cast<uint8>(cur_selector);
+                        m_temp_selectors[sorted_pixel_index] = static_cast<uint8_t>(cur_selector);
                         total_error += block_colors[cur_selector].squared_distance_rgb(pSrc_pixels[sorted_pixel_index]);
                     }
                 done:
@@ -2131,13 +2131,13 @@ namespace vogl
             for (int i = 0; i < 256 + 16; i++)
             {
                 int v = clamp<int>(i - 8, 0, 255);
-                g_quant5_tab[i] = static_cast<uint8>(expand5[mul_8bit(v, 31)]);
+                g_quant5_tab[i] = static_cast<uint8_t>(expand5[mul_8bit(v, 31)]);
             }
         }
 
         // Packs solid color blocks efficiently using a set of small precomputed tables.
         // For random 888 inputs, MSE results are better than Erricson's ETC1 packer in "slow" mode ~9.5% of the time, is slightly worse only ~.01% of the time, and is equal the rest of the time.
-        static uint64_t pack_etc1_block_solid_color(etc1_block &block, const uint8 *pColor, etc1_pack_params &pack_params)
+        static uint64_t pack_etc1_block_solid_color(etc1_block &block, const uint8_t *pColor, etc1_pack_params &pack_params)
         {
             VOGL_NOTE_UNUSED(pack_params);
             RG_ETC1_ASSERT(g_etc1_inverse_lookup[0][255]);
@@ -2199,7 +2199,7 @@ namespace vogl
             const uint diff = best_x & 1;
             const uint inten = (best_x >> 1) & 7;
 
-            block.m_bytes[3] = static_cast<uint8>(((inten | (inten << 3)) << 2) | (diff << 1));
+            block.m_bytes[3] = static_cast<uint8_t>(((inten | (inten << 3)) << 2) | (diff << 1));
 
             const uint etc1_selector = g_selector_index_to_etc1[(best_x >> 4) & 3];
             *reinterpret_cast<uint16 *>(&block.m_bytes[4]) = (etc1_selector & 2) ? 0xFFFF : 0;
@@ -2208,15 +2208,15 @@ namespace vogl
             const uint best_packed_c0 = (best_x >> 8) & 255;
             if (diff)
             {
-                block.m_bytes[best_i] = static_cast<uint8>(best_packed_c0 << 3);
-                block.m_bytes[s_next_comp[best_i]] = static_cast<uint8>(best_packed_c1 << 3);
-                block.m_bytes[s_next_comp[best_i + 1]] = static_cast<uint8>(best_packed_c2 << 3);
+                block.m_bytes[best_i] = static_cast<uint8_t>(best_packed_c0 << 3);
+                block.m_bytes[s_next_comp[best_i]] = static_cast<uint8_t>(best_packed_c1 << 3);
+                block.m_bytes[s_next_comp[best_i + 1]] = static_cast<uint8_t>(best_packed_c2 << 3);
             }
             else
             {
-                block.m_bytes[best_i] = static_cast<uint8>(best_packed_c0 | (best_packed_c0 << 4));
-                block.m_bytes[s_next_comp[best_i]] = static_cast<uint8>(best_packed_c1 | (best_packed_c1 << 4));
-                block.m_bytes[s_next_comp[best_i + 1]] = static_cast<uint8>(best_packed_c2 | (best_packed_c2 << 4));
+                block.m_bytes[best_i] = static_cast<uint8_t>(best_packed_c0 | (best_packed_c0 << 4));
+                block.m_bytes[s_next_comp[best_i]] = static_cast<uint8_t>(best_packed_c1 | (best_packed_c1 << 4));
+                block.m_bytes[s_next_comp[best_i + 1]] = static_cast<uint8_t>(best_packed_c2 | (best_packed_c2 << 4));
             }
 
             return best_error;
@@ -2224,7 +2224,7 @@ namespace vogl
 
         static uint pack_etc1_block_solid_color_constrained(
             etc1_optimizer::results &results,
-            uint num_colors, const uint8 *pColor,
+            uint num_colors, const uint8_t *pColor,
             etc1_pack_params &pack_params,
             bool use_diff,
             const color_quad_u8 *pBase_color5_unscaled)
@@ -2330,9 +2330,9 @@ namespace vogl
             memset(results.m_pSelectors, (best_x >> 4) & 3, num_colors);
 
             const uint best_packed_c0 = (best_x >> 8) & 255;
-            results.m_block_color_unscaled[best_i] = static_cast<uint8>(best_packed_c0);
-            results.m_block_color_unscaled[s_next_comp[best_i]] = static_cast<uint8>(best_packed_c1);
-            results.m_block_color_unscaled[s_next_comp[best_i + 1]] = static_cast<uint8>(best_packed_c2);
+            results.m_block_color_unscaled[best_i] = static_cast<uint8_t>(best_packed_c0);
+            results.m_block_color_unscaled[s_next_comp[best_i]] = static_cast<uint8_t>(best_packed_c1);
+            results.m_block_color_unscaled[s_next_comp[best_i + 1]] = static_cast<uint8_t>(best_packed_c2);
             results.m_error = best_error;
 
             return best_error;
@@ -2342,15 +2342,15 @@ namespace vogl
         static void dither_block_555(color_quad_u8 *dest, const color_quad_u8 *block)
         {
             int err[8], *ep1 = err, *ep2 = err + 4;
-            uint8 *quant = g_quant5_tab + 8;
+            uint8_t *quant = g_quant5_tab + 8;
 
             memset(dest, 0xFF, sizeof(color_quad_u8) * 16);
 
             // process channels seperately
             for (int ch = 0; ch < 3; ch++)
             {
-                uint8 *bp = (uint8 *)block;
-                uint8 *dp = (uint8 *)dest;
+                uint8_t *bp = (uint8_t *)block;
+                uint8_t *dp = (uint8_t *)dest;
 
                 bp += ch;
                 dp += ch;
@@ -2420,7 +2420,7 @@ namespace vogl
             uint64_t best_error = cUINT64_MAX;
             uint best_flip = false, best_use_color4 = false;
 
-            uint8 best_selectors[2][8];
+            uint8_t best_selectors[2][8];
             etc1_optimizer::results best_results[2];
             for (uint i = 0; i < 2; i++)
             {
@@ -2428,7 +2428,7 @@ namespace vogl
                 best_results[i].m_pSelectors = best_selectors[i];
             }
 
-            uint8 selectors[3][8];
+            uint8_t selectors[3][8];
             etc1_optimizer::results results[3];
 
             for (uint i = 0; i < 3; i++)
@@ -2574,24 +2574,24 @@ namespace vogl
 
             if (best_use_color4)
             {
-                dst_block.m_bytes[0] = static_cast<uint8>(best_results[1].m_block_color_unscaled.r | (best_results[0].m_block_color_unscaled.r << 4));
-                dst_block.m_bytes[1] = static_cast<uint8>(best_results[1].m_block_color_unscaled.g | (best_results[0].m_block_color_unscaled.g << 4));
-                dst_block.m_bytes[2] = static_cast<uint8>(best_results[1].m_block_color_unscaled.b | (best_results[0].m_block_color_unscaled.b << 4));
+                dst_block.m_bytes[0] = static_cast<uint8_t>(best_results[1].m_block_color_unscaled.r | (best_results[0].m_block_color_unscaled.r << 4));
+                dst_block.m_bytes[1] = static_cast<uint8_t>(best_results[1].m_block_color_unscaled.g | (best_results[0].m_block_color_unscaled.g << 4));
+                dst_block.m_bytes[2] = static_cast<uint8_t>(best_results[1].m_block_color_unscaled.b | (best_results[0].m_block_color_unscaled.b << 4));
             }
             else
             {
                 if (dr < 0)
                     dr += 8;
-                dst_block.m_bytes[0] = static_cast<uint8>((best_results[0].m_block_color_unscaled.r << 3) | dr);
+                dst_block.m_bytes[0] = static_cast<uint8_t>((best_results[0].m_block_color_unscaled.r << 3) | dr);
                 if (dg < 0)
                     dg += 8;
-                dst_block.m_bytes[1] = static_cast<uint8>((best_results[0].m_block_color_unscaled.g << 3) | dg);
+                dst_block.m_bytes[1] = static_cast<uint8_t>((best_results[0].m_block_color_unscaled.g << 3) | dg);
                 if (db < 0)
                     db += 8;
-                dst_block.m_bytes[2] = static_cast<uint8>((best_results[0].m_block_color_unscaled.b << 3) | db);
+                dst_block.m_bytes[2] = static_cast<uint8_t>((best_results[0].m_block_color_unscaled.b << 3) | db);
             }
 
-            dst_block.m_bytes[3] = static_cast<uint8>((best_results[1].m_block_inten_table << 2) | (best_results[0].m_block_inten_table << 5) | ((~best_use_color4 & 1) << 1) | best_flip);
+            dst_block.m_bytes[3] = static_cast<uint8_t>((best_results[1].m_block_inten_table << 2) | (best_results[0].m_block_inten_table << 5) | ((~best_use_color4 & 1) << 1) | best_flip);
 
             uint selector0 = 0, selector1 = 0;
             if (best_flip)
@@ -2602,8 +2602,8 @@ namespace vogl
                 //
                 // { 0, 2 }, { 1, 2 }, { 2, 2 }, { 3, 2 },
                 // { 0, 3 }, { 1, 3 }, { 2, 3 }, { 3, 3 }
-                const uint8 *pSelectors0 = best_results[0].m_pSelectors;
-                const uint8 *pSelectors1 = best_results[1].m_pSelectors;
+                const uint8_t *pSelectors0 = best_results[0].m_pSelectors;
+                const uint8_t *pSelectors1 = best_results[1].m_pSelectors;
                 for (int x = 3; x >= 0; --x)
                 {
                     uint b;
@@ -2634,7 +2634,7 @@ namespace vogl
                 // { 3, 0 }, { 3, 1 }, { 3, 2 }, { 3, 3 }
                 for (int subblock = 1; subblock >= 0; --subblock)
                 {
-                    const uint8 *pSelectors = best_results[subblock].m_pSelectors + 4;
+                    const uint8_t *pSelectors = best_results[subblock].m_pSelectors + 4;
                     for (uint i = 0; i < 2; i++)
                     {
                         uint b;
@@ -2659,10 +2659,10 @@ namespace vogl
                 }
             }
 
-            dst_block.m_bytes[4] = static_cast<uint8>(selector1 >> 8);
-            dst_block.m_bytes[5] = static_cast<uint8>(selector1 & 0xFF);
-            dst_block.m_bytes[6] = static_cast<uint8>(selector0 >> 8);
-            dst_block.m_bytes[7] = static_cast<uint8>(selector0 & 0xFF);
+            dst_block.m_bytes[4] = static_cast<uint8_t>(selector1 >> 8);
+            dst_block.m_bytes[5] = static_cast<uint8_t>(selector1 & 0xFF);
+            dst_block.m_bytes[6] = static_cast<uint8_t>(selector0 >> 8);
+            dst_block.m_bytes[7] = static_cast<uint8_t>(selector0 & 0xFF);
 
             return static_cast<unsigned int>(best_error);
         }

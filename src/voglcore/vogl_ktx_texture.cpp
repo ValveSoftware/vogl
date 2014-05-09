@@ -35,7 +35,7 @@
 
 namespace vogl
 {
-    const uint8 s_ktx_file_id[12] = { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A };
+    const uint8_t s_ktx_file_id[12] = { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A };
 
     // true if the specified internal pixel format is compressed
     bool ktx_is_compressed_ogl_fmt(uint32 ogl_fmt)
@@ -399,7 +399,7 @@ namespace vogl
         {
             m_header.endian_swap();
 
-            if ((m_header.m_glTypeSize != sizeof(uint8)) && (m_header.m_glTypeSize != sizeof(uint16)) && (m_header.m_glTypeSize != sizeof(uint32)))
+            if ((m_header.m_glTypeSize != sizeof(uint8_t)) && (m_header.m_glTypeSize != sizeof(uint16)) && (m_header.m_glTypeSize != sizeof(uint32)))
                 return false;
         }
 
@@ -425,7 +425,7 @@ namespace vogl
                 return false;
         }
 
-        uint8 pad_bytes[3];
+        uint8_t pad_bytes[3];
 
         // Read the key value entries
         uint num_key_value_bytes_remaining = m_header.m_bytesOfKeyValueData;
@@ -699,7 +699,7 @@ namespace vogl
             return success;
 
         uint total_key_value_bytes = 0;
-        const uint8 padding[3] = { 0, 0, 0 };
+        const uint8_t padding[3] = { 0, 0, 0 };
 
         if (!no_keyvalue_data)
         {
@@ -1125,7 +1125,7 @@ namespace vogl
         }
 
         const uint ofs = vogl_strlen(pKey) + 1;
-        const uint8 *pValue = p->get_ptr() + ofs;
+        const uint8_t *pValue = p->get_ptr() + ofs;
         const uint n = p->size() - ofs;
 
         data.resize(n);
@@ -1144,7 +1144,7 @@ namespace vogl
         }
 
         const uint ofs = vogl_strlen(pKey) + 1;
-        const uint8 *pValue = p->get_ptr() + ofs;
+        const uint8_t *pValue = p->get_ptr() + ofs;
         const uint n = p->size() - ofs;
 
         uint i;
@@ -1161,8 +1161,8 @@ namespace vogl
         const uint idx = m_key_values.size();
         m_key_values.resize(idx + 1);
         uint8_vec &v = m_key_values.back();
-        v.append(reinterpret_cast<const uint8 *>(pKey), vogl_strlen(pKey) + 1);
-        v.append(static_cast<const uint8 *>(pVal), val_size);
+        v.append(reinterpret_cast<const uint8_t *>(pKey), vogl_strlen(pKey) + 1);
+        v.append(static_cast<const uint8_t *>(pVal), val_size);
         return idx;
     }
 

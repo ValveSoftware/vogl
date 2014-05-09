@@ -297,7 +297,7 @@ namespace vogl
         template <typename T>
         inline uint get_bytes_to_align_up_pointer(T p, uint alignment)
         {
-            return reinterpret_cast<uint8 *>(align_up_pointer(p, alignment)) - reinterpret_cast<uint8 *>(p);
+            return reinterpret_cast<uint8_t *>(align_up_pointer(p, alignment)) - reinterpret_cast<uint8_t *>(p);
         }
 
         template <typename T>
@@ -616,7 +616,7 @@ namespace vogl
             #endif
         }
 
-        double compute_entropy(const uint8 *p, uint n);
+        double compute_entropy(const uint8_t *p, uint n);
 
         void compute_lower_pow2_dim(int &width, int &height);
         void compute_upper_pow2_dim(int &width, int &height);

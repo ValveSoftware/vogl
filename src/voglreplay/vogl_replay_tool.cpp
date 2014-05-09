@@ -2228,7 +2228,7 @@ static bool tool_dump_mode()
                         else
                         {
                             vogl_trace_packet temp_cracker2(&trace_gl_ctypes);
-                            success = temp_cracker2.deserialize(static_cast<const uint8 *>(dyn_stream.get_ptr()), static_cast<uint32>(dyn_stream.get_size()), true);
+                            success = temp_cracker2.deserialize(static_cast<const uint8_t *>(dyn_stream.get_ptr()), static_cast<uint32>(dyn_stream.get_size()), true);
                             if (!success)
                             {
                                 vogl_error_printf("Failed verifying serialized JSON data (step 5)!\n");
@@ -2259,8 +2259,8 @@ static bool tool_dump_mode()
 #if 0
 									// This is excessive- the key value map fields may be binary serialized in different orders
 									// TODO: maybe fix the key value map class so it serializes in a stable order (independent of hash table construction)?
-									const uint8 *p = static_cast<const uint8 *>(dyn_stream.get_ptr());
-									const uint8 *q = static_cast<const uint8 *>(pTrace_reader->get_packet_buf().get_ptr());
+									const uint8_t *p = static_cast<const uint8_t *>(dyn_stream.get_ptr());
+									const uint8_t *q = static_cast<const uint8_t *>(pTrace_reader->get_packet_buf().get_ptr());
 									if (memcmp(p, q, binary_serialized_size) != 0)
 									{
 										file_utils::write_buf_to_file("p.bin", p, binary_serialized_size);
@@ -2409,7 +2409,7 @@ static bool tool_parse_mode()
             break;
         }
 
-        const vogl::vector<uint8> &packet_buf = pTrace_reader->get_packet_buf();
+        const vogl::vector<uint8_t> &packet_buf = pTrace_reader->get_packet_buf();
 
         if (!trace_writer.write_packet(packet_buf.get_ptr(), packet_buf.size(), pTrace_reader->is_swap_buffers_packet()))
         {
@@ -2601,7 +2601,7 @@ static bool tool_info_mode()
             break;
         }
 
-        const vogl::vector<uint8> &packet_buf = pTrace_reader->get_packet_buf();
+        const vogl::vector<uint8_t> &packet_buf = pTrace_reader->get_packet_buf();
         VOGL_NOTE_UNUSED(packet_buf);
 
         uint packet_size = pTrace_reader->get_packet_size();
@@ -3048,7 +3048,7 @@ static bool tool_find_mode()
         if (read_status == vogl_trace_file_reader::cEOF)
             break;
 
-        const vogl::vector<uint8> &packet_buf = pTrace_reader->get_packet_buf();
+        const vogl::vector<uint8_t> &packet_buf = pTrace_reader->get_packet_buf();
         VOGL_NOTE_UNUSED(packet_buf);
 
         const vogl_trace_stream_packet_base &base_packet = pTrace_reader->get_base_packet();

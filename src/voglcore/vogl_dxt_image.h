@@ -121,7 +121,7 @@ namespace vogl
 
         struct element
         {
-            uint8 m_bytes[8];
+            uint8_t m_bytes[8];
 
             uint get_le_word(uint index) const
             {
@@ -137,14 +137,14 @@ namespace vogl
             void set_le_word(uint index, uint val)
             {
                 VOGL_ASSERT((index < 4) && (val <= cUINT16_MAX));
-                m_bytes[index * 2] = static_cast<uint8>(val & 0xFF);
-                m_bytes[index * 2 + 1] = static_cast<uint8>((val >> 8) & 0xFF);
+                m_bytes[index * 2] = static_cast<uint8_t>(val & 0xFF);
+                m_bytes[index * 2 + 1] = static_cast<uint8_t>((val >> 8) & 0xFF);
             }
             void set_be_word(uint index, uint val)
             {
                 VOGL_ASSERT((index < 4) && (val <= cUINT16_MAX));
-                m_bytes[index * 2 + 1] = static_cast<uint8>(val & 0xFF);
-                m_bytes[index * 2] = static_cast<uint8>((val >> 8) & 0xFF);
+                m_bytes[index * 2 + 1] = static_cast<uint8_t>(val & 0xFF);
+                m_bytes[index * 2] = static_cast<uint8_t>((val >> 8) & 0xFF);
             }
 
             void clear()

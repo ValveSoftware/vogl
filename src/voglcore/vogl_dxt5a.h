@@ -62,14 +62,14 @@ namespace vogl
 
         struct results
         {
-            uint8 *m_pSelectors;
+            uint8_t *m_pSelectors;
 
             uint64_t m_error;
 
-            uint8 m_first_endpoint;
-            uint8 m_second_endpoint;
+            uint8_t m_first_endpoint;
+            uint8_t m_second_endpoint;
 
-            uint8 m_block_type; // 1 if 6-alpha, otherwise 8-alpha
+            uint8_t m_block_type; // 1 if 6-alpha, otherwise 8-alpha
         };
 
         bool compute(const params &p, results &r);
@@ -78,11 +78,11 @@ namespace vogl
         const params *m_pParams;
         results *m_pResults;
 
-        vogl::vector<uint8> m_unique_values;
+        vogl::vector<uint8_t> m_unique_values;
         vogl::vector<uint> m_unique_value_weights;
 
-        vogl::vector<uint8> m_trial_selectors;
-        vogl::vector<uint8> m_best_selectors;
+        vogl::vector<uint8_t> m_trial_selectors;
+        vogl::vector<uint8_t> m_best_selectors;
         int m_unique_value_map[256];
 
         sparse_bit_array m_flags;

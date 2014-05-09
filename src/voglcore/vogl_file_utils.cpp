@@ -670,7 +670,7 @@ namespace vogl
         if (!data.try_resize(static_cast<uint>(data_size)))
             return false;
 
-        if (!data.grant_ownership(static_cast<uint8 *>(p), static_cast<uint>(data_size), static_cast<uint>(data_size)))
+        if (!data.grant_ownership(static_cast<uint8_t *>(p), static_cast<uint>(data_size), static_cast<uint>(data_size)))
         {
             vogl_free(p);
             return false;

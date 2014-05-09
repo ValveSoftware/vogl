@@ -358,13 +358,13 @@ namespace vogl
 
                 if ((pixel_format_helpers::is_alpha_only(fmt)) && (!pImg->has_alpha()))
                 {
-                    c.a = static_cast<uint8>(c.get_luma());
+                    c.a = static_cast<uint8_t>(c.get_luma());
                 }
                 else
                 {
                     if (pImage->is_grayscale())
                     {
-                        uint8 g = static_cast<uint8>(c.get_luma());
+                        uint8_t g = static_cast<uint8_t>(c.get_luma());
                         c.r = g;
                         c.g = g;
                         c.b = g;
@@ -572,7 +572,7 @@ namespace vogl
 
         set_last_error("Not a DDS file");
 
-        uint8 hdr[4];
+        uint8_t hdr[4];
         if (!serializer.read(hdr, sizeof(hdr)))
             return false;
 
@@ -799,7 +799,7 @@ namespace vogl
             return false;
         }
 
-        vogl::vector<uint8> load_buf;
+        vogl::vector<uint8_t> load_buf;
 
         uint mask_size[4];
         mask_size[0] = math::bitmask_size(desc.ddpfPixelFormat.dwRBitMask);
@@ -911,7 +911,7 @@ namespace vogl
 
                         for (uint x = 0; x < width; x++)
                         {
-                            const uint8 *pPixel = &load_buf[x * bytes_per_pixel];
+                            const uint8_t *pPixel = &load_buf[x * bytes_per_pixel];
 
                             uint c = 0;
                             // Assumes DDS is always little endian.
@@ -1215,7 +1215,7 @@ namespace vogl
         if (!c_vogl_little_endian_platform)
             utils::endian_switch_dwords(reinterpret_cast<uint32 *>(&desc), sizeof(desc) / sizeof(uint32));
 
-        vogl::vector<uint8> write_buf;
+        vogl::vector<uint8_t> write_buf;
 
         const bool can_unflip_packed_texture = can_unflip_without_unpacking();
         if ((is_packed()) && (is_flipped()) && (!can_unflip_without_unpacking()))
@@ -1303,7 +1303,7 @@ namespace vogl
                         const color_quad_u8 *pSrc = p->get_scanline(y);
                         const color_quad_u8 *pEnd = pSrc + width;
 
-                        uint8 *pDst = &write_buf[0];
+                        uint8_t *pDst = &write_buf[0];
 
                         do
                         {
@@ -1341,17 +1341,17 @@ namespace vogl
                                     break;
                             }
 
-                            pDst[0] = static_cast<uint8>(x);
+                            pDst[0] = static_cast<uint8_t>(x);
                             if (bytes_per_pixel > 1)
                             {
-                                pDst[1] = static_cast<uint8>(x >> 8);
+                                pDst[1] = static_cast<uint8_t>(x >> 8);
 
                                 if (bytes_per_pixel > 2)
                                 {
-                                    pDst[2] = static_cast<uint8>(x >> 16);
+                                    pDst[2] = static_cast<uint8_t>(x >> 16);
 
                                     if (bytes_per_pixel > 3)
-                                        pDst[3] = static_cast<uint8>(x >> 24);
+                                        pDst[3] = static_cast<uint8_t>(x >> 24);
                                 }
                             }
 
@@ -1734,7 +1734,7 @@ namespace vogl
                     mip_level *pMip = vogl_new(mip_level);
                     m_face_array[array_index][face_index][level_index] = pMip;
 
-                    const vogl::vector<uint8> &image_data = ktx.get_image_data(level_index, array_index, ktx_face_index, ktx_zslice_index);
+                    const vogl::vector<uint8_t> &image_data = ktx.get_image_data(level_index, array_index, ktx_face_index, ktx_zslice_index);
 
                     if (is_compressed_texture)
                     {
@@ -1774,7 +1774,7 @@ namespace vogl
 
                         pImage->set_comp_flags(m_comp_flags);
 
-                        const uint8 *pSrc = image_data.get_ptr();
+                        const uint8_t *pSrc = image_data.get_ptr();
 
                         color_quad_u8 q(0, 0, 0, 255);
 
@@ -1783,7 +1783,7 @@ namespace vogl
                             for (uint x = 0; x < width; x++)
                             {
                                 color_quad_u8 c;
-                                pSrc = static_cast<const uint8 *>(unpacker.unpack(pSrc, c));
+                                pSrc = static_cast<const uint8_t *>(unpacker.unpack(pSrc, c));
                                 pImage->set_pixel_unclipped(x, y, c);
                             }
                         }
@@ -1967,12 +1967,12 @@ namespace vogl
                     {
                         const image_u8 *p = pLevel->get_image();
 
-                        vogl::vector<uint8> tmp(mip_width * mip_height * packer.get_pixel_stride());
+                        vogl::vector<uint8_t> tmp(mip_width * mip_height * packer.get_pixel_stride());
 
-                        uint8 *pDst = tmp.get_ptr();
+                        uint8_t *pDst = tmp.get_ptr();
                         for (uint y = 0; y < mip_height; y++)
                             for (uint x = 0; x < mip_width; x++)
-                                pDst = (uint8 *)packer.pack(p->get_unclamped(x, y), pDst);
+                                pDst = (uint8_t *)packer.pack(p->get_unclamped(x, y), pDst);
 
                         if (m_array_size == 0)
                         {

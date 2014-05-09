@@ -699,28 +699,28 @@ namespace vogl
                         switch (s)
                         {
                             case 0:
-                                result[comp_index] = static_cast<uint8>(l);
+                                result[comp_index] = static_cast<uint8_t>(l);
                                 break;
                             case 1:
-                                result[comp_index] = static_cast<uint8>(h);
+                                result[comp_index] = static_cast<uint8_t>(h);
                                 break;
                             case 2:
-                                result[comp_index] = static_cast<uint8>((l * 6 + h) / 7);
+                                result[comp_index] = static_cast<uint8_t>((l * 6 + h) / 7);
                                 break;
                             case 3:
-                                result[comp_index] = static_cast<uint8>((l * 5 + h * 2) / 7);
+                                result[comp_index] = static_cast<uint8_t>((l * 5 + h * 2) / 7);
                                 break;
                             case 4:
-                                result[comp_index] = static_cast<uint8>((l * 4 + h * 3) / 7);
+                                result[comp_index] = static_cast<uint8_t>((l * 4 + h * 3) / 7);
                                 break;
                             case 5:
-                                result[comp_index] = static_cast<uint8>((l * 3 + h * 4) / 7);
+                                result[comp_index] = static_cast<uint8_t>((l * 3 + h * 4) / 7);
                                 break;
                             case 6:
-                                result[comp_index] = static_cast<uint8>((l * 2 + h * 5) / 7);
+                                result[comp_index] = static_cast<uint8_t>((l * 2 + h * 5) / 7);
                                 break;
                             case 7:
-                                result[comp_index] = static_cast<uint8>((l + h * 6) / 7);
+                                result[comp_index] = static_cast<uint8_t>((l + h * 6) / 7);
                                 break;
                         }
                     }
@@ -729,22 +729,22 @@ namespace vogl
                         switch (s)
                         {
                             case 0:
-                                result[comp_index] = static_cast<uint8>(l);
+                                result[comp_index] = static_cast<uint8_t>(l);
                                 break;
                             case 1:
-                                result[comp_index] = static_cast<uint8>(h);
+                                result[comp_index] = static_cast<uint8_t>(h);
                                 break;
                             case 2:
-                                result[comp_index] = static_cast<uint8>((l * 4 + h) / 5);
+                                result[comp_index] = static_cast<uint8_t>((l * 4 + h) / 5);
                                 break;
                             case 3:
-                                result[comp_index] = static_cast<uint8>((l * 3 + h * 2) / 5);
+                                result[comp_index] = static_cast<uint8_t>((l * 3 + h * 2) / 5);
                                 break;
                             case 4:
-                                result[comp_index] = static_cast<uint8>((l * 2 + h * 3) / 5);
+                                result[comp_index] = static_cast<uint8_t>((l * 2 + h * 3) / 5);
                                 break;
                             case 5:
-                                result[comp_index] = static_cast<uint8>((l + h * 4) / 5);
+                                result[comp_index] = static_cast<uint8_t>((l + h * 4) / 5);
                                 break;
                             case 6:
                                 result[comp_index] = 0;
@@ -763,7 +763,7 @@ namespace vogl
 
                     const dxt3_block *pBlock = reinterpret_cast<const dxt3_block *>(&get_element(block_x, block_y, element_index));
 
-                    result[comp_index] = static_cast<uint8>(pBlock->get_alpha(x & 3, y & 3, true));
+                    result[comp_index] = static_cast<uint8_t>(pBlock->get_alpha(x & 3, y & 3, true));
 
                     break;
                 }
@@ -1067,7 +1067,7 @@ namespace vogl
                     {
                         uint s = pDXT5_block->get_selector(i & 3, i >> 2);
 
-                        pPixels[i][comp_index] = static_cast<uint8>(values[s]);
+                        pPixels[i][comp_index] = static_cast<uint8_t>(values[s]);
                     }
 
                     break;
@@ -1082,7 +1082,7 @@ namespace vogl
                     {
                         uint a = pDXT3_block->get_alpha(i & 3, i >> 2, true);
 
-                        pPixels[i][comp_index] = static_cast<uint8>(a);
+                        pPixels[i][comp_index] = static_cast<uint8_t>(a);
                     }
 
                     break;
@@ -1251,7 +1251,7 @@ namespace vogl
                         }
 
                         dxt1_endpoint_optimizer::results results;
-                        uint8 selectors[cDXTBlockSize * cDXTBlockSize];
+                        uint8_t selectors[cDXTBlockSize * cDXTBlockSize];
                         results.m_pSelectors = selectors;
 
                         dxt1_endpoint_optimizer::params params;
@@ -1293,7 +1293,7 @@ namespace vogl
 
                         dxt5_endpoint_optimizer::results results;
 
-                        uint8 selectors[cDXTBlockSize * cDXTBlockSize];
+                        uint8_t selectors[cDXTBlockSize * cDXTBlockSize];
                         results.m_pSelectors = selectors;
 
                         dxt5_endpoint_optimizer::params params;
@@ -1416,14 +1416,14 @@ namespace vogl
                 uint r, g, b;
 
                 dxt1_block::unpack_color(r, g, b, static_cast<uint16>(l), scaled);
-                low_endpoint.r = static_cast<uint8>(r);
-                low_endpoint.g = static_cast<uint8>(g);
-                low_endpoint.b = static_cast<uint8>(b);
+                low_endpoint.r = static_cast<uint8_t>(r);
+                low_endpoint.g = static_cast<uint8_t>(g);
+                low_endpoint.b = static_cast<uint8_t>(b);
 
                 dxt1_block::unpack_color(r, g, b, static_cast<uint16>(h), scaled);
-                high_endpoint.r = static_cast<uint8>(r);
-                high_endpoint.g = static_cast<uint8>(g);
-                high_endpoint.b = static_cast<uint8>(b);
+                high_endpoint.r = static_cast<uint8_t>(r);
+                high_endpoint.g = static_cast<uint8_t>(g);
+                high_endpoint.b = static_cast<uint8_t>(b);
 
                 return -1;
             }
@@ -1431,8 +1431,8 @@ namespace vogl
             {
                 const int component = m_element_component_index[element_index];
 
-                low_endpoint[component] = static_cast<uint8>(l);
-                high_endpoint[component] = static_cast<uint8>(h);
+                low_endpoint[component] = static_cast<uint8_t>(l);
+                high_endpoint[component] = static_cast<uint8_t>(h);
 
                 return component;
             }
@@ -1440,8 +1440,8 @@ namespace vogl
             {
                 const int component = m_element_component_index[element_index];
 
-                low_endpoint[component] = static_cast<uint8>(l);
-                high_endpoint[component] = static_cast<uint8>(h);
+                low_endpoint[component] = static_cast<uint8_t>(l);
+                high_endpoint[component] = static_cast<uint8_t>(h);
 
                 return component;
             }
@@ -1503,7 +1503,7 @@ namespace vogl
 
                 const int comp_index = m_element_component_index[element_index];
                 for (uint i = 0; i < n; i++)
-                    pColors[i][comp_index] = static_cast<uint8>(values[i]);
+                    pColors[i][comp_index] = static_cast<uint8_t>(values[i]);
 
                 return n;
             }
@@ -1511,7 +1511,7 @@ namespace vogl
             {
                 const int comp_index = m_element_component_index[element_index];
                 for (uint i = 0; i < 16; i++)
-                    pColors[i][comp_index] = static_cast<uint8>((i << 4) | i);
+                    pColors[i][comp_index] = static_cast<uint8_t>((i << 4) | i);
 
                 return 16;
             }

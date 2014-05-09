@@ -76,21 +76,21 @@ namespace vogl
     const float cDXT5InvMaxLinearValue = 1.0f / 7.0f;
 
     // Converts DXT1 raw color selector index to a linear value.
-    extern const uint8 g_dxt1_to_linear[cDXT1SelectorValues];
+    extern const uint8_t g_dxt1_to_linear[cDXT1SelectorValues];
 
     // Converts DXT5 raw alpha selector index to a linear value.
-    extern const uint8 g_dxt5_to_linear[cDXT5SelectorValues];
+    extern const uint8_t g_dxt5_to_linear[cDXT5SelectorValues];
 
     // Converts DXT1 linear color selector index to a raw value (inverse of g_dxt1_to_linear).
-    extern const uint8 g_dxt1_from_linear[cDXT1SelectorValues];
+    extern const uint8_t g_dxt1_from_linear[cDXT1SelectorValues];
 
     // Converts DXT5 linear alpha selector index to a raw value (inverse of g_dxt5_to_linear).
-    extern const uint8 g_dxt5_from_linear[cDXT5SelectorValues];
+    extern const uint8_t g_dxt5_from_linear[cDXT5SelectorValues];
 
-    extern const uint8 g_dxt5_alpha6_to_linear[cDXT5SelectorValues];
+    extern const uint8_t g_dxt5_alpha6_to_linear[cDXT5SelectorValues];
 
-    extern const uint8 g_six_alpha_invert_table[cDXT5SelectorValues];
-    extern const uint8 g_eight_alpha_invert_table[cDXT5SelectorValues];
+    extern const uint8_t g_six_alpha_invert_table[cDXT5SelectorValues];
+    extern const uint8_t g_eight_alpha_invert_table[cDXT5SelectorValues];
 
     const char *get_dxt_format_string(dxt_format fmt);
     uint get_dxt_format_bits_per_pixel(dxt_format fmt);
@@ -102,14 +102,14 @@ namespace vogl
 
     struct dxt1_block
     {
-        uint8 m_low_color[2];
-        uint8 m_high_color[2];
+        uint8_t m_low_color[2];
+        uint8_t m_high_color[2];
 
         enum
         {
             cNumSelectorBytes = 4
         };
-        uint8 m_selectors[cNumSelectorBytes];
+        uint8_t m_selectors[cNumSelectorBytes];
 
         inline void clear()
         {
@@ -129,14 +129,14 @@ namespace vogl
 
         inline void set_low_color(uint16 c)
         {
-            m_low_color[0] = static_cast<uint8>(c & 0xFF);
-            m_low_color[1] = static_cast<uint8>((c >> 8) & 0xFF);
+            m_low_color[0] = static_cast<uint8_t>(c & 0xFF);
+            m_low_color[1] = static_cast<uint8_t>((c >> 8) & 0xFF);
         }
 
         inline void set_high_color(uint16 c)
         {
-            m_high_color[0] = static_cast<uint8>(c & 0xFF);
-            m_high_color[1] = static_cast<uint8>((c >> 8) & 0xFF);
+            m_high_color[0] = static_cast<uint8_t>(c & 0xFF);
+            m_high_color[1] = static_cast<uint8_t>((c >> 8) & 0xFF);
         }
 
         inline bool is_constant_color_block() const
@@ -223,7 +223,7 @@ namespace vogl
         {
             cNumAlphaBytes = 8
         };
-        uint8 m_alpha[cNumAlphaBytes];
+        uint8_t m_alpha[cNumAlphaBytes];
 
         void set_alpha(uint x, uint y, uint value, bool scaled);
         uint get_alpha(uint x, uint y, bool scaled) const;
@@ -259,13 +259,13 @@ namespace vogl
 
     struct dxt5_block
     {
-        uint8 m_endpoints[2];
+        uint8_t m_endpoints[2];
 
         enum
         {
             cNumSelectorBytes = 6
         };
-        uint8 m_selectors[cNumSelectorBytes];
+        uint8_t m_selectors[cNumSelectorBytes];
 
         inline void clear()
         {
@@ -285,13 +285,13 @@ namespace vogl
         inline void set_low_alpha(uint i)
         {
             VOGL_ASSERT(i <= cUINT8_MAX);
-            m_endpoints[0] = static_cast<uint8>(i);
+            m_endpoints[0] = static_cast<uint8_t>(i);
         }
 
         inline void set_high_alpha(uint i)
         {
             VOGL_ASSERT(i <= cUINT8_MAX);
-            m_endpoints[1] = static_cast<uint8>(i);
+            m_endpoints[1] = static_cast<uint8_t>(i);
         }
 
         inline bool is_alpha6_block() const
@@ -343,9 +343,9 @@ namespace vogl
             v &= (~(7 << bit_ofs));
             v |= (val << bit_ofs);
 
-            m_selectors[byte_index] = static_cast<uint8>(v);
+            m_selectors[byte_index] = static_cast<uint8_t>(v);
             if (byte_index < (cNumSelectorBytes - 1))
-                m_selectors[byte_index + 1] = static_cast<uint8>(v >> 8);
+                m_selectors[byte_index + 1] = static_cast<uint8_t>(v >> 8);
         }
 
         inline void flip_x(uint w = 4, uint h = 4)

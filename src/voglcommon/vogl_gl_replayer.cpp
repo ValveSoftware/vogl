@@ -1203,7 +1203,7 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
     {
         uint total_index_data_size = count * index_size;
 
-        const uint8 *pIndices_to_scan = static_cast<const uint8 *>(pIndices);
+        const uint8_t *pIndices_to_scan = static_cast<const uint8_t *>(pIndices);
 
         if (element_array_buffer)
         {
@@ -2992,7 +2992,7 @@ bool vogl_gl_replayer::dump_framebuffer(
         return false;
     }
 
-    uint8 *pImage_data = m_screenshot_buffer.get_ptr();
+    uint8_t *pImage_data = m_screenshot_buffer.get_ptr();
     uint image_data_bpp = image_fmt_size;
 
     if (channel_to_write >= 0)
@@ -3019,7 +3019,7 @@ bool vogl_gl_replayer::dump_framebuffer(
         {
             if (image_data_bpp == 1)
             {
-                uint8 c = pImage_data[i * image_data_bpp];
+                uint8_t c = pImage_data[i * image_data_bpp];
                 memset(&m_screenshot_buffer2[i * 3], c, 3);
             }
             else
@@ -7164,7 +7164,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     return cStatusHardFailure;
                 }
 
-                vogl::growable_array<uint8, 1024> buf(pTrace_ptr ? static_cast<uint>(size) : 0);
+                vogl::growable_array<uint8_t, 1024> buf(pTrace_ptr ? static_cast<uint>(size) : 0);
 
                 GL_ENTRYPOINT(glGetBufferSubData)(target, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size), pTrace_ptr ? buf.get_ptr() : NULL);
 
@@ -7445,7 +7445,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                             VOGL_ASSERT(size == pData->size());
 
-                            memcpy(static_cast<uint8 *>(map_desc.m_pPtr) + ofs, pData->get_ptr(), pData->size());
+                            memcpy(static_cast<uint8_t *>(map_desc.m_pPtr) + ofs, pData->get_ptr(), pData->size());
 
                             GL_ENTRYPOINT(glFlushMappedBufferRange)(target, static_cast<GLintptr>(ofs), pData->size());
                         }
@@ -7956,7 +7956,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             GLuint list_base = 0;
             GL_ENTRYPOINT(glGetIntegerv)(GL_LIST_BASE, reinterpret_cast<GLint *>(&list_base));
 
-            const uint8 *pTrace_lists_ptr = static_cast<const uint8 *>(pTrace_lists);
+            const uint8_t *pTrace_lists_ptr = static_cast<const uint8_t *>(pTrace_lists);
             for (GLsizei i = 0; i < n; i++)
             {
                 GLint trace_handle = list_base;
@@ -9005,7 +9005,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     return cStatusHardFailure;
                 }
 
-                vogl::vector<uint8> data(static_cast<uint>(replay_data_size));
+                vogl::vector<uint8_t> data(static_cast<uint>(replay_data_size));
                 GL_ENTRYPOINT(glReadPixels)(x, y, width, height, format, type, data.get_ptr());
 
                 if ((trace_data_size == replay_data_size) && (trace_data_size) && (trace_data))

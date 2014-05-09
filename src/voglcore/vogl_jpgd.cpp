@@ -225,7 +225,7 @@ namespace jpgd
     template <int NONZERO_ROWS>
     struct Col
     {
-        static void idct(uint8 *pDst_ptr, const int *pTemp)
+        static void idct(uint8_t *pDst_ptr, const int *pTemp)
         {
 // ACCESS_ROW() will be optimized at compile time to either an array access, or 0.
 #define ACCESS_ROW(x) (((x) < NONZERO_ROWS) ? pTemp[x * 8] : 0)
@@ -258,38 +258,38 @@ namespace jpgd
             const int btmp3 = MULTIPLY(atmp3, FIX_1_501321110) + az1 + az4;
 
             int i = DESCALE_ZEROSHIFT(tmp10 + btmp3, CONST_BITS + PASS1_BITS + 3);
-            pDst_ptr[8 * 0] = (uint8)CLAMP(i);
+            pDst_ptr[8 * 0] = (uint8_t)CLAMP(i);
 
             i = DESCALE_ZEROSHIFT(tmp10 - btmp3, CONST_BITS + PASS1_BITS + 3);
-            pDst_ptr[8 * 7] = (uint8)CLAMP(i);
+            pDst_ptr[8 * 7] = (uint8_t)CLAMP(i);
 
             i = DESCALE_ZEROSHIFT(tmp11 + btmp2, CONST_BITS + PASS1_BITS + 3);
-            pDst_ptr[8 * 1] = (uint8)CLAMP(i);
+            pDst_ptr[8 * 1] = (uint8_t)CLAMP(i);
 
             i = DESCALE_ZEROSHIFT(tmp11 - btmp2, CONST_BITS + PASS1_BITS + 3);
-            pDst_ptr[8 * 6] = (uint8)CLAMP(i);
+            pDst_ptr[8 * 6] = (uint8_t)CLAMP(i);
 
             i = DESCALE_ZEROSHIFT(tmp12 + btmp1, CONST_BITS + PASS1_BITS + 3);
-            pDst_ptr[8 * 2] = (uint8)CLAMP(i);
+            pDst_ptr[8 * 2] = (uint8_t)CLAMP(i);
 
             i = DESCALE_ZEROSHIFT(tmp12 - btmp1, CONST_BITS + PASS1_BITS + 3);
-            pDst_ptr[8 * 5] = (uint8)CLAMP(i);
+            pDst_ptr[8 * 5] = (uint8_t)CLAMP(i);
 
             i = DESCALE_ZEROSHIFT(tmp13 + btmp0, CONST_BITS + PASS1_BITS + 3);
-            pDst_ptr[8 * 3] = (uint8)CLAMP(i);
+            pDst_ptr[8 * 3] = (uint8_t)CLAMP(i);
 
             i = DESCALE_ZEROSHIFT(tmp13 - btmp0, CONST_BITS + PASS1_BITS + 3);
-            pDst_ptr[8 * 4] = (uint8)CLAMP(i);
+            pDst_ptr[8 * 4] = (uint8_t)CLAMP(i);
         }
     };
 
     template <>
     struct Col<1>
     {
-        static void idct(uint8 *pDst_ptr, const int *pTemp)
+        static void idct(uint8_t *pDst_ptr, const int *pTemp)
         {
             int dcval = DESCALE_ZEROSHIFT(pTemp[0], PASS1_BITS + 3);
-            const uint8 dcval_clamped = (uint8)CLAMP(dcval);
+            const uint8_t dcval_clamped = (uint8_t)CLAMP(dcval);
             pDst_ptr[0 * 8] = dcval_clamped;
             pDst_ptr[1 * 8] = dcval_clamped;
             pDst_ptr[2 * 8] = dcval_clamped;
@@ -301,7 +301,7 @@ namespace jpgd
         }
     };
 
-    static const uint8 s_idct_row_table[] =
+    static const uint8_t s_idct_row_table[] =
         {
             1, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 2, 1, 1, 0, 0, 0, 0, 0, 2, 2, 1, 0, 0, 0, 0, 0, 3, 2, 1, 0, 0, 0, 0, 0, 4, 2, 1, 0, 0, 0, 0, 0, 4, 3, 1, 0, 0, 0, 0, 0,
             4, 3, 2, 0, 0, 0, 0, 0, 4, 3, 2, 1, 0, 0, 0, 0, 4, 3, 2, 1, 1, 0, 0, 0, 4, 3, 2, 2, 1, 0, 0, 0, 4, 3, 3, 2, 1, 0, 0, 0, 4, 4, 3, 2, 1, 0, 0, 0, 5, 4, 3, 2, 1, 0, 0, 0, 6, 4, 3, 2, 1, 0, 0, 0,
@@ -313,9 +313,9 @@ namespace jpgd
             8, 8, 8, 8, 8, 7, 6, 4, 8, 8, 8, 8, 8, 7, 6, 5, 8, 8, 8, 8, 8, 7, 6, 6, 8, 8, 8, 8, 8, 7, 7, 6, 8, 8, 8, 8, 8, 8, 7, 6, 8, 8, 8, 8, 8, 8, 8, 6, 8, 8, 8, 8, 8, 8, 8, 7, 8, 8, 8, 8, 8, 8, 8, 8,
         };
 
-    static const uint8 s_idct_col_table[] = { 1, 1, 2, 3, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8 };
+    static const uint8_t s_idct_col_table[] = { 1, 1, 2, 3, 3, 3, 3, 3, 3, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8 };
 
-    void idct(const jpgd_block_t *pSrc_ptr, uint8 *pDst_ptr, int block_max_zag)
+    void idct(const jpgd_block_t *pSrc_ptr, uint8_t *pDst_ptr, int block_max_zag)
     {
         JPGD_ASSERT(block_max_zag >= 1);
         JPGD_ASSERT(block_max_zag <= 64);
@@ -341,7 +341,7 @@ namespace jpgd
         const jpgd_block_t *pSrc = pSrc_ptr;
         int *pTemp = temp;
 
-        const uint8 *pRow_tab = &s_idct_row_table[(block_max_zag - 1) * 8];
+        const uint8_t *pRow_tab = &s_idct_row_table[(block_max_zag - 1) * 8];
         int i;
         for (i = 8; i > 0; i--, pRow_tab++)
         {
@@ -418,7 +418,7 @@ namespace jpgd
         }
     }
 
-    void idct_4x4(const jpgd_block_t *pSrc_ptr, uint8 *pDst_ptr)
+    void idct_4x4(const jpgd_block_t *pSrc_ptr, uint8_t *pDst_ptr)
     {
         int temp[64];
         int *pTemp = temp;
@@ -494,14 +494,14 @@ namespace jpgd
     }
 
     // Inserts a previously retrieved character back into the input buffer.
-    inline void jpeg_decoder::stuff_char(uint8 q)
+    inline void jpeg_decoder::stuff_char(uint8_t q)
     {
         *(--m_pIn_buf_ofs) = q;
         m_in_buf_left++;
     }
 
     // Retrieves one character from the input stream, but does not read past markers. Will continue to return 0xFF when a marker is encountered.
-    inline uint8 jpeg_decoder::get_octet()
+    inline uint8_t jpeg_decoder::get_octet()
     {
         bool padding_flag;
         int c = get_char(&padding_flag);
@@ -522,13 +522,13 @@ namespace jpgd
                 return 0xFF;
             else
             {
-                stuff_char(static_cast<uint8>(c));
+                stuff_char(static_cast<uint8_t>(c));
                 stuff_char(0xFF);
                 return 0xFF;
             }
         }
 
-        return static_cast<uint8>(c);
+        return static_cast<uint8_t>(c);
     }
 
     // Retrieves a variable number of bits from the input stream. Does not recognize markers.
@@ -677,12 +677,12 @@ namespace jpgd
 #define JPGD_HUFF_EXTEND(x, s) (((x) < s_extend_test[s & 15]) ? ((x) + s_extend_offset[s & 15]) : (x))
 
     // Clamps a value between 0-255.
-    inline uint8 jpeg_decoder::clamp(int i)
+    inline uint8_t jpeg_decoder::clamp(int i)
     {
         if (static_cast<uint>(i) > 255)
             i = (((~i) >> 31) & 0xFF);
 
-        return static_cast<uint8>(i);
+        return static_cast<uint8_t>(i);
     }
 
     namespace DCT_Upsample
@@ -1019,8 +1019,8 @@ namespace jpgd
 
     void jpeg_decoder::word_clear(void *p, uint16 c, uint n)
     {
-        uint8 *pD = (uint8 *)p;
-        const uint8 l = c & 0xFF, h = (c >> 8) & 0xFF;
+        uint8_t *pD = (uint8_t *)p;
+        const uint8_t l = c & 0xFF, h = (c >> 8) & 0xFF;
         while (n)
         {
             pD[0] = l;
@@ -1061,8 +1061,8 @@ namespace jpgd
     void jpeg_decoder::read_dht_marker()
     {
         int i, index, count;
-        uint8 huff_num[17];
-        uint8 huff_val[256];
+        uint8_t huff_num[17];
+        uint8_t huff_val[256];
 
         uint num_left = get_bits(16);
 
@@ -1081,7 +1081,7 @@ namespace jpgd
 
             for (i = 1; i <= 16; i++)
             {
-                huff_num[i] = static_cast<uint8>(get_bits(8));
+                huff_num[i] = static_cast<uint8_t>(get_bits(8));
                 count += huff_num[i];
             }
 
@@ -1089,7 +1089,7 @@ namespace jpgd
                 stop_decoding(JPGD_BAD_DHT_COUNTS);
 
             for (i = 0; i < count; i++)
-                huff_val[i] = static_cast<uint8>(get_bits(8));
+                huff_val[i] = static_cast<uint8_t>(get_bits(8));
 
             i = 1 + 16 + count;
 
@@ -1107,10 +1107,10 @@ namespace jpgd
                 stop_decoding(JPGD_BAD_DHT_INDEX);
 
             if (!m_huff_num[index])
-                m_huff_num[index] = (uint8 *)alloc(17);
+                m_huff_num[index] = (uint8_t *)alloc(17);
 
             if (!m_huff_val[index])
-                m_huff_val[index] = (uint8 *)alloc(256);
+                m_huff_val[index] = (uint8_t *)alloc(256);
 
             m_huff_ac[index] = (index & 0x10) != 0;
             memcpy(m_huff_num[index], huff_num, 17);
@@ -1611,13 +1611,13 @@ namespace jpgd
         JPGD_ASSERT((m_bits_left & 7) == 0);
 
         if (m_bits_left == 16)
-            stuff_char((uint8)(m_bit_buf & 0xFF));
+            stuff_char((uint8_t)(m_bit_buf & 0xFF));
 
         if (m_bits_left >= 8)
-            stuff_char((uint8)((m_bit_buf >> 8) & 0xFF));
+            stuff_char((uint8_t)((m_bit_buf >> 8) & 0xFF));
 
-        stuff_char((uint8)((m_bit_buf >> 16) & 0xFF));
-        stuff_char((uint8)((m_bit_buf >> 24) & 0xFF));
+        stuff_char((uint8_t)((m_bit_buf >> 16) & 0xFF));
+        stuff_char((uint8_t)((m_bit_buf >> 24) & 0xFF));
 
         m_bits_left = 16;
         get_bits_no_markers(16);
@@ -1627,7 +1627,7 @@ namespace jpgd
     void jpeg_decoder::transform_mcu(int mcu_row)
     {
         jpgd_block_t *pSrc_ptr = m_pMCU_coefficients;
-        uint8 *pDst_ptr = m_pSample_buf + mcu_row * m_blocks_per_mcu * 64;
+        uint8_t *pDst_ptr = m_pSample_buf + mcu_row * m_blocks_per_mcu * 64;
 
         for (int mcu_block = 0; mcu_block < m_blocks_per_mcu; mcu_block++)
         {
@@ -1637,7 +1637,7 @@ namespace jpgd
         }
     }
 
-    static const uint8 s_max_rc[64] =
+    static const uint8_t s_max_rc[64] =
         {
             17, 18, 34, 50, 50, 51, 52, 52, 52, 68, 84, 84, 84, 84, 85, 86, 86, 86, 86, 86,
             102, 118, 118, 118, 118, 118, 118, 119, 120, 120, 120, 120, 120, 120, 120, 136,
@@ -1648,7 +1648,7 @@ namespace jpgd
     void jpeg_decoder::transform_mcu_expand(int mcu_row)
     {
         jpgd_block_t *pSrc_ptr = m_pMCU_coefficients;
-        uint8 *pDst_ptr = m_pSample_buf + mcu_row * m_expanded_blocks_per_mcu * 64;
+        uint8_t *pDst_ptr = m_pSample_buf + mcu_row * m_expanded_blocks_per_mcu * 64;
 
         // Y IDCT
         int mcu_block;
@@ -2007,8 +2007,8 @@ namespace jpgd
     void jpeg_decoder::H1V1Convert()
     {
         int row = m_max_mcu_y_size - m_mcu_lines_left;
-        uint8 *d = m_pScan_line_0;
-        uint8 *s = m_pSample_buf + row * 8;
+        uint8_t *d = m_pScan_line_0;
+        uint8_t *s = m_pSample_buf + row * 8;
 
         for (int i = m_max_mcus_per_row; i > 0; i--)
         {
@@ -2034,9 +2034,9 @@ namespace jpgd
     void jpeg_decoder::H2V1Convert()
     {
         int row = m_max_mcu_y_size - m_mcu_lines_left;
-        uint8 *d0 = m_pScan_line_0;
-        uint8 *y = m_pSample_buf + row * 8;
-        uint8 *c = m_pSample_buf + 2 * 64 + row * 8;
+        uint8_t *d0 = m_pScan_line_0;
+        uint8_t *y = m_pSample_buf + row * 8;
+        uint8_t *c = m_pSample_buf + 2 * 64 + row * 8;
 
         for (int i = m_max_mcus_per_row; i > 0; i--)
         {
@@ -2079,10 +2079,10 @@ namespace jpgd
     void jpeg_decoder::H1V2Convert()
     {
         int row = m_max_mcu_y_size - m_mcu_lines_left;
-        uint8 *d0 = m_pScan_line_0;
-        uint8 *d1 = m_pScan_line_1;
-        uint8 *y;
-        uint8 *c;
+        uint8_t *d0 = m_pScan_line_0;
+        uint8_t *d1 = m_pScan_line_1;
+        uint8_t *y;
+        uint8_t *c;
 
         if (row < 8)
             y = m_pSample_buf + row * 8;
@@ -2127,10 +2127,10 @@ namespace jpgd
     void jpeg_decoder::H2V2Convert()
     {
         int row = m_max_mcu_y_size - m_mcu_lines_left;
-        uint8 *d0 = m_pScan_line_0;
-        uint8 *d1 = m_pScan_line_1;
-        uint8 *y;
-        uint8 *c;
+        uint8_t *d0 = m_pScan_line_0;
+        uint8_t *d1 = m_pScan_line_1;
+        uint8_t *y;
+        uint8_t *c;
 
         if (row < 8)
             y = m_pSample_buf + row * 8;
@@ -2193,8 +2193,8 @@ namespace jpgd
     void jpeg_decoder::gray_convert()
     {
         int row = m_max_mcu_y_size - m_mcu_lines_left;
-        uint8 *d = m_pScan_line_0;
-        uint8 *s = m_pSample_buf + row * 8;
+        uint8_t *d = m_pScan_line_0;
+        uint8_t *s = m_pSample_buf + row * 8;
 
         for (int i = m_max_mcus_per_row; i > 0; i--)
         {
@@ -2210,9 +2210,9 @@ namespace jpgd
     {
         int row = m_max_mcu_y_size - m_mcu_lines_left;
 
-        uint8 *Py = m_pSample_buf + (row / 8) * 64 * m_comp_h_samp[0] + (row & 7) * 8;
+        uint8_t *Py = m_pSample_buf + (row / 8) * 64 * m_comp_h_samp[0] + (row & 7) * 8;
 
-        uint8 *d = m_pScan_line_0;
+        uint8_t *d = m_pScan_line_0;
 
         for (int i = m_max_mcus_per_row; i > 0; i--)
         {
@@ -2352,7 +2352,7 @@ namespace jpgd
     void jpeg_decoder::make_huff_table(int index, huff_tables *pH)
     {
         int p, i, l, si;
-        uint8 huffsize[257];
+        uint8_t huffsize[257];
         uint huffcode[257];
         uint code;
         uint subtree;
@@ -2368,7 +2368,7 @@ namespace jpgd
         for (l = 1; l <= 16; l++)
         {
             for (i = 1; i <= m_huff_num[index][l]; i++)
-                huffsize[p++] = static_cast<uint8>(l);
+                huffsize[p++] = static_cast<uint8_t>(l);
         }
 
         huffsize[p] = 0;
@@ -2406,7 +2406,7 @@ namespace jpgd
             code = huffcode[p];
             code_size = huffsize[p];
 
-            pH->code_size[i] = static_cast<uint8>(code_size);
+            pH->code_size[i] = static_cast<uint8_t>(code_size);
 
             if (code_size <= 8)
             {
@@ -2673,9 +2673,9 @@ namespace jpgd
         m_real_dest_bytes_per_scan_line = (m_image_x_size * m_dest_bytes_per_pixel);
 
         // Initialize two scan line buffers.
-        m_pScan_line_0 = (uint8 *)alloc(m_dest_bytes_per_scan_line, true);
+        m_pScan_line_0 = (uint8_t *)alloc(m_dest_bytes_per_scan_line, true);
         if ((m_scan_type == JPGD_YH1V2) || (m_scan_type == JPGD_YH2V2))
-            m_pScan_line_1 = (uint8 *)alloc(m_dest_bytes_per_scan_line, true);
+            m_pScan_line_1 = (uint8_t *)alloc(m_dest_bytes_per_scan_line, true);
 
         m_max_blocks_per_row = m_max_mcus_per_row * m_max_blocks_per_mcu;
 
@@ -2699,9 +2699,9 @@ namespace jpgd
 #endif
 
         if (m_freq_domain_chroma_upsample)
-            m_pSample_buf = (uint8 *)alloc(m_expanded_blocks_per_row * 64);
+            m_pSample_buf = (uint8_t *)alloc(m_expanded_blocks_per_row * 64);
         else
-            m_pSample_buf = (uint8 *)alloc(m_max_blocks_per_row * 64);
+            m_pSample_buf = (uint8_t *)alloc(m_max_blocks_per_row * 64);
 
         m_total_lines_left = m_image_y_size;
 
@@ -2723,7 +2723,7 @@ namespace jpgd
         cb->block_len_x = block_len_x;
         cb->block_len_y = block_len_y;
         cb->block_size = (block_len_x * block_len_y) * sizeof(jpgd_block_t);
-        cb->pData = (uint8 *)alloc(cb->block_size * block_num_x * block_num_y, true);
+        cb->pData = (uint8_t *)alloc(cb->block_size * block_num_x * block_num_y, true);
         return cb;
     }
 
@@ -3131,7 +3131,7 @@ namespace jpgd
         return m_pFile != NULL;
     }
 
-    int jpeg_decoder_file_stream::read(uint8 *pBuf, int max_bytes_to_read, bool *pEOF_flag)
+    int jpeg_decoder_file_stream::read(uint8_t *pBuf, int max_bytes_to_read, bool *pEOF_flag)
     {
         if (!m_pFile)
             return -1;
@@ -3161,7 +3161,7 @@ namespace jpgd
         return bytes_read;
     }
 
-    bool jpeg_decoder_mem_stream::open(const uint8 *pSrc_data, uint size)
+    bool jpeg_decoder_mem_stream::open(const uint8_t *pSrc_data, uint size)
     {
         close();
         m_pSrc_data = pSrc_data;
@@ -3170,7 +3170,7 @@ namespace jpgd
         return true;
     }
 
-    int jpeg_decoder_mem_stream::read(uint8 *pBuf, int max_bytes_to_read, bool *pEOF_flag)
+    int jpeg_decoder_mem_stream::read(uint8_t *pBuf, int max_bytes_to_read, bool *pEOF_flag)
     {
         *pEOF_flag = false;
 
@@ -3216,13 +3216,13 @@ namespace jpgd
 
         const int dst_bpl = image_width * req_comps;
 
-        uint8 *pImage_data = (uint8 *)jpgd_malloc(dst_bpl * image_height);
+        uint8_t *pImage_data = (uint8_t *)jpgd_malloc(dst_bpl * image_height);
         if (!pImage_data)
             return NULL;
 
         for (int y = 0; y < image_height; y++)
         {
-            const uint8 *pScan_line;
+            const uint8_t *pScan_line;
             uint scan_line_len;
             if (decoder.decode((const void **)&pScan_line, &scan_line_len) != JPGD_SUCCESS)
             {
@@ -3230,7 +3230,7 @@ namespace jpgd
                 return NULL;
             }
 
-            uint8 *pDst = pImage_data + y * dst_bpl;
+            uint8_t *pDst = pImage_data + y * dst_bpl;
 
             if (((req_comps == 1) && (decoder.get_num_components() == 1)) || ((req_comps == 4) && (decoder.get_num_components() == 3)))
                 memcpy(pDst, pScan_line, dst_bpl);
@@ -3240,7 +3240,7 @@ namespace jpgd
                 {
                     for (int x = 0; x < image_width; x++)
                     {
-                        uint8 luma = pScan_line[x];
+                        uint8_t luma = pScan_line[x];
                         pDst[0] = luma;
                         pDst[1] = luma;
                         pDst[2] = luma;
@@ -3251,7 +3251,7 @@ namespace jpgd
                 {
                     for (int x = 0; x < image_width; x++)
                     {
-                        uint8 luma = pScan_line[x];
+                        uint8_t luma = pScan_line[x];
                         pDst[0] = luma;
                         pDst[1] = luma;
                         pDst[2] = luma;
@@ -3270,7 +3270,7 @@ namespace jpgd
                         int r = pScan_line[x * 4 + 0];
                         int g = pScan_line[x * 4 + 1];
                         int b = pScan_line[x * 4 + 2];
-                        *pDst++ = static_cast<uint8>((r * YR + g * YG + b * YB + 32768) >> 16);
+                        *pDst++ = static_cast<uint8_t>((r * YR + g * YG + b * YB + 32768) >> 16);
                     }
                 }
                 else

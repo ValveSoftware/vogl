@@ -64,10 +64,10 @@ struct vogl_trace_stream_packet_base
     uint64_t m_gl_end_rdtsc;
     uint64_t m_packet_end_rdtsc;
 
-    uint8 m_type;     // trace_packet_types_t
+    uint8_t m_type;     // trace_packet_types_t
     uint16 m_inv_rnd; // not of m_rnd, for verification (and to purpusely increase the packet entropy - this is only for devel)
 
-    inline void init(uint8 type, uint32 size)
+    inline void init(uint8_t type, uint32 size)
     {
         memset(this, 0, sizeof(*this));
 
@@ -92,7 +92,7 @@ struct vogl_trace_stream_packet_base
 
         VOGL_ASSERT(m_size >= sizeof(vogl_trace_stream_packet_base));
 
-        m_crc = (uint32)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8 *>(this) + (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd), m_size - (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd));
+        m_crc = (uint32)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8_t *>(this) + (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd), m_size - (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd));
     }
 
     inline bool basic_validation() const
@@ -124,7 +124,7 @@ struct vogl_trace_stream_packet_base
         if (m_size > actual_buf_size)
             return false;
 
-        uint32 check_crc = (uint32)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8 *>(this) + (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd), m_size - (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd));
+        uint32 check_crc = (uint32)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8_t *>(this) + (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd), m_size - (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd));
         if (check_crc != m_crc)
             return false;
 
@@ -152,8 +152,8 @@ struct vogl_trace_stream_start_of_file_packet
     uint32 m_crc;  // CRC32 of all packet data following this member
 
     uint16 m_version; // must immediately follow m_crc!
-    uint8 m_pointer_sizes;
-    uint8 m_unused;
+    uint8_t m_pointer_sizes;
+    uint8_t m_unused;
 
     enum
     {
@@ -177,7 +177,7 @@ struct vogl_trace_stream_start_of_file_packet
 
     uint32 compute_crc() const
     {
-        return (uint32)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8 *>(this) + (uint32)VOGL_OFFSETOF(vogl_trace_stream_start_of_file_packet, m_version), sizeof(*this) - (uint32)VOGL_OFFSETOF(vogl_trace_stream_start_of_file_packet, m_version));
+        return (uint32)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8_t *>(this) + (uint32)VOGL_OFFSETOF(vogl_trace_stream_start_of_file_packet, m_version), sizeof(*this) - (uint32)VOGL_OFFSETOF(vogl_trace_stream_start_of_file_packet, m_version));
     }
 
     inline void finalize()

@@ -4526,7 +4526,7 @@ static void vogl_glTexStorage2D(	GLenum target,
 		{
 			uint w = math::maximum<uint>(width >> i, 1);
 			uint h = math::maximum<uint>(height >> i, 1);
-			vogl::vector<uint8> pixels(w * h * 4);
+			vogl::vector<uint8_t> pixels(w * h * 4);
 			GL_ENTRYPOINT(glTexImage2D)(GL_TEXTURE_2D, i, internalformat, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels.get_ptr());
 		}
 	}
@@ -4892,11 +4892,11 @@ static bool vogl_screen_capture_callback(uint width, uint height, uint pitch, si
 
         if (g_command_line_params().get_value_as_bool("vogl_sum_hashing"))
         {
-            backbuffer_crc64 = calc_sum64(static_cast<const uint8 *>(pImage), size);
+            backbuffer_crc64 = calc_sum64(static_cast<const uint8_t *>(pImage), size);
         }
         else
         {
-            backbuffer_crc64 = calc_crc64(CRC64_INIT, static_cast<const uint8 *>(pImage), size);
+            backbuffer_crc64 = calc_crc64(CRC64_INIT, static_cast<const uint8_t *>(pImage), size);
         }
 
         console::printf("Frame %" PRIu64 " hash: 0x%016" PRIX64 "\n", cast_val_to_uint64(frame_index), backbuffer_crc64);
@@ -7152,8 +7152,8 @@ static void vogl_serialize_client_side_arrays_helper(
             uint total_index_data_size = count * index_size;
 
             // FIXME: Move index_data array to context state
-            vogl::vector<uint8> index_data;
-            const uint8 *pIndices_to_scan = static_cast<const uint8 *>(indices);
+            vogl::vector<uint8_t> index_data;
+            const uint8_t *pIndices_to_scan = static_cast<const uint8_t *>(indices);
 
             if (element_array_buffer)
             {

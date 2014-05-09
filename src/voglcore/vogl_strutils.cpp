@@ -216,7 +216,7 @@ namespace vogl
 
         do
         {
-            *p-- = static_cast<uint8>('0' + (j % 10U));
+            *p-- = static_cast<uint8_t>('0' + (j % 10U));
             j /= 10U;
         } while (j);
 
@@ -250,7 +250,7 @@ namespace vogl
 
         do
         {
-            *p-- = static_cast<uint8>('0' + (value % 10U));
+            *p-- = static_cast<uint8_t>('0' + (value % 10U));
             value /= 10U;
         } while (value);
 
@@ -282,7 +282,7 @@ namespace vogl
 
         do
         {
-            *p-- = static_cast<uint8>('0' + (value % 10U));
+            *p-- = static_cast<uint8_t>('0' + (value % 10U));
             value /= 10U;
         } while (value);
 
@@ -336,7 +336,7 @@ namespace vogl
                 num_chars_until_comma = 3;
             }
 
-            *p-- = static_cast<uint8>('0' + (value % 10U));
+            *p-- = static_cast<uint8_t>('0' + (value % 10U));
             num_chars_until_comma--;
 
             value /= 10U;
@@ -376,7 +376,7 @@ namespace vogl
 
         do
         {
-            *p-- = static_cast<uint8>('0' + (j % 10U));
+            *p-- = static_cast<uint8_t>('0' + (j % 10U));
             j /= 10U;
         } while (j);
 

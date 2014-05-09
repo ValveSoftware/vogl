@@ -632,7 +632,7 @@ namespace vogl
         }
     };
 
-    typedef color_quad<uint8, int> color_quad_u8;
+    typedef color_quad<uint8_t, int> color_quad_u8;
     typedef color_quad<int8, int> color_quad_i8;
     typedef color_quad<int16, int> color_quad_i16;
     typedef color_quad<uint16, int> color_quad_u16;
@@ -742,7 +742,7 @@ namespace vogl
             b = tmp - co;
         }
 
-        static inline uint8 clamp_component(int i)
+        static inline uint8_t clamp_component(int i)
         {
             if (static_cast<uint>(i) > 255U)
             {
@@ -751,7 +751,7 @@ namespace vogl
                 else if (i > 255)
                     i = 255;
             }
-            return static_cast<uint8>(i);
+            return static_cast<uint8_t>(i);
         }
 
         // RGB->YCbCr constants, scaled by 2^16
@@ -770,7 +770,7 @@ namespace vogl
         inline void RGB_to_YCC(color_quad_u8 &ycc, const color_quad_u8 &rgb, int cb_bias = 123, int cr_bias = 125)
         {
             const int r = rgb[0], g = rgb[1], b = rgb[2];
-            ycc.a = static_cast<uint8>((r * YR + g * YG + b * YB + 32768) >> 16);
+            ycc.a = static_cast<uint8_t>((r * YR + g * YG + b * YB + 32768) >> 16);
             ycc.r = clamp_component(cb_bias + ((r * CB_R + g * CB_G + b * CB_B + 32768) >> 16));
             ycc.g = clamp_component(cr_bias + ((r * CR_R + g * CR_G + b * CR_B + 32768) >> 16));
             ycc.b = 0;
@@ -882,7 +882,7 @@ namespace vogl
         template <typename color_quad_type>
         const void *unpack(const void *p, color_quad_type &color, bool rescale = true) const
         {
-            const uint8 *pSrc = static_cast<const uint8 *>(p);
+            const uint8_t *pSrc = static_cast<const uint8_t *>(p);
 
             for (uint i = 0; i < 4; i++)
             {
@@ -935,7 +935,7 @@ namespace vogl
         template <typename color_quad_type>
         void *pack(const color_quad_type &color, void *p, bool rescale = true) const
         {
-            uint8 *pDst = static_cast<uint8 *>(p);
+            uint8_t *pDst = static_cast<uint8_t *>(p);
 
             for (uint i = 0; i < 4; i++)
             {
@@ -985,7 +985,7 @@ namespace vogl
                     uint bit_mask = (mx << cur_byte_bit_ofs) & 0xFF;
                     byte_val &= ~bit_mask;
                     byte_val |= (n << cur_byte_bit_ofs);
-                    pDst[dst_bit_ofs >> 3] = static_cast<uint8>(byte_val);
+                    pDst[dst_bit_ofs >> 3] = static_cast<uint8_t>(byte_val);
 
                     mx >>= cur_byte_bits;
                     n >>= cur_byte_bits;

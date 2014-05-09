@@ -35,9 +35,9 @@ namespace vogl
 
     const uint64_t CRC64_INIT = 0;
     void crc64_init();
-    uint64_t calc_crc64(uint64_t crc, const uint8 *buf, size_t size);
+    uint64_t calc_crc64(uint64_t crc, const uint8_t *buf, size_t size);
 
-    uint64_t calc_sum64(const uint8 *buf, size_t size, uint shift_amount = 0);
+    uint64_t calc_sum64(const uint8_t *buf, size_t size, uint shift_amount = 0);
 
     uint32 fast_hash(const void *p, int len);
 

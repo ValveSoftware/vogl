@@ -535,7 +535,7 @@ bool vogl_msaa_texture_splitter::split(GLenum src_target, GLuint src_texture, vo
         VOGL_ASSERT(mip_depth == base_depth);
         VOGL_NOTE_UNUSED(mip_depth);
 
-        vogl::vector<uint8> ones;
+        vogl::vector<uint8_t> ones;
         ones.resize(static_cast<uint>(vogl_get_image_size(pInternal_tex_fmt->m_optimum_get_image_fmt, pInternal_tex_fmt->m_optimum_get_image_type, mip_width, mip_height, mip_depth)));
         ones.set_all(255);
 

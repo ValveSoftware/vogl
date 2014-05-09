@@ -131,11 +131,11 @@ namespace vogl
             return false;
         }
 
-        const vogl::vector<uint8> &get_buf() const
+        const vogl::vector<uint8_t> &get_buf() const
         {
             return m_buf;
         }
-        vogl::vector<uint8> &get_buf()
+        vogl::vector<uint8_t> &get_buf()
         {
             return m_buf;
         }
@@ -245,7 +245,7 @@ namespace vogl
         }
 
     private:
-        vogl::vector<uint8> m_buf;
+        vogl::vector<uint8_t> m_buf;
         uint m_ofs;
     };
 

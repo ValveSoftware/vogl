@@ -75,7 +75,7 @@ namespace vogl
                 return false;
 
             m_opened = true;
-            m_pBuf = (uint8 *)(p);
+            m_pBuf = (uint8_t *)(p);
             m_size = size;
             m_ofs = 0;
             m_attribs = cDataStreamSeekable | cDataStreamReadable;
@@ -92,7 +92,7 @@ namespace vogl
                 return false;
 
             m_opened = true;
-            m_pBuf = static_cast<uint8 *>(p);
+            m_pBuf = static_cast<uint8_t *>(p);
             m_size = size;
             m_ofs = 0;
             m_attribs = cDataStreamSeekable | cDataStreamWritable | cDataStreamReadable;
@@ -234,7 +234,7 @@ namespace vogl
         }
 
     private:
-        uint8 *m_pBuf;
+        uint8_t *m_pBuf;
         size_t m_size;
         size_t m_ofs;
     };

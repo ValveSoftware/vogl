@@ -429,7 +429,7 @@ namespace vogl
 
             if (blit_flags & BLIT_FLAG_UNPREMULTIPLY_BY_ALPHA)
             {
-                if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8)))
+                if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8_t)))
                 {
                     VOGL_ASSERT(sizeof(color_t) == sizeof(uint32));
                     for (uint i = src_h; i; i--)
@@ -519,7 +519,7 @@ namespace vogl
             }
             else if (blit_flags & BLIT_FLAG_MULTIPLY_BY_ALPHA)
             {
-                if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8)))
+                if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8_t)))
                 {
                     VOGL_ASSERT(sizeof(color_t) == sizeof(uint32));
                     for (uint i = src_h; i; i--)
@@ -585,7 +585,7 @@ namespace vogl
                 for (uint i = src_h; i; i--)
                 {
                     color_quad_u8 *pD_end = pD + src_w;
-                    if (vogl_is_little_endian() && (sizeof(component_t) == sizeof(uint8)))
+                    if (vogl_is_little_endian() && (sizeof(component_t) == sizeof(uint8_t)))
                     {
                         VOGL_ASSERT(sizeof(color_t) == sizeof(uint32));
                         do

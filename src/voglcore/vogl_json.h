@@ -173,7 +173,7 @@ namespace vogl
         inline void set_value(int32 nVal);
         inline void set_value(int64_t nVal);
 
-        inline void set_value(uint8 nVal);
+        inline void set_value(uint8_t nVal);
         inline void set_value(uint16 nVal);
         inline void set_value(uint32 nVal);
 
@@ -207,7 +207,7 @@ namespace vogl
         inline bool get_numeric(int32 &val, int32 def = 0) const;
         inline bool get_numeric(int64_t &val, int64_t def = 0) const;
 
-        bool get_numeric(uint8 &val, uint8 def = 0) const;
+        bool get_numeric(uint8_t &val, uint8_t def = 0) const;
         bool get_numeric(uint16 &val, uint16 def = 0) const;
         bool get_numeric(uint32 &val, uint32 def = 0) const;
         inline bool get_numeric(uint64_t &val, uint64_t def = 0) const;
@@ -256,13 +256,13 @@ namespace vogl
         void print(bool formatted = true, uint cur_indent = 0, uint max_line_len = CMaxLineLenDefault) const;
 
         // Deserialize from Universal Binary JSON (UBJ).
-        bool binary_deserialize(const uint8 *pBuf, size_t buf_size);
+        bool binary_deserialize(const uint8_t *pBuf, size_t buf_size);
         bool binary_deserialize_file(const char *pFilename);
         bool binary_deserialize(FILE *pFile);
-        bool binary_deserialize(const vogl::vector<uint8> &buf);
+        bool binary_deserialize(const vogl::vector<uint8_t> &buf);
 
         // Serialize from UBJ.
-        void binary_serialize(vogl::vector<uint8> &buf) const;
+        void binary_serialize(vogl::vector<uint8_t> &buf) const;
         bool binary_serialize_to_file(const char *pFilename);
         bool binary_serialize(FILE *pFile);
 
@@ -303,8 +303,8 @@ namespace vogl
         bool deserialize_number(json_deserialize_buf_ptr &pStr, json_error_info_t &error_info);
         bool deserialize(json_deserialize_buf_ptr &pStr, json_node *pParent, uint level, json_error_info_t &error_info);
 
-        void binary_serialize_value(vogl::vector<uint8> &buf) const;
-        bool binary_deserialize(const uint8 *&pBuf, const uint8 *pBuf_end, json_node *pParent, uint depth);
+        void binary_serialize_value(vogl::vector<uint8_t> &buf) const;
+        bool binary_deserialize(const uint8_t *&pBuf, const uint8_t *pBuf_end, json_node *pParent, uint depth);
 
     private:
         // Optional: Forbid (the super annoying) implicit conversions of all pointers/const pointers to bool, except for the specializations below.
@@ -357,7 +357,7 @@ namespace vogl
 
         void serialize(dynamic_string &str, bool formatted = true, uint cur_index = 0, uint max_line_len = CMaxLineLenDefault) const;
 
-        void binary_serialize(vogl::vector<uint8> &buf) const;
+        void binary_serialize(vogl::vector<uint8_t> &buf) const;
 
         // Parent/child retrieval
         inline const json_node *get_parent() const;
@@ -444,7 +444,7 @@ namespace vogl
         bool get_value_as_string(const char *pKey, dynamic_string &val, const char *pDef = "") const;
         bool get_value_as_enum(const char *pKey, const char **pStringList, int &val, int def = 0) const;
 
-        // T may be int8, int16, int32 or uint8, uint16, uint32
+        // T may be int8, int16, int32 or uint8_t, uint16, uint32
         // Internally this fetches the value as int64_t and attempts to convert. Returns false and sets val to def if out of range.
         template <typename T>
         bool get_value_as_int(const char *pKey, T &val, T def = 0) const;

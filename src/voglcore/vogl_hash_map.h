@@ -863,7 +863,7 @@ namespace vogl
     private:
         struct node : public value_type
         {
-            uint8 state;
+            uint8_t state;
         };
 
         static inline void construct_value_type(value_type *pDst, const Key &k, const Value &v)
@@ -998,7 +998,7 @@ namespace vogl
                 return *this;
             }
 
-            uint8 m_bits[sizeof(node)];
+            uint8_t m_bits[sizeof(node)];
         };
 
         typedef vogl::vector<raw_node> node_vector;

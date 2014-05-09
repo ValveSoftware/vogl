@@ -925,8 +925,8 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                                     // I'm paranoid
                                     if ((ofs < stencil_image_data.size()) && (ofs < temp_img.size()))
                                     {
-                                        uint8 *pSrc = stencil_image_data.get_ptr() + ofs;
-                                        uint8 *pDest = temp_img.get_ptr() + ofs;
+                                        uint8_t *pSrc = stencil_image_data.get_ptr() + ofs;
+                                        uint8_t *pDest = temp_img.get_ptr() + ofs;
 
                                         pDest[0] = pSrc[0];
                                     }
@@ -945,8 +945,8 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                                     // I'm paranoid
                                     if ((ofs < stencil_image_data.size()) && ((ofs + 3) < temp_img.size()))
                                     {
-                                        uint8 *pSrc = stencil_image_data.get_ptr() + ofs;
-                                        uint8 *pDest = temp_img.get_ptr() + ofs;
+                                        uint8_t *pSrc = stencil_image_data.get_ptr() + ofs;
+                                        uint8_t *pDest = temp_img.get_ptr() + ofs;
 
                                         pDest[3] = pSrc[0];
                                     }

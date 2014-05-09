@@ -228,7 +228,7 @@ private:
     vogl_state_type m_data_type;
     uint m_num_elements;
 
-    vogl::vector<uint8> m_data;
+    vogl::vector<uint8_t> m_data;
 };
 
 // These specializations can't be at class scope.

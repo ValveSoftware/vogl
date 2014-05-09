@@ -68,7 +68,7 @@ namespace vogl
             return n;
         }
 
-        double compute_entropy(const uint8 *p, uint n)
+        double compute_entropy(const uint8_t *p, uint n)
         {
             uint hist[256];
             utils::zero_object(hist);

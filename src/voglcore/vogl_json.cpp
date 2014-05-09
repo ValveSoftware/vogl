@@ -280,7 +280,7 @@ namespace vogl
         while (*pStr)
         {
             char c = *pStr++;
-            if ((static_cast<uint8>(c) >= 32U) && (c != '\"') && (c != '\\'))
+            if ((static_cast<uint8_t>(c) >= 32U) && (c != '\"') && (c != '\\'))
                 m_buf.push_back(c);
             else
             {
@@ -312,7 +312,7 @@ namespace vogl
                         m_buf.push_back('u');
                         m_buf.push_back('0');
                         m_buf.push_back('0');
-                        m_buf.push_back(g_to_hex[static_cast<uint8>(c) >> 4]);
+                        m_buf.push_back(g_to_hex[static_cast<uint8_t>(c) >> 4]);
                         m_buf.push_back(g_to_hex[c & 0xF]);
                         break;
                 }
@@ -755,7 +755,7 @@ namespace vogl
         return true;
     }
 
-    bool json_value::get_numeric(uint8 &val, uint8 def) const
+    bool json_value::get_numeric(uint8_t &val, uint8_t def) const
     {
         uint64_t val64;
         if (!get_numeric(val64))
@@ -768,7 +768,7 @@ namespace vogl
             val = def;
             return false;
         }
-        val = static_cast<uint8>(val64);
+        val = static_cast<uint8_t>(val64);
         return true;
     }
 
@@ -830,7 +830,7 @@ namespace vogl
         return true;
     }
 
-    void json_value::binary_serialize_value(vogl::vector<uint8> &buf) const
+    void json_value::binary_serialize_value(vogl::vector<uint8_t> &buf) const
     {
         switch (m_type)
         {
@@ -847,7 +847,7 @@ namespace vogl
             case cJSONValueTypeInt:
             {
                 int shift;
-                uint8 *pDst;
+                uint8_t *pDst;
                 if (static_cast<uint64_t>(m_data.m_nVal) <= 0xFFU)
                 {
                     pDst = buf.enlarge(2);
@@ -876,7 +876,7 @@ namespace vogl
                 uint64_t n = static_cast<uint64_t>(m_data.m_nVal);
                 do
                 {
-                    *pDst++ = static_cast<uint8>(n >> shift);
+                    *pDst++ = static_cast<uint8_t>(n >> shift);
                 } while ((shift -= 8) >= 0);
 
                 break;
@@ -886,13 +886,13 @@ namespace vogl
                 float flVal32 = static_cast<float>(m_data.m_flVal);
                 if (math::equal_tol(m_data.m_flVal, static_cast<double>(flVal32), 1e-17))
                 {
-                    uint8 *pDst = buf.enlarge(5);
+                    uint8_t *pDst = buf.enlarge(5);
                     pDst[0] = 'd';
                     utils::write_obj(flVal32, pDst + 1, false);
                 }
                 else
                 {
-                    uint8 *pDst = buf.enlarge(9);
+                    uint8_t *pDst = buf.enlarge(9);
                     pDst[0] = 'D';
                     utils::write_obj(m_data.m_flVal, pDst + 1, false);
                 }
@@ -904,19 +904,19 @@ namespace vogl
                 uint len = static_cast<uint>(strlen(m_data.m_pStr));
                 if (len <= 254)
                 {
-                    uint8 *pDst = buf.enlarge(2 + len);
+                    uint8_t *pDst = buf.enlarge(2 + len);
                     pDst[0] = 's';
-                    pDst[1] = static_cast<uint8>(len);
+                    pDst[1] = static_cast<uint8_t>(len);
                     memcpy(pDst + 2, m_data.m_pStr, len);
                 }
                 else
                 {
-                    uint8 *pDst = buf.enlarge(5 + len);
+                    uint8_t *pDst = buf.enlarge(5 + len);
                     pDst[0] = 'S';
-                    pDst[1] = static_cast<uint8>(len >> 24);
-                    pDst[2] = static_cast<uint8>(len >> 16);
-                    pDst[3] = static_cast<uint8>(len >> 8);
-                    pDst[4] = static_cast<uint8>(len);
+                    pDst[1] = static_cast<uint8_t>(len >> 24);
+                    pDst[2] = static_cast<uint8_t>(len >> 16);
+                    pDst[3] = static_cast<uint8_t>(len >> 8);
+                    pDst[4] = static_cast<uint8_t>(len);
                     memcpy(pDst + 5, m_data.m_pStr, len);
                 }
 
@@ -927,7 +927,7 @@ namespace vogl
         }
     }
 
-    void json_value::binary_serialize(vogl::vector<uint8> &buf) const
+    void json_value::binary_serialize(vogl::vector<uint8_t> &buf) const
     {
         const json_node *pNode = get_node_ptr();
         if (pNode)
@@ -949,7 +949,7 @@ namespace vogl
 
     bool json_value::binary_serialize(FILE *pFile)
     {
-        vogl::vector<uint8> buf;
+        vogl::vector<uint8_t> buf;
         binary_serialize(buf);
         return fwrite(buf.get_ptr(), 1, buf.size(), pFile) == buf.size();
     }
@@ -1018,7 +1018,7 @@ namespace vogl
         if ((filesize > VOGL_MAX_POSSIBLE_HEAP_BLOCK_SIZE) || (filesize != static_cast<size_t>(filesize)))
             return false;
 
-        uint8 *pBuf = (uint8 *)vogl_malloc(static_cast<size_t>(filesize));
+        uint8_t *pBuf = (uint8_t *)vogl_malloc(static_cast<size_t>(filesize));
         if (!pBuf)
             return false;
 
@@ -1035,17 +1035,17 @@ namespace vogl
         return status;
     }
 
-    bool json_value::binary_deserialize(const vogl::vector<uint8> &buf)
+    bool json_value::binary_deserialize(const vogl::vector<uint8_t> &buf)
     {
         return buf.size() ? binary_deserialize(buf.get_ptr(), buf.size()) : false;
     }
 
-    bool json_value::binary_deserialize(const uint8 *pBuf, size_t n)
+    bool json_value::binary_deserialize(const uint8_t *pBuf, size_t n)
     {
         return binary_deserialize(pBuf, pBuf + n, NULL, 0);
     }
 
-    bool json_value::binary_deserialize(const uint8 *&pBuf, const uint8 *pBuf_end, json_node *pParent, uint depth)
+    bool json_value::binary_deserialize(const uint8_t *&pBuf, const uint8_t *pBuf_end, json_node *pParent, uint depth)
     {
 #define JSON_BD_FAIL() \
     do                 \
@@ -1053,13 +1053,13 @@ namespace vogl
         pBuf = pSrc;   \
         return false;  \
     } while (0)
-        const uint8 *pSrc = pBuf;
+        const uint8_t *pSrc = pBuf;
         set_value_to_null();
 
         if (depth > cMaxValidDepth)
             return false;
 
-        uint8 c;
+        uint8_t c;
         for (;;)
         {
             if (pSrc >= pBuf_end)
@@ -1117,7 +1117,7 @@ namespace vogl
                 uint idx = 0;
                 while ((unknown_len) || (idx < l))
                 {
-                    uint8 q;
+                    uint8_t q;
                     for (;;)
                     {
                         if (n < 1)
@@ -1415,7 +1415,7 @@ namespace vogl
         return true;
     }
 
-    static const uint8 g_utf8_first_byte[7] =
+    static const uint8_t g_utf8_first_byte[7] =
         {
             0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC
         };
@@ -2799,24 +2799,24 @@ namespace vogl
         buf.print_char(is_object() ? '}' : ']');
     }
 
-    void json_node::binary_serialize(vogl::vector<uint8> &buf) const
+    void json_node::binary_serialize(vogl::vector<uint8_t> &buf) const
     {
-        uint8 *pDst;
+        uint8_t *pDst;
         uint n = m_values.size();
         if (n <= 254)
         {
             pDst = buf.enlarge(2);
             pDst[0] = m_is_object ? 'o' : 'a';
-            pDst[1] = static_cast<uint8>(n);
+            pDst[1] = static_cast<uint8_t>(n);
         }
         else
         {
             pDst = buf.enlarge(5);
             pDst[0] = m_is_object ? 'O' : 'A';
-            pDst[1] = static_cast<uint8>(n >> 24);
-            pDst[2] = static_cast<uint8>(n >> 16);
-            pDst[3] = static_cast<uint8>(n >> 8);
-            pDst[4] = static_cast<uint8>(n);
+            pDst[1] = static_cast<uint8_t>(n >> 24);
+            pDst[2] = static_cast<uint8_t>(n >> 16);
+            pDst[3] = static_cast<uint8_t>(n >> 8);
+            pDst[4] = static_cast<uint8_t>(n);
         }
         if (!n)
             return;
@@ -2832,17 +2832,17 @@ namespace vogl
                 {
                     pDst = buf.enlarge(2 + len);
                     pDst[0] = 's';
-                    pDst[1] = static_cast<uint8>(len);
+                    pDst[1] = static_cast<uint8_t>(len);
                     memcpy(pDst + 2, pKey->get_ptr(), len);
                 }
                 else
                 {
                     pDst = buf.enlarge(5 + len);
                     pDst[0] = 'S';
-                    pDst[1] = static_cast<uint8>(len >> 24);
-                    pDst[2] = static_cast<uint8>(len >> 16);
-                    pDst[3] = static_cast<uint8>(len >> 8);
-                    pDst[4] = static_cast<uint8>(len);
+                    pDst[1] = static_cast<uint8_t>(len >> 24);
+                    pDst[2] = static_cast<uint8_t>(len >> 16);
+                    pDst[3] = static_cast<uint8_t>(len >> 8);
+                    pDst[4] = static_cast<uint8_t>(len);
                     memcpy(pDst + 5, pKey->get_ptr(), len);
                 }
             }

@@ -100,7 +100,7 @@ public:
 
 private:
     bool m_valid;
-    uint8 m_pattern[32 * 4];
+    uint8_t m_pattern[32 * 4];
 };
 
 #endif // VOGL_BASIC_CONTEXT_STATE_H

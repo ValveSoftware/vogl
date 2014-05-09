@@ -211,7 +211,7 @@ namespace vogl
             uint16 m_low_color;
             uint16 m_high_color;
 
-            uint8 *m_pSelectors;
+            uint8_t *m_pSelectors;
             bool m_alpha_block;
         };
 
@@ -241,7 +241,7 @@ namespace vogl
             }
 
             results m_results;
-            vogl::vector<uint8> m_selectors;
+            vogl::vector<uint8_t> m_selectors;
 
             inline bool operator<(const solution &other) const
             {
@@ -288,7 +288,7 @@ namespace vogl
         bool m_all_pixels_grayscale;
 
         vogl::vector<uint16> m_unique_packed_colors;
-        vogl::vector<uint8> m_trial_selectors;
+        vogl::vector<uint8_t> m_trial_selectors;
 
         vogl::vector<vec3F> m_low_coords;
         vogl::vector<vec3F> m_high_coords;
@@ -313,7 +313,7 @@ namespace vogl
             }
 
             dxt1_solution_coordinates m_coords;
-            vogl::vector<uint8> m_selectors;
+            vogl::vector<uint8_t> m_selectors;
             uint64_t m_error;
             bool m_alpha_block;
             bool m_valid;

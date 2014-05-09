@@ -443,11 +443,11 @@ static void random_fill(void *p, size_t size)
 
     while (size)
     {
-        static_cast<uint8 *>(p)[0] = static_cast<uint8>(jsr);
+        static_cast<uint8_t *>(p)[0] = static_cast<uint8_t>(jsr);
         JSR;
 
         size--;
-        p = static_cast<uint8 *>(p) + 1;
+        p = static_cast<uint8_t *>(p) + 1;
     }
 
     g_cur_rand = jsr;
@@ -467,7 +467,7 @@ void *vogl_tracked_malloc(const char *pFile_line, size_t size, size_t *pActual_s
         return NULL;
     }
 
-    uint8 *p_new = (uint8 *)malloc_block(size, pFile_line);
+    uint8_t *p_new = (uint8_t *)malloc_block(size, pFile_line);
 
     VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(p_new) & (VOGL_MIN_ALLOC_ALIGNMENT - 1)) == 0);
 
@@ -550,7 +550,7 @@ void *vogl_tracked_realloc(const char *pFile_line, void *p, size_t size, size_t 
         size_t new_size = msize_block(p_new, pFile_line);
 
         if (new_size > orig_size)
-            random_fill(static_cast<uint8 *>(p_new) + orig_size, new_size - orig_size);
+            random_fill(static_cast<uint8_t *>(p_new) + orig_size, new_size - orig_size);
     }
 #endif
 

@@ -32,7 +32,7 @@ namespace vogl
     // From the public domain stb.h header.
     uint adler32(const void *pBuf, size_t buflen, uint adler32)
     {
-        const uint8 *buffer = static_cast<const uint8 *>(pBuf);
+        const uint8_t *buffer = static_cast<const uint8_t *>(pBuf);
 
         const unsigned long ADLER_MOD = 65521;
         unsigned long s1 = adler32 & 0xffff, s2 = adler32 >> 16;
@@ -70,7 +70,7 @@ namespace vogl
     {
         crc = ~crc;
 
-        const uint8 *p = reinterpret_cast<const uint8 *>(pBuf);
+        const uint8_t *p = reinterpret_cast<const uint8_t *>(pBuf);
         while (len)
         {
             const uint16 q = *p++ ^ (crc >> 8);

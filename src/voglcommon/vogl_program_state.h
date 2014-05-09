@@ -66,7 +66,7 @@ struct vogl_program_uniform_state
     GLenum m_type;
     dynamic_string m_name;
     GLint m_base_location;
-    growable_array<uint8, 16> m_data;
+    growable_array<uint8_t, 16> m_data;
 
     void clear()
     {

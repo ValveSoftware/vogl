@@ -250,8 +250,8 @@ namespace vogl
         inline float solve_for_axis(const vec3F &p, uint axis) const
         {
             VOGL_ASSERT(axis < 3);
-            static const uint8 axis2[] = { 1, 0, 0 };
-            static const uint8 axis3[] = { 2, 2, 1 };
+            static const uint8_t axis2[] = { 1, 0, 0 };
+            static const uint8_t axis3[] = { 2, 2, 1 };
             return m_normal[axis] ? ((m_dist - p[axis2[axis]] * m_normal[axis2[axis]] - p[axis3[axis]] * m_normal[axis3[axis]]) / m_normal[axis]) : 0.0f;
         }
     };

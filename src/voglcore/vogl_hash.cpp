@@ -36,7 +36,7 @@
 #endif
 
 #if !defined(get16bits)
-#define get16bits(d) ((((uint32)(((const uint8 *)(d))[1])) << 8) + (uint32)(((const uint8 *)(d))[0]))
+#define get16bits(d) ((((uint32)(((const uint8_t *)(d))[1])) << 8) + (uint32)(((const uint8_t *)(d))[0]))
 #endif
 
 namespace vogl
@@ -162,7 +162,7 @@ namespace vogl
         return;
     }
 
-    uint64_t calc_crc64(uint64_t crc, const uint8 *buf, size_t size)
+    uint64_t calc_crc64(uint64_t crc, const uint8_t *buf, size_t size)
     {
         if (!g_crc64_table[0])
             crc64_init();
@@ -178,7 +178,7 @@ namespace vogl
         return ~crc;
     }
 
-    uint64_t calc_sum64(const uint8 *buf, size_t size, uint shift_amount)
+    uint64_t calc_sum64(const uint8_t *buf, size_t size, uint shift_amount)
     {
         uint64_t sum = 0;
 

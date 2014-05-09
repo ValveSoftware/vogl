@@ -172,9 +172,9 @@ namespace vogl
             return static_cast<int64_t>(m_v[0]);
         }
 
-        inline operator uint8() const
+        inline operator uint8_t() const
         {
-            return static_cast<uint8>(m_v[0]);
+            return static_cast<uint8_t>(m_v[0]);
         }
 
         inline operator uint16() const
@@ -217,8 +217,8 @@ namespace vogl
                 return *this;
             }
 
-            const uint8 *pSrc = reinterpret_cast<const uint8 *>(p);
-            uint8 *pDst = reinterpret_cast<uint8 *>(m_v);
+            const uint8_t *pSrc = reinterpret_cast<const uint8_t *>(p);
+            uint8_t *pDst = reinterpret_cast<uint8_t *>(m_v);
             memcpy(pDst, pSrc, type_size_in_bytes);
 
             if (type_size_in_bytes < cMaxBYTEs)
@@ -1175,7 +1175,7 @@ namespace vogl
 
             uint n0 = r.irand_inclusive(1, 16);
             for (uint j = 0; j < n0; j++)
-                ((uint8 *)&x)[j] = r.urand32() >> 8;
+                ((uint8_t *)&x)[j] = r.urand32() >> 8;
             if (n0 < 16)
             {
                 if (r.urand32() & 1)
@@ -1184,7 +1184,7 @@ namespace vogl
 
             uint n1 = r.irand_inclusive(1, 16);
             for (uint j = 0; j < n1; j++)
-                ((uint8 *)&y)[j] = r.urand32() >> 8;
+                ((uint8_t *)&y)[j] = r.urand32() >> 8;
             if (n1 < 16)
             {
                 if (r.urand32() & 1)

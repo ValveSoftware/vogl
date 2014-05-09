@@ -67,7 +67,7 @@ namespace vogl
 
                 m_unique_value_map[alpha] = index;
 
-                m_unique_values.push_back(static_cast<uint8>(alpha));
+                m_unique_values.push_back(static_cast<uint8_t>(alpha));
                 m_unique_value_weights.push_back(0);
             }
 
@@ -210,7 +210,7 @@ namespace vogl
                     }
                 }
 
-                m_trial_selectors[i] = static_cast<uint8>(best_selector);
+                m_trial_selectors[i] = static_cast<uint8_t>(best_selector);
                 trial_error += best_selector_error;
 
                 if (trial_error > m_pResults->m_error)
@@ -220,9 +220,9 @@ namespace vogl
             if (trial_error < m_pResults->m_error)
             {
                 m_pResults->m_error = trial_error;
-                m_pResults->m_first_endpoint = static_cast<uint8>(low_endpoint);
-                m_pResults->m_second_endpoint = static_cast<uint8>(high_endpoint);
-                m_pResults->m_block_type = static_cast<uint8>(block_type);
+                m_pResults->m_first_endpoint = static_cast<uint8_t>(low_endpoint);
+                m_pResults->m_second_endpoint = static_cast<uint8_t>(high_endpoint);
+                m_pResults->m_block_type = static_cast<uint8_t>(block_type);
                 m_best_selectors.swap(m_trial_selectors);
 
                 if (!trial_error)

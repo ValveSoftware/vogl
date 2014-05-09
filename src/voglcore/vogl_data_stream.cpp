@@ -57,7 +57,7 @@ namespace vogl
         {
             uint bytes_to_read = static_cast<uint>(math::minimum<uint64_t>(0x7FFFFFFFU, len - total_bytes_read));
 
-            if (read(static_cast<uint8 *>(pBuf) + total_bytes_read, bytes_to_read) != bytes_to_read)
+            if (read(static_cast<uint8_t *>(pBuf) + total_bytes_read, bytes_to_read) != bytes_to_read)
                 break;
 
             total_bytes_read += bytes_to_read;
@@ -71,7 +71,7 @@ namespace vogl
         uint64_t total_bytes_read = 0;
 
         const uint cBufSize = 1024;
-        uint8 buf[cBufSize];
+        uint8_t buf[cBufSize];
 
         while (len)
         {
@@ -154,7 +154,7 @@ namespace vogl
         return true;
     }
 
-    bool data_stream::read_array(vector<uint8> &buf)
+    bool data_stream::read_array(vector<uint8_t> &buf)
     {
         if (buf.size() < get_remaining())
         {
@@ -175,7 +175,7 @@ namespace vogl
         return read(&buf[0], buf.size()) == buf.size();
     }
 
-    bool data_stream::write_array(const vector<uint8> &buf)
+    bool data_stream::write_array(const vector<uint8_t> &buf)
     {
         if (!buf.is_empty())
             return write(&buf[0], buf.size()) == buf.size();

@@ -34,16 +34,16 @@
 
 namespace vogl
 {
-    const uint8 g_dxt5_from_linear[cDXT5SelectorValues] = { 0U, 2U, 3U, 4U, 5U, 6U, 7U, 1U };
-    const uint8 g_dxt5_to_linear[cDXT5SelectorValues] = { 0U, 7U, 1U, 2U, 3U, 4U, 5U, 6U };
+    const uint8_t g_dxt5_from_linear[cDXT5SelectorValues] = { 0U, 2U, 3U, 4U, 5U, 6U, 7U, 1U };
+    const uint8_t g_dxt5_to_linear[cDXT5SelectorValues] = { 0U, 7U, 1U, 2U, 3U, 4U, 5U, 6U };
 
-    const uint8 g_dxt5_alpha6_to_linear[cDXT5SelectorValues] = { 0U, 5U, 1U, 2U, 3U, 4U, 0U, 0U };
+    const uint8_t g_dxt5_alpha6_to_linear[cDXT5SelectorValues] = { 0U, 5U, 1U, 2U, 3U, 4U, 0U, 0U };
 
-    const uint8 g_dxt1_from_linear[cDXT1SelectorValues] = { 0U, 2U, 3U, 1U };
-    const uint8 g_dxt1_to_linear[cDXT1SelectorValues] = { 0U, 3U, 1U, 2U };
+    const uint8_t g_dxt1_from_linear[cDXT1SelectorValues] = { 0U, 2U, 3U, 1U };
+    const uint8_t g_dxt1_to_linear[cDXT1SelectorValues] = { 0U, 3U, 1U, 2U };
 
-    const uint8 g_six_alpha_invert_table[cDXT5SelectorValues] = { 1, 0, 5, 4, 3, 2, 6, 7 };
-    const uint8 g_eight_alpha_invert_table[cDXT5SelectorValues] = { 1, 0, 7, 6, 5, 4, 3, 2 };
+    const uint8_t g_six_alpha_invert_table[cDXT5SelectorValues] = { 1, 0, 5, 4, 3, 2, 6, 7 };
+    const uint8_t g_eight_alpha_invert_table[cDXT5SelectorValues] = { 1, 0, 7, 6, 5, 4, 3, 2 };
 
     const char *get_dxt_format_string(dxt_format fmt)
     {
@@ -197,21 +197,21 @@ namespace vogl
 
         if (color4) //(packed_col0 > packed_col1)
         {
-            pDst[2].r = static_cast<uint8>(((2 * col0.r + col1.r) * 22) / 8);
-            pDst[2].g = static_cast<uint8>((256 * pDst[0].g + gdiff / 4 + 128 + gdiff * 80) / 256);
-            pDst[2].b = static_cast<uint8>(((2 * col0.b + col1.b) * 22) / 8);
+            pDst[2].r = static_cast<uint8_t>(((2 * col0.r + col1.r) * 22) / 8);
+            pDst[2].g = static_cast<uint8_t>((256 * pDst[0].g + gdiff / 4 + 128 + gdiff * 80) / 256);
+            pDst[2].b = static_cast<uint8_t>(((2 * col0.b + col1.b) * 22) / 8);
             pDst[2].a = 0xFF;
 
-            pDst[3].r = static_cast<uint8>(((2 * col1.r + col0.r) * 22) / 8);
-            pDst[3].g = static_cast<uint8>((256 * pDst[1].g - gdiff / 4 + 128 - gdiff * 80) / 256);
-            pDst[3].b = static_cast<uint8>(((2 * col1.b + col0.b) * 22) / 8);
+            pDst[3].r = static_cast<uint8_t>(((2 * col1.r + col0.r) * 22) / 8);
+            pDst[3].g = static_cast<uint8_t>((256 * pDst[1].g - gdiff / 4 + 128 - gdiff * 80) / 256);
+            pDst[3].b = static_cast<uint8_t>(((2 * col1.b + col0.b) * 22) / 8);
             pDst[3].a = 0xFF;
         }
         else
         {
-            pDst[2].r = static_cast<uint8>(((col0.r + col1.r) * 33) / 8);
-            pDst[2].g = static_cast<uint8>((256 * pDst[0].g + gdiff / 4 + 128 + gdiff * 128) / 256);
-            pDst[2].b = static_cast<uint8>(((col0.b + col1.b) * 33) / 8);
+            pDst[2].r = static_cast<uint8_t>(((col0.r + col1.r) * 33) / 8);
+            pDst[2].g = static_cast<uint8_t>((256 * pDst[0].g + gdiff / 4 + 128 + gdiff * 128) / 256);
+            pDst[2].b = static_cast<uint8_t>(((col0.b + col1.b) * 33) / 8);
             pDst[2].a = 0xFF;
 
             pDst[3].r = 0x00;
@@ -326,7 +326,7 @@ namespace vogl
         c &= ~(0xF << ((x & 1U) << 2U));
         c |= (value << ((x & 1U) << 2U));
 
-        m_alpha[ofs] = static_cast<uint8>(c);
+        m_alpha[ofs] = static_cast<uint8_t>(c);
     }
 
     uint dxt3_block::get_alpha(uint x, uint y, bool scaled) const
@@ -346,12 +346,12 @@ namespace vogl
 
     uint dxt5_block::get_block_values6(color_quad_u8 *pDst, uint l, uint h)
     {
-        pDst[0].a = static_cast<uint8>(l);
-        pDst[1].a = static_cast<uint8>(h);
-        pDst[2].a = static_cast<uint8>((l * 4 + h) / 5);
-        pDst[3].a = static_cast<uint8>((l * 3 + h * 2) / 5);
-        pDst[4].a = static_cast<uint8>((l * 2 + h * 3) / 5);
-        pDst[5].a = static_cast<uint8>((l + h * 4) / 5);
+        pDst[0].a = static_cast<uint8_t>(l);
+        pDst[1].a = static_cast<uint8_t>(h);
+        pDst[2].a = static_cast<uint8_t>((l * 4 + h) / 5);
+        pDst[3].a = static_cast<uint8_t>((l * 3 + h * 2) / 5);
+        pDst[4].a = static_cast<uint8_t>((l * 2 + h * 3) / 5);
+        pDst[5].a = static_cast<uint8_t>((l + h * 4) / 5);
         pDst[6].a = 0;
         pDst[7].a = 255;
         return 6;
@@ -359,14 +359,14 @@ namespace vogl
 
     uint dxt5_block::get_block_values8(color_quad_u8 *pDst, uint l, uint h)
     {
-        pDst[0].a = static_cast<uint8>(l);
-        pDst[1].a = static_cast<uint8>(h);
-        pDst[2].a = static_cast<uint8>((l * 6 + h) / 7);
-        pDst[3].a = static_cast<uint8>((l * 5 + h * 2) / 7);
-        pDst[4].a = static_cast<uint8>((l * 4 + h * 3) / 7);
-        pDst[5].a = static_cast<uint8>((l * 3 + h * 4) / 7);
-        pDst[6].a = static_cast<uint8>((l * 2 + h * 5) / 7);
-        pDst[7].a = static_cast<uint8>((l + h * 6) / 7);
+        pDst[0].a = static_cast<uint8_t>(l);
+        pDst[1].a = static_cast<uint8_t>(h);
+        pDst[2].a = static_cast<uint8_t>((l * 6 + h) / 7);
+        pDst[3].a = static_cast<uint8_t>((l * 5 + h * 2) / 7);
+        pDst[4].a = static_cast<uint8_t>((l * 4 + h * 3) / 7);
+        pDst[5].a = static_cast<uint8_t>((l * 3 + h * 4) / 7);
+        pDst[6].a = static_cast<uint8_t>((l * 2 + h * 5) / 7);
+        pDst[7].a = static_cast<uint8_t>((l + h * 6) / 7);
         return 8;
     }
 

@@ -89,7 +89,7 @@ namespace vogl
 #endif
 
         // m_num_next_ptrs is not needed in a basic implementation, but it can simplify erasing (especially with multiple equal elements) and helps debugging.
-        uint8 m_num_next_ptrs;
+        uint8_t m_num_next_ptrs;
 
         map_node<Key, Value> *m_pPrev;
 
@@ -1288,8 +1288,8 @@ namespace vogl
 
         fast_random m_rand;
 
-        uint8 m_cur_level;
-        uint8 m_max_level;
+        uint8_t m_cur_level;
+        uint8_t m_max_level;
 
         bool m_fixed_max_level;
 

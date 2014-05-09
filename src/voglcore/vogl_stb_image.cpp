@@ -135,7 +135,7 @@ namespace vogl
 #endif
 
     // implementation:
-    typedef unsigned char uint8;
+    typedef unsigned char uint8_t;
     typedef unsigned short uint16;
     typedef signed short int16;
     typedef unsigned int uint32;
@@ -422,7 +422,7 @@ namespace vogl
 #ifndef STBI_NO_STDIO
         FILE *img_file;
 #endif
-        uint8 *img_buffer, *img_buffer_end;
+        uint8_t *img_buffer, *img_buffer_end;
     } stbi;
 
 #ifndef STBI_NO_STDIO
@@ -432,13 +432,13 @@ namespace vogl
     }
 #endif
 
-    static void start_mem(stbi *s, uint8 const *buffer, int len)
+    static void start_mem(stbi *s, uint8_t const *buffer, int len)
     {
 #ifndef STBI_NO_STDIO
         s->img_file = NULL;
 #endif
-        s->img_buffer = (uint8 *)buffer;
-        s->img_buffer_end = (uint8 *)buffer + len;
+        s->img_buffer = (uint8_t *)buffer;
+        s->img_buffer_end = (uint8_t *)buffer + len;
     }
 
     __forceinline static int get8(stbi *s)
@@ -464,9 +464,9 @@ namespace vogl
         return s->img_buffer >= s->img_buffer_end;
     }
 
-    __forceinline static uint8 get8u(stbi *s)
+    __forceinline static uint8_t get8u(stbi *s)
     {
-        return (uint8)get8(s);
+        return (uint8_t)get8(s);
     }
 
     static void skip(stbi *s, int n)
@@ -528,9 +528,9 @@ namespace vogl
     //  assume data buffer is malloced, so stb_malloc a new one and free that one
     //  only failure mode is stb_malloc failing
 
-    static uint8 compute_y(int r, int g, int b)
+    static uint8_t compute_y(int r, int g, int b)
     {
-        return (uint8)(((r * 77) + (g * 150) + (29 * b)) >> 8);
+        return (uint8_t)(((r * 77) + (g * 150) + (29 * b)) >> 8);
     }
 
     static unsigned char *convert_format(unsigned char *data, int img_n, int req_comp, uint x, uint y)
@@ -697,11 +697,11 @@ namespace vogl
 
     typedef struct
     {
-        uint8 fast[1 << FAST_BITS];
+        uint8_t fast[1 << FAST_BITS];
         // weirdly, repacking this into AoS is a 10% speed loss, instead of a win
         uint16 code[256];
-        uint8 values[256];
-        uint8 size[257];
+        uint8_t values[256];
+        uint8_t size[257];
         unsigned int maxcode[18];
         int delta[17]; // old 'firstsymbol' - old 'firstcode'
     } huffman;
@@ -714,7 +714,7 @@ namespace vogl
         stbi s;
         huffman huff_dc[4];
         huffman huff_ac[4];
-        uint8 dequant[4][64];
+        uint8_t dequant[4][64];
 
         // sizes for components, interleaved MCUs
         int img_h_max, img_v_max;
@@ -731,9 +731,9 @@ namespace vogl
             int dc_pred;
 
             int x, y, w2, h2;
-            uint8 *data;
+            uint8_t *data;
             void *raw_data;
-            uint8 *linebuf;
+            uint8_t *linebuf;
         } img_comp[4];
 
         uint32 code_buffer;   // jpeg entropy-coded buffer
@@ -751,7 +751,7 @@ namespace vogl
         // build size list for each symbol (from JPEG spec)
         for (i = 0; i < 16; ++i)
             for (j = 0; j < count[i]; ++j)
-                h->size[k++] = (uint8)(i + 1);
+                h->size[k++] = (uint8_t)(i + 1);
         h->size[k] = 0;
 
         // compute actual symbols (from jpeg spec)
@@ -785,7 +785,7 @@ namespace vogl
                 int m = 1 << (FAST_BITS - s);
                 for (j = 0; j < m; ++j)
                 {
-                    h->fast[c + j] = (uint8)i;
+                    h->fast[c + j] = (uint8_t)i;
                 }
             }
         }
@@ -889,7 +889,7 @@ namespace vogl
 
     // given a value that's at position X in the zigzag stream,
     // where does it appear in the 8x8 matrix coded as row-major?
-    static uint8 dezigzag[64 + 15] =
+    static uint8_t dezigzag[64 + 15] =
         {
             0, 1, 8, 16, 9, 2, 3, 10,
             17, 24, 32, 25, 18, 11, 4, 5,
@@ -947,7 +947,7 @@ namespace vogl
     }
 
     // take a -128..127 value and clamp it and convert to 0..255
-    __forceinline static uint8 clamp(int x)
+    __forceinline static uint8_t clamp(int x)
     {
         x += 128;
         // trick to use a single test to catch both cases
@@ -958,7 +958,7 @@ namespace vogl
             if (x > 255)
                 return 255;
         }
-        return (uint8)x;
+        return (uint8_t)x;
     }
 
 #define f2f(x) (int)(((x) * 4096 + 0.5))
@@ -1004,10 +1004,10 @@ namespace vogl
 
 #if !STBI_SIMD
     // .344 seconds on 3*anemones.jpg
-    static void idct_block(uint8 *out, int out_stride, short data[64], uint8 *dequantize)
+    static void idct_block(uint8_t *out, int out_stride, short data[64], uint8_t *dequantize)
     {
         int i, val[64], *v = val;
-        uint8 *o, *dq = dequantize;
+        uint8_t *o, *dq = dequantize;
         short *d = data;
 
         // columns
@@ -1066,10 +1066,10 @@ namespace vogl
         }
     }
 #else
-    static void idct_block(uint8 *out, int out_stride, short data[64], unsigned short *dequantize)
+    static void idct_block(uint8_t *out, int out_stride, short data[64], unsigned short *dequantize)
     {
         int i, val[64], *v = val;
-        uint8 *o;
+        uint8_t *o;
         unsigned short *dq = dequantize;
         short *d = data;
 
@@ -1140,9 +1140,9 @@ namespace vogl
     // if there's a pending marker from the entropy stream, return that
     // otherwise, fetch from the stream and get a marker. if there's no
     // marker, return 0xff, which is never a valid marker value
-    static uint8 get_marker(jpeg *j)
+    static uint8_t get_marker(jpeg *j)
     {
-        uint8 x;
+        uint8_t x;
         if (j->marker != MARKER_none)
         {
             x = j->marker;
@@ -1307,7 +1307,7 @@ namespace vogl
                 L = get16(&z->s) - 2;
                 while (L > 0)
                 {
-                    uint8 *v;
+                    uint8_t *v;
                     int sizes[16], i, m2 = 0;
                     int q = get8(&z->s);
                     int tc = q >> 4;
@@ -1474,7 +1474,7 @@ namespace vogl
                 return e("outofmem", "Out of memory");
             }
             // align blocks for installable-idct using mmx/sse
-            z->img_comp[i].data = (uint8 *)(((size_t)z->img_comp[i].raw_data + 15) & ~15);
+            z->img_comp[i].data = (uint8_t *)(((size_t)z->img_comp[i].raw_data + 15) & ~15);
             z->img_comp[i].linebuf = NULL;
         }
 
@@ -1544,18 +1544,18 @@ namespace vogl
 
     // static jfif-centered resampling (across block boundaries)
 
-    typedef uint8 *(*resample_row_func)(uint8 *out, uint8 *in0, uint8 *in1,
+    typedef uint8_t *(*resample_row_func)(uint8_t *out, uint8_t *in0, uint8_t *in1,
                                         int w, int hs);
 
-#define div4(x) ((uint8)((x) >> 2))
+#define div4(x) ((uint8_t)((x) >> 2))
 
-    static uint8 *resample_row_1(uint8 *out, uint8 *in_near, uint8 *in_far, int w, int hs)
+    static uint8_t *resample_row_1(uint8_t *out, uint8_t *in_near, uint8_t *in_far, int w, int hs)
     {
         VOGL_NOTE_UNUSED(out), VOGL_NOTE_UNUSED(in_far), VOGL_NOTE_UNUSED(w), VOGL_NOTE_UNUSED(hs);
         return in_near;
     }
 
-    static uint8 *resample_row_v_2(uint8 *out, uint8 *in_near, uint8 *in_far, int w, int hs)
+    static uint8_t *resample_row_v_2(uint8_t *out, uint8_t *in_near, uint8_t *in_far, int w, int hs)
     {
         VOGL_NOTE_UNUSED(hs);
         // need to generate two samples vertically for every one in input
@@ -1565,12 +1565,12 @@ namespace vogl
         return out;
     }
 
-    static uint8 *resample_row_h_2(uint8 *out, uint8 *in_near, uint8 *in_far, int w, int hs)
+    static uint8_t *resample_row_h_2(uint8_t *out, uint8_t *in_near, uint8_t *in_far, int w, int hs)
     {
         VOGL_NOTE_UNUSED(hs), VOGL_NOTE_UNUSED(in_far);
         // need to generate two samples horizontally for every one in input
         int i;
-        uint8 *input = in_near;
+        uint8_t *input = in_near;
         if (w == 1)
         {
             // if only one sample, can't do any interpolation
@@ -1591,9 +1591,9 @@ namespace vogl
         return out;
     }
 
-#define div16(x) ((uint8)((x) >> 4))
+#define div16(x) ((uint8_t)((x) >> 4))
 
-    static uint8 *resample_row_hv_2(uint8 *out, uint8 *in_near, uint8 *in_far, int w, int hs)
+    static uint8_t *resample_row_hv_2(uint8_t *out, uint8_t *in_near, uint8_t *in_far, int w, int hs)
     {
         VOGL_NOTE_UNUSED(hs);
         // need to generate 2x2 samples for every one in input
@@ -1617,7 +1617,7 @@ namespace vogl
         return out;
     }
 
-    static uint8 *resample_row_generic(uint8 *out, uint8 *in_near, uint8 *in_far, int w, int hs)
+    static uint8_t *resample_row_generic(uint8_t *out, uint8_t *in_near, uint8_t *in_far, int w, int hs)
     {
         VOGL_NOTE_UNUSED(in_far);
         // resample with nearest-neighbor
@@ -1632,7 +1632,7 @@ namespace vogl
 
     // 0.38 seconds on 3*anemones.jpg   (0.25 with processor = Pro)
     // VC6 without processor=Pro is generating multiple LEAs per multiply!
-    static void YCbCr_to_RGB_row(uint8 *out, const uint8 *y, const uint8 *pcb, const uint8 *pcr, int count, int step)
+    static void YCbCr_to_RGB_row(uint8_t *out, const uint8_t *y, const uint8_t *pcb, const uint8_t *pcr, int count, int step)
     {
         int i;
         for (i = 0; i < count; ++i)
@@ -1668,9 +1668,9 @@ namespace vogl
                 else
                     b = 255;
             }
-            out[0] = (uint8)r;
-            out[1] = (uint8)g;
-            out[2] = (uint8)b;
+            out[0] = (uint8_t)r;
+            out[1] = (uint8_t)g;
+            out[2] = (uint8_t)b;
             out[3] = 255;
             out += step;
         }
@@ -1707,14 +1707,14 @@ namespace vogl
     typedef struct
     {
         resample_row_func resample;
-        uint8 *line0, *line1;
+        uint8_t *line0, *line1;
         int hs, vs;  // expansion factor in each axis
         int w_lores; // horizontal pixels pre-expansion
         int ystep;   // how far through vertical expansion we are
         int ypos;    // which pre-expansion row we're on
     } stbi_resample;
 
-    static uint8 *load_jpeg_image(jpeg *z, int *out_x, int *out_y, int *comp, int req_comp)
+    static uint8_t *load_jpeg_image(jpeg *z, int *out_x, int *out_y, int *comp, int req_comp)
     {
         int n, decode_n;
         // validate req_comp
@@ -1741,8 +1741,8 @@ namespace vogl
         {
             int k;
             uint i, j;
-            uint8 *output;
-            uint8 *coutput[4];
+            uint8_t *output;
+            uint8_t *coutput[4];
 
             stbi_resample res_comp[4];
 
@@ -1752,7 +1752,7 @@ namespace vogl
 
                 // allocate line buffer big enough for upsampling off the edges
                 // with upsample factor of 4
-                z->img_comp[k].linebuf = (uint8 *)stb_malloc(z->s.img_x + 3);
+                z->img_comp[k].linebuf = (uint8_t *)stb_malloc(z->s.img_x + 3);
                 if (!z->img_comp[k].linebuf)
                 {
                     cleanup_jpeg(z);
@@ -1779,7 +1779,7 @@ namespace vogl
             }
 
             // can't error after this so, this is safe
-            output = (uint8 *)stb_malloc(n * z->s.img_x * z->s.img_y + 1);
+            output = (uint8_t *)stb_malloc(n * z->s.img_x * z->s.img_y + 1);
             if (!output)
             {
                 cleanup_jpeg(z);
@@ -1789,7 +1789,7 @@ namespace vogl
             // now go ahead and resample
             for (j = 0; j < z->s.img_y; ++j)
             {
-                uint8 *out = output + n * z->s.img_x * j;
+                uint8_t *out = output + n * z->s.img_x * j;
                 for (k = 0; k < decode_n; ++k)
                 {
                     stbi_resample *r = &res_comp[k];
@@ -1808,7 +1808,7 @@ namespace vogl
                 }
                 if (n >= 3)
                 {
-                    uint8 *y = coutput[0];
+                    uint8_t *y = coutput[0];
                     if (z->s.img_n == 3)
                     {
 #if STBI_SIMD
@@ -1827,7 +1827,7 @@ namespace vogl
                 }
                 else
                 {
-                    uint8 *y = coutput[0];
+                    uint8_t *y = coutput[0];
                     if (n == 1)
                         for (i = 0; i < z->s.img_x; ++i)
                             out[i] = y[i];
@@ -1918,7 +1918,7 @@ namespace vogl
         uint16 firstcode[16];
         int maxcode[17];
         uint16 firstsymbol[16];
-        uint8 size[288];
+        uint8_t size[288];
         uint16 value[288];
     } zhuffman;
 
@@ -1939,7 +1939,7 @@ namespace vogl
         return bitreverse16(v) >> (16 - bits);
     }
 
-    static int zbuild_huffman(zhuffman *z, uint8 *sizelist, int num)
+    static int zbuild_huffman(zhuffman *z, uint8_t *sizelist, int num)
     {
         int i, k = 0;
         int code, next_code[16], sizes[17];
@@ -1973,7 +1973,7 @@ namespace vogl
             if (s)
             {
                 int c = next_code[s] - z->firstcode[s] + z->firstsymbol[s];
-                z->size[c] = (uint8)s;
+                z->size[c] = (uint8_t)s;
                 z->value[c] = (uint16)i;
                 if (s <= ZFAST_BITS)
                 {
@@ -1998,7 +1998,7 @@ namespace vogl
 
     typedef struct
     {
-        uint8 *zbuffer, *zbuffer_end;
+        uint8_t *zbuffer, *zbuffer_end;
         int num_bits;
         uint32 code_buffer;
 
@@ -2119,7 +2119,7 @@ namespace vogl
             }
             else
             {
-                uint8 *p;
+                uint8_t *p;
                 int len, dist;
                 if (z == 256)
                     return 1;
@@ -2138,7 +2138,7 @@ namespace vogl
                 if (a->zout + len > a->zout_end)
                     if (!expand(a, len))
                         return 0;
-                p = (uint8 *)(a->zout - dist);
+                p = (uint8_t *)(a->zout - dist);
                 while (len--)
                     *a->zout++ = *p++;
             }
@@ -2147,10 +2147,10 @@ namespace vogl
 
     static int compute_huffman_codes(zbuf *a)
     {
-        static uint8 length_dezigzag[19] = { 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15 };
+        static uint8_t length_dezigzag[19] = { 16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15 };
         zhuffman z_codelength;
-        uint8 lencodes[286 + 32 + 137]; //padding for maximum single op
-        uint8 codelength_sizes[19];
+        uint8_t lencodes[286 + 32 + 137]; //padding for maximum single op
+        uint8_t codelength_sizes[19];
         int i, n;
 
         int hlit = zreceive(a, 5) + 257;
@@ -2161,7 +2161,7 @@ namespace vogl
         for (i = 0; i < hclen; ++i)
         {
             int s = zreceive(a, 3);
-            codelength_sizes[length_dezigzag[i]] = (uint8)s;
+            codelength_sizes[length_dezigzag[i]] = (uint8_t)s;
         }
         if (!zbuild_huffman(&z_codelength, codelength_sizes, 19))
             return 0;
@@ -2172,7 +2172,7 @@ namespace vogl
             int c = zhuffman_decode(a, &z_codelength);
             assert(c >= 0 && c < 19);
             if (c < 16)
-                lencodes[n++] = (uint8)c;
+                lencodes[n++] = (uint8_t)c;
             else if (c == 16)
             {
                 c = zreceive(a, 2) + 3;
@@ -2204,7 +2204,7 @@ namespace vogl
 
     static int parse_uncompressed_block(zbuf *a)
     {
-        uint8 header[4];
+        uint8_t header[4];
         int len, nlen, k;
         if (a->num_bits & 7)
             zreceive(a, a->num_bits & 7); // discard
@@ -2212,14 +2212,14 @@ namespace vogl
         k = 0;
         while (a->num_bits > 0)
         {
-            header[k++] = (uint8)(a->code_buffer & 255); // wtf this warns?
+            header[k++] = (uint8_t)(a->code_buffer & 255); // wtf this warns?
             a->code_buffer >>= 8;
             a->num_bits -= 8;
         }
         assert(a->num_bits == 0);
         // now fill header the normal way
         while (k < 4)
-            header[k++] = (uint8)zget8(a);
+            header[k++] = (uint8_t)zget8(a);
         len = header[1] * 256 + header[0];
         nlen = header[3] * 256 + header[2];
         if (nlen != (len ^ 0xffff))
@@ -2252,7 +2252,7 @@ namespace vogl
     }
 
     // @TODO: should statically initialize these for optimal thread safety
-    static uint8 default_length[288], default_distance[32];
+    static uint8_t default_length[288], default_distance[32];
     static void init_defaults(void)
     {
         int i; // use <= to match clearly with spec
@@ -2333,8 +2333,8 @@ namespace vogl
         char *p = (char *)stb_malloc(initial_size);
         if (p == NULL)
             return NULL;
-        a.zbuffer = (uint8 *)buffer;
-        a.zbuffer_end = (uint8 *)buffer + len;
+        a.zbuffer = (uint8_t *)buffer;
+        a.zbuffer_end = (uint8_t *)buffer + len;
         if (do_zlib(&a, p, initial_size, 1, 1))
         {
             if (outlen)
@@ -2356,8 +2356,8 @@ namespace vogl
     int stbi_zlib_decode_buffer(char *obuffer, int olen, char const *ibuffer, int ilen)
     {
         zbuf a;
-        a.zbuffer = (uint8 *)ibuffer;
-        a.zbuffer_end = (uint8 *)ibuffer + ilen;
+        a.zbuffer = (uint8_t *)ibuffer;
+        a.zbuffer_end = (uint8_t *)ibuffer + ilen;
         if (do_zlib(&a, obuffer, olen, 0, 1))
             return (int)(a.zout - a.zout_start);
         else
@@ -2370,8 +2370,8 @@ namespace vogl
         char *p = (char *)stb_malloc(16384);
         if (p == NULL)
             return NULL;
-        a.zbuffer = (uint8 *)buffer;
-        a.zbuffer_end = (uint8 *)buffer + len;
+        a.zbuffer = (uint8_t *)buffer;
+        a.zbuffer_end = (uint8_t *)buffer + len;
         if (do_zlib(&a, p, 16384, 1, 0))
         {
             if (outlen)
@@ -2388,8 +2388,8 @@ namespace vogl
     int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char *ibuffer, int ilen)
     {
         zbuf a;
-        a.zbuffer = (uint8 *)ibuffer;
-        a.zbuffer_end = (uint8 *)ibuffer + ilen;
+        a.zbuffer = (uint8_t *)ibuffer;
+        a.zbuffer_end = (uint8_t *)ibuffer + ilen;
         if (do_zlib(&a, obuffer, olen, 0, 0))
             return (int)(a.zout - a.zout_start);
         else
@@ -2424,7 +2424,7 @@ namespace vogl
 
     static int check_png_header(stbi *s)
     {
-        static uint8 png_sig[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
+        static uint8_t png_sig[8] = { 137, 80, 78, 71, 13, 10, 26, 10 };
         int i;
         for (i = 0; i < 8; ++i)
             if (get8(s) != png_sig[i])
@@ -2435,7 +2435,7 @@ namespace vogl
     typedef struct
     {
         stbi s;
-        uint8 *idata, *expanded, *out;
+        uint8_t *idata, *expanded, *out;
     } png;
 
     enum
@@ -2449,7 +2449,7 @@ namespace vogl
         F_paeth_first,
     };
 
-    static uint8 first_row_filter[5] =
+    static uint8_t first_row_filter[5] =
         {
             F_none, F_sub, F_none, F_avg_first, F_paeth_first
         };
@@ -2468,7 +2468,7 @@ namespace vogl
     }
 
     // create the png data from post-deflated data
-    static int create_png_image_raw(png *a, uint8 *raw, uint32 raw_len, int out_n, uint32 x, uint32 y)
+    static int create_png_image_raw(png *a, uint8_t *raw, uint32 raw_len, int out_n, uint32 x, uint32 y)
     {
         stbi *s = &a->s;
         uint32 i, j, stride = x * out_n;
@@ -2477,7 +2477,7 @@ namespace vogl
         assert(out_n == s->img_n || out_n == s->img_n + 1);
         if (stbi_png_partial)
             y = 1;
-        a->out = (uint8 *)stb_malloc(x * y * out_n);
+        a->out = (uint8_t *)stb_malloc(x * y * out_n);
         if (!a->out)
             return e("outofmem", "Out of memory");
         if (!stbi_png_partial)
@@ -2495,8 +2495,8 @@ namespace vogl
         }
         for (j = 0; j < y; ++j)
         {
-            uint8 *cur = a->out + stride * j;
-            uint8 *prior = cur - stride;
+            uint8_t *cur = a->out + stride * j;
+            uint8_t *prior = cur - stride;
             int filter = *raw++;
             if (filter > 4)
                 return e("invalid filter", "Corrupt PNG");
@@ -2521,7 +2521,7 @@ namespace vogl
                         cur[k] = raw[k] + (prior[k] >> 1);
                         break;
                     case F_paeth:
-                        cur[k] = (uint8)(raw[k] + paeth(0, prior[k], 0));
+                        cur[k] = (uint8_t)(raw[k] + paeth(0, prior[k], 0));
                         break;
                     case F_avg_first:
                         cur[k] = raw[k];
@@ -2553,11 +2553,11 @@ namespace vogl
                     break;
                     CASE(F_avg) cur[k] = raw[k] + ((prior[k] + cur[k - img_n]) >> 1);
                     break;
-                    CASE(F_paeth) cur[k] = (uint8)(raw[k] + paeth(cur[k - img_n], prior[k], prior[k - img_n]));
+                    CASE(F_paeth) cur[k] = (uint8_t)(raw[k] + paeth(cur[k - img_n], prior[k], prior[k - img_n]));
                     break;
                     CASE(F_avg_first) cur[k] = raw[k] + (cur[k - img_n] >> 1);
                     break;
-                    CASE(F_paeth_first) cur[k] = (uint8)(raw[k] + paeth(cur[k - img_n], 0, 0));
+                    CASE(F_paeth_first) cur[k] = (uint8_t)(raw[k] + paeth(cur[k - img_n], 0, 0));
                     break;
                 }
 #undef CASE
@@ -2579,11 +2579,11 @@ namespace vogl
                     break;
                     CASE(F_avg) cur[k] = raw[k] + ((prior[k] + cur[k - out_n]) >> 1);
                     break;
-                    CASE(F_paeth) cur[k] = (uint8)(raw[k] + paeth(cur[k - out_n], prior[k], prior[k - out_n]));
+                    CASE(F_paeth) cur[k] = (uint8_t)(raw[k] + paeth(cur[k - out_n], prior[k], prior[k - out_n]));
                     break;
                     CASE(F_avg_first) cur[k] = raw[k] + (cur[k - out_n] >> 1);
                     break;
-                    CASE(F_paeth_first) cur[k] = (uint8)(raw[k] + paeth(cur[k - out_n], 0, 0));
+                    CASE(F_paeth_first) cur[k] = (uint8_t)(raw[k] + paeth(cur[k - out_n], 0, 0));
                     break;
                 }
 #undef CASE
@@ -2592,9 +2592,9 @@ namespace vogl
         return 1;
     }
 
-    static int create_png_image(png *a, uint8 *raw, uint32 raw_len, int out_n, int interlaced)
+    static int create_png_image(png *a, uint8_t *raw, uint32 raw_len, int out_n, int interlaced)
     {
-        uint8 *final;
+        uint8_t *final;
         int p;
         int save;
         if (!interlaced)
@@ -2603,7 +2603,7 @@ namespace vogl
         stbi_png_partial = 0;
 
         // de-interlacing
-        final = (uint8 *)stb_malloc(a->s.img_x * a->s.img_y * out_n);
+        final = (uint8_t *)stb_malloc(a->s.img_x * a->s.img_y * out_n);
         for (p = 0; p < 7; ++p)
         {
             int xorig[] = { 0, 4, 0, 2, 0, 1, 0 };
@@ -2636,11 +2636,11 @@ namespace vogl
         return 1;
     }
 
-    static int compute_transparency(png *z, uint8 tc[3], int out_n)
+    static int compute_transparency(png *z, uint8_t tc[3], int out_n)
     {
         stbi *s = &z->s;
         uint32 i, pixel_count = s->img_x * s->img_y;
-        uint8 *p = z->out;
+        uint8_t *p = z->out;
 
         // compute color-based transparency, assuming we've
         // already got 255 as the alpha value in the output
@@ -2666,13 +2666,13 @@ namespace vogl
         return 1;
     }
 
-    static int expand_palette(png *a, uint8 *palette, int len, int pal_img_n)
+    static int expand_palette(png *a, uint8_t *palette, int len, int pal_img_n)
     {
         VOGL_NOTE_UNUSED(len);
         uint32 i, pixel_count = a->s.img_x * a->s.img_y;
-        uint8 *p, *temp_out, *orig = a->out;
+        uint8_t *p, *temp_out, *orig = a->out;
 
-        p = (uint8 *)stb_malloc(pixel_count * pal_img_n);
+        p = (uint8_t *)stb_malloc(pixel_count * pal_img_n);
         if (p == NULL)
             return e("outofmem", "Out of memory");
 
@@ -2709,8 +2709,8 @@ namespace vogl
 
     static int parse_png_file(png *z, int scan, int req_comp)
     {
-        uint8 palette[1024], pal_img_n = 0;
-        uint8 has_trans = 0, tc[3];
+        uint8_t palette[1024], pal_img_n = 0;
+        uint8_t has_trans = 0, tc[3];
         uint32 ioff = 0, idata_limit = 0, i, pal_len = 0;
         int first = 1, k, interlace = 0;
         stbi *s = &z->s;
@@ -2829,7 +2829,7 @@ namespace vogl
                             return e("bad tRNS len", "Corrupt PNG");
                         has_trans = 1;
                         for (k = 0; k < s->img_n; ++k)
-                            tc[k] = (uint8)get16(s); // non 8-bit images will be larger
+                            tc[k] = (uint8_t)get16(s); // non 8-bit images will be larger
                     }
                     break;
                 }
@@ -2846,12 +2846,12 @@ namespace vogl
                     }
                     if (ioff + c.length > idata_limit)
                     {
-                        uint8 *p;
+                        uint8_t *p;
                         if (idata_limit == 0)
                             idata_limit = c.length > 4096 ? c.length : 4096;
                         while (ioff + c.length > idata_limit)
                             idata_limit *= 2;
-                        p = (uint8 *)stb_realloc(z->idata, idata_limit);
+                        p = (uint8_t *)stb_realloc(z->idata, idata_limit);
                         if (p == NULL)
                             return e("outofmem", "Out of memory");
                         z->idata = p;
@@ -2880,7 +2880,7 @@ namespace vogl
                         return 1;
                     if (z->idata == NULL)
                         return e("no IDAT", "Corrupt PNG");
-                    z->expanded = (uint8 *)stbi_zlib_decode_malloc((char *)z->idata, ioff, (int *)&raw_len);
+                    z->expanded = (uint8_t *)stbi_zlib_decode_malloc((char *)z->idata, ioff, (int *)&raw_len);
                     if (z->expanded == NULL)
                         return 0; // zlib should set error
                     stb_free(z->idata);
@@ -2916,10 +2916,10 @@ namespace vogl
 #ifndef STBI_NO_FAILURE_STRINGS
                         // not threadsafe
                         static char invalid_chunk[] = "XXXX chunk not known";
-                        invalid_chunk[0] = (uint8)(c.type >> 24);
-                        invalid_chunk[1] = (uint8)(c.type >> 16);
-                        invalid_chunk[2] = (uint8)(c.type >> 8);
-                        invalid_chunk[3] = (uint8)(c.type >> 0);
+                        invalid_chunk[0] = (uint8_t)(c.type >> 24);
+                        invalid_chunk[1] = (uint8_t)(c.type >> 16);
+                        invalid_chunk[2] = (uint8_t)(c.type >> 8);
+                        invalid_chunk[3] = (uint8_t)(c.type >> 0);
 #endif
                         return e(invalid_chunk, "PNG not supported: unknown chunk type");
                     }
@@ -3129,7 +3129,7 @@ namespace vogl
 
     static stbi_uc *bmp_load(stbi *s, int *x, int *y, int *comp, int req_comp)
     {
-        uint8 *out;
+        uint8_t *out;
         unsigned int mr = 0, mg = 0, mb = 0, ma = 0, fake_a = 0;
         (void)fake_a;
         stbi_uc pal[256][4];
@@ -3755,7 +3755,7 @@ namespace vogl
         int channelCount, compression;
         int channel, i, count, len;
         int w, h;
-        uint8 *out;
+        uint8_t *out;
 
         // Check identifier
         if (get32(s) != 0x38425053) // "8BPS"
@@ -3838,7 +3838,7 @@ namespace vogl
             // Read the RLE data by channel.
             for (channel = 0; channel < 4; channel++)
             {
-                uint8 *p;
+                uint8_t *p;
 
                 p = out + channel;
                 if (channel >= channelCount)
@@ -3898,7 +3898,7 @@ namespace vogl
             // Read the data by channel.
             for (channel = 0; channel < 4; channel++)
             {
-                uint8 *p;
+                uint8_t *p;
 
                 p = out + channel;
                 if (channel > channelCount)
@@ -4213,7 +4213,7 @@ namespace vogl
 
     static void write8(FILE *f, int x)
     {
-        uint8 z = (uint8)x;
+        uint8_t z = (uint8_t)x;
         fwrite(&z, 1, 1, f);
     }
 
@@ -4227,7 +4227,7 @@ namespace vogl
                     break;
                 case '1':
                 {
-                    uint8 x = va_arg(v, int);
+                    uint8_t x = va_arg(v, int);
                     write8(f, x);
                     break;
                 }
@@ -4265,7 +4265,7 @@ namespace vogl
 
     static void write_pixels(FILE *f, int rgb_dir, int vdir, int x, int y, int comp, const void *data, int write_alpha, int scanline_pad)
     {
-        uint8 bg[3] = { 255, 0, 255 }, px[3];
+        uint8_t bg[3] = { 255, 0, 255 }, px[3];
         uint32 zero = 0;
         int i, j, k, j_end;
 
@@ -4278,7 +4278,7 @@ namespace vogl
         {
             for (i = 0; i < x; ++i)
             {
-                uint8 *d = (uint8 *)data + (j * x + i) * comp;
+                uint8_t *d = (uint8_t *)data + (j * x + i) * comp;
                 if (write_alpha < 0)
                     fwrite(&d[comp - 1], 1, 1, f);
                 switch (comp)

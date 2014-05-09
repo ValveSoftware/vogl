@@ -2803,7 +2803,7 @@ bool vogl_polygon_stipple_state::deserialize(const json_node &node, const vogl_b
     if (pArr_node->size() == VOGL_ARRAY_SIZE(m_pattern))
     {
         for (uint i = 0; i < VOGL_ARRAY_SIZE(m_pattern); i++)
-            m_pattern[i] = static_cast<uint8>(pArr_node->value_as_uint32(i));
+            m_pattern[i] = static_cast<uint8_t>(pArr_node->value_as_uint32(i));
     }
     else
     {

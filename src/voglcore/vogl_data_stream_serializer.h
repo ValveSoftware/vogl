@@ -145,7 +145,7 @@ namespace vogl
                 return write(&obj, sizeof(obj));
             else
             {
-                uint8 buf[sizeof(T)];
+                uint8_t buf[sizeof(T)];
                 uint buf_size = sizeof(T);
                 void *pBuf = buf;
                 utils::write_obj(obj, pBuf, buf_size, m_little_endian);
@@ -161,7 +161,7 @@ namespace vogl
                 return read(&obj, sizeof(obj));
             else
             {
-                uint8 buf[sizeof(T)];
+                uint8_t buf[sizeof(T)];
                 if (!read(buf, sizeof(T)))
                     return false;
 
@@ -196,9 +196,9 @@ namespace vogl
             return result;
         }
 
-        uint8 read_uint8(uint8 def = 0)
+        uint8_t read_uint8(uint8_t def = 0)
         {
-            uint8 result;
+            uint8_t result;
             if (!read_object(result))
                 result = def;
             return result;
@@ -286,7 +286,7 @@ namespace vogl
         {
             do
             {
-                uint8 c = static_cast<uint8>(val) & 0x7F;
+                uint8_t c = static_cast<uint8_t>(val) & 0x7F;
                 if (val <= 0x7F)
                     c |= 0x80;
 
@@ -310,7 +310,7 @@ namespace vogl
                 if (shift >= 32)
                     return false;
 
-                uint8 c;
+                uint8_t c;
                 if (!read_object(c))
                     return false;
 
@@ -419,12 +419,12 @@ namespace vogl
             return true;
         }
 
-        bool read_entire_file(vogl::vector<uint8> &buf)
+        bool read_entire_file(vogl::vector<uint8_t> &buf)
         {
             return m_pStream->read_array(buf);
         }
 
-        bool write_entire_file(const vogl::vector<uint8> &buf)
+        bool write_entire_file(const vogl::vector<uint8_t> &buf)
         {
             return m_pStream->write_array(buf);
         }
@@ -442,7 +442,7 @@ namespace vogl
                 {
                     case '1':
                     {
-                        const uint8 x = static_cast<uint8>(va_arg(v, uint));
+                        const uint8_t x = static_cast<uint8_t>(va_arg(v, uint));
                         if (!write_value(x))
                             return false;
                     }
@@ -488,7 +488,7 @@ namespace vogl
                 {
                     case '1':
                     {
-                        uint8 *x = va_arg(v, uint8 *);
+                        uint8_t *x = va_arg(v, uint8_t *);
                         VOGL_ASSERT(x);
                         if (!read_object(*x))
                             return false;
@@ -541,7 +541,7 @@ namespace vogl
         serializer.write_value(val);
         return serializer;
     }
-    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, uint8 val)
+    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, uint8_t val)
     {
         serializer.write_value(val);
         return serializer;
@@ -623,7 +623,7 @@ namespace vogl
         serializer.read_object(val);
         return serializer;
     }
-    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, uint8 &val)
+    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, uint8_t &val)
     {
         serializer.read_object(val);
         return serializer;

@@ -207,7 +207,7 @@ namespace vogl
                 }
             }
 
-            vogl::vector<uint8> temp;
+            vogl::vector<uint8_t> temp;
             uint num_src_chans = 0;
             const void *pSrc_img = NULL;
 
@@ -228,7 +228,7 @@ namespace vogl
                 {
                     const color_quad_u8 *pSrc = img.get_scanline(y);
                     const color_quad_u8 *pSrc_end = pSrc + img.get_width();
-                    uint8 *pDst = &temp[y * img.get_width()];
+                    uint8_t *pDst = &temp[y * img.get_width()];
 
                     if (img.get_comp_flags() & pixel_format_helpers::cCompFlagGrayscale)
                     {
@@ -238,7 +238,7 @@ namespace vogl
                     else if (grayscale_comp_index < 0)
                     {
                         while (pSrc != pSrc_end)
-                            *pDst++ = static_cast<uint8>((*pSrc++).get_luma());
+                            *pDst++ = static_cast<uint8_t>((*pSrc++).get_luma());
                     }
                     else
                     {
@@ -258,7 +258,7 @@ namespace vogl
                 {
                     const color_quad_u8 *pSrc = img.get_scanline(y);
                     const color_quad_u8 *pSrc_end = pSrc + img.get_width();
-                    uint8 *pDst = &temp[y * img.get_width() * 3];
+                    uint8_t *pDst = &temp[y * img.get_width() * 3];
 
                     while (pSrc != pSrc_end)
                     {
@@ -306,7 +306,7 @@ namespace vogl
                 else if (write_flags & cWriteFlagJPEGH2V2)
                     params.m_subsampling = jpge::H2V2;
 
-                success = jpge::compress_image_to_jpeg_file(pFilename, img.get_width(), img.get_height(), num_src_chans, (const jpge::uint8 *)pSrc_img, params);
+                success = jpge::compress_image_to_jpeg_file(pFilename, img.get_width(), img.get_height(), num_src_chans, (const jpge::uint8_t *)pSrc_img, params);
             }
             else
             {
@@ -331,7 +331,7 @@ namespace vogl
 
                     color_quad_u8 c;
                     for (uint i = 0; i < 4; i++)
-                        c[i] = static_cast<uint8>(math::clamp(math::float_to_int_nearest((o[i] - l[i]) * scale[i]), 0, 255));
+                        c[i] = static_cast<uint8_t>(math::clamp(math::float_to_int_nearest((o[i] - l[i]) * scale[i]), 0, 255));
 
                     temp(x, y) = c;
                 }
@@ -375,7 +375,7 @@ namespace vogl
                             v /= length;
 
                         for (uint i = 0; i < 3; i++)
-                            c[i] = static_cast<uint8>(math::clamp<float>(floor((v[i] + 1.0f) * .5f * 255.0f + .5f), 0.0f, 255.0f));
+                            c[i] = static_cast<uint8_t>(math::clamp<float>(floor((v[i] + 1.0f) * .5f * 255.0f + .5f), 0.0f, 255.0f));
 
                         if ((c.r == 128) && (c.g == 128))
                         {
@@ -530,7 +530,7 @@ namespace vogl
                     for (uint c = 0; c < params.m_num_comps; c++)
                     {
                         const uint comp_index = params.m_first_comp + c;
-                        const uint8 v = (*pSrc)[comp_index];
+                        const uint8_t v = (*pSrc)[comp_index];
 
                         if (!params.m_srgb || (comp_index == 3))
                             samples[c][x] = v * (1.0f / 255.0f);
@@ -827,7 +827,7 @@ namespace vogl
                     for (uint c = 0; c < params.m_num_comps; c++)
                     {
                         const uint comp_index = params.m_first_comp + c;
-                        const uint8 v = (*pSrc)[comp_index];
+                        const uint8_t v = (*pSrc)[comp_index];
 
                         if (!params.m_srgb || (comp_index == 3))
                             pDst[c] = v * (1.0f / 255.0f);
@@ -918,7 +918,7 @@ namespace vogl
                     {
                         int d = (ca[c] - cb[c]) * scale + 128;
                         d = math::clamp(d, 0, 255);
-                        cd[c] = static_cast<uint8>(d);
+                        cd[c] = static_cast<uint8_t>(d);
                     }
 
                     dest(x, y) = cd;
@@ -930,7 +930,7 @@ namespace vogl
 
         // See page 605 of http://www.cns.nyu.edu/pub/eero/wang03-reprint.pdf
         // Image Quality Assessment: From Error Visibility to Structural Similarity
-        double compute_block_ssim(uint t, const uint8 *pX, const uint8 *pY)
+        double compute_block_ssim(uint t, const uint8_t *pX, const uint8_t *pY)
         {
             double ave_x = 0.0f;
             double ave_y = 0.0f;
@@ -972,7 +972,7 @@ namespace vogl
         double compute_ssim(const image_u8 &a, const image_u8 &b, int channel_index)
         {
             const uint N = 8;
-            uint8 sx[N * N], sy[N * N];
+            uint8_t sx[N * N], sy[N * N];
 
             double total_ssim = 0.0f;
             uint total_blocks = 0;
@@ -986,14 +986,14 @@ namespace vogl
                         for (uint ix = 0; ix < N; ix++)
                         {
                             if (channel_index < 0)
-                                sx[ix + iy * N] = (uint8)a.get_clamped(x + ix, y + iy).get_luma();
+                                sx[ix + iy * N] = (uint8_t)a.get_clamped(x + ix, y + iy).get_luma();
                             else
-                                sx[ix + iy * N] = (uint8)a.get_clamped(x + ix, y + iy)[channel_index];
+                                sx[ix + iy * N] = (uint8_t)a.get_clamped(x + ix, y + iy)[channel_index];
 
                             if (channel_index < 0)
-                                sy[ix + iy * N] = (uint8)b.get_clamped(x + ix, y + iy).get_luma();
+                                sy[ix + iy * N] = (uint8_t)b.get_clamped(x + ix, y + iy).get_luma();
                             else
-                                sy[ix + iy * N] = (uint8)b.get_clamped(x + ix, y + iy)[channel_index];
+                                sy[ix + iy * N] = (uint8_t)b.get_clamped(x + ix, y + iy)[channel_index];
                         }
                     }
 
@@ -1142,7 +1142,7 @@ namespace vogl
             }
         }
 
-        static uint8 regen_z(uint x, uint y)
+        static uint8_t regen_z(uint x, uint y)
         {
             float vx = math::clamp((x - 128.0f) * 1.0f / 127.0f, -1.0f, 1.0f);
             float vy = math::clamp((y - 128.0f) * 1.0f / 127.0f, -1.0f, 1.0f);
@@ -1157,7 +1157,7 @@ namespace vogl
 
             int ib = math::float_to_int(vz);
 
-            return static_cast<uint8>(math::clamp(ib, 0, 255));
+            return static_cast<uint8_t>(math::clamp(ib, 0, 255));
         }
 
         void convert_image(image_u8 &img, image_utils::conversion_type conv_type)
@@ -1318,12 +1318,12 @@ namespace vogl
                             dst.r = src.r;
                             dst.g = src.g;
                             dst.b = src.b;
-                            dst.a = static_cast<uint8>(src.get_luma());
+                            dst.a = static_cast<uint8_t>(src.get_luma());
                             break;
                         }
                         case image_utils::cConversion_Y_To_RGB:
                         {
-                            uint8 y2 = static_cast<uint8>(src.get_luma());
+                            uint8_t y2 = static_cast<uint8_t>(src.get_luma());
                             dst.r = y2;
                             dst.g = y2;
                             dst.b = y2;
@@ -1340,7 +1340,7 @@ namespace vogl
                         }
                         case image_utils::cConversion_To_Y:
                         {
-                            uint8 y2 = static_cast<uint8>(src.get_luma());
+                            uint8_t y2 = static_cast<uint8_t>(src.get_luma());
                             dst.r = y2;
                             dst.g = y2;
                             dst.b = y2;
@@ -1487,7 +1487,7 @@ namespace vogl
             return sqrt(var);
         }
 
-        uint8 *read_image_from_memory(const uint8 *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename)
+        uint8_t *read_image_from_memory(const uint8_t *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename)
         {
             *pWidth = 0;
             *pHeight = 0;
@@ -1526,11 +1526,11 @@ namespace vogl
             else
                 *pActualComps = 3;
 
-            uint8 *pDst = NULL;
+            uint8_t *pDst = NULL;
             if (req_comps == 4)
             {
-                pDst = (uint8 *)vogl_malloc(tex.get_total_pixels() * sizeof(uint32));
-                uint8 *pSrc = (uint8 *)pImg->get_ptr();
+                pDst = (uint8_t *)vogl_malloc(tex.get_total_pixels() * sizeof(uint32));
+                uint8_t *pSrc = (uint8_t *)pImg->get_ptr();
                 memcpy(pDst, pSrc, tex.get_total_pixels() * sizeof(uint32));
             }
             else
@@ -1773,8 +1773,8 @@ namespace vogl
                 {
                     for (uint x = 0; x < width; x++)
                     {
-                        dst(x, y)[c] = static_cast<uint8>(math::clamp<float>(128.5f + re1.at_wrapped(y + half_height, x + half_width), 0.0f, 255.0f));
-                        dst(x + width, y)[c] = static_cast<uint8>(math::clamp<float>(128.5f + im1.at_wrapped(y + half_height, x + half_width), 0.0f, 255.0f));
+                        dst(x, y)[c] = static_cast<uint8_t>(math::clamp<float>(128.5f + re1.at_wrapped(y + half_height, x + half_width), 0.0f, 255.0f));
+                        dst(x + width, y)[c] = static_cast<uint8_t>(math::clamp<float>(128.5f + im1.at_wrapped(y + half_height, x + half_width), 0.0f, 255.0f));
                     }
                 }
             }

@@ -159,7 +159,7 @@ namespace vogl
 
             for (uint i = 0; i < scan_size; i++)
             {
-                uint8 c = reinterpret_cast<const uint8 *>(pBuf)[i];
+                uint8_t c = reinterpret_cast<const uint8_t *>(pBuf)[i];
                 if (allow_crlf)
                 {
                     if ((c == 0x0A) || (c == 0x0D))
@@ -172,7 +172,7 @@ namespace vogl
 
             if (expect_null_terminator)
             {
-                if (reinterpret_cast<const uint8 *>(pBuf)[buf_size - 1] != 0)
+                if (reinterpret_cast<const uint8_t *>(pBuf)[buf_size - 1] != 0)
                     return false;
             }
 

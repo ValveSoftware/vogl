@@ -376,9 +376,9 @@ namespace vogl
 #endif
     }
 
-    static const uint8 g_invTableNull[4] = { 0, 1, 2, 3 };
-    static const uint8 g_invTableAlpha[4] = { 1, 0, 2, 3 };
-    static const uint8 g_invTableColor[4] = { 1, 0, 3, 2 };
+    static const uint8_t g_invTableNull[4] = { 0, 1, 2, 3 };
+    static const uint8_t g_invTableAlpha[4] = { 1, 0, 2, 3 };
+    static const uint8_t g_invTableColor[4] = { 1, 0, 3, 2 };
 
     // Computes a valid (encodable) DXT1 solution (low/high colors, swizzled selectors) from input.
     void dxt1_endpoint_optimizer::return_solution(results &res, const potential_solution &solution)
@@ -405,14 +405,14 @@ namespace vogl
             res.m_high_color = solution.m_coords.m_high_color;
         }
 
-        const uint8 *pInvert_table = g_invTableNull;
+        const uint8_t *pInvert_table = g_invTableNull;
         if (invert_selectors)
             pInvert_table = solution.m_alpha_block ? g_invTableAlpha : g_invTableColor;
 
         const uint alpha_thresh = m_pParams->m_pixels_have_alpha ? (m_pParams->m_dxt1a_alpha_threshold << 24U) : 0;
 
         const uint32 *pSrc_pixels = reinterpret_cast<const uint32 *>(m_pParams->m_pPixels);
-        uint8 *pDst_selectors = res.m_pSelectors;
+        uint8_t *pDst_selectors = res.m_pSelectors;
 
         if ((m_unique_colors.size() == 1) && (!m_pParams->m_pixels_have_alpha))
         {
@@ -433,9 +433,9 @@ namespace vogl
         }
         else
         {
-            uint8 *pDst_selectors_end = pDst_selectors + m_pParams->m_num_pixels;
+            uint8_t *pDst_selectors_end = pDst_selectors + m_pParams->m_num_pixels;
 
-            uint8 prev_selector = 0;
+            uint8_t prev_selector = 0;
             uint32 prev_color = 0;
 
             do
@@ -443,7 +443,7 @@ namespace vogl
                 uint32 c = utils::read_le32(pSrc_pixels);
                 pSrc_pixels++;
 
-                uint8 selector = 3;
+                uint8_t selector = 3;
 
                 if (c >= alpha_thresh)
                 {
@@ -601,8 +601,8 @@ namespace vogl
                         {
                             color_quad_u8 l(dxt1_block::unpack_color(m_best_solution.m_coords.m_low_color, false));
                             color_quad_u8 h2(dxt1_block::unpack_color(m_best_solution.m_coords.m_high_color, false));
-                            l[comp_index] = static_cast<uint8>(o);
-                            h2[comp_index] = static_cast<uint8>(p);
+                            l[comp_index] = static_cast<uint8_t>(o);
+                            h2[comp_index] = static_cast<uint8_t>(p);
 
                             bool better = evaluate_solution(
                                 dxt1_solution_coordinates(dxt1_block::pack_color(l, false), dxt1_block::pack_color(h2, false)),
@@ -755,14 +755,14 @@ namespace vogl
             color_quad_u8 e[2];
 
             e[0].clear();
-            e[0][0] = (uint8)math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31);
-            e[0][1] = (uint8)math::clamp<int>(static_cast<int>((At1_g * yy - At2_g * xy) * fg + 0.5f), 0, 63);
-            e[0][2] = (uint8)math::clamp<int>(static_cast<int>((At1_b * yy - At2_b * xy) * frb + 0.5f), 0, 31);
+            e[0][0] = (uint8_t)math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31);
+            e[0][1] = (uint8_t)math::clamp<int>(static_cast<int>((At1_g * yy - At2_g * xy) * fg + 0.5f), 0, 63);
+            e[0][2] = (uint8_t)math::clamp<int>(static_cast<int>((At1_b * yy - At2_b * xy) * frb + 0.5f), 0, 31);
 
             e[1].clear();
-            e[1][0] = (uint8)math::clamp<int>(static_cast<int>((At2_r * xx - At1_r * xy) * frb + 0.5f), 0, 31);
-            e[1][1] = (uint8)math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63);
-            e[1][2] = (uint8)math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31);
+            e[1][0] = (uint8_t)math::clamp<int>(static_cast<int>((At2_r * xx - At1_r * xy) * frb + 0.5f), 0, 31);
+            e[1][1] = (uint8_t)math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63);
+            e[1][2] = (uint8_t)math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31);
 
             for (uint i = 0; i < 2; i++)
             {
@@ -778,9 +778,9 @@ namespace vogl
                             c[0] = e[0];
                             c[1] = e[1];
 
-                            c[i][0] = (uint8)math::clamp<int>(c[i][0] + rr, 0, 31);
-                            c[i][1] = (uint8)math::clamp<int>(c[i][1] + gr, 0, 63);
-                            c[i][2] = (uint8)math::clamp<int>(c[i][2] + br, 0, 31);
+                            c[i][0] = (uint8_t)math::clamp<int>(c[i][0] + rr, 0, 31);
+                            c[i][1] = (uint8_t)math::clamp<int>(c[i][1] + gr, 0, 63);
+                            c[i][2] = (uint8_t)math::clamp<int>(c[i][2] + br, 0, 31);
 
                             nc.m_low_color = dxt1_block::pack_color(c[0], false);
                             nc.m_high_color = dxt1_block::pack_color(c[1], false);
@@ -801,14 +801,14 @@ namespace vogl
             // Try even harder to explore the local lattice neighbors of the least squares optimized result.
             color_quad_u8 e[2];
             e[0].clear();
-            e[0][0] = (uint8)math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31);
-            e[0][1] = (uint8)math::clamp<int>(static_cast<int>((At1_g * yy - At2_g * xy) * fg + 0.5f), 0, 63);
-            e[0][2] = (uint8)math::clamp<int>(static_cast<int>((At1_b * yy - At2_b * xy) * frb + 0.5f), 0, 31);
+            e[0][0] = (uint8_t)math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31);
+            e[0][1] = (uint8_t)math::clamp<int>(static_cast<int>((At1_g * yy - At2_g * xy) * fg + 0.5f), 0, 63);
+            e[0][2] = (uint8_t)math::clamp<int>(static_cast<int>((At1_b * yy - At2_b * xy) * frb + 0.5f), 0, 31);
 
             e[1].clear();
-            e[1][0] = (uint8)math::clamp<int>(static_cast<int>((At2_r * xx - At1_r * xy) * frb + 0.5f), 0, 31);
-            e[1][1] = (uint8)math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63);
-            e[1][2] = (uint8)math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31);
+            e[1][0] = (uint8_t)math::clamp<int>(static_cast<int>((At2_r * xx - At1_r * xy) * frb + 0.5f), 0, 31);
+            e[1][1] = (uint8_t)math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63);
+            e[1][2] = (uint8_t)math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31);
 
             for (int orr = -1; orr <= 1; orr++)
             {
@@ -822,9 +822,9 @@ namespace vogl
                         c[0] = e[0];
                         c[1] = e[1];
 
-                        c[0][0] = (uint8)math::clamp<int>(c[0][0] + orr, 0, 31);
-                        c[0][1] = (uint8)math::clamp<int>(c[0][1] + ogr, 0, 63);
-                        c[0][2] = (uint8)math::clamp<int>(c[0][2] + obr, 0, 31);
+                        c[0][0] = (uint8_t)math::clamp<int>(c[0][0] + orr, 0, 31);
+                        c[0][1] = (uint8_t)math::clamp<int>(c[0][1] + ogr, 0, 63);
+                        c[0][2] = (uint8_t)math::clamp<int>(c[0][2] + obr, 0, 31);
 
                         for (int rr = -1; rr <= 1; rr++)
                         {
@@ -832,9 +832,9 @@ namespace vogl
                             {
                                 for (int br = -1; br <= 1; br++)
                                 {
-                                    c[1][0] = (uint8)math::clamp<int>(c[1][0] + rr, 0, 31);
-                                    c[1][1] = (uint8)math::clamp<int>(c[1][1] + gr, 0, 63);
-                                    c[1][2] = (uint8)math::clamp<int>(c[1][2] + br, 0, 31);
+                                    c[1][0] = (uint8_t)math::clamp<int>(c[1][0] + rr, 0, 31);
+                                    c[1][1] = (uint8_t)math::clamp<int>(c[1][1] + gr, 0, 63);
+                                    c[1][2] = (uint8_t)math::clamp<int>(c[1][2] + br, 0, 31);
 
                                     nc.m_low_color = dxt1_block::pack_color(c[0], false);
                                     nc.m_high_color = dxt1_block::pack_color(c[1], false);
@@ -1089,7 +1089,7 @@ namespace vogl
                             if ((q < 0) || (q > limit))
                                 continue;
 
-                            c[a] = (uint8)q;
+                            c[a] = (uint8_t)q;
 
                             dxt1_solution_coordinates coords(dxt1_block::pack_color(c, false), m_best_solution.m_coords.m_high_color);
                             coords.canonicalize();
@@ -1142,7 +1142,7 @@ namespace vogl
                             if ((q < 0) || (q > limit))
                                 continue;
 
-                            c[a] = (uint8)q;
+                            c[a] = (uint8_t)q;
 
                             dxt1_solution_coordinates coords(m_best_solution.m_coords.m_low_color, dxt1_block::pack_color(c, false));
                             coords.canonicalize();
@@ -1629,7 +1629,7 @@ namespace vogl
                         if (trial_error >= solution.m_error)
                             break;
 
-                        m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                        m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                     }
                 }
                 else
@@ -1666,7 +1666,7 @@ namespace vogl
                         if (trial_error >= solution.m_error)
                             break;
 
-                        m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                        m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                     }
                 }
             }
@@ -1701,7 +1701,7 @@ namespace vogl
                         if (trial_error >= solution.m_error)
                             break;
 
-                        m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                        m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                     }
                 }
                 else
@@ -1731,7 +1731,7 @@ namespace vogl
                         if (trial_error >= solution.m_error)
                             break;
 
-                        m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                        m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                     }
                 }
             }
@@ -1760,7 +1760,7 @@ namespace vogl
             }
 
             for (uint i = 0; i < m_unique_colors.size(); i++)
-                solution.m_selectors[i] = static_cast<uint8>(s);
+                solution.m_selectors[i] = static_cast<uint8_t>(s);
         }
 
         if ((pBest_solution) && (solution.m_error < pBest_solution->m_error))
@@ -1844,7 +1844,7 @@ namespace vogl
 
                     int dot = c.r * dirr + c.g * dirg + c.b * dirb;
 
-                    uint8 best_color_index;
+                    uint8_t best_color_index;
                     if (dot < halfPoint)
                         best_color_index = (dot < c3Point) ? 0 : 2;
                     else
@@ -1856,7 +1856,7 @@ namespace vogl
                     if (trial_error >= solution.m_error)
                         break;
 
-                    m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                    m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                 }
             }
             else
@@ -1875,7 +1875,7 @@ namespace vogl
 
                     int dot = c.r * dirr + c.g * dirg + c.b * dirb;
 
-                    uint8 best_color_index;
+                    uint8_t best_color_index;
                     if (dot < c02Point)
                         best_color_index = 0;
                     else if (dot < c21Point)
@@ -1889,7 +1889,7 @@ namespace vogl
                     if (trial_error >= solution.m_error)
                         break;
 
-                    m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                    m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                 }
             }
 
@@ -1917,7 +1917,7 @@ namespace vogl
             }
 
             for (uint i = 0; i < m_unique_colors.size(); i++)
-                solution.m_selectors[i] = static_cast<uint8>(s);
+                solution.m_selectors[i] = static_cast<uint8_t>(s);
         }
 
         if ((pBest_solution) && (solution.m_error < pBest_solution->m_error))
@@ -1934,9 +1934,9 @@ namespace vogl
         color_quad_u8 res;
 
         float r = rounding ? 1.0f : 0.0f;
-        res[0] = static_cast<uint8>(math::clamp(math::float_to_int(r + math::lerp<float>(a[0], b[0], f)), 0, 255));
-        res[1] = static_cast<uint8>(math::clamp(math::float_to_int(r + math::lerp<float>(a[1], b[1], f)), 0, 255));
-        res[2] = static_cast<uint8>(math::clamp(math::float_to_int(r + math::lerp<float>(a[2], b[2], f)), 0, 255));
+        res[0] = static_cast<uint8_t>(math::clamp(math::float_to_int(r + math::lerp<float>(a[0], b[0], f)), 0, 255));
+        res[1] = static_cast<uint8_t>(math::clamp(math::float_to_int(r + math::lerp<float>(a[1], b[1], f)), 0, 255));
+        res[2] = static_cast<uint8_t>(math::clamp(math::float_to_int(r + math::lerp<float>(a[2], b[2], f)), 0, 255));
         res[3] = 255;
 
         return unique_color(res, 1);
@@ -2085,7 +2085,7 @@ namespace vogl
 
         results trial_results;
 
-        vogl::vector<uint8> trial_selectors(m_pParams->m_num_pixels);
+        vogl::vector<uint8_t> trial_selectors(m_pParams->m_num_pixels);
         trial_results.m_pSelectors = trial_selectors.get_ptr();
 
         if (!compute_internal(trial_params, trial_results, NULL))

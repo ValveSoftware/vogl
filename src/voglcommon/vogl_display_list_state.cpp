@@ -522,7 +522,7 @@ bool vogl_display_list_state::parse_lists_and_update_shadows(GLsizei n, GLenum t
 
     bool success = true;
 
-    const uint8 *pTrace_lists_ptr = static_cast<const uint8 *>(lists);
+    const uint8_t *pTrace_lists_ptr = static_cast<const uint8_t *>(lists);
     for (GLsizei i = 0; i < n; i++)
     {
         GLint handle = list_base;

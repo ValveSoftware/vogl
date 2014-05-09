@@ -279,7 +279,7 @@ void vogl_state_data::debug_check()
     {
         const uint data_type_size = get_data_type_size();
         VOGL_ASSERT((data_type_size) && ((m_data.size() / data_type_size) == (m_num_elements + 1)));
-        const uint8 *p = get_data_ptr<const uint8>() + m_num_elements * data_type_size;
+        const uint8_t *p = get_data_ptr<const uint8_t>() + m_num_elements * data_type_size;
         (void)p;
         for (uint i = 0; i < data_type_size; i++)
             VOGL_ASSERT(p[i] == 0xCF);

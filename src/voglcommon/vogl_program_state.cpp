@@ -198,7 +198,7 @@ bool vogl_program_state::snapshot_uniforms(const vogl_context_info &context_info
         {
             for (int element = 0; element < size; element++)
             {
-                uint8 *pDst = &uniform.m_data[element * type_size_in_bytes];
+                uint8_t *pDst = &uniform.m_data[element * type_size_in_bytes];
 
                 if (base_type == GL_FLOAT)
                     GL_ENTRYPOINT(glGetUniformfv)(m_snapshot_handle, uniform.m_base_location + element, (GLfloat *)pDst);
@@ -636,7 +636,7 @@ bool vogl_program_state::link_snapshot(const vogl_context_info &context_info, vo
     }
 
     if (linked_using_binary)
-        m_program_binary.append(static_cast<const uint8 *>(pBinary), binary_size);
+        m_program_binary.append(static_cast<const uint8_t *>(pBinary), binary_size);
 
     m_program_binary_format = binary_format;
 

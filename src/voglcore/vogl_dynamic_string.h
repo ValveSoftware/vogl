@@ -388,7 +388,7 @@ namespace vogl
 
             struct
             {
-                uint8 m_flag;
+                uint8_t m_flag;
                 char m_buf[cSmallStringBufSize];
             } m_small;
         };

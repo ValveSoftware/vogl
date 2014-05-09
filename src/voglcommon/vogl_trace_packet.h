@@ -44,7 +44,7 @@ class vogl_client_memory_array
 {
 public:
     inline vogl_client_memory_array(vogl_ctype_t element_ctype, const void *p, uint element_size, uint num_elements)
-        : m_element_ctype(element_ctype), m_pPtr(static_cast<const uint8 *>(p)), m_element_size(element_size), m_num_elements(num_elements)
+        : m_element_ctype(element_ctype), m_pPtr(static_cast<const uint8_t *>(p)), m_element_size(element_size), m_num_elements(num_elements)
     {
         VOGL_FUNC_TRACER
     }
@@ -102,7 +102,7 @@ public:
 
     vogl_ctype_t m_element_ctype;
 
-    const uint8 *m_pPtr;
+    const uint8_t *m_pPtr;
     uint m_element_size;
     uint m_num_elements;
 };
@@ -183,7 +183,7 @@ public:
     bool serialize(data_stream &stream) const;
     bool serialize(uint8_vec &buf) const;
 
-    bool deserialize(const uint8 *pPacket_data, uint packet_data_buf_size, bool check_crc);
+    bool deserialize(const uint8_t *pPacket_data, uint packet_data_buf_size, bool check_crc);
     bool deserialize(const uint8_vec &packet_buf, bool check_crc);
 
     class json_serialize_params
@@ -346,13 +346,13 @@ public:
         VOGL_ASSERT(m_is_valid);
         VOGL_ASSERT(ctype != VOGL_INVALID_CTYPE);
         VOGL_ASSERT((uint)trace_ctypes()[ctype].m_size == param_size);
-        VOGL_ASSERT((param_size >= sizeof(uint8)) && (param_size <= sizeof(uint64_t)));
+        VOGL_ASSERT((param_size >= sizeof(uint8_t)) && (param_size <= sizeof(uint64_t)));
         VOGL_ASSERT(g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_return_ctype == ctype);
 
         uint param_index = g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_num_params;
         memcpy(&m_param_data[param_index], pParam, param_size);
         m_param_ctype[param_index] = ctype;
-        m_param_size[param_index] = static_cast<uint8>(param_size);
+        m_param_size[param_index] = static_cast<uint8_t>(param_size);
 
         m_has_return_value = true;
     }
@@ -372,7 +372,7 @@ public:
         VOGL_ASSERT(param_id < g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_num_params);
         VOGL_ASSERT(g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_num_params < cMaxParams);
         VOGL_ASSERT((uint)trace_ctypes()[ctype].m_size == param_size);
-        VOGL_ASSERT((param_size >= sizeof(uint8)) && (param_size <= sizeof(uint64_t)));
+        VOGL_ASSERT((param_size >= sizeof(uint8_t)) && (param_size <= sizeof(uint64_t)));
         VOGL_ASSERT(g_vogl_entrypoint_param_descs[m_packet.m_entrypoint_id][param_id].m_ctype == ctype);
 
         m_total_params += (m_param_ctype[param_id] == VOGL_INVALID_CTYPE);
@@ -380,7 +380,7 @@ public:
 
         memcpy(&m_param_data[param_id], pParam, param_size);
         m_param_ctype[param_id] = ctype;
-        m_param_size[param_id] = static_cast<uint8>(param_size);
+        m_param_size[param_id] = static_cast<uint8_t>(param_size);
     }
 
     inline void set_array_client_memory(uint8_t param_id, vogl_ctype_t pointee_ctype, uint64_t array_size, const void *pData, uint64_t data_size)
@@ -424,7 +424,7 @@ public:
         {
             m_client_memory_descs[param_index].m_vec_ofs = m_client_memory.size();
             m_client_memory_descs[param_index].m_data_size = data_size32;
-            m_client_memory.append(static_cast<const uint8 *>(pData), data_size32);
+            m_client_memory.append(static_cast<const uint8_t *>(pData), data_size32);
         }
     }
 
@@ -460,7 +460,7 @@ public:
 
         VOGL_ASSERT(m_is_valid);
         value_to_value_hash_map::insert_result res(m_key_value_map.insert(key, value()));
-        (res.first)->second.set_blob(static_cast<const uint8 *>(pData), data_size);
+        (res.first)->second.set_blob(static_cast<const uint8_t *>(pData), data_size);
         return res.second;
     }
 
@@ -752,7 +752,7 @@ private:
         cMaxParams = 32
     };
     uint64_t m_param_data[cMaxParams];
-    uint8 m_param_size[cMaxParams];
+    uint8_t m_param_size[cMaxParams];
     vogl_ctype_t m_param_ctype[cMaxParams];
 
     uint8_vec m_client_memory;
@@ -765,7 +765,7 @@ private:
     {
         int32 m_vec_ofs;
         uint32 m_data_size;
-        uint8 m_pointee_ctype; // vogl_ctype_t
+        uint8_t m_pointee_ctype; // vogl_ctype_t
 
         inline void clear()
         {

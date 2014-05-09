@@ -64,9 +64,9 @@ namespace vogl
         {
             VOGL_ASSERT(f <= 255);
 
-            result.r = static_cast<uint8>(p1.r + mul_8bit(p2.r - p1.r, f));
-            result.g = static_cast<uint8>(p1.g + mul_8bit(p2.g - p1.g, f));
-            result.b = static_cast<uint8>(p1.b + mul_8bit(p2.b - p1.b, f));
+            result.r = static_cast<uint8_t>(p1.r + mul_8bit(p2.r - p1.r, f));
+            result.g = static_cast<uint8_t>(p1.g + mul_8bit(p2.g - p1.g, f));
+            result.b = static_cast<uint8_t>(p1.b + mul_8bit(p2.b - p1.b, f));
         }
 #endif
 
@@ -90,7 +90,7 @@ namespace vogl
         }
 
         // false if all selectors equal
-        static bool match_block_colors(uint n, const color_quad_u8 *pBlock, const color_quad_u8 *pColors, uint8 *pSelectors)
+        static bool match_block_colors(uint n, const color_quad_u8 *pBlock, const color_quad_u8 *pColors, uint8_t *pSelectors)
         {
             int dirr = pColors[0].r - pColors[1].r;
             int dirg = pColors[0].g - pColors[1].g;
@@ -117,7 +117,7 @@ namespace vogl
             {
                 int dot = pBlock[i].r * dirr + pBlock[i].g * dirg + pBlock[i].b * dirb;
 
-                uint8 s;
+                uint8_t s;
                 if (dot < halfPoint)
                     s = (dot < c0Point) ? 1 : 3;
                 else
@@ -138,7 +138,7 @@ namespace vogl
 
             for (uint ch = 0; ch < 3; ch++)
             {
-                const uint8 *bp = ((const uint8 *)block) + ch;
+                const uint8_t *bp = ((const uint8_t *)block) + ch;
                 int minv, maxv;
 
                 int64_t muv = bp[0];
@@ -258,7 +258,7 @@ namespace vogl
         // The refinement function. (Clever code, part 2)
         // Tries to optimize colors to suit block contents better.
         // (By solving a least squares system via normal equations+Cramer's rule)
-        static bool refine_block(uint n, const color_quad_u8 *block, uint &max16, uint &min16, const uint8 *pSelectors)
+        static bool refine_block(uint n, const color_quad_u8 *block, uint &max16, uint &min16, const uint8_t *pSelectors)
         {
             static const int w1Tab[4] = { 3, 0, 2, 1 };
 
@@ -325,7 +325,7 @@ namespace vogl
         }
 
         // false if all selectors equal
-        static bool determine_selectors(uint n, const color_quad_u8 *block, uint min16, uint max16, uint8 *pSelectors)
+        static bool determine_selectors(uint n, const color_quad_u8 *block, uint min16, uint max16, uint8_t *pSelectors)
         {
             color_quad_u8 color[4];
 
@@ -398,7 +398,7 @@ namespace vogl
             return total_error;
         }
 
-        static bool refine_endpoints(uint n, const color_quad_u8 *pBlock, uint &low16, uint &high16, uint8 *pSelectors)
+        static bool refine_endpoints(uint n, const color_quad_u8 *pBlock, uint &low16, uint &high16, uint8_t *pSelectors)
         {
             bool optimized = false;
 
@@ -483,8 +483,8 @@ namespace vogl
                             {
                                 //total_error[axis] = axis_error;
 
-                                endpoints[e][axis] = (uint8)a;
-                                expanded_endpoints[e][axis] = (uint8)v[e];
+                                endpoints[e][axis] = (uint8_t)a;
+                                expanded_endpoints[e][axis] = (uint8_t)v[e];
 
                                 if (e)
                                     high16 = dxt1_block::pack_color(endpoints[1], false);
@@ -532,7 +532,7 @@ namespace vogl
             return optimized;
         }
 
-        static void refine_endpoints2(uint n, const color_quad_u8 *pBlock, uint &low16, uint &high16, uint8 *pSelectors, float axis[3])
+        static void refine_endpoints2(uint n, const color_quad_u8 *pBlock, uint &low16, uint &high16, uint8_t *pSelectors, float axis[3])
         {
             uint64_t orig_error = determine_error(n, pBlock, low16, high16, cUINT64_MAX);
             if (!orig_error)
@@ -667,7 +667,7 @@ namespace vogl
             //if (end_error > orig_error) DebugBreak();
         }
 
-        static void compress_solid_block(uint n, uint ave_color[3], uint &low16, uint &high16, uint8 *pSelectors)
+        static void compress_solid_block(uint n, uint ave_color[3], uint &low16, uint &high16, uint8_t *pSelectors)
         {
             uint r = ave_color[0];
             uint g = ave_color[1];
@@ -679,7 +679,7 @@ namespace vogl
             high16 = (ryg_dxt::OMatch5[r][1] << 11) | (ryg_dxt::OMatch6[g][1] << 5) | ryg_dxt::OMatch5[b][1];
         }
 
-        void compress_color_block(uint n, const color_quad_u8 *block, uint &low16, uint &high16, uint8 *pSelectors, bool refine)
+        void compress_color_block(uint n, const color_quad_u8 *block, uint &low16, uint &high16, uint8_t *pSelectors, bool refine)
         {
             VOGL_ASSERT((n & 15) == 0);
 
@@ -714,7 +714,7 @@ namespace vogl
 
         void compress_color_block(dxt1_block *pDXT1_block, const color_quad_u8 *pBlock, bool refine)
         {
-            uint8 color_selectors[16];
+            uint8_t color_selectors[16];
             uint low16, high16;
             dxt_fast::compress_color_block(16, pBlock, low16, high16, color_selectors, refine);
 
@@ -728,13 +728,13 @@ namespace vogl
                 mask |= color_selectors[i];
             }
 
-            pDXT1_block->m_selectors[0] = (uint8)(mask & 0xFF);
-            pDXT1_block->m_selectors[1] = (uint8)((mask >> 8) & 0xFF);
-            pDXT1_block->m_selectors[2] = (uint8)((mask >> 16) & 0xFF);
-            pDXT1_block->m_selectors[3] = (uint8)((mask >> 24) & 0xFF);
+            pDXT1_block->m_selectors[0] = (uint8_t)(mask & 0xFF);
+            pDXT1_block->m_selectors[1] = (uint8_t)((mask >> 8) & 0xFF);
+            pDXT1_block->m_selectors[2] = (uint8_t)((mask >> 16) & 0xFF);
+            pDXT1_block->m_selectors[3] = (uint8_t)((mask >> 24) & 0xFF);
         }
 
-        void compress_alpha_block(uint n, const color_quad_u8 *block, uint &low8, uint &high8, uint8 *pSelectors, uint comp_index)
+        void compress_alpha_block(uint n, const color_quad_u8 *block, uint &low8, uint &high8, uint8_t *pSelectors, uint comp_index)
         {
             int min, max;
             min = max = block[0][comp_index];
@@ -770,13 +770,13 @@ namespace vogl
                 ind = -ind & 7;
                 ind ^= (2 > ind);
 
-                pSelectors[i] = static_cast<uint8>(ind);
+                pSelectors[i] = static_cast<uint8_t>(ind);
             }
         }
 
         void compress_alpha_block(dxt5_block *pDXT5_block, const color_quad_u8 *pBlock, uint comp_index)
         {
-            uint8 selectors[16];
+            uint8_t selectors[16];
             uint low8, high8;
 
             compress_alpha_block(16, pBlock, low8, high8, selectors, comp_index);
@@ -786,7 +786,7 @@ namespace vogl
 
             uint mask = 0;
             uint bits = 0;
-            uint8 *pDst = pDXT5_block->m_selectors;
+            uint8_t *pDst = pDXT5_block->m_selectors;
 
             for (uint i = 0; i < 16; i++)
             {
@@ -794,7 +794,7 @@ namespace vogl
 
                 if ((bits += 3) >= 8)
                 {
-                    *pDst++ = static_cast<uint8>(mask);
+                    *pDst++ = static_cast<uint8_t>(mask);
                     mask >>= 8;
                     bits -= 8;
                 }
@@ -856,8 +856,8 @@ namespace vogl
 
             for (uint i = 0; i < 3; i++)
             {
-                lo_color[i] = static_cast<uint8>((lo_color[i] + ave[i]) >> 1);
-                hi_color[i] = static_cast<uint8>((hi_color[i] + ave[i]) >> 1);
+                lo_color[i] = static_cast<uint8_t>((lo_color[i] + ave[i]) >> 1);
+                hi_color[i] = static_cast<uint8_t>((hi_color[i] + ave[i]) >> 1);
             }
 
             const uint cMaxIters = 4;
@@ -900,11 +900,11 @@ namespace vogl
                 if ((!weight[0]) || (!weight[1]))
                     break;
 
-                uint8 new_color8[2][3];
+                uint8_t new_color8[2][3];
 
                 for (uint j = 0; j < 2; j++)
                     for (uint i = 0; i < 3; i++)
-                        new_color8[j][i] = static_cast<uint8>((new_color[j][i] + (weight[j] / 2)) / weight[j]);
+                        new_color8[j][i] = static_cast<uint8_t>((new_color[j][i] + (weight[j] / 2)) / weight[j]);
 
                 if ((new_color8[0][0] == lo_color[0]) && (new_color8[0][1] == lo_color[1]) && (new_color8[0][2] == lo_color[2]) &&
                     (new_color8[1][0] == hi_color[0]) && (new_color8[1][1] == hi_color[1]) && (new_color8[1][2] == hi_color[2]))

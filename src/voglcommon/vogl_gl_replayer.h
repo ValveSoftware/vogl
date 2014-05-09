@@ -471,7 +471,7 @@ private:
     uint8_vec m_screenshot_buffer;
     uint8_vec m_screenshot_buffer2;
 
-    vogl::vector<uint8> m_index_data;
+    vogl::vector<uint8_t> m_index_data;
 
     uint64_t m_frame_draw_counter;
     uint64_t m_frame_draw_counter_kill_threshold;

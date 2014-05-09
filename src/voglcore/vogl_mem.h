@@ -234,7 +234,7 @@ namespace vogl
             return NULL;
         }
 
-        uint8 *q = static_cast<uint8 *>(vogl_tracked_malloc(pFile_line, static_cast<size_t>(total)));
+        uint8_t *q = static_cast<uint8_t *>(vogl_tracked_malloc(pFile_line, static_cast<size_t>(total)));
 
         T *p = reinterpret_cast<T *>(q + VOGL_MIN_ALLOC_ALIGNMENT);
 
@@ -266,7 +266,7 @@ namespace vogl
                     helpers::destruct_array(p, num);
                 }
 
-                vogl_tracked_free(pFile_line, reinterpret_cast<uint8 *>(p) - VOGL_MIN_ALLOC_ALIGNMENT);
+                vogl_tracked_free(pFile_line, reinterpret_cast<uint8_t *>(p) - VOGL_MIN_ALLOC_ALIGNMENT);
             }
             else
             {
@@ -287,7 +287,7 @@ namespace vogl
             const uint32 num_check = reinterpret_cast<uint32 *>(p)[-2];
             if ((num) && (num == ~num_check))
             {
-                size_t actual_size = vogl_msize(reinterpret_cast<uint8 *>(p) - VOGL_MIN_ALLOC_ALIGNMENT);
+                size_t actual_size = vogl_msize(reinterpret_cast<uint8_t *>(p) - VOGL_MIN_ALLOC_ALIGNMENT);
                 if (actual_size <= VOGL_MIN_ALLOC_ALIGNMENT)
                 {
                     vogl_mem_error("vogl_msize() return value was too small in vogl_msize_array", VOGL_FILE_POS_STRING);

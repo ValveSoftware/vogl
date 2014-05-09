@@ -37,7 +37,7 @@
 
 namespace vogl
 {
-    // adding: uint8, int64_t, uint64_t, double, blob
+    // adding: uint8_t, int64_t, uint64_t, double, blob
     enum value_data_type
     {
         cDTInvalid,
@@ -95,7 +95,7 @@ namespace vogl
         {
         }
 
-        inline value(const uint8 *pBuf, uint size)
+        inline value(const uint8_t *pBuf, uint size)
             : m_pBlob(vogl_new(uint8_vec, size)), m_user_data(0), m_type(cDTBlob), m_flags(0)
         {
             if (size)
@@ -127,7 +127,7 @@ namespace vogl
         {
         }
 
-        inline value(uint8 v)
+        inline value(uint8_t v)
             : m_uint8(v), m_user_data(0), m_type(cDTUInt8), m_flags(0)
         {
         }
@@ -239,7 +239,7 @@ namespace vogl
             m_int8 = v;
         }
 
-        inline void set_uint8(uint8 v)
+        inline void set_uint8(uint8_t v)
         {
             clear_dynamic();
             m_type = cDTUInt8;
@@ -326,7 +326,7 @@ namespace vogl
             set_str(pStr);
         }
 
-        inline bool set_blob(const uint8 *pBlob, uint size)
+        inline bool set_blob(const uint8_t *pBlob, uint size)
         {
             change_type(cDTBlob);
             if (!m_pBlob->try_resize(size))
@@ -379,7 +379,7 @@ namespace vogl
             set_bool(value);
             return *this;
         }
-        inline value &operator=(uint8 value)
+        inline value &operator=(uint8_t value)
         {
             set_uint8(value);
             return *this;
@@ -482,7 +482,7 @@ namespace vogl
 
         // on failure, the destination val is NOT modified
         bool get_int8_or_fail(int8 &val, uint component) const;
-        bool get_uint8_or_fail(uint8 &val, uint component) const;
+        bool get_uint8_or_fail(uint8_t &val, uint component) const;
         bool get_int16_or_fail(int16 &val, uint component) const;
         bool get_uint16_or_fail(uint16 &val, uint component) const;
         bool get_int_or_fail(int &val, uint component = 0) const;
@@ -508,9 +508,9 @@ namespace vogl
             get_int16_or_fail(result, component);
             return result;
         }
-        inline uint8 get_uint8(uint8 def = 0, uint component = 0) const
+        inline uint8_t get_uint8(uint8_t def = 0, uint component = 0) const
         {
-            uint8 result = def;
+            uint8_t result = def;
             get_uint8_or_fail(result, component);
             return result;
         }
@@ -763,7 +763,7 @@ namespace vogl
                 case cDTBool:
                 case cDTInt8:
                 case cDTUInt8:
-                    return sizeof(uint8);
+                    return sizeof(uint8_t);
                 case cDTInt16:
                 case cDTUInt16:
                     return sizeof(uint16);
@@ -1019,7 +1019,7 @@ namespace vogl
             bool m_bool;
 
             int8 m_int8;
-            uint8 m_uint8;
+            uint8_t m_uint8;
 
             int16 m_int16;
             uint16 m_uint16;
@@ -1055,7 +1055,7 @@ namespace vogl
         // I'm torn about m_user_data/m_flags - may not be useful, but there's room for it due to alignment.
         uint16 m_user_data;
         value_data_type m_type;
-        uint8 m_flags;
+        uint8_t m_flags;
     };
 
     typedef vogl::vector<value> value_vector;
@@ -1185,14 +1185,14 @@ namespace vogl
                 if (num_bytes_written < 0)
                     return -1;
 
-                pBuf = static_cast<uint8 *>(pBuf) + num_bytes_written;
+                pBuf = static_cast<uint8_t *>(pBuf) + num_bytes_written;
                 buf_left -= num_bytes_written;
 
                 num_bytes_written = it->second.serialize(pBuf, buf_left, little_endian, serialize_user_data);
                 if (num_bytes_written < 0)
                     return -1;
 
-                pBuf = static_cast<uint8 *>(pBuf) + num_bytes_written;
+                pBuf = static_cast<uint8_t *>(pBuf) + num_bytes_written;
                 buf_left -= num_bytes_written;
             }
 
@@ -1231,7 +1231,7 @@ namespace vogl
                 if (num_bytes_read < 0)
                     return -1;
 
-                pBuf = static_cast<const uint8 *>(pBuf) + num_bytes_read;
+                pBuf = static_cast<const uint8_t *>(pBuf) + num_bytes_read;
                 buf_left -= num_bytes_read;
 
                 value val;
@@ -1239,7 +1239,7 @@ namespace vogl
                 if (num_bytes_read < 0)
                     return -1;
 
-                pBuf = static_cast<const uint8 *>(pBuf) + num_bytes_read;
+                pBuf = static_cast<const uint8_t *>(pBuf) + num_bytes_read;
                 buf_left -= num_bytes_read;
 
                 if (!insert(key, val).second)
@@ -1258,8 +1258,8 @@ namespace vogl
             if (num_bytes_needed > static_cast<uint64_t>(cINT32_MAX))
                 return -1;
 
-            uint8 buf[2048];
-            uint8 *pBuf = buf;
+            uint8_t buf[2048];
+            uint8_t *pBuf = buf;
             uint8_vec dyn_buf;
 
             if (num_bytes_needed > sizeof(buf))

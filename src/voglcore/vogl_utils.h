@@ -178,7 +178,7 @@ namespace vogl
 
         inline void invert_buf(void *pBuf, uint size)
         {
-            uint8 *p = static_cast<uint8 *>(pBuf);
+            uint8_t *p = static_cast<uint8_t *>(pBuf);
 
             const uint half_size = size >> 1;
             for (uint i = 0; i < half_size; i++)
@@ -189,8 +189,8 @@ namespace vogl
         template <typename T>
         inline void write_obj(const T &obj, void *pBuf, bool buffer_is_little_endian)
         {
-            const uint8 *pSrc = reinterpret_cast<const uint8 *>(&obj);
-            uint8 *pDst = static_cast<uint8 *>(pBuf);
+            const uint8_t *pSrc = reinterpret_cast<const uint8_t *>(&obj);
+            uint8_t *pDst = static_cast<uint8_t *>(pBuf);
 
             if (c_vogl_little_endian_platform == buffer_is_little_endian)
                 memcpy(pDst, pSrc, sizeof(T));
@@ -205,8 +205,8 @@ namespace vogl
         template <typename T>
         inline void read_obj(T &obj, const void *pBuf, bool buffer_is_little_endian)
         {
-            const uint8 *pSrc = reinterpret_cast<const uint8 *>(pBuf);
-            uint8 *pDst = reinterpret_cast<uint8 *>(&obj);
+            const uint8_t *pSrc = reinterpret_cast<const uint8_t *>(pBuf);
+            uint8_t *pDst = reinterpret_cast<uint8_t *>(&obj);
 
             if (c_vogl_little_endian_platform == buffer_is_little_endian)
                 memcpy(pDst, pSrc, sizeof(T));
@@ -225,13 +225,13 @@ namespace vogl
 
             utils::write_obj(obj, pBuf, buffer_is_little_endian);
 
-            pBuf = static_cast<uint8 *>(pBuf) + sizeof(T);
+            pBuf = static_cast<uint8_t *>(pBuf) + sizeof(T);
             buf_size -= sizeof(T);
 
             return true;
         }
 
-        inline bool write_val(uint8 val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_val(uint8_t val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
@@ -271,7 +271,7 @@ namespace vogl
 
             utils::read_obj(obj, pBuf, buffer_is_little_endian);
 
-            pBuf = static_cast<const uint8 *>(pBuf) + sizeof(T);
+            pBuf = static_cast<const uint8_t *>(pBuf) + sizeof(T);
             buf_size -= sizeof(T);
 
             return true;

@@ -87,7 +87,7 @@ namespace vogl
             {
                 case cPF_Y_F32:
                 {
-                    const float *pSrc = reinterpret_cast<const float *>(static_cast<const uint8 *>(m_pParams->m_pSrc_pixels) + m_pParams->m_src_pitch * src_y);
+                    const float *pSrc = reinterpret_cast<const float *>(static_cast<const uint8_t *>(m_pParams->m_pSrc_pixels) + m_pParams->m_src_pitch * src_y);
                     vec4F *pDst = m_tmp_img.get_ptr() + m_pParams->m_dst_width * src_y;
 
                     do
@@ -115,7 +115,7 @@ namespace vogl
                 }
                 case cPF_RGBX_F32:
                 {
-                    const vec4F *pSrc = reinterpret_cast<const vec4F *>(static_cast<const uint8 *>(m_pParams->m_pSrc_pixels) + m_pParams->m_src_pitch * src_y);
+                    const vec4F *pSrc = reinterpret_cast<const vec4F *>(static_cast<const uint8_t *>(m_pParams->m_pSrc_pixels) + m_pParams->m_src_pitch * src_y);
                     vec4F *pDst = m_tmp_img.get_ptr() + m_pParams->m_dst_width * src_y;
 
                     do
@@ -146,7 +146,7 @@ namespace vogl
                 }
                 case cPF_RGBA_F32:
                 {
-                    const vec4F *pSrc = reinterpret_cast<const vec4F *>(static_cast<const uint8 *>(m_pParams->m_pSrc_pixels) + m_pParams->m_src_pitch * src_y);
+                    const vec4F *pSrc = reinterpret_cast<const vec4F *>(static_cast<const uint8_t *>(m_pParams->m_pSrc_pixels) + m_pParams->m_src_pitch * src_y);
                     vec4F *pDst = m_tmp_img.get_ptr() + m_pParams->m_dst_width * src_y;
 
                     do
@@ -237,7 +237,7 @@ namespace vogl
             {
                 case cPF_Y_F32:
                 {
-                    float *pDst = reinterpret_cast<float *>(static_cast<uint8 *>(m_pParams->m_pDst_pixels) + m_pParams->m_dst_pitch * dst_y);
+                    float *pDst = reinterpret_cast<float *>(static_cast<uint8_t *>(m_pParams->m_pDst_pixels) + m_pParams->m_dst_pitch * dst_y);
 
                     do
                     {
@@ -251,7 +251,7 @@ namespace vogl
                 }
                 case cPF_RGBX_F32:
                 {
-                    vec4F *pDst = reinterpret_cast<vec4F *>(static_cast<uint8 *>(m_pParams->m_pDst_pixels) + m_pParams->m_dst_pitch * dst_y);
+                    vec4F *pDst = reinterpret_cast<vec4F *>(static_cast<uint8_t *>(m_pParams->m_pDst_pixels) + m_pParams->m_dst_pitch * dst_y);
 
                     do
                     {
@@ -269,7 +269,7 @@ namespace vogl
                 }
                 case cPF_RGBA_F32:
                 {
-                    vec4F *pDst = reinterpret_cast<vec4F *>(static_cast<uint8 *>(m_pParams->m_pDst_pixels) + m_pParams->m_dst_pitch * dst_y);
+                    vec4F *pDst = reinterpret_cast<vec4F *>(static_cast<uint8_t *>(m_pParams->m_pDst_pixels) + m_pParams->m_dst_pitch * dst_y);
 
                     do
                     {

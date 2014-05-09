@@ -43,7 +43,7 @@ namespace vogl
 
         memset(hist, 0, sizeof(hist[0]) * 256 * key_size);
 
-#define VOGL_GET_KEY(p) (*(uint *)((uint8 *)(p) + key_ofs))
+#define VOGL_GET_KEY(p) (*(uint *)((uint8_t *)(p) + key_ofs))
 
         if (key_size == 4)
         {
@@ -216,8 +216,8 @@ namespace vogl
 
         memset(hist, 0, sizeof(hist[0]) * 256 * key_size);
 
-#define VOGL_GET_KEY(p) (*(const uint *)((const uint8 *)(pKeys + *(p)) + key_ofs))
-#define VOGL_GET_KEY_FROM_INDEX(i) (*(const uint *)((const uint8 *)(pKeys + (i)) + key_ofs))
+#define VOGL_GET_KEY(p) (*(const uint *)((const uint8_t *)(pKeys + *(p)) + key_ofs))
+#define VOGL_GET_KEY_FROM_INDEX(i) (*(const uint *)((const uint8_t *)(pKeys + (i)) + key_ofs))
 
         if (key_size == 4)
         {

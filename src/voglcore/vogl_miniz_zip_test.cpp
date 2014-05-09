@@ -41,7 +41,7 @@ namespace vogl
         return s_random;
     }
 
-    static uint8 *read_rand_data(data_stream &rand_stream, uint64_t file_size)
+    static uint8_t *read_rand_data(data_stream &rand_stream, uint64_t file_size)
     {
         const uint64_t rand_stream_size = rand_stream.get_size();
 
@@ -57,7 +57,7 @@ namespace vogl
         if (file_size != static_cast<size_t>(file_size))
             return NULL;
 
-        uint8 *p = static_cast<uint8 *>(vogl_malloc(static_cast<size_t>(file_size)));
+        uint8_t *p = static_cast<uint8_t *>(vogl_malloc(static_cast<size_t>(file_size)));
         if (!p)
             return NULL;
 
@@ -146,7 +146,7 @@ namespace vogl
 
             uint64_t actual_size = file_sizes[i];
 
-            uint8 *p = read_rand_data(rand_stream, actual_size);
+            uint8_t *p = read_rand_data(rand_stream, actual_size);
             if (!p)
                 FAIL;
 

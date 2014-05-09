@@ -88,7 +88,7 @@ namespace vogl
         }
 
 		// This is a convenience function for creating MD5 hashes directly from Windows UUID structures.
-		inline md5_hash(uint32 a32, uint16 b16, uint16 c16, uint8 d8_8[8])
+		inline md5_hash(uint32 a32, uint16 b16, uint16 c16, uint8_t d8_8[8])
 		{
 			uint a = a32;
 			uint b = uint32(b16) << 16 | c16;
@@ -121,7 +121,7 @@ namespace vogl
 
                 uint v = v0 | (v1 << 4);
 
-                reinterpret_cast<uint8 *>(m_state)[i] = static_cast<uint8>(v);
+                reinterpret_cast<uint8_t *>(m_state)[i] = static_cast<uint8_t>(v);
             }
 
             return true;
@@ -129,7 +129,7 @@ namespace vogl
 
         inline dynamic_string &get_string(dynamic_string &str) const
         {
-            const uint8 *pHash = reinterpret_cast<const uint8 *>(m_state);
+            const uint8_t *pHash = reinterpret_cast<const uint8_t *>(m_state);
             str.set_len(32);
             for (uint i = 0; i < 16; i++)
             {
@@ -316,10 +316,10 @@ namespace vogl
         // Hashes v as big endian
         inline md5_hash_gen &update(uint64_t v)
         {
-            uint8 octets[8];
+            uint8_t octets[8];
             for (uint i = 0; i < 8; i++)
             {
-                octets[i] = static_cast<uint8>((v >> 56U) & 0xFF);
+                octets[i] = static_cast<uint8_t>((v >> 56U) & 0xFF);
                 v <<= 8U;
             }
             return update(octets, sizeof(octets));
@@ -328,7 +328,7 @@ namespace vogl
         // Hashes v as big endian
         inline md5_hash_gen &update(uint32 v)
         {
-            uint8 octets[4];
+            uint8_t octets[4];
             octets[0] = (v >> 24U) & 0xFF;
             octets[1] = (v >> 16U) & 0xFF;
             octets[2] = (v >> 8U) & 0xFF;
@@ -339,7 +339,7 @@ namespace vogl
         // Hashes v as big endian
         inline md5_hash_gen &update(uint16 v)
         {
-            uint8 octets[2];
+            uint8_t octets[2];
             octets[0] = (v >> 8U) & 0xFF;
             octets[1] = v & 0xFF;
             return update(octets, sizeof(octets));
@@ -370,7 +370,7 @@ namespace vogl
                 MD5_Update(&m_ctx, p, bytes_to_process);
 
                 n -= bytes_to_process;
-                p = static_cast<const uint8 *>(p) + bytes_to_process;
+                p = static_cast<const uint8_t *>(p) + bytes_to_process;
             }
             return *this;
         }

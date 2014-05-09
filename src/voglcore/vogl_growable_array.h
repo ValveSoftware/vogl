@@ -207,8 +207,8 @@ namespace vogl
 
         inline void set_all(const T &val)
         {
-            if (VOGL_IS_BITWISE_COPYABLE(T) && (sizeof(T) == sizeof(uint8)))
-                memset(get_ptr(), *reinterpret_cast<const uint8 *>(&val), size());
+            if (VOGL_IS_BITWISE_COPYABLE(T) && (sizeof(T) == sizeof(uint8_t)))
+                memset(get_ptr(), *reinterpret_cast<const uint8_t *>(&val), size());
             else
             {
                 T *p = get_ptr();

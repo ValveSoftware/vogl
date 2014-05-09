@@ -259,7 +259,7 @@ namespace vogl
         m_type = cJSONValueTypeInt;
     }
 
-    inline void json_value::set_value(uint8 nVal)
+    inline void json_value::set_value(uint8_t nVal)
     {
         set_value(static_cast<int64_t>(nVal));
     }
@@ -1086,13 +1086,13 @@ namespace vogl
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const uint8 &v, json_value &val)
+    inline bool json_serialize(const uint8_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(uint8 &v, const json_value &val)
+    inline bool json_deserialize(uint8_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }

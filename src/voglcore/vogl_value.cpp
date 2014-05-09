@@ -36,7 +36,7 @@ namespace vogl
             "invalid",
             "bool",
             "int8",
-            "uint8",
+            "uint8_t",
             "int16",
             "uint16",
             "int",
@@ -281,7 +281,7 @@ namespace vogl
 
                     if (size)
                     {
-                        uint8 *pDst = m_pBlob->get_ptr();
+                        uint8_t *pDst = m_pBlob->get_ptr();
 
                         for (i = 1; i < (str_len - 1); i += 3)
                         {
@@ -345,7 +345,7 @@ namespace vogl
         if ((success) && (*q == 0))
         {
             if (m_uint64 <= cUINT8_MAX)
-                set_uint8(static_cast<uint8>(m_uint64));
+                set_uint8(static_cast<uint8_t>(m_uint64));
             else if (m_uint64 <= cUINT16_MAX)
                 set_uint16(static_cast<uint16>(m_uint64));
             else if (m_uint64 <= cUINT32_MAX)
@@ -453,7 +453,7 @@ namespace vogl
             case cDTBlob:
             {
                 uint blob_size = m_pBlob->size();
-                const uint8 *pSrc = m_pBlob->get_ptr();
+                const uint8_t *pSrc = m_pBlob->get_ptr();
 
                 if (!blob_size)
                     dst = "[]";
@@ -465,7 +465,7 @@ namespace vogl
 
                     for (uint i = 0; i < blob_size; i++)
                     {
-                        uint8 v = pSrc[i];
+                        uint8_t v = pSrc[i];
                         dst.set_char(1 + i * 3 + 0, utils::to_hex(v >> 4));
                         dst.set_char(1 + i * 3 + 1, utils::to_hex(v & 0xF));
                         if (i < (blob_size - 1))
@@ -499,14 +499,14 @@ namespace vogl
         return true;
     }
 
-    bool value::get_uint8_or_fail(uint8 &val, uint component) const
+    bool value::get_uint8_or_fail(uint8_t &val, uint component) const
     {
         uint64_t u64_val;
         bool success = get_uint64_or_fail(u64_val, component);
         if ((!success) || (u64_val > cUINT8_MAX))
             return false;
 
-        val = static_cast<uint8>(u64_val);
+        val = static_cast<uint8_t>(u64_val);
         return true;
     }
 
@@ -1293,7 +1293,7 @@ namespace vogl
 
     uint value::get_serialize_size(bool serialize_user_data) const
     {
-        uint size = sizeof(uint8);
+        uint size = sizeof(uint8_t);
 
         if (serialize_user_data)
             size += sizeof(m_user_data);
@@ -1372,7 +1372,7 @@ namespace vogl
     {
         uint buf_left = buf_size;
 
-        uint8 t = (uint8)m_type;
+        uint8_t t = (uint8_t)m_type;
         if (!utils::write_obj(t, pBuf, buf_left, little_endian))
             return -1;
 
@@ -1390,7 +1390,7 @@ namespace vogl
                 if (bytes_written < 0)
                     return -1;
 
-                pBuf = static_cast<uint8 *>(pBuf) + bytes_written;
+                pBuf = static_cast<uint8_t *>(pBuf) + bytes_written;
                 buf_left -= bytes_written;
 
                 break;
@@ -1459,7 +1459,7 @@ namespace vogl
                 if (size)
                 {
                     memcpy(pBuf, m_pBlob->get_ptr(), size);
-                    pBuf = static_cast<uint8 *>(pBuf) + size;
+                    pBuf = static_cast<uint8_t *>(pBuf) + size;
                     buf_left -= size;
                 }
 
@@ -1481,7 +1481,7 @@ namespace vogl
                 if (size)
                 {
                     memcpy(pBuf, data.get_ptr(), size);
-                    pBuf = static_cast<uint8 *>(pBuf) + size;
+                    pBuf = static_cast<uint8_t *>(pBuf) + size;
                     buf_left -= size;
                 }
 
@@ -1499,7 +1499,7 @@ namespace vogl
     {
         uint buf_left = buf_size;
 
-        uint8 t;
+        uint8_t t;
         if (!utils::read_obj(t, pBuf, buf_left, little_endian))
             return -1;
 
@@ -1527,7 +1527,7 @@ namespace vogl
                 if (bytes_read < 0)
                     return -1;
 
-                pBuf = static_cast<const uint8 *>(pBuf) + bytes_read;
+                pBuf = static_cast<const uint8_t *>(pBuf) + bytes_read;
                 buf_left -= bytes_read;
 
                 break;
@@ -1615,7 +1615,7 @@ namespace vogl
                 {
                     memcpy(m_pBlob->get_ptr(), pBuf, size);
 
-                    pBuf = static_cast<const uint8 *>(pBuf) + size;
+                    pBuf = static_cast<const uint8_t *>(pBuf) + size;
                     buf_left -= size;
                 }
 
@@ -1632,10 +1632,10 @@ namespace vogl
                 if (buf_left < size)
                     return -1;
 
-                if (!m_pJSONDoc->binary_deserialize(static_cast<const uint8 *>(pBuf), size))
+                if (!m_pJSONDoc->binary_deserialize(static_cast<const uint8_t *>(pBuf), size))
                     return -1;
 
-                pBuf = static_cast<const uint8 *>(pBuf) + size;
+                pBuf = static_cast<const uint8_t *>(pBuf) + size;
                 buf_left -= size;
 
                 break;

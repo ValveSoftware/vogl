@@ -84,7 +84,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 
 		for (uint i = 0; i < 256; i++)
 		{
-			uint8 vals[4] = { i, 0, 0, 0 };
+			uint8_t vals[4] = { i, 0, 0, 0 };
 			//ACTUAL_GL_ENTRYPOINT(glTexImage2D)(GL_TEXTURE_2D, 0, GL_R8_SNORM, 1, 1, 0, GL_RED, GL_BYTE, vals);
 
 			//float vals[1] = { ( i - 128.0f) / 127.0f };
@@ -604,7 +604,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_2D, handle);
             VOGL_CHECK_GL_ERROR;
 
-            uint8 vals[128];
+            uint8_t vals[128];
             utils::zero_object(vals);
             vals[1] = 64;
             GL_ENTRYPOINT(glTexImage2D)(GL_TEXTURE_2D, 0, fmt.m_fmt, 1, 1, 0, fmt.m_optimum_get_image_fmt, fmt.m_optimum_get_image_type, vals);
@@ -613,7 +613,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
                 printf("glTexImage2D FAILED: %s %s %s\n", fmt.m_name.get_ptr(), get_gl_enums().find_name(fmt.m_optimum_get_image_fmt, "gl"), get_gl_enums().find_name(fmt.m_optimum_get_image_type, "gl"));
             }
 
-            uint8 gvals[128];
+            uint8_t gvals[128];
             memset(gvals, 0xCD, sizeof(gvals));
             GL_ENTRYPOINT(glGetTexImage)(GL_TEXTURE_2D, 0, fmt.m_optimum_get_image_fmt, fmt.m_optimum_get_image_type, gvals);
 

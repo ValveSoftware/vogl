@@ -208,7 +208,7 @@ public:
         if (!p)
             return;
 
-        node *pNode = reinterpret_cast<node *>(reinterpret_cast<uint8 *>(p) - static_cast<int>(VOGL_OFFSETOF(node, m_obj)));
+        node *pNode = reinterpret_cast<node *>(reinterpret_cast<uint8_t *>(p) - static_cast<int>(VOGL_OFFSETOF(node, m_obj)));
 
 #if VOGL_OBJECT_POOL_DEBUGGING
         VOGL_ASSERT(pNode->m_marker == cUsedNodeMarker);
@@ -498,7 +498,7 @@ public:
 
             if ((p >= pCur_block->get_first_node_ptr()->get_object_ptr()) && (p <= (pCur_block->get_first_node_ptr() + pCur_block->m_total_nodes - 1)->get_object_ptr()))
             {
-                std::ptrdiff_t ofs = reinterpret_cast<const uint8 *>(p) - reinterpret_cast<uint8 *>(pCur_block->get_first_node_ptr()->get_object_ptr());
+                std::ptrdiff_t ofs = reinterpret_cast<const uint8_t *>(p) - reinterpret_cast<uint8_t *>(pCur_block->get_first_node_ptr()->get_object_ptr());
                 if (ofs % sizeof(node))
                 {
                     CHECK_FAILURE;
@@ -817,11 +817,11 @@ private:
 
         node *get_first_node_ptr()
         {
-            return reinterpret_cast<node *>(reinterpret_cast<uint8 *>(this) + sizeof(block));
+            return reinterpret_cast<node *>(reinterpret_cast<uint8_t *>(this) + sizeof(block));
         }
         node *get_end_node_ptr()
         {
-            return reinterpret_cast<node *>(reinterpret_cast<uint8 *>(this) + sizeof(block)) + m_total_nodes;
+            return reinterpret_cast<node *>(reinterpret_cast<uint8_t *>(this) + sizeof(block)) + m_total_nodes;
         }
     };
 

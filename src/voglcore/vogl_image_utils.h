@@ -51,7 +51,7 @@ namespace vogl
 
         // Reads texture from memory, results returned stb_image.c style.
         // *pActual_comps is set to 1, 3, or 4. req_comps must range from 1-4.
-        uint8 *read_from_memory(const uint8 *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename);
+        uint8_t *read_from_memory(const uint8_t *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename);
 
         enum
         {
@@ -166,7 +166,7 @@ namespace vogl
 
         void print_image_metrics(const image_u8 &src_img, const image_u8 &dst_img);
 
-        double compute_block_ssim(uint n, const uint8 *pX, const uint8 *pY);
+        double compute_block_ssim(uint n, const uint8_t *pX, const uint8_t *pY);
         double compute_ssim(const image_u8 &a, const image_u8 &b, int channel_index);
         void print_ssim(const image_u8 &src_img, const image_u8 &dst_img);
 
@@ -192,7 +192,7 @@ namespace vogl
         void convert_image(image_u8 &img, conversion_type conv_type);
 
         template <typename image_type>
-        inline uint8 *pack_image(const image_type &img, const pixel_packer &packer, uint &n)
+        inline uint8_t *pack_image(const image_type &img, const pixel_packer &packer, uint &n)
         {
             n = 0;
 
@@ -205,14 +205,14 @@ namespace vogl
 
             n = dst_pitch * height;
 
-            uint8 *pImage = static_cast<uint8 *>(vogl_malloc(n));
+            uint8_t *pImage = static_cast<uint8_t *>(vogl_malloc(n));
 
-            uint8 *pDst = pImage;
+            uint8_t *pDst = pImage;
             for (uint y = 0; y < height; y++)
             {
                 const typename image_type::color_t *pSrc = img.get_scanline(y);
                 for (uint x = 0; x < width; x++)
-                    pDst = (uint8 *)packer.pack(*pSrc++, pDst);
+                    pDst = (uint8_t *)packer.pack(*pSrc++, pDst);
             }
 
             return pImage;
@@ -224,7 +224,7 @@ namespace vogl
 
         double compute_std_dev(uint n, const color_quad_u8 *pPixels, uint first_channel, uint num_channels);
 
-        uint8 *read_image_from_memory(const uint8 *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename);
+        uint8_t *read_image_from_memory(const uint8_t *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename);
 
         template <uint M>
         void create_normalized_convolution_matrix(matrix<M, M, float> &weights, const float *pSrc_weights)
