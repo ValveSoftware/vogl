@@ -204,13 +204,14 @@ bool vogl_binary_trace_file_reader::open(const char *pFilename, const char *pLoo
 
     if (!m_sof_packet.full_validation(sizeof(m_sof_packet)))
     {
+        vogl_error_printf("%s: Trace file failed validation!\n", VOGL_FUNCTION_INFO_CSTR);
         close();
         return false;
     }
 
-    if (m_sof_packet.m_version < static_cast<uint16>(VOGL_TRACE_FILE_VERSION))
+    if (m_sof_packet.m_version < static_cast<uint16>(VOGL_TRACE_FILE_MINIMUM_COMPATIBLE_VERSION))
     {
-        vogl_error_printf("%s: Trace file version is not supported, found version 0x%04X, expected version 0x%04X!\n", VOGL_FUNCTION_INFO_CSTR, m_sof_packet.m_version, VOGL_TRACE_FILE_VERSION);
+        vogl_error_printf("%s: Trace file version is not supported, found version 0x%04X, expected at least version 0x%04X!\n", VOGL_FUNCTION_INFO_CSTR, m_sof_packet.m_version, VOGL_TRACE_FILE_MINIMUM_COMPATIBLE_VERSION);
         return false;
     }
     else if (m_sof_packet.m_version > static_cast<uint16>(VOGL_TRACE_FILE_VERSION))
