@@ -25,13 +25,13 @@ private:
     const vogl_polygon_stipple_state* m_pState;
     const vogl_polygon_stipple_state* m_pDiffBaseState;
 
-    QString uint32_to_bits(uint32 id) const
+    QString uint32_to_bits(uint32_t id) const
     {
        QString tmp;
        QString tmp2;
-       uint32 size = sizeof(uint32);
-       uint32 maxPow = 1<<(size*8-1);
-       for(uint32 i = 0; i < size * 8; ++i)
+       uint32_t size = sizeof(uint32_t);
+       uint32_t maxPow = 1<<(size*8-1);
+       for(uint32_t i = 0; i < size * 8; ++i)
        {
            // print last bit and shift left.
            tmp += tmp2.sprintf("%u", id & maxPow ? 1 : 0);

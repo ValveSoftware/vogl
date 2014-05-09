@@ -164,13 +164,13 @@ void vogleditor_QBufferExplorer::append_value(vogl::dynamic_string& rString, voi
     case 0: // 8-bit hex
     case 13: // unsigned byte
     {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint8*)dataPtr);
+        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint8_t*)dataPtr);
         break;
     }
     case 1: // 16-bit hex
     case 15: // unsigned short
     {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint16*)dataPtr);
+        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint16_t*)dataPtr);
         break;
     }
     case 2: // 32-bit hex
@@ -179,7 +179,7 @@ void vogleditor_QBufferExplorer::append_value(vogl::dynamic_string& rString, voi
     case 22: // uint vec3
     case 23: // uint vec4
     {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint32*)dataPtr);
+        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint32_t*)dataPtr);
         break;
     }
     case 3: // 64-bit hex
@@ -189,12 +189,12 @@ void vogleditor_QBufferExplorer::append_value(vogl::dynamic_string& rString, voi
     }
     case 12: // byte
     {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int8*)dataPtr);
+        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int8_t*)dataPtr);
         break;
     }
     case 14: // short
     {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int16*)dataPtr);
+        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int16_t*)dataPtr);
         break;
     }
     case 4: // float
@@ -219,7 +219,7 @@ void vogleditor_QBufferExplorer::append_value(vogl::dynamic_string& rString, voi
     case 18: // int vec3
     case 19: // int vec4
     {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int32*)dataPtr);
+        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int32_t*)dataPtr);
         break;
     }
     default:
@@ -248,13 +248,13 @@ void vogleditor_QBufferExplorer::on_bufferComboBox_currentIndexChanged(int index
         uint numElements = data.size() / (format.m_component_byte_count * numComponents);
         ui->bufferTableWidget->setRowCount(numElements);
 
-        const uint8* dataPtr = data.get_const_ptr();
+        const uint8_t* dataPtr = data.get_const_ptr();
 
-        for (uint i = 0; i < numElements; i++)
+        for (uint32_t i = 0; i < numElements; i++)
         {
             dynamic_string value;
 
-            for (uint c = 0; c < numComponents; c++)
+            for (uint32_t c = 0; c < numComponents; c++)
             {
                 append_value(value, (void*)dataPtr, ui->formatComboBox->currentIndex());
 
