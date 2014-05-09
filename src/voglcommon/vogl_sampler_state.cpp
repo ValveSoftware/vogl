@@ -50,7 +50,7 @@ bool vogl_sampler_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
     VOGL_ASSERT(handle <= cUINT32_MAX);
 
-    m_snapshot_handle = static_cast<uint32>(handle);
+    m_snapshot_handle = static_cast<uint32_t>(handle);
 
     bool any_gl_errors = false;
 

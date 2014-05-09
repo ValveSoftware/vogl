@@ -66,7 +66,7 @@ struct vogl_program_uniform_state
     GLenum m_type;
     dynamic_string m_name;
     GLint m_base_location;
-    growable_array<uint8, 16> m_data;
+    growable_array<uint8_t, 16> m_data;
 
     void clear()
     {
@@ -235,7 +235,7 @@ public:
         return m_info_log;
     }
 
-    bool link_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, const void *pBinary = NULL, uint binary_size = 0, GLenum binary_format = GL_NONE, GLenum type = GL_NONE, GLsizei count = 0, GLchar *const *strings = NULL);
+    bool link_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, const void *pBinary = NULL, uint32_t binary_size = 0, GLenum binary_format = GL_NONE, GLenum type = GL_NONE, GLsizei count = 0, GLchar *const *strings = NULL);
 
     void set_link_time_snapshot(vogl_unique_ptr<vogl_program_state> &pSnapshot);
 
@@ -267,15 +267,15 @@ public:
         return m_verify_status;
     }
 
-    uint get_num_active_attribs() const
+    uint32_t get_num_active_attribs() const
     {
         return m_num_active_attribs;
     }
-    uint get_num_active_uniforms() const
+    uint32_t get_num_active_uniforms() const
     {
         return m_num_active_uniforms;
     }
-    uint get_num_active_uniform_blocks() const
+    uint32_t get_num_active_uniform_blocks() const
     {
         return m_num_active_uniform_blocks;
     }
@@ -310,7 +310,7 @@ public:
         return m_program_binary_format;
     }
 
-    uint get_program_binary_size() const
+    uint32_t get_program_binary_size() const
     {
         return m_program_binary.size();
     }
@@ -337,7 +337,7 @@ public:
     }
 
     // These are the varyings as of the last link, NOT the very latest varyings.
-    uint get_transform_feedback_num_varyings() const
+    uint32_t get_transform_feedback_num_varyings() const
     {
         return m_transform_feedback_num_varyings;
     }
@@ -361,9 +361,9 @@ private:
 
     dynamic_string m_info_log;
 
-    uint m_num_active_attribs;
-    uint m_num_active_uniforms;
-    uint m_num_active_uniform_blocks;
+    uint32_t m_num_active_attribs;
+    uint32_t m_num_active_uniforms;
+    uint32_t m_num_active_uniform_blocks;
 
     vogl_attrib_state_vec m_attribs;
     vogl_uniform_state_vec m_uniforms;
@@ -376,7 +376,7 @@ private:
     vogl_unique_ptr<vogl_program_state> m_pLink_time_snapshot;
 
     GLenum m_transform_feedback_mode;
-    uint m_transform_feedback_num_varyings;
+    uint32_t m_transform_feedback_num_varyings;
     vogl_program_transform_feedback_varying_vec m_varyings;
 
     GLenum m_create_shader_program_type;
@@ -399,13 +399,13 @@ private:
     bool snapshot_basic_info(const vogl_context_info &context_info, vogl_handle_remapper &remapper);
     bool snapshot_outputs(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint program);
     bool snapshot_transform_feedback(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint program);
-    bool restore_uniforms(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_uniform_blocks(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_active_attribs(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_outputs(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_transform_feedback(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_link_snapshot(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const;
-    bool link_program(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const;
+    bool restore_uniforms(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_uniform_blocks(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_active_attribs(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_outputs(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_transform_feedback(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_link_snapshot(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const;
+    bool link_program(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const;
 };
 
 typedef vogl::map<GLuint, vogl_program_state> vogl_program_state_map;
@@ -422,7 +422,7 @@ public:
     void clear();
 
     bool add_snapshot(GLuint handle, const vogl_program_state &prog);
-    bool add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum binary_format = GL_NONE, const void *pBinary = NULL, uint binary_size = 0);
+    bool add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum binary_format = GL_NONE, const void *pBinary = NULL, uint32_t binary_size = 0);
     bool add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum type, GLsizei count, GLchar *const *strings);
     bool remove_snapshot(GLuint handle);
 

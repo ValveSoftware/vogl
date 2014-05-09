@@ -34,12 +34,12 @@ namespace vogl
     struct elemental_vector
     {
         void *m_p;
-        uint m_size;
-        uint m_capacity;
+        uint32_t m_size;
+        uint32_t m_capacity;
 
-        typedef void (*object_mover)(void *pDst, void *pSrc, uint num);
+        typedef void (*object_mover)(void *pDst, void *pSrc, uint32_t num);
 
-        bool increase_capacity(uint min_new_capacity, bool grow_hint, uint element_size, object_mover pRelocate, bool nofail);
+        bool increase_capacity(uint32_t min_new_capacity, bool grow_hint, uint32_t element_size, object_mover pRelocate, bool nofail);
     };
 
     template <typename T>
@@ -61,7 +61,7 @@ namespace vogl
         {
         }
 
-        inline vector(uint n, const T &init)
+        inline vector(uint32_t n, const T &init)
             : m_p(NULL),
               m_size(0),
               m_capacity(0)
@@ -86,12 +86,12 @@ namespace vogl
             {
                 T *pDst = m_p;
                 const T *pSrc = other.m_p;
-                for (uint i = m_size; i > 0; i--)
+                for (uint32_t i = m_size; i > 0; i--)
                     helpers::construct(pDst++, *pSrc++);
             }
         }
 
-        inline explicit vector(uint size)
+        inline explicit vector(uint32_t size)
             : m_p(NULL),
               m_size(0),
               m_capacity(0)
@@ -127,7 +127,7 @@ namespace vogl
             {
                 T *pDst = m_p;
                 const T *pSrc = other.m_p;
-                for (uint i = other.m_size; i > 0; i--)
+                for (uint32_t i = other.m_size; i > 0; i--)
                     helpers::construct(pDst++, *pSrc++);
             }
 
@@ -158,26 +158,26 @@ namespace vogl
         {
             return !m_size;
         }
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_size;
         }
-        inline uint size_in_bytes() const
+        inline uint32_t size_in_bytes() const
         {
             return m_size * sizeof(T);
         }
-        inline uint capacity() const
+        inline uint32_t capacity() const
         {
             return m_capacity;
         }
 
         // operator[] will assert on out of range indices, but in final builds there is (and will never be) any range checking on this method.
-        inline const T &operator[](uint i) const
+        inline const T &operator[](uint32_t i) const
         {
             VOGL_ASSERT(i < m_size);
             return m_p[i];
         }
-        inline T &operator[](uint i)
+        inline T &operator[](uint32_t i)
         {
             VOGL_ASSERT(i < m_size);
             return m_p[i];
@@ -185,12 +185,12 @@ namespace vogl
 
         // at() always includes range checking, even in final builds, unlike operator [].
         // The first element is returned if the index is out of range.
-        inline const T &at(uint i) const
+        inline const T &at(uint32_t i) const
         {
             VOGL_ASSERT(i < m_size);
             return (i >= m_size) ? m_p[0] : m_p[i];
         }
-        inline T &at(uint i)
+        inline T &at(uint32_t i)
         {
             VOGL_ASSERT(i < m_size);
             return (i >= m_size) ? m_p[0] : m_p[i];
@@ -256,7 +256,7 @@ namespace vogl
             }
         }
 
-        inline void reserve(uint new_capacity)
+        inline void reserve(uint32_t new_capacity)
         {
             if (new_capacity > m_capacity)
                 increase_capacity(new_capacity, false);
@@ -271,7 +271,7 @@ namespace vogl
             }
         }
 
-        inline bool try_reserve(uint new_capacity)
+        inline bool try_reserve(uint32_t new_capacity)
         {
             return increase_capacity(new_capacity, true, true);
         }
@@ -279,7 +279,7 @@ namespace vogl
         // resize() will never shrink the array's capacity, only enlarge it.
         // resize(0) empties the container, but does not free the allocated block.
         // If grow_hint is true, the capacity will at least double on resizes (it will also double if you're only enlarging by 1 element, assuming you're push_back'ing).
-        inline void resize(uint new_size, bool grow_hint = false)
+        inline void resize(uint32_t new_size, bool grow_hint = false)
         {
             if (m_size != new_size)
             {
@@ -297,7 +297,7 @@ namespace vogl
             }
         }
 
-        inline bool try_resize(uint new_size, bool grow_hint = false)
+        inline bool try_resize(uint32_t new_size, bool grow_hint = false)
         {
             if (m_size != new_size)
             {
@@ -321,7 +321,7 @@ namespace vogl
         }
 
         // Ensures array is large enough for element at index to be accessed.
-        inline void ensure_element_is_valid(uint index)
+        inline void ensure_element_is_valid(uint32_t index)
         {
             if (index >= m_size)
                 resize(index + 1, true);
@@ -337,16 +337,16 @@ namespace vogl
                 clear();
         }
 
-        inline T *enlarge(uint i)
+        inline T *enlarge(uint32_t i)
         {
-            uint cur_size = m_size;
+            uint32_t cur_size = m_size;
             resize(cur_size + i, true);
             return get_ptr() + cur_size;
         }
 
-        inline T *try_enlarge(uint i)
+        inline T *try_enlarge(uint32_t i)
         {
-            uint cur_size = m_size;
+            uint32_t cur_size = m_size;
             if (!try_resize(cur_size + i, true))
                 return NULL;
             return get_ptr() + cur_size;
@@ -399,16 +399,16 @@ namespace vogl
             }
         }
 
-        inline void insert(uint index, const T *p, uint n)
+        inline void insert(uint32_t index, const T *p, uint32_t n)
         {
             VOGL_ASSERT(index <= m_size);
             if (!n)
                 return;
 
-            const uint orig_size = m_size;
+            const uint32_t orig_size = m_size;
             resize(m_size + n, true);
 
-            const uint num_to_move = orig_size - index;
+            const uint32_t num_to_move = orig_size - index;
 
             if (type_is_bitwise_copyable())
             {
@@ -420,7 +420,7 @@ namespace vogl
                 const T *pSrc = m_p + orig_size - 1;
                 T *pDst = const_cast<T *>(pSrc) + n;
 
-                for (uint i = 0; i < num_to_move; i++)
+                for (uint32_t i = 0; i < num_to_move; i++)
                 {
                     VOGL_ASSERT((pDst - m_p) < (int)m_size);
                     *pDst-- = *pSrc--;
@@ -436,7 +436,7 @@ namespace vogl
             }
             else
             {
-                for (uint i = 0; i < n; i++)
+                for (uint32_t i = 0; i < n; i++)
                 {
                     VOGL_ASSERT((pDst - m_p) < (int)m_size);
                     *pDst++ = *p++;
@@ -444,7 +444,7 @@ namespace vogl
             }
         }
 
-        inline void insert(uint index, const T &obj)
+        inline void insert(uint32_t index, const T &obj)
         {
             VOGL_ASSERT(!m_p || (&obj < m_p) || (&obj >= (m_p + m_size)));
             insert(index, &obj, 1);
@@ -464,14 +464,14 @@ namespace vogl
             return *this;
         }
 
-        vector &append(const T *p, uint n)
+        vector &append(const T *p, uint32_t n)
         {
             if (n)
                 insert(m_size, p, n);
             return *this;
         }
 
-        inline void erase(uint start, uint n)
+        inline void erase(uint32_t start, uint32_t n)
         {
             VOGL_ASSERT((start + n) <= m_size);
             if ((start + n) > m_size)
@@ -480,7 +480,7 @@ namespace vogl
             if (!n)
                 return;
 
-            const uint num_to_move = m_size - (start + n);
+            const uint32_t num_to_move = m_size - (start + n);
 
             T *pDst = m_p + start;
 
@@ -513,7 +513,7 @@ namespace vogl
             m_size -= n;
         }
 
-        inline void erase(uint index)
+        inline void erase(uint32_t index)
         {
             erase(index, 1);
         }
@@ -521,10 +521,10 @@ namespace vogl
         inline void erase(T *p)
         {
             VOGL_ASSERT((p >= m_p) && (p < (m_p + m_size)));
-            erase(static_cast<uint>(p - m_p));
+            erase(static_cast<uint32_t>(p - m_p));
         }
 
-        void erase_unordered(uint index)
+        void erase_unordered(uint32_t index)
         {
             VOGL_ASSERT(index < m_size);
 
@@ -549,7 +549,7 @@ namespace vogl
                 {
                     const T *pSrc = m_p;
                     const T *pDst = rhs.m_p;
-                    for (uint i = m_size; i; i--)
+                    for (uint32_t i = m_size; i; i--)
                         if (!(*pSrc++ == *pDst++))
                             return false;
                 }
@@ -561,7 +561,7 @@ namespace vogl
         // lexicographical order
         inline bool operator<(const vector &rhs) const
         {
-            const uint min_size = math::minimum(m_size, rhs.m_size);
+            const uint32_t min_size = math::minimum(m_size, rhs.m_size);
 
             const T *pSrc = m_p;
             const T *pSrc_end = m_p + min_size;
@@ -599,7 +599,7 @@ namespace vogl
 
         inline bool is_sorted() const
         {
-            for (uint i = 1; i < m_size; ++i)
+            for (uint32_t i = 1; i < m_size; ++i)
                 if (m_p[i] < m_p[i - 1])
                     return false;
             return true;
@@ -611,7 +611,7 @@ namespace vogl
             {
                 sort();
 
-                resize(static_cast<uint>(std::unique(begin(), end()) - begin()));
+                resize(static_cast<uint32_t>(std::unique(begin(), end()) - begin()));
             }
         }
 
@@ -622,25 +622,25 @@ namespace vogl
             {
                 sort();
 
-                resize(static_cast<uint>(std::unique(begin(), end(), comp) - begin()));
+                resize(static_cast<uint32_t>(std::unique(begin(), end(), comp) - begin()));
             }
         }
 
         inline void reverse()
         {
-            uint j = m_size >> 1;
-            for (uint i = 0; i < j; i++)
+            uint32_t j = m_size >> 1;
+            for (uint32_t i = 0; i < j; i++)
                 utils::swap(m_p[i], m_p[m_size - 1 - i]);
         }
 
         inline int find(const T &key) const
         {
-            VOGL_ASSERT(m_size <= static_cast<uint>(cINT32_MAX));
+            VOGL_ASSERT(m_size <= static_cast<uint32_t>(cINT32_MAX));
 
             const T *p = m_p;
             const T *p_end = m_p + m_size;
 
-            uint index = 0;
+            uint32_t index = 0;
 
             while (p != p_end)
             {
@@ -657,12 +657,12 @@ namespace vogl
         template <typename Q>
         inline int find(const T &key, Q equal_to) const
         {
-            VOGL_ASSERT(m_size <= static_cast<uint>(cINT32_MAX));
+            VOGL_ASSERT(m_size <= static_cast<uint32_t>(cINT32_MAX));
 
             const T *p = m_p;
             const T *p_end = m_p + m_size;
 
-            uint index = 0;
+            uint32_t index = 0;
 
             while (p != p_end)
             {
@@ -678,7 +678,7 @@ namespace vogl
 
         inline int find_last(const T &key) const
         {
-            VOGL_ASSERT(m_size <= static_cast<uint>(cINT32_MAX));
+            VOGL_ASSERT(m_size <= static_cast<uint32_t>(cINT32_MAX));
 
             for (int i = m_size - 1; i >= 0; --i)
                 if (m_p[i] == key)
@@ -690,7 +690,7 @@ namespace vogl
         template <typename Q>
         inline int find_last(const T &key, Q equal_to) const
         {
-            VOGL_ASSERT(m_size <= static_cast<uint>(cINT32_MAX));
+            VOGL_ASSERT(m_size <= static_cast<uint32_t>(cINT32_MAX));
 
             for (int i = m_size - 1; i >= 0; --i)
                 if (equal_to(m_p[i], key))
@@ -701,7 +701,7 @@ namespace vogl
 
         inline int find_sorted(const T &key) const
         {
-            VOGL_ASSERT(m_size <= static_cast<uint>(cINT32_MAX));
+            VOGL_ASSERT(m_size <= static_cast<uint32_t>(cINT32_MAX));
 
             if (m_size)
             {
@@ -802,9 +802,9 @@ namespace vogl
             return cInvalidIndex;
         }
 
-        inline uint count_occurences(const T &key) const
+        inline uint32_t count_occurences(const T &key) const
         {
-            uint c = 0;
+            uint32_t c = 0;
 
             const T *p = m_p;
             const T *p_end = m_p + m_size;
@@ -845,7 +845,7 @@ namespace vogl
 
         // Caller is granting ownership of the indicated heap block.
         // Block must have size constructed elements, and have enough room for capacity elements.
-        inline bool grant_ownership(T *p, uint size, uint capacity)
+        inline bool grant_ownership(T *p, uint32_t size, uint32_t capacity)
         {
             // To to prevent the caller from obviously shooting themselves in the foot.
             if (((p + capacity) > m_p) && (p < (m_p + m_capacity)))
@@ -886,22 +886,22 @@ namespace vogl
         template <typename R>
         inline void shuffle(R &rm)
         {
-            VOGL_ASSERT(m_size < static_cast<uint>(cINT32_MAX));
+            VOGL_ASSERT(m_size < static_cast<uint32_t>(cINT32_MAX));
 
-            if ((m_size <= 1U) || (m_size >= static_cast<uint>(cINT32_MAX)))
+            if ((m_size <= 1U) || (m_size >= static_cast<uint32_t>(cINT32_MAX)))
                 return;
 
-            for (uint i = m_size - 1; i >= 1; --i)
+            for (uint32_t i = m_size - 1; i >= 1; --i)
             {
-                uint j = rm.irand_inclusive(0, i);
+                uint32_t j = rm.irand_inclusive(0, i);
                 std::swap(m_p[j], m_p[i]);
             }
         }
 
     private:
         T *m_p;
-        uint m_size;
-        uint m_capacity;
+        uint32_t m_size;
+        uint32_t m_capacity;
 
         template <typename Q>
         struct is_vector
@@ -920,7 +920,7 @@ namespace vogl
             };
         };
 
-        static void object_mover(void *pDst_void, void *pSrc_void, uint num)
+        static void object_mover(void *pDst_void, void *pSrc_void, uint32_t num)
         {
             T *pSrc = static_cast<T *>(pSrc_void);
             T *const pSrc_end = pSrc + num;
@@ -936,7 +936,7 @@ namespace vogl
             }
         }
 
-        inline bool increase_capacity(uint min_new_capacity, bool grow_hint, bool nofail = false)
+        inline bool increase_capacity(uint32_t min_new_capacity, bool grow_hint, bool nofail = false)
         {
             return reinterpret_cast<elemental_vector *>(this)->increase_capacity(
                 min_new_capacity, grow_hint, sizeof(T),
@@ -962,7 +962,7 @@ namespace vogl
     typedef vogl::vector<uint8_t> uint8_vec;
     typedef vogl::vector<char> char_vec;
     typedef vogl::vector<int> int_vec;
-    typedef vogl::vector<uint> uint_vec;
+    typedef vogl::vector<uint32_t> uint_vec;
     typedef vogl::vector<int32_t> int32_vec;
     typedef vogl::vector<uint32_t> uint32_vec;
     typedef vogl::vector<int64_t> int64_vec;
@@ -991,15 +991,15 @@ namespace vogl
 inline void vector_test()
 {
 	vogl::random r;
-	for (uint i = 0; i < 100000; i++)
+	for (uint32_t i = 0; i < 100000; i++)
 	{
-		uint n = r.irand(0, 1000);
+		uint32_t n = r.irand(0, 1000);
 		vogl::vector<int> xx(n);
 
 		for (int i = 0; i < n; i++)
 			xx[i] = i * 2;
 		VOGL_VERIFY(xx.find_sorted(-1) < 0);
-		for (uint i = 0; i < n; i++)
+		for (uint32_t i = 0; i < n; i++)
 		{
 			VOGL_VERIFY(xx.find_sorted(2 * i) == i);
 			VOGL_VERIFY(xx.find_sorted(2 * i + 1) < 0);

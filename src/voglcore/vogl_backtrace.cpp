@@ -48,7 +48,7 @@ namespace vogl
     {
         string_vec.resize(0);
 
-        const uint BUF_SIZE = 256;
+        const uint32_t BUF_SIZE = 256;
         void *buffer[BUF_SIZE];
 
         int nptrs = backtrace(buffer, BUF_SIZE);

@@ -60,8 +60,8 @@ private:
 
     bool m_valid;
 
-    bool set_texenv_parameter(GLenum target, uint index, GLenum pname) const;
-    bool set_texgen_parameter(GLenum coord, uint index, GLenum pname) const;
+    bool set_texenv_parameter(GLenum target, uint32_t index, GLenum pname) const;
+    bool set_texgen_parameter(GLenum coord, uint32_t index, GLenum pname) const;
 };
 
 #endif // VOGL_TEXENV_STATE_H

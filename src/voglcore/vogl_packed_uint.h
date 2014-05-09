@@ -32,10 +32,10 @@
 namespace vogl
 {
     // N must range from [1,8]
-    template <uint N, bool big_endian = true>
+    template <uint32_t N, bool big_endian = true>
     struct packed_uint
     {
-        typedef typename template_if<(N > sizeof(uint32)), uint64_t, uint32>::result param_type;
+        typedef typename template_if<(N > sizeof(uint32_t)), uint64_t, uint32_t>::result param_type;
 
         inline packed_uint()
         {
@@ -65,13 +65,13 @@ namespace vogl
         {
             if (big_endian)
             {
-                for (uint i = 0; i < N; ++i, val >>= 8U)
-                    m_buf[(N - 1) - i] = static_cast<uint8>(val);
+                for (uint32_t i = 0; i < N; ++i, val >>= 8U)
+                    m_buf[(N - 1) - i] = static_cast<uint8_t>(val);
             }
             else
             {
-                for (uint i = 0; i < N; ++i, val >>= 8U)
-                    m_buf[i] = static_cast<uint8>(val);
+                for (uint32_t i = 0; i < N; ++i, val >>= 8U)
+                    m_buf[i] = static_cast<uint8_t>(val);
             }
 
             VOGL_ASSERT(!val);
@@ -82,7 +82,7 @@ namespace vogl
         inline uint64_t get_uint64() const
         {
             uint64_t val = 0;
-            for (uint i = 0; i < N; ++i)
+            for (uint32_t i = 0; i < N; ++i)
             {
                 val <<= 8U;
                 val |= m_buf[big_endian ? i : ((N - 1) - i)];
@@ -90,10 +90,10 @@ namespace vogl
             return val;
         }
 
-        inline uint32 get_uint32() const
+        inline uint32_t get_uint32() const
         {
-            uint32 val = 0;
-            for (uint i = 0; i < N; ++i)
+            uint32_t val = 0;
+            for (uint32_t i = 0; i < N; ++i)
             {
                 val <<= 8U;
                 val |= m_buf[big_endian ? i : ((N - 1) - i)];
@@ -101,10 +101,10 @@ namespace vogl
             return val;
         }
 
-        inline uint16 get_uint16() const
+        inline uint16_t get_uint16() const
         {
-            uint16 val = 0;
-            for (uint i = 0; i < N; ++i)
+            uint16_t val = 0;
+            for (uint32_t i = 0; i < N; ++i)
             {
                 val <<= 8U;
                 val |= m_buf[big_endian ? i : ((N - 1) - i)];
@@ -114,17 +114,17 @@ namespace vogl
 
         inline operator param_type() const
         {
-            return static_cast<param_type>((sizeof(param_type) <= sizeof(uint32)) ? get_uint32() : get_uint64());
+            return static_cast<param_type>((sizeof(param_type) <= sizeof(uint32_t)) ? get_uint32() : get_uint64());
         }
 
         inline packed_uint &byte_swap()
         {
-            for (uint i = 0; i < (N / 2); i++)
+            for (uint32_t i = 0; i < (N / 2); i++)
                 std::swap(m_buf[i], m_buf[(N - 1) - i]);
             return *this;
         }
 
-        uint8 m_buf[N];
+        uint8_t m_buf[N];
     };
 
     inline void packed_uint_test()
@@ -143,57 +143,57 @@ namespace vogl
 
         packed_uint<4, true> q2;
         q2 = 0xDEADBEEF;
-        uint32 k2 = q2;
+        uint32_t k2 = q2;
         VOGL_VERIFY(k2 == 0xDEADBEEF);
         VOGL_VERIFY(q2.m_buf[0] == 0xDE);
 
         packed_uint<4, false> q3;
         q3 = 0xDEADBEEF;
-        uint32 k3 = q3;
+        uint32_t k3 = q3;
         VOGL_VERIFY(k3 == 0xDEADBEEF);
         VOGL_VERIFY(q3.m_buf[0] == 0xEF);
 
         packed_uint<3, true> q8;
         q8 = 0xDEADBE;
-        uint32 k8 = q8;
+        uint32_t k8 = q8;
         VOGL_VERIFY(k8 == 0xDEADBE);
         VOGL_VERIFY(q8.m_buf[0] == 0xDE);
 
         packed_uint<3, false> q9;
         q9 = 0xDEADBE;
-        uint32 k9 = q9;
+        uint32_t k9 = q9;
         VOGL_VERIFY(k9 == 0xDEADBE);
         VOGL_VERIFY(q9.m_buf[0] == 0xBE);
 
         packed_uint<2, true> q4;
         q4 = 0xDEAD;
-        uint32 k4 = q4;
+        uint32_t k4 = q4;
         VOGL_VERIFY(k4 == 0xDEAD);
         VOGL_VERIFY(q4.m_buf[0] == 0xDE);
 
         packed_uint<2, false> q5;
         q5 = 0xDEAD;
-        uint32 k5 = q5;
+        uint32_t k5 = q5;
         VOGL_VERIFY(k5 == 0xDEAD);
         VOGL_VERIFY(q5.m_buf[0] == 0xAD);
 
         packed_uint<1, true> q6;
         q6 = 0xDE;
-        uint32 k6 = q6;
+        uint32_t k6 = q6;
         VOGL_VERIFY(k6 == 0xDE);
         VOGL_VERIFY(q6.m_buf[0] == 0xDE);
 
         packed_uint<1, false> q7;
         q7 = 0xDE;
-        uint32 k7 = q7;
+        uint32_t k7 = q7;
         VOGL_VERIFY(k7 == 0xDE);
         VOGL_VERIFY(q7.m_buf[0] == 0xDE);
 
 #if 0
 	for (uint64_t i = 0; i <= 0xFFFFFFFFU; i++)
 	{
-		packed_uint<4, true> b(static_cast<uint32>(i));
-		packed_uint<4, true> l(static_cast<uint32>(i));
+		packed_uint<4, true> b(static_cast<uint32_t>(i));
+		packed_uint<4, true> l(static_cast<uint32_t>(i));
 		VOGL_VERIFY((b == i) && (l == i));
 		if ((i & 4095) == 4095) printf("0x%04X\n", i);
 	}

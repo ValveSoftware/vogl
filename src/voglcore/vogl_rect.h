@@ -70,7 +70,7 @@ namespace vogl
 
         inline bool operator<(const rect &r) const
         {
-            for (uint i = 0; i < 2; i++)
+            for (uint32_t i = 0; i < 2; i++)
             {
                 if (m_corner[i] < r.m_corner[i])
                     return true;
@@ -105,11 +105,11 @@ namespace vogl
             m_corner[1].set(point[0] + 1, point[1] + 1);
         }
 
-        inline uint get_width() const
+        inline uint32_t get_width() const
         {
             return m_corner[1][0] - m_corner[0][0];
         }
-        inline uint get_height() const
+        inline uint32_t get_height() const
         {
             return m_corner[1][1] - m_corner[0][1];
         }
@@ -136,21 +136,21 @@ namespace vogl
             return (m_corner[1][0] <= m_corner[0][0]) || (m_corner[1][1] <= m_corner[0][1]);
         }
 
-        inline uint get_dimension(uint axis) const
+        inline uint32_t get_dimension(uint32_t axis) const
         {
             return m_corner[1][axis] - m_corner[0][axis];
         }
-        inline uint get_area() const
+        inline uint32_t get_area() const
         {
             return get_dimension(0) * get_dimension(1);
         }
 
-        inline const vec2I &operator[](uint i) const
+        inline const vec2I &operator[](uint32_t i) const
         {
             VOGL_ASSERT(i < 2);
             return m_corner[i];
         }
-        inline vec2I &operator[](uint i)
+        inline vec2I &operator[](uint32_t i)
         {
             VOGL_ASSERT(i < 2);
             return m_corner[i];
@@ -192,7 +192,7 @@ namespace vogl
 
         inline bool touches(const rect &r) const
         {
-            for (uint i = 0; i < 2; i++)
+            for (uint32_t i = 0; i < 2; i++)
             {
                 if (r[1][i] <= m_corner[0][i])
                     return false;
@@ -205,7 +205,7 @@ namespace vogl
 
         inline bool fully_within(const rect &r) const
         {
-            for (uint i = 0; i < 2; i++)
+            for (uint32_t i = 0; i < 2; i++)
             {
                 if (m_corner[0][i] < r[0][i])
                     return false;
@@ -224,7 +224,7 @@ namespace vogl
                 return false;
             }
 
-            for (uint i = 0; i < 2; i++)
+            for (uint32_t i = 0; i < 2; i++)
             {
                 m_corner[0][i] = math::maximum<int>(m_corner[0][i], r[0][i]);
                 m_corner[1][i] = math::minimum<int>(m_corner[1][i], r[1][i]);
@@ -248,7 +248,7 @@ namespace vogl
         vec2I m_corner[2];
     };
 
-    inline rect make_rect(uint width, uint height)
+    inline rect make_rect(uint32_t width, uint32_t height)
     {
         return rect(0, 0, width, height);
     }

@@ -84,17 +84,17 @@ public:
     }
 
     // Note: Multisampling textures may only have 1 sample!
-    uint get_num_samples() const
+    uint32_t get_num_samples() const
     {
         return m_num_samples;
     }
 
-    vogl::ktx_texture &get_texture(uint sample_index = 0)
+    vogl::ktx_texture &get_texture(uint32_t sample_index = 0)
     {
         return m_textures[sample_index];
     }
 
-    const vogl::ktx_texture &get_texture(uint sample_index = 0) const
+    const vogl::ktx_texture &get_texture(uint32_t sample_index = 0) const
     {
         return m_textures[sample_index];
     }
@@ -104,12 +104,12 @@ public:
         return m_params;
     }
 
-    uint get_num_levels() const
+    uint32_t get_num_levels() const
     {
         return m_level_params[0].size();
     }
 
-    const vogl_state_vector &get_level_params(uint face, uint level) const
+    const vogl_state_vector &get_level_params(uint32_t face, uint32_t level) const
     {
         return m_level_params[face][level];
     }
@@ -122,7 +122,7 @@ private:
     GLenum m_target;
     GLuint m_buffer;
 
-    uint m_num_samples;
+    uint32_t m_num_samples;
     enum { cMaxSamples = 32 };
     vogl::ktx_texture m_textures[cMaxSamples];
 

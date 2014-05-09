@@ -37,7 +37,7 @@
 
 namespace vogl
 {
-    // adding: uint8, int64_t, uint64_t, double, blob
+    // adding: uint8_t, int64_t, uint64_t, double, blob
     enum value_data_type
     {
         cDTInvalid,
@@ -95,7 +95,7 @@ namespace vogl
         {
         }
 
-        inline value(const uint8 *pBuf, uint size)
+        inline value(const uint8_t *pBuf, uint32_t size)
             : m_pBlob(vogl_new(uint8_vec, size)), m_user_data(0), m_type(cDTBlob), m_flags(0)
         {
             if (size)
@@ -122,22 +122,22 @@ namespace vogl
         {
         }
 
-        inline value(int8 v)
+        inline value(int8_t v)
             : m_int8(v), m_user_data(0), m_type(cDTInt8), m_flags(0)
         {
         }
 
-        inline value(uint8 v)
+        inline value(uint8_t v)
             : m_uint8(v), m_user_data(0), m_type(cDTUInt8), m_flags(0)
         {
         }
 
-        inline value(int16 v)
+        inline value(int16_t v)
             : m_int16(v), m_user_data(0), m_type(cDTInt16), m_flags(0)
         {
         }
 
-        inline value(uint16 v)
+        inline value(uint16_t v)
             : m_uint16(v), m_user_data(0), m_type(cDTUInt16), m_flags(0)
         {
         }
@@ -147,7 +147,7 @@ namespace vogl
         {
         }
 
-        inline value(uint v)
+        inline value(uint32_t v)
             : m_uint(v), m_user_data(0), m_type(cDTUInt), m_flags(0)
         {
         }
@@ -232,28 +232,28 @@ namespace vogl
             m_bool = v;
         }
 
-        inline void set_int8(int8 v)
+        inline void set_int8(int8_t v)
         {
             clear_dynamic();
             m_type = cDTInt8;
             m_int8 = v;
         }
 
-        inline void set_uint8(uint8 v)
+        inline void set_uint8(uint8_t v)
         {
             clear_dynamic();
             m_type = cDTUInt8;
             m_uint8 = v;
         }
 
-        inline void set_int16(int16 v)
+        inline void set_int16(int16_t v)
         {
             clear_dynamic();
             m_type = cDTInt16;
             m_int16 = v;
         }
 
-        inline void set_uint16(uint16 v)
+        inline void set_uint16(uint16_t v)
         {
             clear_dynamic();
             m_type = cDTUInt16;
@@ -267,7 +267,7 @@ namespace vogl
             m_int = v;
         }
 
-        inline void set_uint(uint v)
+        inline void set_uint(uint32_t v)
         {
             clear_dynamic();
             m_type = cDTUInt;
@@ -326,7 +326,7 @@ namespace vogl
             set_str(pStr);
         }
 
-        inline bool set_blob(const uint8 *pBlob, uint size)
+        inline bool set_blob(const uint8_t *pBlob, uint32_t size)
         {
             change_type(cDTBlob);
             if (!m_pBlob->try_resize(size))
@@ -379,17 +379,17 @@ namespace vogl
             set_bool(value);
             return *this;
         }
-        inline value &operator=(uint8 value)
+        inline value &operator=(uint8_t value)
         {
             set_uint8(value);
             return *this;
         }
-        inline value &operator=(int16 value)
+        inline value &operator=(int16_t value)
         {
             set_int16(value);
             return *this;
         }
-        inline value &operator=(uint16 value)
+        inline value &operator=(uint16_t value)
         {
             set_uint16(value);
             return *this;
@@ -399,7 +399,7 @@ namespace vogl
             set_int(value);
             return *this;
         }
-        inline value &operator=(uint value)
+        inline value &operator=(uint32_t value)
         {
             set_uint(value);
             return *this;
@@ -481,83 +481,83 @@ namespace vogl
         }
 
         // on failure, the destination val is NOT modified
-        bool get_int8_or_fail(int8 &val, uint component) const;
-        bool get_uint8_or_fail(uint8 &val, uint component) const;
-        bool get_int16_or_fail(int16 &val, uint component) const;
-        bool get_uint16_or_fail(uint16 &val, uint component) const;
-        bool get_int_or_fail(int &val, uint component = 0) const;
-        bool get_int64_or_fail(int64_t &val, uint component = 0) const;
-        bool get_uint_or_fail(uint &val, uint component = 0) const;
-        bool get_uint64_or_fail(uint64_t &val, uint component = 0) const;
-        bool get_bool_or_fail(bool &val, uint component = 0) const;
-        bool get_double_or_fail(double &val, uint component = 0) const;
-        bool get_float_or_fail(float &val, uint component = 0) const;
+        bool get_int8_or_fail(int8_t &val, uint32_t component) const;
+        bool get_uint8_or_fail(uint8_t &val, uint32_t component) const;
+        bool get_int16_or_fail(int16_t &val, uint32_t component) const;
+        bool get_uint16_or_fail(uint16_t &val, uint32_t component) const;
+        bool get_int_or_fail(int &val, uint32_t component = 0) const;
+        bool get_int64_or_fail(int64_t &val, uint32_t component = 0) const;
+        bool get_uint_or_fail(uint32_t &val, uint32_t component = 0) const;
+        bool get_uint64_or_fail(uint64_t &val, uint32_t component = 0) const;
+        bool get_bool_or_fail(bool &val, uint32_t component = 0) const;
+        bool get_double_or_fail(double &val, uint32_t component = 0) const;
+        bool get_float_or_fail(float &val, uint32_t component = 0) const;
         bool get_vec3F_or_fail(vec3F &val) const;
         bool get_vec3I_or_fail(vec3I &val) const;
         bool get_string_hash_or_fail(string_hash &hash) const;
 
-        inline int8 get_int8(int8 def = 0, uint component = 0) const
+        inline int8_t get_int8(int8_t def = 0, uint32_t component = 0) const
         {
-            int8 result = def;
+            int8_t result = def;
             get_int8_or_fail(result, component);
             return result;
         }
-        inline int16 get_int16(int16 def = 0, uint component = 0) const
+        inline int16_t get_int16(int16_t def = 0, uint32_t component = 0) const
         {
-            int16 result = def;
+            int16_t result = def;
             get_int16_or_fail(result, component);
             return result;
         }
-        inline uint8 get_uint8(uint8 def = 0, uint component = 0) const
+        inline uint8_t get_uint8(uint8_t def = 0, uint32_t component = 0) const
         {
-            uint8 result = def;
+            uint8_t result = def;
             get_uint8_or_fail(result, component);
             return result;
         }
-        inline uint16 get_uint16(uint16 def = 0, uint component = 0) const
+        inline uint16_t get_uint16(uint16_t def = 0, uint32_t component = 0) const
         {
-            uint16 result = def;
+            uint16_t result = def;
             get_uint16_or_fail(result, component);
             return result;
         }
-        inline int get_int(int def = 0, uint component = 0) const
+        inline int get_int(int def = 0, uint32_t component = 0) const
         {
             int result = def;
             get_int_or_fail(result, component);
             return result;
         }
-        inline int64_t get_int64(int64_t def = 0, uint component = 0) const
+        inline int64_t get_int64(int64_t def = 0, uint32_t component = 0) const
         {
             int64_t result = def;
             get_int64_or_fail(result, component);
             return result;
         }
-        inline uint get_uint(uint def = 0, uint component = 0) const
+        inline uint32_t get_uint(uint32_t def = 0, uint32_t component = 0) const
         {
-            uint result = def;
+            uint32_t result = def;
             get_uint_or_fail(result, component);
             return result;
         }
-        inline uint64_t get_uint64(uint64_t def = 0, uint component = 0) const
+        inline uint64_t get_uint64(uint64_t def = 0, uint32_t component = 0) const
         {
             uint64_t result = def;
             get_uint64_or_fail(result, component);
             return result;
         }
 
-        inline bool get_bool(bool def = false, uint component = 0) const
+        inline bool get_bool(bool def = false, uint32_t component = 0) const
         {
             bool result = def;
             get_bool_or_fail(result, component);
             return result;
         }
-        inline double get_double(double def = 0.0f, uint component = 0) const
+        inline double get_double(double def = 0.0f, uint32_t component = 0) const
         {
             double result = def;
             get_double_or_fail(result, component);
             return result;
         }
-        inline float get_float(float def = 0.0f, uint component = 0) const
+        inline float get_float(float def = 0.0f, uint32_t component = 0) const
         {
             float result = def;
             get_float_or_fail(result, component);
@@ -690,7 +690,7 @@ namespace vogl
             return false;
         }
 
-        inline uint get_num_components() const
+        inline uint32_t get_num_components() const
         {
             switch (m_type)
             {
@@ -754,7 +754,7 @@ namespace vogl
             return &m_bool;
         }
 
-        inline uint get_data_size_in_bytes() const
+        inline uint32_t get_data_size_in_bytes() const
         {
             switch (m_type)
             {
@@ -763,15 +763,15 @@ namespace vogl
                 case cDTBool:
                 case cDTInt8:
                 case cDTUInt8:
-                    return sizeof(uint8);
+                    return sizeof(uint8_t);
                 case cDTInt16:
                 case cDTUInt16:
-                    return sizeof(uint16);
+                    return sizeof(uint16_t);
                 case cDTInt:
                 case cDTUInt:
                 case cDTFloat:
                 case cDTStringHash:
-                    return sizeof(uint32);
+                    return sizeof(uint32_t);
                 case cDTInt64:
                 case cDTUInt64:
                 case cDTDouble:
@@ -885,9 +885,9 @@ namespace vogl
             return m_type == cDTJSONDoc;
         }
 
-        uint get_serialize_size(bool serialize_user_data) const;
-        int serialize(void *pBuf, uint buf_size, bool little_endian, bool serialize_user_data) const;
-        int deserialize(const void *pBuf, uint buf_size, bool little_endian, bool serialize_user_data);
+        uint32_t get_serialize_size(bool serialize_user_data) const;
+        int serialize(void *pBuf, uint32_t buf_size, bool little_endian, bool serialize_user_data) const;
+        int deserialize(const void *pBuf, uint32_t buf_size, bool little_endian, bool serialize_user_data);
 
         inline value &swap(value &other)
         {
@@ -902,11 +902,11 @@ namespace vogl
         {
             return (m_flags & cFlagsHasUserData) != 0;
         }
-        inline uint get_user_data() const
+        inline uint32_t get_user_data() const
         {
             return m_user_data;
         }
-        inline void set_user_data(uint16 v)
+        inline void set_user_data(uint16_t v)
         {
             m_user_data = v;
             m_flags |= cFlagsHasUserData;
@@ -1018,14 +1018,14 @@ namespace vogl
         {
             bool m_bool;
 
-            int8 m_int8;
-            uint8 m_uint8;
+            int8_t m_int8;
+            uint8_t m_uint8;
 
-            int16 m_int16;
-            uint16 m_uint16;
+            int16_t m_int16;
+            uint16_t m_uint16;
 
             int m_int;
-            uint m_uint;
+            uint32_t m_uint;
 
             int64_t m_int64;
             uint64_t m_uint64;
@@ -1043,19 +1043,19 @@ namespace vogl
 
         const string_hash &get_string_hash_ref() const
         {
-            VOGL_ASSUME(sizeof(string_hash) == sizeof(uint));
+            VOGL_ASSUME(sizeof(string_hash) == sizeof(uint32_t));
             return *reinterpret_cast<const string_hash *>(&m_uint);
         }
         string_hash &get_string_hash_ref()
         {
-            VOGL_ASSUME(sizeof(string_hash) == sizeof(uint));
+            VOGL_ASSUME(sizeof(string_hash) == sizeof(uint32_t));
             return *reinterpret_cast<string_hash *>(&m_uint);
         }
 
         // I'm torn about m_user_data/m_flags - may not be useful, but there's room for it due to alignment.
-        uint16 m_user_data;
+        uint16_t m_user_data;
         value_data_type m_type;
-        uint8 m_flags;
+        uint8_t m_flags;
     };
 
     typedef vogl::vector<value> value_vector;
@@ -1144,19 +1144,19 @@ namespace vogl
             m_key_values.reset();
         }
 
-        inline void reserve(uint new_capacity)
+        inline void reserve(uint32_t new_capacity)
         {
             m_key_values.reserve(new_capacity);
         }
 
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_key_values.size();
         }
 
         inline uint64_t get_serialize_size(bool serialize_user_data) const
         {
-            uint64_t l = sizeof(uint) * 2;
+            uint64_t l = sizeof(uint32_t) * 2;
 
             for (const_iterator it = begin(); it != end(); ++it)
                 l += it->first.get_serialize_size(serialize_user_data) + it->second.get_serialize_size(serialize_user_data);
@@ -1164,18 +1164,18 @@ namespace vogl
             return l;
         }
 
-        inline int serialize_to_buffer(void *pBuf, uint buf_size, bool little_endian, bool serialize_user_data) const
+        inline int serialize_to_buffer(void *pBuf, uint32_t buf_size, bool little_endian, bool serialize_user_data) const
         {
-            if (buf_size < sizeof(uint) * 2)
+            if (buf_size < sizeof(uint32_t) * 2)
                 return -1;
 
-            uint buf_left = buf_size;
+            uint32_t buf_left = buf_size;
 
-            void *pSize = reinterpret_cast<uint *>(pBuf);
+            void *pSize = reinterpret_cast<uint32_t *>(pBuf);
             if (!utils::write_obj(buf_left, pBuf, buf_left, little_endian))
                 return -1;
 
-            uint n = get_num_key_values();
+            uint32_t n = get_num_key_values();
             if (!utils::write_obj(n, pBuf, buf_left, little_endian))
                 return -1;
 
@@ -1185,53 +1185,53 @@ namespace vogl
                 if (num_bytes_written < 0)
                     return -1;
 
-                pBuf = static_cast<uint8 *>(pBuf) + num_bytes_written;
+                pBuf = static_cast<uint8_t *>(pBuf) + num_bytes_written;
                 buf_left -= num_bytes_written;
 
                 num_bytes_written = it->second.serialize(pBuf, buf_left, little_endian, serialize_user_data);
                 if (num_bytes_written < 0)
                     return -1;
 
-                pBuf = static_cast<uint8 *>(pBuf) + num_bytes_written;
+                pBuf = static_cast<uint8_t *>(pBuf) + num_bytes_written;
                 buf_left -= num_bytes_written;
             }
 
-            uint total_bytes_written = buf_size - buf_left;
+            uint32_t total_bytes_written = buf_size - buf_left;
 
-            n = sizeof(uint);
+            n = sizeof(uint32_t);
             utils::write_obj(total_bytes_written, pSize, n, little_endian);
 
             return total_bytes_written;
         }
 
-        inline int deserialize_from_buffer(const void *pBuf, uint buf_size, bool little_endian, bool serialize_user_data)
+        inline int deserialize_from_buffer(const void *pBuf, uint32_t buf_size, bool little_endian, bool serialize_user_data)
         {
             m_key_values.reset();
 
-            uint buf_left = buf_size;
+            uint32_t buf_left = buf_size;
 
-            uint len = 0;
+            uint32_t len = 0;
             if (!utils::read_obj(len, pBuf, buf_left, little_endian))
                 return -1;
 
-            if (len < sizeof(uint) * 2)
+            if (len < sizeof(uint32_t) * 2)
                 return -1;
 
-            if ((buf_left + sizeof(uint)) < len)
+            if ((buf_left + sizeof(uint32_t)) < len)
                 return -1;
 
-            uint n = 0;
+            uint32_t n = 0;
             if (!utils::read_obj(n, pBuf, buf_left, little_endian))
                 return -1;
 
-            for (uint i = 0; i < n; ++i)
+            for (uint32_t i = 0; i < n; ++i)
             {
                 value key;
                 int num_bytes_read = key.deserialize(pBuf, buf_left, little_endian, serialize_user_data);
                 if (num_bytes_read < 0)
                     return -1;
 
-                pBuf = static_cast<const uint8 *>(pBuf) + num_bytes_read;
+                pBuf = static_cast<const uint8_t *>(pBuf) + num_bytes_read;
                 buf_left -= num_bytes_read;
 
                 value val;
@@ -1239,14 +1239,14 @@ namespace vogl
                 if (num_bytes_read < 0)
                     return -1;
 
-                pBuf = static_cast<const uint8 *>(pBuf) + num_bytes_read;
+                pBuf = static_cast<const uint8_t *>(pBuf) + num_bytes_read;
                 buf_left -= num_bytes_read;
 
                 if (!insert(key, val).second)
                     return -1;
             }
 
-            uint total_bytes_read = buf_size - buf_left;
+            uint32_t total_bytes_read = buf_size - buf_left;
             if (total_bytes_read != len)
                 return -1;
             return total_bytes_read;
@@ -1258,23 +1258,23 @@ namespace vogl
             if (num_bytes_needed > static_cast<uint64_t>(cINT32_MAX))
                 return -1;
 
-            uint8 buf[2048];
-            uint8 *pBuf = buf;
+            uint8_t buf[2048];
+            uint8_t *pBuf = buf;
             uint8_vec dyn_buf;
 
             if (num_bytes_needed > sizeof(buf))
             {
-                dyn_buf.resize(static_cast<uint>(num_bytes_needed));
+                dyn_buf.resize(static_cast<uint32_t>(num_bytes_needed));
                 pBuf = dyn_buf.get_ptr();
             }
 
-            int num_bytes_written = serialize_to_buffer(pBuf, static_cast<uint>(num_bytes_needed), little_endian, serialize_user_data);
+            int num_bytes_written = serialize_to_buffer(pBuf, static_cast<uint32_t>(num_bytes_needed), little_endian, serialize_user_data);
             if (num_bytes_written < 0)
                 return -1;
             VOGL_ASSERT(num_bytes_needed == static_cast<uint64_t>(num_bytes_written));
 
-            uint num_bytes_streamed = stream.write(pBuf, num_bytes_written);
-            if (num_bytes_streamed != static_cast<uint>(num_bytes_written))
+            uint32_t num_bytes_streamed = stream.write(pBuf, num_bytes_written);
+            if (num_bytes_streamed != static_cast<uint32_t>(num_bytes_written))
                 return -1;
 
             return num_bytes_written;
@@ -1282,24 +1282,24 @@ namespace vogl
 
         inline int deserialize_from_stream(data_stream &stream, bool little_endian, bool serialize_user_data)
         {
-            uint num_bytes_read = sizeof(uint) * 2;
+            uint32_t num_bytes_read = sizeof(uint32_t) * 2;
             VOGL_NOTE_UNUSED(num_bytes_read);
 
-            uint raw_size;
+            uint32_t raw_size;
             if (stream.read(&raw_size, sizeof(raw_size)) != sizeof(raw_size))
                 return -1;
 
-            uint size = raw_size;
+            uint32_t size = raw_size;
             if (little_endian != c_vogl_little_endian_platform)
                 size = utils::swap32(size);
 
-            if ((size < sizeof(uint) * 2) || (size > static_cast<uint>(cINT32_MAX)))
+            if ((size < sizeof(uint32_t) * 2) || (size > static_cast<uint32_t>(cINT32_MAX)))
                 return -1;
 
             uint8_vec buf(size);
-            *reinterpret_cast<uint *>(buf.get_ptr()) = raw_size;
+            *reinterpret_cast<uint32_t *>(buf.get_ptr()) = raw_size;
 
-            if (stream.read(buf.get_ptr() + sizeof(uint), buf.size() - sizeof(uint)) != (buf.size() - sizeof(uint)))
+            if (stream.read(buf.get_ptr() + sizeof(uint32_t), buf.size() - sizeof(uint32_t)) != (buf.size() - sizeof(uint32_t)))
                 return -1;
 
             return deserialize_from_buffer(buf.get_ptr(), buf.size(), little_endian, serialize_user_data);
@@ -1330,13 +1330,13 @@ namespace vogl
 
         // On failure, the destination val is NOT modified
         inline bool get_string_if_found(const value &key, dynamic_string &dst, bool quote_strings = false) const;
-        inline bool get_int_if_found(const value &key, int &val, uint component = 0) const;
-        inline bool get_int64_if_found(const value &key, int64_t &val, uint component = 0) const;
-        inline bool get_uint_if_found(const value &key, uint &val, uint component = 0) const;
-        inline bool get_uint64_if_found(const value &key, uint64_t &val, uint component = 0) const;
-        inline bool get_bool_if_found(const value &key, bool &val, uint component = 0) const;
-        inline bool get_double_if_found(const value &key, double &val, uint component = 0) const;
-        inline bool get_float_if_found(const value &key, float &val, uint component = 0) const;
+        inline bool get_int_if_found(const value &key, int &val, uint32_t component = 0) const;
+        inline bool get_int64_if_found(const value &key, int64_t &val, uint32_t component = 0) const;
+        inline bool get_uint_if_found(const value &key, uint32_t &val, uint32_t component = 0) const;
+        inline bool get_uint64_if_found(const value &key, uint64_t &val, uint32_t component = 0) const;
+        inline bool get_bool_if_found(const value &key, bool &val, uint32_t component = 0) const;
+        inline bool get_double_if_found(const value &key, double &val, uint32_t component = 0) const;
+        inline bool get_float_if_found(const value &key, float &val, uint32_t component = 0) const;
         inline bool get_vec3F_if_found(const value &key, vec3F &val) const;
         inline bool get_vec3I_if_found(const value &key, vec3I &val) const;
         inline bool get_string_hash_if_found(const value &key, string_hash &val) const;
@@ -1347,43 +1347,43 @@ namespace vogl
             get_string_if_found(key, result, quote_strings);
             return result;
         }
-        inline int get_int(const value &key, int32 def = 0, uint component = 0) const
+        inline int get_int(const value &key, int32_t def = 0, uint32_t component = 0) const
         {
             int result = def;
             get_int_if_found(key, result, component);
             return result;
         }
-        inline int64_t get_int64(const value &key, int64_t def = 0, uint component = 0) const
+        inline int64_t get_int64(const value &key, int64_t def = 0, uint32_t component = 0) const
         {
             int64_t result = def;
             get_int64_if_found(key, result, component);
             return result;
         }
-        inline uint get_uint(const value &key, uint def = 0, uint component = 0) const
+        inline uint32_t get_uint(const value &key, uint32_t def = 0, uint32_t component = 0) const
         {
-            uint result = def;
+            uint32_t result = def;
             get_uint_if_found(key, result, component);
             return result;
         }
-        inline uint64_t get_uint64(const value &key, uint64_t def = 0, uint component = 0) const
+        inline uint64_t get_uint64(const value &key, uint64_t def = 0, uint32_t component = 0) const
         {
             uint64_t result = def;
             get_uint64_if_found(key, result, component);
             return result;
         }
-        inline bool get_bool(const value &key, bool def = false, uint component = 0) const
+        inline bool get_bool(const value &key, bool def = false, uint32_t component = 0) const
         {
             bool result = def;
             get_bool_if_found(key, result, component);
             return result;
         }
-        inline float get_float(const value &key, float def = 0.0f, uint component = 0) const
+        inline float get_float(const value &key, float def = 0.0f, uint32_t component = 0) const
         {
             float result = def;
             get_float_if_found(key, result, component);
             return result;
         }
-        inline double get_double(const value &key, double def = 0.0f, uint component = 0) const
+        inline double get_double(const value &key, double def = 0.0f, uint32_t component = 0) const
         {
             double result = def;
             get_double_if_found(key, result, component);
@@ -1436,7 +1436,7 @@ namespace vogl
             return m_key_values.erase(key);
         }
 
-        inline uint get_num_key_values() const
+        inline uint32_t get_num_key_values() const
         {
             return m_key_values.size();
         }
@@ -1481,7 +1481,7 @@ namespace vogl
         return true;
     }
 
-    inline bool key_value_map::get_int_if_found(const value &key, int &val, uint component) const
+    inline bool key_value_map::get_int_if_found(const value &key, int &val, uint32_t component) const
     {
         const_iterator it = m_key_values.find(key);
         if (it == m_key_values.end())
@@ -1489,7 +1489,7 @@ namespace vogl
         return it->second.get_int_or_fail(val, component);
     }
 
-    inline bool key_value_map::get_int64_if_found(const value &key, int64_t &val, uint component) const
+    inline bool key_value_map::get_int64_if_found(const value &key, int64_t &val, uint32_t component) const
     {
         const_iterator it = m_key_values.find(key);
         if (it == m_key_values.end())
@@ -1497,7 +1497,7 @@ namespace vogl
         return it->second.get_int64_or_fail(val, component);
     }
 
-    inline bool key_value_map::get_uint_if_found(const value &key, uint &val, uint component) const
+    inline bool key_value_map::get_uint_if_found(const value &key, uint32_t &val, uint32_t component) const
     {
         const_iterator it = m_key_values.find(key);
         if (it == m_key_values.end())
@@ -1505,7 +1505,7 @@ namespace vogl
         return it->second.get_uint_or_fail(val, component);
     }
 
-    inline bool key_value_map::get_uint64_if_found(const value &key, uint64_t &val, uint component) const
+    inline bool key_value_map::get_uint64_if_found(const value &key, uint64_t &val, uint32_t component) const
     {
         const_iterator it = m_key_values.find(key);
         if (it == m_key_values.end())
@@ -1513,7 +1513,7 @@ namespace vogl
         return it->second.get_uint64_or_fail(val, component);
     }
 
-    inline bool key_value_map::get_bool_if_found(const value &key, bool &val, uint component) const
+    inline bool key_value_map::get_bool_if_found(const value &key, bool &val, uint32_t component) const
     {
         const_iterator it = m_key_values.find(key);
         if (it == m_key_values.end())
@@ -1521,7 +1521,7 @@ namespace vogl
         return it->second.get_bool_or_fail(val, component);
     }
 
-    inline bool key_value_map::get_double_if_found(const value &key, double &val, uint component) const
+    inline bool key_value_map::get_double_if_found(const value &key, double &val, uint32_t component) const
     {
         const_iterator it = m_key_values.find(key);
         if (it == m_key_values.end())
@@ -1529,7 +1529,7 @@ namespace vogl
         return it->second.get_double_or_fail(val, component);
     }
 
-    inline bool key_value_map::get_float_if_found(const value &key, float &val, uint component) const
+    inline bool key_value_map::get_float_if_found(const value &key, float &val, uint32_t component) const
     {
         const_iterator it = m_key_values.find(key);
         if (it == m_key_values.end())

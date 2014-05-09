@@ -53,7 +53,7 @@ public:
 
     bool operator==(const vogl_renderbuffer_desc &rhs) const;
 
-    bool get_int(GLenum enum_val, int *pVals, uint n = 1) const;
+    bool get_int(GLenum enum_val, int *pVals, uint32_t n = 1) const;
 
     int get_int_or_default(GLenum enum_val, int def = 0) const
     {

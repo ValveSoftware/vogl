@@ -130,7 +130,7 @@ inline T vogl_assert_range_incl(T i, T m)
 // These specializations are here to fix (useless) gcc compiler warnings
 #if (COMPILER_GCC)
 	template <>
-	inline unsigned int vogl_assert_range_incl<uint>(unsigned int i, unsigned int m)
+	inline unsigned int vogl_assert_range_incl<uint32_t>(unsigned int i, unsigned int m)
 	{
 		VOGL_ASSERT(i <= m);
 		return i;

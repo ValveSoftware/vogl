@@ -133,7 +133,7 @@ namespace vogl
             return m_pLog_stream;
         }
 
-        static uint get_total_messages(eConsoleMessageType type)
+        static uint32_t get_total_messages(eConsoleMessageType type)
         {
             return m_num_messages[type];
         }
@@ -153,13 +153,13 @@ namespace vogl
         };
 
         enum { cMaxOutputFuncs = 16 };
-        static uint m_num_output_funcs;
+        static uint32_t m_num_output_funcs;
         static console_func *get_output_funcs();
 
         static bool m_prefixes, m_output_disabled;
         static data_stream *m_pLog_stream;
         static mutex *m_pMutex;
-        static uint m_num_messages[cCMTTotal];
+        static uint32_t m_num_messages[cCMTTotal];
         static bool m_at_beginning_of_line;
         static char m_tool_prefix[256];
     };

@@ -54,25 +54,25 @@ namespace vogl
         const float cDegToRad = 0.01745329252f;
         const float cRadToDeg = 57.29577951f;
 
-        const uint32 cFloatExpBits = 8;
-        const uint32 cFloatExpMask = (1 << cFloatExpBits) - 1;
-        const uint32 cFloatFractBits = 23;
-        const uint32 cFloatFractMask = (1 << cFloatFractBits) - 1;
-        const uint32 cFloatExpShift = 23;
-        const uint32 cFloatExpShiftedMask = cFloatExpMask << cFloatExpShift;
-        const int32 cFloatExpBias = 127;
-        const uint32 cFloatSignMask = 0x80000000U;
+        const uint32_t cFloatExpBits = 8;
+        const uint32_t cFloatExpMask = (1 << cFloatExpBits) - 1;
+        const uint32_t cFloatFractBits = 23;
+        const uint32_t cFloatFractMask = (1 << cFloatFractBits) - 1;
+        const uint32_t cFloatExpShift = 23;
+        const uint32_t cFloatExpShiftedMask = cFloatExpMask << cFloatExpShift;
+        const int32_t cFloatExpBias = 127;
+        const uint32_t cFloatSignMask = 0x80000000U;
 
-        const uint32 cDoubleExpBits = 11;
+        const uint32_t cDoubleExpBits = 11;
         const uint64_t cDoubleExpMask = (1ULL << cDoubleExpBits) - 1ULL;
-        const uint32 cDoubleFractBits = 52;
+        const uint32_t cDoubleFractBits = 52;
         const uint64_t cDoubleFractMask = (1ULL << cDoubleFractBits) - 1ULL;
-        const uint32 cDoubleExpShift = 52;
+        const uint32_t cDoubleExpShift = 52;
         const uint64_t cDoubleExpShiftedMask = cDoubleExpMask << cDoubleExpShift;
-        const int32 cDoubleExpBias = 1023;
+        const int32_t cDoubleExpBias = 1023;
         const uint64_t cDoubleSignMask = 0x8000000000000000ULL;
 
-        extern uint g_bitmasks[32];
+        extern uint32_t g_bitmasks[32];
 
         template <typename T>
         inline bool is_within_open_range(T a, T l, T h)
@@ -207,13 +207,13 @@ namespace vogl
         {
             return static_cast<int>(f);
         }
-        inline uint float_to_uint(float f)
+        inline uint32_t float_to_uint(float f)
         {
-            return static_cast<uint>(f);
+            return static_cast<uint32_t>(f);
         }
-        inline uint float_to_uint(double f)
+        inline uint32_t float_to_uint(double f)
         {
-            return static_cast<uint>(f);
+            return static_cast<uint32_t>(f);
         }
 
         // round to nearest
@@ -234,17 +234,17 @@ namespace vogl
             return static_cast<int64_t>(f + ((f < 0.0f) ? -.5f : .5f));
         }
 
-        inline uint float_to_uint_round(float f)
+        inline uint32_t float_to_uint_round(float f)
         {
-            return static_cast<uint>((f < 0.0f) ? 0.0f : (f + .5f));
+            return static_cast<uint32_t>((f < 0.0f) ? 0.0f : (f + .5f));
         }
         inline uint64_t float_to_uint64_round(float f)
         {
             return static_cast<uint64_t>((f < 0.0f) ? 0.0f : (f + .5f));
         }
-        inline uint double_to_uint_round(double f)
+        inline uint32_t double_to_uint_round(double f)
         {
-            return static_cast<uint>((f < 0.0f) ? 0.0f : (f + .5f));
+            return static_cast<uint32_t>((f < 0.0f) ? 0.0f : (f + .5f));
         }
         inline uint64_t double_to_uint64_round(double f)
         {
@@ -269,7 +269,7 @@ namespace vogl
             return value * value;
         }
 
-        inline bool is_power_of_2(uint32 x)
+        inline bool is_power_of_2(uint32_t x)
         {
             return x && ((x & (x - 1U)) == 0U);
         }
@@ -279,14 +279,14 @@ namespace vogl
         }
 
         template <typename T>
-        inline bool is_pointer_aligned(T p, uint alignment)
+        inline bool is_pointer_aligned(T p, uint32_t alignment)
         {
             VOGL_ASSERT(is_power_of_2(alignment));
             return (reinterpret_cast<intptr_t>(p) & (alignment - 1)) == 0;
         }
 
         template <typename T>
-        inline T align_up_pointer(T p, uint alignment)
+        inline T align_up_pointer(T p, uint32_t alignment)
         {
             VOGL_ASSERT(is_power_of_2(alignment));
             intptr_t q = reinterpret_cast<intptr_t>(p);
@@ -295,13 +295,13 @@ namespace vogl
         }
 
         template <typename T>
-        inline uint get_bytes_to_align_up_pointer(T p, uint alignment)
+        inline uint32_t get_bytes_to_align_up_pointer(T p, uint32_t alignment)
         {
-            return reinterpret_cast<uint8 *>(align_up_pointer(p, alignment)) - reinterpret_cast<uint8 *>(p);
+            return reinterpret_cast<uint8_t *>(align_up_pointer(p, alignment)) - reinterpret_cast<uint8_t *>(p);
         }
 
         template <typename T>
-        inline T align_up_value(T x, uint alignment)
+        inline T align_up_value(T x, uint32_t alignment)
         {
             VOGL_ASSERT(is_power_of_2(alignment));
             uint64_t q = static_cast<uint64_t>(x);
@@ -310,7 +310,7 @@ namespace vogl
         }
 
         template <typename T>
-        inline T align_down_value(T x, uint alignment)
+        inline T align_down_value(T x, uint32_t alignment)
         {
             VOGL_ASSERT(is_power_of_2(alignment));
             uint64_t q = static_cast<uint64_t>(x);
@@ -319,7 +319,7 @@ namespace vogl
         }
 
         template <typename T>
-        inline T get_align_up_value_delta(T x, uint alignment)
+        inline T get_align_up_value_delta(T x, uint32_t alignment)
         {
             return align_up_value(x, alignment) - x;
         }
@@ -377,7 +377,7 @@ namespace vogl
         }
 
         // From "Hackers Delight"
-        inline uint32 next_pow2(uint32 val)
+        inline uint32_t next_pow2(uint32_t val)
         {
             val--;
             val |= val >> 16;
@@ -400,9 +400,9 @@ namespace vogl
             return val + 1;
         }
 
-        inline uint floor_log2i(uint v)
+        inline uint32_t floor_log2i(uint32_t v)
         {
-            uint l = 0;
+            uint32_t l = 0;
             while (v > 1U)
             {
                 v >>= 1;
@@ -411,18 +411,18 @@ namespace vogl
             return l;
         }
 
-        inline uint ceil_log2i(uint v)
+        inline uint32_t ceil_log2i(uint32_t v)
         {
-            uint l = floor_log2i(v);
+            uint32_t l = floor_log2i(v);
             if ((l != cIntBits) && (v > (1U << l)))
                 l++;
             return l;
         }
 
         // Returns the total number of bits needed to encode v.
-        inline uint total_bits(uint v)
+        inline uint32_t total_bits(uint32_t v)
         {
-            uint l = 0;
+            uint32_t l = 0;
             while (v > 0U)
             {
                 v >>= 1;
@@ -432,9 +432,9 @@ namespace vogl
         }
 
         // Actually counts the number of set bits, but hey
-        inline uint bitmask_size(uint mask)
+        inline uint32_t bitmask_size(uint32_t mask)
         {
-            uint size = 0;
+            uint32_t size = 0;
             while (mask)
             {
                 mask &= (mask - 1U);
@@ -443,11 +443,11 @@ namespace vogl
             return size;
         }
 
-        inline uint bitmask_ofs(uint mask)
+        inline uint32_t bitmask_ofs(uint32_t mask)
         {
             if (!mask)
                 return 0;
-            uint ofs = 0;
+            uint32_t ofs = 0;
             while ((mask & 1U) == 0)
             {
                 mask >>= 1U;
@@ -457,16 +457,16 @@ namespace vogl
         }
 
         // true if n is prime. Umm, not fast.
-        bool is_prime(uint n);
+        bool is_prime(uint32_t n);
 
         // Find the smallest prime >= n.
-        uint get_prime(uint n);
+        uint32_t get_prime(uint32_t n);
 
         // See Bit Twiddling Hacks (public domain)
         // http://www-graphics.stanford.edu/~seander/bithacks.html
-        inline uint count_trailing_zero_bits(uint v)
+        inline uint32_t count_trailing_zero_bits(uint32_t v)
         {
-            uint c = 32; // c will be the number of zero bits on the right
+            uint32_t c = 32; // c will be the number of zero bits on the right
 
             static const unsigned int B[] = { 0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0x0000FFFF };
             static const unsigned int S[] = { 1, 2, 4, 8, 16 }; // Our Magic Binary Numbers
@@ -488,11 +488,11 @@ namespace vogl
             return c;
         }
 
-        inline uint count_leading_zero_bits(uint v)
+        inline uint32_t count_leading_zero_bits(uint32_t v)
         {
             #if defined(COMPILER_MSVC)
                 // BitScanReverse doesn't return the count of leading 0s, it returns the LSB-based index of the first 1 bit found. 
-                // Since we want the number of 0s, we subtract bitcount(uint) - 1 - _BitScanReverse value.
+                // Since we want the number of 0s, we subtract bitcount(uint32_t) - 1 - _BitScanReverse value.
                 // When fed a 0, BSR will return an 0 (and in that case we return that there are 32 leading 0s). 
                 unsigned long lz = 0;
                 if (_BitScanReverse(&lz, v)) {
@@ -503,8 +503,8 @@ namespace vogl
             #elif defined(COMPILER_GCCLIKE)
                 return v ? __builtin_clz(v) : 32;
             #else
-                uint temp;
-                uint result = 32U;
+                uint32_t temp;
+                uint32_t result = 32U;
 
                 temp = (v >> 16U);
                 if (temp)
@@ -544,10 +544,10 @@ namespace vogl
             #endif
         }
 
-        inline uint count_leading_zero_bits64(uint64_t v)
+        inline uint32_t count_leading_zero_bits64(uint64_t v)
         {
             // BitScanReverse64 doesn't return the count of leading 0s, it returns the LSB-based index of the first 1 bit found. 
-            // Since we want the number of 0s, we subtract bitcount(uint) - 1 - _BitScanReverse value.
+            // Since we want the number of 0s, we subtract bitcount(uint32_t) - 1 - _BitScanReverse value.
             // When fed a 0, BSR will return an 0 (and in that case we return that there are 32 leading 0s). 
             #if defined(PLATFORM_64BITS) && defined(COMPILER_MSVC)
                 unsigned long lz = 64;
@@ -560,7 +560,7 @@ namespace vogl
                 return v ? __builtin_clzll(v) : 64;
             #else
                 uint64_t temp;
-                uint result = 64U;
+                uint32_t result = 64U;
 
                 temp = (v >> 32U);
                 if (temp)
@@ -607,7 +607,7 @@ namespace vogl
         }
 
         // Returns 64-bit result of a * b
-        inline uint64_t emulu(uint32 a, uint32 b)
+        inline uint64_t emulu(uint32_t a, uint32_t b)
         {
             #if defined(_M_IX86) && defined(COMPILER_MSVC)
                 return __emulu(a, b);
@@ -616,7 +616,7 @@ namespace vogl
             #endif
         }
 
-        double compute_entropy(const uint8 *p, uint n);
+        double compute_entropy(const uint8_t *p, uint32_t n);
 
         void compute_lower_pow2_dim(int &width, int &height);
         void compute_upper_pow2_dim(int &width, int &height);
@@ -631,25 +631,25 @@ namespace vogl
             return fabs(a - b) <= ((maximum(fabs(a), fabs(b)) + 1.0f) * t);
         }
 
-        inline uint mul255(uint a, uint b)
+        inline uint32_t mul255(uint32_t a, uint32_t b)
         {
-            uint t = a * b + 128;
+            uint32_t t = a * b + 128;
             return (t + (t >> 8)) >> 8;
         }
 
-        inline uint clamp255(uint a)
+        inline uint32_t clamp255(uint32_t a)
         {
             if (a & 0xFFFFFF00U)
                 a = (~(static_cast<int>(a) >> 31)) & 0xFF;
             return a;
         }
 
-        inline uint32 get_float_bits(float f)
+        inline uint32_t get_float_bits(float f)
         {
             union
             {
                 float f;
-                uint32 u;
+                uint32_t u;
             } x;
             x.f = f;
             return x.u;
@@ -666,9 +666,9 @@ namespace vogl
             return x.u;
         }
 
-        inline uint32 get_float_mantissa(float f)
+        inline uint32_t get_float_mantissa(float f)
         {
-            const uint32 u = get_float_bits(f);
+            const uint32_t u = get_float_bits(f);
             return u & cFloatFractMask;
         }
 
@@ -680,7 +680,7 @@ namespace vogl
 
         inline int get_float_exponent(float f)
         {
-            const uint32 u = get_float_bits(f);
+            const uint32_t u = get_float_bits(f);
             const int exp = (u >> cFloatExpShift) & cFloatExpMask;
             return exp - cFloatExpBias;
         }
@@ -709,15 +709,15 @@ namespace vogl
 
         inline bool is_denormal(float f)
         {
-            const uint32 u = get_float_bits(f);
-            const uint exp = (u >> cFloatExpShift) & cFloatExpMask;
-            const uint mantissa = u & cFloatFractMask;
+            const uint32_t u = get_float_bits(f);
+            const uint32_t exp = (u >> cFloatExpShift) & cFloatExpMask;
+            const uint32_t mantissa = u & cFloatFractMask;
             return (exp == 0) && (mantissa != 0);
         }
 
         inline bool is_nan_or_inf(float f)
         {
-            uint32 u = get_float_bits(f);
+            uint32_t u = get_float_bits(f);
             return ((u >> cFloatExpShift) & cFloatExpMask) == cFloatExpMask;
         }
 
@@ -731,7 +731,7 @@ namespace vogl
             return (get_double_bits(d) & cDoubleSignMask) != 0;
         }
 
-        inline uint64_t combine_two_uint32s(uint32 l, uint32 h)
+        inline uint64_t combine_two_uint32s(uint32_t l, uint32_t h)
         {
             return static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U);
         }
@@ -745,7 +745,7 @@ namespace vogl
             cComputeGaussianFlagNormalizeCenterToOne = 4
         };
 
-        void compute_gaussian_kernel(float *pDst, int size_x, int size_y, float sigma_sqr, uint flags);
+        void compute_gaussian_kernel(float *pDst, int size_x, int size_y, float sigma_sqr, uint32_t flags);
     }
 
 } // namespace vogl

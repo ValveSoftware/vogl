@@ -78,7 +78,7 @@ const char* plat_gettmpdir()
 char* plat_gettmpfname(char *buffer, int maxlen, const char *prefix)
 {
     struct timeval cur_time;
-    vogl::uint32 rnd32 = plat_rand();
+    uint32_t rnd32 = plat_rand();
     const char *tmpdir = plat_gettmpdir();
 
     gettimeofday(&cur_time, NULL);
@@ -117,7 +117,7 @@ pid_t plat_getppid()
     return getppid();
 }
 
-size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length)
+size_t plat_rand_s(uint32_t* out_array, size_t out_array_length)
 {
     static __thread unsigned int s_seed = 0;
 
@@ -147,20 +147,20 @@ size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length)
     return out_array_length;
 }
 
-vogl::uint32 plat_rand()
+uint32_t plat_rand()
 {
-    vogl::uint32 num;
+    uint32_t num;
     plat_rand_s(&num, 1);
     return num;
 }
 
 // Returns the size of a virtual page of memory.
-vogl::int32 plat_get_virtual_page_size()
+int32_t plat_get_virtual_page_size()
 {
     return sysconf(_SC_PAGE_SIZE);
 }
 
-static int get_prot_from_access(vogl::uint32 access_flags)
+static int get_prot_from_access(uint32_t access_flags)
 {
     int ret_flags = 0;
     if ((access_flags & PLAT_WRITE) == PLAT_WRITE)
@@ -182,7 +182,7 @@ static int get_prot_from_access(vogl::uint32 access_flags)
 }
 
 
-void* plat_virtual_alloc(size_t size_requested, vogl::uint32 access_flags, size_t* out_size_provided)
+void* plat_virtual_alloc(size_t size_requested, uint32_t access_flags, size_t* out_size_provided)
 {
     const int prot = get_prot_from_access(access_flags);
     const int flags = MAP_ANON | MAP_SHARED;
@@ -190,7 +190,7 @@ void* plat_virtual_alloc(size_t size_requested, vogl::uint32 access_flags, size_
 
     if ((!p) || (p == MAP_FAILED))
     {
-        uint e = errno;
+        uint32_t e = errno;
 
         // Not using strerror_r because it fails when we're completely out of memory.
         char *pError_desc = strerror(e);
@@ -212,7 +212,7 @@ void plat_virtual_free(void* free_addr, size_t size)
     int res = munmap(free_addr, size);
     if (res != 0)
     {
-        uint e = errno;
+        uint32_t e = errno;
 
         // Not using strerror_r because it fails when we're completely out of memory.
         char *pError_desc = strerror(e);
@@ -226,7 +226,7 @@ void plat_virtual_free(void* free_addr, size_t size)
 }
 
 #if VOGL_USE_PTHREADS_API
-    int plat_sem_post(sem_t* sem, vogl::uint32 release_count)
+    int plat_sem_post(sem_t* sem, uint32_t release_count)
     {
         int status = 0;
         while (release_count > 0)
@@ -240,7 +240,7 @@ void plat_virtual_free(void* free_addr, size_t size)
         return status;
     }
 
-    void plat_try_sem_post(sem_t* sem, vogl::uint32 release_count)
+    void plat_try_sem_post(sem_t* sem, uint32_t release_count)
     {
         while (release_count > 0)
         {

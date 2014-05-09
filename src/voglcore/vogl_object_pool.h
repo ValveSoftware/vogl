@@ -119,7 +119,7 @@ class object_pool : public LockingPolicy
     };
 
 public:
-    object_pool(size_t grow_size = 0, uint flags = cObjectPoolGrowExponential | cObjectPoolClearOnDestruction)
+    object_pool(size_t grow_size = 0, uint32_t flags = cObjectPoolGrowExponential | cObjectPoolClearOnDestruction)
         : m_flags(flags),
           m_grow_size(grow_size),
           m_next_grow_size(math::maximum<size_t>(1U, grow_size)),
@@ -208,7 +208,7 @@ public:
         if (!p)
             return;
 
-        node *pNode = reinterpret_cast<node *>(reinterpret_cast<uint8 *>(p) - static_cast<int>(VOGL_OFFSETOF(node, m_obj)));
+        node *pNode = reinterpret_cast<node *>(reinterpret_cast<uint8_t *>(p) - static_cast<int>(VOGL_OFFSETOF(node, m_obj)));
 
 #if VOGL_OBJECT_POOL_DEBUGGING
         VOGL_ASSERT(pNode->m_marker == cUsedNodeMarker);
@@ -265,7 +265,7 @@ public:
         m_update_flag = true;
 
         vogl::vector<node *> free_nodes;
-        free_nodes.reserve((uint)m_total_free_nodes);
+        free_nodes.reserve((uint32_t)m_total_free_nodes);
 
         // Put all freelist nodes into the free_nodes array and sort it by pointer address
         node *pCur_node = m_pFirst_free_node;
@@ -289,7 +289,7 @@ public:
 
         // Now put all block pointers into the blocks array and sort it by address
         vogl::vector<block *> blocks;
-        blocks.reserve((uint)m_total_blocks);
+        blocks.reserve((uint32_t)m_total_blocks);
 
         block *pCur_block = m_blocks.m_pNext;
         while (pCur_block != &m_blocks)
@@ -303,12 +303,12 @@ public:
         blocks.sort();
 
         // Now find which block each free node pointer belongs in, and keep a tally of the # of free nodes we've found in each block (along with the first block index for each block)
-        vogl::vector<uint> free_nodes_in_block(blocks.size());
-        vogl::vector<uint> first_node_indices(blocks.size());
+        vogl::vector<uint32_t> free_nodes_in_block(blocks.size());
+        vogl::vector<uint32_t> first_node_indices(blocks.size());
 
         int prev_block_index = -1;
 
-        for (uint i = 0; i < free_nodes.size(); i++)
+        for (uint32_t i = 0; i < free_nodes.size(); i++)
         {
             node *pNode = free_nodes[i];
 
@@ -342,10 +342,10 @@ public:
                     size_t n = blocks[m]->m_total_nodes;
                     if ((n > 1) && ((i + n - 1) < free_nodes.size()))
                     {
-                        pNode = free_nodes[(uint)(i + n - 1)];
+                        pNode = free_nodes[(uint32_t)(i + n - 1)];
                         if (pNode == (pEnd_node - 1))
                         {
-                            free_nodes_in_block[m] = (uint)n;
+                            free_nodes_in_block[m] = (uint32_t)n;
                             i += (n - 1);
                         }
                     }
@@ -373,7 +373,7 @@ public:
 
         size_t prev_highwater_free_node_index = 0;
 
-        for (uint block_index = 0; block_index < blocks.size(); ++block_index)
+        for (uint32_t block_index = 0; block_index < blocks.size(); ++block_index)
         {
             block *pBlock = blocks[block_index];
 
@@ -399,7 +399,7 @@ public:
 
             total_nodes_freed += total_nodes;
 
-            uint first_node_index = first_node_indices[block_index];
+            uint32_t first_node_index = first_node_indices[block_index];
 
             VOGL_ASSERT(first_node_index >= prev_highwater_free_node_index);
 
@@ -411,7 +411,7 @@ public:
             size_t n = first_node_index - prev_highwater_free_node_index;
             for (size_t i = 0; i < n; i++)
             {
-                node *pFree_node = free_nodes[(uint)(prev_highwater_free_node_index + i)];
+                node *pFree_node = free_nodes[(uint32_t)(prev_highwater_free_node_index + i)];
                 pFree_node->m_pNext = m_pFirst_free_node;
                 m_pFirst_free_node = pFree_node;
             }
@@ -437,7 +437,7 @@ public:
             size_t n = free_nodes.size() - prev_highwater_free_node_index;
             for (size_t i = 0; i < n; i++)
             {
-                node *pFree_node = free_nodes[(uint)(prev_highwater_free_node_index + i)];
+                node *pFree_node = free_nodes[(uint32_t)(prev_highwater_free_node_index + i)];
                 pFree_node->m_pNext = m_pFirst_free_node;
                 m_pFirst_free_node = pFree_node;
             }
@@ -449,7 +449,7 @@ public:
         if (m_total_blocks)
         {
             // Now fix up the block list
-            for (uint block_index = 0; block_index < blocks.size(); ++block_index)
+            for (uint32_t block_index = 0; block_index < blocks.size(); ++block_index)
             {
                 block *pBlock = blocks[block_index];
                 if (pBlock)
@@ -498,7 +498,7 @@ public:
 
             if ((p >= pCur_block->get_first_node_ptr()->get_object_ptr()) && (p <= (pCur_block->get_first_node_ptr() + pCur_block->m_total_nodes - 1)->get_object_ptr()))
             {
-                std::ptrdiff_t ofs = reinterpret_cast<const uint8 *>(p) - reinterpret_cast<uint8 *>(pCur_block->get_first_node_ptr()->get_object_ptr());
+                std::ptrdiff_t ofs = reinterpret_cast<const uint8_t *>(p) - reinterpret_cast<uint8_t *>(pCur_block->get_first_node_ptr()->get_object_ptr());
                 if (ofs % sizeof(node))
                 {
                     CHECK_FAILURE;
@@ -549,7 +549,7 @@ public:
         size_t total_nodes_found = 0;
 
         vogl::vector<block *> blocks;
-        blocks.reserve(static_cast<uint>(m_total_blocks));
+        blocks.reserve(static_cast<uint32_t>(m_total_blocks));
 
         block *pCur_block = m_blocks.m_pNext;
         while (pCur_block != &m_blocks)
@@ -678,7 +678,7 @@ public:
         return success;
     }
 
-    uint get_flags() const
+    uint32_t get_flags() const
     {
         return m_flags;
     }
@@ -784,7 +784,7 @@ private:
     struct node
     {
 #if VOGL_OBJECT_POOL_DEBUGGING
-        uint m_marker;
+        uint32_t m_marker;
 #endif
 
         union
@@ -806,26 +806,26 @@ private:
 
     struct block
     {
-        uint m_begin_marker;
+        uint32_t m_begin_marker;
 
         block *m_pPrev;
         block *m_pNext;
 
         size_t m_total_nodes;
 
-        uint m_end_marker;
+        uint32_t m_end_marker;
 
         node *get_first_node_ptr()
         {
-            return reinterpret_cast<node *>(reinterpret_cast<uint8 *>(this) + sizeof(block));
+            return reinterpret_cast<node *>(reinterpret_cast<uint8_t *>(this) + sizeof(block));
         }
         node *get_end_node_ptr()
         {
-            return reinterpret_cast<node *>(reinterpret_cast<uint8 *>(this) + sizeof(block)) + m_total_nodes;
+            return reinterpret_cast<node *>(reinterpret_cast<uint8_t *>(this) + sizeof(block)) + m_total_nodes;
         }
     };
 
-    uint m_flags;
+    uint32_t m_flags;
     size_t m_grow_size;
 
     size_t m_next_grow_size;
@@ -840,7 +840,7 @@ private:
 
     mutable bool m_update_flag;
 
-    void check_failure(uint line) const
+    void check_failure(uint32_t line) const
     {
         console::debug("%s: check_failure() obj %p on line %u\n", VOGL_FUNCTION_INFO_CSTR, this, line);
         VOGL_ASSERT_ALWAYS;

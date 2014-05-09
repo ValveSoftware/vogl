@@ -42,7 +42,7 @@ XVisualInfo,*,*,	    XVisualInfo,*,*
 XVisualInfoPointer,*,*,     XVisualInfo *,*,*
 float,*,*,		    float,*,*
 int,*,*,		    int,*,*
-uint,*,*,		    unsigned int,*,*
+uint32_t,*,*,		    unsigned int,*,*
 uintPointer,*,*,	    unsigned int *,*,*
 int32_t,*,*,		    int32_t,*,*
 int64_t,*,*,		    int64_t,*,*

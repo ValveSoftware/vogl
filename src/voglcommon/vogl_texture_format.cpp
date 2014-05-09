@@ -31,7 +31,7 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Globals
 //----------------------------------------------------------------------------------------------------------------------
-static const vogl_internal_tex_format *get_vogl_internal_texture_formats(uint *count)
+static const vogl_internal_tex_format *get_vogl_internal_texture_formats(uint32_t *count)
 {
     static const vogl_internal_tex_format s_vogl_internal_texture_formats[] =
     {
@@ -82,9 +82,9 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 		ACTUAL_GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_2D, handle);
 		VOGL_CHECK_GL_ERROR;
 
-		for (uint i = 0; i < 256; i++)
+		for (uint32_t i = 0; i < 256; i++)
 		{
-			uint8 vals[4] = { i, 0, 0, 0 };
+			uint8_t vals[4] = { i, 0, 0, 0 };
 			//ACTUAL_GL_ENTRYPOINT(glTexImage2D)(GL_TEXTURE_2D, 0, GL_R8_SNORM, 1, 1, 0, GL_RED, GL_BYTE, vals);
 
 			//float vals[1] = { ( i - 128.0f) / 127.0f };
@@ -100,7 +100,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 
 			VOGL_CHECK_GL_ERROR;
 
-			uint16 gvals[4] = { 0, 0, 0, 0 };
+			uint16_t gvals[4] = { 0, 0, 0, 0 };
 			ACTUAL_GL_ENTRYPOINT(glGetTexImage)(GL_TEXTURE_2D, 0, GL_RGB_INTEGER, GL_UNSIGNED_BYTE, gvals);
 			VOGL_CHECK_GL_ERROR;
 
@@ -135,7 +135,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             GL_SRGB_ALPHA
         };
 
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(base_internal_formats); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(base_internal_formats); i++)
     {
         printf("%s\n", get_gl_enums().find_gl_name(base_internal_formats[i]));
 
@@ -310,7 +310,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
         VOGL_CHECK_GL_ERROR;
     }
 
-    for (uint t = 0; t < 5; t++)
+    for (uint32_t t = 0; t < 5; t++)
     {
         GLenum target = GL_NONE;
         switch (t)
@@ -347,7 +347,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             }
         }
 
-        for (uint fmt = 0; fmt <= 0xFFFF; fmt++)
+        for (uint32_t fmt = 0; fmt <= 0xFFFF; fmt++)
         {
             GLuint handle;
             GL_ENTRYPOINT(glGenTextures)(1, &handle);
@@ -582,7 +582,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
     {
         vogl_internal_tex_format fmt(it->second);
 
-        uint actual_size = 0;
+        uint32_t actual_size = 0;
 
         if (!fmt.m_compressed)
         {
@@ -604,7 +604,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_2D, handle);
             VOGL_CHECK_GL_ERROR;
 
-            uint8 vals[128];
+            uint8_t vals[128];
             utils::zero_object(vals);
             vals[1] = 64;
             GL_ENTRYPOINT(glTexImage2D)(GL_TEXTURE_2D, 0, fmt.m_fmt, 1, 1, 0, fmt.m_optimum_get_image_fmt, fmt.m_optimum_get_image_type, vals);
@@ -613,11 +613,11 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
                 printf("glTexImage2D FAILED: %s %s %s\n", fmt.m_name.get_ptr(), get_gl_enums().find_name(fmt.m_optimum_get_image_fmt, "gl"), get_gl_enums().find_name(fmt.m_optimum_get_image_type, "gl"));
             }
 
-            uint8 gvals[128];
+            uint8_t gvals[128];
             memset(gvals, 0xCD, sizeof(gvals));
             GL_ENTRYPOINT(glGetTexImage)(GL_TEXTURE_2D, 0, fmt.m_optimum_get_image_fmt, fmt.m_optimum_get_image_type, gvals);
 
-            uint actual_size0 = 0;
+            uint32_t actual_size0 = 0;
             for (actual_size0 = 0; actual_size0 < sizeof(gvals); actual_size0++)
                 if (gvals[actual_size0] == 0xCD)
                     break;
@@ -625,7 +625,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             memset(gvals, 0x12, sizeof(gvals));
             GL_ENTRYPOINT(glGetTexImage)(GL_TEXTURE_2D, 0, fmt.m_optimum_get_image_fmt, fmt.m_optimum_get_image_type, gvals);
 
-            uint actual_size1 = 0;
+            uint32_t actual_size1 = 0;
             for (actual_size1 = 0; actual_size1 < sizeof(gvals); actual_size1++)
                 if (gvals[actual_size1] == 0x12)
                     break;
@@ -646,7 +646,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 
             actual_size = actual_size0;
 
-            uint s = vogl_get_image_format_size_in_bytes(fmt.m_optimum_get_image_fmt, fmt.m_optimum_get_image_type);
+            uint32_t s = vogl_get_image_format_size_in_bytes(fmt.m_optimum_get_image_fmt, fmt.m_optimum_get_image_type);
             VOGL_VERIFY(s);
             if (s != actual_size0)
             {
@@ -659,7 +659,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             img_fmt = fmt.m_optimum_get_image_fmt;
             img_type = fmt.m_optimum_get_image_type;
 
-            uint block_dim, bytes_per_block;
+            uint32_t block_dim, bytes_per_block;
             bool success = ktx_get_ogl_fmt_desc(img_fmt, img_type, block_dim, bytes_per_block);
             VOGL_VERIFY(success);
             VOGL_VERIFY(block_dim == 1);
@@ -691,7 +691,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             GL_ENTRYPOINT(glDeleteTextures)(1, &handle);
             VOGL_CHECK_GL_ERROR;
 
-            uint block_width = 0, block_height = 0, block_size = 0;
+            uint32_t block_width = 0, block_height = 0, block_size = 0;
             GL_ENTRYPOINT(glGetInternalformativ)(GL_TEXTURE_2D, fmt.m_fmt, GL_TEXTURE_COMPRESSED_BLOCK_WIDTH, sizeof(int), reinterpret_cast<GLint *>(&block_width));
             GL_ENTRYPOINT(glGetInternalformativ)(GL_TEXTURE_2D, fmt.m_fmt, GL_TEXTURE_COMPRESSED_BLOCK_HEIGHT, sizeof(int), reinterpret_cast<GLint *>(&block_height));
             GL_ENTRYPOINT(glGetInternalformativ)(GL_TEXTURE_2D, fmt.m_fmt, GL_TEXTURE_COMPRESSED_BLOCK_SIZE, sizeof(int), reinterpret_cast<GLint *>(&block_size));
@@ -700,7 +700,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             if (block_size == actual_size * 8U)
                 block_size /= 8;
 
-            uint block_dim, bytes_per_block;
+            uint32_t block_dim, bytes_per_block;
             bool success = ktx_get_ogl_fmt_desc(fmt.m_fmt, GL_UNSIGNED_BYTE, block_dim, bytes_per_block);
             if ((!success) || (block_dim != block_width) || (block_dim != block_height) || (bytes_per_block != actual_size) || (bytes_per_block != block_size))
             {
@@ -722,12 +722,12 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
         fprintf(pFile, "   vogl_internal_tex_format(0x%04X, \"%s\", 0x%04X,\n", fmt.m_fmt, fmt.m_name.get_ptr(), fmt.m_actual_internal_fmt);
 
         fprintf(pFile, "      ");
-        for (uint i = 0; i < cTCTotalComponents; i++)
+        for (uint32_t i = 0; i < cTCTotalComponents; i++)
             fprintf(pFile, "%u, ", fmt.m_comp_sizes[i]);
         fprintf(pFile, "\n");
 
         fprintf(pFile, "      ");
-        for (uint i = 0; i < cTCTotalComponents; i++)
+        for (uint32_t i = 0; i < cTCTotalComponents; i++)
             fprintf(pFile, "%s, ", get_gl_enums().find_name(fmt.m_comp_types[i], "gl"));
         fprintf(pFile, "\n");
 
@@ -739,9 +739,9 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
                 fmt.m_block_width, fmt.m_block_height);
 
 #if 0
-        uint tex_formats_count;
+        uint32_t tex_formats_count;
         static const vogl_internal_tex_format *tex_formats = get_vogl_internal_texture_formats(&tex_formats_count);
-		for (uint q = 0; q < tex_formats_count; q++)
+		for (uint32_t q = 0; q < tex_formats_count; q++)
 		{
 			if (tex_formats[q].m_fmt == fmt.m_fmt)
 			{
@@ -772,7 +772,7 @@ vogl_internal_tex_format::vogl_internal_tex_format(
     int s0, int s1, int s2, int s3, int s4, int s5, int s6, int s7,
     GLenum t0, GLenum t1, GLenum t2, GLenum t3, GLenum t4, GLenum t5, GLenum t6, GLenum t7,
     int shared_size, int tex_storage_type_flags, bool compressed, GLenum optimum_get_fmt, GLenum optimum_get_type,
-    uint image_bytes_per_pixel_or_block, uint block_width, uint block_height)
+    uint32_t image_bytes_per_pixel_or_block, uint32_t block_width, uint32_t block_height)
 {
     VOGL_FUNC_TRACER
 
@@ -821,7 +821,7 @@ bool vogl_internal_tex_format::compare(const vogl_internal_tex_format &rhs) cons
     CMP(m_fmt);
     CMP(m_name);
     CMP(m_actual_internal_fmt);
-    for (uint i = 0; i < cTCTotalComponents; i++)
+    for (uint32_t i = 0; i < cTCTotalComponents; i++)
     {
         CMP(m_comp_sizes[i]);
         CMP(m_comp_types[i]);
@@ -846,14 +846,14 @@ void vogl_texture_format_init()
 {
     VOGL_FUNC_TRACER
 
-    uint tex_formats_count;
+    uint32_t tex_formats_count;
     static const vogl_internal_tex_format *tex_formats = get_vogl_internal_texture_formats(&tex_formats_count);
 
     VOGL_ASSERT(tex_formats_count && tex_formats[0].m_fmt);
 
     get_internal_format_hash_map().reserve(tex_formats_count);
 
-    for (uint i = 0; i < tex_formats_count; i++)
+    for (uint32_t i = 0; i < tex_formats_count; i++)
     {
         bool success = get_internal_format_hash_map().insert(tex_formats[i].m_fmt, &tex_formats[i]).second;
         VOGL_VERIFY(success);

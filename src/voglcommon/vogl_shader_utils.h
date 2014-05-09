@@ -78,7 +78,7 @@ public:
     bool has_uniform(const char *pName) const;
 
     void set_uniform(const char *pName, int s);
-    void set_uniform(const char *pName, uint s);
+    void set_uniform(const char *pName, uint32_t s);
     void set_uniform(const char *pName, float s);
 
     void set_uniform(const char *pName, const vec2I &v);

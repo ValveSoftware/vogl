@@ -45,7 +45,7 @@ namespace vogl
             : jsr(other.jsr), jcong(other.jcong)
         {
         }
-        inline fast_random(uint32 i)
+        inline fast_random(uint32_t i)
         {
             seed(i);
         }
@@ -56,50 +56,50 @@ namespace vogl
             return *this;
         }
 
-        inline void seed(uint32 i);
+        inline void seed(uint32_t i);
         inline void set_default_seed()
         {
             jsr = 0xABCD917A;
             jcong = 0x17F3DEAD;
         }
 
-        inline uint32 urand32();
+        inline uint32_t urand32();
         inline uint64_t urand64();
-        inline uint32 get_bit();
+        inline uint32_t get_bit();
 
         int irand(int l, int h);
-        uint urand(uint l, uint h);
+        uint32_t urand(uint32_t l, uint32_t h);
 
         double drand(double l, double h);
 
         float frand(float l, float h);
 
     private:
-        uint32 jsr;
-        uint32 jcong;
+        uint32_t jsr;
+        uint32_t jcong;
     };
 
     class random
     {
     public:
         random();
-        random(uint32 i);
+        random(uint32_t i);
 
         void seed();
-        void seed(uint32 i);
+        void seed(uint32_t i);
 
-        uint8 urand8()
+        uint8_t urand8()
         {
-            return static_cast<uint8>(urand32());
+            return static_cast<uint8_t>(urand32());
         }
-        uint16 urand16()
+        uint16_t urand16()
         {
-            return static_cast<uint16>(urand32());
+            return static_cast<uint16_t>(urand32());
         }
-        uint32 urand32();
+        uint32_t urand32();
         uint64_t urand64();
 
-        uint32 get_bit();
+        uint32_t get_bit();
 
         // Returns random double between [0, 1)
         double drand(double l, double h);
@@ -113,10 +113,10 @@ namespace vogl
         int irand_inclusive(int l, int h);
 
         // Returns random unsigned int between [l, h)
-        uint urand(uint l, uint h);
+        uint32_t urand(uint32_t l, uint32_t h);
 
         // Returns random unsigned int between [l, h]
-        uint urand_inclusive(uint l, uint h);
+        uint32_t urand_inclusive(uint32_t l, uint32_t h);
 
         // Returns random 64-bit unsigned int between [l, h)
         uint64_t urand64(uint64_t l, uint64_t h);
@@ -134,21 +134,21 @@ namespace vogl
 
 #define VOGL_SHR3 (jsr ^= (jsr << 17), jsr ^= (jsr >> 13), jsr ^= (jsr << 5))
 #define VOGL_CONG (jcong = 69069 * jcong + 1234567)
-    inline void fast_random::seed(uint32 i)
+    inline void fast_random::seed(uint32_t i)
     {
         jsr = i;
         VOGL_SHR3;
         jcong = (~i) ^ 0xDEADBEEF;
     }
 
-    inline uint32 fast_random::urand32()
+    inline uint32_t fast_random::urand32()
     {
         return VOGL_SHR3 ^ VOGL_CONG;
     }
 
-    inline uint32 fast_random::get_bit()
+    inline uint32_t fast_random::get_bit()
     {
-        uint32 k = urand32();
+        uint32_t k = urand32();
         return ((k >> 31U) ^ (k >> 29U)) & 1;
     }
 

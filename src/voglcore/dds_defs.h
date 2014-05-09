@@ -65,7 +65,7 @@ namespace vogl
 
    const vogl_uint32 cDDSMaxImageDimensions = 8192U;
 
-   // Total size of header is sizeof(uint32)+cDDSSizeofDDSurfaceDesc2;
+   // Total size of header is sizeof(uint32_t)+cDDSSizeofDDSurfaceDesc2;
    const vogl_uint32 cDDSSizeofDDSurfaceDesc2 = 124;
 
    // "DDS "

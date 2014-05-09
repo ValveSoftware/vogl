@@ -95,7 +95,7 @@ vec4I vogl_get_gl_vec4I(GLenum pname)
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_gl_integer_indexed
 //----------------------------------------------------------------------------------------------------------------------
-GLint vogl_get_gl_integer_indexed(GLenum pname, uint index)
+GLint vogl_get_gl_integer_indexed(GLenum pname, uint32_t index)
 {
     VOGL_FUNC_TRACER
 
@@ -123,7 +123,7 @@ GLint64 vogl_get_gl_integer64(GLenum pname)
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_gl_integer64_indexed
 //----------------------------------------------------------------------------------------------------------------------
-GLint64 vogl_get_gl_integer64_indexed(GLenum pname, uint index)
+GLint64 vogl_get_gl_integer64_indexed(GLenum pname, uint32_t index)
 {
     VOGL_FUNC_TRACER
 
@@ -151,7 +151,7 @@ GLboolean vogl_get_gl_boolean(GLenum pname)
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_gl_boolean_indexed
 //----------------------------------------------------------------------------------------------------------------------
-GLboolean vogl_get_gl_boolean_indexed(GLenum pname, uint index)
+GLboolean vogl_get_gl_boolean_indexed(GLenum pname, uint32_t index)
 {
     VOGL_FUNC_TRACER
 
@@ -300,7 +300,7 @@ uint32_t vogl_get_gl_type_size(uint32_t ogl_type)
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_image_format_channels (derived from apitrace)
 //----------------------------------------------------------------------------------------------------------------------
-uint vogl_get_image_format_channels(GLenum format)
+uint32_t vogl_get_image_format_channels(GLenum format)
 {
     VOGL_FUNC_TRACER
 
@@ -367,7 +367,7 @@ uint vogl_get_image_format_channels(GLenum format)
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_image_format_info (derived from apitrace)
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_get_image_format_info(GLenum format, GLenum type, uint &num_channels, uint &bits_per_element, uint &bits_per_pixel)
+void vogl_get_image_format_info(GLenum format, GLenum type, uint32_t &num_channels, uint32_t &bits_per_element, uint32_t &bits_per_pixel)
 {
     VOGL_FUNC_TRACER
 
@@ -433,11 +433,11 @@ void vogl_get_image_format_info(GLenum format, GLenum type, uint &num_channels, 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_image_format_size_in_bytes
 //----------------------------------------------------------------------------------------------------------------------
-uint vogl_get_image_format_size_in_bytes(GLenum format, GLenum type)
+uint32_t vogl_get_image_format_size_in_bytes(GLenum format, GLenum type)
 {
     VOGL_FUNC_TRACER
 
-    uint num_channels, bits_per_element, bits_per_pixel;
+    uint32_t num_channels, bits_per_element, bits_per_pixel;
     vogl_get_image_format_info(format, type, num_channels, bits_per_element, bits_per_pixel);
     return (bits_per_pixel + 7) >> 3;
 }
@@ -471,9 +471,9 @@ size_t vogl_get_image_size(GLenum format, GLenum type, GLsizei width, GLsizei he
         return 0;
     }
 
-    uint num_channels;
-    uint bits_per_element;
-    uint bits_per_pixel;
+    uint32_t num_channels;
+    uint32_t bits_per_element;
+    uint32_t bits_per_pixel;
     vogl_get_image_format_info(format, type, num_channels, bits_per_element, bits_per_pixel);
 
     GLint alignment = vogl_get_gl_integer(GL_UNPACK_ALIGNMENT);
@@ -656,7 +656,7 @@ void vogl_enum_desc::init_sort_priority()
     else
     {
         static const char *s_vendor_suffixes[] = { "_NV", "_AMD", "_INTEL", "_QCOM", "_ATI", "_SGIS", "_SGIX", "_ANGLE", "_APPLE", "_MESA", "_IBM" };
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(s_vendor_suffixes); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_vendor_suffixes); i++)
         {
             if (m_macro_name.ends_with(s_vendor_suffixes[i]))
             {
@@ -696,7 +696,7 @@ gl_enums::gl_enums()
 
     memset(m_gl_enum_to_pname_def_index, 0xFF, sizeof(m_gl_enum_to_pname_def_index));
 
-    for (uint i = 0; i < GL_PNAME_DEFS_ARRAY_SIZE; i++)
+    for (uint32_t i = 0; i < GL_PNAME_DEFS_ARRAY_SIZE; i++)
     {
         if (g_gl_pname_defs[i].m_gl_enum < 0x10000)
         {
@@ -805,7 +805,7 @@ const char *gl_enums::find_name(uint64_t gl_enum, const char *pPreferred_prefix)
 
         if (pPreferred_prefix)
         {
-            for (uint i = 0; i < desc_vec.size(); i++)
+            for (uint32_t i = 0; i < desc_vec.size(); i++)
                 if (!desc_vec[i].m_prefix.compare(pPreferred_prefix, false)) // purposely not case sensitive
                     return desc_vec[i].m_macro_name.get_ptr();
         }
@@ -858,7 +858,7 @@ const char *gl_enums::find_name(const char *pSpec_type, uint64_t gl_enum, const 
 
             if (pPreferred_prefix)
             {
-                for (uint i = 0; i < desc_vec.size(); i++)
+                for (uint32_t i = 0; i < desc_vec.size(); i++)
                     if (!desc_vec[i].m_prefix.compare(pPreferred_prefix, false)) // purposely not case sensitive
                         return desc_vec[i].m_macro_name.get_ptr();
             }
@@ -967,7 +967,7 @@ int gl_enums::find_pname_def_index(uint64_t gl_enum) const
 
     if (gl_enum < 0x10000)
     {
-        int pname_index = m_gl_enum_to_pname_def_index[static_cast<uint>(gl_enum)];
+        int pname_index = m_gl_enum_to_pname_def_index[static_cast<uint32_t>(gl_enum)];
         if (pname_index != 0xFFFF)
             return pname_index;
     }
@@ -1124,7 +1124,7 @@ void vogl_reset_pixel_transfer_states()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_copy_buffer_to_image
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_copy_buffer_to_image(void *pDst, uint dst_size, uint width, uint height, GLuint format, GLuint type, bool flip_image, GLuint framebuffer, GLuint read_buffer, GLuint pixel_pack_buffer)
+bool vogl_copy_buffer_to_image(void *pDst, uint32_t dst_size, uint32_t width, uint32_t height, GLuint format, GLuint type, bool flip_image, GLuint framebuffer, GLuint read_buffer, GLuint pixel_pack_buffer)
 {
     VOGL_FUNC_TRACER
 
@@ -1186,12 +1186,12 @@ bool vogl_copy_buffer_to_image(void *pDst, uint dst_size, uint width, uint heigh
 
         if ((pitch) && ((image_size / pitch) == height))
         {
-            vogl::vector<uint8> row_buf(static_cast<uint>(pitch));
+            vogl::vector<uint8_t> row_buf(static_cast<uint32_t>(pitch));
 
-            for (uint y = 0; y < (height / 2); y++)
+            for (uint32_t y = 0; y < (height / 2); y++)
             {
-                uint8 *pA = reinterpret_cast<uint8 *>(pDst) + y * pitch;
-                uint8 *pB = reinterpret_cast<uint8 *>(pDst) + (height - 1 - y) * pitch;
+                uint8_t *pA = reinterpret_cast<uint8_t *>(pDst) + y * pitch;
+                uint8_t *pB = reinterpret_cast<uint8_t *>(pDst) + (height - 1 - y) * pitch;
                 memcpy(row_buf.get_ptr(), pA, pitch);
                 memcpy(pA, pB, pitch);
                 memcpy(pB, row_buf.get_ptr(), pitch);
@@ -1218,7 +1218,7 @@ bool vogl_copy_buffer_to_image(void *pDst, uint dst_size, uint width, uint heigh
 // vogl_check_gl_error_internal
 // Returns *true* on error
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile, uint line, const char *pFunc)
+bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile, uint32_t line, const char *pFunc)
 {
     VOGL_FUNC_TRACER
 
@@ -1240,7 +1240,7 @@ bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile
 			if (get_printable_backtrace(backtrace))
 			{
 				console::error("Backtrace:\n");
-				for (uint i = 0; i < backtrace.size(); i++)
+				for (uint32_t i = 0; i < backtrace.size(); i++)
 					console::error("%s\n", backtrace[i].get_ptr());
 			}
 #endif
@@ -1627,7 +1627,7 @@ GLenum vogl_determine_texture_target(const vogl_context_info &context_info, GLui
 
     vogl_debug_message_control(context_info, GL_INVALID_OPERATION, false);
 
-    uint i;
+    uint32_t i;
     for (i = 0; i < VOGL_ARRAY_SIZE(s_possible_targets); i++)
     {
         GL_ENTRYPOINT(glBindTexture)(s_possible_targets[i], handle);
@@ -1671,7 +1671,7 @@ void vogl_state_saver::save(vogl_generic_state_type type)
                     GL_UNPACK_SWAP_BYTES, GL_UNPACK_LSB_FIRST, GL_UNPACK_ROW_LENGTH, GL_UNPACK_IMAGE_HEIGHT, GL_UNPACK_SKIP_ROWS, GL_UNPACK_SKIP_PIXELS, GL_UNPACK_SKIP_IMAGES, GL_UNPACK_ALIGNMENT
                 };
 
-            for (uint i = 0; i < VOGL_ARRAY_SIZE(s_pixel_store_enums); i++)
+            for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_store_enums); i++)
                 SAVE_INT_STATE(cGSTPixelStore, s_pixel_store_enums[i]);
 
             break;
@@ -1684,7 +1684,7 @@ void vogl_state_saver::save(vogl_generic_state_type type)
                     GL_MAP_COLOR, GL_MAP_STENCIL, GL_INDEX_SHIFT, GL_INDEX_OFFSET
                 };
 
-            for (uint i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_int_enums); i++)
+            for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_int_enums); i++)
                 SAVE_INT_STATE(cGSTPixelTransfer, s_pixel_transfer_int_enums[i]);
 
             static const GLfloat s_pixel_transfer_float_enums[] =
@@ -1696,7 +1696,7 @@ void vogl_state_saver::save(vogl_generic_state_type type)
                     GL_POST_CONVOLUTION_GREEN_BIAS, GL_POST_CONVOLUTION_BLUE_BIAS, GL_POST_CONVOLUTION_ALPHA_BIAS
                 };
 
-            for (uint i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums); i++)
+            for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums); i++)
                 SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
 
             break;
@@ -1708,10 +1708,10 @@ void vogl_state_saver::save(vogl_generic_state_type type)
         }
         case cGSTDrawBuffer:
         {
-            uint max_draw_buffers = vogl_get_gl_integer(GL_MAX_DRAW_BUFFERS);
+            uint32_t max_draw_buffers = vogl_get_gl_integer(GL_MAX_DRAW_BUFFERS);
             m_draw_buffers.resize(max_draw_buffers);
 
-            for (uint i = 0; i < max_draw_buffers; i++)
+            for (uint32_t i = 0; i < max_draw_buffers; i++)
                 m_draw_buffers[i] = vogl_get_gl_integer(GL_DRAW_BUFFER0 + i);
 
             break;
@@ -1792,7 +1792,7 @@ void vogl_state_saver::restore()
         }
     }
 
-    for (uint i = 0; i < m_states.size(); i++)
+    for (uint32_t i = 0; i < m_states.size(); i++)
     {
         const vogl::value_data_type value_type = m_states[i].m_value.get_data_type();
 
@@ -2311,7 +2311,7 @@ void vogl_enable_generic_context_debug_messages()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_create_context
 //----------------------------------------------------------------------------------------------------------------------
-vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config fb_config, vogl_gl_context share_context, uint major_ver, uint minor_ver, uint flags, vogl_context_desc *pDesc)
+vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config fb_config, vogl_gl_context share_context, uint32_t major_ver, uint32_t minor_ver, uint32_t flags, vogl_context_desc *pDesc)
 {
     #if VOGL_PLATFORM_HAS_GLX
         vogl_context_attribs attribs;
@@ -2320,7 +2320,7 @@ vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config f
 
         if (flags & (cCHCCoreProfileFlag | cCHCCompatProfileFlag))
         {
-            uint profile_mask = 0;
+            uint32_t profile_mask = 0;
             if (flags & cCHCCoreProfileFlag)
                 profile_mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 
@@ -2378,7 +2378,7 @@ vogl_gl_drawable vogl_get_current_drawable()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_current_fb_config
 //----------------------------------------------------------------------------------------------------------------------
-vogl_gl_fb_config vogl_get_current_fb_config(uint screen)
+vogl_gl_fb_config vogl_get_current_fb_config(uint32_t screen)
 {
     #if VOGL_PLATFORM_HAS_GLX
         GLXDrawable pDrawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();

@@ -67,7 +67,7 @@ public:
 
     // pTrace_archive may be NULL. Takes ownership of pTrace_archive.
     // TODO: Get rid of the demarcation packet, etc. Make the initial sequence of packets more explicit.
-    bool open(const char *pFilename, vogl_archive_blob_manager *pTrace_archive = NULL, bool delete_archive = true, bool write_demarcation_packet = true, uint pointer_sizes = sizeof(void *));
+    bool open(const char *pFilename, vogl_archive_blob_manager *pTrace_archive = NULL, bool delete_archive = true, bool write_demarcation_packet = true, uint32_t pointer_sizes = sizeof(void *));
 
     inline uint64_t get_cur_gl_call_counter()
     {
@@ -105,7 +105,7 @@ public:
         return true;
     }
 
-    inline bool write_packet(const void *pPacket, uint packet_size, bool is_swap)
+    inline bool write_packet(const void *pPacket, uint32_t packet_size, bool is_swap)
     {
         VOGL_FUNC_TRACER
 

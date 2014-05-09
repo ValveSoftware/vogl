@@ -32,7 +32,7 @@
 
 namespace vogl
 {
-    template <uint N, typename T>
+    template <uint32_t N, typename T>
     class vec : public helpers::rel_ops<vec<N, T> >
     {
     public:
@@ -53,17 +53,17 @@ namespace vogl
 
         inline vec(const vec &other)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] = other.m_s[i];
         }
 
-        template <uint O, typename U>
+        template <uint32_t O, typename U>
         inline vec(const vec<O, U> &other)
         {
             set(other);
         }
 
-        template <uint O, typename U>
+        template <uint32_t O, typename U>
         inline vec(const vec<O, U> &other, T w)
         {
             *this = other;
@@ -140,18 +140,18 @@ namespace vogl
                 memset(m_s, 0, sizeof(m_s));
             else
             {
-                for (uint i = 0; i < N; i++)
+                for (uint32_t i = 0; i < N; i++)
                     m_s[i] = 0;
             }
         }
 
-        template <uint ON, typename OT>
+        template <uint32_t ON, typename OT>
         inline vec &set(const vec<ON, OT> &other)
         {
             if ((void *)this == (void *)&other)
                 return *this;
-            const uint m = math::minimum(N, ON);
-            uint i;
+            const uint32_t m = math::minimum(N, ON);
+            uint32_t i;
             for (i = 0; i < m; i++)
                 m_s[i] = static_cast<T>(other[i]);
             for (; i < N; i++)
@@ -159,7 +159,7 @@ namespace vogl
             return *this;
         }
 
-        inline vec &set_component(uint index, T val)
+        inline vec &set_component(uint32_t index, T val)
         {
             VOGL_ASSERT(index < N);
             m_s[index] = val;
@@ -168,7 +168,7 @@ namespace vogl
 
         inline vec &set(T val)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] = val;
             return *this;
         }
@@ -180,7 +180,7 @@ namespace vogl
             {
                 m_s[1] = val1;
 
-                for (uint i = 2; i < N; i++)
+                for (uint32_t i = 2; i < N; i++)
                     m_s[i] = 0;
             }
             return *this;
@@ -197,7 +197,7 @@ namespace vogl
                 {
                     m_s[2] = val2;
 
-                    for (uint i = 3; i < N; i++)
+                    for (uint32_t i = 3; i < N; i++)
                         m_s[i] = 0;
                 }
             }
@@ -219,7 +219,7 @@ namespace vogl
                     {
                         m_s[3] = val3;
 
-                        for (uint i = 4; i < N; i++)
+                        for (uint32_t i = 4; i < N; i++)
                             m_s[i] = 0;
                     }
                 }
@@ -268,7 +268,7 @@ namespace vogl
             if (N >= 16)
                 m_s[15] = val15;
 
-            for (uint i = 16; i < N; i++)
+            for (uint32_t i = 16; i < N; i++)
                 m_s[i] = 0;
 
             return *this;
@@ -325,7 +325,7 @@ namespace vogl
             if (N >= 20)
                 m_s[19] = val19;
 
-            for (uint i = 20; i < N; i++)
+            for (uint32_t i = 20; i < N; i++)
                 m_s[i] = 0;
 
             return *this;
@@ -396,7 +396,7 @@ namespace vogl
             if (N >= 25)
                 m_s[24] = val24;
 
-            for (uint i = 25; i < N; i++)
+            for (uint32_t i = 25; i < N; i++)
                 m_s[i] = 0;
 
             return *this;
@@ -404,31 +404,31 @@ namespace vogl
 
         inline vec &set(const T *pValues)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] = pValues[i];
             return *this;
         }
 
-        template <uint ON, typename OT>
-        inline vec &swizzle_set(const vec<ON, OT> &other, uint i)
+        template <uint32_t ON, typename OT>
+        inline vec &swizzle_set(const vec<ON, OT> &other, uint32_t i)
         {
             return set(static_cast<T>(other[i]));
         }
 
-        template <uint ON, typename OT>
-        inline vec &swizzle_set(const vec<ON, OT> &other, uint i, uint j)
+        template <uint32_t ON, typename OT>
+        inline vec &swizzle_set(const vec<ON, OT> &other, uint32_t i, uint32_t j)
         {
             return set(static_cast<T>(other[i]), static_cast<T>(other[j]));
         }
 
-        template <uint ON, typename OT>
-        inline vec &swizzle_set(const vec<ON, OT> &other, uint i, uint j, uint k)
+        template <uint32_t ON, typename OT>
+        inline vec &swizzle_set(const vec<ON, OT> &other, uint32_t i, uint32_t j, uint32_t k)
         {
             return set(static_cast<T>(other[i]), static_cast<T>(other[j]), static_cast<T>(other[k]));
         }
 
-        template <uint ON, typename OT>
-        inline vec &swizzle_set(const vec<ON, OT> &other, uint i, uint j, uint k, uint l)
+        template <uint32_t ON, typename OT>
+        inline vec &swizzle_set(const vec<ON, OT> &other, uint32_t i, uint32_t j, uint32_t k, uint32_t l)
         {
             return set(static_cast<T>(other[i]), static_cast<T>(other[j]), static_cast<T>(other[k]), static_cast<T>(other[l]));
         }
@@ -437,21 +437,21 @@ namespace vogl
         {
             if (this != &rhs)
             {
-                for (uint i = 0; i < N; i++)
+                for (uint32_t i = 0; i < N; i++)
                     m_s[i] = rhs.m_s[i];
             }
             return *this;
         }
 
-        template <uint O, typename U>
+        template <uint32_t O, typename U>
         inline vec &operator=(const vec<O, U> &other)
         {
             if ((void *)this == (void *)&other)
                 return *this;
 
-            uint s = math::minimum(N, O);
+            uint32_t s = math::minimum(N, O);
 
-            uint i;
+            uint32_t i;
             for (i = 0; i < s; i++)
                 m_s[i] = static_cast<T>(other[i]);
 
@@ -463,7 +463,7 @@ namespace vogl
 
         inline bool operator==(const vec &rhs) const
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if (!(m_s[i] == rhs.m_s[i]))
                     return false;
             return true;
@@ -471,7 +471,7 @@ namespace vogl
 
         inline bool operator<(const vec &rhs) const
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
             {
                 if (m_s[i] < rhs.m_s[i])
                     return true;
@@ -482,24 +482,24 @@ namespace vogl
             return false;
         }
 
-        inline T operator[](uint i) const
+        inline T operator[](uint32_t i) const
         {
             VOGL_ASSERT(i < N);
             return m_s[i];
         }
 
-        inline T &operator[](uint i)
+        inline T &operator[](uint32_t i)
         {
             VOGL_ASSERT(i < N);
             return m_s[i];
         }
 
-        template <uint index>
+        template <uint32_t index>
         inline uint64_t get_component_as_uint() const
         {
             VOGL_ASSUME(index < N);
             if (sizeof(T) == sizeof(float))
-                return *reinterpret_cast<const uint32 *>(&m_s[index]);
+                return *reinterpret_cast<const uint32_t *>(&m_s[index]);
             else
                 return *reinterpret_cast<const uint64_t *>(&m_s[index]);
         }
@@ -541,7 +541,7 @@ namespace vogl
             return broadcast<3>();
         }
 
-        inline T get_component(uint i) const
+        inline T get_component(uint32_t i) const
         {
             return (*this)[i];
         }
@@ -593,19 +593,19 @@ namespace vogl
             return result;
         }
 
-        inline vec<2, T> select2(uint i, uint j) const
+        inline vec<2, T> select2(uint32_t i, uint32_t j) const
         {
             VOGL_ASSERT((i < N) && (j < N));
             return vec<2, T>(m_s[i], m_s[j]);
         }
 
-        inline vec<3, T> select3(uint i, uint j, uint k) const
+        inline vec<3, T> select3(uint32_t i, uint32_t j, uint32_t k) const
         {
             VOGL_ASSERT((i < N) && (j < N) && (k < N));
             return vec<3, T>(m_s[i], m_s[j], m_s[k]);
         }
 
-        inline vec<4, T> select4(uint i, uint j, uint k, uint l) const
+        inline vec<4, T> select4(uint32_t i, uint32_t j, uint32_t k, uint32_t l) const
         {
             VOGL_ASSERT((i < N) && (j < N) && (k < N) && (l < N));
             return vec<4, T>(m_s[i], m_s[j], m_s[k], m_s[l]);
@@ -637,23 +637,23 @@ namespace vogl
             return vec((*this)[i]);
         }
 
-        template <uint i>
+        template <uint32_t i>
         inline vec broadcast() const
         {
             return vec((*this)[i]);
         }
 
-        inline vec swizzle(uint i, uint j) const
+        inline vec swizzle(uint32_t i, uint32_t j) const
         {
             return vec((*this)[i], (*this)[j]);
         }
 
-        inline vec swizzle(uint i, uint j, uint k) const
+        inline vec swizzle(uint32_t i, uint32_t j, uint32_t k) const
         {
             return vec((*this)[i], (*this)[j], (*this)[k]);
         }
 
-        inline vec swizzle(uint i, uint j, uint k, uint l) const
+        inline vec swizzle(uint32_t i, uint32_t j, uint32_t k, uint32_t l) const
         {
             return vec((*this)[i], (*this)[j], (*this)[k], (*this)[l]);
         }
@@ -661,7 +661,7 @@ namespace vogl
         inline vec operator-() const
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result.m_s[i] = -m_s[i];
             return result;
         }
@@ -673,42 +673,42 @@ namespace vogl
 
         inline vec &operator+=(const vec &other)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] += other.m_s[i];
             return *this;
         }
 
         inline vec &operator-=(const vec &other)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] -= other.m_s[i];
             return *this;
         }
 
         inline vec &operator*=(const vec &other)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] *= other.m_s[i];
             return *this;
         }
 
         inline vec &operator/=(const vec &other)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] /= other.m_s[i];
             return *this;
         }
 
         inline vec &operator*=(T s)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] *= s;
             return *this;
         }
 
         inline vec &operator/=(T s)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] /= s;
             return *this;
         }
@@ -722,7 +722,7 @@ namespace vogl
         friend inline vec operator*(const vec &lhs, T val)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result.m_s[i] = lhs.m_s[i] * val;
             return result;
         }
@@ -730,7 +730,7 @@ namespace vogl
         friend inline vec operator*(T val, const vec &rhs)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result.m_s[i] = val * rhs.m_s[i];
             return result;
         }
@@ -738,7 +738,7 @@ namespace vogl
         friend inline vec operator/(const vec &lhs, const vec &rhs)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result.m_s[i] = lhs.m_s[i] / rhs.m_s[i];
             return result;
         }
@@ -746,7 +746,7 @@ namespace vogl
         friend inline vec operator/(const vec &lhs, T val)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result.m_s[i] = lhs.m_s[i] / val;
             return result;
         }
@@ -754,7 +754,7 @@ namespace vogl
         friend inline vec operator+(const vec &lhs, const vec &rhs)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result.m_s[i] = lhs.m_s[i] + rhs.m_s[i];
             return result;
         }
@@ -762,7 +762,7 @@ namespace vogl
         friend inline vec operator-(const vec &lhs, const vec &rhs)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result.m_s[i] = lhs.m_s[i] - rhs.m_s[i];
             return result;
         }
@@ -818,7 +818,7 @@ namespace vogl
         static inline T dot(const vec &lhs, const vec &rhs)
         {
             T result = lhs.m_s[0] * rhs.m_s[0];
-            for (uint i = 1; i < N; i++)
+            for (uint32_t i = 1; i < N; i++)
                 result += lhs.m_s[i] * rhs.m_s[i];
             return result;
         }
@@ -844,7 +844,7 @@ namespace vogl
         inline T norm(void) const
         {
             T sum = m_s[0] * m_s[0];
-            for (uint i = 1; i < N; i++)
+            for (uint32_t i = 1; i < N; i++)
                 sum += m_s[i] * m_s[i];
             return sum;
         }
@@ -857,7 +857,7 @@ namespace vogl
         inline T squared_distance(const vec &rhs) const
         {
             T dist2 = 0;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
             {
                 T d = m_s[i] - rhs.m_s[i];
                 dist2 += d * d;
@@ -868,7 +868,7 @@ namespace vogl
         inline T squared_distance(const vec &rhs, T early_out) const
         {
             T dist2 = 0;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
             {
                 T d = m_s[i] - rhs.m_s[i];
                 dist2 += d * d;
@@ -881,7 +881,7 @@ namespace vogl
         inline T distance(const vec &rhs) const
         {
             T dist2 = 0;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
             {
                 T d = m_s[i] - rhs.m_s[i];
                 dist2 += d * d;
@@ -892,7 +892,7 @@ namespace vogl
         inline vec inverse() const
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result[i] = m_s[i] ? (1.0f / m_s[i]) : 0;
             return result;
         }
@@ -901,7 +901,7 @@ namespace vogl
         inline double normalize(const vec *pDefaultVec = NULL)
         {
             double n = m_s[0] * m_s[0];
-            for (uint i = 1; i < N; i++)
+            for (uint32_t i = 1; i < N; i++)
                 n += m_s[i] * m_s[i];
 
             if (n != 0)
@@ -952,21 +952,21 @@ namespace vogl
 
         inline vec &clamp(T l, T h)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] = static_cast<T>(math::clamp(m_s[i], l, h));
             return *this;
         }
 
         inline vec &clamp(const vec &l, const vec &h)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m_s[i] = static_cast<T>(math::clamp(m_s[i], l[i], h[i]));
             return *this;
         }
 
         inline bool is_within_bounds(const vec &l, const vec &h) const
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if ((m_s[i] < l[i]) || (m_s[i] > h[i]))
                     return false;
 
@@ -975,18 +975,18 @@ namespace vogl
 
         inline bool is_within_bounds(T l, T h) const
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if ((m_s[i] < l) || (m_s[i] > h))
                     return false;
 
             return true;
         }
 
-        inline uint get_major_axis(void) const
+        inline uint32_t get_major_axis(void) const
         {
             T m = fabs(m_s[0]);
-            uint r = 0;
-            for (uint i = 1; i < N; i++)
+            uint32_t r = 0;
+            for (uint32_t i = 1; i < N; i++)
             {
                 const T c = fabs(m_s[i]);
                 if (c > m)
@@ -998,11 +998,11 @@ namespace vogl
             return r;
         }
 
-        inline uint get_minor_axis(void) const
+        inline uint32_t get_minor_axis(void) const
         {
             T m = fabs(m_s[0]);
-            uint r = 0;
-            for (uint i = 1; i < N; i++)
+            uint32_t r = 0;
+            for (uint32_t i = 1; i < N; i++)
             {
                 const T c = fabs(m_s[i]);
                 if (c < m)
@@ -1014,25 +1014,25 @@ namespace vogl
             return r;
         }
 
-        inline void get_projection_axes(uint &u, uint &v) const
+        inline void get_projection_axes(uint32_t &u, uint32_t &v) const
         {
             const int axis = get_major_axis();
             if (m_s[axis] < 0.0f)
             {
-                v = math::next_wrap<uint>(axis, N);
-                u = math::next_wrap<uint>(v, N);
+                v = math::next_wrap<uint32_t>(axis, N);
+                u = math::next_wrap<uint32_t>(v, N);
             }
             else
             {
-                u = math::next_wrap<uint>(axis, N);
-                v = math::next_wrap<uint>(u, N);
+                u = math::next_wrap<uint32_t>(axis, N);
+                v = math::next_wrap<uint32_t>(u, N);
             }
         }
 
         inline T get_absolute_minimum(void) const
         {
             T result = fabs(m_s[0]);
-            for (uint i = 1; i < N; i++)
+            for (uint32_t i = 1; i < N; i++)
                 result = math::minimum(result, fabs(m_s[i]));
             return result;
         }
@@ -1040,7 +1040,7 @@ namespace vogl
         inline T get_absolute_maximum(void) const
         {
             T result = fabs(m_s[0]);
-            for (uint i = 1; i < N; i++)
+            for (uint32_t i = 1; i < N; i++)
                 result = math::maximum(result, fabs(m_s[i]));
             return result;
         }
@@ -1048,7 +1048,7 @@ namespace vogl
         inline T get_minimum(void) const
         {
             T result = m_s[0];
-            for (uint i = 1; i < N; i++)
+            for (uint32_t i = 1; i < N; i++)
                 result = math::minimum(result, m_s[i]);
             return result;
         }
@@ -1056,7 +1056,7 @@ namespace vogl
         inline T get_maximum(void) const
         {
             T result = m_s[0];
-            for (uint i = 1; i < N; i++)
+            for (uint32_t i = 1; i < N; i++)
                 result = math::maximum(result, m_s[i]);
             return result;
         }
@@ -1074,7 +1074,7 @@ namespace vogl
 
         inline bool all_less(const vec &b) const
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if (m_s[i] >= b.m_s[i])
                     return false;
             return true;
@@ -1082,7 +1082,7 @@ namespace vogl
 
         inline bool all_less_equal(const vec &b) const
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if (m_s[i] > b.m_s[i])
                     return false;
             return true;
@@ -1090,7 +1090,7 @@ namespace vogl
 
         inline bool all_greater(const vec &b) const
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if (m_s[i] <= b.m_s[i])
                     return false;
             return true;
@@ -1098,7 +1098,7 @@ namespace vogl
 
         inline bool all_greater_equal(const vec &b) const
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if (m_s[i] < b.m_s[i])
                     return false;
             return true;
@@ -1114,7 +1114,7 @@ namespace vogl
             if (N >= 3)
                 ret[2] = -m_s[2];
 
-            for (uint i = 3; i < N; i++)
+            for (uint32_t i = 3; i < N; i++)
                 ret[i] = m_s[i];
 
             return ret;
@@ -1122,7 +1122,7 @@ namespace vogl
 
         inline vec &invert()
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if (m_s[i] != 0.0f)
                     m_s[i] = 1.0f / m_s[i];
             return *this;
@@ -1143,7 +1143,7 @@ namespace vogl
         inline vec get_floor() const
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result[i] = floor(m_s[i]);
             return result;
         }
@@ -1151,7 +1151,7 @@ namespace vogl
         inline vec get_ceil() const
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result[i] = ceil(m_s[i]);
             return result;
         }
@@ -1161,7 +1161,7 @@ namespace vogl
         static inline vec mul_components(const vec &lhs, const vec &rhs)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result[i] = lhs.m_s[i] * rhs.m_s[i];
             return result;
         }
@@ -1169,12 +1169,12 @@ namespace vogl
         static inline vec mul_add_components(const vec &a, const vec &b, const vec &c)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result[i] = a.m_s[i] * b.m_s[i] + c.m_s[i];
             return result;
         }
 
-        static inline vec make_axis(uint i)
+        static inline vec make_axis(uint32_t i)
         {
             vec result;
             result.clear();
@@ -1185,7 +1185,7 @@ namespace vogl
         static inline vec component_max(const vec &a, const vec &b)
         {
             vec ret;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 ret.m_s[i] = math::maximum(a.m_s[i], b.m_s[i]);
             return ret;
         }
@@ -1193,7 +1193,7 @@ namespace vogl
         static inline vec component_min(const vec &a, const vec &b)
         {
             vec ret;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 ret.m_s[i] = math::minimum(a.m_s[i], b.m_s[i]);
             return ret;
         }
@@ -1201,14 +1201,14 @@ namespace vogl
         static inline vec lerp(const vec &a, const vec &b, float t)
         {
             vec ret;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 ret.m_s[i] = a.m_s[i] + (b.m_s[i] - a.m_s[i]) * t;
             return ret;
         }
 
         static inline bool equal_tol(const vec &a, const vec &b, float t)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if (!math::equal_tol(a.m_s[i], b.m_s[i], t))
                     return false;
             return true;
@@ -1222,7 +1222,7 @@ namespace vogl
         static inline vec make_random(random &r, float l, float h)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result[i] = r.frand(l, h);
             return result;
         }
@@ -1230,7 +1230,7 @@ namespace vogl
         static inline vec make_random(fast_random &r, float l, float h)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result[i] = r.frand(l, h);
             return result;
         }
@@ -1238,7 +1238,7 @@ namespace vogl
         static inline vec make_random(random &r, const vec &l, const vec &h)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result[i] = r.frand(l[i], h[i]);
             return result;
         }
@@ -1246,7 +1246,7 @@ namespace vogl
         static inline vec make_random(fast_random &r, const vec &l, const vec &h)
         {
             vec result;
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 result[i] = r.frand(l[i], h[i]);
             return result;
         }
@@ -1271,15 +1271,15 @@ namespace vogl
     typedef vec<4, float> vec4F;
     typedef vogl::vector<vec4F> vec4F_array;
 
-    typedef vec<2, uint> vec2U;
+    typedef vec<2, uint32_t> vec2U;
     typedef vec<2, int> vec2I;
     typedef vec<3, int> vec3I;
     typedef vec<4, int> vec4I;
 
-    typedef vec<2, int16> vec2I16;
-    typedef vec<3, int16> vec3I16;
+    typedef vec<2, int16_t> vec2I16;
+    typedef vec<3, int16_t> vec3I16;
 
-    template <uint N, typename T>
+    template <uint32_t N, typename T>
     struct scalar_type<vec<N, T> >
     {
         enum
@@ -1294,7 +1294,7 @@ namespace vogl
         {
             memcpy(p, &init, sizeof(vec<N, T>));
         }
-        static inline void construct_array(vec<N, T> *p, uint n)
+        static inline void construct_array(vec<N, T> *p, uint32_t n)
         {
             VOGL_NOTE_UNUSED(p), VOGL_NOTE_UNUSED(n);
         }
@@ -1302,7 +1302,7 @@ namespace vogl
         {
             VOGL_NOTE_UNUSED(p);
         }
-        static inline void destruct_array(vec<N, T> *p, uint n)
+        static inline void destruct_array(vec<N, T> *p, uint32_t n)
         {
             VOGL_NOTE_UNUSED(p), VOGL_NOTE_UNUSED(n);
         }

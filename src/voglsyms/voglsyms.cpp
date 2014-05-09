@@ -43,8 +43,8 @@ static cfile_stream *g_vogl_pLog_stream;
 
 struct addr_data_t
 {
-    uint32 index;
-    uint32 count;
+    uint32_t index;
+    uint32_t count;
     vogl::vector<uintptr_t> addrs;
 };
 

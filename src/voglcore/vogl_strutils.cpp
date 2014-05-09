@@ -65,7 +65,7 @@ namespace vogl
         return p;
     }
 
-    char *strcpy_safe(char *pDst, uint dst_len, const char *pSrc)
+    char *strcpy_safe(char *pDst, uint32_t dst_len, const char *pSrc)
     {
         VOGL_ASSERT(pDst && pSrc && dst_len);
         if (!dst_len)
@@ -200,15 +200,15 @@ namespace vogl
     }
 
     // Locale-independent integer<->string conversion.
-    bool int_to_string(int value, char *pDst, uint len)
+    bool int_to_string(int value, char *pDst, uint32_t len)
     {
         VOGL_ASSERT(pDst);
 
-        const uint cBufSize = 16;
+        const uint32_t cBufSize = 16;
         char buf[cBufSize];
 
-        // -value could overflow here, but we cast to uint so it doesn't matter
-        uint j = static_cast<uint>((value < 0) ? -value : value);
+        // -value could overflow here, but we cast to uint32_t so it doesn't matter
+        uint32_t j = static_cast<uint32_t>((value < 0) ? -value : value);
 
         char *p = buf + cBufSize - 1;
 
@@ -216,7 +216,7 @@ namespace vogl
 
         do
         {
-            *p-- = static_cast<uint8>('0' + (j % 10U));
+            *p-- = static_cast<uint8_t>('0' + (j % 10U));
             j /= 10U;
         } while (j);
 
@@ -237,11 +237,11 @@ namespace vogl
         return true;
     }
 
-    bool uint_to_string(uint value, char *pDst, uint len)
+    bool uint_to_string(uint32_t value, char *pDst, uint32_t len)
     {
         VOGL_ASSERT(pDst);
 
-        const uint cBufSize = 16;
+        const uint32_t cBufSize = 16;
         char buf[cBufSize];
 
         char *p = buf + cBufSize - 1;
@@ -250,7 +250,7 @@ namespace vogl
 
         do
         {
-            *p-- = static_cast<uint8>('0' + (value % 10U));
+            *p-- = static_cast<uint8_t>('0' + (value % 10U));
             value /= 10U;
         } while (value);
 
@@ -268,12 +268,12 @@ namespace vogl
         return true;
     }
 
-    bool uint64_to_string(uint64_t value, char *pDst, uint len)
+    bool uint64_to_string(uint64_t value, char *pDst, uint32_t len)
     {
         VOGL_ASSERT(pDst);
 
         // really only 20 digits (plus \0 or 21), but whatever
-        const uint cBufSize = 32;
+        const uint32_t cBufSize = 32;
         char buf[cBufSize];
 
         char *p = buf + cBufSize - 1;
@@ -282,7 +282,7 @@ namespace vogl
 
         do
         {
-            *p-- = static_cast<uint8>('0' + (value % 10U));
+            *p-- = static_cast<uint8_t>('0' + (value % 10U));
             value /= 10U;
         } while (value);
 
@@ -302,7 +302,7 @@ namespace vogl
 
     dynamic_string int_to_string(int64_t value)
     {
-        const uint cBufSize = 32;
+        const uint32_t cBufSize = 32;
         char buf[cBufSize];
         int64_to_string(value, buf, cBufSize);
         return dynamic_string(buf);
@@ -310,23 +310,23 @@ namespace vogl
 
     dynamic_string uint_to_string(uint64_t value)
     {
-        const uint cBufSize = 32;
+        const uint32_t cBufSize = 32;
         char buf[cBufSize];
         uint64_to_string(value, buf, cBufSize);
         return dynamic_string(buf);
     }
 
-    bool uint64_to_string_with_commas(uint64_t value, char *pDst, uint len)
+    bool uint64_to_string_with_commas(uint64_t value, char *pDst, uint32_t len)
     {
         VOGL_ASSERT(pDst);
 
-        const uint cBufSize = 32;
+        const uint32_t cBufSize = 32;
         char buf[cBufSize];
 
         char *p = buf + cBufSize - 1;
 
         *p-- = '\0';
-        uint num_chars_until_comma = 3;
+        uint32_t num_chars_until_comma = 3;
 
         do
         {
@@ -336,7 +336,7 @@ namespace vogl
                 num_chars_until_comma = 3;
             }
 
-            *p-- = static_cast<uint8>('0' + (value % 10U));
+            *p-- = static_cast<uint8_t>('0' + (value % 10U));
             num_chars_until_comma--;
 
             value /= 10U;
@@ -354,17 +354,17 @@ namespace vogl
 
     dynamic_string uint64_to_string_with_commas(uint64_t value)
     {
-        const uint cBufSize = 32;
+        const uint32_t cBufSize = 32;
         char buf[cBufSize];
         uint64_to_string_with_commas(value, buf, sizeof(buf));
         return dynamic_string(buf);
     }
 
-    bool int64_to_string(int64_t value, char *pDst, uint len)
+    bool int64_to_string(int64_t value, char *pDst, uint32_t len)
     {
         VOGL_ASSERT(pDst);
 
-        const uint cBufSize = 32;
+        const uint32_t cBufSize = 32;
         char buf[cBufSize];
 
         // -value could overflow here, but we cast to uint64_t so it doesn't matter
@@ -376,7 +376,7 @@ namespace vogl
 
         do
         {
-            *p-- = static_cast<uint8>('0' + (j % 10U));
+            *p-- = static_cast<uint8_t>('0' + (j % 10U));
             j /= 10U;
         } while (j);
 
@@ -407,7 +407,7 @@ namespace vogl
         while (*p && vogl_isspace(*p))
             p++;
 
-        uint result = 0;
+        uint32_t result = 0;
         bool negative = false;
 
         if ((p[0] == '0') && (p[1] == 'x'))
@@ -426,7 +426,7 @@ namespace vogl
                 if (result & 0xF0000000UL)
                     return false;
 
-                result = (result << 4) | static_cast<uint>(v);
+                result = (result << 4) | static_cast<uint32_t>(v);
 
                 p++;
             }
@@ -449,15 +449,15 @@ namespace vogl
                 if (result & 0xE0000000U)
                     return false;
 
-                const uint result8 = result << 3U;
-                const uint result2 = result << 1U;
+                const uint32_t result8 = result << 3U;
+                const uint32_t result2 = result << 1U;
 
                 if (result2 > (0xFFFFFFFFU - result8))
                     return false;
 
                 result = result8 + result2;
 
-                uint c = p[0] - '0';
+                uint32_t c = p[0] - '0';
                 if (c > (0xFFFFFFFFU - result))
                     return false;
 
@@ -545,7 +545,7 @@ namespace vogl
 
                 result = result8 + result2;
 
-                uint c = p[0] - '0';
+                uint32_t c = p[0] - '0';
                 if (c > (0xFFFFFFFFFFFFFFFFULL - result))
                     return false;
 
@@ -573,7 +573,7 @@ namespace vogl
         return true;
     }
 
-    bool string_ptr_to_uint(const char *&pBuf, uint &value)
+    bool string_ptr_to_uint(const char *&pBuf, uint32_t &value)
     {
         value = 0;
 
@@ -583,7 +583,7 @@ namespace vogl
         while (*p && vogl_isspace(*p))
             p++;
 
-        uint result = 0;
+        uint32_t result = 0;
         if ((p[0] == '0') && (p[1] == 'x'))
         {
             p += 2;
@@ -600,7 +600,7 @@ namespace vogl
                 if (result & 0xF0000000UL)
                     return false;
 
-                result = (result << 4) | static_cast<uint>(v);
+                result = (result << 4) | static_cast<uint32_t>(v);
 
                 p++;
             }
@@ -615,15 +615,15 @@ namespace vogl
                 if (result & 0xE0000000U)
                     return false;
 
-                const uint result8 = result << 3U;
-                const uint result2 = result << 1U;
+                const uint32_t result8 = result << 3U;
+                const uint32_t result2 = result << 1U;
 
                 if (result2 > (0xFFFFFFFFU - result8))
                     return false;
 
                 result = result8 + result2;
 
-                uint c = p[0] - '0';
+                uint32_t c = p[0] - '0';
                 if (c > (0xFFFFFFFFU - result))
                     return false;
 
@@ -691,7 +691,7 @@ namespace vogl
 
                 result = result8 + result2;
 
-                uint c = p[0] - '0';
+                uint32_t c = p[0] - '0';
                 if (c > (0xFFFFFFFFFFFFFFFFULL - result))
                     return false;
 
@@ -727,7 +727,7 @@ namespace vogl
             return true;
         }
 
-        uint v;
+        uint32_t v;
         if (string_ptr_to_uint(p, v))
         {
             if (!v)
@@ -742,7 +742,7 @@ namespace vogl
         return false;
     }
 
-    bool string_ptr_to_float(const char *&p, float &value, uint round_digit)
+    bool string_ptr_to_float(const char *&p, float &value, uint32_t round_digit)
     {
         double d;
         if (!string_ptr_to_double(p, d, round_digit))
@@ -754,13 +754,13 @@ namespace vogl
         return true;
     }
 
-    bool string_ptr_to_double(const char *&p, double &value, uint round_digit)
+    bool string_ptr_to_double(const char *&p, double &value, uint32_t round_digit)
     {
         return string_ptr_to_double(p, p + 128, value, round_digit);
     }
 
     // I wrote this approx. 20 years ago in C/assembly using a limited FP emulator package, so it's a bit crude.
-    bool string_ptr_to_double(const char *&p, const char *pEnd, double &value, uint round_digit)
+    bool string_ptr_to_double(const char *&p, const char *pEnd, double &value, uint32_t round_digit)
     {
         VOGL_ASSERT(p);
 
@@ -782,7 +782,7 @@ namespace vogl
 
         int got_sign_flag = 0, got_dp_flag = 0, got_num_flag = 0;
         int got_e_flag = 0, got_e_sign_flag = 0, e_sign = 0;
-        uint whole_count = 0, frac_count = 0;
+        uint32_t whole_count = 0, frac_count = 0;
 
         double whole = 0, frac = 0, scale = 1, exponent = 1;
 
@@ -996,7 +996,7 @@ namespace vogl
         return dynamic_string(cVarArg, "0x%X", value);
     }
 
-    dynamic_string to_hex_string(uint value)
+    dynamic_string to_hex_string(uint32_t value)
     {
         return dynamic_string(cVarArg, "0x%X", value);
     }
@@ -1022,7 +1022,7 @@ namespace vogl
             return false;         \
         }                         \
     } while (0)
-        for (uint i = 0; i < 256; i++)
+        for (uint32_t i = 0; i < 256; i++)
         {
             CHECK((isspace(i) != 0) == vogl_isspace(i));
             CHECK((isdigit(i) != 0) == vogl_isdigit(i));
@@ -1035,7 +1035,7 @@ namespace vogl
         }
 
         vogl::random r;
-        for (uint t = 0; t < 0x1FFFFFF; t++)
+        for (uint32_t t = 0; t < 0x1FFFFFF; t++)
         {
             int64_t i = r.urand64();
             if (r.irand(0, 100) == 0)

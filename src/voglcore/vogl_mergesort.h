@@ -53,14 +53,14 @@ namespace vogl
     {
 
         template <typename T, typename Comparator>
-        inline void BottomUpMerge(vogl::vector<T> &A, uint iLeft, uint iRight, uint iEnd, vogl::vector<T> &B, Comparator comp)
+        inline void BottomUpMerge(vogl::vector<T> &A, uint32_t iLeft, uint32_t iRight, uint32_t iEnd, vogl::vector<T> &B, Comparator comp)
         {
-            uint i0 = iLeft;
-            uint i1 = iRight;
+            uint32_t i0 = iLeft;
+            uint32_t i1 = iRight;
 
 #if 0
 	/* While there are elements in the left or right lists */
-	for (uint j = iLeft; j < iEnd; j++)
+	for (uint32_t j = iLeft; j < iEnd; j++)
 	{
 		/* If left list head exists and is <= existing right list head */
 		if ((i0 < iRight) && ((i1 >= iEnd) || (!comp(A[i1], A[i0]))))
@@ -75,7 +75,7 @@ namespace vogl
 		}
 	}
 #else
-            uint j = iLeft;
+            uint32_t j = iLeft;
 
             if ((i0 < iRight) && (i1 < iEnd))
             {
@@ -109,14 +109,14 @@ namespace vogl
         }
 
         template <typename T, typename Comparator>
-        inline void BottomUpMergeSwap(vogl::vector<T> &A, uint iLeft, uint iRight, uint iEnd, vogl::vector<T> &B, Comparator comp)
+        inline void BottomUpMergeSwap(vogl::vector<T> &A, uint32_t iLeft, uint32_t iRight, uint32_t iEnd, vogl::vector<T> &B, Comparator comp)
         {
-            uint i0 = iLeft;
-            uint i1 = iRight;
+            uint32_t i0 = iLeft;
+            uint32_t i1 = iRight;
 
 #if 0
 	/* While there are elements in the left or right lists */
-	for (uint j = iLeft; j < iEnd; j++)
+	for (uint32_t j = iLeft; j < iEnd; j++)
 	{
 		/* If left list head exists and is <= existing right list head */
 		if ((i0 < iRight) && ((i1 >= iEnd) || (!comp(A[i1], A[i0]))))
@@ -131,7 +131,7 @@ namespace vogl
 		}
 	}
 #else
-            uint j = iLeft;
+            uint32_t j = iLeft;
 
             if ((i0 < iRight) && (i1 < iEnd))
             {
@@ -168,17 +168,17 @@ namespace vogl
         template <typename T, typename Comparator>
         inline void BottomUpSort(vogl::vector<T> &A, Comparator comp)
         {
-            const uint n = A.size();
+            const uint32_t n = A.size();
 
             vogl::vector<T> B(n);
 
             /* Each 1-element run in A is already "sorted". */
 
             /* Make successively longer sorted runs of length 2, 4, 8, 16... until whole array is sorted. */
-            for (uint width = 1; width < n; width = 2 * width)
+            for (uint32_t width = 1; width < n; width = 2 * width)
             {
                 /* Array A is full of runs of length width. */
-                for (uint i = 0; i < n; i = i + 2 * width)
+                for (uint32_t i = 0; i < n; i = i + 2 * width)
                 {
                     /* Merge two runs: A[i:i+width-1] and A[i+width:i+2*width-1] to B[] */
                     /* or copy A[i:n-1] to B[] ( if(i+width >= n) ) */

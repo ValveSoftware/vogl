@@ -79,7 +79,7 @@ namespace vogl
             for (int c = 0; c < Y::num_cols; c++)
             {
                 typename Z::scalar_type s = lhs(r, 0) * rhs(0, c);
-                for (uint i = 1; i < X::num_cols; i++)
+                for (uint32_t i = 1; i < X::num_cols; i++)
                     s += lhs(r, i) * rhs(i, c);
                 result(r, c) = s;
             }
@@ -97,7 +97,7 @@ namespace vogl
             for (int c = 0; c < Y::num_cols; c++)
             {
                 typename Z::scalar_type s = lhs(0, r) * rhs(0, c);
-                for (uint i = 1; i < X::num_rows; i++)
+                for (uint32_t i = 1; i < X::num_rows; i++)
                     s += lhs(i, r) * rhs(i, c);
                 result(r, c) = s;
             }
@@ -115,7 +115,7 @@ namespace vogl
             for (int c = 0; c < Y::num_rows; c++)
             {
                 typename Z::scalar_type s = lhs(r, 0) * rhs(c, 0);
-                for (uint i = 1; i < X::num_cols; i++)
+                for (uint32_t i = 1; i < X::num_cols; i++)
                     s += lhs(r, i) * rhs(c, i);
                 result(r, c) = s;
             }
@@ -127,7 +127,7 @@ namespace vogl
         cIdentity
     };
 
-    template <uint R, uint C, typename T>
+    template <uint32_t R, uint32_t C, typename T>
     class matrix
     {
     public:
@@ -165,14 +165,14 @@ namespace vogl
 
         inline matrix(const matrix &other)
         {
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 m_rows[i] = other.m_rows[i];
         }
 
         inline matrix &operator=(const matrix &rhs)
         {
             if (this != &rhs)
-                for (uint i = 0; i < R; i++)
+                for (uint32_t i = 0; i < R; i++)
                     m_rows[i] = rhs.m_rows[i];
             return *this;
         }
@@ -214,7 +214,7 @@ namespace vogl
 
         inline void set(const float *p)
         {
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
             {
                 m_rows[i].set(p);
                 p += C;
@@ -229,7 +229,7 @@ namespace vogl
             {
                 m_rows[1].set(val10, val11);
 
-                for (uint i = 2; i < R; i++)
+                for (uint32_t i = 2; i < R; i++)
                     m_rows[i].clear();
             }
         }
@@ -247,7 +247,7 @@ namespace vogl
                 {
                     m_rows[2].set(val20, val21);
 
-                    for (uint i = 3; i < R; i++)
+                    for (uint32_t i = 3; i < R; i++)
                         m_rows[i].clear();
                 }
             }
@@ -265,7 +265,7 @@ namespace vogl
                 {
                     m_rows[2].set(val20, val21, val22);
 
-                    for (uint i = 3; i < R; i++)
+                    for (uint32_t i = 3; i < R; i++)
                         m_rows[i].clear();
                 }
             }
@@ -288,7 +288,7 @@ namespace vogl
                     {
                         m_rows[3].set(val30, val31, val32, val33);
 
-                        for (uint i = 4; i < R; i++)
+                        for (uint32_t i = 4; i < R; i++)
                             m_rows[i].clear();
                     }
                 }
@@ -307,65 +307,65 @@ namespace vogl
                 {
                     m_rows[2].set(val20, val21, val22, val23);
 
-                    for (uint i = 3; i < R; i++)
+                    for (uint32_t i = 3; i < R; i++)
                         m_rows[i].clear();
                 }
             }
         }
 
-        inline T operator()(uint r, uint c) const
+        inline T operator()(uint32_t r, uint32_t c) const
         {
             VOGL_ASSERT((r < R) && (c < C));
             return m_rows[r][c];
         }
 
-        inline T &operator()(uint r, uint c)
+        inline T &operator()(uint32_t r, uint32_t c)
         {
             VOGL_ASSERT((r < R) && (c < C));
             return m_rows[r][c];
         }
 
-        inline const row_vec &operator[](uint r) const
+        inline const row_vec &operator[](uint32_t r) const
         {
             VOGL_ASSERT(r < R);
             return m_rows[r];
         }
 
-        inline row_vec &operator[](uint r)
+        inline row_vec &operator[](uint32_t r)
         {
             VOGL_ASSERT(r < R);
             return m_rows[r];
         }
 
-        inline const row_vec &get_row(uint r) const
+        inline const row_vec &get_row(uint32_t r) const
         {
             return (*this)[r];
         }
-        inline row_vec &get_row(uint r)
+        inline row_vec &get_row(uint32_t r)
         {
             return (*this)[r];
         }
 
-        inline col_vec get_col(uint c) const
+        inline col_vec get_col(uint32_t c) const
         {
             VOGL_ASSERT(c < C);
             col_vec result;
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 result[i] = m_rows[i][c];
             return result;
         }
 
-        inline void set_col(uint c, const col_vec &col)
+        inline void set_col(uint32_t c, const col_vec &col)
         {
             VOGL_ASSERT(c < C);
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 m_rows[i][c] = col[i];
         }
 
-        inline void set_col(uint c, const subcol_vec &col)
+        inline void set_col(uint32_t c, const subcol_vec &col)
         {
             VOGL_ASSERT(c < C);
-            for (uint i = 0; i < (R - 1); i++)
+            for (uint32_t i = 0; i < (R - 1); i++)
                 m_rows[i][c] = col[i];
 
             m_rows[R - 1][c] = 0.0f;
@@ -399,28 +399,28 @@ namespace vogl
 
         inline matrix &operator+=(const matrix &other)
         {
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 m_rows[i] += other.m_rows[i];
             return *this;
         }
 
         inline matrix &operator-=(const matrix &other)
         {
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 m_rows[i] -= other.m_rows[i];
             return *this;
         }
 
         inline matrix &operator*=(T val)
         {
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 m_rows[i] *= val;
             return *this;
         }
 
         inline matrix &operator/=(T val)
         {
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 m_rows[i] /= val;
             return *this;
         }
@@ -436,7 +436,7 @@ namespace vogl
         friend inline matrix operator+(const matrix &lhs, const matrix &rhs)
         {
             matrix result;
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 result[i] = lhs.m_rows[i] + rhs.m_rows[i];
             return result;
         }
@@ -444,7 +444,7 @@ namespace vogl
         friend inline matrix operator-(const matrix &lhs, const matrix &rhs)
         {
             matrix result;
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 result[i] = lhs.m_rows[i] - rhs.m_rows[i];
             return result;
         }
@@ -452,7 +452,7 @@ namespace vogl
         friend inline matrix operator*(const matrix &lhs, T val)
         {
             matrix result;
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 result[i] = lhs.m_rows[i] * val;
             return result;
         }
@@ -460,7 +460,7 @@ namespace vogl
         friend inline matrix operator/(const matrix &lhs, T val)
         {
             matrix result;
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 result[i] = lhs.m_rows[i] / val;
             return result;
         }
@@ -468,7 +468,7 @@ namespace vogl
         friend inline matrix operator*(T val, const matrix &rhs)
         {
             matrix result;
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 result[i] = val * rhs.m_rows[i];
             return result;
         }
@@ -492,14 +492,14 @@ namespace vogl
         inline matrix operator-() const
         {
             matrix result;
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 result[i] = -m_rows[i];
             return result;
         }
 
         inline matrix &clear()
         {
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 m_rows[i].clear();
             return *this;
         }
@@ -512,7 +512,7 @@ namespace vogl
 
         inline matrix &set_identity_matrix()
         {
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
             {
                 m_rows[i].clear();
                 m_rows[i][i] = 1.0f;
@@ -532,7 +532,7 @@ namespace vogl
         inline matrix &set_scale_matrix(const row_vec &s)
         {
             clear();
-            for (uint i = 0; i < R; i++)
+            for (uint32_t i = 0; i < R; i++)
                 m_rows[i][i] = s[i];
             return *this;
         }
@@ -578,8 +578,8 @@ namespace vogl
         inline matrix get_transposed() const
         {
             matrix result;
-            for (uint i = 0; i < R; i++)
-                for (uint j = 0; j < C; j++)
+            for (uint32_t i = 0; i < R; i++)
+                for (uint32_t j = 0; j < C; j++)
                     result.m_rows[i][j] = m_rows[j][i];
             return result;
         }
@@ -587,8 +587,8 @@ namespace vogl
         inline matrix &transpose_in_place()
         {
             matrix result;
-            for (uint i = 0; i < R; i++)
-                for (uint j = 0; j < C; j++)
+            for (uint32_t i = 0; i < R; i++)
+                for (uint32_t j = 0; j < C; j++)
                     result.m_rows[i][j] = m_rows[j][i];
             *this = result;
             return *this;
@@ -602,10 +602,10 @@ namespace vogl
 
             matrix mat(*this);
 
-            for (uint c = 0; c < C; c++)
+            for (uint32_t c = 0; c < C; c++)
             {
-                uint max_r = c;
-                for (uint r = c + 1; r < R; r++)
+                uint32_t max_r = c;
+                for (uint32_t r = c + 1; r < R; r++)
                     if (fabs(mat[r][c]) > fabs(mat[max_r][c]))
                         max_r = r;
 
@@ -621,7 +621,7 @@ namespace vogl
                 result[c] /= mat[c][c];
                 mat[c] /= mat[c][c];
 
-                for (uint row = 0; row < R; row++)
+                for (uint32_t row = 0; row < R; row++)
                 {
                     if (row != c)
                     {
@@ -658,7 +658,7 @@ namespace vogl
 
         bool equal_tol(const matrix &b, float tol) const
         {
-            for (uint r = 0; r < R; r++)
+            for (uint32_t r = 0; r < R; r++)
                 if (!row_vec::equal_tol(m_rows[r], b.m_rows[r], tol))
                     return false;
             return true;
@@ -671,7 +671,7 @@ namespace vogl
         static inline row_vec transform(const col_vec &a, const matrix &b)
         {
             row_vec result(b[0] * a[0]);
-            for (uint r = 1; r < R; r++)
+            for (uint32_t r = 1; r < R; r++)
                 result += b[r] * a[r];
             return result;
         }
@@ -730,7 +730,7 @@ namespace vogl
         {
             VOGL_ASSUME(R == C);
             col_vec result;
-            for (uint r = 0; r < R; r++)
+            for (uint32_t r = 0; r < R; r++)
                 result[r] = b[r].dot(a);
             return result;
         }
@@ -741,10 +741,10 @@ namespace vogl
         {
             VOGL_ASSUME(R == C);
             col_vec result;
-            for (uint r = 0; r < R; r++)
+            for (uint32_t r = 0; r < R; r++)
             {
                 T s = 0;
-                for (uint c = 0; c < (C - 1); c++)
+                for (uint32_t c = 0; c < (C - 1); c++)
                     s += b[r][c] * a[c];
 
                 result[r] = s;
@@ -809,7 +809,7 @@ namespace vogl
 
         static inline matrix &mul_components(matrix &result, const matrix &lhs, const matrix &rhs)
         {
-            for (uint r = 0; r < R; r++)
+            for (uint32_t r = 0; r < R; r++)
                 result[r] = row_vec::mul_components(lhs[r], rhs[r]);
             return result;
         }
@@ -951,7 +951,7 @@ namespace vogl
             return ret;
         }
 
-        static inline matrix make_rotate_matrix(uint axis, T ang)
+        static inline matrix make_rotate_matrix(uint32_t axis, T ang)
         {
             vec<3, T> axis_vec;
             axis_vec.clear();
@@ -1032,7 +1032,7 @@ namespace vogl
     protected:
         row_vec m_rows[R];
 
-        static T det_helper(const matrix &a, uint n)
+        static T det_helper(const matrix &a, uint32_t n)
         {
             // Algorithm ported from Numerical Recipes in C.
             T d;
@@ -1042,12 +1042,12 @@ namespace vogl
             else
             {
                 d = 0;
-                for (uint j1 = 1; j1 <= n; j1++)
+                for (uint32_t j1 = 1; j1 <= n; j1++)
                 {
-                    for (uint i = 2; i <= n; i++)
+                    for (uint32_t i = 2; i <= n; i++)
                     {
                         int j2 = 1;
-                        for (uint j = 1; j <= n; j++)
+                        for (uint32_t j = 1; j <= n; j++)
                         {
                             if (j != j1)
                             {

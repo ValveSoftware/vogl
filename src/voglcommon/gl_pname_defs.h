@@ -24,7 +24,7 @@ struct gl_pname_def_t
 	char m_type;
 	int m_count;
 	const char *m_pName;
-	uint m_gl_enum;
+	uint32_t m_gl_enum;
 };
 
 #ifndef VOGL_DECLARE_PNAME_DEF_TABLE

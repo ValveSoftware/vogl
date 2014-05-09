@@ -35,12 +35,12 @@ VOGL_NAMESPACE_BEGIN(vogl)
 
 bool object_pool_test()
 {
-    object_pool<uint, object_pool_spinlock_locking_policy> pool;
+    object_pool<uint32_t, object_pool_spinlock_locking_policy> pool;
 
     bool s = pool.check();
     CHECK(s);
 
-    uint *q = pool.alloc();
+    uint32_t *q = pool.alloc();
 
     s = pool.check();
     CHECK(s);
@@ -55,15 +55,15 @@ bool object_pool_test()
 
     vogl::random rm;
 
-    vogl::vector<uint *> ptrs;
-    uint z = 0;
-    for (uint t = 0; t < 10000; t++, z++)
-//    for (uint t = 0; t < 1000000; t++, z++)
+    vogl::vector<uint32_t *> ptrs;
+    uint32_t z = 0;
+    for (uint32_t t = 0; t < 10000; t++, z++)
+//    for (uint32_t t = 0; t < 1000000; t++, z++)
     {
         printf("%u %" PRIu64 " %" PRIu64 "\n", t, (uint64_t)pool.get_total_blocks(), (uint64_t)pool.get_total_heap_bytes());
 
-        uint n = rm.irand(0, 1000);
-        for (uint i = 0; i < n; i++)
+        uint32_t n = rm.irand(0, 1000);
+        for (uint32_t i = 0; i < n; i++)
         {
             ptrs.push_back(pool.alloc());
 
@@ -76,7 +76,7 @@ bool object_pool_test()
         s = pool.check();
         CHECK(s);
 
-        object_pool<uint, object_pool_spinlock_locking_policy> other_pool;
+        object_pool<uint32_t, object_pool_spinlock_locking_policy> other_pool;
 
         other_pool.swap(pool);
         s = other_pool.check();
@@ -102,15 +102,15 @@ bool object_pool_test()
         s = pool.check();
         CHECK(s);
 
-        uint d = rm.irand(0, 1100); //(z < 400) ? 100 : 1200);
-        for (uint i = 0; i < d; i++)
+        uint32_t d = rm.irand(0, 1100); //(z < 400) ? 100 : 1200);
+        for (uint32_t i = 0; i < d; i++)
         {
             if (ptrs.is_empty())
                 break;
 
-            uint k = rm.irand(0, ptrs.size());
+            uint32_t k = rm.irand(0, ptrs.size());
 
-            uint *p = ptrs[k];
+            uint32_t *p = ptrs[k];
             VOGL_ASSERT(*p == k);
 
             s = pool.is_valid_ptr(p);
@@ -135,7 +135,7 @@ bool object_pool_test()
 
         if (!rm.irand(0, 4000))
         {
-            for (uint i = 0; i < ptrs.size(); i++)
+            for (uint32_t i = 0; i < ptrs.size(); i++)
                 pool.destroy(ptrs[i]);
 
             ptrs.clear();
@@ -152,7 +152,7 @@ bool object_pool_test()
         {
             printf("reset 0\n");
 
-            for (uint i = 0; i < ptrs.size(); i++)
+            for (uint32_t i = 0; i < ptrs.size(); i++)
                 pool.destroy(ptrs[i]);
 
             ptrs.clear();

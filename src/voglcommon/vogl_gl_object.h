@@ -69,7 +69,7 @@ struct vogl_handle_remapper
         return from_location;
     }
 
-    virtual vogl_trace_ptr_value remap_vertex_attrib_ptr(uint index, vogl_trace_ptr_value ptr_val)
+    virtual vogl_trace_ptr_value remap_vertex_attrib_ptr(uint32_t index, vogl_trace_ptr_value ptr_val)
     {
         VOGL_FUNC_TRACER
 
@@ -77,7 +77,7 @@ struct vogl_handle_remapper
         return ptr_val;
     }
 
-    virtual vogl_trace_ptr_value remap_vertex_array_ptr(vogl_client_side_array_desc_id_t id, uint index, vogl_trace_ptr_value ptr_val)
+    virtual vogl_trace_ptr_value remap_vertex_array_ptr(vogl_client_side_array_desc_id_t id, uint32_t index, vogl_trace_ptr_value ptr_val)
     {
         VOGL_FUNC_TRACER
 

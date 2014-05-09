@@ -35,7 +35,7 @@ namespace vogl
     {
     public:
         sparse_bit_array();
-        sparse_bit_array(uint size);
+        sparse_bit_array(uint32_t size);
         sparse_bit_array(sparse_bit_array &other);
         ~sparse_bit_array();
 
@@ -43,12 +43,12 @@ namespace vogl
 
         void clear();
 
-        inline uint get_size()
+        inline uint32_t get_size()
         {
             return (m_num_groups << cBitsPerGroupShift);
         }
 
-        void resize(uint size);
+        void resize(uint32_t size);
 
         sparse_bit_array &operator&=(const sparse_bit_array &other);
         sparse_bit_array &operator|=(const sparse_bit_array &other);
@@ -58,120 +58,120 @@ namespace vogl
 
         void optimize();
 
-        void set_bit_range(uint index, uint num);
-        void clear_bit_range(uint index, uint num);
+        void set_bit_range(uint32_t index, uint32_t num);
+        void clear_bit_range(uint32_t index, uint32_t num);
 
         void clear_all_bits();
 
-        inline void set_bit(uint index)
+        inline void set_bit(uint32_t index)
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            uint32 *pGroup = m_ppGroups[group_index];
+            uint32_t *pGroup = m_ppGroups[group_index];
             if (!pGroup)
             {
                 pGroup = alloc_group(true);
                 m_ppGroups[group_index] = pGroup;
             }
 
-            uint bit_ofs = index & (cBitsPerGroup - 1);
+            uint32_t bit_ofs = index & (cBitsPerGroup - 1);
 
             pGroup[bit_ofs >> 5] |= (1U << (bit_ofs & 31));
         }
 
-        inline void clear_bit(uint index)
+        inline void clear_bit(uint32_t index)
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            uint32 *pGroup = m_ppGroups[group_index];
+            uint32_t *pGroup = m_ppGroups[group_index];
             if (!pGroup)
             {
                 pGroup = alloc_group(true);
                 m_ppGroups[group_index] = pGroup;
             }
 
-            uint bit_ofs = index & (cBitsPerGroup - 1);
+            uint32_t bit_ofs = index & (cBitsPerGroup - 1);
 
             pGroup[bit_ofs >> 5] &= (~(1U << (bit_ofs & 31)));
         }
 
-        inline void set(uint index, bool value)
+        inline void set(uint32_t index, bool value)
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            uint32 *pGroup = m_ppGroups[group_index];
+            uint32_t *pGroup = m_ppGroups[group_index];
             if (!pGroup)
             {
                 pGroup = alloc_group(true);
                 m_ppGroups[group_index] = pGroup;
             }
 
-            uint bit_ofs = index & (cBitsPerGroup - 1);
+            uint32_t bit_ofs = index & (cBitsPerGroup - 1);
 
-            uint bit = (1U << (bit_ofs & 31));
+            uint32_t bit = (1U << (bit_ofs & 31));
 
-            uint c = pGroup[bit_ofs >> 5];
-            uint mask = (uint)(-(int)value);
+            uint32_t c = pGroup[bit_ofs >> 5];
+            uint32_t mask = (uint32_t)(-(int)value);
 
             pGroup[bit_ofs >> 5] = (c & ~bit) | (mask & bit);
         }
 
-        inline bool get_bit(uint index) const
+        inline bool get_bit(uint32_t index) const
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            uint32 *pGroup = m_ppGroups[group_index];
+            uint32_t *pGroup = m_ppGroups[group_index];
             if (!pGroup)
                 return 0;
 
-            uint bit_ofs = index & (cBitsPerGroup - 1);
+            uint32_t bit_ofs = index & (cBitsPerGroup - 1);
 
-            uint bit = (1U << (bit_ofs & 31));
+            uint32_t bit = (1U << (bit_ofs & 31));
 
             return (pGroup[bit_ofs >> 5] & bit) != 0;
         }
 
-        inline bool operator[](uint index) const
+        inline bool operator[](uint32_t index) const
         {
             return get_bit(index);
         }
 
-        inline uint32 get_uint32(uint index) const
+        inline uint32_t get_uint32(uint32_t index) const
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            uint32 *pGroup = m_ppGroups[group_index];
+            uint32_t *pGroup = m_ppGroups[group_index];
             if (!pGroup)
                 return 0;
 
-            uint bit_ofs = index & (cBitsPerGroup - 1);
+            uint32_t bit_ofs = index & (cBitsPerGroup - 1);
 
             return pGroup[bit_ofs >> 5];
         }
 
-        inline void set_uint32(uint index, uint32 value) const
+        inline void set_uint32(uint32_t index, uint32_t value) const
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            uint32 *pGroup = m_ppGroups[group_index];
+            uint32_t *pGroup = m_ppGroups[group_index];
             if (!pGroup)
             {
                 pGroup = alloc_group(true);
                 m_ppGroups[group_index] = pGroup;
             }
 
-            uint bit_ofs = index & (cBitsPerGroup - 1);
+            uint32_t bit_ofs = index & (cBitsPerGroup - 1);
 
             pGroup[bit_ofs >> 5] = value;
         }
 
-        int find_first_set_bit(uint index, uint num) const;
+        int find_first_set_bit(uint32_t index, uint32_t num) const;
 
         enum
         {
@@ -180,25 +180,25 @@ namespace vogl
             cBitsPerGroupShift = cDWORDsPerGroupShift + 5,
             cBitsPerGroup = 1U << cBitsPerGroupShift,
             cBitsPerGroupMask = cBitsPerGroup - 1U,
-            cBytesPerGroup = cDWORDsPerGroup * sizeof(uint32)
+            cBytesPerGroup = cDWORDsPerGroup * sizeof(uint32_t)
         };
 
-        uint get_num_groups() const
+        uint32_t get_num_groups() const
         {
             return m_num_groups;
         }
-        uint32 **get_groups()
+        uint32_t **get_groups()
         {
             return m_ppGroups;
         }
 
     private:
-        uint m_num_groups;
-        uint32 **m_ppGroups;
+        uint32_t m_num_groups;
+        uint32_t **m_ppGroups;
 
-        static inline uint32 *alloc_group(bool clear)
+        static inline uint32_t *alloc_group(bool clear)
         {
-            uint32 *p = (uint32 *)vogl_malloc(cBytesPerGroup);
+            uint32_t *p = (uint32_t *)vogl_malloc(cBytesPerGroup);
             VOGL_VERIFY(p);
             if (clear)
                 memset(p, 0, cBytesPerGroup);

@@ -32,7 +32,7 @@ VOID,*,*,	    VOID,*,*
 VoidPointer,*,*,    void*,*,*
 float,*,*,	    float,*,*
 int,*,*,	    int,*,*
-uint,*,*,	    unsigned int,*,*
+uint32_t,*,*,	    unsigned int,*,*
 ulong,*,*,	    unsigned long,*,*
 void,*,*,	    void,*,*
 PIXELFORMATDESCRIPTOR,*,*,   PIXELFORMATDESCRIPTOR,*,*

@@ -73,7 +73,7 @@ extern const char *vogl_get_namespace_name(vogl_namespace_t namespace_index);
 
 // Note that g_vogl_gl_type_to_namespace[]'s size is != VOGL_TOTAL_NAMESPACES, because of namespace aliases.
 extern vogl_gl_type_to_namespace_t g_vogl_gl_type_to_namespace[];
-extern const vogl::uint g_vogl_gl_type_to_namespace_array_size;
+extern const uint32_t g_vogl_gl_type_to_namespace_array_size;
 
 extern vogl_namespace_t vogl_find_namespace_from_gl_type(const char *pType);
 
@@ -148,11 +148,11 @@ vogl_gl_type_to_namespace_t g_vogl_gl_type_to_namespace[] =
         { "GLhandleARB", VOGL_NAMESPACE_GLHANDLEARB },
     };
 
-const vogl::uint g_vogl_gl_type_to_namespace_array_size = VOGL_ARRAY_SIZE(g_vogl_gl_type_to_namespace);
+const uint32_t g_vogl_gl_type_to_namespace_array_size = VOGL_ARRAY_SIZE(g_vogl_gl_type_to_namespace);
 
 vogl_namespace_t vogl_find_namespace_from_gl_type(const char *pType)
 {
-    for (vogl::uint i = 0; i < g_vogl_gl_type_to_namespace_array_size; i++)
+    for (uint32_t i = 0; i < g_vogl_gl_type_to_namespace_array_size; i++)
         if (!vogl::vogl_stricmp(g_vogl_gl_type_to_namespace[i].m_pType, pType))
             return g_vogl_gl_type_to_namespace[i].m_namespace;
 

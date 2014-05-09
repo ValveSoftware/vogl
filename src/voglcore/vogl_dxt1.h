@@ -39,7 +39,7 @@ namespace vogl
         {
         }
 
-        inline dxt1_solution_coordinates(uint16 l, uint16 h)
+        inline dxt1_solution_coordinates(uint16_t l, uint16_t h)
             : m_low_color(l), m_high_color(h)
         {
         }
@@ -68,8 +68,8 @@ namespace vogl
             m_high_color = dxt1_block::pack_color(h, false);
         }
 
-        uint16 m_low_color;
-        uint16 m_high_color;
+        uint16_t m_low_color;
+        uint16_t m_high_color;
 
         inline void clear()
         {
@@ -91,11 +91,11 @@ namespace vogl
 
         inline bool operator==(const dxt1_solution_coordinates &other) const
         {
-            uint16 l0 = math::minimum(m_low_color, m_high_color);
-            uint16 h0 = math::maximum(m_low_color, m_high_color);
+            uint16_t l0 = math::minimum(m_low_color, m_high_color);
+            uint16_t h0 = math::maximum(m_low_color, m_high_color);
 
-            uint16 l1 = math::minimum(other.m_low_color, other.m_high_color);
-            uint16 h1 = math::maximum(other.m_low_color, other.m_high_color);
+            uint16_t l1 = math::minimum(other.m_low_color, other.m_high_color);
+            uint16_t h1 = math::maximum(other.m_low_color, other.m_high_color);
 
             return (l0 == l1) && (h0 == h1);
         }
@@ -107,11 +107,11 @@ namespace vogl
 
         inline bool operator<(const dxt1_solution_coordinates &other) const
         {
-            uint16 l0 = math::minimum(m_low_color, m_high_color);
-            uint16 h0 = math::maximum(m_low_color, m_high_color);
+            uint16_t l0 = math::minimum(m_low_color, m_high_color);
+            uint16_t h0 = math::maximum(m_low_color, m_high_color);
 
-            uint16 l1 = math::minimum(other.m_low_color, other.m_high_color);
-            uint16 h1 = math::maximum(other.m_low_color, other.m_high_color);
+            uint16_t l1 = math::minimum(other.m_low_color, other.m_high_color);
+            uint16_t h1 = math::maximum(other.m_low_color, other.m_high_color);
 
             if (l0 < l1)
                 return true;
@@ -134,22 +134,22 @@ namespace vogl
         inline unique_color()
         {
         }
-        inline unique_color(const color_quad_u8 &color, uint weight)
+        inline unique_color(const color_quad_u8 &color, uint32_t weight)
             : m_color(color), m_weight(weight)
         {
         }
 
         color_quad_u8 m_color;
-        uint m_weight;
+        uint32_t m_weight;
 
         inline bool operator<(const unique_color &c) const
         {
-            return *reinterpret_cast<const uint32 *>(&m_color) < *reinterpret_cast<const uint32 *>(&c.m_color);
+            return *reinterpret_cast<const uint32_t *>(&m_color) < *reinterpret_cast<const uint32_t *>(&c.m_color);
         }
 
         inline bool operator==(const unique_color &c) const
         {
-            return *reinterpret_cast<const uint32 *>(&m_color) == *reinterpret_cast<const uint32 *>(&c.m_color);
+            return *reinterpret_cast<const uint32_t *>(&m_color) == *reinterpret_cast<const uint32_t *>(&c.m_color);
         }
     };
 
@@ -181,11 +181,11 @@ namespace vogl
                 m_color_weights[2] = 1;
             }
 
-            uint m_block_index;
+            uint32_t m_block_index;
 
             const color_quad_u8 *m_pPixels;
-            uint m_num_pixels;
-            uint m_dxt1a_alpha_threshold;
+            uint32_t m_num_pixels;
+            uint32_t m_dxt1a_alpha_threshold;
 
             vogl_dxt_quality m_quality;
 
@@ -208,10 +208,10 @@ namespace vogl
 
             uint64_t m_error;
 
-            uint16 m_low_color;
-            uint16 m_high_color;
+            uint16_t m_low_color;
+            uint16_t m_high_color;
 
-            uint8 *m_pSelectors;
+            uint8_t *m_pSelectors;
             bool m_alpha_block;
         };
 
@@ -241,7 +241,7 @@ namespace vogl
             }
 
             results m_results;
-            vogl::vector<uint8> m_selectors;
+            vogl::vector<uint8_t> m_selectors;
 
             inline bool operator<(const solution &other) const
             {
@@ -266,14 +266,14 @@ namespace vogl
 
         typedef vogl::vector<unique_color> unique_color_vec;
 
-        //typedef vogl::hash_map<uint32, uint32, bit_hasher<uint32> > unique_color_hash_map;
-        typedef vogl::hash_map<uint32, uint32> unique_color_hash_map;
+        //typedef vogl::hash_map<uint32_t, uint32_t, bit_hasher<uint32_t> > unique_color_hash_map;
+        typedef vogl::hash_map<uint32_t, uint32_t> unique_color_hash_map;
         unique_color_hash_map m_unique_color_hash_map;
 
         unique_color_vec m_unique_colors; // excludes transparent colors!
         unique_color_vec m_temp_unique_colors;
 
-        uint m_total_unique_color_weight;
+        uint32_t m_total_unique_color_weight;
 
         bool m_has_transparent_pixels;
 
@@ -287,8 +287,8 @@ namespace vogl
 
         bool m_all_pixels_grayscale;
 
-        vogl::vector<uint16> m_unique_packed_colors;
-        vogl::vector<uint8> m_trial_selectors;
+        vogl::vector<uint16_t> m_unique_packed_colors;
+        vogl::vector<uint8_t> m_trial_selectors;
 
         vogl::vector<vec3F> m_low_coords;
         vogl::vector<vec3F> m_high_coords;
@@ -298,12 +298,12 @@ namespace vogl
             cMaxPrevResults = 4
         };
         dxt1_solution_coordinates m_prev_results[cMaxPrevResults];
-        uint m_num_prev_results;
+        uint32_t m_num_prev_results;
 
         vogl::vector<vec3I> m_lo_cells;
         vogl::vector<vec3I> m_hi_cells;
 
-        uint m_total_evals;
+        uint32_t m_total_evals;
 
         struct potential_solution
         {
@@ -313,7 +313,7 @@ namespace vogl
             }
 
             dxt1_solution_coordinates m_coords;
-            vogl::vector<uint8> m_selectors;
+            vogl::vector<uint8_t> m_selectors;
             uint64_t m_error;
             bool m_alpha_block;
             bool m_valid;
@@ -331,8 +331,8 @@ namespace vogl
             {
                 if (m_selectors.is_empty())
                     return false;
-                const uint s = m_selectors[0];
-                for (uint i = 1; i < m_selectors.size(); i++)
+                const uint32_t s = m_selectors[0];
+                for (uint32_t i = 1; i < m_selectors.size(); i++)
                     if (m_selectors[i] != s)
                         return false;
                 return true;
@@ -342,7 +342,7 @@ namespace vogl
         potential_solution m_trial_solution;
         potential_solution m_best_solution;
 
-        typedef vogl::hash_map<uint, empty_type> solution_hash_map;
+        typedef vogl::hash_map<uint32_t, empty_type> solution_hash_map;
         solution_hash_map m_solutions_tried;
 
         bool refine_solution(int refinement_level = 0);
@@ -387,10 +387,10 @@ namespace vogl
 
         unique_color lerp_color(const color_quad_u8 &a, const color_quad_u8 &b, float f, int rounding = 1);
 
-        inline uint color_distance(bool perceptual, const color_quad_u8 &e1, const color_quad_u8 &e2, bool alpha);
+        inline uint32_t color_distance(bool perceptual, const color_quad_u8 &e1, const color_quad_u8 &e2, bool alpha);
 
-        static inline vec3F unpack_to_vec3F_raw(uint16 packed_color);
-        static inline vec3F unpack_to_vec3F(uint16 packed_color);
+        static inline vec3F unpack_to_vec3F_raw(uint16_t packed_color);
+        static inline vec3F unpack_to_vec3F(uint16_t packed_color);
     };
 
     inline void swap(dxt1_endpoint_optimizer::solution &a, dxt1_endpoint_optimizer::solution &b)

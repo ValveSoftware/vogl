@@ -77,10 +77,10 @@ extern bool g_vogl_enable_function_tracing;
 class vogl_scoped_func_tracer
 {
     const char *m_pFunc;
-    uint m_line;
+    uint32_t m_line;
 
 public:
-    vogl_scoped_func_tracer(const char *pFunc, uint line)
+    vogl_scoped_func_tracer(const char *pFunc, uint32_t line)
     {
         m_pFunc = NULL;
         if (!g_vogl_enable_function_tracing)
