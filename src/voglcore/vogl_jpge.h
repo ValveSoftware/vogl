@@ -36,7 +36,7 @@ namespace jpge
     typedef unsigned char uint8_t;
     typedef signed short int16;
     typedef signed int int32;
-    typedef unsigned short uint16;
+    typedef unsigned short uint16_t;
     typedef unsigned int uint32;
     typedef unsigned int uint;
 

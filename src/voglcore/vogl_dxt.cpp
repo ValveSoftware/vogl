@@ -129,7 +129,7 @@ namespace vogl
         return false;
     }
 
-    uint16 dxt1_block::pack_color(const color_quad_u8 &color, bool scaled, uint bias)
+    uint16_t dxt1_block::pack_color(const color_quad_u8 &color, bool scaled, uint bias)
     {
         uint r = color.r;
         uint g = color.g;
@@ -146,15 +146,15 @@ namespace vogl
         g = math::minimum(g, 63U);
         b = math::minimum(b, 31U);
 
-        return static_cast<uint16>(b | (g << 5U) | (r << 11U));
+        return static_cast<uint16_t>(b | (g << 5U) | (r << 11U));
     }
 
-    uint16 dxt1_block::pack_color(uint r, uint g, uint b, bool scaled, uint bias)
+    uint16_t dxt1_block::pack_color(uint r, uint g, uint b, bool scaled, uint bias)
     {
         return pack_color(color_quad_u8(r, g, b, 0), scaled, bias);
     }
 
-    color_quad_u8 dxt1_block::unpack_color(uint16 packed_color, bool scaled, uint alpha)
+    color_quad_u8 dxt1_block::unpack_color(uint16_t packed_color, bool scaled, uint alpha)
     {
         uint b = packed_color & 31U;
         uint g = (packed_color >> 5U) & 63U;
@@ -170,7 +170,7 @@ namespace vogl
         return color_quad_u8(cNoClamp, r, g, b, math::minimum(alpha, 255U));
     }
 
-    void dxt1_block::unpack_color(uint &r, uint &g, uint &b, uint16 packed_color, bool scaled)
+    void dxt1_block::unpack_color(uint &r, uint &g, uint &b, uint16_t packed_color, bool scaled)
     {
         color_quad_u8 c(unpack_color(packed_color, scaled, 0));
         r = c.r;
@@ -178,7 +178,7 @@ namespace vogl
         b = c.b;
     }
 
-    void dxt1_block::get_block_colors_NV5x(color_quad_u8 *pDst, uint16 packed_col0, uint16 packed_col1, bool color4)
+    void dxt1_block::get_block_colors_NV5x(color_quad_u8 *pDst, uint16_t packed_col0, uint16_t packed_col1, bool color4)
     {
         color_quad_u8 col0(unpack_color(packed_col0, false));
         color_quad_u8 col1(unpack_color(packed_col1, false));
@@ -221,7 +221,7 @@ namespace vogl
         }
     }
 
-    uint dxt1_block::get_block_colors3(color_quad_u8 *pDst, uint16 color0, uint16 color1)
+    uint dxt1_block::get_block_colors3(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         color_quad_u8 c0(unpack_color(color0, true));
         color_quad_u8 c1(unpack_color(color1, true));
@@ -234,7 +234,7 @@ namespace vogl
         return 3;
     }
 
-    uint dxt1_block::get_block_colors4(color_quad_u8 *pDst, uint16 color0, uint16 color1)
+    uint dxt1_block::get_block_colors4(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         color_quad_u8 c0(unpack_color(color0, true));
         color_quad_u8 c1(unpack_color(color1, true));
@@ -249,7 +249,7 @@ namespace vogl
         return 4;
     }
 
-    uint dxt1_block::get_block_colors3_round(color_quad_u8 *pDst, uint16 color0, uint16 color1)
+    uint dxt1_block::get_block_colors3_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         color_quad_u8 c0(unpack_color(color0, true));
         color_quad_u8 c1(unpack_color(color1, true));
@@ -262,7 +262,7 @@ namespace vogl
         return 3;
     }
 
-    uint dxt1_block::get_block_colors4_round(color_quad_u8 *pDst, uint16 color0, uint16 color1)
+    uint dxt1_block::get_block_colors4_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         color_quad_u8 c0(unpack_color(color0, true));
         color_quad_u8 c1(unpack_color(color1, true));
@@ -278,7 +278,7 @@ namespace vogl
         return 4;
     }
 
-    uint dxt1_block::get_block_colors(color_quad_u8 *pDst, uint16 color0, uint16 color1)
+    uint dxt1_block::get_block_colors(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         if (color0 > color1)
             return get_block_colors4(pDst, color0, color1);
@@ -286,7 +286,7 @@ namespace vogl
             return get_block_colors3(pDst, color0, color1);
     }
 
-    uint dxt1_block::get_block_colors_round(color_quad_u8 *pDst, uint16 color0, uint16 color1)
+    uint dxt1_block::get_block_colors_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         if (color0 > color1)
             return get_block_colors4_round(pDst, color0, color1);
@@ -297,7 +297,7 @@ namespace vogl
     color_quad_u8 dxt1_block::unpack_endpoint(uint32 endpoints, uint index, bool scaled, uint alpha)
     {
         VOGL_ASSERT(index < 2);
-        return unpack_color(static_cast<uint16>((endpoints >> (index * 16U)) & 0xFFFFU), scaled, alpha);
+        return unpack_color(static_cast<uint16_t>((endpoints >> (index * 16U)) & 0xFFFFU), scaled, alpha);
     }
 
     uint dxt1_block::pack_endpoints(uint lo, uint hi)

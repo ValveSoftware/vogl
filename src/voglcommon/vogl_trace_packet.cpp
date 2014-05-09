@@ -1373,8 +1373,8 @@ bool vogl_trace_packet::json_serialize_param(
                     uint64_t data = 0;
                     if (pointee_size == sizeof(uint8_t))
                         data = *reinterpret_cast<const uint8_t *>(p);
-                    else if (pointee_size == sizeof(uint16))
-                        data = *reinterpret_cast<const uint16 *>(p);
+                    else if (pointee_size == sizeof(uint16_t))
+                        data = *reinterpret_cast<const uint16_t *>(p);
                     else if (pointee_size == sizeof(uint32))
                         data = *reinterpret_cast<const uint32 *>(p);
                     else if (pointee_size == sizeof(uint64_t))

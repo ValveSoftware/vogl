@@ -44,7 +44,7 @@ namespace vogl
     data_stream::data_stream(const char *pName, uint attribs)
         : m_name(pName),
           m_pUser_data(NULL),
-          m_attribs(static_cast<uint16>(attribs)),
+          m_attribs(static_cast<uint16_t>(attribs)),
           m_opened(false), m_error(false)
     {
     }

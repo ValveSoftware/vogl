@@ -891,7 +891,7 @@ bool vogl_gl_replayer::set_client_side_array_data(const key_value_map &map, GLui
         {
             uint key_index = base_key_index + inner_iter;
 
-            const uint8_vec *pVertex_blob = map.get_blob(static_cast<uint16>(key_index));
+            const uint8_vec *pVertex_blob = map.get_blob(static_cast<uint16_t>(key_index));
             // TODO: Check for case where blob (or map) is not present, but they still access client side data, this is a bad error
             if (!pVertex_blob)
                 continue;
@@ -1016,7 +1016,7 @@ bool vogl_gl_replayer::set_client_side_vertex_attrib_array_data(const key_value_
 
     for (int vertex_attrib_index = 0; vertex_attrib_index < static_cast<int>(m_pCur_context_state->m_context_info.get_max_vertex_attribs()); vertex_attrib_index++)
     {
-        const uint8_vec *pVertex_blob = map.get_blob(static_cast<uint16>(vertex_attrib_index));
+        const uint8_vec *pVertex_blob = map.get_blob(static_cast<uint16_t>(vertex_attrib_index));
 
         // TODO: Check for case where blob (or map) is not present, but they still access client side data, this is a bad error
         if (!pVertex_blob)
@@ -1234,7 +1234,7 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
             if (type == GL_UNSIGNED_BYTE)
                 v = pIndices_to_scan[i];
             else if (type == GL_UNSIGNED_SHORT)
-                v = reinterpret_cast<const uint16 *>(pIndices_to_scan)[i];
+                v = reinterpret_cast<const uint16_t *>(pIndices_to_scan)[i];
             else if (type == GL_UNSIGNED_INT)
                 v = reinterpret_cast<const uint32 *>(pIndices_to_scan)[i];
             else
@@ -7982,8 +7982,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                     case GL_UNSIGNED_SHORT:
                     {
-                        trace_handle += *reinterpret_cast<const uint16 *>(pTrace_lists_ptr);
-                        pTrace_lists_ptr += sizeof(uint16);
+                        trace_handle += *reinterpret_cast<const uint16_t *>(pTrace_lists_ptr);
+                        pTrace_lists_ptr += sizeof(uint16_t);
                         break;
                     }
                     case GL_INT:

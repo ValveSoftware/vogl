@@ -100,7 +100,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
 
 			VOGL_CHECK_GL_ERROR;
 
-			uint16 gvals[4] = { 0, 0, 0, 0 };
+			uint16_t gvals[4] = { 0, 0, 0, 0 };
 			ACTUAL_GL_ENTRYPOINT(glGetTexImage)(GL_TEXTURE_2D, 0, GL_RGB_INTEGER, GL_UNSIGNED_BYTE, gvals);
 			VOGL_CHECK_GL_ERROR;
 

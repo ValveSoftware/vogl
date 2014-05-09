@@ -92,9 +92,9 @@ namespace vogl
         {
             return static_cast<uint8_t>(urand32());
         }
-        uint16 urand16()
+        uint16_t urand16()
         {
-            return static_cast<uint16>(urand32());
+            return static_cast<uint16_t>(urand32());
         }
         uint32 urand32();
         uint64_t urand64();

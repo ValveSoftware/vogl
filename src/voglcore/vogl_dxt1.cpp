@@ -149,13 +149,13 @@ namespace vogl
 
         uint low_color = (ryg_dxt::OMatch5[ave_r][0] << 11) | (ryg_dxt::OMatch6[ave_g][0] << 5) | ryg_dxt::OMatch5[ave_b][0];
         uint high_color = (ryg_dxt::OMatch5[ave_r][1] << 11) | (ryg_dxt::OMatch6[ave_g][1] << 5) | ryg_dxt::OMatch5[ave_b][1];
-        bool improved = evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+        bool improved = evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
 
         if ((m_pParams->m_use_alpha_blocks) && (m_best_solution.m_error))
         {
             low_color = (ryg_dxt::OMatch5_3[ave_r][0] << 11) | (ryg_dxt::OMatch6_3[ave_g][0] << 5) | ryg_dxt::OMatch5_3[ave_b][0];
             high_color = (ryg_dxt::OMatch5_3[ave_r][1] << 11) | (ryg_dxt::OMatch6_3[ave_g][1] << 5) | ryg_dxt::OMatch5_3[ave_b][1];
-            improved |= evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+            improved |= evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
         }
 
         if (m_pParams->m_quality == cCRNDXTQualityUber)
@@ -171,13 +171,13 @@ namespace vogl
 
                 low_color = (ryg_dxt::OMatch5[r][0] << 11) | (ryg_dxt::OMatch6[g][0] << 5) | ryg_dxt::OMatch5[b][0];
                 high_color = (ryg_dxt::OMatch5[r][1] << 11) | (ryg_dxt::OMatch6[g][1] << 5) | ryg_dxt::OMatch5[b][1];
-                improved |= evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+                improved |= evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
 
                 if ((m_pParams->m_use_alpha_blocks) && (m_best_solution.m_error))
                 {
                     low_color = (ryg_dxt::OMatch5_3[r][0] << 11) | (ryg_dxt::OMatch6_3[g][0] << 5) | ryg_dxt::OMatch5_3[b][0];
                     high_color = (ryg_dxt::OMatch5_3[r][1] << 11) | (ryg_dxt::OMatch6_3[g][1] << 5) | ryg_dxt::OMatch5_3[b][1];
-                    improved |= evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+                    improved |= evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
                 }
             }
         }
@@ -193,17 +193,17 @@ namespace vogl
         int b = m_unique_colors[0].m_color.b;
 
         //uint packed_color = dxt1_block::pack_color(r, g, b, true);
-        //evaluate_solution(dxt1_solution_coordinates((uint16)packed_color, (uint16)packed_color), false, &m_best_solution);
+        //evaluate_solution(dxt1_solution_coordinates((uint16_t)packed_color, (uint16_t)packed_color), false, &m_best_solution);
 
         uint low_color = (ryg_dxt::OMatch5[r][0] << 11) | (ryg_dxt::OMatch6[g][0] << 5) | ryg_dxt::OMatch5[b][0];
         uint high_color = (ryg_dxt::OMatch5[r][1] << 11) | (ryg_dxt::OMatch6[g][1] << 5) | ryg_dxt::OMatch5[b][1];
-        evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), false, &m_best_solution);
+        evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), false, &m_best_solution);
 
         if ((m_pParams->m_use_alpha_blocks) && (m_best_solution.m_error))
         {
             low_color = (ryg_dxt::OMatch5_3[r][0] << 11) | (ryg_dxt::OMatch6_3[g][0] << 5) | ryg_dxt::OMatch5_3[b][0];
             high_color = (ryg_dxt::OMatch5_3[r][1] << 11) | (ryg_dxt::OMatch6_3[g][1] << 5) | ryg_dxt::OMatch5_3[b][1];
-            evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+            evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
         }
 
         return_solution(*m_pResults, m_best_solution);
@@ -475,14 +475,14 @@ namespace vogl
         res.m_error = solution.m_error;
     }
 
-    inline vec3F dxt1_endpoint_optimizer::unpack_to_vec3F(uint16 packed_color)
+    inline vec3F dxt1_endpoint_optimizer::unpack_to_vec3F(uint16_t packed_color)
     {
         color_quad_u8 c(dxt1_block::unpack_color(packed_color, false));
 
         return vec3F(c.r * 1.0f / 31.0f, c.g * 1.0f / 63.0f, c.b * 1.0f / 31.0f);
     }
 
-    inline vec3F dxt1_endpoint_optimizer::unpack_to_vec3F_raw(uint16 packed_color)
+    inline vec3F dxt1_endpoint_optimizer::unpack_to_vec3F_raw(uint16_t packed_color)
     {
         color_quad_u8 c(dxt1_block::unpack_color(packed_color, false));
 
@@ -745,7 +745,7 @@ namespace vogl
             min16 |= math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63) << 5;
             min16 |= math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31) << 0;
 
-            dxt1_solution_coordinates nc((uint16)min16, (uint16)max16);
+            dxt1_solution_coordinates nc((uint16_t)min16, (uint16_t)max16);
             nc.canonicalize();
             improved |= evaluate_solution(nc, true, &m_best_solution, false);
         }
@@ -1035,7 +1035,7 @@ namespace vogl
             {
                 for (uint j = 0; j < num_high_trials; j++)
                 {
-                    dxt1_solution_coordinates coords((uint16)probe_low[i], (uint16)probe_high[j]);
+                    dxt1_solution_coordinates coords((uint16_t)probe_low[i], (uint16_t)probe_high[j]);
                     coords.canonicalize();
 
                     solution_hash_map::insert_result solution_res(m_solutions_tried.insert(coords.m_low_color | (coords.m_high_color << 16U)));
@@ -2018,7 +2018,7 @@ namespace vogl
         for (uint i = 0; i < m_temp_unique_colors.size(); i++)
         {
             const color_quad_u8 &unique_color = m_temp_unique_colors[i].m_color;
-            const uint16 packed_color = dxt1_block::pack_color(unique_color, true);
+            const uint16_t packed_color = dxt1_block::pack_color(unique_color, true);
 
             if (std::find(m_unique_packed_colors.begin(), m_unique_packed_colors.end(), packed_color) != m_unique_packed_colors.end())
                 continue;

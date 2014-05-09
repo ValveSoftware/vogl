@@ -518,7 +518,7 @@ namespace vogl
 
     void dxt_image::endian_swap()
     {
-        utils::endian_switch_words(reinterpret_cast<uint16 *>(m_elements.get_ptr()), m_elements.size_in_bytes() / sizeof(uint16));
+        utils::endian_switch_words(reinterpret_cast<uint16_t *>(m_elements.get_ptr()), m_elements.size_in_bytes() / sizeof(uint16_t));
     }
 
     const dxt_image::element &dxt_image::get_element(uint block_x, uint block_y, uint element_index) const
@@ -593,16 +593,16 @@ namespace vogl
 
                     if (diff_flag)
                     {
-                        const uint16 base_color5 = block.get_base5_color();
-                        const uint16 delta_color3 = block.get_delta3_color();
+                        const uint16_t base_color5 = block.get_base5_color();
+                        const uint16_t delta_color3 = block.get_delta3_color();
                         etc1_block::get_diff_subblock_colors(subblock_colors0, base_color5, table_index0);
                         etc1_block::get_diff_subblock_colors(subblock_colors1, base_color5, delta_color3, table_index1);
                     }
                     else
                     {
-                        const uint16 base_color4_0 = block.get_base4_color(0);
+                        const uint16_t base_color4_0 = block.get_base4_color(0);
                         etc1_block::get_abs_subblock_colors(subblock_colors0, base_color4_0, table_index0);
-                        const uint16 base_color4_1 = block.get_base4_color(1);
+                        const uint16_t base_color4_1 = block.get_base4_color(1);
                         etc1_block::get_abs_subblock_colors(subblock_colors1, base_color4_1, table_index1);
                     }
 
@@ -634,8 +634,8 @@ namespace vogl
                     const uint l = pBlock->get_low_color();
                     const uint h = pBlock->get_high_color();
 
-                    color_quad_u8 c0(dxt1_block::unpack_color(static_cast<uint16>(l), true));
-                    color_quad_u8 c1(dxt1_block::unpack_color(static_cast<uint16>(h), true));
+                    color_quad_u8 c0(dxt1_block::unpack_color(static_cast<uint16_t>(l), true));
+                    color_quad_u8 c1(dxt1_block::unpack_color(static_cast<uint16_t>(h), true));
 
                     const uint s = pBlock->get_selector(x & 3, y & 3);
 
@@ -899,16 +899,16 @@ namespace vogl
 
                     if (diff_flag)
                     {
-                        const uint16 base_color5 = block.get_base5_color();
-                        const uint16 delta_color3 = block.get_delta3_color();
+                        const uint16_t base_color5 = block.get_base5_color();
+                        const uint16_t delta_color3 = block.get_delta3_color();
                         etc1_block::get_diff_subblock_colors(subblock_colors0, base_color5, table_index0);
                         etc1_block::get_diff_subblock_colors(subblock_colors1, base_color5, delta_color3, table_index1);
                     }
                     else
                     {
-                        const uint16 base_color4_0 = block.get_base4_color(0);
+                        const uint16_t base_color4_0 = block.get_base4_color(0);
                         etc1_block::get_abs_subblock_colors(subblock_colors0, base_color4_0, table_index0);
-                        const uint16 base_color4_1 = block.get_base4_color(1);
+                        const uint16_t base_color4_1 = block.get_base4_color(1);
                         etc1_block::get_abs_subblock_colors(subblock_colors1, base_color4_1, table_index1);
                     }
 
@@ -948,7 +948,7 @@ namespace vogl
                     dxt1_block *pDXT1_block = reinterpret_cast<dxt1_block *>(pElement);
 
                     color_quad_u8 colors[cDXT1SelectorValues];
-                    const uint n = pDXT1_block->get_block_colors(colors, static_cast<uint16>(pDXT1_block->get_low_color()), static_cast<uint16>(pDXT1_block->get_high_color()));
+                    const uint n = pDXT1_block->get_block_colors(colors, static_cast<uint16_t>(pDXT1_block->get_low_color()), static_cast<uint16_t>(pDXT1_block->get_high_color()));
 
                     if ((m_format == cDXT1A) && (c.a < 128))
                         pDXT1_block->set_selector(x & 3, y & 3, 3);
@@ -1038,7 +1038,7 @@ namespace vogl
                     const dxt1_block *pDXT1_block = reinterpret_cast<const dxt1_block *>(pElement);
 
                     color_quad_u8 colors[cDXT1SelectorValues];
-                    pDXT1_block->get_block_colors(colors, static_cast<uint16>(pDXT1_block->get_low_color()), static_cast<uint16>(pDXT1_block->get_high_color()));
+                    pDXT1_block->get_block_colors(colors, static_cast<uint16_t>(pDXT1_block->get_low_color()), static_cast<uint16_t>(pDXT1_block->get_high_color()));
 
                     for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                     {
@@ -1400,13 +1400,13 @@ namespace vogl
                 const etc1_block &src_block = *reinterpret_cast<const etc1_block *>(&get_element(block_x, block_y, element_index));
                 if (src_block.get_diff_bit())
                 {
-                    low_endpoint = etc1_block::unpack_color5(static_cast<uint16>(l), scaled);
-                    etc1_block::unpack_color5(high_endpoint, static_cast<uint16>(l), static_cast<uint16>(h), scaled);
+                    low_endpoint = etc1_block::unpack_color5(static_cast<uint16_t>(l), scaled);
+                    etc1_block::unpack_color5(high_endpoint, static_cast<uint16_t>(l), static_cast<uint16_t>(h), scaled);
                 }
                 else
                 {
-                    low_endpoint = etc1_block::unpack_color4(static_cast<uint16>(l), scaled);
-                    high_endpoint = etc1_block::unpack_color4(static_cast<uint16>(h), scaled);
+                    low_endpoint = etc1_block::unpack_color4(static_cast<uint16_t>(l), scaled);
+                    high_endpoint = etc1_block::unpack_color4(static_cast<uint16_t>(h), scaled);
                 }
 
                 return -1;
@@ -1415,12 +1415,12 @@ namespace vogl
             {
                 uint r, g, b;
 
-                dxt1_block::unpack_color(r, g, b, static_cast<uint16>(l), scaled);
+                dxt1_block::unpack_color(r, g, b, static_cast<uint16_t>(l), scaled);
                 low_endpoint.r = static_cast<uint8_t>(r);
                 low_endpoint.g = static_cast<uint8_t>(g);
                 low_endpoint.b = static_cast<uint8_t>(b);
 
-                dxt1_block::unpack_color(r, g, b, static_cast<uint16>(h), scaled);
+                dxt1_block::unpack_color(r, g, b, static_cast<uint16_t>(h), scaled);
                 high_endpoint.r = static_cast<uint8_t>(r);
                 high_endpoint.g = static_cast<uint8_t>(g);
                 high_endpoint.b = static_cast<uint8_t>(b);
@@ -1465,8 +1465,8 @@ namespace vogl
                 const uint table_index1 = src_block.get_inten_table(1);
                 if (src_block.get_diff_bit())
                 {
-                    const uint16 base_color5 = src_block.get_base5_color();
-                    const uint16 delta_color3 = src_block.get_delta3_color();
+                    const uint16_t base_color5 = src_block.get_base5_color();
+                    const uint16_t delta_color3 = src_block.get_delta3_color();
                     if (subblock_index)
                         etc1_block::get_diff_subblock_colors(pColors, base_color5, delta_color3, table_index1);
                     else
@@ -1476,12 +1476,12 @@ namespace vogl
                 {
                     if (subblock_index)
                     {
-                        const uint16 base_color4_1 = src_block.get_base4_color(1);
+                        const uint16_t base_color4_1 = src_block.get_base4_color(1);
                         etc1_block::get_abs_subblock_colors(pColors, base_color4_1, table_index1);
                     }
                     else
                     {
-                        const uint16 base_color4_0 = src_block.get_base4_color(0);
+                        const uint16_t base_color4_0 = src_block.get_base4_color(0);
                         etc1_block::get_abs_subblock_colors(pColors, base_color4_0, table_index0);
                     }
                 }
@@ -1491,7 +1491,7 @@ namespace vogl
             case cColorDXT1:
             {
                 const dxt1_block &block1 = *reinterpret_cast<const dxt1_block *>(&block);
-                return dxt1_block::get_block_colors(pColors, static_cast<uint16>(block1.get_low_color()), static_cast<uint16>(block1.get_high_color()));
+                return dxt1_block::get_block_colors(pColors, static_cast<uint16_t>(block1.get_low_color()), static_cast<uint16_t>(block1.get_high_color()));
             }
             case cAlphaDXT5:
             {

@@ -66,7 +66,7 @@ namespace vogl
             return true;
         }
 
-        typedef uint16 attribs_t;
+        typedef uint16_t attribs_t;
         inline attribs_t get_attribs() const
         {
             return m_attribs;
@@ -156,7 +156,7 @@ namespace vogl
         bool puts(const dynamic_string &str);
         bool write_bom()
         {
-            uint16 bom = 0xFEFF;
+            uint16_t bom = 0xFEFF;
             return write(&bom, sizeof(bom)) == sizeof(bom);
         }
 

@@ -56,7 +56,7 @@ namespace vogl
     namespace rg_etc1
     {
         typedef unsigned char uint8_t;
-        typedef unsigned short uint16;
+        typedef unsigned short uint16_t;
         typedef unsigned int uint;
         typedef unsigned int uint32;
         typedef long long int64_t;
@@ -490,11 +490,11 @@ namespace vogl
         static const uint8_t g_selector_index_to_etc1[cETC1SelectorValues] = { 3, 2, 0, 1 };
 
         // Given an ETC1 diff/inten_table/selector, and an 8-bit desired color, this table encodes the best packed_color in the low byte, and the abs error in the high byte.
-        static uint16 g_etc1_inverse_lookup[2 * 8 * 4][256]; // [diff/inten_table/selector][desired_color]
+        static uint16_t g_etc1_inverse_lookup[2 * 8 * 4][256]; // [diff/inten_table/selector][desired_color]
 
         // g_color8_to_etc_block_config[color][table_index] = Supplies for each 8-bit color value a list of packed ETC1 diff/intensity table/selectors/packed_colors that map to that color.
         // To pack: diff | (inten << 1) | (selector << 4) | (packed_c << 8)
-        static const uint16 g_color8_to_etc_block_config_0_255[2][33] =
+        static const uint16_t g_color8_to_etc_block_config_0_255[2][33] =
             {
                 { 0x0000, 0x0010, 0x0002, 0x0012, 0x0004, 0x0014, 0x0006, 0x0016, 0x0008, 0x0018, 0x000A, 0x001A, 0x000C, 0x001C, 0x000E, 0x001E,
                   0x0001, 0x0011, 0x0003, 0x0013, 0x0005, 0x0015, 0x0007, 0x0017, 0x0009, 0x0019, 0x000B, 0x001B, 0x000D, 0x001D, 0x000F, 0x001F, 0xFFFF },
@@ -503,7 +503,7 @@ namespace vogl
             };
 
         // Really only [254][11].
-        static const uint16 g_color8_to_etc_block_config_1_to_254[254][12] =
+        static const uint16_t g_color8_to_etc_block_config_1_to_254[254][12] =
             {
                 { 0x021C, 0x0D0D, 0xFFFF }, { 0x0020, 0x0021, 0x0A0B, 0x061F, 0xFFFF }, { 0x0113, 0x0217, 0xFFFF }, { 0x0116, 0x031E,
                                                                                                                       0x0B0E, 0x0405, 0xFFFF },
@@ -807,7 +807,7 @@ namespace vogl
                 p[-2] |= (msb << byte_bit_ofs);
             }
 
-            inline void set_base4_color(uint idx, uint16 c)
+            inline void set_base4_color(uint idx, uint16_t c)
             {
                 if (idx)
                 {
@@ -823,7 +823,7 @@ namespace vogl
                 }
             }
 
-            inline uint16 get_base4_color(uint idx) const
+            inline uint16_t get_base4_color(uint idx) const
             {
                 uint r, g, b;
                 if (idx)
@@ -838,67 +838,67 @@ namespace vogl
                     g = get_byte_bits(cETC1AbsColor4G1BitOffset, 4);
                     b = get_byte_bits(cETC1AbsColor4B1BitOffset, 4);
                 }
-                return static_cast<uint16>(b | (g << 4U) | (r << 8U));
+                return static_cast<uint16_t>(b | (g << 4U) | (r << 8U));
             }
 
-            inline void set_base5_color(uint16 c)
+            inline void set_base5_color(uint16_t c)
             {
                 set_byte_bits(cETC1BaseColor5RBitOffset, 5, (c >> 10) & 31);
                 set_byte_bits(cETC1BaseColor5GBitOffset, 5, (c >> 5) & 31);
                 set_byte_bits(cETC1BaseColor5BBitOffset, 5, c & 31);
             }
 
-            inline uint16 get_base5_color() const
+            inline uint16_t get_base5_color() const
             {
                 const uint r = get_byte_bits(cETC1BaseColor5RBitOffset, 5);
                 const uint g = get_byte_bits(cETC1BaseColor5GBitOffset, 5);
                 const uint b = get_byte_bits(cETC1BaseColor5BBitOffset, 5);
-                return static_cast<uint16>(b | (g << 5U) | (r << 10U));
+                return static_cast<uint16_t>(b | (g << 5U) | (r << 10U));
             }
 
-            void set_delta3_color(uint16 c)
+            void set_delta3_color(uint16_t c)
             {
                 set_byte_bits(cETC1DeltaColor3RBitOffset, 3, (c >> 6) & 7);
                 set_byte_bits(cETC1DeltaColor3GBitOffset, 3, (c >> 3) & 7);
                 set_byte_bits(cETC1DeltaColor3BBitOffset, 3, c & 7);
             }
 
-            inline uint16 get_delta3_color() const
+            inline uint16_t get_delta3_color() const
             {
                 const uint r = get_byte_bits(cETC1DeltaColor3RBitOffset, 3);
                 const uint g = get_byte_bits(cETC1DeltaColor3GBitOffset, 3);
                 const uint b = get_byte_bits(cETC1DeltaColor3BBitOffset, 3);
-                return static_cast<uint16>(b | (g << 3U) | (r << 6U));
+                return static_cast<uint16_t>(b | (g << 3U) | (r << 6U));
             }
 
             // Base color 5
-            static uint16 pack_color5(const color_quad_u8 &color, bool scaled, uint bias = 127U);
-            static uint16 pack_color5(uint r, uint g, uint b, bool scaled, uint bias = 127U);
+            static uint16_t pack_color5(const color_quad_u8 &color, bool scaled, uint bias = 127U);
+            static uint16_t pack_color5(uint r, uint g, uint b, bool scaled, uint bias = 127U);
 
-            static color_quad_u8 unpack_color5(uint16 packed_color5, bool scaled, uint alpha = 255U);
-            static void unpack_color5(uint &r, uint &g, uint &b, uint16 packed_color, bool scaled);
+            static color_quad_u8 unpack_color5(uint16_t packed_color5, bool scaled, uint alpha = 255U);
+            static void unpack_color5(uint &r, uint &g, uint &b, uint16_t packed_color, bool scaled);
 
-            static bool unpack_color5(color_quad_u8 &result, uint16 packed_color5, uint16 packed_delta3, bool scaled, uint alpha = 255U);
-            static bool unpack_color5(uint &r, uint &g, uint &b, uint16 packed_color5, uint16 packed_delta3, bool scaled, uint alpha = 255U);
+            static bool unpack_color5(color_quad_u8 &result, uint16_t packed_color5, uint16_t packed_delta3, bool scaled, uint alpha = 255U);
+            static bool unpack_color5(uint &r, uint &g, uint &b, uint16_t packed_color5, uint16_t packed_delta3, bool scaled, uint alpha = 255U);
 
             // Delta color 3
             // Inputs range from -4 to 3 (cETC1ColorDeltaMin to cETC1ColorDeltaMax)
-            static uint16 pack_delta3(int r, int g, int b);
+            static uint16_t pack_delta3(int r, int g, int b);
 
             // Results range from -4 to 3 (cETC1ColorDeltaMin to cETC1ColorDeltaMax)
-            static void unpack_delta3(int &r, int &g, int &b, uint16 packed_delta3);
+            static void unpack_delta3(int &r, int &g, int &b, uint16_t packed_delta3);
 
             // Abs color 4
-            static uint16 pack_color4(const color_quad_u8 &color, bool scaled, uint bias = 127U);
-            static uint16 pack_color4(uint r, uint g, uint b, bool scaled, uint bias = 127U);
+            static uint16_t pack_color4(const color_quad_u8 &color, bool scaled, uint bias = 127U);
+            static uint16_t pack_color4(uint r, uint g, uint b, bool scaled, uint bias = 127U);
 
-            static color_quad_u8 unpack_color4(uint16 packed_color4, bool scaled, uint alpha = 255U);
-            static void unpack_color4(uint &r, uint &g, uint &b, uint16 packed_color4, bool scaled);
+            static color_quad_u8 unpack_color4(uint16_t packed_color4, bool scaled, uint alpha = 255U);
+            static void unpack_color4(uint &r, uint &g, uint &b, uint16_t packed_color4, bool scaled);
 
             // subblock colors
-            static void get_diff_subblock_colors(color_quad_u8 *pDst, uint16 packed_color5, uint table_idx);
-            static bool get_diff_subblock_colors(color_quad_u8 *pDst, uint16 packed_color5, uint16 packed_delta3, uint table_idx);
-            static void get_abs_subblock_colors(color_quad_u8 *pDst, uint16 packed_color4, uint table_idx);
+            static void get_diff_subblock_colors(color_quad_u8 *pDst, uint16_t packed_color5, uint table_idx);
+            static bool get_diff_subblock_colors(color_quad_u8 *pDst, uint16_t packed_color5, uint16_t packed_delta3, uint table_idx);
+            static void get_abs_subblock_colors(color_quad_u8 *pDst, uint16_t packed_color4, uint table_idx);
 
             static inline void unscaled_to_scaled_color(color_quad_u8 &dst, const color_quad_u8 &src, bool color4)
             {
@@ -1099,12 +1099,12 @@ namespace vogl
 #undef RG_ETC1_GET_KEY
 #undef RG_ETC1_GET_KEY_FROM_INDEX
 
-        uint16 etc1_block::pack_color5(const color_quad_u8 &color, bool scaled, uint bias)
+        uint16_t etc1_block::pack_color5(const color_quad_u8 &color, bool scaled, uint bias)
         {
             return pack_color5(color.r, color.g, color.b, scaled, bias);
         }
 
-        uint16 etc1_block::pack_color5(uint r, uint g, uint b, bool scaled, uint bias)
+        uint16_t etc1_block::pack_color5(uint r, uint g, uint b, bool scaled, uint bias)
         {
             if (scaled)
             {
@@ -1117,10 +1117,10 @@ namespace vogl
             g = rg_etc1::minimum(g, 31U);
             b = rg_etc1::minimum(b, 31U);
 
-            return static_cast<uint16>(b | (g << 5U) | (r << 10U));
+            return static_cast<uint16_t>(b | (g << 5U) | (r << 10U));
         }
 
-        color_quad_u8 etc1_block::unpack_color5(uint16 packed_color5, bool scaled, uint alpha)
+        color_quad_u8 etc1_block::unpack_color5(uint16_t packed_color5, bool scaled, uint alpha)
         {
             uint b = packed_color5 & 31U;
             uint g = (packed_color5 >> 5U) & 31U;
@@ -1136,7 +1136,7 @@ namespace vogl
             return color_quad_u8(cNoClamp, r, g, b, rg_etc1::minimum(alpha, 255U));
         }
 
-        void etc1_block::unpack_color5(uint &r, uint &g, uint &b, uint16 packed_color5, bool scaled)
+        void etc1_block::unpack_color5(uint &r, uint &g, uint &b, uint16_t packed_color5, bool scaled)
         {
             color_quad_u8 c(unpack_color5(packed_color5, scaled, 0));
             r = c.r;
@@ -1144,7 +1144,7 @@ namespace vogl
             b = c.b;
         }
 
-        bool etc1_block::unpack_color5(color_quad_u8 &result, uint16 packed_color5, uint16 packed_delta3, bool scaled, uint alpha)
+        bool etc1_block::unpack_color5(color_quad_u8 &result, uint16_t packed_color5, uint16_t packed_delta3, bool scaled, uint alpha)
         {
             int dc_r, dc_g, dc_b;
             unpack_delta3(dc_r, dc_g, dc_b, packed_delta3);
@@ -1173,7 +1173,7 @@ namespace vogl
             return success;
         }
 
-        bool etc1_block::unpack_color5(uint &r, uint &g, uint &b, uint16 packed_color5, uint16 packed_delta3, bool scaled, uint alpha)
+        bool etc1_block::unpack_color5(uint &r, uint &g, uint &b, uint16_t packed_color5, uint16_t packed_delta3, bool scaled, uint alpha)
         {
             color_quad_u8 result;
             const bool success = unpack_color5(result, packed_color5, packed_delta3, scaled, alpha);
@@ -1183,7 +1183,7 @@ namespace vogl
             return success;
         }
 
-        uint16 etc1_block::pack_delta3(int r, int g, int b)
+        uint16_t etc1_block::pack_delta3(int r, int g, int b)
         {
             RG_ETC1_ASSERT((r >= cETC1ColorDeltaMin) && (r <= cETC1ColorDeltaMax));
             RG_ETC1_ASSERT((g >= cETC1ColorDeltaMin) && (g <= cETC1ColorDeltaMax));
@@ -1194,10 +1194,10 @@ namespace vogl
                 g += 8;
             if (b < 0)
                 b += 8;
-            return static_cast<uint16>(b | (g << 3) | (r << 6));
+            return static_cast<uint16_t>(b | (g << 3) | (r << 6));
         }
 
-        void etc1_block::unpack_delta3(int &r, int &g, int &b, uint16 packed_delta3)
+        void etc1_block::unpack_delta3(int &r, int &g, int &b, uint16_t packed_delta3)
         {
             r = (packed_delta3 >> 6) & 7;
             g = (packed_delta3 >> 3) & 7;
@@ -1210,12 +1210,12 @@ namespace vogl
                 b -= 8;
         }
 
-        uint16 etc1_block::pack_color4(const color_quad_u8 &color, bool scaled, uint bias)
+        uint16_t etc1_block::pack_color4(const color_quad_u8 &color, bool scaled, uint bias)
         {
             return pack_color4(color.r, color.g, color.b, scaled, bias);
         }
 
-        uint16 etc1_block::pack_color4(uint r, uint g, uint b, bool scaled, uint bias)
+        uint16_t etc1_block::pack_color4(uint r, uint g, uint b, bool scaled, uint bias)
         {
             if (scaled)
             {
@@ -1228,10 +1228,10 @@ namespace vogl
             g = rg_etc1::minimum(g, 15U);
             b = rg_etc1::minimum(b, 15U);
 
-            return static_cast<uint16>(b | (g << 4U) | (r << 8U));
+            return static_cast<uint16_t>(b | (g << 4U) | (r << 8U));
         }
 
-        color_quad_u8 etc1_block::unpack_color4(uint16 packed_color4, bool scaled, uint alpha)
+        color_quad_u8 etc1_block::unpack_color4(uint16_t packed_color4, bool scaled, uint alpha)
         {
             uint b = packed_color4 & 15U;
             uint g = (packed_color4 >> 4U) & 15U;
@@ -1247,7 +1247,7 @@ namespace vogl
             return color_quad_u8(cNoClamp, r, g, b, rg_etc1::minimum(alpha, 255U));
         }
 
-        void etc1_block::unpack_color4(uint &r, uint &g, uint &b, uint16 packed_color4, bool scaled)
+        void etc1_block::unpack_color4(uint &r, uint &g, uint &b, uint16_t packed_color4, bool scaled)
         {
             color_quad_u8 c(unpack_color4(packed_color4, scaled, 0));
             r = c.r;
@@ -1255,7 +1255,7 @@ namespace vogl
             b = c.b;
         }
 
-        void etc1_block::get_diff_subblock_colors(color_quad_u8 *pDst, uint16 packed_color5, uint table_idx)
+        void etc1_block::get_diff_subblock_colors(color_quad_u8 *pDst, uint16_t packed_color5, uint table_idx)
         {
             RG_ETC1_ASSERT(table_idx < cETC1IntenModifierValues);
             const int *pInten_modifer_table = &g_etc1_inten_tables[table_idx][0];
@@ -1278,7 +1278,7 @@ namespace vogl
             pDst[3].set(ir + y3, ig + y3, ib + y3);
         }
 
-        bool etc1_block::get_diff_subblock_colors(color_quad_u8 *pDst, uint16 packed_color5, uint16 packed_delta3, uint table_idx)
+        bool etc1_block::get_diff_subblock_colors(color_quad_u8 *pDst, uint16_t packed_color5, uint16_t packed_delta3, uint table_idx)
         {
             RG_ETC1_ASSERT(table_idx < cETC1IntenModifierValues);
             const int *pInten_modifer_table = &g_etc1_inten_tables[table_idx][0];
@@ -1303,7 +1303,7 @@ namespace vogl
             return success;
         }
 
-        void etc1_block::get_abs_subblock_colors(color_quad_u8 *pDst, uint16 packed_color4, uint table_idx)
+        void etc1_block::get_abs_subblock_colors(color_quad_u8 *pDst, uint16_t packed_color4, uint table_idx)
         {
             RG_ETC1_ASSERT(table_idx < cETC1IntenModifierValues);
             const int *pInten_modifer_table = &g_etc1_inten_tables[table_idx][0];
@@ -1342,8 +1342,8 @@ namespace vogl
 
             if (diff_flag)
             {
-                const uint16 base_color5 = block.get_base5_color();
-                const uint16 delta_color3 = block.get_delta3_color();
+                const uint16_t base_color5 = block.get_base5_color();
+                const uint16_t delta_color3 = block.get_delta3_color();
                 etc1_block::get_diff_subblock_colors(subblock_colors0, base_color5, table_index0);
 
                 if (!etc1_block::get_diff_subblock_colors(subblock_colors1, base_color5, delta_color3, table_index1))
@@ -1351,10 +1351,10 @@ namespace vogl
             }
             else
             {
-                const uint16 base_color4_0 = block.get_base4_color(0);
+                const uint16_t base_color4_0 = block.get_base4_color(0);
                 etc1_block::get_abs_subblock_colors(subblock_colors0, base_color4_0, table_index0);
 
-                const uint16 base_color4_1 = block.get_base4_color(1);
+                const uint16_t base_color4_1 = block.get_base4_color(1);
                 etc1_block::get_abs_subblock_colors(subblock_colors1, base_color4_1, table_index1);
             }
 
@@ -1641,7 +1641,7 @@ namespace vogl
 
             vec3F m_avg_color;
             int m_br, m_bg, m_bb;
-            uint16 m_luma[8];
+            uint16_t m_luma[8];
             uint32 m_sorted_luma[2][8];
             const uint32 *m_pSorted_luma_indices;
             uint32 *m_pSorted_luma;
@@ -1831,7 +1831,7 @@ namespace vogl
 
                 avg_color += fc;
 
-                m_luma[i] = static_cast<uint16>(c.r + c.g + c.b);
+                m_luma[i] = static_cast<uint16_t>(c.r + c.g + c.b);
                 m_sorted_luma[0][i] = i;
             }
             avg_color *= (1.0f / static_cast<float>(n));
@@ -2118,7 +2118,7 @@ namespace vogl
                                 }
                             }
                             RG_ETC1_ASSERT(best_error <= 255);
-                            g_etc1_inverse_lookup[inverse_table_index][color] = static_cast<uint16>(best_packed_c | (best_error << 8));
+                            g_etc1_inverse_lookup[inverse_table_index][color] = static_cast<uint16_t>(best_packed_c | (best_error << 8));
                         }
                     }
                 }
@@ -2157,7 +2157,7 @@ namespace vogl
                 {
                     const int c_plus_delta = rg_etc1::clamp<int>(pColor[i] + delta, 0, 255);
 
-                    const uint16 *pTable;
+                    const uint16_t *pTable;
                     if (!c_plus_delta)
                         pTable = g_color8_to_etc_block_config_0_255[0];
                     else if (c_plus_delta == 255)
@@ -2177,9 +2177,9 @@ namespace vogl
                         RG_ETC1_ASSERT(etc1_decode_value(diff, inten, selector, p0) == (uint)c_plus_delta);
 #endif
 
-                        const uint16 *pInverse_table = g_etc1_inverse_lookup[x & 0xFF];
-                        uint16 p1 = pInverse_table[c1];
-                        uint16 p2 = pInverse_table[c2];
+                        const uint16_t *pInverse_table = g_etc1_inverse_lookup[x & 0xFF];
+                        uint16_t p1 = pInverse_table[c1];
+                        uint16_t p2 = pInverse_table[c2];
                         const uint trial_error = rg_etc1::square(c_plus_delta - pColor[i]) + rg_etc1::square(p1 >> 8) + rg_etc1::square(p2 >> 8);
                         if (trial_error < best_error)
                         {
@@ -2202,8 +2202,8 @@ namespace vogl
             block.m_bytes[3] = static_cast<uint8_t>(((inten | (inten << 3)) << 2) | (diff << 1));
 
             const uint etc1_selector = g_selector_index_to_etc1[(best_x >> 4) & 3];
-            *reinterpret_cast<uint16 *>(&block.m_bytes[4]) = (etc1_selector & 2) ? 0xFFFF : 0;
-            *reinterpret_cast<uint16 *>(&block.m_bytes[6]) = (etc1_selector & 1) ? 0xFFFF : 0;
+            *reinterpret_cast<uint16_t *>(&block.m_bytes[4]) = (etc1_selector & 2) ? 0xFFFF : 0;
+            *reinterpret_cast<uint16_t *>(&block.m_bytes[6]) = (etc1_selector & 1) ? 0xFFFF : 0;
 
             const uint best_packed_c0 = (best_x >> 8) & 255;
             if (diff)
@@ -2247,7 +2247,7 @@ namespace vogl
                 {
                     const int c_plus_delta = rg_etc1::clamp<int>(pColor[i] + delta, 0, 255);
 
-                    const uint16 *pTable;
+                    const uint16_t *pTable;
                     if (!c_plus_delta)
                         pTable = g_color8_to_etc_block_config_0_255[0];
                     else if (c_plus_delta == 255)
@@ -2287,9 +2287,9 @@ namespace vogl
                         }
 #endif
 
-                        const uint16 *pInverse_table = g_etc1_inverse_lookup[x & 0xFF];
-                        uint16 p1 = pInverse_table[c1];
-                        uint16 p2 = pInverse_table[c2];
+                        const uint16_t *pInverse_table = g_etc1_inverse_lookup[x & 0xFF];
+                        uint16_t p1 = pInverse_table[c1];
+                        uint16_t p2 = pInverse_table[c2];
 
                         if ((diff) && (pBase_color5_unscaled))
                         {

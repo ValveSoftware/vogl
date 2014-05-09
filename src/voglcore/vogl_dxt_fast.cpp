@@ -429,12 +429,12 @@ namespace vogl
                 }
 
                 color_quad_u8 endpoints[2];
-                endpoints[0] = dxt1_block::unpack_color((uint16)low16, false);
-                endpoints[1] = dxt1_block::unpack_color((uint16)high16, false);
+                endpoints[0] = dxt1_block::unpack_color((uint16_t)low16, false);
+                endpoints[1] = dxt1_block::unpack_color((uint16_t)high16, false);
 
                 color_quad_u8 expanded_endpoints[2];
-                expanded_endpoints[0] = dxt1_block::unpack_color((uint16)low16, true);
-                expanded_endpoints[1] = dxt1_block::unpack_color((uint16)high16, true);
+                expanded_endpoints[0] = dxt1_block::unpack_color((uint16_t)low16, true);
+                expanded_endpoints[1] = dxt1_block::unpack_color((uint16_t)high16, true);
 
                 bool trial_optimized = false;
 
@@ -567,8 +567,8 @@ namespace vogl
             {
                 color_quad_u8 endpoints[2];
 
-                endpoints[0] = dxt1_block::unpack_color((uint16)low16, false);
-                endpoints[1] = dxt1_block::unpack_color((uint16)high16, false);
+                endpoints[0] = dxt1_block::unpack_color((uint16_t)low16, false);
+                endpoints[1] = dxt1_block::unpack_color((uint16_t)high16, false);
 
                 vec3F low_color(endpoints[0][0], endpoints[0][1], endpoints[0][2]);
                 vec3F high_color(endpoints[1][0], endpoints[1][1], endpoints[1][2]);
@@ -718,8 +718,8 @@ namespace vogl
             uint low16, high16;
             dxt_fast::compress_color_block(16, pBlock, low16, high16, color_selectors, refine);
 
-            pDXT1_block->set_low_color(static_cast<uint16>(low16));
-            pDXT1_block->set_high_color(static_cast<uint16>(high16));
+            pDXT1_block->set_low_color(static_cast<uint16_t>(low16));
+            pDXT1_block->set_high_color(static_cast<uint16_t>(high16));
 
             uint mask = 0;
             for (int i = 15; i >= 0; i--)

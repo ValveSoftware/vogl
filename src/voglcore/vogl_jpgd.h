@@ -45,7 +45,7 @@ namespace jpgd
 {
     typedef unsigned char uint8_t;
     typedef signed short int16;
-    typedef unsigned short uint16;
+    typedef unsigned short uint16_t;
     typedef unsigned int uint;
     typedef signed int int32;
 
@@ -356,7 +356,7 @@ namespace jpgd
         void free_all_blocks();
         JPGD_NORETURN void stop_decoding(jpgd_status status);
         void *alloc(size_t n, bool zero = false);
-        void word_clear(void *p, uint16 c, uint n);
+        void word_clear(void *p, uint16_t c, uint n);
         void prep_in_buffer();
         void read_dht_marker();
         void read_dqt_marker();

@@ -235,7 +235,7 @@ namespace vogl
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
-        inline bool write_val(uint16 val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_val(uint16_t val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
@@ -278,7 +278,7 @@ namespace vogl
         }
 
 #if defined(COMPILER_MSVC)
-        VOGL_FORCE_INLINE uint16 swap16(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap16(uint16_t x)
         {
             return _byteswap_ushort(x);
         }
@@ -291,9 +291,9 @@ namespace vogl
             return _byteswap_uint64(x);
         }
 #elif defined(COMPILER_GCCLIKE)
-        VOGL_FORCE_INLINE uint16 swap16(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap16(uint16_t x)
         {
-            return static_cast<uint16>((x << 8U) | (x >> 8U));
+            return static_cast<uint16_t>((x << 8U) | (x >> 8U));
         }
         VOGL_FORCE_INLINE uint32 swap32(uint32 x)
         {
@@ -304,9 +304,9 @@ namespace vogl
             return __builtin_bswap64(x);
         }
 #else
-        VOGL_FORCE_INLINE uint16 swap16(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap16(uint16_t x)
         {
-            return static_cast<uint16>((x << 8U) | (x >> 8U));
+            return static_cast<uint16_t>((x << 8U) | (x >> 8U));
         }
         VOGL_FORCE_INLINE uint32 swap32(uint32 x)
         {
@@ -319,7 +319,7 @@ namespace vogl
 #endif
 
         // Assumes x has been read from memory as a little endian value, converts to native endianness for manipulation.
-        VOGL_FORCE_INLINE uint16 swap_le16_to_native(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap_le16_to_native(uint16_t x)
         {
             return c_vogl_little_endian_platform ? x : swap16(x);
         }
@@ -333,7 +333,7 @@ namespace vogl
         }
 
         // Assumes x has been read from memory as a big endian value, converts to native endianness for manipulation.
-        VOGL_FORCE_INLINE uint16 swap_be16_to_native(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap_be16_to_native(uint16_t x)
         {
             return c_vogl_big_endian_platform ? x : swap16(x);
         }
@@ -380,7 +380,7 @@ namespace vogl
             *static_cast<uint64_t *>(p) = swap_be64_to_native(x);
         }
 
-        inline void endian_swap_mem16(uint16 *p, uint n)
+        inline void endian_swap_mem16(uint16_t *p, uint n)
         {
             while (n--)
             {
@@ -409,9 +409,9 @@ namespace vogl
         {
             switch (type_size)
             {
-                case sizeof(uint16)
+                case sizeof(uint16_t)
                     :
-                    endian_swap_mem16(static_cast<uint16 *>(p), size_in_bytes / type_size);
+                    endian_swap_mem16(static_cast<uint16_t *>(p), size_in_bytes / type_size);
                     break;
                 case sizeof(uint32)
                     :
@@ -521,9 +521,9 @@ namespace vogl
             return n;
         }
 
-        void endian_switch_words(uint16 *p, uint num);
+        void endian_switch_words(uint16_t *p, uint num);
         void endian_switch_dwords(uint32 *p, uint num);
-        void copy_words(uint16 *pDst, const uint16 *pSrc, uint num, bool endian_switch);
+        void copy_words(uint16_t *pDst, const uint16_t *pSrc, uint num, bool endian_switch);
         void copy_dwords(uint32 *pDst, const uint32 *pSrc, uint num, bool endian_switch);
 
         // Returns the maximum number of mip levels given the specified width/height, including the first (largest) mip level.

@@ -867,7 +867,7 @@ namespace vogl
 
                     // DDS image in memory are always assumed to be little endian - the same as DDS itself.
                     //if (c_vogl_big_endian_platform)
-                    //   utils::endian_switch_words(reinterpret_cast<uint16*>(&pDXTImage->get_element_vec()[0]), actual_level_pitch / sizeof(uint16));
+                    //   utils::endian_switch_words(reinterpret_cast<uint16_t*>(&pDXTImage->get_element_vec()[0]), actual_level_pitch / sizeof(uint16_t));
 
                     if (level_pitch > actual_level_pitch)
                     {

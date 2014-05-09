@@ -174,7 +174,7 @@ namespace vogl
         inline void set_value(int64_t nVal);
 
         inline void set_value(uint8_t nVal);
-        inline void set_value(uint16 nVal);
+        inline void set_value(uint16_t nVal);
         inline void set_value(uint32 nVal);
 
         // Note uint64_t values may be encoded as hex strings or int64_t
@@ -208,7 +208,7 @@ namespace vogl
         inline bool get_numeric(int64_t &val, int64_t def = 0) const;
 
         bool get_numeric(uint8_t &val, uint8_t def = 0) const;
-        bool get_numeric(uint16 &val, uint16 def = 0) const;
+        bool get_numeric(uint16_t &val, uint16_t def = 0) const;
         bool get_numeric(uint32 &val, uint32 def = 0) const;
         inline bool get_numeric(uint64_t &val, uint64_t def = 0) const;
 
@@ -444,7 +444,7 @@ namespace vogl
         bool get_value_as_string(const char *pKey, dynamic_string &val, const char *pDef = "") const;
         bool get_value_as_enum(const char *pKey, const char **pStringList, int &val, int def = 0) const;
 
-        // T may be int8_t, int16, int32 or uint8_t, uint16, uint32
+        // T may be int8_t, int16, int32 or uint8_t, uint16_t, uint32
         // Internally this fetches the value as int64_t and attempts to convert. Returns false and sets val to def if out of range.
         template <typename T>
         bool get_value_as_int(const char *pKey, T &val, T def = 0) const;

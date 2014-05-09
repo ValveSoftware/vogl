@@ -38,7 +38,7 @@ namespace vogl
             "int8_t",
             "uint8_t",
             "int16",
-            "uint16",
+            "uint16_t",
             "int",
             "uint",
             "int64_t",
@@ -347,7 +347,7 @@ namespace vogl
             if (m_uint64 <= cUINT8_MAX)
                 set_uint8(static_cast<uint8_t>(m_uint64));
             else if (m_uint64 <= cUINT16_MAX)
-                set_uint16(static_cast<uint16>(m_uint64));
+                set_uint16(static_cast<uint16_t>(m_uint64));
             else if (m_uint64 <= cUINT32_MAX)
                 set_uint(static_cast<uint>(m_uint64));
             else
@@ -521,14 +521,14 @@ namespace vogl
         return true;
     }
 
-    bool value::get_uint16_or_fail(uint16 &val, uint component) const
+    bool value::get_uint16_or_fail(uint16_t &val, uint component) const
     {
         uint64_t u64_val;
         bool success = get_uint64_or_fail(u64_val, component);
         if ((!success) || (u64_val > cUINT16_MAX))
             return false;
 
-        val = static_cast<uint16>(u64_val);
+        val = static_cast<uint16_t>(u64_val);
         return true;
     }
 

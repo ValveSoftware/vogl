@@ -264,12 +264,12 @@ namespace vogl
         set_value(static_cast<int64_t>(nVal));
     }
 
-    inline void json_value::set_value(uint16 nVal)
+    inline void json_value::set_value(uint16_t nVal)
     {
         set_value(static_cast<int64_t>(nVal));
     }
 
-    inline void json_value::set_value(uint32 nVal)
+    inline void json_value::set_value(uint32_t nVal)
     {
         set_value(static_cast<int64_t>(nVal));
     }
@@ -1097,24 +1097,24 @@ namespace vogl
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const uint16 &v, json_value &val)
+    inline bool json_serialize(const uint16_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(uint16 &v, const json_value &val)
+    inline bool json_deserialize(uint16_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const uint32 &v, json_value &val)
+    inline bool json_serialize(const uint32_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(uint32 &v, const json_value &val)
+    inline bool json_deserialize(uint32_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }

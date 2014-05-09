@@ -137,7 +137,7 @@ namespace vogl
         {
         }
 
-        inline value(uint16 v)
+        inline value(uint16_t v)
             : m_uint16(v), m_user_data(0), m_type(cDTUInt16), m_flags(0)
         {
         }
@@ -253,7 +253,7 @@ namespace vogl
             m_int16 = v;
         }
 
-        inline void set_uint16(uint16 v)
+        inline void set_uint16(uint16_t v)
         {
             clear_dynamic();
             m_type = cDTUInt16;
@@ -389,7 +389,7 @@ namespace vogl
             set_int16(value);
             return *this;
         }
-        inline value &operator=(uint16 value)
+        inline value &operator=(uint16_t value)
         {
             set_uint16(value);
             return *this;
@@ -484,7 +484,7 @@ namespace vogl
         bool get_int8_or_fail(int8_t &val, uint component) const;
         bool get_uint8_or_fail(uint8_t &val, uint component) const;
         bool get_int16_or_fail(int16 &val, uint component) const;
-        bool get_uint16_or_fail(uint16 &val, uint component) const;
+        bool get_uint16_or_fail(uint16_t &val, uint component) const;
         bool get_int_or_fail(int &val, uint component = 0) const;
         bool get_int64_or_fail(int64_t &val, uint component = 0) const;
         bool get_uint_or_fail(uint &val, uint component = 0) const;
@@ -514,9 +514,9 @@ namespace vogl
             get_uint8_or_fail(result, component);
             return result;
         }
-        inline uint16 get_uint16(uint16 def = 0, uint component = 0) const
+        inline uint16_t get_uint16(uint16_t def = 0, uint component = 0) const
         {
-            uint16 result = def;
+            uint16_t result = def;
             get_uint16_or_fail(result, component);
             return result;
         }
@@ -766,7 +766,7 @@ namespace vogl
                     return sizeof(uint8_t);
                 case cDTInt16:
                 case cDTUInt16:
-                    return sizeof(uint16);
+                    return sizeof(uint16_t);
                 case cDTInt:
                 case cDTUInt:
                 case cDTFloat:
@@ -906,7 +906,7 @@ namespace vogl
         {
             return m_user_data;
         }
-        inline void set_user_data(uint16 v)
+        inline void set_user_data(uint16_t v)
         {
             m_user_data = v;
             m_flags |= cFlagsHasUserData;
@@ -1022,7 +1022,7 @@ namespace vogl
             uint8_t m_uint8;
 
             int16 m_int16;
-            uint16 m_uint16;
+            uint16_t m_uint16;
 
             int m_int;
             uint m_uint;
@@ -1053,7 +1053,7 @@ namespace vogl
         }
 
         // I'm torn about m_user_data/m_flags - may not be useful, but there's room for it due to alignment.
-        uint16 m_user_data;
+        uint16_t m_user_data;
         value_data_type m_type;
         uint8_t m_flags;
     };

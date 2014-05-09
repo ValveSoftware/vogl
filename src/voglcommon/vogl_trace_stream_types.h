@@ -57,7 +57,7 @@ struct vogl_trace_stream_packet_base
     {
         cMinimumPossibleRnd = 1
     };
-    uint16 m_rnd; // a random number, cannot be 0, must immediately follow m_crc!
+    uint16_t m_rnd; // a random number, cannot be 0, must immediately follow m_crc!
 
     uint64_t m_packet_begin_rdtsc;
     uint64_t m_gl_begin_rdtsc;
@@ -65,7 +65,7 @@ struct vogl_trace_stream_packet_base
     uint64_t m_packet_end_rdtsc;
 
     uint8_t m_type;     // trace_packet_types_t
-    uint16 m_inv_rnd; // not of m_rnd, for verification (and to purpusely increase the packet entropy - this is only for devel)
+    uint16_t m_inv_rnd; // not of m_rnd, for verification (and to purpusely increase the packet entropy - this is only for devel)
 
     inline void init(uint8_t type, uint32 size)
     {
@@ -80,8 +80,8 @@ struct vogl_trace_stream_packet_base
     // Sets the rnd field using get_random()
     inline void init_rnd()
     {
-        uint32 rnd16 = static_cast<uint16>(plat_rand());
-        m_rnd = static_cast<uint16>(math::maximum<uint>(vogl_trace_stream_packet_base::cMinimumPossibleRnd, rnd16));
+        uint32 rnd16 = static_cast<uint16_t>(plat_rand());
+        m_rnd = static_cast<uint16_t>(math::maximum<uint>(vogl_trace_stream_packet_base::cMinimumPossibleRnd, rnd16));
         VOGL_ASSERT(m_rnd);
     }
 
@@ -106,7 +106,7 @@ struct vogl_trace_stream_packet_base
         if (m_size < sizeof(vogl_trace_stream_packet_base))
             return false;
 
-        VOGL_ASSUME(sizeof(m_rnd) == sizeof(uint16));
+        VOGL_ASSUME(sizeof(m_rnd) == sizeof(uint16_t));
         uint inv_rnd = (~m_rnd) & 0xFFFFU;
 
         if ((m_rnd < static_cast<uint>(cMinimumPossibleRnd)) || (inv_rnd != static_cast<uint>(m_inv_rnd)))
@@ -151,7 +151,7 @@ struct vogl_trace_stream_start_of_file_packet
     uint64_t m_size; // The size of this packet (NOT including the archive data)
     uint32 m_crc;  // CRC32 of all packet data following this member
 
-    uint16 m_version; // must immediately follow m_crc!
+    uint16_t m_version; // must immediately follow m_crc!
     uint8_t m_pointer_sizes;
     uint8_t m_unused;
 
@@ -235,13 +235,13 @@ struct vogl_trace_stream_start_of_file_packet
 // data, any referenced client memory data, and an optional name value map.
 struct vogl_trace_gl_entrypoint_packet : vogl_trace_stream_packet_base
 {
-    uint16 m_entrypoint_id;
+    uint16_t m_entrypoint_id;
 
     uint64_t m_context_handle;
     uint64_t m_call_counter;
     uint64_t m_thread_id;
 
-    uint16 m_param_size;
+    uint16_t m_param_size;
     uint32 m_client_memory_size;
 
     uint32 m_backtrace_hash_index;

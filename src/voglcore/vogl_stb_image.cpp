@@ -136,7 +136,7 @@ namespace vogl
 
     // implementation:
     typedef unsigned char uint8_t;
-    typedef unsigned short uint16;
+    typedef unsigned short uint16_t;
     typedef signed short int16;
     typedef unsigned int uint32;
     typedef signed int int32;
@@ -699,7 +699,7 @@ namespace vogl
     {
         uint8_t fast[1 << FAST_BITS];
         // weirdly, repacking this into AoS is a 10% speed loss, instead of a win
-        uint16 code[256];
+        uint16_t code[256];
         uint8_t values[256];
         uint8_t size[257];
         unsigned int maxcode[18];
@@ -764,7 +764,7 @@ namespace vogl
             if (h->size[k] == j)
             {
                 while (h->size[k] == j)
-                    h->code[k++] = (uint16)(code++);
+                    h->code[k++] = (uint16_t)(code++);
                 if (code - 1 >= (1 << j))
                     return e("bad code lengths", "Corrupt JPEG");
             }
@@ -1914,12 +1914,12 @@ namespace vogl
     // (jpegs packs from left, zlib from right, so can't share code)
     typedef struct
     {
-        uint16 fast[1 << ZFAST_BITS];
-        uint16 firstcode[16];
+        uint16_t fast[1 << ZFAST_BITS];
+        uint16_t firstcode[16];
         int maxcode[17];
-        uint16 firstsymbol[16];
+        uint16_t firstsymbol[16];
         uint8_t size[288];
-        uint16 value[288];
+        uint16_t value[288];
     } zhuffman;
 
     __forceinline static int bitreverse16(int n)
@@ -1956,8 +1956,8 @@ namespace vogl
         for (i = 1; i < 16; ++i)
         {
             next_code[i] = code;
-            z->firstcode[i] = (uint16)code;
-            z->firstsymbol[i] = (uint16)k;
+            z->firstcode[i] = (uint16_t)code;
+            z->firstsymbol[i] = (uint16_t)k;
             code = (code + sizes[i]);
             if (sizes[i])
                 if (code - 1 >= (1 << i))
@@ -1974,13 +1974,13 @@ namespace vogl
             {
                 int c = next_code[s] - z->firstcode[s] + z->firstsymbol[s];
                 z->size[c] = (uint8_t)s;
-                z->value[c] = (uint16)i;
+                z->value[c] = (uint16_t)i;
                 if (s <= ZFAST_BITS)
                 {
                     k = bit_reverse(next_code[s], s);
                     while (k < (1 << ZFAST_BITS))
                     {
-                        z->fast[k] = (uint16)c;
+                        z->fast[k] = (uint16_t)c;
                         k += (1 << s);
                     }
                 }

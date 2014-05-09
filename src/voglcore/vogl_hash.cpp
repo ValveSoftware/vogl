@@ -32,7 +32,7 @@
 
 #undef get16bits
 #if (defined(COMPILER_GCCLIKE) && defined(__i386__)) || defined(__WATCOMC__) || defined(COMPILER_MSVC) || defined(__BORLANDC__) || defined(__TURBOC__)
-#define get16bits(d) (*((const uint16 *)(d)))
+#define get16bits(d) (*((const uint16_t *)(d)))
 #endif
 
 #if !defined(get16bits)
@@ -103,7 +103,7 @@ namespace vogl
             hash += get16bits(data);
             tmp = (get16bits(data + 2) << 11) ^ hash;
             hash = (hash << 16) ^ tmp;
-            data += 2 * sizeof(uint16);
+            data += 2 * sizeof(uint16_t);
             hash += hash >> 11;
         }
 
@@ -113,7 +113,7 @@ namespace vogl
             case 3:
                 hash += get16bits(data);
                 hash ^= hash << 16;
-                hash ^= data[sizeof(uint16)] << 18;
+                hash ^= data[sizeof(uint16_t)] << 18;
                 hash += hash >> 11;
                 break;
             case 2:

@@ -7173,7 +7173,7 @@ static void vogl_serialize_client_side_arrays_helper(
                 if (type == GL_UNSIGNED_BYTE)
                     v = pIndices_to_scan[i];
                 else if (type == GL_UNSIGNED_SHORT)
-                    v = reinterpret_cast<const uint16 *>(pIndices_to_scan)[i];
+                    v = reinterpret_cast<const uint16_t *>(pIndices_to_scan)[i];
                 else if (type == GL_UNSIGNED_INT)
                     v = reinterpret_cast<const uint32 *>(pIndices_to_scan)[i];
                 else
@@ -7285,7 +7285,7 @@ static void vogl_serialize_client_side_arrays_helper(
                 if (trace_serializer.is_in_begin())
                 {
                     uint key_index = base_key_index + inner_iter;
-                    trace_serializer.add_key_value_blob(static_cast<uint16>(key_index), static_cast<const uint8_t *>(ptr) + first_vertex_ofs, vertex_data_size);
+                    trace_serializer.add_key_value_blob(static_cast<uint16_t>(key_index), static_cast<const uint8_t *>(ptr) + first_vertex_ofs, vertex_data_size);
                 }
             } // inner_iter
 
@@ -7353,7 +7353,7 @@ static void vogl_serialize_client_side_arrays_helper(
             if (trace_serializer.is_in_begin())
             {
                 // TODO: Also send down start/end/first_vertex_ofs for debugging/verification purposes
-                trace_serializer.add_key_value_blob(static_cast<uint16>(i), static_cast<const uint8_t *>(attrib_ptr) + first_vertex_ofs, vertex_data_size);
+                trace_serializer.add_key_value_blob(static_cast<uint16_t>(i), static_cast<const uint8_t *>(attrib_ptr) + first_vertex_ofs, vertex_data_size);
             }
         }
     }

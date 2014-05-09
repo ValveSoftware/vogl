@@ -1017,7 +1017,7 @@ namespace jpgd
         return rv;
     }
 
-    void jpeg_decoder::word_clear(void *p, uint16 c, uint n)
+    void jpeg_decoder::word_clear(void *p, uint16_t c, uint n)
     {
         uint8_t *pD = (uint8_t *)p;
         const uint8_t l = c & 0xFF, h = (c >> 8) & 0xFF;

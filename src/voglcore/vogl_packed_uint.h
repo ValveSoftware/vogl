@@ -101,9 +101,9 @@ namespace vogl
             return val;
         }
 
-        inline uint16 get_uint16() const
+        inline uint16_t get_uint16() const
         {
-            uint16 val = 0;
+            uint16_t val = 0;
             for (uint i = 0; i < N; ++i)
             {
                 val <<= 8U;

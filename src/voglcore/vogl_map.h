@@ -85,7 +85,7 @@ namespace vogl
     struct map_node_ptrs
     {
 #ifdef VOGL_ASSERTS_ENABLED
-        uint16 m_debug_marker;
+        uint16_t m_debug_marker;
 #endif
 
         // m_num_next_ptrs is not needed in a basic implementation, but it can simplify erasing (especially with multiple equal elements) and helps debugging.
@@ -138,11 +138,11 @@ namespace vogl
         }
 
 #ifdef VOGL_ASSERTS_ENABLED
-        inline uint16 get_debug_marker() const
+        inline uint16_t get_debug_marker() const
         {
             return m_ptrs.m_debug_marker;
         }
-        inline void set_debug_marker(uint16 val)
+        inline void set_debug_marker(uint16_t val)
         {
             m_ptrs.m_debug_marker = val;
         }

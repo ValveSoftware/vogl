@@ -66,16 +66,16 @@ namespace vogl
         return static_cast<uint>((s2 << 16) + s1);
     }
 
-    uint16 crc16(const void *pBuf, size_t len, uint16 crc)
+    uint16_t crc16(const void *pBuf, size_t len, uint16_t crc)
     {
         crc = ~crc;
 
         const uint8_t *p = reinterpret_cast<const uint8_t *>(pBuf);
         while (len)
         {
-            const uint16 q = *p++ ^ (crc >> 8);
+            const uint16_t q = *p++ ^ (crc >> 8);
             crc <<= 8U;
-            uint16 r = (q >> 4) ^ q;
+            uint16_t r = (q >> 4) ^ q;
             crc ^= r;
             r <<= 5U;
             crc ^= r;
@@ -84,7 +84,7 @@ namespace vogl
             len--;
         }
 
-        return static_cast<uint16>(~crc);
+        return static_cast<uint16_t>(~crc);
     }
 
 } // namespace vogl

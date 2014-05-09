@@ -399,7 +399,7 @@ namespace vogl
         {
             m_header.endian_swap();
 
-            if ((m_header.m_glTypeSize != sizeof(uint8_t)) && (m_header.m_glTypeSize != sizeof(uint16)) && (m_header.m_glTypeSize != sizeof(uint32)))
+            if ((m_header.m_glTypeSize != sizeof(uint8_t)) && (m_header.m_glTypeSize != sizeof(uint16_t)) && (m_header.m_glTypeSize != sizeof(uint32)))
                 return false;
         }
 

@@ -36,6 +36,6 @@ namespace vogl
 
     // crc16() intended for small buffers - doesn't use an acceleration table.
     const uint cInitCRC16 = 0;
-    uint16 crc16(const void *pBuf, size_t len, uint16 crc = cInitCRC16);
+    uint16_t crc16(const void *pBuf, size_t len, uint16_t crc = cInitCRC16);
 
 } // namespace vogl

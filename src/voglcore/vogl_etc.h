@@ -239,7 +239,7 @@ namespace vogl
             p[-2] |= (msb << byte_bit_ofs);
         }
 
-        inline void set_base4_color(uint idx, uint16 c)
+        inline void set_base4_color(uint idx, uint16_t c)
         {
             if (idx)
             {
@@ -255,7 +255,7 @@ namespace vogl
             }
         }
 
-        inline uint16 get_base4_color(uint idx) const
+        inline uint16_t get_base4_color(uint idx) const
         {
             uint r, g, b;
             if (idx)
@@ -270,69 +270,69 @@ namespace vogl
                 g = get_byte_bits(cETC1AbsColor4G1BitOffset, 4);
                 b = get_byte_bits(cETC1AbsColor4B1BitOffset, 4);
             }
-            return static_cast<uint16>(b | (g << 4U) | (r << 8U));
+            return static_cast<uint16_t>(b | (g << 4U) | (r << 8U));
         }
 
-        inline void set_base5_color(uint16 c)
+        inline void set_base5_color(uint16_t c)
         {
             set_byte_bits(cETC1BaseColor5RBitOffset, 5, (c >> 10) & 31);
             set_byte_bits(cETC1BaseColor5GBitOffset, 5, (c >> 5) & 31);
             set_byte_bits(cETC1BaseColor5BBitOffset, 5, c & 31);
         }
 
-        inline uint16 get_base5_color() const
+        inline uint16_t get_base5_color() const
         {
             const uint r = get_byte_bits(cETC1BaseColor5RBitOffset, 5);
             const uint g = get_byte_bits(cETC1BaseColor5GBitOffset, 5);
             const uint b = get_byte_bits(cETC1BaseColor5BBitOffset, 5);
-            return static_cast<uint16>(b | (g << 5U) | (r << 10U));
+            return static_cast<uint16_t>(b | (g << 5U) | (r << 10U));
         }
 
-        void set_delta3_color(uint16 c)
+        void set_delta3_color(uint16_t c)
         {
             set_byte_bits(cETC1DeltaColor3RBitOffset, 3, (c >> 6) & 7);
             set_byte_bits(cETC1DeltaColor3GBitOffset, 3, (c >> 3) & 7);
             set_byte_bits(cETC1DeltaColor3BBitOffset, 3, c & 7);
         }
 
-        inline uint16 get_delta3_color() const
+        inline uint16_t get_delta3_color() const
         {
             const uint r = get_byte_bits(cETC1DeltaColor3RBitOffset, 3);
             const uint g = get_byte_bits(cETC1DeltaColor3GBitOffset, 3);
             const uint b = get_byte_bits(cETC1DeltaColor3BBitOffset, 3);
-            return static_cast<uint16>(b | (g << 3U) | (r << 6U));
+            return static_cast<uint16_t>(b | (g << 3U) | (r << 6U));
         }
 
         // Base color 5
-        static uint16 pack_color5(const color_quad_u8 &color, bool scaled, uint bias = 127U);
-        static uint16 pack_color5(uint r, uint g, uint b, bool scaled, uint bias = 127U);
+        static uint16_t pack_color5(const color_quad_u8 &color, bool scaled, uint bias = 127U);
+        static uint16_t pack_color5(uint r, uint g, uint b, bool scaled, uint bias = 127U);
 
-        static color_quad_u8 unpack_color5(uint16 packed_color5, bool scaled, uint alpha = 255U);
-        static void unpack_color5(uint &r, uint &g, uint &b, uint16 packed_color, bool scaled);
+        static color_quad_u8 unpack_color5(uint16_t packed_color5, bool scaled, uint alpha = 255U);
+        static void unpack_color5(uint &r, uint &g, uint &b, uint16_t packed_color, bool scaled);
 
-        static bool unpack_color5(color_quad_u8 &result, uint16 packed_color5, uint16 packed_delta3, bool scaled, uint alpha = 255U);
-        static bool unpack_color5(uint &r, uint &g, uint &b, uint16 packed_color5, uint16 packed_delta3, bool scaled, uint alpha = 255U);
+        static bool unpack_color5(color_quad_u8 &result, uint16_t packed_color5, uint16_t packed_delta3, bool scaled, uint alpha = 255U);
+        static bool unpack_color5(uint &r, uint &g, uint &b, uint16_t packed_color5, uint16_t packed_delta3, bool scaled, uint alpha = 255U);
 
         // Delta color 3
         // Inputs range from -4 to 3 (cETC1ColorDeltaMin to cETC1ColorDeltaMax)
-        static uint16 pack_delta3(const color_quad_i16 &color);
-        static uint16 pack_delta3(int r, int g, int b);
+        static uint16_t pack_delta3(const color_quad_i16 &color);
+        static uint16_t pack_delta3(int r, int g, int b);
 
         // Results range from -4 to 3 (cETC1ColorDeltaMin to cETC1ColorDeltaMax)
-        static color_quad_i16 unpack_delta3(uint16 packed_delta3);
-        static void unpack_delta3(int &r, int &g, int &b, uint16 packed_delta3);
+        static color_quad_i16 unpack_delta3(uint16_t packed_delta3);
+        static void unpack_delta3(int &r, int &g, int &b, uint16_t packed_delta3);
 
         // Abs color 4
-        static uint16 pack_color4(const color_quad_u8 &color, bool scaled, uint bias = 127U);
-        static uint16 pack_color4(uint r, uint g, uint b, bool scaled, uint bias = 127U);
+        static uint16_t pack_color4(const color_quad_u8 &color, bool scaled, uint bias = 127U);
+        static uint16_t pack_color4(uint r, uint g, uint b, bool scaled, uint bias = 127U);
 
-        static color_quad_u8 unpack_color4(uint16 packed_color4, bool scaled, uint alpha = 255U);
-        static void unpack_color4(uint &r, uint &g, uint &b, uint16 packed_color4, bool scaled);
+        static color_quad_u8 unpack_color4(uint16_t packed_color4, bool scaled, uint alpha = 255U);
+        static void unpack_color4(uint &r, uint &g, uint &b, uint16_t packed_color4, bool scaled);
 
         // subblock colors
-        static void get_diff_subblock_colors(color_quad_u8 *pDst, uint16 packed_color5, uint table_idx);
-        static bool get_diff_subblock_colors(color_quad_u8 *pDst, uint16 packed_color5, uint16 packed_delta3, uint table_idx);
-        static void get_abs_subblock_colors(color_quad_u8 *pDst, uint16 packed_color4, uint table_idx);
+        static void get_diff_subblock_colors(color_quad_u8 *pDst, uint16_t packed_color5, uint table_idx);
+        static bool get_diff_subblock_colors(color_quad_u8 *pDst, uint16_t packed_color5, uint16_t packed_delta3, uint table_idx);
+        static void get_abs_subblock_colors(color_quad_u8 *pDst, uint16_t packed_color4, uint table_idx);
 
         static inline void unscaled_to_scaled_color(color_quad_u8 &dst, const color_quad_u8 &src, bool color4)
         {
@@ -599,7 +599,7 @@ namespace vogl
 
         vec3F m_avg_color;
         int m_br, m_bg, m_bb;
-        vogl::vector<uint16> m_luma;
+        vogl::vector<uint16_t> m_luma;
         vogl::vector<uint32> m_sorted_luma[2];
         const uint32 *m_pSorted_luma_indices;
         uint32 *m_pSorted_luma;

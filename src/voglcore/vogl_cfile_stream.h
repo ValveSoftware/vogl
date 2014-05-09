@@ -92,7 +92,7 @@ namespace vogl
             set_name(pFilename);
             m_pFile = pFile;
             m_has_ownership = has_ownership;
-            m_attribs = static_cast<uint16>(attribs);
+            m_attribs = static_cast<uint16_t>(attribs);
 
             m_ofs = vogl_ftell(m_pFile);
             vogl_fseek(m_pFile, 0, SEEK_END);
@@ -110,7 +110,7 @@ namespace vogl
 
             close();
 
-            m_attribs = static_cast<uint16>(attribs);
+            m_attribs = static_cast<uint16_t>(attribs);
 
             const char *pMode;
             if ((is_readable()) && (is_writable()))

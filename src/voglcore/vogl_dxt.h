@@ -127,13 +127,13 @@ namespace vogl
             return m_high_color[0] | (m_high_color[1] << 8U);
         }
 
-        inline void set_low_color(uint16 c)
+        inline void set_low_color(uint16_t c)
         {
             m_low_color[0] = static_cast<uint8_t>(c & 0xFF);
             m_low_color[1] = static_cast<uint8_t>((c >> 8) & 0xFF);
         }
 
-        inline void set_high_color(uint16 c)
+        inline void set_high_color(uint16_t c)
         {
             m_high_color[0] = static_cast<uint8_t>(c & 0xFF);
             m_high_color[1] = static_cast<uint8_t>((c >> 8) & 0xFF);
@@ -192,27 +192,27 @@ namespace vogl
             }
         }
 
-        static uint16 pack_color(const color_quad_u8 &color, bool scaled, uint bias = 127U);
-        static uint16 pack_color(uint r, uint g, uint b, bool scaled, uint bias = 127U);
+        static uint16_t pack_color(const color_quad_u8 &color, bool scaled, uint bias = 127U);
+        static uint16_t pack_color(uint r, uint g, uint b, bool scaled, uint bias = 127U);
 
-        static color_quad_u8 unpack_color(uint16 packed_color, bool scaled, uint alpha = 255U);
-        static void unpack_color(uint &r, uint &g, uint &b, uint16 packed_color, bool scaled);
+        static color_quad_u8 unpack_color(uint16_t packed_color, bool scaled, uint alpha = 255U);
+        static void unpack_color(uint &r, uint &g, uint &b, uint16_t packed_color, bool scaled);
 
-        static uint get_block_colors3(color_quad_u8 *pDst, uint16 color0, uint16 color1);
-        static uint get_block_colors3_round(color_quad_u8 *pDst, uint16 color0, uint16 color1);
+        static uint get_block_colors3(color_quad_u8 *pDst, uint16_t color0, uint16_t color1);
+        static uint get_block_colors3_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1);
 
-        static uint get_block_colors4(color_quad_u8 *pDst, uint16 color0, uint16 color1);
-        static uint get_block_colors4_round(color_quad_u8 *pDst, uint16 color0, uint16 color1);
+        static uint get_block_colors4(color_quad_u8 *pDst, uint16_t color0, uint16_t color1);
+        static uint get_block_colors4_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1);
 
         // pDst must point to an array at least cDXT1SelectorValues long.
-        static uint get_block_colors(color_quad_u8 *pDst, uint16 color0, uint16 color1);
+        static uint get_block_colors(color_quad_u8 *pDst, uint16_t color0, uint16_t color1);
 
-        static uint get_block_colors_round(color_quad_u8 *pDst, uint16 color0, uint16 color1);
+        static uint get_block_colors_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1);
 
         static color_quad_u8 unpack_endpoint(uint32 endpoints, uint index, bool scaled, uint alpha = 255U);
         static uint pack_endpoints(uint lo, uint hi);
 
-        static void get_block_colors_NV5x(color_quad_u8 *pDst, uint16 packed_col0, uint16 packed_col1, bool color4);
+        static void get_block_colors_NV5x(color_quad_u8 *pDst, uint16_t packed_col0, uint16_t packed_col1, bool color4);
     };
 
     VOGL_DEFINE_BITWISE_COPYABLE(dxt1_block);

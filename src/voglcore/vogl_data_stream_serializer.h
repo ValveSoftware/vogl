@@ -212,9 +212,9 @@ namespace vogl
             return result;
         }
 
-        uint16 read_uint16(uint16 def = 0)
+        uint16_t read_uint16(uint16_t def = 0)
         {
-            uint16 result;
+            uint16_t result;
             if (!read_object(result))
                 result = def;
             return result;
@@ -448,7 +448,7 @@ namespace vogl
                     }
                     case '2':
                     {
-                        const uint16 x = static_cast<uint16>(va_arg(v, uint));
+                        const uint16_t x = static_cast<uint16_t>(va_arg(v, uint));
                         if (!write_value(x))
                             return false;
                     }
@@ -495,7 +495,7 @@ namespace vogl
                     }
                     case '2':
                     {
-                        uint16 *x = va_arg(v, uint16 *);
+                        uint16_t *x = va_arg(v, uint16_t *);
                         VOGL_ASSERT(x);
                         if (!read_object(*x))
                             return false;
@@ -551,7 +551,7 @@ namespace vogl
         serializer.write_value(val);
         return serializer;
     }
-    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, uint16 val)
+    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, uint16_t val)
     {
         serializer.write_value(val);
         return serializer;
@@ -633,7 +633,7 @@ namespace vogl
         serializer.read_object(val);
         return serializer;
     }
-    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, uint16 &val)
+    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, uint16_t &val)
     {
         serializer.read_object(val);
         return serializer;
