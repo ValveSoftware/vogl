@@ -110,12 +110,12 @@ namespace vogl
         {
         }
 
-        inline void lock(uint32 max_spins = 4096, bool yielding = true, bool memoryBarrier = true)
+        inline void lock(uint32_t max_spins = 4096, bool yielding = true, bool memoryBarrier = true)
         {
             VOGL_NOTE_UNUSED(max_spins), VOGL_NOTE_UNUSED(yielding), VOGL_NOTE_UNUSED(memoryBarrier);
         }
 
-        inline void lock_no_barrier(uint32 max_spins = 4096, bool yielding = true)
+        inline void lock_no_barrier(uint32_t max_spins = 4096, bool yielding = true)
         {
             VOGL_NOTE_UNUSED(max_spins), VOGL_NOTE_UNUSED(yielding);
         }
@@ -154,7 +154,7 @@ namespace vogl
         VOGL_NO_COPY_OR_ASSIGNMENT_OP(semaphore);
 
     public:
-        inline semaphore(uint32 initialCount, uint32 maximumCount, const char *pName = NULL)
+        inline semaphore(uint32_t initialCount, uint32_t maximumCount, const char *pName = NULL)
         {
             VOGL_NOTE_UNUSED(initialCount), VOGL_NOTE_UNUSED(maximumCount), VOGL_NOTE_UNUSED(pName);
         }
@@ -163,12 +163,12 @@ namespace vogl
         {
         }
 
-        inline void release(uint32 releaseCount = 1)
+        inline void release(uint32_t releaseCount = 1)
         {
             VOGL_NOTE_UNUSED(releaseCount);
         }
 
-        inline bool wait(uint32 milliseconds = cUINT32_MAX)
+        inline bool wait(uint32_t milliseconds = cUINT32_MAX)
         {
             VOGL_NOTE_UNUSED(milliseconds);
             return true;

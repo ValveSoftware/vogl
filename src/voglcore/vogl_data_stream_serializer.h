@@ -228,9 +228,9 @@ namespace vogl
             return result;
         }
 
-        uint32 read_uint32(uint32 def = 0)
+        uint32_t read_uint32(uint32_t def = 0)
         {
-            uint32 result;
+            uint32_t result;
             if (!read_object(result))
                 result = def;
             return result;
@@ -454,7 +454,7 @@ namespace vogl
                     }
                     case '4':
                     {
-                        const uint32 x = static_cast<uint32>(va_arg(v, uint));
+                        const uint32_t x = static_cast<uint32_t>(va_arg(v, uint));
                         if (!write_value(x))
                             return false;
                     }
@@ -502,7 +502,7 @@ namespace vogl
                     }
                     case '4':
                     {
-                        uint32 *x = va_arg(v, uint32 *);
+                        uint32_t *x = va_arg(v, uint32_t *);
                         VOGL_ASSERT(x);
                         if (!read_object(*x))
                             return false;
@@ -561,7 +561,7 @@ namespace vogl
         serializer.write_value(val);
         return serializer;
     }
-    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, uint32 val)
+    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, uint32_t val)
     {
         serializer.write_uint_vlc(val);
         return serializer;
@@ -643,7 +643,7 @@ namespace vogl
         serializer.read_object(val);
         return serializer;
     }
-    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, uint32 &val)
+    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, uint32_t &val)
     {
         serializer.read_uint_vlc(val);
         return serializer;

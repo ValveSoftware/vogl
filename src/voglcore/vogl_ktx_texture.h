@@ -40,19 +40,19 @@ namespace vogl
     struct ktx_header
     {
         uint8_t m_identifier[12];
-        uint32 m_endianness;
-        uint32 m_glType;
-        uint32 m_glTypeSize;
-        uint32 m_glFormat;
-        uint32 m_glInternalFormat;
-        uint32 m_glBaseInternalFormat;
-        uint32 m_pixelWidth;
-        uint32 m_pixelHeight;
-        uint32 m_pixelDepth;
-        uint32 m_numberOfArrayElements;
-        uint32 m_numberOfFaces;
-        uint32 m_numberOfMipmapLevels;
-        uint32 m_bytesOfKeyValueData;
+        uint32_t m_endianness;
+        uint32_t m_glType;
+        uint32_t m_glTypeSize;
+        uint32_t m_glFormat;
+        uint32_t m_glInternalFormat;
+        uint32_t m_glBaseInternalFormat;
+        uint32_t m_pixelWidth;
+        uint32_t m_pixelHeight;
+        uint32_t m_pixelDepth;
+        uint32_t m_numberOfArrayElements;
+        uint32_t m_numberOfFaces;
+        uint32_t m_numberOfMipmapLevels;
+        uint32_t m_bytesOfKeyValueData;
 
         void clear()
         {
@@ -61,7 +61,7 @@ namespace vogl
 
         void endian_swap()
         {
-            utils::endian_swap_mem32(&m_endianness, (sizeof(*this) - sizeof(m_identifier)) / sizeof(uint32));
+            utils::endian_swap_mem32(&m_endianness, (sizeof(*this) - sizeof(m_identifier)) / sizeof(uint32_t));
         }
     };
 
@@ -186,11 +186,11 @@ namespace vogl
         KTX_FLOAT_32_UNSIGNED_INT_24_8_REV = 0x8DAD
     };
 
-    bool ktx_is_compressed_ogl_fmt(uint32 ogl_fmt);
-    bool ktx_is_packed_pixel_ogl_type(uint32 ogl_type);
-    uint ktx_get_ogl_type_size(uint32 ogl_type);
-    bool ktx_get_ogl_fmt_desc(uint32 ogl_fmt, uint32 ogl_type, uint &block_dim, uint &bytes_per_block);
-    uint32 ktx_get_ogl_compressed_base_internal_fmt(uint32 ogl_fmt);
+    bool ktx_is_compressed_ogl_fmt(uint32_t ogl_fmt);
+    bool ktx_is_packed_pixel_ogl_type(uint32_t ogl_type);
+    uint ktx_get_ogl_type_size(uint32_t ogl_type);
+    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint &block_dim, uint &bytes_per_block);
+    uint32_t ktx_get_ogl_compressed_base_internal_fmt(uint32_t ogl_fmt);
 
     class ktx_texture
     {
@@ -240,13 +240,13 @@ namespace vogl
 
         // For compressed internal formats, set ogl_fmt and ogl_type to 0 (GL_NONE). The base internal format will be computed automatically.
         // Otherwise, if ogl_fmt/ogl_type are not 0 (GL_NONE) then the internal format must be uncompressed, and all fmt's must be valid.
-        bool init_1D(uint width, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
-        bool init_1D_array(uint width, uint num_mips, uint array_size, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
-        bool init_2D(uint width, uint height, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
-        bool init_2D_array(uint width, uint height, uint num_mips, uint array_size, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
-        bool init_3D(uint width, uint height, uint depth, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
-        bool init_cubemap(uint dim, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
-        bool init_cubemap_array(uint dim, uint num_mips, uint array_size, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type);
+        bool init_1D(uint width, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_1D_array(uint width, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_2D(uint width, uint height, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_2D_array(uint width, uint height, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_3D(uint width, uint height, uint depth, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_cubemap(uint dim, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_cubemap_array(uint dim, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
 
         bool check_header() const;
         bool consistency_check() const;
@@ -283,19 +283,19 @@ namespace vogl
             return m_header.m_numberOfFaces;
         }
 
-        uint32 get_ogl_type() const
+        uint32_t get_ogl_type() const
         {
             return m_header.m_glType;
         }
-        uint32 get_ogl_fmt() const
+        uint32_t get_ogl_fmt() const
         {
             return m_header.m_glFormat;
         }
-        uint32 get_ogl_base_fmt() const
+        uint32_t get_ogl_base_fmt() const
         {
             return m_header.m_glBaseInternalFormat;
         }
-        uint32 get_ogl_internal_fmt() const
+        uint32_t get_ogl_internal_fmt() const
         {
             return m_header.m_glInternalFormat;
         }
@@ -320,11 +320,11 @@ namespace vogl
             m_opposite_endianness = flag;
         }
 
-        uint32 get_block_dim() const
+        uint32_t get_block_dim() const
         {
             return m_block_dim;
         }
-        uint32 get_bytes_per_block() const
+        uint32_t get_bytes_per_block() const
         {
             return m_bytes_per_block;
         }
@@ -457,8 +457,8 @@ namespace vogl
         ktx_key_value_vec m_key_values;
         ktx_image_data_vec m_image_data;
 
-        uint32 m_block_dim;
-        uint32 m_bytes_per_block;
+        uint32_t m_block_dim;
+        uint32_t m_bytes_per_block;
 
         bool m_opposite_endianness;
 

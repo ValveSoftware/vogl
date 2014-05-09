@@ -115,11 +115,11 @@ namespace vogl
 
         void compute_upper_pow2_dim(int &width, int &height)
         {
-            if (!math::is_power_of_2((uint32)width))
-                width = math::next_pow2((uint32)width);
+            if (!math::is_power_of_2((uint32_t)width))
+                width = math::next_pow2((uint32_t)width);
 
-            if (!math::is_power_of_2((uint32)height))
-                height = math::next_pow2((uint32)height);
+            if (!math::is_power_of_2((uint32_t)height))
+                height = math::next_pow2((uint32_t)height);
         }
 
         float gauss(int x, int y, float sigma_sqr)

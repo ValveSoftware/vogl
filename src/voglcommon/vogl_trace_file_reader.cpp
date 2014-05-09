@@ -608,7 +608,7 @@ bool vogl_json_trace_file_reader::open_first_document()
     }
 
     int meta_pointer_sizes = pSOF_node->value_as_int32("pointer_sizes", -1);
-    if ((meta_pointer_sizes != sizeof(uint32)) && (meta_pointer_sizes != sizeof(uint64_t)))
+    if ((meta_pointer_sizes != sizeof(uint32_t)) && (meta_pointer_sizes != sizeof(uint64_t)))
     {
         vogl_error_printf("%s: Invalid meta pointer sizes field in JSON file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
         return false;
@@ -744,7 +744,7 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
     const json_node *pUUID_array = pMeta_node->find_child_array("uuid");
     if (pUUID_array)
     {
-        uint32 uuid[vogl_trace_stream_start_of_file_packet::cUUIDSize];
+        uint32_t uuid[vogl_trace_stream_start_of_file_packet::cUUIDSize];
         utils::zero_object(uuid);
 
         for (uint i = 0; i < math::minimum<uint>(pUUID_array->size(), vogl_trace_stream_start_of_file_packet::cUUIDSize); i++)

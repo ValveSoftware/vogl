@@ -499,7 +499,7 @@ namespace vogl
         {
             VOGL_ASSUME(index < N);
             if (sizeof(T) == sizeof(float))
-                return *reinterpret_cast<const uint32 *>(&m_s[index]);
+                return *reinterpret_cast<const uint32_t *>(&m_s[index]);
             else
                 return *reinterpret_cast<const uint64_t *>(&m_s[index]);
         }

@@ -2820,7 +2820,7 @@ uint vogl_polygon_stipple_state::get_num_pattern_rows() const
     return 32;
 }
 
-uint32 vogl_polygon_stipple_state::get_pattern_row(uint row_index) const
+uint32_t vogl_polygon_stipple_state::get_pattern_row(uint row_index) const
 {
     VOGL_ASSERT(row_index < 32);
 

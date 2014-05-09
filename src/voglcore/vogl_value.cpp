@@ -1281,7 +1281,7 @@ namespace vogl
             return true;
         }
 
-        // Convert to uint32 and hope for the best
+        // Convert to uint32_t and hope for the best
         uint val;
         bool success = get_uint_or_fail(val, 0);
         if (!success)

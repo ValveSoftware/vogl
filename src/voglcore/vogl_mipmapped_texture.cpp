@@ -584,7 +584,7 @@ namespace vogl
             return false;
 
         if (!c_vogl_little_endian_platform)
-            utils::endian_switch_dwords(reinterpret_cast<uint32 *>(&desc), sizeof(desc) / sizeof(uint32));
+            utils::endian_switch_dwords(reinterpret_cast<uint32_t *>(&desc), sizeof(desc) / sizeof(uint32_t));
 
         if (desc.dwSize != sizeof(desc))
             return false;
@@ -1057,7 +1057,7 @@ namespace vogl
 
         set_last_error("write_dds() failed");
 
-        if (!serializer.write("DDS ", sizeof(uint32)))
+        if (!serializer.write("DDS ", sizeof(uint32_t)))
             return false;
 
         DDSURFACEDESC2 desc;
@@ -1097,49 +1097,49 @@ namespace vogl
             {
                 case PIXEL_FMT_ETC1:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_ETC1;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_ETC1;
                     desc.ddpfPixelFormat.dwRGBBitCount = 0;
                     break;
                 }
                 case PIXEL_FMT_DXN:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_3DC;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_3DC;
                     desc.ddpfPixelFormat.dwRGBBitCount = PIXEL_FMT_DXN;
                     break;
                 }
                 case PIXEL_FMT_DXT1A:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT1;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT1;
                     desc.ddpfPixelFormat.dwRGBBitCount = 0;
                     break;
                 }
                 case PIXEL_FMT_DXT5_CCxY:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT5;
-                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32)PIXEL_FMT_DXT5_CCxY;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT5;
+                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32_t)PIXEL_FMT_DXT5_CCxY;
                     break;
                 }
                 case PIXEL_FMT_DXT5_xGxR:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT5;
-                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32)PIXEL_FMT_DXT5_xGxR;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT5;
+                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32_t)PIXEL_FMT_DXT5_xGxR;
                     break;
                 }
                 case PIXEL_FMT_DXT5_xGBR:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT5;
-                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32)PIXEL_FMT_DXT5_xGBR;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT5;
+                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32_t)PIXEL_FMT_DXT5_xGBR;
                     break;
                 }
                 case PIXEL_FMT_DXT5_AGBR:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT5;
-                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32)PIXEL_FMT_DXT5_AGBR;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT5;
+                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32_t)PIXEL_FMT_DXT5_AGBR;
                     break;
                 }
                 default:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)m_format;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)m_format;
                     desc.ddpfPixelFormat.dwRGBBitCount = 0;
                     break;
                 }
@@ -1207,13 +1207,13 @@ namespace vogl
         }
 
         if (!c_vogl_little_endian_platform)
-            utils::endian_switch_dwords(reinterpret_cast<uint32 *>(&desc), sizeof(desc) / sizeof(uint32));
+            utils::endian_switch_dwords(reinterpret_cast<uint32_t *>(&desc), sizeof(desc) / sizeof(uint32_t));
 
         if (!serializer.write(&desc, sizeof(desc)))
             return false;
 
         if (!c_vogl_little_endian_platform)
-            utils::endian_switch_dwords(reinterpret_cast<uint32 *>(&desc), sizeof(desc) / sizeof(uint32));
+            utils::endian_switch_dwords(reinterpret_cast<uint32_t *>(&desc), sizeof(desc) / sizeof(uint32_t));
 
         vogl::vector<uint8_t> write_buf;
 
@@ -1395,7 +1395,7 @@ namespace vogl
 
         uint num_mip_levels = ktx.get_num_mips();
 
-        uint32 vogl_fourcc = 0;
+        uint32_t vogl_fourcc = 0;
         dynamic_string vogl_fourcc_str;
         if (ktx.get_key_value_as_string("VOGL_FOURCC", vogl_fourcc_str))
         {
@@ -1814,7 +1814,7 @@ namespace vogl
 
         set_last_error("write_ktx() failed");
 
-        uint32 ogl_internal_fmt = 0, ogl_fmt = 0, ogl_type = 0;
+        uint32_t ogl_internal_fmt = 0, ogl_fmt = 0, ogl_type = 0;
 
         pixel_packer packer;
 
@@ -2745,8 +2745,8 @@ namespace vogl
         const char *pFilename,
         texture_file_types::format file_format,
         vogl_comp_params *pComp_params,
-        uint32 *pActual_quality_level, float *pActual_bitrate,
-        uint32 image_write_flags)
+        uint32_t *pActual_quality_level, float *pActual_bitrate,
+        uint32_t image_write_flags)
     {
         if (pActual_quality_level)
             *pActual_quality_level = 0;
@@ -2817,7 +2817,7 @@ namespace vogl
         return success;
     }
 
-    bool mipmapped_texture::write_regular_image(const char *pFilename, uint32 image_write_flags)
+    bool mipmapped_texture::write_regular_image(const char *pFilename, uint32_t image_write_flags)
     {
         image_u8 tmp;
         image_u8 *pLevel_image = get_level_image(0, 0, 0, tmp);

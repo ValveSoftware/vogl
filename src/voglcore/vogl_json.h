@@ -115,7 +115,7 @@ namespace vogl
         inline json_value();
         inline json_value(bool val);
         inline json_value(int32 nVal);
-        inline json_value(uint32 nVal);
+        inline json_value(uint32_t nVal);
         inline json_value(int64_t nVal);
         // Note uint64_t values may be encoded as hex strings or int64_t
         inline json_value(uint64_t nVal);
@@ -175,7 +175,7 @@ namespace vogl
 
         inline void set_value(uint8_t nVal);
         inline void set_value(uint16_t nVal);
-        inline void set_value(uint32 nVal);
+        inline void set_value(uint32_t nVal);
 
         // Note uint64_t values may be encoded as hex strings or int64_t
         void set_value(uint64_t nVal);
@@ -192,7 +192,7 @@ namespace vogl
 
         inline json_value &operator=(bool val);
         inline json_value &operator=(int32 nVal);
-        inline json_value &operator=(uint32 nVal);
+        inline json_value &operator=(uint32_t nVal);
         inline json_value &operator=(int64_t nVal);
         inline json_value &operator=(uint64_t nVal);
         inline json_value &operator=(double flVal);
@@ -209,7 +209,7 @@ namespace vogl
 
         bool get_numeric(uint8_t &val, uint8_t def = 0) const;
         bool get_numeric(uint16_t &val, uint16_t def = 0) const;
-        bool get_numeric(uint32 &val, uint32 def = 0) const;
+        bool get_numeric(uint32_t &val, uint32_t def = 0) const;
         inline bool get_numeric(uint64_t &val, uint64_t def = 0) const;
 
         inline bool get_numeric(float &val, float def = 0.0f) const;
@@ -221,7 +221,7 @@ namespace vogl
         inline bool as_bool(bool def = false) const;
         inline int as_int(int def = 0) const;
         inline int as_int32(int32 def = 0) const;
-        inline uint32 as_uint32(uint32 def = 0) const;
+        inline uint32_t as_uint32(uint32_t def = 0) const;
         inline int64_t as_int64(int64_t def = 0) const;
         inline uint64_t as_uint64(uint64_t def = 0) const;
         inline float as_float(float def = 0.0f) const;
@@ -444,13 +444,13 @@ namespace vogl
         bool get_value_as_string(const char *pKey, dynamic_string &val, const char *pDef = "") const;
         bool get_value_as_enum(const char *pKey, const char **pStringList, int &val, int def = 0) const;
 
-        // T may be int8_t, int16_t, int32 or uint8_t, uint16_t, uint32
+        // T may be int8_t, int16_t, int32 or uint8_t, uint16_t, uint32_t
         // Internally this fetches the value as int64_t and attempts to convert. Returns false and sets val to def if out of range.
         template <typename T>
         bool get_value_as_int(const char *pKey, T &val, T def = 0) const;
 
         bool get_value_as_int64(const char *pKey, int64_t &val, int64_t def = 0) const;
-        bool get_value_as_uint32(const char *pKey, uint32 &val, uint32 def = 0) const;
+        bool get_value_as_uint32(const char *pKey, uint32_t &val, uint32_t def = 0) const;
         bool get_value_as_uint64(const char *pKey, uint64_t &val, uint64_t def = 0) const;
         bool get_value_as_float(const char *pKey, float &val, float def = 0) const;
         bool get_value_as_double(const char *pKey, double &val, double def = 0) const;
@@ -463,7 +463,7 @@ namespace vogl
         int value_as_int(const char *pKey, int def = 0) const;
         int32 value_as_int32(const char *pKey, int32 def = 0) const;
         int64_t value_as_int64(const char *pKey, int64_t def = 0) const;
-        uint32 value_as_uint32(const char *pKey, uint32 def = 0) const;
+        uint32_t value_as_uint32(const char *pKey, uint32_t def = 0) const;
         uint64_t value_as_uint64(const char *pKey, uint64_t def = 0) const;
         float value_as_float(const char *pKey, float def = 0) const;
         double value_as_double(const char *pKey, double def = 0) const;
@@ -477,7 +477,7 @@ namespace vogl
         int value_as_int(uint index, int def = 0) const;
         int32 value_as_int32(uint index, int32 def = 0) const;
         int64_t value_as_int64(uint index, int64_t def = 0) const;
-        uint32 value_as_uint32(uint index, uint32 def = 0) const;
+        uint32_t value_as_uint32(uint index, uint32_t def = 0) const;
         uint64_t value_as_uint64(uint index, uint64_t def = 0) const;
         float value_as_float(uint index, float def = 0) const;
         double value_as_double(uint index, double def = 0) const;

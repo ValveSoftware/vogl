@@ -242,7 +242,7 @@ namespace jpge
     static inline sym_freq *radix_sort_syms(uint num_syms, sym_freq *pSyms0, sym_freq *pSyms1)
     {
         const uint cMaxPasses = 4;
-        uint32 hist[256 * cMaxPasses];
+        uint32_t hist[256 * cMaxPasses];
         clear_obj(hist);
         for (uint i = 0; i < num_syms; i++)
         {
@@ -258,7 +258,7 @@ namespace jpge
             total_passes--;
         for (uint pass_shift = 0, pass = 0; pass < total_passes; pass++, pass_shift += 8)
         {
-            const uint32 *pHist = &hist[pass << 8];
+            const uint32_t *pHist = &hist[pass << 8];
             uint offsets[256], cur_ofs = 0;
             for (uint i = 0; i < 256; i++)
             {
@@ -339,9 +339,9 @@ namespace jpge
         for (int i = max_code_size + 1; i <= MAX_HUFF_CODESIZE; i++)
             pNum_codes[max_code_size] += pNum_codes[i];
 
-        uint32 total = 0;
+        uint32_t total = 0;
         for (int i = max_code_size; i > 0; i--)
-            total += (((uint32)pNum_codes[i]) << (max_code_size - i));
+            total += (((uint32_t)pNum_codes[i]) << (max_code_size - i));
 
         while (total != (1UL << max_code_size))
         {
@@ -366,7 +366,7 @@ namespace jpge
         syms0[0].m_key = 1;
         syms0[0].m_sym_index = 0; // dummy symbol, assures that no valid code contains all 1's
         int num_used_syms = 1;
-        const uint32 *pSym_count = &m_huff_count[table_num][0];
+        const uint32_t *pSym_count = &m_huff_count[table_num][0];
         for (int i = 0; i < table_len; i++)
             if (pSym_count[i])
             {
@@ -821,7 +821,7 @@ namespace jpge
 
     void jpeg_encoder::put_bits(uint bits, uint len)
     {
-        m_bit_buffer |= ((uint32)bits << (24 - (m_bits_in += len)));
+        m_bit_buffer |= ((uint32_t)bits << (24 - (m_bits_in += len)));
         while (m_bits_in >= 8)
         {
             uint8_t c;
@@ -845,7 +845,7 @@ namespace jpge
             return; // just to shut up static analysis
         int i, run_len, nbits, temp1;
         int16_t *src = m_coefficient_array;
-        uint32 *dc_count = component_num ? m_huff_count[0 + 1] : m_huff_count[0 + 0], *ac_count = component_num ? m_huff_count[2 + 1] : m_huff_count[2 + 0];
+        uint32_t *dc_count = component_num ? m_huff_count[0 + 1] : m_huff_count[0 + 0], *ac_count = component_num ? m_huff_count[2 + 1] : m_huff_count[2 + 0];
 
         temp1 = src[0] - m_last_dc_val[component_num];
         m_last_dc_val[component_num] = src[0];

@@ -87,7 +87,7 @@ const char* plat_gettmpdir()
 char* plat_gettmpfname(char *buffer, int maxlen, const char *prefix)
 {
     const char *tmpdir = plat_gettmpdir();
-    vogl::uint32 rnd32 = plat_rand();
+    uint32_t rnd32 = plat_rand();
     unsigned int time32 = (unsigned int)time(NULL);
 
     _snprintf(buffer, maxlen, "%s\\_%s_%08x_%08x.tmp", tmpdir, prefix, time32, rnd32);
@@ -117,9 +117,9 @@ pid_t plat_getpid()
     return static_cast<pid_t>(GetCurrentProcessId());
 }
 
-size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length)
+size_t plat_rand_s(uint32_t* out_array, size_t out_array_length)
 {
-    VOGL_ASSUME(sizeof(vogl::uint32) == sizeof(unsigned int));
+    VOGL_ASSUME(sizeof(uint32_t) == sizeof(unsigned int));
 
     size_t ret_values = 0;
     for (ret_values = 0; ret_values < out_array_length; ++ret_values)
@@ -131,9 +131,9 @@ size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length)
     return ret_values;
 }
 
-vogl::uint32 plat_rand()
+uint32_t plat_rand()
 {
-    vogl::uint32 num;
+    uint32_t num;
     return (plat_rand_s(&num, 1) > 0) ? num : rand();
 }
 
@@ -146,7 +146,7 @@ vogl::int32 plat_get_virtual_page_size()
     return sys_info.dwPageSize;
 }
 
-static DWORD get_alloc_flags_from_access(vogl::uint32 access_flags)
+static DWORD get_alloc_flags_from_access(uint32_t access_flags)
 {
     // Windows flags are specified here: http://msdn.microsoft.com/en-us/library/windows/desktop/aa366786(v=vs.85).aspx
     // It's not possible to write memory without also reading memory. This is true generally, but also windows doesn't
@@ -173,7 +173,7 @@ static DWORD get_alloc_flags_from_access(vogl::uint32 access_flags)
     return ret_flags;
 }
 
-void* plat_virtual_alloc(size_t size_requested, vogl::uint32 access_flags, size_t* out_size_provided)
+void* plat_virtual_alloc(size_t size_requested, uint32_t access_flags, size_t* out_size_provided)
 {
     const DWORD alloc_flags = get_alloc_flags_from_access(access_flags);
     
@@ -210,7 +210,7 @@ void plat_virtual_free(void* free_addr, size_t size)
 }
 
 #if VOGL_USE_PTHREADS_API
-    int plat_sem_post(sem_t* sem, vogl::uint32 release_count)
+    int plat_sem_post(sem_t* sem, uint32_t release_count)
     {
         if (1 == release_count)
             return sem_post(sem);
@@ -218,7 +218,7 @@ void plat_virtual_free(void* free_addr, size_t size)
         return sem_post_multiple(sem, release_count);
     }
 
-    void plat_try_sem_post(sem_t* sem, vogl::uint32 release_count)
+    void plat_try_sem_post(sem_t* sem, uint32_t release_count)
     {
         if (1 == release_count)
             sem_post(sem);

@@ -2757,7 +2757,7 @@ bool vogl_context_handle_remapper::is_valid_handle(vogl_namespace_t handle_names
     if (!from_handle)
         return 0;
 
-    uint32 handle = static_cast<uint32>(from_handle);
+    uint32_t handle = static_cast<uint32_t>(from_handle);
 
     const vogl_capture_context_params &capture_context_params = m_pContext->get_shared_state()->get_capture_context_params();
 
@@ -2792,7 +2792,7 @@ bool vogl_context_handle_remapper::determine_from_object_target(vogl_namespace_t
     if (!from_handle)
         return false;
 
-    uint32 handle = static_cast<uint32>(from_handle);
+    uint32_t handle = static_cast<uint32_t>(from_handle);
 
     const vogl_capture_context_params &capture_context_params = m_pContext->get_shared_state()->get_capture_context_params();
 
@@ -3043,14 +3043,14 @@ static void vogl_atexit()
 // vogl_backtrace
 //----------------------------------------------------------------------------------------------------------------------
 #if VOGL_PLATFORM_SUPPORTS_BTRACE
-    static uint32 vogl_backtrace(uint addrs_to_skip)
+    static uint32_t vogl_backtrace(uint addrs_to_skip)
     {
         vogl_backtrace_addrs addrs;
         addrs.m_num_addrs = btrace_get(addrs.m_addrs, addrs.cMaxAddrs, addrs_to_skip);
 
         vogl_backtrace_hashmap::insert_result ins_res;
 
-        uint32 index = 0;
+        uint32_t index = 0;
 
         get_backtrace_hashmap_mutex().lock();
 
@@ -7175,7 +7175,7 @@ static void vogl_serialize_client_side_arrays_helper(
                 else if (type == GL_UNSIGNED_SHORT)
                     v = reinterpret_cast<const uint16_t *>(pIndices_to_scan)[i];
                 else if (type == GL_UNSIGNED_INT)
-                    v = reinterpret_cast<const uint32 *>(pIndices_to_scan)[i];
+                    v = reinterpret_cast<const uint32_t *>(pIndices_to_scan)[i];
                 else
                 {
                     VOGL_ASSERT_ALWAYS;
@@ -8076,7 +8076,7 @@ static void vogl_link_program_epilog_helper(vogl_context *pContext, vogl_entrypo
         json_node &doc_root = *doc.get_root();
         doc_root.add_key_value("program", program);
         doc_root.add_key_value("link_status", link_status);
-        doc_root.add_key_value("func_id", static_cast<uint32>(id));
+        doc_root.add_key_value("func_id", static_cast<uint32_t>(id));
 
         // Active uniform blocks
         GLint active_uniform_blocks = 0;

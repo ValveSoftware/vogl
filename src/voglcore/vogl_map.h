@@ -58,7 +58,7 @@
 // Each container uses its own 32-bit PRNG with a constant seed.
 //
 // Item memory overhead: ~13 bytes avg overhead in 32-bit builds, ~26 bytes for 64-bit builds.
-// Min overhead is sizeof(uint32)+sizeof(void*)*2 per element.
+// Min overhead is sizeof(uint32_t)+sizeof(void*)*2 per element.
 #pragma once
 
 #include "vogl_core.h"

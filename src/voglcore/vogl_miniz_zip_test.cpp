@@ -74,9 +74,9 @@ namespace vogl
     {
         dynamic_string m_name;
         uint64_t m_size;
-        uint32 m_crc;
+        uint32_t m_crc;
 
-        zip_file_desc(const dynamic_string &name, uint64_t size, uint32 crc)
+        zip_file_desc(const dynamic_string &name, uint64_t size, uint32_t crc)
             : m_name(name), m_size(size), m_crc(crc)
         {
         }
@@ -166,7 +166,7 @@ namespace vogl
 
             printf("Adding file %s, size %s, add from mem: %u\n", name.get_ptr(), uint64_to_string_with_commas(actual_size).get_ptr(), add_from_mem);
 
-            files.push_back(zip_file_desc(name, actual_size, (uint32)mz_crc32(MZ_CRC32_INIT, p, static_cast<size_t>(actual_size))));
+            files.push_back(zip_file_desc(name, actual_size, (uint32_t)mz_crc32(MZ_CRC32_INIT, p, static_cast<size_t>(actual_size))));
 
             dynamic_string comment_str;
             comment_str.reserve(512);
@@ -496,7 +496,7 @@ namespace vogl
 
         for (uint t = 0; t < 10000; t++)
         {
-            uint32 seed = t + start_seed;
+            uint32_t seed = t + start_seed;
             printf("******* Pass %u, seed %u\n", t, seed);
 
             rm.seed(seed);

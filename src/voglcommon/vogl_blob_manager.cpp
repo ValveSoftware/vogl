@@ -122,7 +122,7 @@ bool vogl_blob_manager::get(const dynamic_string &id, uint8_vec &data) const
         return false;
     }
 
-    uint32 size = static_cast<uint32>(pStream->get_size());
+    uint32_t size = static_cast<uint32_t>(pStream->get_size());
 
     if (!data.try_resize(size))
     {
@@ -318,7 +318,7 @@ vogl_memory_blob_manager::~vogl_memory_blob_manager()
     deinit();
 }
 
-bool vogl_memory_blob_manager::init(uint32 flags)
+bool vogl_memory_blob_manager::init(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 
@@ -359,7 +359,7 @@ dynamic_string vogl_memory_blob_manager::add_buf_using_id(const void *pData, uin
 
     blob &new_blob = (insert_res.first)->second;
     new_blob.m_id = actual_id;
-    new_blob.m_blob.append(static_cast<const uint8_t *>(pData), static_cast<uint32>(size));
+    new_blob.m_blob.append(static_cast<const uint8_t *>(pData), static_cast<uint32_t>(size));
 
     return actual_id;
 }
@@ -434,7 +434,7 @@ vogl_loose_file_blob_manager::~vogl_loose_file_blob_manager()
     deinit();
 }
 
-bool vogl_loose_file_blob_manager::init(uint32 flags)
+bool vogl_loose_file_blob_manager::init(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 
@@ -446,7 +446,7 @@ bool vogl_loose_file_blob_manager::init(uint32 flags)
     return true;
 }
 
-bool vogl_loose_file_blob_manager::init(uint32 flags, const char *pPath)
+bool vogl_loose_file_blob_manager::init(uint32_t flags, const char *pPath)
 {
     VOGL_FUNC_TRACER
 
@@ -574,7 +574,7 @@ uint64_t vogl_loose_file_blob_manager::get_size(const dynamic_string &id) const
         return false;
     }
 
-    uint32 file_size;
+    uint32_t file_size;
     file_utils::get_file_size(get_filename(id).get_ptr(), file_size);
     return file_size;
 }
@@ -640,7 +640,7 @@ vogl_archive_blob_manager::~vogl_archive_blob_manager()
     deinit();
 }
 
-bool vogl_archive_blob_manager::init_memory(uint32 flags, const void *pZip_data, size_t size)
+bool vogl_archive_blob_manager::init_memory(uint32_t flags, const void *pZip_data, size_t size)
 {
     VOGL_FUNC_TRACER
 
@@ -671,7 +671,7 @@ bool vogl_archive_blob_manager::init_memory(uint32 flags, const void *pZip_data,
     return true;
 }
 
-bool vogl_archive_blob_manager::init_heap(uint32 flags)
+bool vogl_archive_blob_manager::init_heap(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 
@@ -723,7 +723,7 @@ void *vogl_archive_blob_manager::deinit_heap(size_t &size)
     return pBuf;
 }
 
-bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, uint64_t file_start_ofs, uint64_t actual_archive_size)
+bool vogl_archive_blob_manager::init_file(uint32_t flags, const char *pFilename, uint64_t file_start_ofs, uint64_t actual_archive_size)
 {
     VOGL_FUNC_TRACER
 
@@ -827,7 +827,7 @@ bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, u
     return true;
 }
 
-bool vogl_archive_blob_manager::init_file_temp(uint32 flags)
+bool vogl_archive_blob_manager::init_file_temp(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 
@@ -835,7 +835,7 @@ bool vogl_archive_blob_manager::init_file_temp(uint32 flags)
     return init_file(flags, temp_filename.get_ptr());
 }
 
-bool vogl_archive_blob_manager::init_cfile(uint32 flags, FILE *pFile, uint64_t cur_size)
+bool vogl_archive_blob_manager::init_cfile(uint32_t flags, FILE *pFile, uint64_t cur_size)
 {
     VOGL_FUNC_TRACER
 
@@ -1183,7 +1183,7 @@ vogl_multi_blob_manager::~vogl_multi_blob_manager()
     VOGL_FUNC_TRACER
 }
 
-bool vogl_multi_blob_manager::init(uint32 flags)
+bool vogl_multi_blob_manager::init(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 

@@ -56,7 +56,7 @@ const char *vogl_get_state_type_name(vogl_state_type s)
         case cSTInt32:
             return "int32";
         case cSTUInt32:
-            return "uint32";
+            return "uint32_t";
         case cSTInt64:
             return "int64_t";
         case cSTUInt64:
@@ -89,7 +89,7 @@ vogl_state_type vogl_get_state_type_from_name(const char *pName)
         return cSTGLenum;
     else if (vogl_strcmp(pName, "int32") == 0)
         return cSTInt32;
-    else if (vogl_strcmp(pName, "uint32") == 0)
+    else if (vogl_strcmp(pName, "uint32_t") == 0)
         return cSTUInt32;
     else if (vogl_strcmp(pName, "int64_t") == 0)
         return cSTInt64;
@@ -123,7 +123,7 @@ uint vogl_get_state_type_size(vogl_state_type s)
         case cSTInt32:
             return sizeof(int32);
         case cSTUInt32:
-            return sizeof(uint32);
+            return sizeof(uint32_t);
         case cSTInt64:
             return sizeof(int64_t);
         case cSTUInt64:
@@ -357,7 +357,7 @@ void vogl_state_data::get_bool(bool *pVals) const
         case cSTUInt32:
         {
             for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i) != 0;
+                pVals[i] = get_element<uint32_t>(i) != 0;
             break;
         }
         case cSTInt64:
@@ -436,7 +436,7 @@ void vogl_state_data::get_uint64(uint64_t *pVals) const
         case cSTUInt32:
         {
             for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i);
+                pVals[i] = get_element<uint32_t>(i);
             break;
         }
         case cSTInt64:
@@ -524,7 +524,7 @@ void vogl_state_data::get_uint(uint *pVals) const
         case cSTUInt32:
         {
             for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i);
+                pVals[i] = get_element<uint32_t>(i);
             break;
         }
         case cSTInt64:
@@ -550,7 +550,7 @@ void vogl_state_data::get_uint(uint *pVals) const
                 if (v < 0)
                     pVals[i] = static_cast<int32>(v);
                 else
-                    pVals[i] = static_cast<uint32>(v);
+                    pVals[i] = static_cast<uint32_t>(v);
             }
             break;
         }
@@ -564,7 +564,7 @@ void vogl_state_data::get_uint(uint *pVals) const
                 if (v < 0)
                     pVals[i] = static_cast<int32>(v);
                 else
-                    pVals[i] = static_cast<uint32>(v);
+                    pVals[i] = static_cast<uint32_t>(v);
             }
             break;
         }
@@ -612,7 +612,7 @@ void vogl_state_data::get_int64(int64_t *pVals) const
         case cSTUInt32:
         {
             for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i);
+                pVals[i] = get_element<uint32_t>(i);
             break;
         }
         case cSTInt64:
@@ -700,7 +700,7 @@ void vogl_state_data::get_int(int *pVals) const
         case cSTUInt32:
         {
             for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i);
+                pVals[i] = get_element<uint32_t>(i);
             break;
         }
         case cSTInt64:
@@ -724,7 +724,7 @@ void vogl_state_data::get_int(int *pVals) const
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
                 v = math::clamp<double>(v, static_cast<double>(cINT32_MIN), static_cast<double>(cUINT32_MAX));
                 if (v > cINT32_MAX)
-                    pVals[i] = static_cast<uint32>(v);
+                    pVals[i] = static_cast<uint32_t>(v);
                 else
                     pVals[i] = static_cast<int32>(v);
             }
@@ -738,7 +738,7 @@ void vogl_state_data::get_int(int *pVals) const
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
                 v = math::clamp<double>(v, static_cast<double>(cINT32_MIN), static_cast<double>(cUINT32_MAX));
                 if (v > cINT32_MAX)
-                    pVals[i] = static_cast<uint32>(v);
+                    pVals[i] = static_cast<uint32_t>(v);
                 else
                     pVals[i] = static_cast<int32>(v);
             }
@@ -806,7 +806,7 @@ void vogl_state_data::get_double(double *pVals) const
         case cSTUInt32:
         {
             for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = static_cast<double>(get_element<uint32>(i));
+                pVals[i] = static_cast<double>(get_element<uint32_t>(i));
             break;
         }
         case cSTInt64:
@@ -918,7 +918,7 @@ bool vogl_state_data::serialize(json_node &node) const
             }
             case cSTUInt32:
             {
-                const uint32 *pVal = reinterpret_cast<const uint32 *>(pElement);
+                const uint32_t *pVal = reinterpret_cast<const uint32_t *>(pElement);
                 values_node.add_value(*pVal);
                 break;
             }
@@ -1058,10 +1058,10 @@ bool vogl_state_data::deserialize(const json_node &node)
             }
             case cSTUInt32:
             {
-                uint32 *pVal = reinterpret_cast<uint32 *>(pElement);
+                uint32_t *pVal = reinterpret_cast<uint32_t *>(pElement);
 
                 int64_t v = pValues_array->value_as_int64(element_index);
-                *pVal = static_cast<uint32>(math::clamp<int64_t>(v, 0, cUINT32_MAX));
+                *pVal = static_cast<uint32_t>(math::clamp<int64_t>(v, 0, cUINT32_MAX));
 
                 break;
             }

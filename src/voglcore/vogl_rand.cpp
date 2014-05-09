@@ -41,7 +41,7 @@ namespace vogl
         seed(12345);
     }
 
-    random::random(uint32 i)
+    random::random(uint32_t i)
     {
         seed(i);
     }
@@ -51,12 +51,12 @@ namespace vogl
         seed(plat_rand());
     }
 
-    void random::seed(uint32 i)
+    void random::seed(uint32_t i)
     {
         m_frand.seed(i);
     }
 
-    uint32 random::urand32()
+    uint32_t random::urand32()
     {
         return m_frand.urand32();
     }
@@ -69,9 +69,9 @@ namespace vogl
         return result;
     }
 
-    uint32 random::get_bit()
+    uint32_t random::get_bit()
     {
-        uint32 k = urand32();
+        uint32_t k = urand32();
         return (k ^ (k >> 6) ^ (k >> 10) ^ (k >> 30)) & 1;
     }
 
@@ -119,15 +119,15 @@ namespace vogl
         return result;
     }
 
-    static inline uint umul32_return_high(uint32 range, uint32 rnd)
+    static inline uint umul32_return_high(uint32_t range, uint32_t rnd)
     {
 #if defined(PLATFORM_32BIT) && defined(COMPILER_MSVC)
-        //uint32 rnd_range = static_cast<uint32>(__emulu(range, rnd) >> 32U);
-        uint32 x[2];
+        //uint32_t rnd_range = static_cast<uint32_t>(__emulu(range, rnd) >> 32U);
+        uint32_t x[2];
         *reinterpret_cast<uint64_t *>(x) = __emulu(range, rnd);
-        uint32 rnd_range = x[1];
+        uint32_t rnd_range = x[1];
 #else
-        uint32 rnd_range = static_cast<uint32>((range * static_cast<uint64_t>(rnd)) >> 32U);
+        uint32_t rnd_range = static_cast<uint32_t>((range * static_cast<uint64_t>(rnd)) >> 32U);
 #endif
 
         return rnd_range;
@@ -139,11 +139,11 @@ namespace vogl
         if (l >= h)
             return l;
 
-        uint32 range = static_cast<uint32>(h - l);
+        uint32_t range = static_cast<uint32_t>(h - l);
 
-        uint32 rnd = urand32();
+        uint32_t rnd = urand32();
 
-        uint32 rnd_range = umul32_return_high(range, rnd);
+        uint32_t rnd_range = umul32_return_high(range, rnd);
 
         int result = l + rnd_range;
         VOGL_ASSERT((result >= l) && (result < h));
@@ -156,15 +156,15 @@ namespace vogl
         if (l >= h)
             return l;
 
-        uint32 range = static_cast<uint32>(h - l);
+        uint32_t range = static_cast<uint32_t>(h - l);
 
-        uint32 rnd = urand32();
+        uint32_t rnd = urand32();
 
         int result = static_cast<int>(rnd);
         if (range != cUINT32_MAX)
         {
             ++range;
-            uint32 rnd_range = umul32_return_high(range, rnd);
+            uint32_t rnd_range = umul32_return_high(range, rnd);
             result = l + rnd_range;
         }
 
@@ -178,11 +178,11 @@ namespace vogl
         if (l >= h)
             return l;
 
-        uint32 range = h - l;
+        uint32_t range = h - l;
 
-        uint32 rnd = urand32();
+        uint32_t rnd = urand32();
 
-        uint32 rnd_range = umul32_return_high(range, rnd);
+        uint32_t rnd_range = umul32_return_high(range, rnd);
 
         uint result = l + rnd_range;
         VOGL_ASSERT((result >= l) && (result < h));
@@ -195,15 +195,15 @@ namespace vogl
         if (l >= h)
             return l;
 
-        uint32 range = h - l;
+        uint32_t range = h - l;
 
-        uint32 rnd = urand32();
+        uint32_t rnd = urand32();
 
-        uint32 result = rnd;
+        uint32_t result = rnd;
         if (range != cUINT32_MAX)
         {
             ++range;
-            uint32 rnd_range = umul32_return_high(range, rnd);
+            uint32_t rnd_range = umul32_return_high(range, rnd);
             result = l + rnd_range;
         }
 
@@ -309,11 +309,11 @@ namespace vogl
         if (l >= h)
             return l;
 
-        uint32 range = static_cast<uint32>(h - l);
+        uint32_t range = static_cast<uint32_t>(h - l);
 
-        uint32 rnd = urand32();
+        uint32_t rnd = urand32();
 
-        uint32 rnd_range = umul32_return_high(range, rnd);
+        uint32_t rnd_range = umul32_return_high(range, rnd);
 
         int result = l + rnd_range;
         VOGL_ASSERT((result >= l) && (result < h));
@@ -326,11 +326,11 @@ namespace vogl
         if (l >= h)
             return l;
 
-        uint32 range = h - l;
+        uint32_t range = h - l;
 
-        uint32 rnd = urand32();
+        uint32_t rnd = urand32();
 
-        uint32 rnd_range = umul32_return_high(range, rnd);
+        uint32_t rnd_range = umul32_return_high(range, rnd);
 
         uint result = l + rnd_range;
         VOGL_ASSERT((result >= l) && (result < h));
@@ -512,7 +512,7 @@ namespace vogl
         random rm;
 
         time_t seconds = time(NULL);
-        uint32 seed = static_cast<uint32>(seconds);
+        uint32_t seed = static_cast<uint32_t>(seconds);
         frm.seed(seed);
         rm.seed(seed);
 

@@ -1529,9 +1529,9 @@ namespace vogl
             uint8_t *pDst = NULL;
             if (req_comps == 4)
             {
-                pDst = (uint8_t *)vogl_malloc(tex.get_total_pixels() * sizeof(uint32));
+                pDst = (uint8_t *)vogl_malloc(tex.get_total_pixels() * sizeof(uint32_t));
                 uint8_t *pSrc = (uint8_t *)pImg->get_ptr();
-                memcpy(pDst, pSrc, tex.get_total_pixels() * sizeof(uint32));
+                memcpy(pDst, pSrc, tex.get_total_pixels() * sizeof(uint32_t));
             }
             else
             {
@@ -1544,7 +1544,7 @@ namespace vogl
                 }
 
                 pixel_packer packer(req_comps, 8);
-                uint32 n;
+                uint32_t n;
                 pDst = image_utils::pack_image(*pImg, packer, n);
             }
 

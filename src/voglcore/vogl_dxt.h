@@ -209,7 +209,7 @@ namespace vogl
 
         static uint get_block_colors_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1);
 
-        static color_quad_u8 unpack_endpoint(uint32 endpoints, uint index, bool scaled, uint alpha = 255U);
+        static color_quad_u8 unpack_endpoint(uint32_t endpoints, uint index, bool scaled, uint alpha = 255U);
         static uint pack_endpoints(uint lo, uint hi);
 
         static void get_block_colors_NV5x(color_quad_u8 *pDst, uint16_t packed_col0, uint16_t packed_col1, bool color4);

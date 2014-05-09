@@ -92,7 +92,7 @@ namespace vogl
     };
 
     template <>
-    struct color_quad_component_traits<uint32>
+    struct color_quad_component_traits<uint32_t>
     {
         enum
         {
@@ -189,7 +189,7 @@ namespace vogl
 
             component_type c[cNumComps];
 
-            uint32 m_u32;
+            uint32_t m_u32;
         };
 
         inline color_quad()
@@ -406,10 +406,10 @@ namespace vogl
         }
 
         // Beware of endianness!
-        inline uint32 get_uint32() const
+        inline uint32_t get_uint32() const
         {
-            VOGL_ASSERT(sizeof(*this) == sizeof(uint32));
-            return *reinterpret_cast<const uint32 *>(this);
+            VOGL_ASSERT(sizeof(*this) == sizeof(uint32_t));
+            return *reinterpret_cast<const uint32_t *>(this);
         }
 
         // Beware of endianness!
@@ -431,7 +431,7 @@ namespace vogl
 
         inline bool operator==(const color_quad &rhs) const
         {
-            if (sizeof(color_quad) == sizeof(uint32))
+            if (sizeof(color_quad) == sizeof(uint32_t))
                 return m_u32 == rhs.m_u32;
             else
                 return (r == rhs.r) && (g == rhs.g) && (b == rhs.b) && (a == rhs.a);
@@ -637,7 +637,7 @@ namespace vogl
     typedef color_quad<int16_t, int> color_quad_i16;
     typedef color_quad<uint16_t, int> color_quad_u16;
     typedef color_quad<int32, int> color_quad_i32;
-    typedef color_quad<uint32, uint> color_quad_u32;
+    typedef color_quad<uint32_t, uint> color_quad_u32;
     typedef color_quad<float, float> color_quad_f;
     typedef color_quad<double, double> color_quad_d;
 
@@ -908,17 +908,17 @@ namespace vogl
                     dst_bit_ofs += bits_read;
                 }
 
-                const uint32 mx = m_comp_max[i];
+                const uint32_t mx = m_comp_max[i];
                 n &= mx;
 
-                const uint32 h = static_cast<uint32>(color_quad_type::component_traits::cMax);
+                const uint32_t h = static_cast<uint32_t>(color_quad_type::component_traits::cMax);
 
                 if (color_quad_type::component_traits::cFloat)
                     color.set_component(i, static_cast<typename color_quad_type::parameter_t>(n));
                 else if (rescale)
                     color.set_component(i, static_cast<typename color_quad_type::parameter_t>((static_cast<uint64_t>(n) * h + (mx >> 1U)) / mx));
                 else if (color_quad_type::component_traits::cSigned)
-                    color.set_component(i, static_cast<typename color_quad_type::parameter_t>(math::minimum<uint32>(n, h)));
+                    color.set_component(i, static_cast<typename color_quad_type::parameter_t>(math::minimum<uint32_t>(n, h)));
                 else
                     color.set_component(i, static_cast<typename color_quad_type::parameter_t>(n));
             }
@@ -943,9 +943,9 @@ namespace vogl
                 if (!comp_size)
                     continue;
 
-                uint32 mx = m_comp_max[i];
+                uint32_t mx = m_comp_max[i];
 
-                uint32 n;
+                uint32_t n;
                 if (color_quad_type::component_traits::cFloat)
                 {
                     typename color_quad_type::parameter_t t = color[i];
@@ -954,24 +954,24 @@ namespace vogl
                     else if (t > static_cast<typename color_quad_type::parameter_t>(mx))
                         n = mx;
                     else
-                        n = math::minimum<uint32>(static_cast<uint32>(floor(t + .5f)), mx);
+                        n = math::minimum<uint32_t>(static_cast<uint32_t>(floor(t + .5f)), mx);
                 }
                 else if (rescale)
                 {
                     if (color_quad_type::component_traits::cSigned)
                         n = math::maximum<int>(static_cast<int>(color[i]), 0);
                     else
-                        n = static_cast<uint32>(color[i]);
+                        n = static_cast<uint32_t>(color[i]);
 
-                    const uint32 h = static_cast<uint32>(color_quad_type::component_traits::cMax);
-                    n = static_cast<uint32>((static_cast<uint64_t>(n) * mx + (h >> 1)) / h);
+                    const uint32_t h = static_cast<uint32_t>(color_quad_type::component_traits::cMax);
+                    n = static_cast<uint32_t>((static_cast<uint64_t>(n) * mx + (h >> 1)) / h);
                 }
                 else
                 {
                     if (color_quad_type::component_traits::cSigned)
-                        n = math::minimum<uint32>(static_cast<uint32>(math::maximum<int>(static_cast<int>(color[i]), 0)), mx);
+                        n = math::minimum<uint32_t>(static_cast<uint32_t>(math::maximum<int>(static_cast<int>(color[i]), 0)), mx);
                     else
-                        n = math::minimum<uint32>(static_cast<uint32>(color[i]), mx);
+                        n = math::minimum<uint32_t>(static_cast<uint32_t>(color[i]), mx);
                 }
 
                 uint src_bit_ofs = 0;
@@ -1017,7 +1017,7 @@ namespace vogl
             }
 
             for (uint i = 0; i < 4; i++)
-                m_comp_max[i] = static_cast<uint32>((1ULL << m_comp_size[i]) - 1ULL);
+                m_comp_max[i] = static_cast<uint32_t>((1ULL << m_comp_size[i]) - 1ULL);
 
             m_pixel_stride = (pixel_stride >= 0) ? pixel_stride : (num_comps * bits_per_comp + 7) / 8;
 
@@ -1103,7 +1103,7 @@ namespace vogl
             }
 
             for (uint i = 0; i < 4; i++)
-                m_comp_max[i] = static_cast<uint32>((1ULL << m_comp_size[i]) - 1ULL);
+                m_comp_max[i] = static_cast<uint32_t>((1ULL << m_comp_size[i]) - 1ULL);
 
             if (pixel_stride >= 0)
                 m_pixel_stride = pixel_stride;

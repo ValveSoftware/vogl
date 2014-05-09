@@ -44,7 +44,7 @@ namespace vogl
         static bool does_file_exist(const char *pFilename);
         static bool does_dir_exist(const char *pDir);
         static bool get_file_size(const char *pFilename, uint64_t &file_size);
-        static bool get_file_size(const char *pFilename, uint32 &file_size);
+        static bool get_file_size(const char *pFilename, uint32_t &file_size);
         static void delete_file(const char *pFilename);
 
         static bool is_path_separator(char c);

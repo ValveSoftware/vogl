@@ -49,9 +49,9 @@ struct vogl_trace_stream_packet_base
     {
         cTracePacketPrefix = 0xD1C71602
     };
-    uint32 m_prefix;
-    uint32 m_size; // total size, including extra data, needed to get to next packet_base
-    uint32 m_crc;  // CRC32 of all packet data following this member
+    uint32_t m_prefix;
+    uint32_t m_size; // total size, including extra data, needed to get to next packet_base
+    uint32_t m_crc;  // CRC32 of all packet data following this member
 
     enum
     {
@@ -67,7 +67,7 @@ struct vogl_trace_stream_packet_base
     uint8_t m_type;     // trace_packet_types_t
     uint16_t m_inv_rnd; // not of m_rnd, for verification (and to purpusely increase the packet entropy - this is only for devel)
 
-    inline void init(uint8_t type, uint32 size)
+    inline void init(uint8_t type, uint32_t size)
     {
         memset(this, 0, sizeof(*this));
 
@@ -80,7 +80,7 @@ struct vogl_trace_stream_packet_base
     // Sets the rnd field using get_random()
     inline void init_rnd()
     {
-        uint32 rnd16 = static_cast<uint16_t>(plat_rand());
+        uint32_t rnd16 = static_cast<uint16_t>(plat_rand());
         m_rnd = static_cast<uint16_t>(math::maximum<uint>(vogl_trace_stream_packet_base::cMinimumPossibleRnd, rnd16));
         VOGL_ASSERT(m_rnd);
     }
@@ -92,7 +92,7 @@ struct vogl_trace_stream_packet_base
 
         VOGL_ASSERT(m_size >= sizeof(vogl_trace_stream_packet_base));
 
-        m_crc = (uint32)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8_t *>(this) + (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd), m_size - (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd));
+        m_crc = (uint32_t)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8_t *>(this) + (uint32_t)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd), m_size - (uint32_t)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd));
     }
 
     inline bool basic_validation() const
@@ -124,7 +124,7 @@ struct vogl_trace_stream_packet_base
         if (m_size > actual_buf_size)
             return false;
 
-        uint32 check_crc = (uint32)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8_t *>(this) + (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd), m_size - (uint32)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd));
+        uint32_t check_crc = (uint32_t)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8_t *>(this) + (uint32_t)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd), m_size - (uint32_t)VOGL_OFFSETOF(vogl_trace_stream_packet_base, m_rnd));
         if (check_crc != m_crc)
             return false;
 
@@ -147,9 +147,9 @@ struct vogl_trace_stream_start_of_file_packet
     {
         cSOFTracePacketPrefix = 0xD1C71601
     };
-    uint32 m_prefix;
+    uint32_t m_prefix;
     uint64_t m_size; // The size of this packet (NOT including the archive data)
-    uint32 m_crc;  // CRC32 of all packet data following this member
+    uint32_t m_crc;  // CRC32 of all packet data following this member
 
     uint16_t m_version; // must immediately follow m_crc!
     uint8_t m_pointer_sizes;
@@ -159,7 +159,7 @@ struct vogl_trace_stream_start_of_file_packet
     {
         cUUIDSize = 4
     };
-    uint32 m_uuid[cUUIDSize];
+    uint32_t m_uuid[cUUIDSize];
 
     uint64_t m_first_packet_offset;
 
@@ -175,9 +175,9 @@ struct vogl_trace_stream_start_of_file_packet
         m_version = VOGL_TRACE_FILE_VERSION;
     }
 
-    uint32 compute_crc() const
+    uint32_t compute_crc() const
     {
-        return (uint32)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8_t *>(this) + (uint32)VOGL_OFFSETOF(vogl_trace_stream_start_of_file_packet, m_version), sizeof(*this) - (uint32)VOGL_OFFSETOF(vogl_trace_stream_start_of_file_packet, m_version));
+        return (uint32_t)mz_crc32(MZ_CRC32_INIT, reinterpret_cast<const uint8_t *>(this) + (uint32_t)VOGL_OFFSETOF(vogl_trace_stream_start_of_file_packet, m_version), sizeof(*this) - (uint32_t)VOGL_OFFSETOF(vogl_trace_stream_start_of_file_packet, m_version));
     }
 
     inline void finalize()
@@ -207,7 +207,7 @@ struct vogl_trace_stream_start_of_file_packet
         if (actual_buf_size < sizeof(vogl_trace_stream_start_of_file_packet))
             return false;
 
-        uint32 check_crc = compute_crc();
+        uint32_t check_crc = compute_crc();
         if (check_crc != m_crc)
             return false;
 
@@ -242,13 +242,13 @@ struct vogl_trace_gl_entrypoint_packet : vogl_trace_stream_packet_base
     uint64_t m_thread_id;
 
     uint16_t m_param_size;
-    uint32 m_client_memory_size;
+    uint32_t m_client_memory_size;
 
-    uint32 m_backtrace_hash_index;
+    uint32_t m_backtrace_hash_index;
 
     // The code that handles serialization is written assuming most packets will *not* use a name value map.
     // Maps are intended to be rare events that are only included on expensive GL/GLX calls.
-    uint32 m_name_value_map_size;
+    uint32_t m_name_value_map_size;
 
     inline void init()
     {
@@ -271,7 +271,7 @@ struct vogl_backtrace_addrs
     {
         cMaxAddrs = 64
     };
-    uint32 m_num_addrs;
+    uint32_t m_num_addrs;
     uintptr_t m_addrs[cMaxAddrs];
 
     void clear()
@@ -309,7 +309,7 @@ struct vogl_backtrace_addrs
         return false;
     }
 
-    uint32 get_hash() const
+    uint32_t get_hash() const
     {
         return vogl::fast_hash(&m_num_addrs, sizeof(m_num_addrs)) ^ vogl::fast_hash(m_addrs, m_num_addrs * sizeof(m_addrs[0]));
     }

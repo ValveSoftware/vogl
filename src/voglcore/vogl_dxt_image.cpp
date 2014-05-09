@@ -1028,7 +1028,7 @@ namespace vogl
                 {
                     const etc1_block &block = *reinterpret_cast<const etc1_block *>(&get_element(block_x, block_y, element_index));
 // Preserve alpha if the format is something weird (like ETC1 for color and DXT5A for alpha) - which isn't currently supported.
-                    if (!rg_etc1::unpack_etc1_block(&block, (uint32 *)pPixels, m_format != cETC1))
+                    if (!rg_etc1::unpack_etc1_block(&block, (uint32_t *)pPixels, m_format != cETC1))
                         success = false;
 
                     break;
@@ -1120,7 +1120,7 @@ namespace vogl
             pack_params.m_dithering = p.m_dithering;
             //pack_params.m_perceptual = p.m_perceptual;
             pack_params.m_quality = etc_quality;
-            rg_etc1::pack_etc1_block(&dst_block, (uint32 *)pPixels, pack_params);
+            rg_etc1::pack_etc1_block(&dst_block, (uint32_t *)pPixels, pack_params);
         }
         else
 #if VOGL_SUPPORT_SQUISH

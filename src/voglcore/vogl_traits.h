@@ -94,7 +94,7 @@ namespace vogl
         };
     };
     template <>
-    struct int_traits<uint32>
+    struct int_traits<uint32_t>
     {
         enum
         {

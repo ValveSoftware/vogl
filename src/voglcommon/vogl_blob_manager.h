@@ -99,7 +99,7 @@ public:
     virtual vogl::dynamic_string copy_file(vogl_blob_manager &src_blob_manager, const vogl::dynamic_string &src_id, const vogl::dynamic_string &dst_id);
 
 protected:
-    uint32 m_flags;
+    uint32_t m_flags;
 
     bool is_readable() const
     {
@@ -118,7 +118,7 @@ protected:
         return (m_flags & cBMFReadWrite) == cBMFWritable;
     }
 
-    bool init(uint32 flags)
+    bool init(uint32_t flags)
     {
         if ((flags & cBMFReadWrite) == 0)
             return false;
@@ -144,7 +144,7 @@ public:
     {
     }
 
-    bool init(uint32 flags)
+    bool init(uint32_t flags)
     {
         vogl_blob_manager::init(flags);
         m_initialized = true;
@@ -206,7 +206,7 @@ public:
     vogl_memory_blob_manager();
     virtual ~vogl_memory_blob_manager();
 
-    bool init(uint32 flags);
+    bool init(uint32_t flags);
 
     virtual bool deinit();
 
@@ -249,8 +249,8 @@ public:
     vogl_loose_file_blob_manager();
     virtual ~vogl_loose_file_blob_manager();
 
-    bool init(uint32 flags);
-    bool init(uint32 flags, const char *pPath);
+    bool init(uint32_t flags);
+    bool init(uint32_t flags, const char *pPath);
 
     void set_path(const vogl::dynamic_string &path)
     {
@@ -294,17 +294,17 @@ public:
     vogl_archive_blob_manager();
     virtual ~vogl_archive_blob_manager();
 
-    bool init_memory(uint32 flags, const void *pZip_data, size_t size);
+    bool init_memory(uint32_t flags, const void *pZip_data, size_t size);
 
-    bool init_heap(uint32 flags);
+    bool init_heap(uint32_t flags);
     void *deinit_heap(size_t &size);
 
-    bool init_file(uint32 flags, const char *pFilename, uint64_t file_start_ofs = 0, uint64_t actual_archive_size = 0);
+    bool init_file(uint32_t flags, const char *pFilename, uint64_t file_start_ofs = 0, uint64_t actual_archive_size = 0);
 
     // Same as init_file(), but creates a temporary archive. It's up to you to delete the archive.
-    bool init_file_temp(uint32 flags);
+    bool init_file_temp(uint32_t flags);
 
-    bool init_cfile(uint32 flags, FILE *pFile, uint64_t cur_size);
+    bool init_cfile(uint32_t flags, FILE *pFile, uint64_t cur_size);
 
     const dynamic_string &get_archive_filename() const
     {
@@ -370,7 +370,7 @@ public:
 
     virtual ~vogl_multi_blob_manager();
 
-    bool init(uint32 flags);
+    bool init(uint32_t flags);
 
     void add_blob_manager(vogl_blob_manager *pBlob_manager);
 

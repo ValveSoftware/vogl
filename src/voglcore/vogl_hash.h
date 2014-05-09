@@ -39,16 +39,16 @@ namespace vogl
 
     uint64_t calc_sum64(const uint8_t *buf, size_t size, uint shift_amount = 0);
 
-    uint32 fast_hash(const void *p, int len);
+    uint32_t fast_hash(const void *p, int len);
 
     template <typename T>
-    inline uint32 fast_hash_obj(const T &obj)
+    inline uint32_t fast_hash_obj(const T &obj)
     {
         return fast_hash(&obj, sizeof(obj));
     }
 
     // 4-byte integer hash, full avalanche
-    inline uint32 bitmix32c(uint32 a)
+    inline uint32_t bitmix32c(uint32_t a)
     {
         a = (a + 0x7ed55d16) + (a << 12);
         a = (a ^ 0xc761c23c) ^ (a >> 19);
@@ -60,7 +60,7 @@ namespace vogl
     }
 
     // 4-byte integer hash, full avalanche, no constants
-    inline uint32 bitmix32(uint32 a)
+    inline uint32_t bitmix32(uint32_t a)
     {
         a -= (a << 6);
         a ^= (a >> 17);

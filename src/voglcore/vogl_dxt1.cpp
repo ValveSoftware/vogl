@@ -411,12 +411,12 @@ namespace vogl
 
         const uint alpha_thresh = m_pParams->m_pixels_have_alpha ? (m_pParams->m_dxt1a_alpha_threshold << 24U) : 0;
 
-        const uint32 *pSrc_pixels = reinterpret_cast<const uint32 *>(m_pParams->m_pPixels);
+        const uint32_t *pSrc_pixels = reinterpret_cast<const uint32_t *>(m_pParams->m_pPixels);
         uint8_t *pDst_selectors = res.m_pSelectors;
 
         if ((m_unique_colors.size() == 1) && (!m_pParams->m_pixels_have_alpha))
         {
-            uint32 c = utils::read_le32(pSrc_pixels);
+            uint32_t c = utils::read_le32(pSrc_pixels);
 
             VOGL_ASSERT(c >= alpha_thresh);
 
@@ -436,11 +436,11 @@ namespace vogl
             uint8_t *pDst_selectors_end = pDst_selectors + m_pParams->m_num_pixels;
 
             uint8_t prev_selector = 0;
-            uint32 prev_color = 0;
+            uint32_t prev_color = 0;
 
             do
             {
-                uint32 c = utils::read_le32(pSrc_pixels);
+                uint32_t c = utils::read_le32(pSrc_pixels);
                 pSrc_pixels++;
 
                 uint8_t selector = 3;
@@ -2189,8 +2189,8 @@ namespace vogl
 
         const uint alpha_thresh = m_pParams->m_pixels_have_alpha ? (m_pParams->m_dxt1a_alpha_threshold << 24U) : 0;
 
-        const uint32 *pSrc_pixels = reinterpret_cast<const uint32 *>(m_pParams->m_pPixels);
-        const uint32 *pSrc_pixels_end = pSrc_pixels + m_pParams->m_num_pixels;
+        const uint32_t *pSrc_pixels = reinterpret_cast<const uint32_t *>(m_pParams->m_pPixels);
+        const uint32_t *pSrc_pixels_end = pSrc_pixels + m_pParams->m_num_pixels;
 
         m_unique_colors.resize(m_pParams->m_num_pixels);
         uint num_unique_colors = 0;
@@ -2199,7 +2199,7 @@ namespace vogl
 
         do
         {
-            uint32 c = utils::read_le32(pSrc_pixels);
+            uint32_t c = utils::read_le32(pSrc_pixels);
             pSrc_pixels++;
 
             if (c < alpha_thresh)

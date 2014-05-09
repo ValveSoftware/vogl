@@ -789,7 +789,7 @@ namespace vogl
         return true;
     }
 
-    bool json_value::get_numeric(uint32 &val, uint32 def) const
+    bool json_value::get_numeric(uint32_t &val, uint32_t def) const
     {
         int64_t val64;
         if (!get_numeric(val64))
@@ -802,7 +802,7 @@ namespace vogl
             val = def;
             return false;
         }
-        val = static_cast<uint32>(val64);
+        val = static_cast<uint32_t>(val64);
         return true;
     }
 
@@ -1263,10 +1263,10 @@ namespace vogl
                 m_type = cJSONValueTypeDouble;
                 union
                 {
-                    uint32 m_u32;
+                    uint32_t m_u32;
                     float m_fl32;
                 } bits;
-                bits.m_u32 = static_cast<uint32>((pSrc[0] << 24) | (pSrc[1] << 16) | (pSrc[2] << 8) | pSrc[3]);
+                bits.m_u32 = static_cast<uint32_t>((pSrc[0] << 24) | (pSrc[1] << 16) | (pSrc[2] << 8) | pSrc[3]);
                 pSrc += 4;
                 m_data.m_flVal = static_cast<double>(bits.m_fl32);
                 break;
@@ -2076,7 +2076,7 @@ namespace vogl
         return m_values[index].get_numeric(val, def);
     }
 
-    bool json_node::get_value_as_uint32(const char *pKey, uint32 &val, uint32 def) const
+    bool json_node::get_value_as_uint32(const char *pKey, uint32_t &val, uint32_t def) const
     {
         int index = find_key(pKey);
         if (index < 0)
@@ -2160,9 +2160,9 @@ namespace vogl
         return result;
     }
 
-    uint32 json_node::value_as_uint32(const char *pKey, uint32 def) const
+    uint32_t json_node::value_as_uint32(const char *pKey, uint32_t def) const
     {
-        uint32 result;
+        uint32_t result;
         get_value_as_uint32(pKey, result, def);
         return result;
     }
@@ -2232,7 +2232,7 @@ namespace vogl
         return m_values[index].as_uint64(def);
     }
 
-    uint32 json_node::value_as_uint32(uint index, uint32 def) const
+    uint32_t json_node::value_as_uint32(uint index, uint32_t def) const
     {
         return m_values[index].as_uint32(def);
     }

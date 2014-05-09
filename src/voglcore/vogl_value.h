@@ -771,7 +771,7 @@ namespace vogl
                 case cDTUInt:
                 case cDTFloat:
                 case cDTStringHash:
-                    return sizeof(uint32);
+                    return sizeof(uint32_t);
                 case cDTInt64:
                 case cDTUInt64:
                 case cDTDouble:

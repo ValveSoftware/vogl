@@ -431,7 +431,7 @@ namespace vogl
             {
                 if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8_t)))
                 {
-                    VOGL_ASSERT(sizeof(color_t) == sizeof(uint32));
+                    VOGL_ASSERT(sizeof(color_t) == sizeof(uint32_t));
                     for (uint i = src_h; i; i--)
                     {
                         color_quad_u8 *pD_end = pD + src_w;
@@ -439,7 +439,7 @@ namespace vogl
                         {
                             do
                             {
-                                uint32 s = *reinterpret_cast<const uint32 *>(pS);
+                                uint32_t s = *reinterpret_cast<const uint32_t *>(pS);
                                 pS++;
 
                                 uint a = s >> 24, b = s & 0xFF, g = (s & 0xFF00) >> 8, r = (s & 0xFF0000) >> 16;
@@ -451,7 +451,7 @@ namespace vogl
                                     b = math::clamp255((b * 255 + round) / a);
                                 }
 
-                                *reinterpret_cast<uint32 *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
+                                *reinterpret_cast<uint32_t *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
                                 pD++;
 
                             } while (pD != pD_end);
@@ -460,7 +460,7 @@ namespace vogl
                         {
                             do
                             {
-                                uint32 s = *reinterpret_cast<const uint32 *>(pS);
+                                uint32_t s = *reinterpret_cast<const uint32_t *>(pS);
                                 pS++;
 
                                 uint a = s >> 24;
@@ -471,11 +471,11 @@ namespace vogl
                                     r = math::clamp255((r * 255 + round) / a);
                                     g = math::clamp255((g * 255 + round) / a);
                                     b = math::clamp255((b * 255 + round) / a);
-                                    *reinterpret_cast<uint32 *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
+                                    *reinterpret_cast<uint32_t *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
                                 }
                                 else
                                 {
-                                    *reinterpret_cast<uint32 *>(pD) = s;
+                                    *reinterpret_cast<uint32_t *>(pD) = s;
                                 }
 
                                 pD++;
@@ -521,7 +521,7 @@ namespace vogl
             {
                 if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8_t)))
                 {
-                    VOGL_ASSERT(sizeof(color_t) == sizeof(uint32));
+                    VOGL_ASSERT(sizeof(color_t) == sizeof(uint32_t));
                     for (uint i = src_h; i; i--)
                     {
                         color_quad_u8 *pD_end = pD + src_w;
@@ -535,7 +535,7 @@ namespace vogl
                                 uint r = math::mul255(pS->b, a);
                                 pS++;
 
-                                *reinterpret_cast<uint32 *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
+                                *reinterpret_cast<uint32_t *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
                                 pD++;
                             } while (pD != pD_end);
                         }
@@ -549,7 +549,7 @@ namespace vogl
                                 uint b = math::mul255(pS->b, a);
                                 pS++;
 
-                                *reinterpret_cast<uint32 *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
+                                *reinterpret_cast<uint32_t *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
                                 pD++;
                             } while (pD != pD_end);
                         }
@@ -587,15 +587,15 @@ namespace vogl
                     color_quad_u8 *pD_end = pD + src_w;
                     if (vogl_is_little_endian() && (sizeof(component_t) == sizeof(uint8_t)))
                     {
-                        VOGL_ASSERT(sizeof(color_t) == sizeof(uint32));
+                        VOGL_ASSERT(sizeof(color_t) == sizeof(uint32_t));
                         do
                         {
-                            uint32 c = *reinterpret_cast<const uint32 *>(pS);
+                            uint32_t c = *reinterpret_cast<const uint32_t *>(pS);
                             pS++;
 
                             c = (c & 0xFF00FF00) | ((c & 0xFF) << 16) | ((c & 0xFF0000) >> 16);
 
-                            *reinterpret_cast<uint32 *>(pD) = c;
+                            *reinterpret_cast<uint32_t *>(pD) = c;
                             pD++;
                         } while (pD != pD_end);
                     }

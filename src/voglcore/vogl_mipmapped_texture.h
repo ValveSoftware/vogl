@@ -334,8 +334,8 @@ namespace vogl
             const char *pFilename,
             texture_file_types::format file_format = texture_file_types::cFormatInvalid,
             vogl_comp_params *pComp_params = NULL,
-            uint32 *pActual_quality_level = NULL, float *pActual_bitrate = NULL,
-            uint32 image_write_flags = 0);
+            uint32_t *pActual_quality_level = NULL, float *pActual_bitrate = NULL,
+            uint32_t image_write_flags = 0);
 
         // Conversion
         bool convert(pixel_format fmt, bool cook, const dxt_image::pack_params &p);
@@ -437,7 +437,7 @@ namespace vogl
 
         void free_all_mips();
         bool read_regular_image(data_stream_serializer &serializer, texture_file_types::format file_format);
-        bool write_regular_image(const char *pFilename, uint32 image_write_flags);
+        bool write_regular_image(const char *pFilename, uint32_t image_write_flags);
         bool read_dds_internal(data_stream_serializer &serializer);
         void change_dxt1_to_dxt1a();
         bool flip_y_helper();

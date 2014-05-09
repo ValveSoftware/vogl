@@ -44,7 +44,7 @@
 
 #ifndef VOGL_MIN_ALLOC_ALIGNMENT
 // malloc() is 8 bytes for glibc in 32-bit, and 16 in 64-bit
-// must be at least sizeof(uint32) * 2
+// must be at least sizeof(uint32_t) * 2
 #define VOGL_MIN_ALLOC_ALIGNMENT sizeof(void *) * 2
 #endif
 
@@ -66,7 +66,7 @@ namespace vogl
 #if VOGL_64BIT_POINTERS
     const uint64_t VOGL_MAX_POSSIBLE_HEAP_BLOCK_SIZE = 0x1000000000ULL; // 64GB should be big enough for anybody!
 #else
-    const uint32 VOGL_MAX_POSSIBLE_HEAP_BLOCK_SIZE = 0x7FFF0000U; // ~1.999GB
+    const uint32_t VOGL_MAX_POSSIBLE_HEAP_BLOCK_SIZE = 0x7FFF0000U; // ~1.999GB
 #endif
     void vogl_init_heap();
 
@@ -219,7 +219,7 @@ namespace vogl
 
     // num is (obviously) limited to cUINT32_MAX, but the total allocated size in bytes can be > than this on x64
     template <typename T>
-    inline T *vogl_tracked_new_array(const char *pFile_line, uint32 num)
+    inline T *vogl_tracked_new_array(const char *pFile_line, uint32_t num)
     {
         if (!num)
         {
@@ -238,8 +238,8 @@ namespace vogl
 
         T *p = reinterpret_cast<T *>(q + VOGL_MIN_ALLOC_ALIGNMENT);
 
-        reinterpret_cast<uint32 *>(p)[-1] = num;
-        reinterpret_cast<uint32 *>(p)[-2] = ~num;
+        reinterpret_cast<uint32_t *>(p)[-1] = num;
+        reinterpret_cast<uint32_t *>(p)[-2] = ~num;
 
         if (!VOGL_IS_SCALAR_TYPE(T))
         {
@@ -254,11 +254,11 @@ namespace vogl
     {
         if (p)
         {
-            VOGL_ASSUME(VOGL_MIN_ALLOC_ALIGNMENT >= sizeof(uint32) * 2);
-            VOGL_ASSERT((uint64_t)p >= sizeof(uint32) * 2);
+            VOGL_ASSUME(VOGL_MIN_ALLOC_ALIGNMENT >= sizeof(uint32_t) * 2);
+            VOGL_ASSERT((uint64_t)p >= sizeof(uint32_t) * 2);
 
-            const uint32 num = reinterpret_cast<uint32 *>(p)[-1];
-            const uint32 num_check = reinterpret_cast<uint32 *>(p)[-2];
+            const uint32_t num = reinterpret_cast<uint32_t *>(p)[-1];
+            const uint32_t num_check = reinterpret_cast<uint32_t *>(p)[-2];
             if ((num) && (num == ~num_check))
             {
                 if (!VOGL_IS_SCALAR_TYPE(T))
@@ -279,12 +279,12 @@ namespace vogl
     // p must have been allocated using vogl_new_array.
     inline size_t vogl_msize_array(void *p)
     {
-        VOGL_ASSUME(VOGL_MIN_ALLOC_ALIGNMENT >= sizeof(uint32) * 2);
-        VOGL_ASSERT((uint64_t)p >= sizeof(uint32) * 2);
+        VOGL_ASSUME(VOGL_MIN_ALLOC_ALIGNMENT >= sizeof(uint32_t) * 2);
+        VOGL_ASSERT((uint64_t)p >= sizeof(uint32_t) * 2);
         if (p)
         {
-            const uint32 num = reinterpret_cast<uint32 *>(p)[-1];
-            const uint32 num_check = reinterpret_cast<uint32 *>(p)[-2];
+            const uint32_t num = reinterpret_cast<uint32_t *>(p)[-1];
+            const uint32_t num_check = reinterpret_cast<uint32_t *>(p)[-2];
             if ((num) && (num == ~num_check))
             {
                 size_t actual_size = vogl_msize(reinterpret_cast<uint8_t *>(p) - VOGL_MIN_ALLOC_ALIGNMENT);

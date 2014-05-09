@@ -15,13 +15,13 @@ namespace vogl
         m_data.m_nVal = val;
     }
 
-    inline json_value::json_value(int32 nVal)
+    inline json_value::json_value(int32_t nVal)
         : m_type(cJSONValueTypeInt), m_line(0)
     {
         m_data.m_nVal = nVal;
     }
 
-    inline json_value::json_value(uint32 nVal)
+    inline json_value::json_value(uint32_t nVal)
         : m_type(cJSONValueTypeInt), m_line(0)
     {
         m_data.m_nVal = nVal;
@@ -322,13 +322,13 @@ namespace vogl
         return *this;
     }
 
-    inline json_value &json_value::operator=(int32 nVal)
+    inline json_value &json_value::operator=(int32_t nVal)
     {
         set_value(nVal);
         return *this;
     }
 
-    inline json_value &json_value::operator=(uint32 nVal)
+    inline json_value &json_value::operator=(uint32_t nVal)
     {
         set_value(nVal);
         return *this;
@@ -477,16 +477,16 @@ namespace vogl
         return result;
     }
 
-    inline int json_value::as_int32(int32 def) const
+    inline int32_t json_value::as_int32(int32_t def) const
     {
-        int32 result;
+        int32_t result;
         get_numeric(result, def);
         return result;
     }
 
-    inline uint32 json_value::as_uint32(uint32 def) const
+    inline uint32_t json_value::as_uint32(uint32_t def) const
     {
-        uint32 result;
+        uint32_t result;
         get_numeric(result, def);
         return result;
     }

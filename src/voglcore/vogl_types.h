@@ -36,17 +36,17 @@ namespace vogl
         typedef int8_t int8_t;
         typedef uint16_t uint16_t;
         typedef int16_t int16_t;
+        typedef uint32_t uint32_t;
     #endif
-    typedef uint32_t uint32;
-    typedef uint32 uint;
+    typedef uint32_t uint;
     typedef int32_t int32;
 
     const uint8_t cUINT8_MIN = 0;
     const uint8_t cUINT8_MAX = 0xFFU;
     const uint16_t cUINT16_MIN = 0;
     const uint16_t cUINT16_MAX = 0xFFFFU;
-    const uint32 cUINT32_MIN = 0;
-    const uint32 cUINT32_MAX = 0xFFFFFFFFU;
+    const uint32_t cUINT32_MIN = 0;
+    const uint32_t cUINT32_MAX = 0xFFFFFFFFU;
     const uint64_t cUINT64_MIN = 0;
     const uint64_t cUINT64_MAX = 0xFFFFFFFFFFFFFFFFULL; //0xFFFFFFFFFFFFFFFFui64;
 
@@ -146,7 +146,7 @@ namespace vogl
         };
     };
 
-    uint32 fast_hash(const void *p, int len);
+    uint32_t fast_hash(const void *p, int len);
 
     // Bitwise hasher: Directly hashes key's bits
     template <typename T>

@@ -3486,7 +3486,7 @@ mz_bool mz_zip_writer_add_from_other_zip(mz_zip_archive *pZip, mz_zip_archive *p
         {
             // src is zip64, dest must be zip64
 
-            // name			uint32's
+            // name			uint32_t's
             // id				1 (optional in zip64?)
             // crc			1
             // comp_size	2

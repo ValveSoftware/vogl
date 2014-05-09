@@ -52,7 +52,7 @@ namespace vogl
 #ifdef VOGL_USE_WIN32_API
     bool file_utils::is_read_only(const char *pFilename)
     {
-        uint32 dst_file_attribs = GetFileAttributesA(pFilename);
+        uint32_t dst_file_attribs = GetFileAttributesA(pFilename);
         if (dst_file_attribs == INVALID_FILE_ATTRIBUTES)
             return false;
         if (dst_file_attribs & FILE_ATTRIBUTE_READONLY)
@@ -62,7 +62,7 @@ namespace vogl
 
     bool file_utils::disable_read_only(const char *pFilename)
     {
-        uint32 dst_file_attribs = GetFileAttributesA(pFilename);
+        uint32_t dst_file_attribs = GetFileAttributesA(pFilename);
         if (dst_file_attribs == INVALID_FILE_ATTRIBUTES)
             return false;
         if (dst_file_attribs & FILE_ATTRIBUTE_READONLY)
@@ -239,7 +239,7 @@ namespace vogl
     }
 #endif
 
-    bool file_utils::get_file_size(const char *pFilename, uint32 &file_size)
+    bool file_utils::get_file_size(const char *pFilename, uint32_t &file_size)
     {
         uint64_t file_size64;
         if (!get_file_size(pFilename, file_size64))
@@ -251,7 +251,7 @@ namespace vogl
         if (file_size64 > cUINT32_MAX)
             file_size64 = cUINT32_MAX;
 
-        file_size = static_cast<uint32>(file_size64);
+        file_size = static_cast<uint32_t>(file_size64);
         return true;
     }
 

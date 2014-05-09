@@ -560,8 +560,8 @@ bool vogl_display_list_state::parse_lists_and_update_shadows(GLsizei n, GLenum t
             }
             case GL_UNSIGNED_INT:
             {
-                handle += *reinterpret_cast<const uint32 *>(pTrace_lists_ptr);
-                pTrace_lists_ptr += sizeof(uint32);
+                handle += *reinterpret_cast<const uint32_t *>(pTrace_lists_ptr);
+                pTrace_lists_ptr += sizeof(uint32_t);
                 break;
             }
             case GL_FLOAT:

@@ -120,7 +120,7 @@ bool vogl_replay_window::open(int width, int height, int samples)
                               pVisual_info->depth, InputOutput,
                               pVisual_info->visual, winmask, &winAttribs);
 
-        const char *pWindow_name = (sizeof(void *) == sizeof(uint32)) ? "voglreplay 32-bit" : "voglreplay 64-bit";
+        const char *pWindow_name = (sizeof(void *) == sizeof(uint32_t)) ? "voglreplay 32-bit" : "voglreplay 64-bit";
         XStoreName(m_dpy, m_win, pWindow_name);
         XSetIconName(m_dpy, m_win, pWindow_name);
 

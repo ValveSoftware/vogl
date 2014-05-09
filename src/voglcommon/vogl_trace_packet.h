@@ -318,11 +318,11 @@ public:
         m_packet.m_gl_end_rdtsc = val;
     }
 
-    inline void set_backtrace_hash_index(uint32 hash_index)
+    inline void set_backtrace_hash_index(uint32_t hash_index)
     {
         m_packet.m_backtrace_hash_index = hash_index;
     }
-    inline uint32 get_backtrace_hash_index() const
+    inline uint32_t get_backtrace_hash_index() const
     {
         return m_packet.m_backtrace_hash_index;
     }
@@ -412,7 +412,7 @@ public:
             VOGL_ASSERT(trace_ctypes()[g_vogl_entrypoint_param_descs[m_packet.m_entrypoint_id][param_id].m_ctype].m_is_pointer);
         }
 
-        uint32 data_size32 = static_cast<uint32>(data_size);
+        uint32_t data_size32 = static_cast<uint32_t>(data_size);
 
         m_client_memory_descs[param_index].m_pointee_ctype = pointee_ctype;
 
@@ -764,7 +764,7 @@ private:
     struct client_memory_desc_t
     {
         int32 m_vec_ofs;
-        uint32 m_data_size;
+        uint32_t m_data_size;
         uint8_t m_pointee_ctype; // vogl_ctype_t
 
         inline void clear()

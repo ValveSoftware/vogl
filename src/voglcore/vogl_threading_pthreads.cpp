@@ -156,7 +156,7 @@ namespace vogl
         VOGL_NOTE_UNUSED(count);
     }
 
-    semaphore::semaphore(uint32 initialCount, uint32 maximumCount, const char *pName)
+    semaphore::semaphore(uint32_t initialCount, uint32_t maximumCount, const char *pName)
     {
         VOGL_NOTE_UNUSED(maximumCount);
         VOGL_NOTE_UNUSED(pName);
@@ -175,7 +175,7 @@ namespace vogl
         sem_destroy(&m_sem);
     }
 
-    void semaphore::release(uint32 releaseCount)
+    void semaphore::release(uint32_t releaseCount)
     {
         VOGL_ASSERT(releaseCount >= 1);
 
@@ -185,14 +185,14 @@ namespace vogl
         }
     }
 
-    void semaphore::try_release(uint32 releaseCount)
+    void semaphore::try_release(uint32_t releaseCount)
     {
         VOGL_ASSERT(releaseCount >= 1);
 
         plat_try_sem_post(&m_sem, releaseCount);
     }
 
-    bool semaphore::wait(uint32 milliseconds)
+    bool semaphore::wait(uint32_t milliseconds)
     {
         int status;
         if (milliseconds == cUINT32_MAX)

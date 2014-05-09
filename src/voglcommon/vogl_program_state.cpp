@@ -706,7 +706,7 @@ void vogl_program_state::set_link_time_snapshot(vogl_unique_ptr<vogl_program_sta
     m_pLink_time_snapshot = pSnapshot;
 }
 
-bool vogl_program_state::restore_uniforms(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
+bool vogl_program_state::restore_uniforms(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
 {
     VOGL_FUNC_TRACER
 
@@ -1075,7 +1075,7 @@ bool vogl_program_state::restore_uniforms(uint32 handle32, const vogl_context_in
     return true;
 }
 
-bool vogl_program_state::restore_uniform_blocks(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
+bool vogl_program_state::restore_uniform_blocks(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
 {
     VOGL_FUNC_TRACER
 
@@ -1161,7 +1161,7 @@ bool vogl_program_state::restore_uniform_blocks(uint32 handle32, const vogl_cont
     return true;
 }
 
-bool vogl_program_state::restore_active_attribs(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
+bool vogl_program_state::restore_active_attribs(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
 {
     VOGL_FUNC_TRACER
 
@@ -1189,7 +1189,7 @@ bool vogl_program_state::restore_active_attribs(uint32 handle32, const vogl_cont
     return true;
 }
 
-bool vogl_program_state::restore_outputs(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
+bool vogl_program_state::restore_outputs(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
 {
     VOGL_FUNC_TRACER
     VOGL_NOTE_UNUSED(remapper);
@@ -1232,7 +1232,7 @@ bool vogl_program_state::restore_outputs(uint32 handle32, const vogl_context_inf
     return true;
 }
 
-bool vogl_program_state::restore_transform_feedback(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
+bool vogl_program_state::restore_transform_feedback(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const
 {
     VOGL_FUNC_TRACER;
     VOGL_NOTE_UNUSED(context_info);
@@ -1271,7 +1271,7 @@ bool vogl_program_state::restore_transform_feedback(uint32 handle32, const vogl_
     return true;
 }
 
-bool vogl_program_state::restore_link_snapshot(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const
+bool vogl_program_state::restore_link_snapshot(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const
 {
     VOGL_FUNC_TRACER
 
@@ -1374,7 +1374,7 @@ handle_error:
     return false;
 }
 
-bool vogl_program_state::link_program(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const
+bool vogl_program_state::link_program(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const
 {
     VOGL_FUNC_TRACER
 
@@ -1725,7 +1725,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
                 {
                     for (uint element_ofs = 0; element_ofs < type_size_in_GLints; element_ofs++)
                     {
-                        const uint32 *pData = reinterpret_cast<const uint32 *>(uniform.m_data.get_ptr() + type_size * element + sizeof(uint32) * element_ofs);
+                        const uint32_t *pData = reinterpret_cast<const uint32_t *>(uniform.m_data.get_ptr() + type_size * element + sizeof(uint32_t) * element_ofs);
 
                         if (base_type == GL_FLOAT)
                         {
@@ -1997,7 +1997,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
                 {
                     const uint array_index = element * type_size_in_GLints + element_ofs;
 
-                    uint32 *pData = reinterpret_cast<uint32 *>(uniform.m_data.get_ptr() + type_size * element + sizeof(uint32) * element_ofs);
+                    uint32_t *pData = reinterpret_cast<uint32_t *>(uniform.m_data.get_ptr() + type_size * element + sizeof(uint32_t) * element_ofs);
                     float *pFloat_data = reinterpret_cast<float *>(pData);
                     double *pDouble_data = reinterpret_cast<double *>(pData);
 
@@ -2034,7 +2034,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
                                 *pDouble_data = static_cast<double>(val64);
                         }
                         else
-                            *pData = static_cast<uint32>(val64);
+                            *pData = static_cast<uint32_t>(val64);
                     }
                     else
                     {
@@ -2315,7 +2315,7 @@ bool vogl_linked_program_state::deserialize(const json_node &node, const vogl_bl
             return false;
         }
 
-        if (static_cast<uint32>(prog.get_snapshot_handle()) != prog.get_snapshot_handle())
+        if (static_cast<uint32_t>(prog.get_snapshot_handle()) != prog.get_snapshot_handle())
         {
             VOGL_ASSERT_ALWAYS;
 
@@ -2323,7 +2323,7 @@ bool vogl_linked_program_state::deserialize(const json_node &node, const vogl_bl
             return false;
         }
 
-        if (!m_linked_programs.insert(static_cast<uint32>(prog.get_snapshot_handle()), prog).second)
+        if (!m_linked_programs.insert(static_cast<uint32_t>(prog.get_snapshot_handle()), prog).second)
         {
             VOGL_ASSERT_ALWAYS;
 
@@ -2345,7 +2345,7 @@ bool vogl_linked_program_state::remap_handles(vogl_handle_remapper &remapper)
     {
         VOGL_ASSERT(it->first == it->second.get_snapshot_handle());
 
-        GLuint new_handle = static_cast<uint32>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAMS, it->first));
+        GLuint new_handle = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAMS, it->first));
 
         vogl_program_state new_prog_state(it->second);
         if (!new_prog_state.remap_handles(remapper))

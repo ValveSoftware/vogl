@@ -37,7 +37,7 @@
 class vogl_handle_tracker
 {
 public:
-    typedef uint32 handle_t;
+    typedef uint32_t handle_t;
 
     class handle_def
     {

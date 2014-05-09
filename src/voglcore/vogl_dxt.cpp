@@ -294,7 +294,7 @@ namespace vogl
             return get_block_colors3_round(pDst, color0, color1);
     }
 
-    color_quad_u8 dxt1_block::unpack_endpoint(uint32 endpoints, uint index, bool scaled, uint alpha)
+    color_quad_u8 dxt1_block::unpack_endpoint(uint32_t endpoints, uint index, bool scaled, uint alpha)
     {
         VOGL_ASSERT(index < 2);
         return unpack_color(static_cast<uint16_t>((endpoints >> (index * 16U)) & 0xFFFFU), scaled, alpha);

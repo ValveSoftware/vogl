@@ -410,35 +410,35 @@ void vogl_mem_error(const char *pMsg, const char *pFile_line)
 }
 
 #if VOGL_RAND_FILL_ALLLOCATED_MEMORY || VOGL_SCRUB_FREED_MEMORY
-static uint32 g_cur_rand = 0xDEADBEEF;
+static uint32_t g_cur_rand = 0xDEADBEEF;
 
 static void random_fill(void *p, size_t size)
 {
 #define JSR (jsr ^= (jsr << 17), jsr ^= (jsr >> 13), jsr ^= (jsr << 5));
-    uint32 jsr = g_cur_rand;
+    uint32_t jsr = g_cur_rand;
 
-    while (size >= sizeof(uint32) * 4)
+    while (size >= sizeof(uint32_t) * 4)
     {
-        static_cast<uint32 *>(p)[0] = jsr;
+        static_cast<uint32_t *>(p)[0] = jsr;
         JSR;
-        static_cast<uint32 *>(p)[1] = jsr;
+        static_cast<uint32_t *>(p)[1] = jsr;
         JSR;
-        static_cast<uint32 *>(p)[2] = jsr;
+        static_cast<uint32_t *>(p)[2] = jsr;
         JSR;
-        static_cast<uint32 *>(p)[3] = jsr;
+        static_cast<uint32_t *>(p)[3] = jsr;
         JSR;
 
-        size -= sizeof(uint32) * 4;
-        p = static_cast<uint32 *>(p) + 4;
+        size -= sizeof(uint32_t) * 4;
+        p = static_cast<uint32_t *>(p) + 4;
     }
 
-    while (size >= sizeof(uint32))
+    while (size >= sizeof(uint32_t))
     {
-        static_cast<uint32 *>(p)[0] = jsr;
+        static_cast<uint32_t *>(p)[0] = jsr;
         JSR;
 
-        size -= sizeof(uint32);
-        p = static_cast<uint32 *>(p);
+        size -= sizeof(uint32_t);
+        p = static_cast<uint32_t *>(p);
     }
 
     while (size)
@@ -457,9 +457,9 @@ static void random_fill(void *p, size_t size)
 
 void *vogl_tracked_malloc(const char *pFile_line, size_t size, size_t *pActual_size)
 {
-    size = (size + sizeof(uint32) - 1U) & ~(sizeof(uint32) - 1U);
+    size = (size + sizeof(uint32_t) - 1U) & ~(sizeof(uint32_t) - 1U);
     if (!size)
-        size = sizeof(uint32);
+        size = sizeof(uint32_t);
 
     if (size > VOGL_MAX_POSSIBLE_HEAP_BLOCK_SIZE)
     {
@@ -509,8 +509,8 @@ void *vogl_tracked_realloc(const char *pFile_line, void *p, size_t size, size_t 
         return NULL;
     }
 
-    if ((size) && (size < sizeof(uint32)))
-        size = sizeof(uint32);
+    if ((size) && (size < sizeof(uint32_t)))
+        size = sizeof(uint32_t);
 
 #if VOGL_RAND_FILL_ALLLOCATED_MEMORY || VOGL_SCRUB_FREED_MEMORY
     size_t orig_size = p ? msize_block(p, pFile_line) : 0;

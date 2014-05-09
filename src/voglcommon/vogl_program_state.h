@@ -399,13 +399,13 @@ private:
     bool snapshot_basic_info(const vogl_context_info &context_info, vogl_handle_remapper &remapper);
     bool snapshot_outputs(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint program);
     bool snapshot_transform_feedback(const vogl_context_info &context_info, vogl_handle_remapper &remapper, GLuint program);
-    bool restore_uniforms(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_uniform_blocks(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_active_attribs(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_outputs(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_transform_feedback(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
-    bool restore_link_snapshot(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const;
-    bool link_program(uint32 handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const;
+    bool restore_uniforms(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_uniform_blocks(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_active_attribs(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_outputs(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_transform_feedback(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors) const;
+    bool restore_link_snapshot(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const;
+    bool link_program(uint32_t handle32, const vogl_context_info &context_info, vogl_handle_remapper &remapper, bool &any_restore_warnings, bool &any_gl_errors, bool &link_succeeded) const;
 };
 
 typedef vogl::map<GLuint, vogl_program_state> vogl_program_state_map;

@@ -549,7 +549,7 @@ private:
 
         virtual bool is_valid_handle(vogl_namespace_t handle_namespace, uint64_t replay_handle);
 
-        virtual int32 remap_location(uint32 replay_program, int32 replay_location);
+        virtual int32 remap_location(uint32_t replay_program, int32 replay_location);
 
         virtual vogl_trace_ptr_value remap_vertex_attrib_ptr(uint index, vogl_trace_ptr_value ptr_val)
         {
@@ -592,7 +592,7 @@ private:
 
         virtual bool is_valid_handle(vogl_namespace_t handle_namespace, uint64_t replay_handle);
 
-        virtual int32 remap_location(uint32 trace_program, int32 from_location);
+        virtual int32 remap_location(uint32_t trace_program, int32 from_location);
 
         virtual vogl_trace_ptr_value remap_vertex_attrib_ptr(uint index, vogl_trace_ptr_value ptr_val);
 
@@ -602,7 +602,7 @@ private:
 
         virtual void delete_handle_and_object(vogl_namespace_t handle_namespace, uint64_t from_handle, uint64_t to_handle);
 
-        virtual void declare_location(uint32 from_program_handle, uint32 to_program_handle, int32 from_location, int32 to_location);
+        virtual void declare_location(uint32_t from_program_handle, uint32_t to_program_handle, int32 from_location, int32 to_location);
 
         virtual bool determine_from_object_target(vogl_namespace_t handle_namespace, uint64_t trace_handle, GLenum &target);
 

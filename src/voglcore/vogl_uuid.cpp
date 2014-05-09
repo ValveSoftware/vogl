@@ -39,7 +39,7 @@ namespace vogl
     {
     #if defined(PLATFORM_LINUX)
 
-        uint32 buf[] = { 0xABCDEF, 0x12345678, 0xFFFECABC, 0xABCDDEF0 };
+        uint32_t buf[] = { 0xABCDEF, 0x12345678, 0xFFFECABC, 0xABCDDEF0 };
         plat_rand_s(buf, VOGL_ARRAY_SIZE(buf));
 
         return md5_hash(buf[0], buf[1], buf[2], buf[3]);

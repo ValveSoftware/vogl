@@ -79,12 +79,12 @@ namespace vogl
             }
         }
 
-        void endian_switch_dwords(uint32 *p, uint num)
+        void endian_switch_dwords(uint32_t *p, uint num)
         {
-            uint32 *p_end = p + num;
+            uint32_t *p_end = p + num;
             while (p != p_end)
             {
-                uint32 k = *p;
+                uint32_t k = *p;
                 *p++ = swap32(k);
             }
         }
@@ -101,13 +101,13 @@ namespace vogl
             }
         }
 
-        void copy_dwords(uint32 *pDst, const uint32 *pSrc, uint num, bool endian_switch)
+        void copy_dwords(uint32_t *pDst, const uint32_t *pSrc, uint num, bool endian_switch)
         {
             if (!endian_switch)
                 memcpy(pDst, pSrc, num << 2U);
             else
             {
-                uint32 *pDst_end = pDst + num;
+                uint32_t *pDst_end = pDst + num;
                 while (pDst != pDst_end)
                     *pDst++ = swap32(*pSrc++);
             }

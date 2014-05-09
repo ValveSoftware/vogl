@@ -58,11 +58,11 @@ namespace vogl
         typedef unsigned char uint8_t;
         typedef unsigned short uint16_t;
         typedef unsigned int uint;
-        typedef unsigned int uint32;
+        typedef unsigned int uint32_t;
         typedef long long int64_t;
         typedef unsigned long long uint64_t;
 
-        const uint32 cUINT32_MAX = 0xFFFFFFFFU;
+        const uint32_t cUINT32_MAX = 0xFFFFFFFFU;
         const uint64_t cUINT64_MAX = 0xFFFFFFFFFFFFFFFFULL; //0xFFFFFFFFFFFFFFFFui64;
 
         template <typename T>
@@ -157,7 +157,7 @@ namespace vogl
 
                 component_t c[cNumComps];
 
-                uint32 m_u32;
+                uint32_t m_u32;
             };
 
             inline color_quad_u8()
@@ -1642,9 +1642,9 @@ namespace vogl
             vec3F m_avg_color;
             int m_br, m_bg, m_bb;
             uint16_t m_luma[8];
-            uint32 m_sorted_luma[2][8];
-            const uint32 *m_pSorted_luma_indices;
-            uint32 *m_pSorted_luma;
+            uint32_t m_sorted_luma[2][8];
+            const uint32_t *m_pSorted_luma_indices;
+            uint32_t *m_pSorted_luma;
 
             uint8_t m_selectors[8];
             uint8_t m_best_selectors[8];
@@ -2400,7 +2400,7 @@ namespace vogl
             color_quad_u8 src_pixel0(pSrc_pixels[0]);
 
             // Check for solid block.
-            const uint32 first_pixel_u32 = pSrc_pixels->m_u32;
+            const uint32_t first_pixel_u32 = pSrc_pixels->m_u32;
             int r;
             for (r = 15; r >= 1; --r)
                 if (pSrc_pixels[r].m_u32 != first_pixel_u32)
@@ -2470,7 +2470,7 @@ namespace vogl
                         results[2].m_error = cUINT64_MAX;
                         if ((params.m_quality >= cMediumQuality) && ((subblock) || (use_color4)))
                         {
-                            const uint32 subblock_pixel0_u32 = subblock_pixels[0].m_u32;
+                            const uint32_t subblock_pixel0_u32 = subblock_pixels[0].m_u32;
                             for (r = 7; r >= 1; --r)
                                 if (subblock_pixels[r].m_u32 != subblock_pixel0_u32)
                                     break;

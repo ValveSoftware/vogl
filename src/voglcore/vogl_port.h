@@ -56,10 +56,10 @@ uint64_t plat_posix_gettid();
 pid_t plat_getpid();
 
 // Provides out_array_length uint32s of random data from a secure service (/dev/urandom, crypto apis, etc).
-size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length);
+size_t plat_rand_s(uint32_t* out_array, size_t out_array_length);
 
-// Provide a single random uint32.
-vogl::uint32 plat_rand();
+// Provide a single random uint32_t.
+uint32_t plat_rand();
 
 // Virtual memory handling
 #define PLAT_READ 0x01
@@ -68,12 +68,12 @@ vogl::uint32 plat_rand();
 // Returns the size of a virtual page of memory.
 vogl::int32 plat_get_virtual_page_size();
 
-void* plat_virtual_alloc(size_t size_requested, vogl::uint32 access_flags, size_t* out_size_provided);
+void* plat_virtual_alloc(size_t size_requested, uint32_t access_flags, size_t* out_size_provided);
 void plat_virtual_free(void* free_addr, size_t size);
 
 #if VOGL_USE_PTHREADS_API
-    int plat_sem_post(sem_t* sem, vogl::uint32 release_count);
-    void plat_try_sem_post(sem_t* sem, vogl::uint32 release_count);
+    int plat_sem_post(sem_t* sem, uint32_t release_count);
+    void plat_try_sem_post(sem_t* sem, uint32_t release_count);
 #endif
 
 #if defined(PLATFORM_WINDOWS)

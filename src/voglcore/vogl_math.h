@@ -54,20 +54,20 @@ namespace vogl
         const float cDegToRad = 0.01745329252f;
         const float cRadToDeg = 57.29577951f;
 
-        const uint32 cFloatExpBits = 8;
-        const uint32 cFloatExpMask = (1 << cFloatExpBits) - 1;
-        const uint32 cFloatFractBits = 23;
-        const uint32 cFloatFractMask = (1 << cFloatFractBits) - 1;
-        const uint32 cFloatExpShift = 23;
-        const uint32 cFloatExpShiftedMask = cFloatExpMask << cFloatExpShift;
+        const uint32_t cFloatExpBits = 8;
+        const uint32_t cFloatExpMask = (1 << cFloatExpBits) - 1;
+        const uint32_t cFloatFractBits = 23;
+        const uint32_t cFloatFractMask = (1 << cFloatFractBits) - 1;
+        const uint32_t cFloatExpShift = 23;
+        const uint32_t cFloatExpShiftedMask = cFloatExpMask << cFloatExpShift;
         const int32 cFloatExpBias = 127;
-        const uint32 cFloatSignMask = 0x80000000U;
+        const uint32_t cFloatSignMask = 0x80000000U;
 
-        const uint32 cDoubleExpBits = 11;
+        const uint32_t cDoubleExpBits = 11;
         const uint64_t cDoubleExpMask = (1ULL << cDoubleExpBits) - 1ULL;
-        const uint32 cDoubleFractBits = 52;
+        const uint32_t cDoubleFractBits = 52;
         const uint64_t cDoubleFractMask = (1ULL << cDoubleFractBits) - 1ULL;
-        const uint32 cDoubleExpShift = 52;
+        const uint32_t cDoubleExpShift = 52;
         const uint64_t cDoubleExpShiftedMask = cDoubleExpMask << cDoubleExpShift;
         const int32 cDoubleExpBias = 1023;
         const uint64_t cDoubleSignMask = 0x8000000000000000ULL;
@@ -269,7 +269,7 @@ namespace vogl
             return value * value;
         }
 
-        inline bool is_power_of_2(uint32 x)
+        inline bool is_power_of_2(uint32_t x)
         {
             return x && ((x & (x - 1U)) == 0U);
         }
@@ -377,7 +377,7 @@ namespace vogl
         }
 
         // From "Hackers Delight"
-        inline uint32 next_pow2(uint32 val)
+        inline uint32_t next_pow2(uint32_t val)
         {
             val--;
             val |= val >> 16;
@@ -607,7 +607,7 @@ namespace vogl
         }
 
         // Returns 64-bit result of a * b
-        inline uint64_t emulu(uint32 a, uint32 b)
+        inline uint64_t emulu(uint32_t a, uint32_t b)
         {
             #if defined(_M_IX86) && defined(COMPILER_MSVC)
                 return __emulu(a, b);
@@ -644,12 +644,12 @@ namespace vogl
             return a;
         }
 
-        inline uint32 get_float_bits(float f)
+        inline uint32_t get_float_bits(float f)
         {
             union
             {
                 float f;
-                uint32 u;
+                uint32_t u;
             } x;
             x.f = f;
             return x.u;
@@ -666,9 +666,9 @@ namespace vogl
             return x.u;
         }
 
-        inline uint32 get_float_mantissa(float f)
+        inline uint32_t get_float_mantissa(float f)
         {
-            const uint32 u = get_float_bits(f);
+            const uint32_t u = get_float_bits(f);
             return u & cFloatFractMask;
         }
 
@@ -680,7 +680,7 @@ namespace vogl
 
         inline int get_float_exponent(float f)
         {
-            const uint32 u = get_float_bits(f);
+            const uint32_t u = get_float_bits(f);
             const int exp = (u >> cFloatExpShift) & cFloatExpMask;
             return exp - cFloatExpBias;
         }
@@ -709,7 +709,7 @@ namespace vogl
 
         inline bool is_denormal(float f)
         {
-            const uint32 u = get_float_bits(f);
+            const uint32_t u = get_float_bits(f);
             const uint exp = (u >> cFloatExpShift) & cFloatExpMask;
             const uint mantissa = u & cFloatFractMask;
             return (exp == 0) && (mantissa != 0);
@@ -717,7 +717,7 @@ namespace vogl
 
         inline bool is_nan_or_inf(float f)
         {
-            uint32 u = get_float_bits(f);
+            uint32_t u = get_float_bits(f);
             return ((u >> cFloatExpShift) & cFloatExpMask) == cFloatExpMask;
         }
 
@@ -731,7 +731,7 @@ namespace vogl
             return (get_double_bits(d) & cDoubleSignMask) != 0;
         }
 
-        inline uint64_t combine_two_uint32s(uint32 l, uint32 h)
+        inline uint64_t combine_two_uint32s(uint32_t l, uint32_t h)
         {
             return static_cast<uint64_t>(l) | (static_cast<uint64_t>(h) << 32U);
         }

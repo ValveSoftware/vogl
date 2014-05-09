@@ -812,10 +812,10 @@ namespace vogl
         // This method serializes out the *entire* hash table (including unused nodes), so the key/value must be POD's with no ptrs, etc.
         bool raw_write_to_serializer(data_stream_serializer &serializer)
         {
-            uint32 size = m_values.size();
-            uint32 inv_size = ~size;
+            uint32_t size = m_values.size();
+            uint32_t inv_size = ~size;
 
-            serializer << size << m_hash_shift << m_num_valid << m_grow_threshold << static_cast<uint32>(sizeof(node)) << inv_size;
+            serializer << size << m_hash_shift << m_num_valid << m_grow_threshold << static_cast<uint32_t>(sizeof(node)) << inv_size;
 
             if (m_values.size())
                 serializer.write(m_values.get_ptr(), m_values.size_in_bytes());
@@ -825,18 +825,18 @@ namespace vogl
 
         uint64_t get_raw_write_size() const
         {
-            return sizeof(uint32) * 6 + m_values.size_in_bytes();
+            return sizeof(uint32_t) * 6 + m_values.size_in_bytes();
         }
 
         // key/value must be POD's with no ptrs, it serializes the raw data.
         bool raw_read_from_serializer(data_stream_serializer &serializer)
         {
-            uint32 size = serializer.read_uint32();
-            uint32 hash_shift = serializer.read_uint32();
-            uint32 num_valid = serializer.read_uint32();
-            uint32 grow_threshold = serializer.read_uint32();
-            uint32 node_size = serializer.read_uint32();
-            uint32 inv_size = serializer.read_uint32();
+            uint32_t size = serializer.read_uint32();
+            uint32_t hash_shift = serializer.read_uint32();
+            uint32_t num_valid = serializer.read_uint32();
+            uint32_t grow_threshold = serializer.read_uint32();
+            uint32_t node_size = serializer.read_uint32();
+            uint32_t inv_size = serializer.read_uint32();
 
             if ((size != ~inv_size) || (node_size != sizeof(node)))
                 return false;

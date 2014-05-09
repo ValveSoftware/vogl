@@ -59,7 +59,7 @@ namespace vogl
             *this = x;
         }
 
-        inline bigint128(uint32 x)
+        inline bigint128(uint32_t x)
         {
             *this = x;
         }
@@ -96,16 +96,16 @@ namespace vogl
             return *this;
         }
 
-        inline uint32 get_dword(uint index) const
+        inline uint32_t get_dword(uint index) const
         {
             VOGL_ASSERT(index < cMaxDWORDs);
             uint64_t x = get_qword(index >> 1);
             if (index & 1)
                 x >>= 32U;
-            return static_cast<uint32>(x);
+            return static_cast<uint32_t>(x);
         }
 
-        inline bigint128 &set_dword(uint index, uint32 val)
+        inline bigint128 &set_dword(uint index, uint32_t val)
         {
             VOGL_ASSERT(index < cMaxDWORDs);
             uint qword_index = index >> 1U;
@@ -146,7 +146,7 @@ namespace vogl
             return *this;
         }
 
-        inline bigint128 &operator=(uint32 x)
+        inline bigint128 &operator=(uint32_t x)
         {
             *this = static_cast<uint64_t>(x);
             return *this;
@@ -182,9 +182,9 @@ namespace vogl
             return static_cast<uint16_t>(m_v[0]);
         }
 
-        inline operator uint32() const
+        inline operator uint32_t() const
         {
-            return static_cast<uint32>(m_v[0]);
+            return static_cast<uint32_t>(m_v[0]);
         }
 
         inline operator uint64_t() const
@@ -298,7 +298,7 @@ namespace vogl
         {
             return *this == bigint128(x);
         }
-        inline bool operator==(uint32 x) const
+        inline bool operator==(uint32_t x) const
         {
             return *this == bigint128(x);
         }
@@ -346,7 +346,7 @@ namespace vogl
         {
             return *this < bigint128(x);
         }
-        inline bool operator<(uint32 x) const
+        inline bool operator<(uint32_t x) const
         {
             return *this < bigint128(x);
         }
@@ -367,7 +367,7 @@ namespace vogl
         {
             return *this <= bigint128(x);
         }
-        inline bool operator<=(uint32 x) const
+        inline bool operator<=(uint32_t x) const
         {
             return *this <= bigint128(x);
         }
@@ -384,7 +384,7 @@ namespace vogl
         {
             return *this > bigint128(x);
         }
-        inline bool operator>(uint32 x) const
+        inline bool operator>(uint32_t x) const
         {
             return *this > bigint128(x);
         }
@@ -401,7 +401,7 @@ namespace vogl
         {
             return *this >= bigint128(x);
         }
-        inline bool operator>=(uint32 x) const
+        inline bool operator>=(uint32_t x) const
         {
             return *this >= bigint128(x);
         }
@@ -562,7 +562,7 @@ namespace vogl
         {
             return lhs + bigint128(x);
         }
-        friend inline bigint128 operator+(const bigint128 &lhs, uint32 x)
+        friend inline bigint128 operator+(const bigint128 &lhs, uint32_t x)
         {
             return lhs + bigint128(x);
         }
@@ -579,7 +579,7 @@ namespace vogl
         {
             return lhs - bigint128(x);
         }
-        friend inline bigint128 operator-(const bigint128 &lhs, uint32 x)
+        friend inline bigint128 operator-(const bigint128 &lhs, uint32_t x)
         {
             return lhs - bigint128(x);
         }
@@ -730,7 +730,7 @@ namespace vogl
                         }
 
                         product += value.get_dword(k);
-                        value.set_dword(k, static_cast<uint32>(product));
+                        value.set_dword(k, static_cast<uint32_t>(product));
                         product >>= 32U;
                         k++;
                     }
@@ -854,7 +854,7 @@ namespace vogl
         {
             return lhs * bigint128(x);
         }
-        friend inline bigint128 operator*(const bigint128 &lhs, uint32 x)
+        friend inline bigint128 operator*(const bigint128 &lhs, uint32_t x)
         {
             return lhs * bigint128(x);
         }
@@ -873,7 +873,7 @@ namespace vogl
             *this = *this * other;
             return *this;
         }
-        bigint128 &operator*=(uint32 other)
+        bigint128 &operator*=(uint32_t other)
         {
             *this = *this * other;
             return *this;
@@ -903,7 +903,7 @@ namespace vogl
         {
             return lhs / bigint128(x);
         }
-        friend inline bigint128 operator/(const bigint128 &lhs, uint32 x)
+        friend inline bigint128 operator/(const bigint128 &lhs, uint32_t x)
         {
             return lhs / bigint128(x);
         }
@@ -922,7 +922,7 @@ namespace vogl
             *this = *this / other;
             return *this;
         }
-        bigint128 &operator/=(uint32 other)
+        bigint128 &operator/=(uint32_t other)
         {
             *this = *this / other;
             return *this;
@@ -952,7 +952,7 @@ namespace vogl
         {
             return lhs % bigint128(x);
         }
-        friend inline bigint128 operator%(const bigint128 &lhs, uint32 x)
+        friend inline bigint128 operator%(const bigint128 &lhs, uint32_t x)
         {
             return lhs % bigint128(x);
         }
@@ -971,7 +971,7 @@ namespace vogl
             *this = *this % other;
             return *this;
         }
-        bigint128 &operator%=(uint32 other)
+        bigint128 &operator%=(uint32_t other)
         {
             *this = *this % other;
             return *this;

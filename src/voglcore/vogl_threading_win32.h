@@ -98,9 +98,9 @@ namespace vogl
         {
         }
 
-        void lock(uint32 max_spins = 4096, bool yielding = true);
+        void lock(uint32_t max_spins = 4096, bool yielding = true);
 
-        inline void lock_no_barrier(uint32 max_spins = 4096, bool yielding = true)
+        inline void lock_no_barrier(uint32_t max_spins = 4096, bool yielding = true)
         {
             lock(max_spins, yielding);
         }
@@ -141,7 +141,7 @@ namespace vogl
         VOGL_NO_COPY_OR_ASSIGNMENT_OP(semaphore);
 
     public:
-        // TODO: Change to uint32
+        // TODO: Change to uint32_t
         semaphore(int32 initialCount, int32 maximumCount, const char *pName = NULL);
 
         ~semaphore();
@@ -154,7 +154,7 @@ namespace vogl
         void release(int32 releaseCount = 1, int32 *pPreviousCount = NULL);
         bool try_release(int32 releaseCount = 1, int32 *pPreviousCount = NULL);
 
-        bool wait(uint32 milliseconds = cUINT32_MAX);
+        bool wait(uint32_t milliseconds = cUINT32_MAX);
 
     private:
         HANDLE m_handle;
@@ -298,7 +298,7 @@ namespace vogl
         {
             return m_num_threads;
         }
-        inline uint32 get_num_outstanding_tasks() const
+        inline uint32_t get_num_outstanding_tasks() const
         {
             return m_total_submitted_tasks - m_total_completed_tasks;
         }

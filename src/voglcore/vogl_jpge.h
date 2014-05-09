@@ -37,7 +37,7 @@ namespace jpge
     typedef signed short int16_t;
     typedef signed int int32;
     typedef unsigned short uint16_t;
-    typedef unsigned int uint32;
+    typedef unsigned int uint32_t;
     typedef unsigned int uint;
 
     // JPEG chroma subsampling factors. Y_ONLY (grayscale images) and H2V2 (color images) are the most common.
@@ -168,7 +168,7 @@ namespace jpge
         uint8_t m_huff_code_sizes[4][256];
         uint8_t m_huff_bits[4][17];
         uint8_t m_huff_val[4][256];
-        uint32 m_huff_count[4][256];
+        uint32_t m_huff_count[4][256];
         int m_last_dc_val[3];
         enum
         {
@@ -177,7 +177,7 @@ namespace jpge
         uint8_t m_out_buf[JPGE_OUT_BUF_SIZE];
         uint8_t *m_pOut_buf;
         uint m_out_buf_left;
-        uint32 m_bit_buffer;
+        uint32_t m_bit_buffer;
         uint m_bits_in;
         uint8_t m_pass_num;
         bool m_all_stream_writes_succeeded;

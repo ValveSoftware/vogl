@@ -36,7 +36,7 @@
 #endif
 
 #if !defined(get16bits)
-#define get16bits(d) ((((uint32)(((const uint8_t *)(d))[1])) << 8) + (uint32)(((const uint8_t *)(d))[0]))
+#define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8) + (uint32_t)(((const uint8_t *)(d))[0]))
 #endif
 
 namespace vogl
@@ -84,11 +84,11 @@ namespace vogl
         return NULL;
     }
 
-    uint32 fast_hash(const void *p, int len)
+    uint32_t fast_hash(const void *p, int len)
     {
         const char *data = static_cast<const char *>(p);
 
-        uint32 hash = len, tmp;
+        uint32_t hash = len, tmp;
         int rem;
 
         if (len <= 0 || data == NULL)

@@ -144,12 +144,12 @@ namespace vogl
 
         inline bool operator<(const unique_color &c) const
         {
-            return *reinterpret_cast<const uint32 *>(&m_color) < *reinterpret_cast<const uint32 *>(&c.m_color);
+            return *reinterpret_cast<const uint32_t *>(&m_color) < *reinterpret_cast<const uint32_t *>(&c.m_color);
         }
 
         inline bool operator==(const unique_color &c) const
         {
-            return *reinterpret_cast<const uint32 *>(&m_color) == *reinterpret_cast<const uint32 *>(&c.m_color);
+            return *reinterpret_cast<const uint32_t *>(&m_color) == *reinterpret_cast<const uint32_t *>(&c.m_color);
         }
     };
 
@@ -266,8 +266,8 @@ namespace vogl
 
         typedef vogl::vector<unique_color> unique_color_vec;
 
-        //typedef vogl::hash_map<uint32, uint32, bit_hasher<uint32> > unique_color_hash_map;
-        typedef vogl::hash_map<uint32, uint32> unique_color_hash_map;
+        //typedef vogl::hash_map<uint32_t, uint32_t, bit_hasher<uint32_t> > unique_color_hash_map;
+        typedef vogl::hash_map<uint32_t, uint32_t> unique_color_hash_map;
         unique_color_hash_map m_unique_color_hash_map;
 
         unique_color_vec m_unique_colors; // excludes transparent colors!

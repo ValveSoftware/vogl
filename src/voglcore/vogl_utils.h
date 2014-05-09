@@ -32,7 +32,7 @@
 #endif
 #include "vogl_core.h"
 
-#define VOGL_OFFSETOF(t, e) ((uint32)(intptr_t)(&((t *)(0))->e))
+#define VOGL_OFFSETOF(t, e) ((uint32_t)(intptr_t)(&((t *)(0))->e))
 
 #define VOGL_MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define VOGL_MAX(a, b) (((a) < (b)) ? (b) : (a))
@@ -60,7 +60,7 @@ template <class T, size_t N>
 T decay_array_to_subtype(T (&a)[N]);
 #define VOGL_ARRAY_SIZE(X) (sizeof(X) / sizeof(decay_array_to_subtype(X)))
 
-#define VOGL_SIZEOF_U32(x) static_cast<uint32>(sizeof(x))
+#define VOGL_SIZEOF_U32(x) static_cast<uint32_t>(sizeof(x))
 
 // Returns # of bits needed to encode x, i.e. 0=0, 1=1, 0xFFFF=15, 0x10000=16, etc.
 #define VOGL_SIGNIFICANT_BITS(x)                                                               \
@@ -282,7 +282,7 @@ namespace vogl
         {
             return _byteswap_ushort(x);
         }
-        VOGL_FORCE_INLINE uint32 swap32(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap32(uint32_t x)
         {
             return _byteswap_ulong(x);
         }
@@ -295,7 +295,7 @@ namespace vogl
         {
             return static_cast<uint16_t>((x << 8U) | (x >> 8U));
         }
-        VOGL_FORCE_INLINE uint32 swap32(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap32(uint32_t x)
         {
             return __builtin_bswap32(x);
         }
@@ -308,13 +308,13 @@ namespace vogl
         {
             return static_cast<uint16_t>((x << 8U) | (x >> 8U));
         }
-        VOGL_FORCE_INLINE uint32 swap32(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap32(uint32_t x)
         {
             return ((x << 24U) | ((x << 8U) & 0x00FF0000U) | ((x >> 8U) & 0x0000FF00U) | (x >> 24U));
         }
         VOGL_FORCE_INLINE uint64_t swap64(uint64_t x)
         {
-            return (static_cast<uint64_t>(swap32(static_cast<uint32>(x))) << 32ULL) | swap32(static_cast<uint32>(x >> 32U));
+            return (static_cast<uint64_t>(swap32(static_cast<uint32_t>(x))) << 32ULL) | swap32(static_cast<uint32_t>(x >> 32U));
         }
 #endif
 
@@ -323,7 +323,7 @@ namespace vogl
         {
             return c_vogl_little_endian_platform ? x : swap16(x);
         }
-        VOGL_FORCE_INLINE uint32 swap_le32_to_native(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap_le32_to_native(uint32_t x)
         {
             return c_vogl_little_endian_platform ? x : swap32(x);
         }
@@ -337,7 +337,7 @@ namespace vogl
         {
             return c_vogl_big_endian_platform ? x : swap16(x);
         }
-        VOGL_FORCE_INLINE uint32 swap_be32_to_native(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap_be32_to_native(uint32_t x)
         {
             return c_vogl_big_endian_platform ? x : swap32(x);
         }
@@ -346,13 +346,13 @@ namespace vogl
             return c_vogl_big_endian_platform ? x : swap64(x);
         }
 
-        VOGL_FORCE_INLINE uint32 read_le32(const void *p)
+        VOGL_FORCE_INLINE uint32_t read_le32(const void *p)
         {
-            return swap_le32_to_native(*static_cast<const uint32 *>(p));
+            return swap_le32_to_native(*static_cast<const uint32_t *>(p));
         }
-        VOGL_FORCE_INLINE void write_le32(void *p, uint32 x)
+        VOGL_FORCE_INLINE void write_le32(void *p, uint32_t x)
         {
-            *static_cast<uint32 *>(p) = swap_le32_to_native(x);
+            *static_cast<uint32_t *>(p) = swap_le32_to_native(x);
         }
         VOGL_FORCE_INLINE uint64_t read_le64(const void *p)
         {
@@ -363,13 +363,13 @@ namespace vogl
             *static_cast<uint64_t *>(p) = swap_le64_to_native(x);
         }
 
-        VOGL_FORCE_INLINE uint32 read_be32(const void *p)
+        VOGL_FORCE_INLINE uint32_t read_be32(const void *p)
         {
-            return swap_be32_to_native(*static_cast<const uint32 *>(p));
+            return swap_be32_to_native(*static_cast<const uint32_t *>(p));
         }
-        VOGL_FORCE_INLINE void write_be32(void *p, uint32 x)
+        VOGL_FORCE_INLINE void write_be32(void *p, uint32_t x)
         {
-            *static_cast<uint32 *>(p) = swap_be32_to_native(x);
+            *static_cast<uint32_t *>(p) = swap_be32_to_native(x);
         }
         VOGL_FORCE_INLINE uint64_t read_be64(const void *p)
         {
@@ -388,7 +388,7 @@ namespace vogl
                 ++p;
             }
         }
-        inline void endian_swap_mem32(uint32 *p, uint n)
+        inline void endian_swap_mem32(uint32_t *p, uint n)
         {
             while (n--)
             {
@@ -413,9 +413,9 @@ namespace vogl
                     :
                     endian_swap_mem16(static_cast<uint16_t *>(p), size_in_bytes / type_size);
                     break;
-                case sizeof(uint32)
+                case sizeof(uint32_t)
                     :
-                    endian_swap_mem32(static_cast<uint32 *>(p), size_in_bytes / type_size);
+                    endian_swap_mem32(static_cast<uint32_t *>(p), size_in_bytes / type_size);
                     break;
                 case sizeof(uint64_t)
                     :
@@ -522,9 +522,9 @@ namespace vogl
         }
 
         void endian_switch_words(uint16_t *p, uint num);
-        void endian_switch_dwords(uint32 *p, uint num);
+        void endian_switch_dwords(uint32_t *p, uint num);
         void copy_words(uint16_t *pDst, const uint16_t *pSrc, uint num, bool endian_switch);
-        void copy_dwords(uint32 *pDst, const uint32 *pSrc, uint num, bool endian_switch);
+        void copy_dwords(uint32_t *pDst, const uint32_t *pSrc, uint num, bool endian_switch);
 
         // Returns the maximum number of mip levels given the specified width/height, including the first (largest) mip level.
         uint compute_max_mips(uint width, uint height, uint min_width = 1U, uint min_height = 1U);

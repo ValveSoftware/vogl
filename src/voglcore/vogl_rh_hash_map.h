@@ -982,7 +982,7 @@ namespace vogl
         struct hash_entry
         {
             value_type *m_pValue;
-            uint32 m_hash;
+            uint32_t m_hash;
         };
 
         typedef vogl::vector<hash_entry> hash_entry_vec;
@@ -1027,14 +1027,14 @@ namespace vogl
             m_allocator.destroy_no_destruction(p);
         }
 
-        inline uint32 calc_distance(uint32 index_stored) const
+        inline uint32_t calc_distance(uint32_t index_stored) const
         {
             VOGL_ASSERT(m_values[index_stored].m_pValue);
 
-            uint32 initial_index = m_values[index_stored].m_hash >> m_hash_shift;
+            uint32_t initial_index = m_values[index_stored].m_hash >> m_hash_shift;
             VOGL_ASSERT((index_stored < m_values.size()) && (initial_index < m_values.size()));
 
-            uint32 distance = index_stored - initial_index;
+            uint32_t distance = index_stored - initial_index;
             if (initial_index > index_stored)
                 distance += m_values.size();
 

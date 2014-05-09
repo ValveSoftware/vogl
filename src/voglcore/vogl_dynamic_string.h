@@ -324,7 +324,7 @@ namespace vogl
 
         uint get_serialize_size() const
         {
-            return sizeof(uint32) + m_len;
+            return sizeof(uint32_t) + m_len;
         }
 
         // Returns -1 on failure, or the number of bytes written.
@@ -365,7 +365,7 @@ namespace vogl
         enum
         {
             cSmallStringExtraBufSize = 4,
-            cSmallStringBufSize = ((sizeof(char *) - 1) + sizeof(uint32)) + cSmallStringExtraBufSize,
+            cSmallStringBufSize = ((sizeof(char *) - 1) + sizeof(uint32_t)) + cSmallStringExtraBufSize,
             cSmallStringMaxLen = cSmallStringBufSize - 1,
         };
 
@@ -373,7 +373,7 @@ namespace vogl
         // Current string length in bytes.
         // In this design, the string can be either static (small) or dynamic, independent of its size.
         // I could gate whether or not the string is dynamic pased purely off the length, but this would be more restrictive.
-        uint32 m_len;
+        uint32_t m_len;
 
         union
         {
@@ -383,7 +383,7 @@ namespace vogl
                 char *m_pStr;
 
                 // Current buffer size in bytes.
-                uint32 m_buf_size;
+                uint32_t m_buf_size;
             } m_dyn;
 
             struct

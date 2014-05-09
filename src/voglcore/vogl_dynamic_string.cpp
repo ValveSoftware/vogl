@@ -123,7 +123,7 @@ namespace vogl
                     return;
                 }
 
-                uint32 min_buf_size = m_len + 1;
+                uint32_t min_buf_size = m_len + 1;
 
                 // TODO: In some cases it'll make no difference to try to shrink the block due to allocation alignment, etc. issues
                 if (m_dyn.m_buf_size > min_buf_size)
@@ -1002,7 +1002,7 @@ namespace vogl
 
         set_dyn_string_ptr(p);
 
-        m_dyn.m_buf_size = static_cast<uint32>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, vogl_msize_array(m_dyn.m_pStr)));
+        m_dyn.m_buf_size = static_cast<uint32_t>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, vogl_msize_array(m_dyn.m_pStr)));
         VOGL_ASSERT(m_dyn.m_buf_size >= new_buf_size);
 
         check();
@@ -1043,7 +1043,7 @@ namespace vogl
         }
 
         set_dyn_string_ptr(p);
-        m_dyn.m_buf_size = static_cast<uint32>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, vogl_msize_array(m_dyn.m_pStr)));
+        m_dyn.m_buf_size = static_cast<uint32_t>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, vogl_msize_array(m_dyn.m_pStr)));
         VOGL_ASSERT(m_dyn.m_buf_size >= new_buf_size);
 
         if (preserve_contents)
@@ -1054,11 +1054,11 @@ namespace vogl
 
     void dynamic_string::swap(dynamic_string &other)
     {
-        VOGL_ASSUME((sizeof(*this) & (sizeof(uint32) - 1)) == 0);
-        uint32 *pA = reinterpret_cast<uint32 *>(this);
-        uint32 *pB = reinterpret_cast<uint32 *>(&other);
+        VOGL_ASSUME((sizeof(*this) & (sizeof(uint32_t) - 1)) == 0);
+        uint32_t *pA = reinterpret_cast<uint32_t *>(this);
+        uint32_t *pB = reinterpret_cast<uint32_t *>(&other);
 
-        uint num_uint32s = sizeof(*this) / sizeof(uint32);
+        uint num_uint32s = sizeof(*this) / sizeof(uint32_t);
         while (num_uint32s >= 4)
         {
             std::swap(reinterpret_cast<uint64_t *>(pA)[0], reinterpret_cast<uint64_t *>(pB)[0]);
@@ -1084,9 +1084,9 @@ namespace vogl
     {
         uint buf_left = buf_size;
 
-        VOGL_ASSUME(sizeof(m_len) == sizeof(uint32));
+        VOGL_ASSUME(sizeof(m_len) == sizeof(uint32_t));
 
-        if (!utils::write_val(static_cast<uint32>(m_len), pBuf, buf_left, little_endian))
+        if (!utils::write_val(static_cast<uint32_t>(m_len), pBuf, buf_left, little_endian))
             return -1;
 
         if (buf_left < m_len)
@@ -1103,10 +1103,10 @@ namespace vogl
     {
         uint buf_left = buf_size;
 
-        if (buf_left < sizeof(uint32))
+        if (buf_left < sizeof(uint32_t))
             return -1;
 
-        uint32 len;
+        uint32_t len;
         if (!utils::read_obj(len, pBuf, buf_left, little_endian))
             return -1;
 

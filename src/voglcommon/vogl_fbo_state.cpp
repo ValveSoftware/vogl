@@ -394,7 +394,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                         GLenum tex_target = GL_NONE;
                         if (!remapper.determine_to_object_target(VOGL_NAMESPACE_TEXTURES, tex_handle, tex_target))
                         {
-                            vogl_error_printf("%s: Failed determining FBO texture attachment's target, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, static_cast<uint32>(handle), attachment_obj.get_handle(), tex_handle);
+                            vogl_error_printf("%s: Failed determining FBO texture attachment's target, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, static_cast<uint32_t>(handle), attachment_obj.get_handle(), tex_handle);
                             goto handle_error;
                         }
 
@@ -443,7 +443,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                                 }
                                 default:
                                 {
-                                    vogl_error_printf("%s: Don't know how to attach texture with target %s to FBO, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(tex_target), m_snapshot_handle, static_cast<uint32>(handle), attachment_obj.get_handle(), tex_handle);
+                                    vogl_error_printf("%s: Don't know how to attach texture with target %s to FBO, trace FBO handle %u GL handle %u, trace texture handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(tex_target), m_snapshot_handle, static_cast<uint32_t>(handle), attachment_obj.get_handle(), tex_handle);
                                     goto handle_error;
                                 }
                             }
@@ -493,7 +493,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
 
         if (cur_status != m_status)
         {
-            vogl_error_printf("%s: Restored FBO's completeness (%s) is not the same as the trace's (%s), trace handle %u GL handle %u!\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_name(cur_status, "gl"), get_gl_enums().find_name(m_status, "gl"), m_snapshot_handle, static_cast<uint32>(handle));
+            vogl_error_printf("%s: Restored FBO's completeness (%s) is not the same as the trace's (%s), trace handle %u GL handle %u!\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_name(cur_status, "gl"), get_gl_enums().find_name(m_status, "gl"), m_snapshot_handle, static_cast<uint32_t>(handle));
         }
     }
 

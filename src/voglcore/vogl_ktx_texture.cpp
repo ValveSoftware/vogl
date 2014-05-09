@@ -38,7 +38,7 @@ namespace vogl
     const uint8_t s_ktx_file_id[12] = { 0xAB, 0x4B, 0x54, 0x58, 0x20, 0x31, 0x31, 0xBB, 0x0D, 0x0A, 0x1A, 0x0A };
 
     // true if the specified internal pixel format is compressed
-    bool ktx_is_compressed_ogl_fmt(uint32 ogl_fmt)
+    bool ktx_is_compressed_ogl_fmt(uint32_t ogl_fmt)
     {
         switch (ogl_fmt)
         {
@@ -87,7 +87,7 @@ namespace vogl
         }
     }
 
-    bool ktx_is_packed_pixel_ogl_type(uint32 ogl_type)
+    bool ktx_is_packed_pixel_ogl_type(uint32_t ogl_type)
     {
         switch (ogl_type)
         {
@@ -112,7 +112,7 @@ namespace vogl
         return false;
     }
 
-    uint ktx_get_ogl_type_size(uint32 ogl_type)
+    uint ktx_get_ogl_type_size(uint32_t ogl_type)
     {
         switch (ogl_type)
         {
@@ -150,7 +150,7 @@ namespace vogl
         return 0;
     }
 
-    uint32 ktx_get_ogl_compressed_base_internal_fmt(uint32 ogl_fmt)
+    uint32_t ktx_get_ogl_compressed_base_internal_fmt(uint32_t ogl_fmt)
     {
         switch (ogl_fmt)
         {
@@ -205,7 +205,7 @@ namespace vogl
         return 0;
     }
 
-    bool ktx_get_ogl_fmt_desc(uint32 ogl_fmt, uint32 ogl_type, uint &block_dim, uint &bytes_per_block)
+    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint &block_dim, uint &bytes_per_block)
     {
         uint ogl_type_size = ktx_get_ogl_type_size(ogl_type);
 
@@ -399,7 +399,7 @@ namespace vogl
         {
             m_header.endian_swap();
 
-            if ((m_header.m_glTypeSize != sizeof(uint8_t)) && (m_header.m_glTypeSize != sizeof(uint16_t)) && (m_header.m_glTypeSize != sizeof(uint32)))
+            if ((m_header.m_glTypeSize != sizeof(uint8_t)) && (m_header.m_glTypeSize != sizeof(uint16_t)) && (m_header.m_glTypeSize != sizeof(uint32_t)))
                 return false;
         }
 
@@ -431,14 +431,14 @@ namespace vogl
         uint num_key_value_bytes_remaining = m_header.m_bytesOfKeyValueData;
         while (num_key_value_bytes_remaining)
         {
-            if (num_key_value_bytes_remaining < sizeof(uint32))
+            if (num_key_value_bytes_remaining < sizeof(uint32_t))
                 return false;
 
-            uint32 key_value_byte_size;
-            if (serializer.read(&key_value_byte_size, 1, sizeof(uint32)) != sizeof(uint32))
+            uint32_t key_value_byte_size;
+            if (serializer.read(&key_value_byte_size, 1, sizeof(uint32_t)) != sizeof(uint32_t))
                 return false;
 
-            num_key_value_bytes_remaining -= sizeof(uint32);
+            num_key_value_bytes_remaining -= sizeof(uint32_t);
 
             if (m_opposite_endianness)
                 key_value_byte_size = utils::swap32(key_value_byte_size);
@@ -506,7 +506,7 @@ namespace vogl
                 if ((!mip_row_blocks) || (!mip_col_blocks))
                     return false;
 
-                expected_bytes_remaining += sizeof(uint32);
+                expected_bytes_remaining += sizeof(uint32_t);
 
                 if ((!m_header.m_numberOfArrayElements) && (get_num_faces() == 6))
                 {
@@ -559,7 +559,7 @@ namespace vogl
             if ((!mip_row_blocks) || (!mip_col_blocks))
                 return false;
 
-            uint32 image_size = 0;
+            uint32_t image_size = 0;
             if (!has_valid_image_size_fields)
             {
                 if ((!m_header.m_numberOfArrayElements) && (get_num_faces() == 6))
@@ -684,7 +684,7 @@ namespace vogl
         if (!no_keyvalue_data)
         {
             for (uint i = 0; i < m_key_values.size(); i++)
-                m_header.m_bytesOfKeyValueData += sizeof(uint32) + ((m_key_values[i].size() + 3) & ~3);
+                m_header.m_bytesOfKeyValueData += sizeof(uint32_t) + ((m_key_values[i].size() + 3) & ~3);
         }
 
         if (m_opposite_endianness)
@@ -705,7 +705,7 @@ namespace vogl
         {
             for (uint i = 0; i < m_key_values.size(); i++)
             {
-                uint32 key_value_size = m_key_values[i].size();
+                uint32_t key_value_size = m_key_values[i].size();
 
                 if (m_opposite_endianness)
                     key_value_size = utils::swap32(key_value_size);
@@ -746,7 +746,7 @@ namespace vogl
             if ((!mip_row_blocks) || (!mip_col_blocks))
                 return false;
 
-            uint32 image_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
+            uint32_t image_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
             if ((m_header.m_numberOfArrayElements) || (get_num_faces() == 1))
                 image_size *= (get_array_size() * get_num_faces() * mip_depth);
 
@@ -842,7 +842,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_1D(uint width, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type)
+    bool ktx_texture::init_1D(uint width, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -859,7 +859,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_1D_array(uint width, uint num_mips, uint array_size, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type)
+    bool ktx_texture::init_1D_array(uint width, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -877,7 +877,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_2D(uint width, uint height, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type)
+    bool ktx_texture::init_2D(uint width, uint height, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -895,7 +895,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_2D_array(uint width, uint height, uint num_mips, uint array_size, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type)
+    bool ktx_texture::init_2D_array(uint width, uint height, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -914,7 +914,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_3D(uint width, uint height, uint depth, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type)
+    bool ktx_texture::init_3D(uint width, uint height, uint depth, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -933,7 +933,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_cubemap(uint dim, uint num_mips, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type)
+    bool ktx_texture::init_cubemap(uint dim, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -951,7 +951,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_cubemap_array(uint dim, uint num_mips, uint array_size, uint32 ogl_internal_fmt, uint32 ogl_fmt, uint32 ogl_type)
+    bool ktx_texture::init_cubemap_array(uint dim, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 

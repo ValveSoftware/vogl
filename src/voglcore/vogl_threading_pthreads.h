@@ -103,12 +103,12 @@ namespace vogl
         VOGL_NO_COPY_OR_ASSIGNMENT_OP(semaphore);
 
     public:
-        semaphore(uint32 initialCount, uint32 maximumCount, const char *pName = NULL);
+        semaphore(uint32_t initialCount, uint32_t maximumCount, const char *pName = NULL);
         ~semaphore();
 
-        void release(uint32 releaseCount = 1);
-        void try_release(uint32 releaseCount = 1);
-        bool wait(uint32 milliseconds = cUINT32_MAX);
+        void release(uint32_t releaseCount = 1);
+        void try_release(uint32_t releaseCount = 1);
+        bool wait(uint32_t milliseconds = cUINT32_MAX);
 
     private:
         sem_t m_sem;
@@ -221,9 +221,9 @@ namespace vogl
         {
             return m_num_threads;
         }
-        inline uint32 get_num_outstanding_tasks() const
+        inline uint32_t get_num_outstanding_tasks() const
         {
-            return static_cast<uint32>(m_total_submitted_tasks - m_total_completed_tasks);
+            return static_cast<uint32_t>(m_total_submitted_tasks - m_total_completed_tasks);
         }
 
         // C-style task callback

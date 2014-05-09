@@ -92,7 +92,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
     VOGL_ASSERT(handle <= cUINT32_MAX);
 
-    m_snapshot_handle = static_cast<uint32>(handle);
+    m_snapshot_handle = static_cast<uint32_t>(handle);
     m_target = target;
 
     if (m_target == GL_NONE)
@@ -921,7 +921,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                             {
                                 for (uint x = 0; x < width; x++)
                                 {
-                                    uint ofs = (x * sizeof(uint32)) + (y * width * sizeof(uint32));
+                                    uint ofs = (x * sizeof(uint32_t)) + (y * width * sizeof(uint32_t));
                                     // I'm paranoid
                                     if ((ofs < stencil_image_data.size()) && (ofs < temp_img.size()))
                                     {
@@ -941,7 +941,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                             {
                                 for (uint x = 0; x < width; x++)
                                 {
-                                    uint ofs = (x * sizeof(uint32)) + (y * width * sizeof(uint32));
+                                    uint ofs = (x * sizeof(uint32_t)) + (y * width * sizeof(uint32_t));
                                     // I'm paranoid
                                     if ((ofs < stencil_image_data.size()) && ((ofs + 3) < temp_img.size()))
                                     {
@@ -1154,7 +1154,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
 
     const ktx_texture &tex0 = m_textures[0];
 
-    GL_ENTRYPOINT(glBindTexture)(m_target, static_cast<uint32>(handle));
+    GL_ENTRYPOINT(glBindTexture)(m_target, static_cast<uint32_t>(handle));
     if (vogl_check_gl_error())
         goto handle_error;
 
@@ -1386,7 +1386,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                         VOGL_CHECK_GL_ERROR;
                     }
 
-                    bool status = splitter.combine(src_texture, sample_index, m_target, static_cast<uint32>(handle));
+                    bool status = splitter.combine(src_texture, sample_index, m_target, static_cast<uint32_t>(handle));
 
                     GL_ENTRYPOINT(glBindTexture)(src_target, 0);
                     VOGL_CHECK_GL_ERROR;
@@ -1445,7 +1445,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                             VOGL_CHECK_GL_ERROR;
                         }
 
-                        status = splitter.copy_color_sample_to_stencil(temp_color_texture, sample_index, m_target, static_cast<uint32>(handle));
+                        status = splitter.copy_color_sample_to_stencil(temp_color_texture, sample_index, m_target, static_cast<uint32_t>(handle));
 
                         GL_ENTRYPOINT(glBindTexture)(src_starget, 0);
                         VOGL_CHECK_GL_ERROR;
@@ -1622,7 +1622,7 @@ bool vogl_texture_state::remap_handles(vogl_handle_remapper &remapper)
     if (!m_is_valid)
         return false;
 
-    m_snapshot_handle = static_cast<uint32>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, m_snapshot_handle));
+    m_snapshot_handle = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, m_snapshot_handle));
 
     if (m_buffer)
     {

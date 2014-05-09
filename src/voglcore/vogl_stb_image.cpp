@@ -138,12 +138,12 @@ namespace vogl
     typedef unsigned char uint8_t;
     typedef unsigned short uint16_t;
     typedef signed short int16_t;
-    typedef unsigned int uint32;
+    typedef unsigned int uint32_t;
     typedef signed int int32;
     typedef unsigned int uint;
 
     // should produce compiler error if size is wrong
-    typedef unsigned char validate_uint32[sizeof(uint32) == 4];
+    typedef unsigned char validate_uint32[sizeof(uint32_t) == 4];
 
 #if defined(STBI_NO_STDIO) && !defined(STBI_NO_WRITE)
 #define STBI_NO_WRITE
@@ -416,7 +416,7 @@ namespace vogl
 
     typedef struct
     {
-        uint32 img_x, img_y;
+        uint32_t img_x, img_y;
         int img_n, img_out_n;
 
 #ifndef STBI_NO_STDIO
@@ -485,9 +485,9 @@ namespace vogl
         return (z << 8) + get8(s);
     }
 
-    static uint32 get32(stbi *s)
+    static uint32_t get32(stbi *s)
     {
-        uint32 z = get16(s);
+        uint32_t z = get16(s);
         return (z << 16) + get16(s);
     }
 
@@ -497,9 +497,9 @@ namespace vogl
         return z + (get8(s) << 8);
     }
 
-    static uint32 get32le(stbi *s)
+    static uint32_t get32le(stbi *s)
     {
-        uint32 z = get16le(s);
+        uint32_t z = get16le(s);
         return z + (get16le(s) << 16);
     }
 
@@ -736,7 +736,7 @@ namespace vogl
             uint8_t *linebuf;
         } img_comp[4];
 
-        uint32 code_buffer;   // jpeg entropy-coded buffer
+        uint32_t code_buffer;   // jpeg entropy-coded buffer
         int code_bits;        // number of valid bits
         unsigned char marker; // marker seen while filling entropy buffer
         int nomore;           // flag if we saw a marker so must stop
@@ -813,7 +813,7 @@ namespace vogl
     }
 
     // (1 << n) - 1
-    static uint32 bmask[17] = { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767, 65535 };
+    static uint32_t bmask[17] = { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023, 2047, 4095, 8191, 16383, 32767, 65535 };
 
     // decode a jpeg huffman value from the bitstream
     __forceinline static int decode(jpeg *j, huffman *h)
@@ -2000,7 +2000,7 @@ namespace vogl
     {
         uint8_t *zbuffer, *zbuffer_end;
         int num_bits;
-        uint32 code_buffer;
+        uint32_t code_buffer;
 
         char *zout;
         char *zout_start;
@@ -2408,8 +2408,8 @@ namespace vogl
 
     typedef struct
     {
-        uint32 length;
-        uint32 type;
+        uint32_t length;
+        uint32_t type;
     } chunk;
 
 #define PNG_TYPE(a, b, c, d) (((a) << 24) + ((b) << 16) + ((c) << 8) + (d))
@@ -2468,10 +2468,10 @@ namespace vogl
     }
 
     // create the png data from post-deflated data
-    static int create_png_image_raw(png *a, uint8_t *raw, uint32 raw_len, int out_n, uint32 x, uint32 y)
+    static int create_png_image_raw(png *a, uint8_t *raw, uint32_t raw_len, int out_n, uint32_t x, uint32_t y)
     {
         stbi *s = &a->s;
-        uint32 i, j, stride = x * out_n;
+        uint32_t i, j, stride = x * out_n;
         int k;
         int img_n = s->img_n; // copy it into a local for later
         assert(out_n == s->img_n || out_n == s->img_n + 1);
@@ -2592,7 +2592,7 @@ namespace vogl
         return 1;
     }
 
-    static int create_png_image(png *a, uint8_t *raw, uint32 raw_len, int out_n, int interlaced)
+    static int create_png_image(png *a, uint8_t *raw, uint32_t raw_len, int out_n, int interlaced)
     {
         uint8_t *final;
         int p;
@@ -2639,7 +2639,7 @@ namespace vogl
     static int compute_transparency(png *z, uint8_t tc[3], int out_n)
     {
         stbi *s = &z->s;
-        uint32 i, pixel_count = s->img_x * s->img_y;
+        uint32_t i, pixel_count = s->img_x * s->img_y;
         uint8_t *p = z->out;
 
         // compute color-based transparency, assuming we've
@@ -2669,7 +2669,7 @@ namespace vogl
     static int expand_palette(png *a, uint8_t *palette, int len, int pal_img_n)
     {
         VOGL_NOTE_UNUSED(len);
-        uint32 i, pixel_count = a->s.img_x * a->s.img_y;
+        uint32_t i, pixel_count = a->s.img_x * a->s.img_y;
         uint8_t *p, *temp_out, *orig = a->out;
 
         p = (uint8_t *)stb_malloc(pixel_count * pal_img_n);
@@ -2711,7 +2711,7 @@ namespace vogl
     {
         uint8_t palette[1024], pal_img_n = 0;
         uint8_t has_trans = 0, tc[3];
-        uint32 ioff = 0, idata_limit = 0, i, pal_len = 0;
+        uint32_t ioff = 0, idata_limit = 0, i, pal_len = 0;
         int first = 1, k, interlace = 0;
         stbi *s = &z->s;
 
@@ -2825,7 +2825,7 @@ namespace vogl
                     {
                         if (!(s->img_n & 1))
                             return e("tRNS with alpha", "Corrupt PNG");
-                        if (c.length != (uint32)s->img_n * 2)
+                        if (c.length != (uint32_t)s->img_n * 2)
                             return e("bad tRNS len", "Corrupt PNG");
                         has_trans = 1;
                         for (k = 0; k < s->img_n; ++k)
@@ -2875,7 +2875,7 @@ namespace vogl
                 case PNG_TYPE('I', 'E', 'N', 'D')
                     :
                 {
-                    uint32 raw_len;
+                    uint32_t raw_len;
                     if (scan != SCAN_load)
                         return 1;
                     if (z->idata == NULL)
@@ -3355,7 +3355,7 @@ namespace vogl
                 {
                     for (i = 0; i < (int)s->img_x; ++i)
                     {
-                        uint32 v = (bpp == 16 ? get16le(s) : get32le(s));
+                        uint32_t v = (bpp == 16 ? get16le(s) : get32le(s));
                         int a;
                         out[z++] = shiftsigned(v & mr, rshift, rcount);
                         out[z++] = shiftsigned(v & mg, gshift, gcount);
@@ -3872,7 +3872,7 @@ namespace vogl
                         }
                         else if (len > 128)
                         {
-                            uint32 val;
+                            uint32_t val;
                             // Next -len+1 bytes in the dest are replicated from next source byte.
                             // (Interpret len as a negative 8-bit int.)
                             len ^= 0x0FF;
@@ -4266,7 +4266,7 @@ namespace vogl
     static void write_pixels(FILE *f, int rgb_dir, int vdir, int x, int y, int comp, const void *data, int write_alpha, int scanline_pad)
     {
         uint8_t bg[3] = { 255, 0, 255 }, px[3];
-        uint32 zero = 0;
+        uint32_t zero = 0;
         int i, j, k, j_end;
 
         if (vdir < 0)

@@ -180,7 +180,7 @@ bool vogl_gl_replayer::init(uint flags, vogl_replay_window *pWindow, const vogl_
         return false;
     }
 
-    if ((sof_packet.m_pointer_sizes != sizeof(uint32)) && (sof_packet.m_pointer_sizes != sizeof(uint64_t)))
+    if ((sof_packet.m_pointer_sizes != sizeof(uint32_t)) && (sof_packet.m_pointer_sizes != sizeof(uint64_t)))
     {
         vogl_error_printf("%s: Invalid trace pointer size (%u)\n", VOGL_FUNCTION_INFO_CSTR, m_sof_packet.m_pointer_sizes);
         return false;
@@ -1236,7 +1236,7 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
             else if (type == GL_UNSIGNED_SHORT)
                 v = reinterpret_cast<const uint16_t *>(pIndices_to_scan)[i];
             else if (type == GL_UNSIGNED_INT)
-                v = reinterpret_cast<const uint32 *>(pIndices_to_scan)[i];
+                v = reinterpret_cast<const uint32_t *>(pIndices_to_scan)[i];
             else
             {
                 process_entrypoint_error("%s: Invalid index type\n", VOGL_FUNCTION_INFO_CSTR);
@@ -7226,7 +7226,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             {
                 if ((!data) && (size))
                 {
-                    temp_vec.resize(static_cast<uint32>(size));
+                    temp_vec.resize(static_cast<uint32_t>(size));
                     data = temp_vec.get_ptr();
                 }
             }
@@ -7994,8 +7994,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                     case GL_UNSIGNED_INT:
                     {
-                        trace_handle += *reinterpret_cast<const uint32 *>(pTrace_lists_ptr);
-                        pTrace_lists_ptr += sizeof(uint32);
+                        trace_handle += *reinterpret_cast<const uint32_t *>(pTrace_lists_ptr);
+                        pTrace_lists_ptr += sizeof(uint32_t);
                         break;
                     }
                     case GL_FLOAT:
@@ -9638,7 +9638,7 @@ bool vogl_gl_replayer::replay_to_trace_handle_remapper::is_valid_handle(vogl_nam
     if (!replay_handle)
         return 0;
 
-    uint32 replay_handle32 = static_cast<uint32>(replay_handle);
+    uint32_t replay_handle32 = static_cast<uint32_t>(replay_handle);
 
     switch (handle_namespace)
     {
@@ -9716,7 +9716,7 @@ uint64_t vogl_gl_replayer::replay_to_trace_handle_remapper::remap_handle(vogl_na
     if (!replay_handle)
         return 0;
 
-    uint32 replay_handle32 = static_cast<uint32>(replay_handle);
+    uint32_t replay_handle32 = static_cast<uint32_t>(replay_handle);
 
     switch (handle_namespace)
     {
@@ -9738,7 +9738,7 @@ uint64_t vogl_gl_replayer::replay_to_trace_handle_remapper::remap_handle(vogl_na
         {
             VOGL_ASSERT(replay_handle32 == replay_handle);
 
-            uint32 trace_handle = replay_handle32;
+            uint32_t trace_handle = replay_handle32;
             if (m_replayer.get_shared_state()->m_shadow_state.m_textures.map_inv_handle_to_handle(replay_handle32, trace_handle))
                 return trace_handle;
 
@@ -9829,7 +9829,7 @@ uint64_t vogl_gl_replayer::replay_to_trace_handle_remapper::remap_handle(vogl_na
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_gl_replayer::replay_to_trace_handle_remapper::remap_location
 //----------------------------------------------------------------------------------------------------------------------
-int32 vogl_gl_replayer::replay_to_trace_handle_remapper::remap_location(uint32 replay_program, int32 replay_location)
+int32 vogl_gl_replayer::replay_to_trace_handle_remapper::remap_location(uint32_t replay_program, int32 replay_location)
 {
     VOGL_FUNC_TRACER
 
@@ -9862,7 +9862,7 @@ bool vogl_gl_replayer::replay_to_trace_handle_remapper::determine_from_object_ta
 
     target = GL_NONE;
 
-    uint32 handle32 = static_cast<uint32>(replay_handle);
+    uint32_t handle32 = static_cast<uint32_t>(replay_handle);
 
     switch (handle_namespace)
     {
@@ -9892,7 +9892,7 @@ bool vogl_gl_replayer::replay_to_trace_handle_remapper::determine_to_object_targ
 
     target = GL_NONE;
 
-    uint32 handle32 = static_cast<uint32>(trace_handle);
+    uint32_t handle32 = static_cast<uint32_t>(trace_handle);
 
     switch (handle_namespace)
     {
@@ -9972,7 +9972,7 @@ bool vogl_gl_replayer::determine_used_program_handles(const vogl_trace_packet_ar
 
         VOGL_ASSERT(utils::is_32bit(replay_handle));
 
-        replay_program_handles.insert(static_cast<uint32>(replay_handle));
+        replay_program_handles.insert(static_cast<uint32_t>(replay_handle));
     }
 
     vogl_message_printf("%s: Found %u actually referenced program handles\n", VOGL_FUNCTION_INFO_CSTR, replay_program_handles.size());
@@ -10281,7 +10281,7 @@ bool vogl_gl_replayer::trace_to_replay_handle_remapper::is_valid_handle(vogl_nam
     if (!from_handle)
         return false;
 
-    uint32 from_handle32 = static_cast<uint32>(from_handle);
+    uint32_t from_handle32 = static_cast<uint32_t>(from_handle);
 
     switch (handle_namespace)
     {
@@ -10353,7 +10353,7 @@ uint64_t vogl_gl_replayer::trace_to_replay_handle_remapper::remap_handle(vogl_na
     if (!from_handle)
         return from_handle;
 
-    uint32 from_handle32 = static_cast<uint32>(from_handle);
+    uint32_t from_handle32 = static_cast<uint32_t>(from_handle);
 
     switch (handle_namespace)
     {
@@ -10366,7 +10366,7 @@ uint64_t vogl_gl_replayer::trace_to_replay_handle_remapper::remap_handle(vogl_na
         {
             VOGL_ASSERT(from_handle32 == from_handle);
 
-            uint32 replay_handle = from_handle32;
+            uint32_t replay_handle = from_handle32;
             if (m_replayer.get_shared_state()->m_shadow_state.m_textures.map_handle_to_inv_handle(from_handle32, replay_handle))
                 return replay_handle;
             break;
@@ -10435,7 +10435,7 @@ uint64_t vogl_gl_replayer::trace_to_replay_handle_remapper::remap_handle(vogl_na
 //----------------------------------------------------------------------------------------------------------------------
 // trace_to_replay_handle_remapper::remap_location
 //----------------------------------------------------------------------------------------------------------------------
-int32 vogl_gl_replayer::trace_to_replay_handle_remapper::remap_location(uint32 trace_program, int32 from_location)
+int32 vogl_gl_replayer::trace_to_replay_handle_remapper::remap_location(uint32_t trace_program, int32 from_location)
 {
     VOGL_FUNC_TRACER
 
@@ -10515,8 +10515,8 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::declare_handle(vogl_name
         return;
     }
 
-    uint32 from_handle32 = static_cast<uint32>(from_handle);
-    uint32 to_handle32 = static_cast<uint32>(to_handle);
+    uint32_t from_handle32 = static_cast<uint32_t>(from_handle);
+    uint32_t to_handle32 = static_cast<uint32_t>(to_handle);
 
     switch (handle_namespace)
     {
@@ -10612,8 +10612,8 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::delete_handle_and_object
         return;
     }
 
-    uint32 from_handle32 = static_cast<uint32>(from_handle);
-    uint32 to_handle32 = static_cast<uint32>(to_handle);
+    uint32_t from_handle32 = static_cast<uint32_t>(from_handle);
+    uint32_t to_handle32 = static_cast<uint32_t>(to_handle);
     VOGL_NOTE_UNUSED(to_handle32);
 
     switch (handle_namespace)
@@ -10710,7 +10710,7 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::delete_handle_and_object
 // from_location - trace location
 // to_location - replay/GL location
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_gl_replayer::trace_to_replay_handle_remapper::declare_location(uint32 from_program_handle, uint32 to_program_handle, int32 from_location, int32 to_location)
+void vogl_gl_replayer::trace_to_replay_handle_remapper::declare_location(uint32_t from_program_handle, uint32_t to_program_handle, int32 from_location, int32 to_location)
 {
     VOGL_FUNC_TRACER
 
@@ -10739,7 +10739,7 @@ bool vogl_gl_replayer::trace_to_replay_handle_remapper::determine_from_object_ta
 
     target = GL_NONE;
 
-    uint32 handle32 = static_cast<uint32>(trace_handle);
+    uint32_t handle32 = static_cast<uint32_t>(trace_handle);
 
     switch (handle_namespace)
     {
@@ -10769,7 +10769,7 @@ bool vogl_gl_replayer::trace_to_replay_handle_remapper::determine_to_object_targ
 
     target = GL_NONE;
 
-    uint32 handle32 = static_cast<uint32>(replay_handle);
+    uint32_t handle32 = static_cast<uint32_t>(replay_handle);
 
     switch (handle_namespace)
     {
@@ -10858,7 +10858,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
                     }
                     else
                     {
-                        get_shared_state()->m_shadow_state.m_linked_programs.add_snapshot(static_cast<uint32>(restore_handle), link_snapshot);
+                        get_shared_state()->m_shadow_state.m_linked_programs.add_snapshot(static_cast<uint32_t>(restore_handle), link_snapshot);
                     }
                 }
 

@@ -600,9 +600,9 @@ namespace vogl
         vec3F m_avg_color;
         int m_br, m_bg, m_bb;
         vogl::vector<uint16_t> m_luma;
-        vogl::vector<uint32> m_sorted_luma[2];
-        const uint32 *m_pSorted_luma_indices;
-        uint32 *m_pSorted_luma;
+        vogl::vector<uint32_t> m_sorted_luma[2];
+        const uint32_t *m_pSorted_luma_indices;
+        uint32_t *m_pSorted_luma;
 
         vogl::vector<uint8_t> m_selectors;
         vogl::vector<uint8_t> m_best_selectors;

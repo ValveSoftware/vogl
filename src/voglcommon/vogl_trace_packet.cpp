@@ -185,7 +185,7 @@ bool vogl_trace_packet::check() const
         const client_memory_desc_t &mem_desc = m_client_memory_descs[param_iter];
         if (mem_desc.m_vec_ofs >= 0)
         {
-            if ((!mem_desc.m_data_size) || (mem_desc.m_data_size >= static_cast<uint32>(cINT32_MAX)))
+            if ((!mem_desc.m_data_size) || (mem_desc.m_data_size >= static_cast<uint32_t>(cINT32_MAX)))
                 return false;
 
             if ((mem_desc.m_vec_ofs + mem_desc.m_data_size) > m_client_memory.size())
@@ -410,7 +410,7 @@ bool vogl_trace_packet::serialize(data_stream &stream) const
     uint64_t kvm_serialize_size = m_key_value_map.get_num_key_values() ? m_key_value_map.get_serialize_size(false) : 0;
     if (kvm_serialize_size > cUINT32_MAX)
         return false;
-    packet.m_name_value_map_size = static_cast<uint32>(kvm_serialize_size);
+    packet.m_name_value_map_size = static_cast<uint32_t>(kvm_serialize_size);
 
     uint64_t total_packet_size = sizeof(vogl_trace_gl_entrypoint_packet) + packet.m_param_size + packet.m_client_memory_size + packet.m_name_value_map_size;
     if (total_packet_size > static_cast<uint64_t>(cINT32_MAX))
@@ -418,7 +418,7 @@ bool vogl_trace_packet::serialize(data_stream &stream) const
 
     packet.m_size = static_cast<uint32_t>(total_packet_size);
 
-    if (!m_packet_buf.try_resize(static_cast<uint32>(total_packet_size)))
+    if (!m_packet_buf.try_resize(static_cast<uint32_t>(total_packet_size)))
         return false;
 
     uint8_t *pDst_buf = m_packet_buf.get_ptr();
@@ -653,7 +653,7 @@ bool vogl_trace_packet::json_serialize(json_node &node, const json_serialize_par
                         json_value test_val;
                         if ((!test_val.deserialize(new_val_as_str)) || (test_val.as_float() != flt_val))
                         {
-                            new_val.set_value(dynamic_string(cVarArg, "0x%08X", *reinterpret_cast<const uint32 *>(&flt_val)).get_ptr());
+                            new_val.set_value(dynamic_string(cVarArg, "0x%08X", *reinterpret_cast<const uint32_t *>(&flt_val)).get_ptr());
                         }
 
                         break;
@@ -1375,8 +1375,8 @@ bool vogl_trace_packet::json_serialize_param(
                         data = *reinterpret_cast<const uint8_t *>(p);
                     else if (pointee_size == sizeof(uint16_t))
                         data = *reinterpret_cast<const uint16_t *>(p);
-                    else if (pointee_size == sizeof(uint32))
-                        data = *reinterpret_cast<const uint32 *>(p);
+                    else if (pointee_size == sizeof(uint32_t))
+                        data = *reinterpret_cast<const uint32_t *>(p);
                     else if (pointee_size == sizeof(uint64_t))
                         data = *reinterpret_cast<const uint64_t *>(p);
 
@@ -1505,7 +1505,7 @@ bool vogl_trace_packet::convert_json_value_to_ctype_data(uint64_t &data, const j
 
             // must be a zero terminated string originally from client memory
             data = 0xFFFFFFFF;
-            parsed_size = sizeof(uint32);
+            parsed_size = sizeof(uint32_t);
 
             if (!is_pointer)
             {
@@ -1811,7 +1811,7 @@ bool vogl_trace_packet::json_deserialize_param(
             uint64_t blob_crc64 = 0;
             bool has_blob_crc64 = get_uint64_from_json_node(*pParam_obj, "crc64", blob_crc64, 0);
 
-            vogl::vector<uint8_t> blob(static_cast<uint32>(mem_size));
+            vogl::vector<uint8_t> blob(static_cast<uint32_t>(mem_size));
 
             if (pParam_obj->find_child("values"))
             {

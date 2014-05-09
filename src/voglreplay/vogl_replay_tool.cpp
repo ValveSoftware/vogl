@@ -1207,7 +1207,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                 {
                     if (replayer.get_at_frame_boundary())
                     {
-                        const char *pWindow_name = (sizeof(void *) == sizeof(uint32)) ? "voglreplay 32-bit" : "voglreplay 64-bit";
+                        const char *pWindow_name = (sizeof(void *) == sizeof(uint32_t)) ? "voglreplay 32-bit" : "voglreplay 64-bit";
                         dynamic_string window_title(cVarArg, "%s: File: %s Frame %u %s %s", pWindow_name, trace_filename.get_ptr(), replayer.get_frame_index(), paused_mode ? "PAUSED" : "", keyframes.find_sorted(replayer.get_frame_index()) >= 0 ? "(At Keyframe)" : "");
                         window.set_title(window_title.get_ptr());
                     }
@@ -2228,7 +2228,7 @@ static bool tool_dump_mode()
                         else
                         {
                             vogl_trace_packet temp_cracker2(&trace_gl_ctypes);
-                            success = temp_cracker2.deserialize(static_cast<const uint8_t *>(dyn_stream.get_ptr()), static_cast<uint32>(dyn_stream.get_size()), true);
+                            success = temp_cracker2.deserialize(static_cast<const uint8_t *>(dyn_stream.get_ptr()), static_cast<uint32_t>(dyn_stream.get_size()), true);
                             if (!success)
                             {
                                 vogl_error_printf("Failed verifying serialized JSON data (step 5)!\n");
