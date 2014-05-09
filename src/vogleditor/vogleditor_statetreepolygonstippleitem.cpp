@@ -19,8 +19,8 @@ bool vogleditor_stateTreePolygonStippleRowItem::hasChanged() const
     if (m_rowIndex >= m_pDiffBaseState->get_num_pattern_rows())
         return true;
 
-    uint32 curRow = m_pState->get_pattern_row(m_rowIndex);
-    uint32 baseRow = m_pDiffBaseState->get_pattern_row(m_rowIndex);
+    uint32_t curRow = m_pState->get_pattern_row(m_rowIndex);
+    uint32_t baseRow = m_pDiffBaseState->get_pattern_row(m_rowIndex);
 
     return curRow != baseRow;
 }
@@ -35,7 +35,7 @@ QString vogleditor_stateTreePolygonStippleRowItem::getDiffedValue() const
     if (m_rowIndex >= m_pDiffBaseState->get_num_pattern_rows())
         return "non-existent";
 
-    uint32 baseRow = m_pDiffBaseState->get_pattern_row(m_rowIndex);
+    uint32_t baseRow = m_pDiffBaseState->get_pattern_row(m_rowIndex);
 
     return uint32_to_bits(baseRow);
 }

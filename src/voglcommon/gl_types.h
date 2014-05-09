@@ -26,6 +26,7 @@
 
 
 #include "vogl_build_options.h"
+#include <cstddef>
 
 // Int type large enough to hold a pointer
 typedef intptr_t GLsizeiptr;

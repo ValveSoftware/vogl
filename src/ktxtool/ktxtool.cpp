@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "pxfmt.h"
-
 #include "vogl_core.h"
 #include "vogl_colorized_console.h"
 #include "vogl_command_line_params.h"
@@ -14,6 +12,9 @@
 #include "vogl_file_utils.h"
 #include "vogl_image.h"
 #include "vogl_image_utils.h"
+
+#include <GL/gl.h>
+#include "pxfmt.h"
 
 using namespace vogl;
 
@@ -160,7 +161,7 @@ int main(int argc, char **argv)
                     if (level_data.is_empty())
                         continue;
 
-                    uint temp_size = mip_width * sizeof(uint32) * mip_height;
+                    uint32_t temp_size = mip_width * sizeof(uint32_t) * mip_height;
 
                     uint8_vec temp_buf(temp_size);
                     temp_buf.push_back(0xAB);
@@ -180,7 +181,7 @@ int main(int argc, char **argv)
 
                     for (uint y = 0; y < mip_height; y++)
                     {
-                        const color_quad_u8 *pPixel = reinterpret_cast<color_quad_u8 *>(temp_buf.get_ptr() + y * mip_width * sizeof(uint32));
+                        const color_quad_u8 *pPixel = reinterpret_cast<color_quad_u8 *>(temp_buf.get_ptr() + y * mip_width * sizeof(uint32_t));
 
                         for (uint x = 0; x < mip_width; x++)
                         {

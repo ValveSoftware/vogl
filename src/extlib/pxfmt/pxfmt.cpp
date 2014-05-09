@@ -25,8 +25,11 @@
  *
  **************************************************************************/
 
-#include "pxfmt.h"
 #include <algorithm> // For std::max()
+#include <assert.h>
+
+#include <GL/gl.h>
+#include "pxfmt.h"
 
 // The internal data structures and functions are put into the following
 // unnamed namespace, so that they aren't externally visible to this file:
@@ -40,9 +43,6 @@ typedef unsigned short uint16;
 typedef signed short int16;
 typedef unsigned int uint32;
 typedef signed int int32;
-
-
-
 
 /******************************************************************************
  *
