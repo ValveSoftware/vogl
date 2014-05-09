@@ -255,3 +255,7 @@ void* plat_dlsym(void* handle, const char* symbol)
     return dlsym(handle, symbol);
 }
 
+void* plat_load_system_gl(int _flags)
+{
+    return dlopen(plat_get_system_gl_module_name(), _flags);
+}
