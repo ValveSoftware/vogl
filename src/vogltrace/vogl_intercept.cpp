@@ -4848,7 +4848,7 @@ static bool vogl_screen_capture_callback(uint width, uint height, uint pitch, si
         size_t png_size = 0;
         void *pPNG_data = tdefl_write_image_to_png_file_in_memory_ex(pImage, width, height, 3, &png_size, 1, true);
 
-        dynamic_string screenshot_filename(cVarArg, "%s__%08" PRIx64 "_%08" PRIu64 ".png", g_command_line_params().get_value_as_string("vogl_screenshot_prefix", 0, "screenshot").get_ptr(), cast_val_to_uint64(pContext->get_context_handle()), cast_val_to_uint64(frame_index));
+        dynamic_string screenshot_filename(cVarArg, "%s_%08" PRIx64 "_%08" PRIu64 ".png", g_command_line_params().get_value_as_string("vogl_screenshot_prefix", 0, "screenshot").get_ptr(), cast_val_to_uint64(pContext->get_context_handle()), cast_val_to_uint64(frame_index));
         if (!file_utils::write_buf_to_file(screenshot_filename.get_ptr(), pPNG_data, png_size))
         {
             console::error("Failed writing PNG screenshot to file %s\n", screenshot_filename.get_ptr());

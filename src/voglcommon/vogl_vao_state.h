@@ -44,7 +44,6 @@ struct vogl_vertex_attrib_desc
     }
 
     vogl_trace_ptr_value m_pointer;
-    GLuint m_element_array_binding;
     GLuint m_array_binding;
     GLint m_size;
     GLenum m_type;
@@ -107,13 +106,19 @@ public:
         return m_vertex_attribs[index];
     }
 
+    uint get_element_array_binding() const
+    {
+        return m_element_array_binding;
+    }
+
 private:
     GLuint m_snapshot_handle;
-    bool m_has_been_bound;
+    GLuint m_element_array_binding;
 
     vogl::vector<vogl_vertex_attrib_desc> m_vertex_attribs;
 
     bool m_is_valid;
+    bool m_has_been_bound;
 };
 
 #endif // VOGL_VAO_STATE_H
