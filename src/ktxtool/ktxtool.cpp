@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "pxfmt.h"
-
 #include "vogl_core.h"
 #include "vogl_colorized_console.h"
 #include "vogl_command_line_params.h"
@@ -14,6 +12,9 @@
 #include "vogl_file_utils.h"
 #include "vogl_image.h"
 #include "vogl_image_utils.h"
+
+#include <GL/gl.h>
+#include "pxfmt.h"
 
 using namespace vogl;
 

@@ -28,17 +28,9 @@
 #ifndef PXFMT_H
 #define PXFMT_H
 
-// Temporarily work-around not being in the VOGL source-code tree:
-#include <stdlib.h>
-#include <stdio.h>
-#include <GL/gl.h>
-//#include <GL/glew.h>
-//#include <GL/glut.h>
-#include <string>
-#include <string.h>
-#include <map>
-#include <assert.h>
-
+#if defined(_MSC_VER) && (_MSC_VER < 1800)
+// Looks like round() was added to Visual Studio 13:
+//   http://msdn.microsoft.com/en-us/library/dn353646.aspx
 
 /*****************************************************************************
  * Work around the fact that Microsoft didn't implement the round() function:
@@ -55,6 +47,7 @@ inline float round(float x)
 /*****************************************************************************
  * End of work-around.
  *****************************************************************************/
+#endif
 
 // NOTE TO RICH: The following enum will eventually capture all of the
 // combinations of "format" and "type" that OpenGL/KTX supports, plus any other
