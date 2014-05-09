@@ -2929,6 +2929,12 @@ public:
 
         pVOGL_context->on_make_current();
 
+        #if defined(PLATFORM_WINDOWS)
+            // On linux, they can resolve functions early. We cannot until the context has been made current
+            // because the driver hasn't necessarily been loaded yet.
+            vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper_return_actual);
+        #endif
+
         return pVOGL_context;
     }
 
@@ -4004,7 +4010,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
 //----------------------------------------------------------------------------------------------------------------------
 // func begin
 #define DEF_PROTO_EXPORTED(ret, name, args, params)    \
-    static ret VOGL_GLUER(vogl_, name) args           \
+    static ret VOGL_API_CALLCONV VOGL_GLUER(vogl_, name) args           \
     {                                                  \
         if (vogl_func_is_nulled(VOGL_ENTRYPOINT_##name)) \
         {                                              \
@@ -4012,12 +4018,12 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
         }                                              \
         ret result;
 #define DEF_PROTO_EXPORTED_VOID(ret, name, args, params) \
-    static ret VOGL_GLUER(vogl_, name) args             \
+    static ret VOGL_API_CALLCONV VOGL_GLUER(vogl_, name) args             \
     {                                                    \
         if (vogl_func_is_nulled(VOGL_ENTRYPOINT_##name))   \
             return;
 #define DEF_PROTO_INTERNAL(ret, name, args, params)    \
-    static ret VOGL_GLUER(vogl_, name) args           \
+    static ret VOGL_API_CALLCONV VOGL_GLUER(vogl_, name) args           \
     {                                                  \
         if (vogl_func_is_nulled(VOGL_ENTRYPOINT_##name)) \
         {                                              \
@@ -4025,7 +4031,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
         }                                              \
         ret result;
 #define DEF_PROTO_INTERNAL_VOID(ret, name, args, params) \
-    static ret VOGL_GLUER(vogl_, name) args             \
+    static ret VOGL_API_CALLCONV VOGL_GLUER(vogl_, name) args             \
     {                                                    \
         if (vogl_func_is_nulled(VOGL_ENTRYPOINT_##name))   \
             return;
@@ -4144,21 +4150,22 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
 //----------------------------------------------------------------------------------------------------------------------
 // gl/glx override functions
 //----------------------------------------------------------------------------------------------------------------------
-static __GLXextFuncPtr vogl_get_proc_address_helper_return_wrapper(const GLubyte *procName)
+template <typename GLFuncType, typename ProcNameType>
+static GLFuncType vogl_get_proc_address_helper_return_wrapper(GLFuncType (*realGetProcAddressFunc)(ProcNameType), ProcNameType procName)
 {
     if (!procName)
         return NULL;
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_printf("glXGetProcAddress: \"%s\"\n", procName);
+        vogl_printf("GetProcAddress: \"%s\"\n", procName);
     }
 
-    if (!GL_ENTRYPOINT(glXGetProcAddress))
+    if (!realGetProcAddressFunc)
         return NULL;
 
     // FIXME: We need to make this per-context on OSX (under Linux it doesn't matter, because all GL funcs are statically exported anyway as symbols by the SO)
-    __GLXextFuncPtr pActual_entrypoint = GL_ENTRYPOINT(glXGetProcAddress)(procName);
+    GLFuncType pActual_entrypoint = (realGetProcAddressFunc)(procName);
     if (!pActual_entrypoint)
         return NULL;
 
@@ -4174,7 +4181,7 @@ static __GLXextFuncPtr vogl_get_proc_address_helper_return_wrapper(const GLubyte
                     vogl_warning_printf("%s: App has queried the address of non-whitelisted GL func %s (this will only be a problem if this func. is actually called, and will reported during tracing and at exit)\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[i].m_pName);
                 }
 
-                return reinterpret_cast<__GLXextFuncPtr>(g_vogl_entrypoint_descs[i].m_pWrapper_func);
+                return reinterpret_cast<GLFuncType>(g_vogl_entrypoint_descs[i].m_pWrapper_func);
             }
             else
                 break;
@@ -4264,7 +4271,7 @@ static __GLXextFuncPtr vogl_glXGetProcAddress(const GLubyte *procName)
     }
 
     uint64_t gl_begin_rdtsc = utils::RDTSC();
-    __GLXextFuncPtr ptr = vogl_get_proc_address_helper_return_wrapper(procName);
+    __GLXextFuncPtr ptr = vogl_get_proc_address_helper_return_wrapper(GL_ENTRYPOINT(glXGetProcAddress), procName);
     uint64_t gl_end_rdtsc = utils::RDTSC();
 
     if (get_vogl_trace_writer().is_opened())
@@ -4310,7 +4317,7 @@ static __GLXextFuncPtr vogl_glXGetProcAddressARB(const GLubyte *procName)
     }
 
     uint64_t gl_begin_rdtsc = utils::RDTSC();
-    __GLXextFuncPtr ptr = vogl_get_proc_address_helper_return_wrapper(procName);
+    __GLXextFuncPtr ptr = vogl_get_proc_address_helper_return_wrapper(GL_ENTRYPOINT(glXGetProcAddress), procName);
     uint64_t gl_end_rdtsc = utils::RDTSC();
 
     if (get_vogl_trace_writer().is_opened())
@@ -4336,6 +4343,53 @@ static __GLXextFuncPtr vogl_glXGetProcAddressARB(const GLubyte *procName)
 
     return ptr;
 }
+
+//----------------------------------------------------------------------------------------------------------------------
+#define DEF_FUNCTION_CUSTOM_HANDLER_wglGetProcAddress(exported, category, ret, ret_type_enum, num_params, name, args, params)
+static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
+{
+    uint64_t begin_rdtsc = utils::RDTSC();
+
+    if (g_dump_gl_calls_flag)
+    {
+        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_current_kernel_thread_id());
+    }
+
+    vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglGetProcAddress);
+    if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+    {
+        vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+        return GL_ENTRYPOINT(wglGetProcAddress)(lpszProc);
+    }
+
+    uint64_t gl_begin_rdtsc = utils::RDTSC();
+    PROC ptr = vogl_get_proc_address_helper_return_wrapper(GL_ENTRYPOINT(wglGetProcAddress), lpszProc);
+    uint64_t gl_end_rdtsc = utils::RDTSC();
+
+    if (get_vogl_trace_writer().is_opened())
+    {
+        vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_wglGetProcAddress, get_context_manager().get_current(true));
+        serializer.set_begin_rdtsc(begin_rdtsc);
+        serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+        serializer.add_param(0, VOGL_LPCSTR, &lpszProc, sizeof(lpszProc));
+        if (lpszProc)
+        {
+            size_t len = strlen(reinterpret_cast<const char *>(lpszProc)) + 1;
+            serializer.add_array_client_memory(0, VOGL_CHAR, len, lpszProc, len);
+        }
+        serializer.add_return_param(VOGL_PROC, &ptr, sizeof(ptr));
+        serializer.end();
+        vogl_write_packet_to_trace(serializer.get_packet());
+    }
+
+    if (g_dump_gl_calls_flag)
+    {
+        vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_current_kernel_thread_id());
+    }
+
+    return ptr;
+}
+
 
 //----------------------------------------------------------------------------------------------------------------------
 #if (VOGL_PLATFORM_HAS_GLX)
@@ -6746,6 +6800,8 @@ static void vogl_check_for_capture_trigger_file()
         {
             vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_current_kernel_thread_id());
         }
+
+        return result;
     }
 #endif
 
@@ -8956,14 +9012,14 @@ static void vogl_check_entrypoints()
 // Declare exported gl/glx functions (each exported func immediately calls one of the internal vogl_* functions)
 //----------------------------------------------------------------------------------------------------------------------
 #define DEF_PROTO_EXPORTED(ret, name, args, params) \
-    VOGL_API_EXPORT ret name args                    \
+    VOGL_API_EXPORT ret VOGL_API_CALLCONV name args \
     {                                               \
-        return VOGL_GLUER(vogl_, name) params;     \
+        return VOGL_GLUER(vogl_, name) params;      \
     }
 #define DEF_PROTO_EXPORTED_VOID(ret, name, args, params) \
-    VOGL_API_EXPORT ret name args                         \
+    VOGL_API_EXPORT ret VOGL_API_CALLCONV name args      \
     {                                                    \
-        VOGL_GLUER(vogl_, name) params;                 \
+        VOGL_GLUER(vogl_, name) params;                  \
     }
 #define DEF_PROTO_INTERNAL(ret, name, args, params)
 #define DEF_PROTO_INTERNAL_VOID(ret, name, args, params)
@@ -9080,3 +9136,4 @@ void vogl_early_init()
 
     vogl_check_entrypoints();
 }
+
