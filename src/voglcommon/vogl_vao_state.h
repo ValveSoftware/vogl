@@ -101,12 +101,12 @@ public:
         return m_vertex_attribs.size();
     }
 
-    const vogl_vertex_attrib_desc &get_vertex_attrib_desc(uint index) const
+    const vogl_vertex_attrib_desc &get_vertex_attrib_desc(uint32_t index) const
     {
         return m_vertex_attribs[index];
     }
 
-    uint get_element_array_binding() const
+    uint32_t get_element_array_binding() const
     {
         return m_element_array_binding;
     }

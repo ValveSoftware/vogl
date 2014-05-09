@@ -138,7 +138,7 @@ uint32_t plat_rand()
 }
 
 // Returns the size of a virtual page of memory.
-vogl::int32 plat_get_virtual_page_size()
+int32_t plat_get_virtual_page_size()
 {
     SYSTEM_INFO sys_info;
     GetSystemInfo(&sys_info);

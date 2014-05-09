@@ -163,7 +163,7 @@ bool vogl_program_state::snapshot_uniforms(const vogl_context_info &context_info
     GLint active_uniform_max_length = math::maximum(1024, get_program_int(m_snapshot_handle, GL_ACTIVE_UNIFORM_MAX_LENGTH));
     temp_buf.resize(active_uniform_max_length);
     m_uniforms.resize(m_num_active_uniforms);
-    for (uint uniform_iter = 0; uniform_iter < m_num_active_uniforms; uniform_iter++)
+    for (uint32_t uniform_iter = 0; uniform_iter < m_num_active_uniforms; uniform_iter++)
     {
         GLsizei actual_len = 0;
         GLint size = 0;
@@ -184,7 +184,7 @@ bool vogl_program_state::snapshot_uniforms(const vogl_context_info &context_info
             VOGL_CHECK_GL_ERROR;
         }
 
-        uint type_size_in_bytes = vogl_gl_get_uniform_size_in_bytes(type);
+        uint32_t type_size_in_bytes = vogl_gl_get_uniform_size_in_bytes(type);
         if (!type_size_in_bytes)
             continue;
 
@@ -230,7 +230,7 @@ bool vogl_program_state::snapshot_uniform_blocks(const vogl_context_info &contex
 
         m_uniform_blocks.reserve(m_num_active_uniform_blocks);
 
-        for (uint uniform_block_index = 0; uniform_block_index < m_num_active_uniform_blocks; uniform_block_index++)
+        for (uint32_t uniform_block_index = 0; uniform_block_index < m_num_active_uniform_blocks; uniform_block_index++)
         {
             GLint name_len = 0;
             GL_ENTRYPOINT(glGetActiveUniformBlockiv)(m_snapshot_handle, uniform_block_index, GL_UNIFORM_BLOCK_NAME_LENGTH, &name_len);
@@ -281,7 +281,7 @@ bool vogl_program_state::snapshot_active_attribs(const vogl_context_info &contex
     temp_buf.resize(active_attrib_max_length);
 
     m_attribs.resize(m_num_active_attribs);
-    for (uint attrib_iter = 0; attrib_iter < m_num_active_attribs; attrib_iter++)
+    for (uint32_t attrib_iter = 0; attrib_iter < m_num_active_attribs; attrib_iter++)
     {
         GLint size = 0;
         GLenum type = GL_NONE;
@@ -324,7 +324,7 @@ bool vogl_program_state::snapshot_attached_shaders(const vogl_context_info &cont
         GL_ENTRYPOINT(glGetAttachedShaders)(m_snapshot_handle, num_attached_shaders, &actual_count, m_attached_shaders.get_ptr());
         VOGL_CHECK_GL_ERROR;
 
-        VOGL_ASSERT(static_cast<uint>(actual_count) == m_attached_shaders.size());
+        VOGL_ASSERT(static_cast<uint32_t>(actual_count) == m_attached_shaders.size());
 
         // We can't trust glIsShader(), we must check our own shadow to determine if these are our handles or not.
         attached_shader_vec actual_attached_shaders;
@@ -349,7 +349,7 @@ bool vogl_program_state::snapshot_shader_objects(const vogl_context_info &contex
     VOGL_FUNC_TRACER
 
     m_shaders.resize(m_attached_shaders.size());
-    for (uint i = 0; i < m_shaders.size(); i++)
+    for (uint32_t i = 0; i < m_shaders.size(); i++)
     {
         GLuint handle = m_attached_shaders[i];
 
@@ -502,7 +502,7 @@ bool vogl_program_state::snapshot_transform_feedback(const vogl_context_info &co
 
     m_varyings.resize(m_transform_feedback_num_varyings);
 
-    for (uint i = 0; i < m_transform_feedback_num_varyings; i++)
+    for (uint32_t i = 0; i < m_transform_feedback_num_varyings; i++)
     {
         GLchar name[512] = { '\0' };
         GLsizei length = 0, size = 0;
@@ -600,7 +600,7 @@ bool vogl_program_state::snapshot(const vogl_context_info &context_info, vogl_ha
     return true;
 }
 
-bool vogl_program_state::link_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, const void *pBinary, uint binary_size, GLenum binary_format, GLenum type, GLsizei count, GLchar *const *strings)
+bool vogl_program_state::link_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, const void *pBinary, uint32_t binary_size, GLenum binary_format, GLenum type, GLsizei count, GLchar *const *strings)
 {
     VOGL_FUNC_TRACER
 
@@ -747,13 +747,13 @@ bool vogl_program_state::restore_uniforms(uint32_t handle32, const vogl_context_
         }
     } // uniform_iter
 
-    for (uint uniform_iter = 0; uniform_iter < m_uniforms.size(); uniform_iter++)
+    for (uint32_t uniform_iter = 0; uniform_iter < m_uniforms.size(); uniform_iter++)
     {
         const vogl_program_uniform_state &trace_uniform = m_uniforms[uniform_iter];
         if ((trace_uniform.m_name.begins_with("_gl", true)) || (trace_uniform.m_base_location < 0) || (!trace_uniform.m_data.size()))
             continue;
 
-        uint restore_uniform_index;
+        uint32_t restore_uniform_index;
         for (restore_uniform_index = 0; restore_uniform_index < uniforms_to_restore.size(); restore_uniform_index++)
             if (uniforms_to_restore[restore_uniform_index].m_name.compare(trace_uniform.m_name, true) == 0)
                 break;
@@ -793,11 +793,11 @@ bool vogl_program_state::restore_uniforms(uint32_t handle32, const vogl_context_
             any_restore_warnings = true;
         }
 
-        const uint array_size = math::minimum<uint>(restore_uniform.m_size, trace_uniform.m_size);
+        const uint32_t array_size = math::minimum<uint32_t>(restore_uniform.m_size, trace_uniform.m_size);
         const void *pTrace_data = trace_uniform.m_data.get_ptr();
         const GLint restore_location = restore_uniform.m_base_location;
 
-        for (uint i = 0; i < array_size; i++)
+        for (uint32_t i = 0; i < array_size; i++)
             remapper.declare_location(m_snapshot_handle, handle32, trace_uniform.m_base_location + i, restore_location + i);
 
         if (array_size)
@@ -1088,7 +1088,7 @@ bool vogl_program_state::restore_uniform_blocks(uint32_t handle32, const vogl_co
 
         growable_array<char, 256> name_buf;
 
-        for (uint uniform_block_index = 0; uniform_block_index < m_num_active_uniform_blocks; uniform_block_index++)
+        for (uint32_t uniform_block_index = 0; uniform_block_index < m_num_active_uniform_blocks; uniform_block_index++)
         {
             const vogl_program_uniform_block_state &state = m_uniform_blocks[uniform_block_index];
 
@@ -1114,7 +1114,7 @@ bool vogl_program_state::restore_uniform_blocks(uint32_t handle32, const vogl_co
             if (restore_block_index != state.m_uniform_block_index)
             {
                 vogl_error_printf("%s: Trace program %u GL program %u: Uniform block \"%s\"'s restore block index (%u) differs from it's trace index (%u)! Uniform block indices are not currently remapped while replaying GL calls, so this trace may not be replayable!\n",
-                                 VOGL_FUNCTION_INFO_CSTR, (uint)m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_index, restore_block_index);
+                                 VOGL_FUNCTION_INFO_CSTR, (uint32_t)m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_index, restore_block_index);
                 any_restore_warnings = true;
             }
 
@@ -1147,7 +1147,7 @@ bool vogl_program_state::restore_uniform_blocks(uint32_t handle32, const vogl_co
             if (state.m_uniform_block_active_uniforms != restore_block_active_uniforms)
             {
                 vogl_warning_printf("%s: Trace program %u GL program %u: Uniform block \"%s\"'s number of active block uniforms (%u) differs from trace's (%i)\n",
-                                   VOGL_FUNCTION_INFO_CSTR, (uint)m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_active_uniforms, restore_block_active_uniforms);
+                                   VOGL_FUNCTION_INFO_CSTR, (uint32_t)m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_active_uniforms, restore_block_active_uniforms);
                 any_restore_warnings = true;
             }
         }
@@ -1170,7 +1170,7 @@ bool vogl_program_state::restore_active_attribs(uint32_t handle32, const vogl_co
     VOGL_NOTE_UNUSED(any_restore_warnings);
 
     // Restore active attribs
-    for (uint attrib_iter = 0; attrib_iter < m_num_active_attribs; attrib_iter++)
+    for (uint32_t attrib_iter = 0; attrib_iter < m_num_active_attribs; attrib_iter++)
     {
         const vogl_program_attrib_state &attrib = m_attribs[attrib_iter];
         if ((attrib.m_name.begins_with("_gl", true)) || (attrib.m_bound_location < 0))
@@ -1194,7 +1194,7 @@ bool vogl_program_state::restore_outputs(uint32_t handle32, const vogl_context_i
     VOGL_FUNC_TRACER
     VOGL_NOTE_UNUSED(remapper);
 
-    for (uint i = 0; i < m_outputs.size(); i++)
+    for (uint32_t i = 0; i < m_outputs.size(); i++)
     {
         const vogl_program_output_state &output = m_outputs[i];
 
@@ -1244,7 +1244,7 @@ bool vogl_program_state::restore_transform_feedback(uint32_t handle32, const vog
 
     dynamic_string_array names;
 
-    for (uint i = 0; i < m_varyings.size(); i++)
+    for (uint32_t i = 0; i < m_varyings.size(); i++)
     {
         const vogl_program_transform_feedback_varying &varying = m_varyings[i];
 
@@ -1257,7 +1257,7 @@ bool vogl_program_state::restore_transform_feedback(uint32_t handle32, const vog
     }
 
     vogl::vector<GLchar *> varyings(names.size());
-    for (uint i = 0; i < names.size(); i++)
+    for (uint32_t i = 0; i < names.size(); i++)
         varyings[i] = (GLchar *)(names[i].get_ptr());
 
     GL_ENTRYPOINT(glTransformFeedbackVaryings)(handle32, varyings.size(), varyings.get_ptr(), m_transform_feedback_mode);
@@ -1307,7 +1307,7 @@ bool vogl_program_state::restore_link_snapshot(uint32_t handle32, const vogl_con
     {
         shader_handles.resize(m_shaders.size());
 
-        for (uint i = 0; i < m_shaders.size(); i++)
+        for (uint32_t i = 0; i < m_shaders.size(); i++)
         {
             shader_handles[i] = GL_ENTRYPOINT(glCreateShader)(m_shaders[i].get_shader_type());
             if ((vogl_check_gl_error()) || (!shader_handles[i]))
@@ -1324,13 +1324,13 @@ bool vogl_program_state::restore_link_snapshot(uint32_t handle32, const vogl_con
             }
         }
 
-        for (uint i = 0; i < m_shaders.size(); i++)
+        for (uint32_t i = 0; i < m_shaders.size(); i++)
         {
             GL_ENTRYPOINT(glAttachShader)(handle32, shader_handles[i]);
 
             if (vogl_check_gl_error())
             {
-                for (uint j = 0; j < i; j++)
+                for (uint32_t j = 0; j < i; j++)
                     GL_ENTRYPOINT(glDetachShader)(handle32, shader_handles[j]);
 
                 goto handle_error;
@@ -1347,7 +1347,7 @@ bool vogl_program_state::restore_link_snapshot(uint32_t handle32, const vogl_con
         else if (get_program_bool(handle32, GL_LINK_STATUS))
             link_succeeded = true;
 
-        for (uint i = 0; i < shader_handles.size(); i++)
+        for (uint32_t i = 0; i < shader_handles.size(); i++)
         {
             GL_ENTRYPOINT(glDetachShader)(handle32, shader_handles[i]);
             if (vogl_check_gl_error())
@@ -1364,7 +1364,7 @@ bool vogl_program_state::restore_link_snapshot(uint32_t handle32, const vogl_con
     return true;
 
 handle_error:
-    for (uint i = 0; i < shader_handles.size(); i++)
+    for (uint32_t i = 0; i < shader_handles.size(); i++)
         if (shader_handles[i])
             GL_ENTRYPOINT(glDeleteShader)(shader_handles[i]);
 
@@ -1402,7 +1402,7 @@ bool vogl_program_state::link_program(uint32_t handle32, const vogl_context_info
 
     if (m_attached_shaders.size())
     {
-        for (uint i = 0; i < m_attached_shaders.size(); i++)
+        for (uint32_t i = 0; i < m_attached_shaders.size(); i++)
         {
             GLuint trace_handle = m_attached_shaders[i];
             GLuint replay_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_SHADERS, trace_handle));
@@ -1442,7 +1442,7 @@ bool vogl_program_state::restore(const vogl_context_info &context_info, vogl_han
         {
             vogl::vector<GLchar *> string_ptrs(m_create_shader_program_strings.size());
 
-            for (uint i = 0; i < m_create_shader_program_strings.size(); i++)
+            for (uint32_t i = 0; i < m_create_shader_program_strings.size(); i++)
                 string_ptrs[i] = (GLchar *)(m_create_shader_program_strings[i].get_ptr());
 
             handle = GL_ENTRYPOINT(glCreateShaderProgramv)(m_create_shader_program_type, m_create_shader_program_strings.size(), string_ptrs.get_ptr());
@@ -1553,20 +1553,20 @@ bool vogl_program_state::remap_handles(vogl_handle_remapper &remapper)
     if (!m_is_valid)
         return false;
 
-    uint replay_handle = m_snapshot_handle;
+    uint32_t replay_handle = m_snapshot_handle;
 
-    uint trace_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAMS, m_snapshot_handle));
+    uint32_t trace_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAMS, m_snapshot_handle));
 
     m_snapshot_handle = trace_handle;
 
     if (!m_link_snapshot)
     {
-        for (uint i = 0; i < m_attached_shaders.size(); i++)
+        for (uint32_t i = 0; i < m_attached_shaders.size(); i++)
             m_attached_shaders[i] = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_SHADERS, m_attached_shaders[i]));
     }
     else
     {
-        for (uint i = 0; i < m_shaders.size(); i++)
+        for (uint32_t i = 0; i < m_shaders.size(); i++)
         {
             // Try to remap the shader's handle, although it could be dead by now. This makes it easier to diff state captures.
             if (m_shaders[i].is_valid())
@@ -1578,7 +1578,7 @@ bool vogl_program_state::remap_handles(vogl_handle_remapper &remapper)
         }
     }
 
-    for (uint i = 0; i < m_uniforms.size(); i++)
+    for (uint32_t i = 0; i < m_uniforms.size(); i++)
         if (m_uniforms[i].m_base_location >= 0)
             m_uniforms[i].m_base_location = remapper.remap_location(replay_handle, m_uniforms[i].m_base_location);
 
@@ -1669,14 +1669,14 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
     if (m_attached_shaders.size())
     {
         json_node &attached_shaders_array = node.add_array("attached_shaders");
-        for (uint i = 0; i < m_attached_shaders.size(); i++)
+        for (uint32_t i = 0; i < m_attached_shaders.size(); i++)
             attached_shaders_array.add_value(m_attached_shaders[i]);
     }
 
     if (m_shaders.size())
     {
         json_node &shader_objects_array = node.add_array("shader_objects");
-        for (uint i = 0; i < m_shaders.size(); i++)
+        for (uint32_t i = 0; i < m_shaders.size(); i++)
             if (!m_shaders[i].serialize(shader_objects_array.add_object(), blob_manager))
                 return false;
     }
@@ -1684,7 +1684,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
     if (m_attribs.size())
     {
         json_node &active_attribs_array = node.add_array("active_attribs");
-        for (uint i = 0; i < m_attribs.size(); i++)
+        for (uint32_t i = 0; i < m_attribs.size(); i++)
         {
             const vogl_program_attrib_state &attrib = m_attribs[i];
 
@@ -1703,7 +1703,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
         vogl::vector<char> temp_buf;
         temp_buf.reserve(64);
 
-        for (uint i = 0; i < m_uniforms.size(); i++)
+        for (uint32_t i = 0; i < m_uniforms.size(); i++)
         {
             const vogl_program_uniform_state &uniform = m_uniforms[i];
 
@@ -1717,13 +1717,13 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
 
             if (uniform.m_data.size())
             {
-                const uint type_size_in_GLints = vogl_gl_get_uniform_size_in_GLints(uniform.m_type);
-                const uint type_size = vogl_gl_get_uniform_size_in_bytes(uniform.m_type);
+                const uint32_t type_size_in_GLints = vogl_gl_get_uniform_size_in_GLints(uniform.m_type);
+                const uint32_t type_size = vogl_gl_get_uniform_size_in_bytes(uniform.m_type);
                 const GLenum base_type = vogl_gl_get_uniform_base_type(uniform.m_type);
 
                 for (int element = 0; element < uniform.m_size; element++)
                 {
-                    for (uint element_ofs = 0; element_ofs < type_size_in_GLints; element_ofs++)
+                    for (uint32_t element_ofs = 0; element_ofs < type_size_in_GLints; element_ofs++)
                     {
                         const uint32_t *pData = reinterpret_cast<const uint32_t *>(uniform.m_data.get_ptr() + type_size * element + sizeof(uint32_t) * element_ofs);
 
@@ -1804,7 +1804,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
     if (m_uniform_blocks.size())
     {
         json_node &active_uniforms_blocks_array = node.add_array("active_uniform_blocks");
-        for (uint i = 0; i < m_uniform_blocks.size(); i++)
+        for (uint32_t i = 0; i < m_uniform_blocks.size(); i++)
         {
             const vogl_program_uniform_block_state &state = m_uniform_blocks[i];
 
@@ -1820,7 +1820,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
     if (m_outputs.size())
     {
         json_node &outputs_array = node.add_array("outputs");
-        for (uint i = 0; i < m_outputs.size(); i++)
+        for (uint32_t i = 0; i < m_outputs.size(); i++)
         {
             const vogl_program_output_state &output = m_outputs[i];
 
@@ -1841,7 +1841,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
     if (m_transform_feedback_num_varyings)
     {
         json_node &varyings_array = node.add_array("transform_feedback_varyings");
-        for (uint i = 0; i < m_varyings.size(); i++)
+        for (uint32_t i = 0; i < m_varyings.size(); i++)
         {
             const vogl_program_transform_feedback_varying &varying = m_varyings[i];
 
@@ -1900,7 +1900,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     if (pAttached_shaders_array)
     {
         m_attached_shaders.resize(pAttached_shaders_array->size());
-        for (uint i = 0; i < m_attached_shaders.size(); i++)
+        for (uint32_t i = 0; i < m_attached_shaders.size(); i++)
             m_attached_shaders[i] = pAttached_shaders_array->value_as_uint32(i);
     }
 
@@ -1912,7 +1912,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
         else
         {
             m_shaders.resize(pShader_objects_array->size());
-            for (uint i = 0; i < m_shaders.size(); i++)
+            for (uint32_t i = 0; i < m_shaders.size(); i++)
                 if (!m_shaders[i].deserialize(*pShader_objects_array->get_value_as_object(i), blob_manager))
                     return false;
         }
@@ -1923,7 +1923,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     {
         m_attribs.resize(pActive_attribs_array->size());
 
-        for (uint i = 0; i < m_attribs.size(); i++)
+        for (uint32_t i = 0; i < m_attribs.size(); i++)
         {
             const json_node *pAttrib_node = pActive_attribs_array->get_value_as_object(i);
             if (!pAttrib_node)
@@ -1947,7 +1947,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     {
         m_uniforms.resize(pActive_uniforms_array->size());
 
-        for (uint i = 0; i < m_uniforms.size(); i++)
+        for (uint32_t i = 0; i < m_uniforms.size(); i++)
         {
             const json_node *pUniform_node = pActive_uniforms_array->get_value_as_object(i);
             if (!pUniform_node)
@@ -1969,11 +1969,11 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
                 continue;
             }
 
-            const uint type_size_in_GLints = vogl_gl_get_uniform_size_in_GLints(uniform.m_type);
-            const uint type_size = vogl_gl_get_uniform_size_in_bytes(uniform.m_type);
+            const uint32_t type_size_in_GLints = vogl_gl_get_uniform_size_in_GLints(uniform.m_type);
+            const uint32_t type_size = vogl_gl_get_uniform_size_in_bytes(uniform.m_type);
             const GLenum base_type = vogl_gl_get_uniform_base_type(uniform.m_type);
 
-            uint uniform_data_size_in_bytes = type_size * uniform.m_size;
+            uint32_t uniform_data_size_in_bytes = type_size * uniform.m_size;
             if (uniform_data_size_in_bytes > 0)
             {
                 uniform.m_data.resize(uniform_data_size_in_bytes);
@@ -1993,9 +1993,9 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
 
             for (int element = 0; element < uniform.m_size; element++)
             {
-                for (uint element_ofs = 0; element_ofs < type_size_in_GLints; element_ofs++)
+                for (uint32_t element_ofs = 0; element_ofs < type_size_in_GLints; element_ofs++)
                 {
-                    const uint array_index = element * type_size_in_GLints + element_ofs;
+                    const uint32_t array_index = element * type_size_in_GLints + element_ofs;
 
                     uint32_t *pData = reinterpret_cast<uint32_t *>(uniform.m_data.get_ptr() + type_size * element + sizeof(uint32_t) * element_ofs);
                     float *pFloat_data = reinterpret_cast<float *>(pData);
@@ -2063,7 +2063,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
         {
             m_uniform_blocks.resize(pActive_uniforms_blocks_array->size());
 
-            for (uint i = 0; i < pActive_uniforms_blocks_array->size(); i++)
+            for (uint32_t i = 0; i < pActive_uniforms_blocks_array->size(); i++)
             {
                 vogl_program_uniform_block_state &state = m_uniform_blocks[i];
 
@@ -2088,7 +2088,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
         else
         {
             m_outputs.resize(pOutputs_array->size());
-            for (uint i = 0; i < pOutputs_array->size(); i++)
+            for (uint32_t i = 0; i < pOutputs_array->size(); i++)
             {
                 const json_node &output_node = *pOutputs_array->get_value_as_object(i);
 
@@ -2131,7 +2131,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
         {
             m_varyings.resize(m_transform_feedback_num_varyings);
 
-            for (uint i = 0; i < m_transform_feedback_num_varyings; i++)
+            for (uint32_t i = 0; i < m_transform_feedback_num_varyings; i++)
             {
                 const json_node &varying_node = *pVaryings_array->get_value_as_object(i);
 
@@ -2218,7 +2218,7 @@ bool vogl_linked_program_state::add_snapshot(GLuint handle, const vogl_program_s
     return true;
 }
 
-bool vogl_linked_program_state::add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum binary_format, const void *pBinary, uint binary_size)
+bool vogl_linked_program_state::add_snapshot(const vogl_context_info &context_info, vogl_handle_remapper &remapper, gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum binary_format, const void *pBinary, uint32_t binary_size)
 {
     VOGL_FUNC_TRACER
 
@@ -2305,7 +2305,7 @@ bool vogl_linked_program_state::deserialize(const json_node &node, const vogl_bl
 
     vogl_program_state prog;
 
-    for (uint i = 0; i < node.size(); i++)
+    for (uint32_t i = 0; i < node.size(); i++)
     {
         if (!prog.deserialize(*node.get_value_as_object(i), blob_manager))
         {

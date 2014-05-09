@@ -39,9 +39,9 @@ namespace vogl
 
     static const char *g_to_hex = "0123456789ABCDEF";
 
-    const uint cMaxValidDepth = 511;
+    const uint32_t cMaxValidDepth = 511;
 
-    const uint cJSONTabSize = 3;
+    const uint32_t cJSONTabSize = 3;
 
     void json_node_pool_init()
     {
@@ -88,7 +88,7 @@ namespace vogl
             return c;
         }
 
-        inline uint get_cur_line() const
+        inline uint32_t get_cur_line() const
         {
             return m_cur_line;
         }
@@ -143,12 +143,12 @@ namespace vogl
             return ((m_pEnd - m_pPtr) < (int)n) ? false : !strncmp(m_pPtr, pStr, n);
         }
 
-        inline json_deserialize_buf_ptr &advance_in_line(uint n)
+        inline json_deserialize_buf_ptr &advance_in_line(uint32_t n)
         {
             m_pPtr = VOGL_MIN(m_pEnd, m_pPtr + n);
             return *this;
         }
-        inline json_deserialize_buf_ptr &advance_in_line_no_end_check(uint n)
+        inline json_deserialize_buf_ptr &advance_in_line_no_end_check(uint32_t n)
         {
             m_pPtr += n;
             VOGL_ASSERT(m_pPtr <= m_pEnd);
@@ -158,7 +158,7 @@ namespace vogl
     private:
         const char *m_pPtr;
         const char *m_pEnd;
-        uint m_cur_line;
+        uint32_t m_cur_line;
     };
 
     json_deserialize_buf_ptr &json_deserialize_buf_ptr::skip_whitespace()
@@ -207,7 +207,7 @@ namespace vogl
         {
         }
 
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_buf.size();
         }
@@ -224,7 +224,7 @@ namespace vogl
         void puts(const char *pStr);
         void printf(const char *pFmt, ...);
         void print_escaped(const char *pStr);
-        void print_tabs(uint n);
+        void print_tabs(uint32_t n);
         inline void print_char(char c)
         {
             m_buf.push_back(c);
@@ -240,7 +240,7 @@ namespace vogl
         if (l > cUINT32_MAX)
             return;
 
-        char *p = m_buf.try_enlarge(static_cast<uint>(l));
+        char *p = m_buf.try_enlarge(static_cast<uint32_t>(l));
         if (p)
             memcpy(p, pStr, l);
     }
@@ -259,7 +259,7 @@ namespace vogl
             memcpy(p, str, l);
     }
 
-    void json_growable_char_buf::print_tabs(uint n)
+    void json_growable_char_buf::print_tabs(uint32_t n)
     {
 #if 0
 	// Apparently tabs are not valid JSON.
@@ -322,7 +322,7 @@ namespace vogl
         m_buf.push_back('\"');
     }
 
-    void json_error_info_t::set_error(uint line, const char *pMsg, ...)
+    void json_error_info_t::set_error(uint32_t line, const char *pMsg, ...)
     {
         m_error_line = line;
 
@@ -426,7 +426,7 @@ namespace vogl
         return false;
     }
 
-    bool json_value::convert_to_int32(int32 &val, int32 def) const
+    bool json_value::convert_to_int32(int32_t &val, int32_t def) const
     {
         val = def;
         int64_t val64;
@@ -434,7 +434,7 @@ namespace vogl
             return false;
         if ((val64 < cINT32_MIN) || (val64 > cINT32_MAX))
             return false;
-        val = static_cast<int32>(val64);
+        val = static_cast<int32_t>(val64);
         return true;
     }
 
@@ -817,7 +817,7 @@ namespace vogl
             if (!pNode->basic_validation(pParent))
                 return false;
 
-            for (uint i = 0; i < pNode->size(); i++)
+            for (uint32_t i = 0; i < pNode->size(); i++)
                 if ((pNode->is_child(i)) && (!pNode->get_value(i).validate(pNode)))
                     return false;
         }
@@ -901,7 +901,7 @@ namespace vogl
             }
             case cJSONValueTypeString:
             {
-                uint len = static_cast<uint>(strlen(m_data.m_pStr));
+                uint32_t len = static_cast<uint32_t>(strlen(m_data.m_pStr));
                 if (len <= 254)
                 {
                     uint8_t *pDst = buf.enlarge(2 + len);
@@ -954,7 +954,7 @@ namespace vogl
         return fwrite(buf.get_ptr(), 1, buf.size(), pFile) == buf.size();
     }
 
-    void json_value::serialize(vogl::vector<char> &buf, bool formatted, uint cur_indent, bool null_terminate, uint max_line_len) const
+    void json_value::serialize(vogl::vector<char> &buf, bool formatted, uint32_t cur_indent, bool null_terminate, uint32_t max_line_len) const
     {
         const json_node *pNode = get_node_ptr();
         if (pNode)
@@ -973,7 +973,7 @@ namespace vogl
                     // Apparently tabs are not valid JSON.
                     buf.push_back('\t');
 #else
-                    for (uint i = 0; i < cJSONTabSize; i++)
+                    for (uint32_t i = 0; i < cJSONTabSize; i++)
                         buf.push_back(' ');
 #endif
                 }
@@ -1045,7 +1045,7 @@ namespace vogl
         return binary_deserialize(pBuf, pBuf + n, NULL, 0);
     }
 
-    bool json_value::binary_deserialize(const uint8_t *&pBuf, const uint8_t *pBuf_end, json_node *pParent, uint depth)
+    bool json_value::binary_deserialize(const uint8_t *&pBuf, const uint8_t *pBuf_end, json_node *pParent, uint32_t depth)
     {
 #define JSON_BD_FAIL() \
     do                 \
@@ -1093,7 +1093,7 @@ namespace vogl
                 if (n < 1)
                     JSON_BD_FAIL();
 
-                uint l = *pSrc++;
+                uint32_t l = *pSrc++;
                 n--;
 
                 bool unknown_len = false;
@@ -1114,7 +1114,7 @@ namespace vogl
                 if (!unknown_len)
                     pNode->resize(l);
 
-                uint idx = 0;
+                uint32_t idx = 0;
                 while ((unknown_len) || (idx < l))
                 {
                     uint8_t q;
@@ -1148,7 +1148,7 @@ namespace vogl
                         if (!n)
                             JSON_BD_FAIL();
 
-                        uint l2 = *pSrc++;
+                        uint32_t l2 = *pSrc++;
                         n--;
 
                         if (c == 'S')
@@ -1182,7 +1182,7 @@ namespace vogl
                 if (!n)
                     JSON_BD_FAIL();
 
-                uint l = *pSrc++;
+                uint32_t l = *pSrc++;
                 n--;
 
                 if (c == 'S')
@@ -1241,7 +1241,7 @@ namespace vogl
                 if (n < 4)
                     JSON_BD_FAIL();
                 m_type = cJSONValueTypeInt;
-                m_data.m_nVal = static_cast<int32>((pSrc[0] << 24) | (pSrc[1] << 16) | (pSrc[2] << 8) | pSrc[3]);
+                m_data.m_nVal = static_cast<int32_t>((pSrc[0] << 24) | (pSrc[1] << 16) | (pSrc[2] << 8) | pSrc[3]);
                 pSrc += 4;
                 break;
             }
@@ -1251,7 +1251,7 @@ namespace vogl
                     JSON_BD_FAIL();
                 m_type = cJSONValueTypeInt;
                 uint64_t v = 0;
-                for (uint i = 8; i; --i)
+                for (uint32_t i = 8; i; --i)
                     v = (v << 8) | *pSrc++;
                 m_data.m_nVal = static_cast<int64_t>(v);
                 break;
@@ -1277,7 +1277,7 @@ namespace vogl
                     JSON_BD_FAIL();
                 m_type = cJSONValueTypeDouble;
                 uint64_t v = 0;
-                for (uint i = 8; i; --i)
+                for (uint32_t i = 8; i; --i)
                     v = (v << 8) | *pSrc++;
                 m_data.m_nVal = v;
                 break;
@@ -1292,21 +1292,21 @@ namespace vogl
         return true;
     }
 
-    dynamic_string &json_value::serialize(dynamic_string &str, bool formatted, uint cur_indent, uint max_line_len) const
+    dynamic_string &json_value::serialize(dynamic_string &str, bool formatted, uint32_t cur_indent, uint32_t max_line_len) const
     {
         vogl::vector<char> buf;
         serialize(buf, formatted, cur_indent, false, max_line_len);
         return str.set_from_buf(buf.get_ptr(), buf.size_in_bytes());
     }
 
-    void json_value::print(bool formatted, uint cur_indent, uint max_line_len) const
+    void json_value::print(bool formatted, uint32_t cur_indent, uint32_t max_line_len) const
     {
         vogl::vector<char> buf;
         serialize(buf, formatted, cur_indent, true, max_line_len);
         puts(buf.get_ptr());
     }
 
-    bool json_value::serialize_to_file(const char *pFilename, bool formatted, uint max_line_len) const
+    bool json_value::serialize_to_file(const char *pFilename, bool formatted, uint32_t max_line_len) const
     {
         FILE *pFile = vogl_fopen(pFilename, "wb");
         if (!pFile)
@@ -1317,14 +1317,14 @@ namespace vogl
         return success;
     }
 
-    bool json_value::serialize(FILE *pFile, bool formatted, uint max_line_len) const
+    bool json_value::serialize(FILE *pFile, bool formatted, uint32_t max_line_len) const
     {
         vogl::vector<char> buf;
         serialize(buf, formatted, 0, false, max_line_len);
         return fwrite(buf.get_ptr(), 1, buf.size(), pFile) == buf.size();
     }
 
-    bool json_value::deserialize_node(json_deserialize_buf_ptr &pStr, json_node *pParent, uint level, json_error_info_t &error_info)
+    bool json_value::deserialize_node(json_deserialize_buf_ptr &pStr, json_node *pParent, uint32_t level, json_error_info_t &error_info)
     {
         const bool is_object = (*pStr == '{');
         const char end_char = is_object ? '}' : ']';
@@ -1341,7 +1341,7 @@ namespace vogl
             if (c == end_char)
                 break;
 
-            uint value_index = pNode->enlarge(1);
+            uint32_t value_index = pNode->enlarge(1);
 
             if (is_object)
             {
@@ -1353,7 +1353,7 @@ namespace vogl
 
                 pStr.advance_in_line_no_end_check(1);
 
-                uint estimated_len;
+                uint32_t estimated_len;
                 if (!estimate_deserialized_string_size(pStr, error_info, estimated_len))
                     return false;
 
@@ -1362,7 +1362,7 @@ namespace vogl
                     error_info.set_error(pStr.get_cur_line(), "Quoted name string is too long");
                     return false;
                 }
-                uint buf_size = estimated_len + 1;
+                uint32_t buf_size = estimated_len + 1;
                 char *pBuf = dynamic_string::create_raw_buffer(buf_size);
 
                 char *pDst = pBuf;
@@ -1371,7 +1371,7 @@ namespace vogl
                     dynamic_string::free_raw_buffer(pBuf);
                     return false;
                 }
-                pNode->get_key(value_index).set_from_raw_buf_and_assume_ownership(pBuf, buf_size, static_cast<uint>(pDst - pBuf));
+                pNode->get_key(value_index).set_from_raw_buf_and_assume_ownership(pBuf, buf_size, static_cast<uint32_t>(pDst - pBuf));
 
                 pStr.skip_whitespace();
 
@@ -1420,10 +1420,10 @@ namespace vogl
             0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC
         };
 
-    bool json_value::estimate_deserialized_string_size(json_deserialize_buf_ptr &pStr, json_error_info_t &error_info, uint &size)
+    bool json_value::estimate_deserialized_string_size(json_deserialize_buf_ptr &pStr, json_error_info_t &error_info, uint32_t &size)
     {
         json_deserialize_buf_ptr pTmpStr(pStr);
-        uint len = 0;
+        uint32_t len = 0;
         for (;;)
         {
             char c = pTmpStr.get_and_advance();
@@ -1451,7 +1451,7 @@ namespace vogl
     }
 
     // Note: This method assumes estimate_deserialized_string_size() was called on the string first, so it skips some checks.
-    bool json_value::deserialize_quoted_string_to_buf(char *&pBuf, uint buf_size, json_deserialize_buf_ptr &pStr, json_error_info_t &error_info)
+    bool json_value::deserialize_quoted_string_to_buf(char *&pBuf, uint32_t buf_size, json_deserialize_buf_ptr &pStr, json_error_info_t &error_info)
     {
         VOGL_NOTE_UNUSED(buf_size);
 
@@ -1466,8 +1466,8 @@ namespace vogl
                 c = pStr.get_and_advance();
                 if (c == 'u')
                 {
-                    uint u = 0;
-                    for (uint i = 0; i < 4; i++)
+                    uint32_t u = 0;
+                    for (uint32_t i = 0; i < 4; i++)
                     {
                         u <<= 4;
                         int c2 = vogl_tolower(pStr.get_and_advance());
@@ -1482,7 +1482,7 @@ namespace vogl
                         }
                     }
 
-                    uint len;
+                    uint32_t len;
                     if ((u) && (u < 0x80))
                         len = 1;
                     else if (u < 0x800)
@@ -1554,11 +1554,11 @@ namespace vogl
     {
         pStr.advance_in_line_no_end_check(1);
 
-        uint estimated_len;
+        uint32_t estimated_len;
         if (!estimate_deserialized_string_size(pStr, error_info, estimated_len))
             return false;
 
-        uint buf_size = estimated_len + 1;
+        uint32_t buf_size = estimated_len + 1;
         char *pBuf = (char *)vogl_malloc(buf_size);
         if (!pBuf)
         {
@@ -1608,7 +1608,7 @@ namespace vogl
                 if (pNode->size() != pOther_node->size())
                     return false;
 
-                for (uint i = 0; i < pNode->size(); i++)
+                for (uint32_t i = 0; i < pNode->size(); i++)
                 {
                     if ((pNode->is_object()) && (pNode->get_key(i).compare(pOther_node->get_key(i), true) != 0))
                         return false;
@@ -1845,7 +1845,7 @@ namespace vogl
         return true;
     }
 
-    bool json_value::deserialize(json_deserialize_buf_ptr &pStr, json_node *pParent, uint level, json_error_info_t &error_info)
+    bool json_value::deserialize(json_deserialize_buf_ptr &pStr, json_node *pParent, uint32_t level, json_error_info_t &error_info)
     {
         m_line = pStr.get_cur_line();
 
@@ -1941,7 +1941,7 @@ namespace vogl
             m_keys.resize(rhs.size());
         m_values.resize(rhs.size());
 
-        for (uint i = 0; i < rhs.size(); i++)
+        for (uint32_t i = 0; i < rhs.size(); i++)
         {
             if (is_object())
                 m_keys[i] = rhs.m_keys[i];
@@ -1966,7 +1966,7 @@ namespace vogl
 
     int json_node::find_key(const char *pKey) const
     {
-        for (uint i = 0; i < m_keys.size(); i++)
+        for (uint32_t i = 0; i < m_keys.size(); i++)
             if (m_keys[i] == pKey)
                 return i;
         return cInvalidIndex;
@@ -1974,7 +1974,7 @@ namespace vogl
 
     int json_node::find_child(const json_node *pNode) const
     {
-        for (uint i = 0; i < m_values.size(); i++)
+        for (uint32_t i = 0; i < m_values.size(); i++)
             if (m_values[i].get_node_ptr() == pNode)
                 return i;
         return cInvalidIndex;
@@ -2018,7 +2018,7 @@ namespace vogl
 
     bool json_node::are_all_children_values() const
     {
-        for (uint i = 0; i < m_values.size(); i++)
+        for (uint32_t i = 0; i < m_values.size(); i++)
             if (m_values[i].is_object_or_array())
                 return false;
         return true;
@@ -2026,7 +2026,7 @@ namespace vogl
 
     bool json_node::are_all_children_objects() const
     {
-        for (uint i = 0; i < m_values.size(); i++)
+        for (uint32_t i = 0; i < m_values.size(); i++)
             if (!m_values[i].is_object())
                 return false;
         return true;
@@ -2034,7 +2034,7 @@ namespace vogl
 
     bool json_node::are_all_children_arrays() const
     {
-        for (uint i = 0; i < m_values.size(); i++)
+        for (uint32_t i = 0; i < m_values.size(); i++)
             if (!m_values[i].is_array())
                 return false;
         return true;
@@ -2042,7 +2042,7 @@ namespace vogl
 
     bool json_node::are_all_children_objects_or_arrays() const
     {
-        for (uint i = 0; i < m_values.size(); i++)
+        for (uint32_t i = 0; i < m_values.size(); i++)
             if (!m_values[i].is_object_or_array())
                 return false;
         return true;
@@ -2153,9 +2153,9 @@ namespace vogl
         return result;
     }
 
-    int32 json_node::value_as_int32(const char *pKey, int32 def) const
+    int32_t json_node::value_as_int32(const char *pKey, int32_t def) const
     {
-        int32 result;
+        int32_t result;
         get_value_as_int(pKey, result, def);
         return result;
     }
@@ -2202,52 +2202,52 @@ namespace vogl
         return result;
     }
 
-    dynamic_string json_node::value_as_string(uint index, const char *pDef) const
+    dynamic_string json_node::value_as_string(uint32_t index, const char *pDef) const
     {
         return m_values[index].as_string(pDef);
     }
 
-    const char *json_node::value_as_string_ptr(uint index, const char *pDef) const
+    const char *json_node::value_as_string_ptr(uint32_t index, const char *pDef) const
     {
         return m_values[index].as_string_ptr(pDef);
     }
 
-    int json_node::value_as_int(uint index, int def) const
+    int json_node::value_as_int(uint32_t index, int def) const
     {
         return m_values[index].as_int(def);
     }
 
-    int32 json_node::value_as_int32(uint index, int32 def) const
+    int32_t json_node::value_as_int32(uint32_t index, int32_t def) const
     {
         return m_values[index].as_int32(def);
     }
 
-    int64_t json_node::value_as_int64(uint index, int64_t def) const
+    int64_t json_node::value_as_int64(uint32_t index, int64_t def) const
     {
         return m_values[index].as_int64(def);
     }
 
-    uint64_t json_node::value_as_uint64(uint index, uint64_t def) const
+    uint64_t json_node::value_as_uint64(uint32_t index, uint64_t def) const
     {
         return m_values[index].as_uint64(def);
     }
 
-    uint32_t json_node::value_as_uint32(uint index, uint32_t def) const
+    uint32_t json_node::value_as_uint32(uint32_t index, uint32_t def) const
     {
         return m_values[index].as_uint32(def);
     }
 
-    float json_node::value_as_float(uint index, float def) const
+    float json_node::value_as_float(uint32_t index, float def) const
     {
         return m_values[index].as_float(def);
     }
 
-    double json_node::value_as_double(uint index, double def) const
+    double json_node::value_as_double(uint32_t index, double def) const
     {
         return m_values[index].as_double(def);
     }
 
-    bool json_node::value_as_bool(uint index, bool def) const
+    bool json_node::value_as_bool(uint32_t index, bool def) const
     {
         return m_values[index].as_bool(def);
     }
@@ -2260,14 +2260,14 @@ namespace vogl
         m_line = 0;
     }
 
-    void json_node::resize(uint new_size)
+    void json_node::resize(uint32_t new_size)
     {
         if (m_is_object)
             m_keys.resize(new_size, true);
         m_values.resize(new_size, true);
     }
 
-    void json_node::reserve(uint new_capacity)
+    void json_node::reserve(uint32_t new_capacity)
     {
         if (m_is_object)
             m_keys.reserve(new_capacity);
@@ -2298,7 +2298,7 @@ namespace vogl
     {
         ensure_is_object();
 
-        uint new_index = m_values.size();
+        uint32_t new_index = m_values.size();
 
         m_keys.push_back(pKey);
 
@@ -2318,7 +2318,7 @@ namespace vogl
 
     json_value &json_node::add_value(const json_value &val)
     {
-        uint new_index = m_values.size();
+        uint32_t new_index = m_values.size();
 
         if (m_is_object)
             m_keys.enlarge(1);
@@ -2365,7 +2365,7 @@ namespace vogl
         return true;
     }
 
-    dynamic_string &json_node::get_key(uint index)
+    dynamic_string &json_node::get_key(uint32_t index)
     {
         if (!m_is_object)
         {
@@ -2375,7 +2375,7 @@ namespace vogl
         return m_keys[index];
     }
 
-    void json_node::set_key_value(uint index, const char *pKey, const json_value &val)
+    void json_node::set_key_value(uint32_t index, const char *pKey, const json_value &val)
     {
         ensure_is_object();
         m_keys[index].set(pKey);
@@ -2385,20 +2385,20 @@ namespace vogl
             m_values[index].get_node_ptr()->m_pParent = this;
     }
 
-    void json_node::set_key(uint index, const char *pKey)
+    void json_node::set_key(uint32_t index, const char *pKey)
     {
         ensure_is_object();
         m_keys[index].set(pKey);
     }
 
-    void json_node::set_value(uint index, const json_value &val)
+    void json_node::set_value(uint32_t index, const json_value &val)
     {
         m_values[index] = val;
         if (m_values[index].is_node())
             m_values[index].get_node_ptr()->m_pParent = this;
     }
 
-    void json_node::set_value_assume_ownership(uint index, json_value &val)
+    void json_node::set_value_assume_ownership(uint32_t index, json_value &val)
     {
         json_value &val_to_set = m_values[index];
         val_to_set.set_value_to_null();
@@ -2412,7 +2412,7 @@ namespace vogl
     {
         if (m_is_object)
             m_keys.enlarge(1);
-        uint new_index = m_values.size();
+        uint32_t new_index = m_values.size();
         m_values.enlarge(1);
         set_value_assume_ownership(new_index, val);
     }
@@ -2422,7 +2422,7 @@ namespace vogl
         ensure_is_object();
         m_keys.push_back(pKey);
 
-        uint new_index = m_values.size();
+        uint32_t new_index = m_values.size();
         m_values.enlarge(1);
         set_value_assume_ownership(new_index, val);
     }
@@ -2495,7 +2495,7 @@ namespace vogl
         return false;
     }
 
-    void json_node::erase(uint index)
+    void json_node::erase(uint32_t index)
     {
         if (m_is_object)
             m_keys.erase(index);
@@ -2523,7 +2523,7 @@ namespace vogl
         if (!basic_validation(pParent))
             return false;
 
-        for (uint i = 0; i < m_values.size(); i++)
+        for (uint32_t i = 0; i < m_values.size(); i++)
             if (!m_values[i].validate(this))
                 return false;
 
@@ -2580,7 +2580,7 @@ namespace vogl
         return path;
     }
 
-    dynamic_string json_node::get_path_to_item(uint index) const
+    dynamic_string json_node::get_path_to_item(uint32_t index) const
     {
         dynamic_string path(get_path_to_node());
         if (is_array())
@@ -2602,9 +2602,9 @@ namespace vogl
 
             sorted_keys.sort(dynamic_string_less_than_case_sensitive());
 
-            for (uint i = 0; i < sorted_keys.size(); i++)
+            for (uint32_t i = 0; i < sorted_keys.size(); i++)
             {
-                uint count = 1;
+                uint32_t count = 1;
 
                 while (((i + 1) < sorted_keys.size()) && (sorted_keys[i].compare(sorted_keys[i + 1], true) == 0))
                 {
@@ -2623,7 +2623,7 @@ namespace vogl
             }
         }
 
-        for (uint i = 0; i < m_values.size(); i++)
+        for (uint32_t i = 0; i < m_values.size(); i++)
         {
             const json_node *pChild = get_child(i);
 
@@ -2634,7 +2634,7 @@ namespace vogl
         return status;
     }
 
-    void json_node::serialize(vogl::vector<char> &buf, bool formatted, uint cur_indent, bool null_terminate, uint max_line_len) const
+    void json_node::serialize(vogl::vector<char> &buf, bool formatted, uint32_t cur_indent, bool null_terminate, uint32_t max_line_len) const
     {
         json_growable_char_buf growable_buf(buf);
         if ((cur_indent) && (formatted))
@@ -2644,7 +2644,7 @@ namespace vogl
             buf.push_back('\0');
     }
 
-    void json_node::serialize(dynamic_string &str, bool formatted, uint cur_index, uint max_line_len) const
+    void json_node::serialize(dynamic_string &str, bool formatted, uint32_t cur_index, uint32_t max_line_len) const
     {
         vogl::vector<char> buf;
         serialize(buf, formatted, cur_index, true, max_line_len);
@@ -2653,7 +2653,7 @@ namespace vogl
         str.set_from_buf(buf.get_ptr(), vogl_strlen(buf.get_ptr()));
     }
 
-    void json_node::serialize(json_growable_char_buf &buf, bool formatted, uint cur_indent, uint max_line_len) const
+    void json_node::serialize(json_growable_char_buf &buf, bool formatted, uint32_t cur_indent, uint32_t max_line_len) const
     {
         if (is_object())
         {
@@ -2673,15 +2673,15 @@ namespace vogl
             return;
         }
 
-        const uint cMaxLineLen = max_line_len;
+        const uint32_t cMaxLineLen = max_line_len;
 
 #if 0
 	if (formatted && !has_children() && !is_object() && (size() <= 40))
 	{
-		uint orig_buf_size = buf.size();
+		uint32_t orig_buf_size = buf.size();
 		buf.puts("[ ");
 
-		for (uint i = 0; i < size(); i++)
+		for (uint32_t i = 0; i < size(); i++)
 		{
 			dynamic_string val;
 			get_value(i).get_string(val);
@@ -2710,13 +2710,13 @@ namespace vogl
 #else
         if (formatted && !has_children() && !is_object())
         {
-            uint line_start_ofs = buf.size();
+            uint32_t line_start_ofs = buf.size();
 
             buf.puts("[ ");
             if (formatted && !cMaxLineLen)
                 buf.print_char('\n');
 
-            for (uint i = 0; i < size(); i++)
+            for (uint32_t i = 0; i < size(); i++)
             {
                 dynamic_string val;
                 get_value(i).get_string(val);
@@ -2765,7 +2765,7 @@ namespace vogl
 
         dynamic_string val;
 
-        for (uint i = 0; i < size(); i++)
+        for (uint32_t i = 0; i < size(); i++)
         {
             if (formatted)
                 buf.print_tabs(cur_indent);
@@ -2802,7 +2802,7 @@ namespace vogl
     void json_node::binary_serialize(vogl::vector<uint8_t> &buf) const
     {
         uint8_t *pDst;
-        uint n = m_values.size();
+        uint32_t n = m_values.size();
         if (n <= 254)
         {
             pDst = buf.enlarge(2);
@@ -2823,11 +2823,11 @@ namespace vogl
 
         const dynamic_string *pKey = m_keys.get_ptr();
         const json_value *pVal = m_values.get_ptr();
-        for (uint i = n; i; --i, ++pKey, ++pVal)
+        for (uint32_t i = n; i; --i, ++pKey, ++pVal)
         {
             if (m_is_object)
             {
-                uint len = pKey->get_len();
+                uint32_t len = pKey->get_len();
                 if (len <= 254)
                 {
                     pDst = buf.enlarge(2 + len);
@@ -2856,7 +2856,7 @@ namespace vogl
 
     bool json_node::has_children() const
     {
-        for (uint i = 0; i < m_values.size(); i++)
+        for (uint32_t i = 0; i < m_values.size(); i++)
             if (m_values[i].get_type() == cJSONValueTypeNode)
                 return true;
         return false;
@@ -2926,7 +2926,7 @@ namespace vogl
         deserialize(pStr, pFilename);
     }
 
-    json_document::json_document(const char *pBuf, uint n, const char *pFilename)
+    json_document::json_document(const char *pBuf, uint32_t n, const char *pFilename)
         : m_error_line(0)
     {
         deserialize(pBuf, n, pFilename);
@@ -3006,7 +3006,7 @@ namespace vogl
 
     bool json_document::deserialize(const char *pStr, const char *pFilename)
     {
-        return deserialize(pStr, static_cast<uint>(strlen(pStr)), pFilename);
+        return deserialize(pStr, static_cast<uint32_t>(strlen(pStr)), pFilename);
     }
 
     bool json_document::deserialize(const dynamic_string &str, const char *pFilename)
@@ -3052,7 +3052,7 @@ namespace vogl
         json_document doc;
         json_node *pRoot = doc.get_root();
 
-        typedef vogl::growable_array<uint, 16> my_growable_array_type;
+        typedef vogl::growable_array<uint32_t, 16> my_growable_array_type;
         my_growable_array_type growable_array;
         growable_array.push_back(99);
         growable_array.push_back(100);
@@ -3095,7 +3095,7 @@ namespace vogl
         pRoot->get_vector("my_type_vec", mv2);
 
         printf("my_type_vec:\n");
-        for (uint i = 0; i < mv2.size(); i++)
+        for (uint32_t i = 0; i < mv2.size(); i++)
         {
             printf("a: %s\nb: %s\n", mv2[i].a.get_ptr(), mv2[i].b.get_ptr());
         }
@@ -3116,7 +3116,7 @@ namespace vogl
         cool_vec blah2;
         pRoot->get_vector("vec", blah2);
         printf("vec:\n");
-        for (uint i = 0; i < blah2.size(); i++)
+        for (uint32_t i = 0; i < blah2.size(); i++)
             printf("%i\n", blah2[i]);
 
         // Now create a string to string array map
@@ -3152,7 +3152,7 @@ namespace vogl
             const dynamic_string_array &b = it->second;
 
             printf("%s :\n", it->first.get_ptr());
-            for (uint i = 0; i < b.size(); i++)
+            for (uint32_t i = 0; i < b.size(); i++)
                 printf(" %s\n", b[i].get_ptr());
         }
 

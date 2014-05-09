@@ -49,7 +49,7 @@ namespace vogl
         {
         }
 
-        inline bigint128(int32 x)
+        inline bigint128(int32_t x)
         {
             *this = x;
         }
@@ -81,22 +81,22 @@ namespace vogl
             return *this;
         }
 
-        bigint128(const void *p, uint type_size_in_bytes, bool type_is_signed)
+        bigint128(const void *p, uint32_t type_size_in_bytes, bool type_is_signed)
         {
             set_from_ptr(p, type_size_in_bytes, type_is_signed);
         }
 
-        inline uint64_t get_qword(uint index) const
+        inline uint64_t get_qword(uint32_t index) const
         {
-            return m_v[math::open_range_check<uint>(index, cMaxQWORDs)];
+            return m_v[math::open_range_check<uint32_t>(index, cMaxQWORDs)];
         }
-        inline bigint128 &set_qword(uint index, uint64_t val)
+        inline bigint128 &set_qword(uint32_t index, uint64_t val)
         {
-            m_v[math::open_range_check<uint>(index, cMaxQWORDs)] = val;
+            m_v[math::open_range_check<uint32_t>(index, cMaxQWORDs)] = val;
             return *this;
         }
 
-        inline uint32_t get_dword(uint index) const
+        inline uint32_t get_dword(uint32_t index) const
         {
             VOGL_ASSERT(index < cMaxDWORDs);
             uint64_t x = get_qword(index >> 1);
@@ -105,11 +105,11 @@ namespace vogl
             return static_cast<uint32_t>(x);
         }
 
-        inline bigint128 &set_dword(uint index, uint32_t val)
+        inline bigint128 &set_dword(uint32_t index, uint32_t val)
         {
             VOGL_ASSERT(index < cMaxDWORDs);
-            uint qword_index = index >> 1U;
-            uint shift = (index & 1) ? 32U : 0U;
+            uint32_t qword_index = index >> 1U;
+            uint32_t shift = (index & 1) ? 32U : 0U;
 
             uint64_t mask = cUINT32_MAX;
             mask <<= shift;
@@ -133,7 +133,7 @@ namespace vogl
             return *this;
         }
 
-        inline bigint128 &operator=(int32 x)
+        inline bigint128 &operator=(int32_t x)
         {
             *this = static_cast<int64_t>(x);
             return *this;
@@ -162,9 +162,9 @@ namespace vogl
             return static_cast<int16_t>(m_v[0]);
         }
 
-        inline operator int32() const
+        inline operator int32_t() const
         {
-            return static_cast<int32>(m_v[0]);
+            return static_cast<int32_t>(m_v[0]);
         }
 
         inline operator int64_t() const
@@ -203,7 +203,7 @@ namespace vogl
         }
 
         // FIXME: not endian safe, assumes little endian
-        bigint128 &set_from_ptr(const void *p, uint type_size_in_bytes, bool type_is_signed)
+        bigint128 &set_from_ptr(const void *p, uint32_t type_size_in_bytes, bool type_is_signed)
         {
             if (type_size_in_bytes == 0)
             {
@@ -223,7 +223,7 @@ namespace vogl
 
             if (type_size_in_bytes < cMaxBYTEs)
             {
-                uint z = 0;
+                uint32_t z = 0;
                 if (type_is_signed)
                 {
                     bool is_signed = (pSrc[type_size_in_bytes - 1] & 0x80) != 0;
@@ -235,7 +235,7 @@ namespace vogl
             return *this;
         }
 
-        static inline void get_type_range(uint type_size_in_bytes, bool type_is_signed, bigint128 &min_val, bigint128 &max_val)
+        static inline void get_type_range(uint32_t type_size_in_bytes, bool type_is_signed, bigint128 &min_val, bigint128 &max_val)
         {
             if ((!type_size_in_bytes) || (type_size_in_bytes > 16))
             {
@@ -257,7 +257,7 @@ namespace vogl
             }
         }
 
-        inline bool range_check(uint type_size_in_bytes, bool type_is_signed) const
+        inline bool range_check(uint32_t type_size_in_bytes, bool type_is_signed) const
         {
             if (!type_size_in_bytes)
             {
@@ -294,7 +294,7 @@ namespace vogl
         {
             return (m_v[0] == other.m_v[0]) && (m_v[1] == other.m_v[1]);
         }
-        inline bool operator==(int32 x) const
+        inline bool operator==(int32_t x) const
         {
             return *this == bigint128(x);
         }
@@ -342,7 +342,7 @@ namespace vogl
 
             return false;
         }
-        inline bool operator<(int32 x) const
+        inline bool operator<(int32_t x) const
         {
             return *this < bigint128(x);
         }
@@ -363,7 +363,7 @@ namespace vogl
             *this = *this - other;
             return *this;
         }
-        inline bool operator<=(int32 x) const
+        inline bool operator<=(int32_t x) const
         {
             return *this <= bigint128(x);
         }
@@ -380,7 +380,7 @@ namespace vogl
             return *this <= bigint128(x);
         }
 
-        inline bool operator>(int32 x) const
+        inline bool operator>(int32_t x) const
         {
             return *this > bigint128(x);
         }
@@ -397,7 +397,7 @@ namespace vogl
             return *this > bigint128(x);
         }
 
-        inline bool operator>=(int32 x) const
+        inline bool operator>=(int32_t x) const
         {
             return *this >= bigint128(x);
         }
@@ -474,13 +474,13 @@ namespace vogl
             return *this;
         }
 
-        inline bigint128 &operator>>=(uint n)
+        inline bigint128 &operator>>=(uint32_t n)
         {
             *this = *this >> n;
             return *this;
         }
 
-        inline bigint128 &operator<<=(uint n)
+        inline bigint128 &operator<<=(uint32_t n)
         {
             *this = *this << n;
             return *this;
@@ -554,7 +554,7 @@ namespace vogl
             return result;
         }
 
-        friend inline bigint128 operator+(const bigint128 &lhs, int32 x)
+        friend inline bigint128 operator+(const bigint128 &lhs, int32_t x)
         {
             return lhs + bigint128(x);
         }
@@ -571,7 +571,7 @@ namespace vogl
             return lhs + bigint128(x);
         }
 
-        friend inline bigint128 operator-(const bigint128 &lhs, int32 x)
+        friend inline bigint128 operator-(const bigint128 &lhs, int32_t x)
         {
             return lhs - bigint128(x);
         }
@@ -589,7 +589,7 @@ namespace vogl
         }
 
         // signed shift right
-        friend inline bigint128 operator>>(const bigint128 &lhs, uint n)
+        friend inline bigint128 operator>>(const bigint128 &lhs, uint32_t n)
         {
             if (!n)
                 return lhs;
@@ -617,7 +617,7 @@ namespace vogl
             return bigint128(l, h);
         }
 
-        static inline bigint128 unsigned_shift_right(const bigint128 &lhs, uint n)
+        static inline bigint128 unsigned_shift_right(const bigint128 &lhs, uint32_t n)
         {
             if (!n)
                 return lhs;
@@ -646,7 +646,7 @@ namespace vogl
         }
 
         // shift left
-        friend inline bigint128 operator<<(const bigint128 &lhs, uint n)
+        friend inline bigint128 operator<<(const bigint128 &lhs, uint32_t n)
         {
             if (!n)
                 return lhs;
@@ -675,10 +675,10 @@ namespace vogl
         }
 
         // unsigned op
-        uint get_num_significant_bits() const
+        uint32_t get_num_significant_bits() const
         {
             bigint128 d(*this);
-            uint num = 0;
+            uint32_t num = 0;
             while (d)
             {
                 num++;
@@ -711,14 +711,14 @@ namespace vogl
             bigint128 value(0U);
 
             // Seems most portable to use unsigned mul of 32x32=64 bits as the underlying primitive.
-            for (uint i = 0; i < cMaxDWORDs; ++i)
+            for (uint32_t i = 0; i < cMaxDWORDs; ++i)
             {
                 const uint64_t m = static_cast<uint64_t>(x.get_dword(i));
                 if (!m)
                     continue;
-                for (uint j = 0; j < cMaxDWORDs; ++j)
+                for (uint32_t j = 0; j < cMaxDWORDs; ++j)
                 {
-                    uint k = i + j;
+                    uint32_t k = i + j;
 
                     uint64_t product = m * y.get_dword(j);
                     while (product)
@@ -791,7 +791,7 @@ namespace vogl
             bigint128 k;
             if (cur_pos >= 0)
             {
-                k = b << static_cast<uint>(cur_pos);
+                k = b << static_cast<uint32_t>(cur_pos);
 
                 do
                 {
@@ -846,7 +846,7 @@ namespace vogl
             signed_multiply(lhs, rhs, result);
             return result;
         }
-        friend inline bigint128 operator*(const bigint128 &lhs, int32 x)
+        friend inline bigint128 operator*(const bigint128 &lhs, int32_t x)
         {
             return lhs * bigint128(x);
         }
@@ -868,7 +868,7 @@ namespace vogl
             *this = *this * other;
             return *this;
         }
-        bigint128 &operator*=(int32 other)
+        bigint128 &operator*=(int32_t other)
         {
             *this = *this * other;
             return *this;
@@ -895,7 +895,7 @@ namespace vogl
             signed_divide(lhs, rhs, q, r);
             return q;
         }
-        friend inline bigint128 operator/(const bigint128 &lhs, int32 x)
+        friend inline bigint128 operator/(const bigint128 &lhs, int32_t x)
         {
             return lhs / bigint128(x);
         }
@@ -917,7 +917,7 @@ namespace vogl
             *this = *this / other;
             return *this;
         }
-        bigint128 &operator/=(int32 other)
+        bigint128 &operator/=(int32_t other)
         {
             *this = *this / other;
             return *this;
@@ -944,7 +944,7 @@ namespace vogl
             signed_divide(lhs, rhs, q, r);
             return r;
         }
-        friend inline bigint128 operator%(const bigint128 &lhs, int32 x)
+        friend inline bigint128 operator%(const bigint128 &lhs, int32_t x)
         {
             return lhs % bigint128(x);
         }
@@ -966,7 +966,7 @@ namespace vogl
             *this = *this % other;
             return *this;
         }
-        bigint128 &operator%=(int32 other)
+        bigint128 &operator%=(int32_t other)
         {
             *this = *this % other;
             return *this;
@@ -1023,7 +1023,7 @@ namespace vogl
 
     VOGL_DEFINE_BITWISE_COPYABLE(bigint128);
 
-    inline void bigint128_check(bool success, uint &num_failures)
+    inline void bigint128_check(bool success, uint32_t &num_failures)
     {
         if (!success)
         {
@@ -1032,12 +1032,12 @@ namespace vogl
         }
     }
 
-    inline bool bigint128_test(uint seed = 5)
+    inline bool bigint128_test(uint32_t seed = 5)
     {
         VOGL_NOTE_UNUSED(seed);
         VOGL_ASSUME(sizeof(bigint128) == sizeof(uint64_t) * 2U);
 
-        uint num_failures = 0;
+        uint32_t num_failures = 0;
 
         bigint128 zero(0U);
         bigint128 one(1);
@@ -1169,12 +1169,12 @@ namespace vogl
 #if defined(VOGL_PLATFORM_PC_X64) && defined(COMPILER_GCCLIKE)
         vogl::random r;
         r.seed(seed);
-        for (uint i = 0; i < 1000000000; i++)
+        for (uint32_t i = 0; i < 1000000000; i++)
         {
             __int128 x(0), y(0), z(0);
 
-            uint n0 = r.irand_inclusive(1, 16);
-            for (uint j = 0; j < n0; j++)
+            uint32_t n0 = r.irand_inclusive(1, 16);
+            for (uint32_t j = 0; j < n0; j++)
                 ((uint8_t *)&x)[j] = r.urand32() >> 8;
             if (n0 < 16)
             {
@@ -1182,8 +1182,8 @@ namespace vogl
                     x = -x;
             }
 
-            uint n1 = r.irand_inclusive(1, 16);
-            for (uint j = 0; j < n1; j++)
+            uint32_t n1 = r.irand_inclusive(1, 16);
+            for (uint32_t j = 0; j < n1; j++)
                 ((uint8_t *)&y)[j] = r.urand32() >> 8;
             if (n1 < 16)
             {
@@ -1196,7 +1196,7 @@ namespace vogl
             if (!r.irand(0, 100))
                 y = 0;
 
-            uint op = r.irand_inclusive(0, 24);
+            uint32_t op = r.irand_inclusive(0, 24);
 
             bigint128 bx((uint64_t)x, (uint64_t)(x >> 64U));
             bigint128 by((uint64_t)y, (uint64_t)(y >> 64U));
@@ -1226,7 +1226,7 @@ namespace vogl
                 }
             }
 
-            uint shift = r.irand_inclusive(0, 127);
+            uint32_t shift = r.irand_inclusive(0, 127);
 
             switch (op)
             {

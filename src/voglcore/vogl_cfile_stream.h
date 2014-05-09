@@ -40,13 +40,13 @@ namespace vogl
         {
         }
 
-        cfile_stream(FILE *pFile, const char *pFilename, uint attribs, bool has_ownership)
+        cfile_stream(FILE *pFile, const char *pFilename, uint32_t attribs, bool has_ownership)
             : data_stream(), m_pFile(NULL), m_size(0), m_ofs(0), m_has_ownership(false)
         {
             open(pFile, pFilename, attribs, has_ownership);
         }
 
-        cfile_stream(const char *pFilename, uint attribs = cDataStreamReadable | cDataStreamSeekable, bool open_existing = false)
+        cfile_stream(const char *pFilename, uint32_t attribs = cDataStreamReadable | cDataStreamSeekable, bool open_existing = false)
             : data_stream(), m_pFile(NULL), m_size(0), m_ofs(0), m_has_ownership(false)
         {
             open(pFilename, attribs, open_existing);
@@ -82,7 +82,7 @@ namespace vogl
             return false;
         }
 
-        bool open(FILE *pFile, const char *pFilename, uint attribs, bool has_ownership)
+        bool open(FILE *pFile, const char *pFilename, uint32_t attribs, bool has_ownership)
         {
             VOGL_ASSERT(pFile);
             VOGL_ASSERT(pFilename);
@@ -104,7 +104,7 @@ namespace vogl
             return true;
         }
 
-        bool open(const char *pFilename, uint attribs = cDataStreamReadable | cDataStreamSeekable, bool open_existing = false)
+        bool open(const char *pFilename, uint32_t attribs = cDataStreamReadable | cDataStreamSeekable, bool open_existing = false)
         {
             VOGL_ASSERT(pFilename);
 
@@ -144,14 +144,14 @@ namespace vogl
             return m_pFile;
         }
 
-        virtual uint read(void *pBuf, uint len)
+        virtual uint32_t read(void *pBuf, uint32_t len)
         {
             VOGL_ASSERT(len <= 0x7FFFFFFF);
 
             if (!m_opened || (!is_readable()) || (!len))
                 return 0;
 
-            len = static_cast<uint>(math::minimum<uint64_t>(len, get_remaining()));
+            len = static_cast<uint32_t>(math::minimum<uint64_t>(len, get_remaining()));
 
             if (vogl_fread(pBuf, 1, len, m_pFile) != len)
             {
@@ -163,7 +163,7 @@ namespace vogl
             return len;
         }
 
-        virtual uint peek(char *out_char)
+        virtual uint32_t peek(char *out_char)
         {
             VOGL_ASSERT(out_char);
 
@@ -181,7 +181,7 @@ namespace vogl
              return 1;
         }
 
-        virtual uint write(const void *pBuf, uint len)
+        virtual uint32_t write(const void *pBuf, uint32_t len)
         {
             VOGL_ASSERT(len <= 0x7FFFFFFF);
 

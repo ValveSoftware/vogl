@@ -117,7 +117,7 @@ namespace vogl
         m_pElements = NULL;
     }
 
-    bool dxt_image::init_internal(dxt_format fmt, uint width, uint height)
+    bool dxt_image::init_internal(dxt_format fmt, uint32_t width, uint32_t height)
     {
         VOGL_ASSERT((fmt != cDXTInvalid) && (width > 0) && (height > 0));
 
@@ -136,7 +136,7 @@ namespace vogl
         m_total_blocks = m_blocks_x * m_blocks_y;
         m_total_elements = m_total_blocks * m_num_elements_per_block;
 
-        VOGL_ASSUME((uint)cDXT1BytesPerBlock == (uint)cETC1BytesPerBlock);
+        VOGL_ASSUME((uint32_t)cDXT1BytesPerBlock == (uint32_t)cETC1BytesPerBlock);
         m_bytes_per_block = cDXT1BytesPerBlock * m_num_elements_per_block;
 
         m_format = fmt;
@@ -205,7 +205,7 @@ namespace vogl
         return true;
     }
 
-    bool dxt_image::init(dxt_format fmt, uint width, uint height, bool clear_elements)
+    bool dxt_image::init(dxt_format fmt, uint32_t width, uint32_t height, bool clear_elements)
     {
         if (!init_internal(fmt, width, height))
             return false;
@@ -219,7 +219,7 @@ namespace vogl
         return true;
     }
 
-    bool dxt_image::init(dxt_format fmt, uint width, uint height, uint num_elements, element *pElements, bool create_copy)
+    bool dxt_image::init(dxt_format fmt, uint32_t width, uint32_t height, uint32_t num_elements, element *pElements, bool create_copy)
     {
         VOGL_ASSERT(num_elements && pElements);
 
@@ -256,30 +256,30 @@ namespace vogl
 
     void dxt_image::init_task(uint64_t data, void *pData_ptr)
     {
-        const uint thread_index = static_cast<uint>(data);
+        const uint32_t thread_index = static_cast<uint32_t>(data);
         init_task_params *pInit_params = static_cast<init_task_params *>(pData_ptr);
 
         const image_u8 &img = *pInit_params->m_pImg;
         const pack_params &p = *pInit_params->m_pParams;
         const bool is_main_thread = (vogl_get_current_thread_id() == pInit_params->m_main_thread);
 
-        uint block_index = 0;
+        uint32_t block_index = 0;
 
         set_block_pixels_context optimizer_context;
         int prev_progress_percentage = -1;
 
-        for (uint block_y = 0; block_y < m_blocks_y; block_y++)
+        for (uint32_t block_y = 0; block_y < m_blocks_y; block_y++)
         {
-            const uint pixel_ofs_y = block_y * cDXTBlockSize;
+            const uint32_t pixel_ofs_y = block_y * cDXTBlockSize;
 
-            for (uint block_x = 0; block_x < m_blocks_x; block_x++, block_index++)
+            for (uint32_t block_x = 0; block_x < m_blocks_x; block_x++, block_index++)
             {
                 if (pInit_params->m_canceled)
                     return;
 
                 if (p.m_pProgress_callback && is_main_thread && ((block_index & 63) == 63))
                 {
-                    const uint progress_percentage = p.m_progress_start + ((block_index * p.m_progress_range + get_total_blocks() / 2) / get_total_blocks());
+                    const uint32_t progress_percentage = p.m_progress_start + ((block_index * p.m_progress_range + get_total_blocks() / 2) / get_total_blocks());
                     if ((int)progress_percentage != prev_progress_percentage)
                     {
                         prev_progress_percentage = progress_percentage;
@@ -299,15 +299,15 @@ namespace vogl
 
                 color_quad_u8 pixels[cDXTBlockSize * cDXTBlockSize];
 
-                const uint pixel_ofs_x = block_x * cDXTBlockSize;
+                const uint32_t pixel_ofs_x = block_x * cDXTBlockSize;
 
-                for (uint y = 0; y < cDXTBlockSize; y++)
+                for (uint32_t y = 0; y < cDXTBlockSize; y++)
                 {
-                    const uint iy = math::minimum(pixel_ofs_y + y, img.get_height() - 1);
+                    const uint32_t iy = math::minimum(pixel_ofs_y + y, img.get_height() - 1);
 
-                    for (uint x = 0; x < cDXTBlockSize; x++)
+                    for (uint32_t x = 0; x < cDXTBlockSize; x++)
                     {
-                        const uint ix = math::minimum(pixel_ofs_x + x, img.get_width() - 1);
+                        const uint32_t ix = math::minimum(pixel_ofs_x + x, img.get_width() - 1);
 
                         pixels[x + y * cDXTBlockSize] = img(ix, iy);
                     }
@@ -322,9 +322,9 @@ namespace vogl
     bool dxt_image::init_ati_compress(dxt_format fmt, const image_u8 &img, const pack_params &p)
     {
         image_u8 tmp_img(img);
-        for (uint y = 0; y < img.get_height(); y++)
+        for (uint32_t y = 0; y < img.get_height(); y++)
         {
-            for (uint x = 0; x < img.get_width(); x++)
+            for (uint32_t x = 0; x < img.get_width(); x++)
             {
                 color_quad_u8 c(img(x, y));
                 std::swap(c.r, c.b);
@@ -441,7 +441,7 @@ namespace vogl
         init_params.m_main_thread = vogl_get_current_thread_id();
         init_params.m_canceled = false;
 
-        for (uint i = 0; i <= p.m_num_helper_threads; i++)
+        for (uint32_t i = 0; i <= p.m_num_helper_threads; i++)
             pPool->queue_object_task(this, &dxt_image::init_task, i, &init_params);
 
         pPool->join();
@@ -460,31 +460,31 @@ namespace vogl
         img.crop(m_width, m_height);
 
         color_quad_u8 pixels[cDXTBlockSize * cDXTBlockSize];
-        for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+        for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
             pixels[i].set(0, 0, 0, 255);
 
         bool all_blocks_valid = true;
-        for (uint block_y = 0; block_y < m_blocks_y; block_y++)
+        for (uint32_t block_y = 0; block_y < m_blocks_y; block_y++)
         {
-            const uint pixel_ofs_y = block_y * cDXTBlockSize;
-            const uint limit_y = math::minimum<uint>(cDXTBlockSize, img.get_height() - pixel_ofs_y);
+            const uint32_t pixel_ofs_y = block_y * cDXTBlockSize;
+            const uint32_t limit_y = math::minimum<uint32_t>(cDXTBlockSize, img.get_height() - pixel_ofs_y);
 
-            for (uint block_x = 0; block_x < m_blocks_x; block_x++)
+            for (uint32_t block_x = 0; block_x < m_blocks_x; block_x++)
             {
                 if (!get_block_pixels(block_x, block_y, pixels))
                     all_blocks_valid = false;
 
-                const uint pixel_ofs_x = block_x * cDXTBlockSize;
+                const uint32_t pixel_ofs_x = block_x * cDXTBlockSize;
 
-                const uint limit_x = math::minimum<uint>(cDXTBlockSize, img.get_width() - pixel_ofs_x);
+                const uint32_t limit_x = math::minimum<uint32_t>(cDXTBlockSize, img.get_width() - pixel_ofs_x);
 
-                for (uint y = 0; y < limit_y; y++)
+                for (uint32_t y = 0; y < limit_y; y++)
                 {
-                    const uint iy = pixel_ofs_y + y;
+                    const uint32_t iy = pixel_ofs_y + y;
 
-                    for (uint x = 0; x < limit_x; x++)
+                    for (uint32_t x = 0; x < limit_x; x++)
                     {
-                        const uint ix = pixel_ofs_x + x;
+                        const uint32_t ix = pixel_ofs_x + x;
 
                         img(ix, iy) = pixels[x + (y << cDXTBlockShift)];
                     }
@@ -499,7 +499,7 @@ namespace vogl
         img.set_component_valid(0, false);
         img.set_component_valid(1, false);
         img.set_component_valid(2, false);
-        for (uint i = 0; i < m_num_elements_per_block; i++)
+        for (uint32_t i = 0; i < m_num_elements_per_block; i++)
         {
             if (m_element_component_index[i] < 0)
             {
@@ -521,13 +521,13 @@ namespace vogl
         utils::endian_switch_words(reinterpret_cast<uint16_t *>(m_elements.get_ptr()), m_elements.size_in_bytes() / sizeof(uint16_t));
     }
 
-    const dxt_image::element &dxt_image::get_element(uint block_x, uint block_y, uint element_index) const
+    const dxt_image::element &dxt_image::get_element(uint32_t block_x, uint32_t block_y, uint32_t element_index) const
     {
         VOGL_ASSERT((block_x < m_blocks_x) && (block_y < m_blocks_y) && (element_index < m_num_elements_per_block));
         return m_pElements[(block_x + block_y * m_blocks_x) * m_num_elements_per_block + element_index];
     }
 
-    dxt_image::element &dxt_image::get_element(uint block_x, uint block_y, uint element_index)
+    dxt_image::element &dxt_image::get_element(uint32_t block_x, uint32_t block_y, uint32_t element_index)
     {
         VOGL_ASSERT((block_x < m_blocks_x) && (block_y < m_blocks_y) && (element_index < m_num_elements_per_block));
         return m_pElements[(block_x + block_y * m_blocks_x) * m_num_elements_per_block + element_index];
@@ -539,14 +539,14 @@ namespace vogl
         {
             case cDXT1:
             {
-                for (uint i = 0; i < m_total_elements; i++)
+                for (uint32_t i = 0; i < m_total_elements; i++)
                 {
                     const dxt1_block &blk = *(dxt1_block *)&m_pElements[i];
 
                     if (blk.get_low_color() <= blk.get_high_color())
                     {
-                        for (uint y = 0; y < cDXTBlockSize; y++)
-                            for (uint x = 0; x < cDXTBlockSize; x++)
+                        for (uint32_t y = 0; y < cDXTBlockSize; y++)
+                            for (uint32_t x = 0; x < cDXTBlockSize; x++)
                                 if (blk.get_selector(x, y) == 3)
                                     return true;
                     }
@@ -566,18 +566,18 @@ namespace vogl
         return false;
     }
 
-    color_quad_u8 dxt_image::get_pixel(uint x, uint y) const
+    color_quad_u8 dxt_image::get_pixel(uint32_t x, uint32_t y) const
     {
         VOGL_ASSERT((x < m_width) && (y < m_height));
 
-        const uint block_x = x >> cDXTBlockShift;
-        const uint block_y = y >> cDXTBlockShift;
+        const uint32_t block_x = x >> cDXTBlockShift;
+        const uint32_t block_y = y >> cDXTBlockShift;
 
         const element *pElement = reinterpret_cast<const element *>(&get_element(block_x, block_y, 0));
 
         color_quad_u8 result(0, 0, 0, 255);
 
-        for (uint element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
+        for (uint32_t element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
         {
             switch (m_element_type[element_index])
             {
@@ -587,8 +587,8 @@ namespace vogl
 
                     const bool diff_flag = block.get_diff_bit();
                     const bool flip_flag = block.get_flip_bit();
-                    const uint table_index0 = block.get_inten_table(0);
-                    const uint table_index1 = block.get_inten_table(1);
+                    const uint32_t table_index0 = block.get_inten_table(0);
+                    const uint32_t table_index1 = block.get_inten_table(1);
                     color_quad_u8 subblock_colors0[4], subblock_colors1[4];
 
                     if (diff_flag)
@@ -606,10 +606,10 @@ namespace vogl
                         etc1_block::get_abs_subblock_colors(subblock_colors1, base_color4_1, table_index1);
                     }
 
-                    const uint bx = x & 3;
-                    const uint by = y & 3;
+                    const uint32_t bx = x & 3;
+                    const uint32_t by = y & 3;
 
-                    const uint selector_index = block.get_selector(bx, by);
+                    const uint32_t selector_index = block.get_selector(bx, by);
                     if (flip_flag)
                     {
                         if (by <= 2)
@@ -631,13 +631,13 @@ namespace vogl
                 {
                     const dxt1_block *pBlock = reinterpret_cast<const dxt1_block *>(&get_element(block_x, block_y, element_index));
 
-                    const uint l = pBlock->get_low_color();
-                    const uint h = pBlock->get_high_color();
+                    const uint32_t l = pBlock->get_low_color();
+                    const uint32_t h = pBlock->get_high_color();
 
                     color_quad_u8 c0(dxt1_block::unpack_color(static_cast<uint16_t>(l), true));
                     color_quad_u8 c1(dxt1_block::unpack_color(static_cast<uint16_t>(h), true));
 
-                    const uint s = pBlock->get_selector(x & 3, y & 3);
+                    const uint32_t s = pBlock->get_selector(x & 3, y & 3);
 
                     if (l > h)
                     {
@@ -689,10 +689,10 @@ namespace vogl
 
                     const dxt5_block *pBlock = reinterpret_cast<const dxt5_block *>(&get_element(block_x, block_y, element_index));
 
-                    const uint l = pBlock->get_low_alpha();
-                    const uint h = pBlock->get_high_alpha();
+                    const uint32_t l = pBlock->get_low_alpha();
+                    const uint32_t h = pBlock->get_high_alpha();
 
-                    const uint s = pBlock->get_selector(x & 3, y & 3);
+                    const uint32_t s = pBlock->get_selector(x & 3, y & 3);
 
                     if (l > h)
                     {
@@ -775,12 +775,12 @@ namespace vogl
         return result;
     }
 
-    uint dxt_image::get_pixel_alpha(uint x, uint y, uint element_index) const
+    uint32_t dxt_image::get_pixel_alpha(uint32_t x, uint32_t y, uint32_t element_index) const
     {
         VOGL_ASSERT((x < m_width) && (y < m_height) && (element_index < m_num_elements_per_block));
 
-        const uint block_x = x >> cDXTBlockShift;
-        const uint block_y = y >> cDXTBlockShift;
+        const uint32_t block_x = x >> cDXTBlockShift;
+        const uint32_t block_y = y >> cDXTBlockShift;
 
         switch (m_element_type[element_index])
         {
@@ -790,12 +790,12 @@ namespace vogl
                 {
                     const dxt1_block *pBlock = reinterpret_cast<const dxt1_block *>(&get_element(block_x, block_y, element_index));
 
-                    const uint l = pBlock->get_low_color();
-                    const uint h = pBlock->get_high_color();
+                    const uint32_t l = pBlock->get_low_color();
+                    const uint32_t h = pBlock->get_high_color();
 
                     if (l <= h)
                     {
-                        uint s = pBlock->get_selector(x & 3, y & 3);
+                        uint32_t s = pBlock->get_selector(x & 3, y & 3);
 
                         return (s == 3) ? 0 : 255;
                     }
@@ -811,10 +811,10 @@ namespace vogl
             {
                 const dxt5_block *pBlock = reinterpret_cast<const dxt5_block *>(&get_element(block_x, block_y, element_index));
 
-                const uint l = pBlock->get_low_alpha();
-                const uint h = pBlock->get_high_alpha();
+                const uint32_t l = pBlock->get_low_alpha();
+                const uint32_t h = pBlock->get_high_alpha();
 
-                const uint s = pBlock->get_selector(x & 3, y & 3);
+                const uint32_t s = pBlock->get_selector(x & 3, y & 3);
 
                 if (l > h)
                 {
@@ -874,16 +874,16 @@ namespace vogl
         return 255;
     }
 
-    void dxt_image::set_pixel(uint x, uint y, const color_quad_u8 &c, bool perceptual)
+    void dxt_image::set_pixel(uint32_t x, uint32_t y, const color_quad_u8 &c, bool perceptual)
     {
         VOGL_ASSERT((x < m_width) && (y < m_height));
 
-        const uint block_x = x >> cDXTBlockShift;
-        const uint block_y = y >> cDXTBlockShift;
+        const uint32_t block_x = x >> cDXTBlockShift;
+        const uint32_t block_y = y >> cDXTBlockShift;
 
         element *pElement = &get_element(block_x, block_y, 0);
 
-        for (uint element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
+        for (uint32_t element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
         {
             switch (m_element_type[element_index])
             {
@@ -893,8 +893,8 @@ namespace vogl
 
                     const bool diff_flag = block.get_diff_bit();
                     const bool flip_flag = block.get_flip_bit();
-                    const uint table_index0 = block.get_inten_table(0);
-                    const uint table_index1 = block.get_inten_table(1);
+                    const uint32_t table_index0 = block.get_inten_table(0);
+                    const uint32_t table_index1 = block.get_inten_table(1);
                     color_quad_u8 subblock_colors0[4], subblock_colors1[4];
 
                     if (diff_flag)
@@ -912,8 +912,8 @@ namespace vogl
                         etc1_block::get_abs_subblock_colors(subblock_colors1, base_color4_1, table_index1);
                     }
 
-                    const uint bx = x & 3;
-                    const uint by = y & 3;
+                    const uint32_t bx = x & 3;
+                    const uint32_t by = y & 3;
 
                     color_quad_u8 *pColors = subblock_colors1;
                     if (flip_flag)
@@ -927,12 +927,12 @@ namespace vogl
                             pColors = subblock_colors0;
                     }
 
-                    uint best_error = UINT_MAX;
-                    uint best_selector = 0;
+                    uint32_t best_error = UINT_MAX;
+                    uint32_t best_selector = 0;
 
-                    for (uint i = 0; i < 4; i++)
+                    for (uint32_t i = 0; i < 4; i++)
                     {
-                        uint error = color::color_distance(perceptual, pColors[i], c, false);
+                        uint32_t error = color::color_distance(perceptual, pColors[i], c, false);
                         if (error < best_error)
                         {
                             best_error = error;
@@ -948,18 +948,18 @@ namespace vogl
                     dxt1_block *pDXT1_block = reinterpret_cast<dxt1_block *>(pElement);
 
                     color_quad_u8 colors[cDXT1SelectorValues];
-                    const uint n = pDXT1_block->get_block_colors(colors, static_cast<uint16_t>(pDXT1_block->get_low_color()), static_cast<uint16_t>(pDXT1_block->get_high_color()));
+                    const uint32_t n = pDXT1_block->get_block_colors(colors, static_cast<uint16_t>(pDXT1_block->get_low_color()), static_cast<uint16_t>(pDXT1_block->get_high_color()));
 
                     if ((m_format == cDXT1A) && (c.a < 128))
                         pDXT1_block->set_selector(x & 3, y & 3, 3);
                     else
                     {
-                        uint best_error = UINT_MAX;
-                        uint best_selector = 0;
+                        uint32_t best_error = UINT_MAX;
+                        uint32_t best_selector = 0;
 
-                        for (uint i = 0; i < n; i++)
+                        for (uint32_t i = 0; i < n; i++)
                         {
-                            uint error = color::color_distance(perceptual, colors[i], c, false);
+                            uint32_t error = color::color_distance(perceptual, colors[i], c, false);
                             if (error < best_error)
                             {
                                 best_error = error;
@@ -976,17 +976,17 @@ namespace vogl
                 {
                     dxt5_block *pDXT5_block = reinterpret_cast<dxt5_block *>(pElement);
 
-                    uint values[cDXT5SelectorValues];
+                    uint32_t values[cDXT5SelectorValues];
                     dxt5_block::get_block_values(values, pDXT5_block->get_low_alpha(), pDXT5_block->get_high_alpha());
 
                     const int comp_index = m_element_component_index[element_index];
 
-                    uint best_error = UINT_MAX;
-                    uint best_selector = 0;
+                    uint32_t best_error = UINT_MAX;
+                    uint32_t best_selector = 0;
 
-                    for (uint i = 0; i < cDXT5SelectorValues; i++)
+                    for (uint32_t i = 0; i < cDXT5SelectorValues; i++)
                     {
-                        uint error = static_cast<uint>(labs(values[i]) - c[comp_index]); // no need to square
+                        uint32_t error = static_cast<uint32_t>(labs(values[i]) - c[comp_index]); // no need to square
 
                         if (error < best_error)
                         {
@@ -1015,12 +1015,12 @@ namespace vogl
         } // element_index
     }
 
-    bool dxt_image::get_block_pixels(uint block_x, uint block_y, color_quad_u8 *pPixels) const
+    bool dxt_image::get_block_pixels(uint32_t block_x, uint32_t block_y, color_quad_u8 *pPixels) const
     {
         bool success = true;
         const element *pElement = &get_element(block_x, block_y, 0);
 
-        for (uint element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
+        for (uint32_t element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
         {
             switch (m_element_type[element_index])
             {
@@ -1040,9 +1040,9 @@ namespace vogl
                     color_quad_u8 colors[cDXT1SelectorValues];
                     pDXT1_block->get_block_colors(colors, static_cast<uint16_t>(pDXT1_block->get_low_color()), static_cast<uint16_t>(pDXT1_block->get_high_color()));
 
-                    for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                    for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                     {
-                        uint s = pDXT1_block->get_selector(i & 3, i >> 2);
+                        uint32_t s = pDXT1_block->get_selector(i & 3, i >> 2);
 
                         pPixels[i].r = colors[s].r;
                         pPixels[i].g = colors[s].g;
@@ -1058,14 +1058,14 @@ namespace vogl
                 {
                     const dxt5_block *pDXT5_block = reinterpret_cast<const dxt5_block *>(pElement);
 
-                    uint values[cDXT5SelectorValues];
+                    uint32_t values[cDXT5SelectorValues];
                     dxt5_block::get_block_values(values, pDXT5_block->get_low_alpha(), pDXT5_block->get_high_alpha());
 
                     const int comp_index = m_element_component_index[element_index];
 
-                    for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                    for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                     {
-                        uint s = pDXT5_block->get_selector(i & 3, i >> 2);
+                        uint32_t s = pDXT5_block->get_selector(i & 3, i >> 2);
 
                         pPixels[i][comp_index] = static_cast<uint8_t>(values[s]);
                     }
@@ -1078,9 +1078,9 @@ namespace vogl
 
                     const int comp_index = m_element_component_index[element_index];
 
-                    for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                    for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                     {
-                        uint a = pDXT3_block->get_alpha(i & 3, i >> 2, true);
+                        uint32_t a = pDXT3_block->get_alpha(i & 3, i >> 2, true);
 
                         pPixels[i][comp_index] = static_cast<uint8_t>(a);
                     }
@@ -1094,14 +1094,14 @@ namespace vogl
         return success;
     }
 
-    void dxt_image::set_block_pixels(uint block_x, uint block_y, const color_quad_u8 *pPixels, const pack_params &p)
+    void dxt_image::set_block_pixels(uint32_t block_x, uint32_t block_y, const color_quad_u8 *pPixels, const pack_params &p)
     {
         set_block_pixels_context context;
         set_block_pixels(block_x, block_y, pPixels, p, context);
     }
 
     void dxt_image::set_block_pixels(
-        uint block_x, uint block_y, const color_quad_u8 *pPixels, const pack_params &p,
+        uint32_t block_x, uint32_t block_y, const color_quad_u8 *pPixels, const pack_params &p,
         set_block_pixels_context &context)
     {
         element *pElement = &get_element(block_x, block_y, 0);
@@ -1126,7 +1126,7 @@ namespace vogl
 #if VOGL_SUPPORT_SQUISH
             if ((p.m_compressor == cCRNDXTCompressorSquish) && ((m_format == cDXT1) || (m_format == cDXT1A) || (m_format == cDXT3) || (m_format == cDXT5) || (m_format == cDXT5A)))
         {
-            uint squish_flags = 0;
+            uint32_t squish_flags = 0;
             if ((m_format == cDXT1) || (m_format == cDXT1A))
                 squish_flags = squish::kDxt1;
             else if (m_format == cDXT3)
@@ -1152,12 +1152,12 @@ namespace vogl
 
             if (m_format == cDXT1)
             {
-                for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                     pixels[i].a = 255;
             }
             else if (m_format == cDXT1A)
             {
-                for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                     if (pixels[i].a < p.m_dxt1a_alpha_threshold)
                         pixels[i].a = 0;
                     else
@@ -1173,7 +1173,7 @@ namespace vogl
         {
             color_quad_u8 pixels[cDXTBlockSize * cDXTBlockSize];
 
-            for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+            for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
             {
                 pixels[i].r = pPixels[i].b;
                 pixels[i].g = pPixels[i].g;
@@ -1192,7 +1192,7 @@ namespace vogl
         }
         else if ((p.m_compressor == cCRNDXTCompressorCRNF) && (m_format != cDXT1A))
         {
-            for (uint element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
+            for (uint32_t element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
             {
                 switch (m_element_type[element_index])
                 {
@@ -1216,7 +1216,7 @@ namespace vogl
 
                         dxt3_block *pDXT3_block = reinterpret_cast<dxt3_block *>(pElement);
 
-                        for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                        for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                             pDXT3_block->set_alpha(i & 3, i >> 2, pPixels[i][comp_index], true);
 
                         break;
@@ -1231,7 +1231,7 @@ namespace vogl
             dxt1_endpoint_optimizer &dxt1_optimizer = context.m_dxt1_optimizer;
             dxt5_endpoint_optimizer &dxt5_optimizer = context.m_dxt5_optimizer;
 
-            for (uint element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
+            for (uint32_t element_index = 0; element_index < m_num_elements_per_block; element_index++, pElement++)
             {
                 switch (m_element_type[element_index])
                 {
@@ -1242,7 +1242,7 @@ namespace vogl
                         bool pixels_have_alpha = false;
                         if (m_format == cDXT1A)
                         {
-                            for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                            for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                                 if (pPixels[i].a < p.m_dxt1a_alpha_threshold)
                                 {
                                     pixels_have_alpha = true;
@@ -1282,7 +1282,7 @@ namespace vogl
                         pDXT1_block->set_low_color(results.m_low_color);
                         pDXT1_block->set_high_color(results.m_high_color);
 
-                        for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                        for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                             pDXT1_block->set_selector(i & 3, i >> 2, selectors[i]);
 
                         break;
@@ -1313,7 +1313,7 @@ namespace vogl
                         pDXT5_block->set_low_alpha(results.m_first_endpoint);
                         pDXT5_block->set_high_alpha(results.m_second_endpoint);
 
-                        for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                        for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                             pDXT5_block->set_selector(i & 3, i >> 2, selectors[i]);
 
                         break;
@@ -1324,7 +1324,7 @@ namespace vogl
 
                         dxt3_block *pDXT3_block = reinterpret_cast<dxt3_block *>(pElement);
 
-                        for (uint i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
+                        for (uint32_t i = 0; i < cDXTBlockSize * cDXTBlockSize; i++)
                             pDXT3_block->set_alpha(i & 3, i >> 2, pPixels[i][comp_index], true);
 
                         break;
@@ -1336,7 +1336,7 @@ namespace vogl
         }
     }
 
-    void dxt_image::get_block_endpoints(uint block_x, uint block_y, uint element_index, uint &packed_low_endpoint, uint &packed_high_endpoint) const
+    void dxt_image::get_block_endpoints(uint32_t block_x, uint32_t block_y, uint32_t element_index, uint32_t &packed_low_endpoint, uint32_t &packed_high_endpoint) const
     {
         const element &block = get_element(block_x, block_y, element_index);
 
@@ -1388,9 +1388,9 @@ namespace vogl
         }
     }
 
-    int dxt_image::get_block_endpoints(uint block_x, uint block_y, uint element_index, color_quad_u8 &low_endpoint, color_quad_u8 &high_endpoint, bool scaled) const
+    int dxt_image::get_block_endpoints(uint32_t block_x, uint32_t block_y, uint32_t element_index, color_quad_u8 &low_endpoint, color_quad_u8 &high_endpoint, bool scaled) const
     {
-        uint l = 0, h = 0;
+        uint32_t l = 0, h = 0;
         get_block_endpoints(block_x, block_y, element_index, l, h);
 
         switch (m_element_type[element_index])
@@ -1413,7 +1413,7 @@ namespace vogl
             }
             case cColorDXT1:
             {
-                uint r, g, b;
+                uint32_t r, g, b;
 
                 dxt1_block::unpack_color(r, g, b, static_cast<uint16_t>(l), scaled);
                 low_endpoint.r = static_cast<uint8_t>(r);
@@ -1452,7 +1452,7 @@ namespace vogl
         return 0;
     }
 
-    uint dxt_image::get_block_colors(uint block_x, uint block_y, uint element_index, color_quad_u8 *pColors, uint subblock_index)
+    uint32_t dxt_image::get_block_colors(uint32_t block_x, uint32_t block_y, uint32_t element_index, color_quad_u8 *pColors, uint32_t subblock_index)
     {
         const element &block = get_element(block_x, block_y, element_index);
 
@@ -1461,8 +1461,8 @@ namespace vogl
             case cColorETC1:
             {
                 const etc1_block &src_block = *reinterpret_cast<const etc1_block *>(&get_element(block_x, block_y, element_index));
-                const uint table_index0 = src_block.get_inten_table(0);
-                const uint table_index1 = src_block.get_inten_table(1);
+                const uint32_t table_index0 = src_block.get_inten_table(0);
+                const uint32_t table_index1 = src_block.get_inten_table(1);
                 if (src_block.get_diff_bit())
                 {
                     const uint16_t base_color5 = src_block.get_base5_color();
@@ -1497,12 +1497,12 @@ namespace vogl
             {
                 const dxt5_block &block5 = *reinterpret_cast<const dxt5_block *>(&block);
 
-                uint values[cDXT5SelectorValues];
+                uint32_t values[cDXT5SelectorValues];
 
-                const uint n = dxt5_block::get_block_values(values, block5.get_low_alpha(), block5.get_high_alpha());
+                const uint32_t n = dxt5_block::get_block_values(values, block5.get_low_alpha(), block5.get_high_alpha());
 
                 const int comp_index = m_element_component_index[element_index];
-                for (uint i = 0; i < n; i++)
+                for (uint32_t i = 0; i < n; i++)
                     pColors[i][comp_index] = static_cast<uint8_t>(values[i]);
 
                 return n;
@@ -1510,7 +1510,7 @@ namespace vogl
             case cAlphaDXT3:
             {
                 const int comp_index = m_element_component_index[element_index];
-                for (uint i = 0; i < 16; i++)
+                for (uint32_t i = 0; i < 16; i++)
                     pColors[i][comp_index] = static_cast<uint8_t>((i << 4) | i);
 
                 return 16;
@@ -1522,13 +1522,13 @@ namespace vogl
         return 0;
     }
 
-    uint dxt_image::get_subblock_index(uint x, uint y, uint element_index) const
+    uint32_t dxt_image::get_subblock_index(uint32_t x, uint32_t y, uint32_t element_index) const
     {
         if (m_element_type[element_index] != cColorETC1)
             return 0;
 
-        const uint block_x = x >> cDXTBlockShift;
-        const uint block_y = y >> cDXTBlockShift;
+        const uint32_t block_x = x >> cDXTBlockShift;
+        const uint32_t block_y = y >> cDXTBlockShift;
 
         const element &block = get_element(block_x, block_y, element_index);
 
@@ -1543,17 +1543,17 @@ namespace vogl
         }
     }
 
-    uint dxt_image::get_total_subblocks(uint element_index) const
+    uint32_t dxt_image::get_total_subblocks(uint32_t element_index) const
     {
         return (m_element_type[element_index] == cColorETC1) ? 2 : 0;
     }
 
-    uint dxt_image::get_selector(uint x, uint y, uint element_index) const
+    uint32_t dxt_image::get_selector(uint32_t x, uint32_t y, uint32_t element_index) const
     {
         VOGL_ASSERT((x < m_width) && (y < m_height));
 
-        const uint block_x = x >> cDXTBlockShift;
-        const uint block_y = y >> cDXTBlockShift;
+        const uint32_t block_x = x >> cDXTBlockShift;
+        const uint32_t block_y = y >> cDXTBlockShift;
 
         const element &block = get_element(block_x, block_y, element_index);
 
@@ -1592,16 +1592,16 @@ namespace vogl
             m_format = cDXT1A;
     }
 
-    void dxt_image::flip_col(uint x)
+    void dxt_image::flip_col(uint32_t x)
     {
-        const uint other_x = (m_blocks_x - 1) - x;
-        for (uint y = 0; y < m_blocks_y; y++)
+        const uint32_t other_x = (m_blocks_x - 1) - x;
+        for (uint32_t y = 0; y < m_blocks_y; y++)
         {
-            for (uint e = 0; e < get_elements_per_block(); e++)
+            for (uint32_t e = 0; e < get_elements_per_block(); e++)
             {
                 element tmp[2] = { get_element(x, y, e), get_element(other_x, y, e) };
 
-                for (uint i = 0; i < 2; i++)
+                for (uint32_t i = 0; i < 2; i++)
                 {
                     switch (get_element_type(e))
                     {
@@ -1626,16 +1626,16 @@ namespace vogl
         }
     }
 
-    void dxt_image::flip_row(uint y)
+    void dxt_image::flip_row(uint32_t y)
     {
-        const uint other_y = (m_blocks_y - 1) - y;
-        for (uint x = 0; x < m_blocks_x; x++)
+        const uint32_t other_y = (m_blocks_y - 1) - y;
+        for (uint32_t x = 0; x < m_blocks_x; x++)
         {
-            for (uint e = 0; e < get_elements_per_block(); e++)
+            for (uint32_t e = 0; e < get_elements_per_block(); e++)
             {
                 element tmp[2] = { get_element(x, y, e), get_element(x, other_y, e) };
 
-                for (uint i = 0; i < 2; i++)
+                for (uint32_t i = 0; i < 2; i++)
                 {
                     switch (get_element_type(e))
                     {
@@ -1660,7 +1660,7 @@ namespace vogl
         }
     }
 
-    bool dxt_image::can_flip(uint axis_index)
+    bool dxt_image::can_flip(uint32_t axis_index)
     {
         if (m_format == cETC1)
         {
@@ -1668,7 +1668,7 @@ namespace vogl
             return false;
         }
 
-        uint d;
+        uint32_t d;
         if (axis_index)
             d = m_height;
         else
@@ -1697,17 +1697,17 @@ namespace vogl
         if (m_width == 1)
             return true;
 
-        const uint mid_x = m_blocks_x / 2;
+        const uint32_t mid_x = m_blocks_x / 2;
 
-        for (uint x = 0; x < mid_x; x++)
+        for (uint32_t x = 0; x < mid_x; x++)
             flip_col(x);
 
         if (m_blocks_x & 1)
         {
-            const uint w = math::minimum(m_width, 4U);
-            for (uint y = 0; y < m_blocks_y; y++)
+            const uint32_t w = math::minimum(m_width, 4U);
+            for (uint32_t y = 0; y < m_blocks_y; y++)
             {
-                for (uint e = 0; e < get_elements_per_block(); e++)
+                for (uint32_t e = 0; e < get_elements_per_block(); e++)
                 {
                     element tmp(get_element(mid_x, y, e));
                     switch (get_element_type(e))
@@ -1747,17 +1747,17 @@ namespace vogl
         if (m_height == 1)
             return true;
 
-        const uint mid_y = m_blocks_y / 2;
+        const uint32_t mid_y = m_blocks_y / 2;
 
-        for (uint y = 0; y < mid_y; y++)
+        for (uint32_t y = 0; y < mid_y; y++)
             flip_row(y);
 
         if (m_blocks_y & 1)
         {
-            const uint h = math::minimum(m_height, 4U);
-            for (uint x = 0; x < m_blocks_x; x++)
+            const uint32_t h = math::minimum(m_height, 4U);
+            for (uint32_t x = 0; x < m_blocks_x; x++)
             {
-                for (uint e = 0; e < get_elements_per_block(); e++)
+                for (uint32_t e = 0; e < get_elements_per_block(); e++)
                 {
                     element tmp(get_element(x, mid_y, e));
                     switch (get_element_type(e))

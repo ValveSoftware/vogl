@@ -496,11 +496,11 @@ bool vogl_msaa_texture_splitter::split(GLenum src_target, GLuint src_texture, vo
     GL_ENTRYPOINT(glDisable)(GL_STENCIL_TEST);
     VOGL_CHECK_GL_ERROR;
 
-    uint width = base_width << base_level;
-    uint height = base_height << base_level;
-    uint depth = base_depth;
+    uint32_t width = base_width << base_level;
+    uint32_t height = base_height << base_level;
+    uint32_t depth = base_depth;
 
-    uint max_possible_mip_levels = utils::compute_max_mips(width, height, depth);
+    uint32_t max_possible_mip_levels = utils::compute_max_mips(width, height, depth);
     int num_actual_mip_levels = math::minimum<int>(max_possible_mip_levels, max_level + 1);
 
     for (int sample_index = 0; sample_index < samples; sample_index++)
@@ -536,7 +536,7 @@ bool vogl_msaa_texture_splitter::split(GLenum src_target, GLuint src_texture, vo
         VOGL_NOTE_UNUSED(mip_depth);
 
         vogl::vector<uint8_t> ones;
-        ones.resize(static_cast<uint>(vogl_get_image_size(pInternal_tex_fmt->m_optimum_get_image_fmt, pInternal_tex_fmt->m_optimum_get_image_type, mip_width, mip_height, mip_depth)));
+        ones.resize(static_cast<uint32_t>(vogl_get_image_size(pInternal_tex_fmt->m_optimum_get_image_fmt, pInternal_tex_fmt->m_optimum_get_image_type, mip_width, mip_height, mip_depth)));
         ones.set_all(255);
 
         if (src_target == GL_TEXTURE_2D_MULTISAMPLE_ARRAY)
@@ -657,7 +657,7 @@ bool vogl_msaa_texture_splitter::split(GLenum src_target, GLuint src_texture, vo
                 vogl_quad_vertex quad_tri_verts[3*2];
                 memcpy(quad_tri_verts, get_quad_tri_verts(), sizeof(quad_tri_verts));
 
-                for (uint i = 0; i < 6; i++)
+                for (uint32_t i = 0; i < 6; i++)
                 {
                     quad_tri_verts[i].m_uv0[0] *= mip_width;
                     quad_tri_verts[i].m_uv0[1] *= mip_height;
@@ -726,7 +726,7 @@ failure:
 }
 
 // Multiple sources, one multisampled destination. Caller creates destination.
-bool vogl_msaa_texture_splitter::combine(GLuint src_texture, uint dest_sample_index, GLenum dest_target, GLuint dest_texture)
+bool vogl_msaa_texture_splitter::combine(GLuint src_texture, uint32_t dest_sample_index, GLenum dest_target, GLuint dest_texture)
 {
     if (!m_valid)
     {
@@ -859,7 +859,7 @@ bool vogl_msaa_texture_splitter::combine(GLuint src_texture, uint dest_sample_in
             vogl_quad_vertex quad_tri_verts[3*2];
             memcpy(quad_tri_verts, get_quad_tri_verts(), sizeof(quad_tri_verts));
 
-            for (uint i = 0; i < 6; i++)
+            for (uint32_t i = 0; i < 6; i++)
             {
                 quad_tri_verts[i].m_uv0[0] *= mip_width;
                 quad_tri_verts[i].m_uv0[1] *= mip_height;
@@ -1079,7 +1079,7 @@ bool vogl_msaa_texture_splitter::copy_stencil_samples_to_color(GLenum target, GL
             vogl_quad_vertex quad_tri_verts[3*2];
             memcpy(quad_tri_verts, get_quad_tri_verts(), sizeof(quad_tri_verts));
 
-            for (uint i = 0; i < 6; i++)
+            for (uint32_t i = 0; i < 6; i++)
             {
                 quad_tri_verts[i].m_uv0[0] *= width;
                 quad_tri_verts[i].m_uv0[1] *= height;
@@ -1089,7 +1089,7 @@ bool vogl_msaa_texture_splitter::copy_stencil_samples_to_color(GLenum target, GL
             GL_ENTRYPOINT(glBufferData)(GL_ARRAY_BUFFER, sizeof(quad_tri_verts), quad_tri_verts, GL_STATIC_DRAW);
             VOGL_CHECK_GL_ERROR;
 
-            for (uint stencil_val = 0; stencil_val <= 255; stencil_val++)
+            for (uint32_t stencil_val = 0; stencil_val <= 255; stencil_val++)
             {
                 m_const_color_program.set_uniform("color", vec4F(stencil_val * (1.0f / 255.0f)));
 
@@ -1145,7 +1145,7 @@ failure:
 // Copies MSAA color samples from an MSAA 2D to 2D_ARRAY texture to the stencil buffer of a MSAA 2D or 2D_ARRAY depth/stencil texture.
 // Source is NOT multisampled, dest is multisampled.
 bool vogl_msaa_texture_splitter::copy_color_sample_to_stencil(
-        GLuint src_texture, uint dest_sample_index, GLenum dest_target, GLuint dest_texture)
+        GLuint src_texture, uint32_t dest_sample_index, GLenum dest_target, GLuint dest_texture)
 {
     bool exit_status = false;
 
@@ -1257,7 +1257,7 @@ bool vogl_msaa_texture_splitter::copy_color_sample_to_stencil(
             vogl_quad_vertex quad_tri_verts[3*2];
             memcpy(quad_tri_verts, get_quad_tri_verts(), sizeof(quad_tri_verts));
 
-            for (uint i = 0; i < 6; i++)
+            for (uint32_t i = 0; i < 6; i++)
             {
                 quad_tri_verts[i].m_uv0[0] *= width;
                 quad_tri_verts[i].m_uv0[1] *= height;
@@ -1282,7 +1282,7 @@ bool vogl_msaa_texture_splitter::copy_color_sample_to_stencil(
             GL_ENTRYPOINT(glStencilOp)(GL_KEEP, GL_KEEP, GL_REPLACE);
             VOGL_CHECK_GL_ERROR;
 
-            for (uint stencil_val = 0; stencil_val <= 255; stencil_val++)
+            for (uint32_t stencil_val = 0; stencil_val <= 255; stencil_val++)
             {
                 program.set_uniform("stencil_comp_val", stencil_val / 255.0f);
 

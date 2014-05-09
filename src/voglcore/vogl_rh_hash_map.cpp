@@ -34,7 +34,7 @@ namespace vogl
     class rh_counted_obj
     {
     public:
-        rh_counted_obj(uint v = 0)
+        rh_counted_obj(uint32_t v = 0)
             : m_val(v)
         {
             m_count++;
@@ -52,9 +52,9 @@ namespace vogl
             m_count--;
         }
 
-        static uint m_count;
+        static uint32_t m_count;
 
-        uint m_val;
+        uint32_t m_val;
 
         operator size_t() const
         {
@@ -65,13 +65,13 @@ namespace vogl
         {
             return m_val == rhs.m_val;
         }
-        bool operator==(const uint rhs) const
+        bool operator==(const uint32_t rhs) const
         {
             return m_val == rhs;
         }
     };
 
-    uint rh_counted_obj::m_count;
+    uint32_t rh_counted_obj::m_count;
 
 #define VOGL_HASHMAP_VERIFY(x) \
     if (!(x))                    \
@@ -81,15 +81,15 @@ namespace vogl
     {
         random r0, r1;
 
-        uint seed = 0;
-        for (uint t = 0; t < 2000; t++)
+        uint32_t seed = 0;
+        for (uint32_t t = 0; t < 2000; t++)
         {
             seed++;
 
             typedef vogl::rh_hash_map<rh_counted_obj, rh_counted_obj> my_hash_map;
             my_hash_map m;
 
-            const uint n = r0.irand(1, 100000);
+            const uint32_t n = r0.irand(1, 100000);
 
             printf("%u\n", n);
 
@@ -99,10 +99,10 @@ namespace vogl
 
             VOGL_HASHMAP_VERIFY(m.check());
 
-            uint count = 0;
-            for (uint i = 0; i < n; i++)
+            uint32_t count = 0;
+            for (uint32_t i = 0; i < n; i++)
             {
-                uint v = r1.urand32() & 0x7FFFFFFF;
+                uint32_t v = r1.urand32() & 0x7FFFFFFF;
                 my_hash_map::insert_result res = m.insert(rh_counted_obj(v), rh_counted_obj(v ^ 0xdeadbeef));
                 if (res.second)
                 {
@@ -128,21 +128,21 @@ namespace vogl
             cm.reset();
             VOGL_HASHMAP_VERIFY(cm.check());
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
-                uint v = r1.urand32() & 0x7FFFFFFF;
+                uint32_t v = r1.urand32() & 0x7FFFFFFF;
                 my_hash_map::const_iterator it = m.find(rh_counted_obj(v));
                 VOGL_HASHMAP_VERIFY(it != m.end());
                 VOGL_HASHMAP_VERIFY(it->first == v);
                 VOGL_HASHMAP_VERIFY(it->second == (v ^ 0xdeadbeef));
             }
 
-            for (uint t2 = 0; t2 < 2; t2++)
+            for (uint32_t t2 = 0; t2 < 2; t2++)
             {
-                const uint nd = r0.irand(1, q.size() + 1);
-                for (uint i = 0; i < nd; i++)
+                const uint32_t nd = r0.irand(1, q.size() + 1);
+                for (uint32_t i = 0; i < nd; i++)
                 {
-                    uint p = r0.irand(0, q.size());
+                    uint32_t p = r0.irand(0, q.size());
 
                     int k = q[p];
                     if (k >= 0)
@@ -162,10 +162,10 @@ namespace vogl
                     }
                 }
 
-                typedef vogl::rh_hash_map<uint, empty_type> uint_hash_set;
+                typedef vogl::rh_hash_map<uint32_t, empty_type> uint_hash_set;
                 uint_hash_set s;
 
-                for (uint i = 0; i < q.size(); i++)
+                for (uint32_t i = 0; i < q.size(); i++)
                 {
                     int v = q[i];
 
@@ -173,8 +173,8 @@ namespace vogl
                     {
                         my_hash_map::const_iterator it = m.find(rh_counted_obj(v));
                         VOGL_HASHMAP_VERIFY(it != m.end());
-                        VOGL_HASHMAP_VERIFY(it->first == (uint)v);
-                        VOGL_HASHMAP_VERIFY(it->second == ((uint)v ^ 0xdeadbeef));
+                        VOGL_HASHMAP_VERIFY(it->first == (uint32_t)v);
+                        VOGL_HASHMAP_VERIFY(it->second == ((uint32_t)v ^ 0xdeadbeef));
 
                         s.insert(v);
                     }
@@ -185,12 +185,12 @@ namespace vogl
                     }
                 }
 
-                uint found_count = 0;
+                uint32_t found_count = 0;
                 for (my_hash_map::const_iterator it = m.begin(); it != m.end(); ++it)
                 {
-                    VOGL_HASHMAP_VERIFY(it->second == ((uint)it->first ^ 0xdeadbeef));
+                    VOGL_HASHMAP_VERIFY(it->second == ((uint32_t)it->first ^ 0xdeadbeef));
 
-                    uint_hash_set::const_iterator fit(s.find((uint)it->first));
+                    uint_hash_set::const_iterator fit(s.find((uint32_t)it->first));
                     VOGL_HASHMAP_VERIFY(fit != s.end());
 
                     VOGL_HASHMAP_VERIFY(fit->first == it->first);

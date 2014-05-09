@@ -142,7 +142,7 @@ public:
         return m_status;
     }
 
-    uint get_read_buffer() const
+    uint32_t get_read_buffer() const
     {
         return m_read_buffer;
     }
@@ -159,7 +159,7 @@ private:
     GLenum_to_attachment_map m_attachments;
 
     uint_vec m_draw_buffers;
-    uint m_read_buffer;
+    uint32_t m_read_buffer;
 
     GLenum m_status;
 

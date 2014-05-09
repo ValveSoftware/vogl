@@ -37,7 +37,7 @@ vogl_matrix_state::~vogl_matrix_state()
     VOGL_FUNC_TRACER
 }
 
-bool vogl_matrix_state::save_matrix_stack(const vogl_context_info &context_info, GLenum matrix, uint index, GLenum depth_get, GLenum matrix_get)
+bool vogl_matrix_state::save_matrix_stack(const vogl_context_info &context_info, GLenum matrix, uint32_t index, GLenum depth_get, GLenum matrix_get)
 {
     VOGL_FUNC_TRACER
 
@@ -140,7 +140,7 @@ bool vogl_matrix_state::save_matrix_stack(const vogl_context_info &context_info,
     return true;
 }
 
-bool vogl_matrix_state::restore_matrix_stack(const vogl_context_info &context_info, GLenum matrix, uint index) const
+bool vogl_matrix_state::restore_matrix_stack(const vogl_context_info &context_info, GLenum matrix, uint32_t index) const
 {
     VOGL_FUNC_TRACER
 
@@ -157,7 +157,7 @@ bool vogl_matrix_state::restore_matrix_stack(const vogl_context_info &context_in
     // deepest .. current
     // 0       1   2
 
-    for (uint i = 0; i < pVec->size(); i++)
+    for (uint32_t i = 0; i < pVec->size(); i++)
     {
         if (i)
         {
@@ -198,7 +198,7 @@ bool vogl_matrix_state::snapshot(const vogl_context_info &context_info)
     if (!save_matrix_stack(context_info, GL_COLOR, 0, GL_COLOR_MATRIX_STACK_DEPTH, GL_COLOR_MATRIX))
         any_errors = true;
 
-    for (uint texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
+    for (uint32_t texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
     {
         GL_ENTRYPOINT(glActiveTexture)(GL_TEXTURE0 + texcoord_index);
 
@@ -209,7 +209,7 @@ bool vogl_matrix_state::snapshot(const vogl_context_info &context_info)
             any_errors = true;
     }
 
-    for (uint i = 0; i < context_info.get_max_arb_program_matrices(); i++)
+    for (uint32_t i = 0; i < context_info.get_max_arb_program_matrices(); i++)
     {
         if (!save_matrix_stack(context_info, GL_MATRIX0_ARB + i, 0, GL_CURRENT_MATRIX_STACK_DEPTH_ARB, GL_CURRENT_MATRIX_ARB))
             any_errors = true;
@@ -249,7 +249,7 @@ bool vogl_matrix_state::restore(const vogl_context_info &context_info) const
         any_errors = true;
 
     // TODO: Check to make sure we can actually restore the proper # of matrices
-    for (uint texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
+    for (uint32_t texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
     {
         GL_ENTRYPOINT(glActiveTexture)(GL_TEXTURE0 + texcoord_index);
 
@@ -260,7 +260,7 @@ bool vogl_matrix_state::restore(const vogl_context_info &context_info) const
     }
 
     // TODO: Check to make sure we can actually restore the proper # of matrices
-    for (uint i = 0; i < context_info.get_max_arb_program_matrices(); i++)
+    for (uint32_t i = 0; i < context_info.get_max_arb_program_matrices(); i++)
     {
         restore_matrix_stack(context_info, GL_MATRIX0_ARB + i, 0);
     }
@@ -295,10 +295,10 @@ bool vogl_matrix_state::serialize(json_node &node, vogl_blob_manager &blob_manag
             obj_node.add_key_value("index", it->first.m_index);
 
         json_node &matrices_node = obj_node.add_array("matrices");
-        for (uint i = 0; i < it->second.size(); i++)
+        for (uint32_t i = 0; i < it->second.size(); i++)
         {
             json_node &matrix_node = matrices_node.add_array();
-            for (uint j = 0; j < 4 * 4; j++)
+            for (uint32_t j = 0; j < 4 * 4; j++)
                 matrix_node.add_value(it->second[i].get_ptr()[j]);
         }
     }
@@ -320,7 +320,7 @@ bool vogl_matrix_state::deserialize(const json_node &node, const vogl_blob_manag
         return false;
     }
 
-    for (uint i = 0; i < node.size(); i++)
+    for (uint32_t i = 0; i < node.size(); i++)
     {
         const json_node &obj_node = *node.get_child(i);
 
@@ -331,7 +331,7 @@ bool vogl_matrix_state::deserialize(const json_node &node, const vogl_blob_manag
             return false;
         }
 
-        uint index = obj_node.value_as_uint32("index");
+        uint32_t index = obj_node.value_as_uint32("index");
         if ((index) && (matrix != GL_TEXTURE))
         {
             clear();
@@ -348,13 +348,13 @@ bool vogl_matrix_state::deserialize(const json_node &node, const vogl_blob_manag
         matrix_vec &matrices = m_matrices[matrix_key(matrix, index)];
         matrices.resize(pMatrices->size());
 
-        for (uint i2 = 0; i2 < matrices.size(); i2++)
+        for (uint32_t i2 = 0; i2 < matrices.size(); i2++)
         {
             const json_node *pMatrix = pMatrices->get_value_as_array(i2);
             if ((!pMatrix) || (!pMatrix->is_array()) || (pMatrix->size() != 4 * 4))
                 return false;
 
-            for (uint j = 0; j < 4 * 4; j++)
+            for (uint32_t j = 0; j < 4 * 4; j++)
                 matrices[i2].get_ptr()[j] = pMatrix->value_as_double(j);
         }
     }
@@ -364,7 +364,7 @@ bool vogl_matrix_state::deserialize(const json_node &node, const vogl_blob_manag
     return true;
 }
 
-uint vogl_matrix_state::get_matrix_stack_depth(GLenum target, uint index) const
+uint32_t vogl_matrix_state::get_matrix_stack_depth(GLenum target, uint32_t index) const
 {
     matrix_map::const_iterator iter = m_matrices.find(matrix_key(target, index));
     if (iter == m_matrices.end())
@@ -375,7 +375,7 @@ uint vogl_matrix_state::get_matrix_stack_depth(GLenum target, uint index) const
     return iter->second.size();
 }
 
-const matrix44D *vogl_matrix_state::get_matrix(GLenum target, uint index, uint depth) const
+const matrix44D *vogl_matrix_state::get_matrix(GLenum target, uint32_t index, uint32_t depth) const
 {
     matrix_map::const_iterator iter = m_matrices.find(matrix_key(target, index));
     if (iter == m_matrices.end())

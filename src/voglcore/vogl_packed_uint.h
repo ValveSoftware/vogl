@@ -32,7 +32,7 @@
 namespace vogl
 {
     // N must range from [1,8]
-    template <uint N, bool big_endian = true>
+    template <uint32_t N, bool big_endian = true>
     struct packed_uint
     {
         typedef typename template_if<(N > sizeof(uint32_t)), uint64_t, uint32_t>::result param_type;
@@ -65,12 +65,12 @@ namespace vogl
         {
             if (big_endian)
             {
-                for (uint i = 0; i < N; ++i, val >>= 8U)
+                for (uint32_t i = 0; i < N; ++i, val >>= 8U)
                     m_buf[(N - 1) - i] = static_cast<uint8_t>(val);
             }
             else
             {
-                for (uint i = 0; i < N; ++i, val >>= 8U)
+                for (uint32_t i = 0; i < N; ++i, val >>= 8U)
                     m_buf[i] = static_cast<uint8_t>(val);
             }
 
@@ -82,7 +82,7 @@ namespace vogl
         inline uint64_t get_uint64() const
         {
             uint64_t val = 0;
-            for (uint i = 0; i < N; ++i)
+            for (uint32_t i = 0; i < N; ++i)
             {
                 val <<= 8U;
                 val |= m_buf[big_endian ? i : ((N - 1) - i)];
@@ -93,7 +93,7 @@ namespace vogl
         inline uint32_t get_uint32() const
         {
             uint32_t val = 0;
-            for (uint i = 0; i < N; ++i)
+            for (uint32_t i = 0; i < N; ++i)
             {
                 val <<= 8U;
                 val |= m_buf[big_endian ? i : ((N - 1) - i)];
@@ -104,7 +104,7 @@ namespace vogl
         inline uint16_t get_uint16() const
         {
             uint16_t val = 0;
-            for (uint i = 0; i < N; ++i)
+            for (uint32_t i = 0; i < N; ++i)
             {
                 val <<= 8U;
                 val |= m_buf[big_endian ? i : ((N - 1) - i)];
@@ -119,7 +119,7 @@ namespace vogl
 
         inline packed_uint &byte_swap()
         {
-            for (uint i = 0; i < (N / 2); i++)
+            for (uint32_t i = 0; i < (N / 2); i++)
                 std::swap(m_buf[i], m_buf[(N - 1) - i]);
             return *this;
         }

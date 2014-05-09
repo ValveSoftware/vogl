@@ -81,7 +81,7 @@ struct vogl_trace_stream_packet_base
     inline void init_rnd()
     {
         uint32_t rnd16 = static_cast<uint16_t>(plat_rand());
-        m_rnd = static_cast<uint16_t>(math::maximum<uint>(vogl_trace_stream_packet_base::cMinimumPossibleRnd, rnd16));
+        m_rnd = static_cast<uint16_t>(math::maximum<uint32_t>(vogl_trace_stream_packet_base::cMinimumPossibleRnd, rnd16));
         VOGL_ASSERT(m_rnd);
     }
 
@@ -107,16 +107,16 @@ struct vogl_trace_stream_packet_base
             return false;
 
         VOGL_ASSUME(sizeof(m_rnd) == sizeof(uint16_t));
-        uint inv_rnd = (~m_rnd) & 0xFFFFU;
+        uint32_t inv_rnd = (~m_rnd) & 0xFFFFU;
 
-        if ((m_rnd < static_cast<uint>(cMinimumPossibleRnd)) || (inv_rnd != static_cast<uint>(m_inv_rnd)))
+        if ((m_rnd < static_cast<uint32_t>(cMinimumPossibleRnd)) || (inv_rnd != static_cast<uint32_t>(m_inv_rnd)))
             return false;
 
         return true;
     }
 
     // Assumes the *entire* packet is sequential in memory (i.e. m_size bytes starting at this)
-    inline bool check_crc(uint actual_buf_size) const
+    inline bool check_crc(uint32_t actual_buf_size) const
     {
         if (m_size < sizeof(vogl_trace_stream_packet_base))
             return false;
@@ -132,7 +132,7 @@ struct vogl_trace_stream_packet_base
     }
 
     // Assumes the *entire* packet is sequential in memory (i.e. m_size bytes starting at this)
-    inline bool full_validation(uint actual_buf_size) const
+    inline bool full_validation(uint32_t actual_buf_size) const
     {
         if (!basic_validation())
             return false;
@@ -200,7 +200,7 @@ struct vogl_trace_stream_start_of_file_packet
         return true;
     }
 
-    inline bool check_crc(uint actual_buf_size) const
+    inline bool check_crc(uint32_t actual_buf_size) const
     {
         if (m_size != sizeof(vogl_trace_stream_start_of_file_packet))
             return false;
@@ -214,7 +214,7 @@ struct vogl_trace_stream_start_of_file_packet
         return true;
     }
 
-    inline bool full_validation(uint actual_buf_size) const
+    inline bool full_validation(uint32_t actual_buf_size) const
     {
         if (!basic_validation())
             return false;
@@ -297,7 +297,7 @@ struct vogl_backtrace_addrs
             return true;
         else if (m_num_addrs == rhs.m_num_addrs)
         {
-            for (uint i = 0; i < m_num_addrs; i++)
+            for (uint32_t i = 0; i < m_num_addrs; i++)
             {
                 if (m_addrs[i] < rhs.m_addrs[i])
                     return true;

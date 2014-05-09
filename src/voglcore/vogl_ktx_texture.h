@@ -188,8 +188,8 @@ namespace vogl
 
     bool ktx_is_compressed_ogl_fmt(uint32_t ogl_fmt);
     bool ktx_is_packed_pixel_ogl_type(uint32_t ogl_type);
-    uint ktx_get_ogl_type_size(uint32_t ogl_type);
-    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint &block_dim, uint &bytes_per_block);
+    uint32_t ktx_get_ogl_type_size(uint32_t ogl_type);
+    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint32_t &block_dim, uint32_t &bytes_per_block);
     uint32_t ktx_get_ogl_compressed_base_internal_fmt(uint32_t ogl_fmt);
 
     class ktx_texture
@@ -240,13 +240,13 @@ namespace vogl
 
         // For compressed internal formats, set ogl_fmt and ogl_type to 0 (GL_NONE). The base internal format will be computed automatically.
         // Otherwise, if ogl_fmt/ogl_type are not 0 (GL_NONE) then the internal format must be uncompressed, and all fmt's must be valid.
-        bool init_1D(uint width, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
-        bool init_1D_array(uint width, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
-        bool init_2D(uint width, uint height, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
-        bool init_2D_array(uint width, uint height, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
-        bool init_3D(uint width, uint height, uint depth, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
-        bool init_cubemap(uint dim, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
-        bool init_cubemap_array(uint dim, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_1D(uint32_t width, uint32_t num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_1D_array(uint32_t width, uint32_t num_mips, uint32_t array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_2D(uint32_t width, uint32_t height, uint32_t num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_2D_array(uint32_t width, uint32_t height, uint32_t num_mips, uint32_t array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_3D(uint32_t width, uint32_t height, uint32_t depth, uint32_t num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_cubemap(uint32_t dim, uint32_t num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
+        bool init_cubemap_array(uint32_t dim, uint32_t num_mips, uint32_t array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type);
 
         bool check_header() const;
         bool consistency_check() const;
@@ -258,27 +258,27 @@ namespace vogl
             return (m_header.m_pixelWidth > 0) && (m_image_data.size() > 0);
         }
 
-        uint get_width() const
+        uint32_t get_width() const
         {
             return m_header.m_pixelWidth;
         }
-        uint get_height() const
+        uint32_t get_height() const
         {
             return VOGL_MAX(m_header.m_pixelHeight, 1);
         }
-        uint get_depth() const
+        uint32_t get_depth() const
         {
             return VOGL_MAX(m_header.m_pixelDepth, 1);
         }
-        uint get_num_mips() const
+        uint32_t get_num_mips() const
         {
             return VOGL_MAX(m_header.m_numberOfMipmapLevels, 1);
         }
-        uint get_array_size() const
+        uint32_t get_array_size() const
         {
             return VOGL_MAX(m_header.m_numberOfArrayElements, 1);
         }
-        uint get_num_faces() const
+        uint32_t get_num_faces() const
         {
             return m_header.m_numberOfFaces;
         }
@@ -300,7 +300,7 @@ namespace vogl
             return m_header.m_glInternalFormat;
         }
 
-        uint get_total_images() const;
+        uint32_t get_total_images() const;
 
         bool is_compressed() const
         {
@@ -350,32 +350,32 @@ namespace vogl
         bool get_key_value_data(const char *pKey, uint8_vec &data) const;
         bool get_key_value_as_string(const char *pKey, dynamic_string &str) const;
 
-        uint add_key_value(const char *pKey, const void *pVal, uint val_size);
-        uint add_key_value(const char *pKey, const char *pVal)
+        uint32_t add_key_value(const char *pKey, const void *pVal, uint32_t val_size);
+        uint32_t add_key_value(const char *pKey, const char *pVal)
         {
-            return add_key_value(pKey, pVal, static_cast<uint>(strlen(pVal)) + 1);
+            return add_key_value(pKey, pVal, static_cast<uint32_t>(strlen(pVal)) + 1);
         }
 
         // Image data
-        uint get_num_images() const
+        uint32_t get_num_images() const
         {
             return m_image_data.size();
         }
 
-        const uint8_vec &get_image_data(uint image_index) const
+        const uint8_vec &get_image_data(uint32_t image_index) const
         {
             return m_image_data[image_index];
         }
-        uint8_vec &get_image_data(uint image_index)
+        uint8_vec &get_image_data(uint32_t image_index)
         {
             return m_image_data[image_index];
         }
 
-        const uint8_vec &get_image_data(uint mip_index, uint array_index, uint face_index, uint zslice_index) const
+        const uint8_vec &get_image_data(uint32_t mip_index, uint32_t array_index, uint32_t face_index, uint32_t zslice_index) const
         {
             return get_image_data(get_image_index(mip_index, array_index, face_index, zslice_index));
         }
-        uint8_vec &get_image_data(uint mip_index, uint array_index, uint face_index, uint zslice_index)
+        uint8_vec &get_image_data(uint32_t mip_index, uint32_t array_index, uint32_t face_index, uint32_t zslice_index)
         {
             return get_image_data(get_image_index(mip_index, array_index, face_index, zslice_index));
         }
@@ -390,9 +390,9 @@ namespace vogl
         }
 
         // Adds a single 2D image to the texture
-        void add_image(uint mip_index, uint array_index, uint face_index, uint zslice_index, const void *pImage, uint image_size)
+        void add_image(uint32_t mip_index, uint32_t array_index, uint32_t face_index, uint32_t zslice_index, const void *pImage, uint32_t image_size)
         {
-            const uint image_index = get_image_index(mip_index, array_index, face_index, zslice_index);
+            const uint32_t image_index = get_image_index(mip_index, array_index, face_index, zslice_index);
             if (image_index >= m_image_data.size())
                 m_image_data.resize(image_index + 1);
             if (image_size)
@@ -405,9 +405,9 @@ namespace vogl
 
         // Adds a single 2D image to the texture
         // Caller grants ownership of the indicated image data, on return img will be whatever previously in the target slot.
-        void add_image_grant_ownership(uint mip_index, uint array_index, uint face_index, uint zslice_index, uint8_vec &img)
+        void add_image_grant_ownership(uint32_t mip_index, uint32_t array_index, uint32_t face_index, uint32_t zslice_index, uint8_vec &img)
         {
-            const uint image_index = get_image_index(mip_index, array_index, face_index, zslice_index);
+            const uint32_t image_index = get_image_index(mip_index, array_index, face_index, zslice_index);
             if (image_index >= m_image_data.size())
                 m_image_data.resize(image_index + 1);
 
@@ -416,25 +416,25 @@ namespace vogl
 
         // Adds a single 2D image to the texture
         // FIXME: voglcore uses this simplified helper, the order of params is inconsistent with the other add_image()
-        void add_image(uint face_index, uint mip_index, const void *pImage, uint image_size)
+        void add_image(uint32_t face_index, uint32_t mip_index, const void *pImage, uint32_t image_size)
         {
             add_image(mip_index, 0, face_index, 0, pImage, image_size);
         }
 
-        uint get_image_index(uint mip_index, uint array_index, uint face_index, uint zslice_index) const
+        uint32_t get_image_index(uint32_t mip_index, uint32_t array_index, uint32_t face_index, uint32_t zslice_index) const
         {
             VOGL_ASSERT((mip_index < get_num_mips()) && (array_index < get_array_size()) && (face_index < get_num_faces()) && (zslice_index < get_depth()));
             return zslice_index + (face_index * get_depth()) + (array_index * (get_depth() * get_num_faces())) + (mip_index * (get_depth() * get_num_faces() * get_array_size()));
         }
 
-        void get_mip_dim(uint mip_index, uint &mip_width, uint &mip_height) const
+        void get_mip_dim(uint32_t mip_index, uint32_t &mip_width, uint32_t &mip_height) const
         {
             VOGL_ASSERT(mip_index < get_num_mips());
             mip_width = VOGL_MAX(get_width() >> mip_index, 1);
             mip_height = VOGL_MAX(get_height() >> mip_index, 1);
         }
 
-        void get_mip_dim(uint mip_index, uint &mip_width, uint &mip_height, uint &mip_depth) const
+        void get_mip_dim(uint32_t mip_index, uint32_t &mip_width, uint32_t &mip_height, uint32_t &mip_depth) const
         {
             VOGL_ASSERT(mip_index < get_num_mips());
             mip_width = VOGL_MAX(get_width() >> mip_index, 1);
@@ -443,7 +443,7 @@ namespace vogl
         }
 
         // Returns the expected size of a single 2D image. (For 3D, multiply by the depth, etc.)
-        uint get_expected_image_size(uint mip_index) const;
+        uint32_t get_expected_image_size(uint32_t mip_index) const;
 
         bool operator==(const ktx_texture &rhs) const;
         bool operator!=(const ktx_texture &rhs) const

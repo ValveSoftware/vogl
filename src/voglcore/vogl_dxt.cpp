@@ -93,7 +93,7 @@ namespace vogl
         return "?";
     }
 
-    uint get_dxt_format_bits_per_pixel(dxt_format fmt)
+    uint32_t get_dxt_format_bits_per_pixel(dxt_format fmt)
     {
         switch (fmt)
         {
@@ -129,11 +129,11 @@ namespace vogl
         return false;
     }
 
-    uint16_t dxt1_block::pack_color(const color_quad_u8 &color, bool scaled, uint bias)
+    uint16_t dxt1_block::pack_color(const color_quad_u8 &color, bool scaled, uint32_t bias)
     {
-        uint r = color.r;
-        uint g = color.g;
-        uint b = color.b;
+        uint32_t r = color.r;
+        uint32_t g = color.g;
+        uint32_t b = color.b;
 
         if (scaled)
         {
@@ -149,16 +149,16 @@ namespace vogl
         return static_cast<uint16_t>(b | (g << 5U) | (r << 11U));
     }
 
-    uint16_t dxt1_block::pack_color(uint r, uint g, uint b, bool scaled, uint bias)
+    uint16_t dxt1_block::pack_color(uint32_t r, uint32_t g, uint32_t b, bool scaled, uint32_t bias)
     {
         return pack_color(color_quad_u8(r, g, b, 0), scaled, bias);
     }
 
-    color_quad_u8 dxt1_block::unpack_color(uint16_t packed_color, bool scaled, uint alpha)
+    color_quad_u8 dxt1_block::unpack_color(uint16_t packed_color, bool scaled, uint32_t alpha)
     {
-        uint b = packed_color & 31U;
-        uint g = (packed_color >> 5U) & 63U;
-        uint r = (packed_color >> 11U) & 31U;
+        uint32_t b = packed_color & 31U;
+        uint32_t g = (packed_color >> 5U) & 63U;
+        uint32_t r = (packed_color >> 11U) & 31U;
 
         if (scaled)
         {
@@ -170,7 +170,7 @@ namespace vogl
         return color_quad_u8(cNoClamp, r, g, b, math::minimum(alpha, 255U));
     }
 
-    void dxt1_block::unpack_color(uint &r, uint &g, uint &b, uint16_t packed_color, bool scaled)
+    void dxt1_block::unpack_color(uint32_t &r, uint32_t &g, uint32_t &b, uint16_t packed_color, bool scaled)
     {
         color_quad_u8 c(unpack_color(packed_color, scaled, 0));
         r = c.r;
@@ -221,7 +221,7 @@ namespace vogl
         }
     }
 
-    uint dxt1_block::get_block_colors3(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
+    uint32_t dxt1_block::get_block_colors3(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         color_quad_u8 c0(unpack_color(color0, true));
         color_quad_u8 c1(unpack_color(color1, true));
@@ -234,7 +234,7 @@ namespace vogl
         return 3;
     }
 
-    uint dxt1_block::get_block_colors4(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
+    uint32_t dxt1_block::get_block_colors4(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         color_quad_u8 c0(unpack_color(color0, true));
         color_quad_u8 c1(unpack_color(color1, true));
@@ -249,7 +249,7 @@ namespace vogl
         return 4;
     }
 
-    uint dxt1_block::get_block_colors3_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
+    uint32_t dxt1_block::get_block_colors3_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         color_quad_u8 c0(unpack_color(color0, true));
         color_quad_u8 c1(unpack_color(color1, true));
@@ -262,7 +262,7 @@ namespace vogl
         return 3;
     }
 
-    uint dxt1_block::get_block_colors4_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
+    uint32_t dxt1_block::get_block_colors4_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         color_quad_u8 c0(unpack_color(color0, true));
         color_quad_u8 c1(unpack_color(color1, true));
@@ -278,7 +278,7 @@ namespace vogl
         return 4;
     }
 
-    uint dxt1_block::get_block_colors(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
+    uint32_t dxt1_block::get_block_colors(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         if (color0 > color1)
             return get_block_colors4(pDst, color0, color1);
@@ -286,7 +286,7 @@ namespace vogl
             return get_block_colors3(pDst, color0, color1);
     }
 
-    uint dxt1_block::get_block_colors_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
+    uint32_t dxt1_block::get_block_colors_round(color_quad_u8 *pDst, uint16_t color0, uint16_t color1)
     {
         if (color0 > color1)
             return get_block_colors4_round(pDst, color0, color1);
@@ -294,19 +294,19 @@ namespace vogl
             return get_block_colors3_round(pDst, color0, color1);
     }
 
-    color_quad_u8 dxt1_block::unpack_endpoint(uint32_t endpoints, uint index, bool scaled, uint alpha)
+    color_quad_u8 dxt1_block::unpack_endpoint(uint32_t endpoints, uint32_t index, bool scaled, uint32_t alpha)
     {
         VOGL_ASSERT(index < 2);
         return unpack_color(static_cast<uint16_t>((endpoints >> (index * 16U)) & 0xFFFFU), scaled, alpha);
     }
 
-    uint dxt1_block::pack_endpoints(uint lo, uint hi)
+    uint32_t dxt1_block::pack_endpoints(uint32_t lo, uint32_t hi)
     {
         VOGL_ASSERT((lo <= 0xFFFFU) && (hi <= 0xFFFFU));
         return lo | (hi << 16U);
     }
 
-    void dxt3_block::set_alpha(uint x, uint y, uint value, bool scaled)
+    void dxt3_block::set_alpha(uint32_t x, uint32_t y, uint32_t value, bool scaled)
     {
         VOGL_ASSERT((x < cDXTBlockSize) && (y < cDXTBlockSize));
 
@@ -320,8 +320,8 @@ namespace vogl
             VOGL_ASSERT(value <= 0xF);
         }
 
-        uint ofs = (y << 1U) + (x >> 1U);
-        uint c = m_alpha[ofs];
+        uint32_t ofs = (y << 1U) + (x >> 1U);
+        uint32_t c = m_alpha[ofs];
 
         c &= ~(0xF << ((x & 1U) << 2U));
         c |= (value << ((x & 1U) << 2U));
@@ -329,11 +329,11 @@ namespace vogl
         m_alpha[ofs] = static_cast<uint8_t>(c);
     }
 
-    uint dxt3_block::get_alpha(uint x, uint y, bool scaled) const
+    uint32_t dxt3_block::get_alpha(uint32_t x, uint32_t y, bool scaled) const
     {
         VOGL_ASSERT((x < cDXTBlockSize) && (y < cDXTBlockSize));
 
-        uint value = m_alpha[(y << 1U) + (x >> 1U)];
+        uint32_t value = m_alpha[(y << 1U) + (x >> 1U)];
         if (x & 1)
             value >>= 4;
         value &= 0xF;
@@ -344,7 +344,7 @@ namespace vogl
         return value;
     }
 
-    uint dxt5_block::get_block_values6(color_quad_u8 *pDst, uint l, uint h)
+    uint32_t dxt5_block::get_block_values6(color_quad_u8 *pDst, uint32_t l, uint32_t h)
     {
         pDst[0].a = static_cast<uint8_t>(l);
         pDst[1].a = static_cast<uint8_t>(h);
@@ -357,7 +357,7 @@ namespace vogl
         return 6;
     }
 
-    uint dxt5_block::get_block_values8(color_quad_u8 *pDst, uint l, uint h)
+    uint32_t dxt5_block::get_block_values8(color_quad_u8 *pDst, uint32_t l, uint32_t h)
     {
         pDst[0].a = static_cast<uint8_t>(l);
         pDst[1].a = static_cast<uint8_t>(h);
@@ -370,7 +370,7 @@ namespace vogl
         return 8;
     }
 
-    uint dxt5_block::get_block_values(color_quad_u8 *pDst, uint l, uint h)
+    uint32_t dxt5_block::get_block_values(color_quad_u8 *pDst, uint32_t l, uint32_t h)
     {
         if (l > h)
             return get_block_values8(pDst, l, h);
@@ -378,7 +378,7 @@ namespace vogl
             return get_block_values6(pDst, l, h);
     }
 
-    uint dxt5_block::get_block_values6(uint *pDst, uint l, uint h)
+    uint32_t dxt5_block::get_block_values6(uint32_t *pDst, uint32_t l, uint32_t h)
     {
         pDst[0] = l;
         pDst[1] = h;
@@ -391,7 +391,7 @@ namespace vogl
         return 6;
     }
 
-    uint dxt5_block::get_block_values8(uint *pDst, uint l, uint h)
+    uint32_t dxt5_block::get_block_values8(uint32_t *pDst, uint32_t l, uint32_t h)
     {
         pDst[0] = l;
         pDst[1] = h;
@@ -404,19 +404,19 @@ namespace vogl
         return 8;
     }
 
-    uint dxt5_block::unpack_endpoint(uint packed, uint index)
+    uint32_t dxt5_block::unpack_endpoint(uint32_t packed, uint32_t index)
     {
         VOGL_ASSERT(index < 2);
         return (packed >> (8 * index)) & 0xFF;
     }
 
-    uint dxt5_block::pack_endpoints(uint lo, uint hi)
+    uint32_t dxt5_block::pack_endpoints(uint32_t lo, uint32_t hi)
     {
         VOGL_ASSERT((lo <= 0xFF) && (hi <= 0xFF));
         return lo | (hi << 8U);
     }
 
-    uint dxt5_block::get_block_values(uint *pDst, uint l, uint h)
+    uint32_t dxt5_block::get_block_values(uint32_t *pDst, uint32_t l, uint32_t h)
     {
         if (l > h)
             return get_block_values8(pDst, l, h);

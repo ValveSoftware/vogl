@@ -40,7 +40,7 @@ namespace vogl
             "int16_t",
             "uint16_t",
             "int",
-            "uint",
+            "uint32_t",
             "int64_t",
             "uint64_t",
             "float",
@@ -57,7 +57,7 @@ namespace vogl
 
     value_data_type string_to_value_data_type(const char *pStr)
     {
-        for (uint i = 0; i < cDTTotal; i++)
+        for (uint32_t i = 0; i < cDTTotal; i++)
             if (!vogl_stricmp(pStr, g_value_data_type_strings[i]))
                 return static_cast<value_data_type>(i);
         return cDTInvalid;
@@ -273,7 +273,7 @@ namespace vogl
                     }
 
                     change_type(cDTBlob);
-                    if (!m_pBlob->try_resize(static_cast<uint>(size)))
+                    if (!m_pBlob->try_resize(static_cast<uint32_t>(size)))
                     {
                         clear();
                         return false;
@@ -349,7 +349,7 @@ namespace vogl
             else if (m_uint64 <= cUINT16_MAX)
                 set_uint16(static_cast<uint16_t>(m_uint64));
             else if (m_uint64 <= cUINT32_MAX)
-                set_uint(static_cast<uint>(m_uint64));
+                set_uint(static_cast<uint32_t>(m_uint64));
             else
                 set_uint64(m_uint64);
             return true;
@@ -452,7 +452,7 @@ namespace vogl
                 break;
             case cDTBlob:
             {
-                uint blob_size = m_pBlob->size();
+                uint32_t blob_size = m_pBlob->size();
                 const uint8_t *pSrc = m_pBlob->get_ptr();
 
                 if (!blob_size)
@@ -463,7 +463,7 @@ namespace vogl
                     dst.set_char(0, '[');
                     dst.set_char(dst.get_len() - 1, ']');
 
-                    for (uint i = 0; i < blob_size; i++)
+                    for (uint32_t i = 0; i < blob_size; i++)
                     {
                         uint8_t v = pSrc[i];
                         dst.set_char(1 + i * 3 + 0, utils::to_hex(v >> 4));
@@ -488,7 +488,7 @@ namespace vogl
         return dst;
     }
 
-    bool value::get_int8_or_fail(int8_t &val, uint component) const
+    bool value::get_int8_or_fail(int8_t &val, uint32_t component) const
     {
         int64_t i64_val;
         bool success = get_int64_or_fail(i64_val, component);
@@ -499,7 +499,7 @@ namespace vogl
         return true;
     }
 
-    bool value::get_uint8_or_fail(uint8_t &val, uint component) const
+    bool value::get_uint8_or_fail(uint8_t &val, uint32_t component) const
     {
         uint64_t u64_val;
         bool success = get_uint64_or_fail(u64_val, component);
@@ -510,7 +510,7 @@ namespace vogl
         return true;
     }
 
-    bool value::get_int16_or_fail(int16_t &val, uint component) const
+    bool value::get_int16_or_fail(int16_t &val, uint32_t component) const
     {
         int64_t i64_val;
         bool success = get_int64_or_fail(i64_val, component);
@@ -521,7 +521,7 @@ namespace vogl
         return true;
     }
 
-    bool value::get_uint16_or_fail(uint16_t &val, uint component) const
+    bool value::get_uint16_or_fail(uint16_t &val, uint32_t component) const
     {
         uint64_t u64_val;
         bool success = get_uint64_or_fail(u64_val, component);
@@ -532,7 +532,7 @@ namespace vogl
         return true;
     }
 
-    bool value::get_int_or_fail(int &val, uint component) const
+    bool value::get_int_or_fail(int &val, uint32_t component) const
     {
         int64_t i64_val;
         bool success = get_int64_or_fail(i64_val, component);
@@ -543,7 +543,7 @@ namespace vogl
         return true;
     }
 
-    bool value::get_int64_or_fail(int64_t &val, uint component) const
+    bool value::get_int64_or_fail(int64_t &val, uint32_t component) const
     {
         switch (m_type)
         {
@@ -662,17 +662,17 @@ namespace vogl
         return true;
     }
 
-    bool value::get_uint_or_fail(uint &val, uint component) const
+    bool value::get_uint_or_fail(uint32_t &val, uint32_t component) const
     {
         uint64_t u64_val;
         bool success = get_uint64_or_fail(u64_val, component);
         if (u64_val > cUINT32_MAX)
             return false;
-        val = static_cast<uint>(u64_val);
+        val = static_cast<uint32_t>(u64_val);
         return success;
     }
 
-    bool value::get_uint64_or_fail(uint64_t &val, uint component) const
+    bool value::get_uint64_or_fail(uint64_t &val, uint32_t component) const
     {
         switch (m_type)
         {
@@ -801,7 +801,7 @@ namespace vogl
         return true;
     }
 
-    bool value::get_bool_or_fail(bool &val, uint component) const
+    bool value::get_bool_or_fail(bool &val, uint32_t component) const
     {
         switch (m_type)
         {
@@ -895,7 +895,7 @@ namespace vogl
         return true;
     }
 
-    bool value::get_double_or_fail(double &val, uint component) const
+    bool value::get_double_or_fail(double &val, uint32_t component) const
     {
         switch (m_type)
         {
@@ -1004,7 +1004,7 @@ namespace vogl
         return true;
     }
 
-    bool value::get_float_or_fail(float &val, uint component) const
+    bool value::get_float_or_fail(float &val, uint32_t component) const
     {
         double dbl_val;
         bool success = get_double_or_fail(dbl_val, component);
@@ -1188,7 +1188,7 @@ namespace vogl
             case cDTStringHash:
             case cDTUInt:
             {
-                if (m_uint > static_cast<uint>(cINT32_MAX))
+                if (m_uint > static_cast<uint32_t>(cINT32_MAX))
                     return false;
                 val.set(m_uint);
                 break;
@@ -1282,7 +1282,7 @@ namespace vogl
         }
 
         // Convert to uint32_t and hope for the best
-        uint val;
+        uint32_t val;
         bool success = get_uint_or_fail(val, 0);
         if (!success)
             return false;
@@ -1291,9 +1291,9 @@ namespace vogl
         return true;
     }
 
-    uint value::get_serialize_size(bool serialize_user_data) const
+    uint32_t value::get_serialize_size(bool serialize_user_data) const
     {
-        uint size = sizeof(uint8_t);
+        uint32_t size = sizeof(uint8_t);
 
         if (serialize_user_data)
             size += sizeof(m_user_data);
@@ -1349,7 +1349,7 @@ namespace vogl
             }
             case cDTBlob:
             {
-                size += sizeof(uint) + m_pBlob->size();
+                size += sizeof(uint32_t) + m_pBlob->size();
                 break;
             }
             case cDTJSONDoc:
@@ -1357,7 +1357,7 @@ namespace vogl
                 // TODO: This binary serializes the sucker and tosses the data to get the serialization size.
                 uint8_vec data;
                 m_pJSONDoc->binary_serialize(data);
-                size += sizeof(uint) + data.size();
+                size += sizeof(uint32_t) + data.size();
                 break;
             }
             default:
@@ -1368,9 +1368,9 @@ namespace vogl
         return size;
     }
 
-    int value::serialize(void *pBuf, uint buf_size, bool little_endian, bool serialize_user_data) const
+    int value::serialize(void *pBuf, uint32_t buf_size, bool little_endian, bool serialize_user_data) const
     {
-        uint buf_left = buf_size;
+        uint32_t buf_left = buf_size;
 
         uint8_t t = (uint8_t)m_type;
         if (!utils::write_obj(t, pBuf, buf_left, little_endian))
@@ -1434,23 +1434,23 @@ namespace vogl
             }
             case cDTVec3F:
             {
-                for (uint i = 0; i < 3; i++)
+                for (uint32_t i = 0; i < 3; i++)
                     if (!utils::write_obj((*m_pVec3F)[i], pBuf, buf_left, little_endian))
                         return -1;
                 break;
             }
             case cDTVec3I:
             {
-                for (uint i = 0; i < 3; i++)
+                for (uint32_t i = 0; i < 3; i++)
                     if (!utils::write_obj((*m_pVec3I)[i], pBuf, buf_left, little_endian))
                         return -1;
                 break;
             }
             case cDTBlob:
             {
-                uint size = m_pBlob->size();
+                uint32_t size = m_pBlob->size();
 
-                if (buf_left < (size + sizeof(uint)))
+                if (buf_left < (size + sizeof(uint32_t)))
                     return -1;
 
                 if (!utils::write_obj(size, pBuf, buf_left, little_endian))
@@ -1470,9 +1470,9 @@ namespace vogl
                 uint8_vec data;
                 m_pJSONDoc->binary_serialize(data);
 
-                uint size = data.size();
+                uint32_t size = data.size();
 
-                if (buf_left < (size + sizeof(uint)))
+                if (buf_left < (size + sizeof(uint32_t)))
                     return -1;
 
                 if (!utils::write_obj(size, pBuf, buf_left, little_endian))
@@ -1495,9 +1495,9 @@ namespace vogl
         return buf_size - buf_left;
     }
 
-    int value::deserialize(const void *pBuf, uint buf_size, bool little_endian, bool serialize_user_data)
+    int value::deserialize(const void *pBuf, uint32_t buf_size, bool little_endian, bool serialize_user_data)
     {
-        uint buf_left = buf_size;
+        uint32_t buf_left = buf_size;
 
         uint8_t t;
         if (!utils::read_obj(t, pBuf, buf_left, little_endian))
@@ -1583,7 +1583,7 @@ namespace vogl
             {
                 change_type(cDTVec3F);
 
-                for (uint i = 0; i < 3; i++)
+                for (uint32_t i = 0; i < 3; i++)
                     if (!utils::read_obj((*m_pVec3F)[i], pBuf, buf_left, little_endian))
                         return -1;
                 break;
@@ -1592,7 +1592,7 @@ namespace vogl
             {
                 change_type(cDTVec3I);
 
-                for (uint i = 0; i < 3; i++)
+                for (uint32_t i = 0; i < 3; i++)
                     if (!utils::read_obj((*m_pVec3I)[i], pBuf, buf_left, little_endian))
                         return -1;
                 break;
@@ -1601,7 +1601,7 @@ namespace vogl
             {
                 change_type(cDTBlob);
 
-                uint size = 0;
+                uint32_t size = 0;
                 if (!utils::read_obj(size, pBuf, buf_left, little_endian))
                     return -1;
 
@@ -1625,7 +1625,7 @@ namespace vogl
             {
                 change_type(cDTJSONDoc);
 
-                uint size = 0;
+                uint32_t size = 0;
                 if (!utils::read_obj(size, pBuf, buf_left, little_endian))
                     return -1;
 

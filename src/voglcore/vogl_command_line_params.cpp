@@ -113,7 +113,7 @@ namespace vogl
 #else
         dynamic_string_array params(get_command_line_params());
 
-        for (uint i = 0; i < params.size(); i++)
+        for (uint32_t i = 0; i < params.size(); i++)
         {
             dynamic_string tmp(params[i]);
 
@@ -179,7 +179,7 @@ namespace vogl
         bool within_param = false;
         bool within_quote = false;
 
-        uint ofs = 0;
+        uint32_t ofs = 0;
         dynamic_string str;
 
         while (p[ofs])
@@ -236,14 +236,14 @@ namespace vogl
         return true;
     }
 
-    void dump_command_line_info(uint n, const command_line_param_desc *pDesc, const char *prefix)
+    void dump_command_line_info(uint32_t n, const command_line_param_desc *pDesc, const char *prefix)
     {
         if (!prefix)
             prefix = "";
-        for (uint i = 0; i < n; i++)
+        for (uint32_t i = 0; i < n; i++)
         {
             console::message("%s%s", prefix, pDesc[i].m_pName);
-            for (uint j = 0; j < pDesc[i].m_num_values; j++)
+            for (uint32_t j = 0; j < pDesc[i].m_num_values; j++)
                 console::message(" [value]");
 
             if (pDesc[i].m_pDesc)
@@ -290,7 +290,7 @@ namespace vogl
         return true;
     }
 
-    bool command_line_params::parse(const dynamic_string_array &params, uint total_param_descs, const command_line_param_desc *pParam_desc, const command_line_params::parse_config &config)
+    bool command_line_params::parse(const dynamic_string_array &params, uint32_t total_param_descs, const command_line_param_desc *pParam_desc, const command_line_params::parse_config &config)
     {
         m_params = params;
 
@@ -300,17 +300,17 @@ namespace vogl
         desc.m_pName = "";
         desc.m_pDesc = NULL;
 
-        uint arg_index = 0;
+        uint32_t arg_index = 0;
         while (arg_index < params.size())
         {
-            const uint cur_arg_index = arg_index;
+            const uint32_t cur_arg_index = arg_index;
             const dynamic_string &src_param = params[arg_index++];
 
             if (src_param.is_empty())
                 continue;
 
             bool is_param = false;
-            uint param_prefix_chars = 1;
+            uint32_t param_prefix_chars = 1;
 
 #if VOGL_CMD_LINE_ALLOW_SLASH_PARAMS
             is_param = (src_param[0] == '/');
@@ -373,7 +373,7 @@ namespace vogl
 
                 if (total_param_descs)
                 {
-                    uint param_index;
+                    uint32_t param_index;
                     for (param_index = 0; param_index < total_param_descs; param_index++)
                         if (key_str == pParam_desc[param_index].m_pName)
                             break;
@@ -390,9 +390,9 @@ namespace vogl
                     desc = pParam_desc[param_index];
                 }
 
-                const uint cMaxValues = 16;
+                const uint32_t cMaxValues = 16;
                 dynamic_string val_str[cMaxValues];
-                uint num_val_strs = 0;
+                uint32_t num_val_strs = 0;
                 if (desc.m_num_values)
                 {
                     VOGL_ASSERT(desc.m_num_values <= cMaxValues);
@@ -403,7 +403,7 @@ namespace vogl
                         return false;
                     }
 
-                    for (uint v = 0; v < desc.m_num_values; v++)
+                    for (uint32_t v = 0; v < desc.m_num_values; v++)
                     {
                         val_str[num_val_strs++] = params[arg_index++];
                     }
@@ -425,7 +425,7 @@ namespace vogl
                 }
                 else
                 {
-                    for (uint v = 0; v < num_val_strs; v++)
+                    for (uint32_t v = 0; v < num_val_strs; v++)
                     {
                         val_str[v].unquote();
                         strings.push_back(val_str[v]);
@@ -457,7 +457,7 @@ namespace vogl
         return true;
     }
 
-    bool command_line_params::parse(const char *pCmd_line, uint total_param_descs, const command_line_param_desc *pParam_desc, const command_line_params::parse_config &config)
+    bool command_line_params::parse(const char *pCmd_line, uint32_t total_param_descs, const command_line_param_desc *pParam_desc, const command_line_params::parse_config &config)
     {
         dynamic_string_array p;
         if (!split_command_line_params(pCmd_line, p))
@@ -472,7 +472,7 @@ namespace vogl
         return parse(p, total_param_descs, pParam_desc, config);
     }
 
-    bool command_line_params::is_split_param_an_option(uint split_param_array_index) const
+    bool command_line_params::is_split_param_an_option(uint32_t split_param_array_index) const
     {
         VOGL_ASSERT(split_param_array_index < m_params.size());
         if (split_param_array_index >= m_params.size())
@@ -497,12 +497,12 @@ namespace vogl
         return begin != end;
     }
 
-    uint command_line_params::get_count(const char *pKey) const
+    uint32_t command_line_params::get_count(const char *pKey) const
     {
         param_map_const_iterator begin, end;
         find(pKey, begin, end);
 
-        uint n = 0;
+        uint32_t n = 0;
 
         while (begin != end)
         {
@@ -513,7 +513,7 @@ namespace vogl
         return n;
     }
 
-    command_line_params::param_map_const_iterator command_line_params::get_param(const char *pKey, uint key_index) const
+    command_line_params::param_map_const_iterator command_line_params::get_param(const char *pKey, uint32_t key_index) const
     {
         param_map_const_iterator begin, end;
         find(pKey, begin, end);
@@ -521,7 +521,7 @@ namespace vogl
         if (begin == end)
             return m_param_map.end();
 
-        uint n = 0;
+        uint32_t n = 0;
 
         while ((begin != end) && (n != key_index))
         {
@@ -535,12 +535,12 @@ namespace vogl
         return begin;
     }
 
-    bool command_line_params::has_value(const char *pKey, uint key_index) const
+    bool command_line_params::has_value(const char *pKey, uint32_t key_index) const
     {
         return get_num_values(pKey, key_index) != 0;
     }
 
-    uint command_line_params::get_num_values(const char *pKey, uint key_index) const
+    uint32_t command_line_params::get_num_values(const char *pKey, uint32_t key_index) const
     {
         param_map_const_iterator it = get_param(pKey, key_index);
 
@@ -550,7 +550,7 @@ namespace vogl
         return it->second.m_values.size();
     }
 
-    bool command_line_params::get_value_as_bool(const char *pKey, uint key_index, bool def) const
+    bool command_line_params::get_value_as_bool(const char *pKey, uint32_t key_index, bool def) const
     {
         param_map_const_iterator it = get_param(pKey, key_index);
         if (it == end())
@@ -562,7 +562,7 @@ namespace vogl
             return true;
     }
 
-    int command_line_params::get_value_as_int(const char *pKey, uint key_index, int def, int l, int h, uint value_index, bool *pSuccess) const
+    int command_line_params::get_value_as_int(const char *pKey, uint32_t key_index, int def, int l, int h, uint32_t value_index, bool *pSuccess) const
     {
         if (pSuccess)
             *pSuccess = false;
@@ -604,7 +604,7 @@ namespace vogl
         return val;
     }
 
-    int64_t command_line_params::get_value_as_int64(const char *pKey, uint key_index, int64_t def, int64_t l, int64_t h, uint value_index, bool *pSuccess) const
+    int64_t command_line_params::get_value_as_int64(const char *pKey, uint32_t key_index, int64_t def, int64_t l, int64_t h, uint32_t value_index, bool *pSuccess) const
     {
         if (pSuccess)
             *pSuccess = false;
@@ -646,7 +646,7 @@ namespace vogl
         return val;
     }
 
-    uint command_line_params::get_value_as_uint(const char *pKey, uint key_index, uint def, uint l, uint h, uint value_index, bool *pSuccess) const
+    uint32_t command_line_params::get_value_as_uint(const char *pKey, uint32_t key_index, uint32_t def, uint32_t l, uint32_t h, uint32_t value_index, bool *pSuccess) const
     {
         if (pSuccess)
             *pSuccess = false;
@@ -660,7 +660,7 @@ namespace vogl
             return def;
         }
 
-        uint val;
+        uint32_t val;
         const char *p = it->second.m_values[value_index].get_ptr();
         if (!string_ptr_to_uint(p, val))
         {
@@ -688,7 +688,7 @@ namespace vogl
         return val;
     }
 
-    uint64_t command_line_params::get_value_as_uint64(const char *pKey, uint key_index, uint64_t def, uint64_t l, uint64_t h, uint value_index, bool *pSuccess) const
+    uint64_t command_line_params::get_value_as_uint64(const char *pKey, uint32_t key_index, uint64_t def, uint64_t l, uint64_t h, uint32_t value_index, bool *pSuccess) const
     {
         if (pSuccess)
             *pSuccess = false;
@@ -730,7 +730,7 @@ namespace vogl
         return val;
     }
 
-    float command_line_params::get_value_as_float(const char *pKey, uint key_index, float def, float l, float h, uint value_index, bool *pSuccess) const
+    float command_line_params::get_value_as_float(const char *pKey, uint32_t key_index, float def, float l, float h, uint32_t value_index, bool *pSuccess) const
     {
         if (pSuccess)
             *pSuccess = false;
@@ -770,7 +770,7 @@ namespace vogl
         return val;
     }
 
-    bool command_line_params::get_value_as_string(dynamic_string &value, const char *pKey, uint key_index, const char *pDef, uint value_index) const
+    bool command_line_params::get_value_as_string(dynamic_string &value, const char *pKey, uint32_t key_index, const char *pDef, uint32_t value_index) const
     {
         param_map_const_iterator it = get_param(pKey, key_index);
         if (it == end())
@@ -786,7 +786,7 @@ namespace vogl
         return true;
     }
 
-    dynamic_string command_line_params::get_value_as_string(const char *pKey, uint key_index, const char *pDef, uint value_index) const
+    dynamic_string command_line_params::get_value_as_string(const char *pKey, uint32_t key_index, const char *pDef, uint32_t value_index) const
     {
         param_map_const_iterator it = get_param(pKey, key_index);
         if (it == end())
@@ -800,7 +800,7 @@ namespace vogl
         return it->second.m_values[value_index];
     }
 
-    const dynamic_string &command_line_params::get_value_as_string_or_empty(const char *pKey, uint key_index, uint value_index) const
+    const dynamic_string &command_line_params::get_value_as_string_or_empty(const char *pKey, uint32_t key_index, uint32_t value_index) const
     {
         param_map_const_iterator it = get_param(pKey, key_index);
         if (it == end())

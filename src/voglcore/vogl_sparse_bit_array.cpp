@@ -31,14 +31,14 @@
 namespace vogl
 {
     // TODO: This is for the sparse_array class.
-    uint g_sparse_vector_test_counters[2];
+    uint32_t g_sparse_vector_test_counters[2];
 
     sparse_bit_array::sparse_bit_array()
         : m_num_groups(0), m_ppGroups(NULL)
     {
     }
 
-    sparse_bit_array::sparse_bit_array(uint size)
+    sparse_bit_array::sparse_bit_array(uint32_t size)
         : m_num_groups(0), m_ppGroups(NULL)
     {
         resize(size);
@@ -50,7 +50,7 @@ namespace vogl
         m_ppGroups = (uint32_t **)vogl_malloc(m_num_groups * sizeof(uint32_t *));
         VOGL_VERIFY(m_ppGroups);
 
-        for (uint i = 0; i < m_num_groups; i++)
+        for (uint32_t i = 0; i < m_num_groups; i++)
         {
             if (other.m_ppGroups[i])
             {
@@ -81,7 +81,7 @@ namespace vogl
             VOGL_VERIFY(m_ppGroups);
         }
 
-        for (uint i = 0; i < m_num_groups; i++)
+        for (uint32_t i = 0; i < m_num_groups; i++)
         {
             if (other.m_ppGroups[i])
             {
@@ -104,7 +104,7 @@ namespace vogl
         if (!m_num_groups)
             return;
 
-        for (uint i = 0; i < m_num_groups; i++)
+        for (uint32_t i = 0; i < m_num_groups; i++)
             free_group(m_ppGroups[i]);
 
         vogl_free(m_ppGroups);
@@ -121,12 +121,12 @@ namespace vogl
 
     void sparse_bit_array::optimize()
     {
-        for (uint i = 0; i < m_num_groups; i++)
+        for (uint32_t i = 0; i < m_num_groups; i++)
         {
             uint32_t *s = m_ppGroups[i];
             if (s)
             {
-                uint j;
+                uint32_t j;
                 for (j = 0; j < cDWORDsPerGroup; j++)
                     if (s[j])
                         break;
@@ -139,7 +139,7 @@ namespace vogl
         }
     }
 
-    void sparse_bit_array::set_bit_range(uint index, uint num)
+    void sparse_bit_array::set_bit_range(uint32_t index, uint32_t num)
     {
         VOGL_ASSERT((index + num) <= (m_num_groups << cBitsPerGroupShift));
 
@@ -153,7 +153,7 @@ namespace vogl
 
         while ((index & cBitsPerGroupMask) || (num <= cBitsPerGroup))
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
             uint32_t *pGroup = m_ppGroups[group_index];
@@ -163,12 +163,12 @@ namespace vogl
                 m_ppGroups[group_index] = pGroup;
             }
 
-            const uint group_bit_ofs = index & cBitsPerGroupMask;
+            const uint32_t group_bit_ofs = index & cBitsPerGroupMask;
 
-            const uint dword_bit_ofs = group_bit_ofs & 31;
-            const uint max_bits_to_set = 32 - dword_bit_ofs;
+            const uint32_t dword_bit_ofs = group_bit_ofs & 31;
+            const uint32_t max_bits_to_set = 32 - dword_bit_ofs;
 
-            const uint bits_to_set = math::minimum(max_bits_to_set, num);
+            const uint32_t bits_to_set = math::minimum(max_bits_to_set, num);
             const uint32_t msk = (0xFFFFFFFFU >> (32 - bits_to_set));
 
             pGroup[group_bit_ofs >> 5] |= (msk << dword_bit_ofs);
@@ -182,7 +182,7 @@ namespace vogl
 
         while (num >= cBitsPerGroup)
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
             uint32_t *pGroup = m_ppGroups[group_index];
@@ -200,7 +200,7 @@ namespace vogl
 
         while (num)
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
             uint32_t *pGroup = m_ppGroups[group_index];
@@ -210,9 +210,9 @@ namespace vogl
                 m_ppGroups[group_index] = pGroup;
             }
 
-            uint group_bit_ofs = index & cBitsPerGroupMask;
+            uint32_t group_bit_ofs = index & cBitsPerGroupMask;
 
-            uint bits_to_set = math::minimum(32U, num);
+            uint32_t bits_to_set = math::minimum(32U, num);
             uint32_t msk = (0xFFFFFFFFU >> (32 - bits_to_set));
 
             pGroup[group_bit_ofs >> 5] |= (msk << (group_bit_ofs & 31));
@@ -224,7 +224,7 @@ namespace vogl
 
     void sparse_bit_array::clear_all_bits()
     {
-        for (uint i = 0; i < m_num_groups; i++)
+        for (uint32_t i = 0; i < m_num_groups; i++)
         {
             uint32_t *pGroup = m_ppGroups[i];
             if (pGroup)
@@ -232,7 +232,7 @@ namespace vogl
         }
     }
 
-    void sparse_bit_array::clear_bit_range(uint index, uint num)
+    void sparse_bit_array::clear_bit_range(uint32_t index, uint32_t num)
     {
         VOGL_ASSERT((index + num) <= (m_num_groups << cBitsPerGroupShift));
 
@@ -246,15 +246,15 @@ namespace vogl
 
         while ((index & cBitsPerGroupMask) || (num <= cBitsPerGroup))
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            const uint group_bit_ofs = index & cBitsPerGroupMask;
+            const uint32_t group_bit_ofs = index & cBitsPerGroupMask;
 
-            const uint dword_bit_ofs = group_bit_ofs & 31;
-            const uint max_bits_to_set = 32 - dword_bit_ofs;
+            const uint32_t dword_bit_ofs = group_bit_ofs & 31;
+            const uint32_t max_bits_to_set = 32 - dword_bit_ofs;
 
-            const uint bits_to_set = math::minimum(max_bits_to_set, num);
+            const uint32_t bits_to_set = math::minimum(max_bits_to_set, num);
 
             uint32_t *pGroup = m_ppGroups[group_index];
             if (pGroup)
@@ -273,7 +273,7 @@ namespace vogl
 
         while (num >= cBitsPerGroup)
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
             uint32_t *pGroup = m_ppGroups[group_index];
@@ -289,15 +289,15 @@ namespace vogl
 
         while (num)
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            uint bits_to_set = math::minimum(32u, num);
+            uint32_t bits_to_set = math::minimum(32u, num);
 
             uint32_t *pGroup = m_ppGroups[group_index];
             if (pGroup)
             {
-                uint group_bit_ofs = index & cBitsPerGroupMask;
+                uint32_t group_bit_ofs = index & cBitsPerGroupMask;
 
                 uint32_t msk = (0xFFFFFFFFU >> (32 - bits_to_set));
 
@@ -309,9 +309,9 @@ namespace vogl
         }
     }
 
-    void sparse_bit_array::resize(uint size)
+    void sparse_bit_array::resize(uint32_t size)
     {
-        uint num_groups = (size + cBitsPerGroup - 1) >> cBitsPerGroupShift;
+        uint32_t num_groups = (size + cBitsPerGroup - 1) >> cBitsPerGroupShift;
         if (num_groups == m_num_groups)
             return;
 
@@ -328,8 +328,8 @@ namespace vogl
         m_ppGroups = (uint32_t **)vogl_calloc(m_num_groups, sizeof(uint32_t *));
         VOGL_VERIFY(m_ppGroups);
 
-        uint n = math::minimum(temp.m_num_groups, m_num_groups);
-        for (uint i = 0; i < n; i++)
+        uint32_t n = math::minimum(temp.m_num_groups, m_num_groups);
+        for (uint32_t i = 0; i < n; i++)
         {
             uint32_t *p = temp.m_ppGroups[i];
             if (p)
@@ -347,7 +347,7 @@ namespace vogl
 
         VOGL_VERIFY(other.m_num_groups == m_num_groups);
 
-        for (uint i = 0; i < m_num_groups; i++)
+        for (uint32_t i = 0; i < m_num_groups; i++)
         {
             uint32_t *d = m_ppGroups[i];
             if (!d)
@@ -362,7 +362,7 @@ namespace vogl
             else
             {
                 uint32_t oc = 0;
-                for (uint j = 0; j < cDWORDsPerGroup; j++)
+                for (uint32_t j = 0; j < cDWORDsPerGroup; j++)
                 {
                     uint32_t c = d[j] & s[j];
                     d[j] = c;
@@ -386,7 +386,7 @@ namespace vogl
 
         VOGL_VERIFY(other.m_num_groups == m_num_groups);
 
-        for (uint i = 0; i < m_num_groups; i++)
+        for (uint32_t i = 0; i < m_num_groups; i++)
         {
             uint32_t *s = other.m_ppGroups[i];
             if (!s)
@@ -402,7 +402,7 @@ namespace vogl
             else
             {
                 uint32_t oc = 0;
-                for (uint j = 0; j < cDWORDsPerGroup; j++)
+                for (uint32_t j = 0; j < cDWORDsPerGroup; j++)
                 {
                     uint32_t c = d[j] | s[j];
                     d[j] = c;
@@ -426,7 +426,7 @@ namespace vogl
 
         VOGL_VERIFY(other.m_num_groups == m_num_groups);
 
-        for (uint i = 0; i < m_num_groups; i++)
+        for (uint32_t i = 0; i < m_num_groups; i++)
         {
             uint32_t *d = m_ppGroups[i];
             if (!d)
@@ -436,7 +436,7 @@ namespace vogl
                 continue;
 
             uint32_t oc = 0;
-            for (uint j = 0; j < cDWORDsPerGroup; j++)
+            for (uint32_t j = 0; j < cDWORDsPerGroup; j++)
             {
                 uint32_t c = d[j] & (~s[j]);
                 d[j] = c;
@@ -452,7 +452,7 @@ namespace vogl
         return *this;
     }
 
-    int sparse_bit_array::find_first_set_bit(uint index, uint num) const
+    int sparse_bit_array::find_first_set_bit(uint32_t index, uint32_t num) const
     {
         VOGL_ASSERT((index + num) <= (m_num_groups << cBitsPerGroupShift));
 
@@ -461,24 +461,24 @@ namespace vogl
 
         while ((index & cBitsPerGroupMask) || (num <= cBitsPerGroup))
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            const uint group_bit_ofs = index & cBitsPerGroupMask;
-            const uint dword_bit_ofs = group_bit_ofs & 31;
+            const uint32_t group_bit_ofs = index & cBitsPerGroupMask;
+            const uint32_t dword_bit_ofs = group_bit_ofs & 31;
 
-            const uint max_bits_to_examine = 32 - dword_bit_ofs;
-            const uint bits_to_examine = math::minimum(max_bits_to_examine, num);
+            const uint32_t max_bits_to_examine = 32 - dword_bit_ofs;
+            const uint32_t bits_to_examine = math::minimum(max_bits_to_examine, num);
 
             uint32_t *pGroup = m_ppGroups[group_index];
             if (pGroup)
             {
                 const uint32_t msk = (0xFFFFFFFFU >> (32 - bits_to_examine));
 
-                uint bits = pGroup[group_bit_ofs >> 5] & (msk << dword_bit_ofs);
+                uint32_t bits = pGroup[group_bit_ofs >> 5] & (msk << dword_bit_ofs);
                 if (bits)
                 {
-                    uint num_trailing_zeros = math::count_trailing_zero_bits(bits);
+                    uint32_t num_trailing_zeros = math::count_trailing_zero_bits(bits);
                     int set_index = num_trailing_zeros + (index & ~31);
                     VOGL_ASSERT(get_bit(set_index));
                     return set_index;
@@ -494,18 +494,18 @@ namespace vogl
 
         while (num >= cBitsPerGroup)
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
             uint32_t *pGroup = m_ppGroups[group_index];
             if (pGroup)
             {
-                for (uint i = 0; i < cDWORDsPerGroup; i++)
+                for (uint32_t i = 0; i < cDWORDsPerGroup; i++)
                 {
                     uint32_t bits = pGroup[i];
                     if (bits)
                     {
-                        uint num_trailing_zeros = math::count_trailing_zero_bits(bits);
+                        uint32_t num_trailing_zeros = math::count_trailing_zero_bits(bits);
 
                         int set_index = num_trailing_zeros + index + (i << 5);
                         VOGL_ASSERT(get_bit(set_index));
@@ -520,22 +520,22 @@ namespace vogl
 
         while (num)
         {
-            uint group_index = index >> cBitsPerGroupShift;
+            uint32_t group_index = index >> cBitsPerGroupShift;
             VOGL_ASSERT(group_index < m_num_groups);
 
-            uint bits_to_examine = math::minimum(32U, num);
+            uint32_t bits_to_examine = math::minimum(32U, num);
 
             uint32_t *pGroup = m_ppGroups[group_index];
             if (pGroup)
             {
-                uint group_bit_ofs = index & cBitsPerGroupMask;
+                uint32_t group_bit_ofs = index & cBitsPerGroupMask;
 
                 uint32_t msk = (0xFFFFFFFFU >> (32 - bits_to_examine));
 
                 uint32_t bits = pGroup[group_bit_ofs >> 5] & (msk << (group_bit_ofs & 31));
                 if (bits)
                 {
-                    uint num_trailing_zeros = math::count_trailing_zero_bits(bits);
+                    uint32_t num_trailing_zeros = math::count_trailing_zero_bits(bits);
 
                     int set_index = num_trailing_zeros + (index & ~31);
                     VOGL_ASSERT(get_bit(set_index));

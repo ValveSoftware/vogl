@@ -125,27 +125,27 @@ namespace jpgd
 
 #define CONST_BITS 13
 #define PASS1_BITS 2
-#define SCALEDONE ((int32)1)
+#define SCALEDONE ((int32_t)1)
 
-#define FIX_0_298631336 ((int32)2446)  /* FIX(0.298631336) */
-#define FIX_0_390180644 ((int32)3196)  /* FIX(0.390180644) */
-#define FIX_0_541196100 ((int32)4433)  /* FIX(0.541196100) */
-#define FIX_0_765366865 ((int32)6270)  /* FIX(0.765366865) */
-#define FIX_0_899976223 ((int32)7373)  /* FIX(0.899976223) */
-#define FIX_1_175875602 ((int32)9633)  /* FIX(1.175875602) */
-#define FIX_1_501321110 ((int32)12299) /* FIX(1.501321110) */
-#define FIX_1_847759065 ((int32)15137) /* FIX(1.847759065) */
-#define FIX_1_961570560 ((int32)16069) /* FIX(1.961570560) */
-#define FIX_2_053119869 ((int32)16819) /* FIX(2.053119869) */
-#define FIX_2_562915447 ((int32)20995) /* FIX(2.562915447) */
-#define FIX_3_072711026 ((int32)25172) /* FIX(3.072711026) */
+#define FIX_0_298631336 ((int32_t)2446)  /* FIX(0.298631336) */
+#define FIX_0_390180644 ((int32_t)3196)  /* FIX(0.390180644) */
+#define FIX_0_541196100 ((int32_t)4433)  /* FIX(0.541196100) */
+#define FIX_0_765366865 ((int32_t)6270)  /* FIX(0.765366865) */
+#define FIX_0_899976223 ((int32_t)7373)  /* FIX(0.899976223) */
+#define FIX_1_175875602 ((int32_t)9633)  /* FIX(1.175875602) */
+#define FIX_1_501321110 ((int32_t)12299) /* FIX(1.501321110) */
+#define FIX_1_847759065 ((int32_t)15137) /* FIX(1.847759065) */
+#define FIX_1_961570560 ((int32_t)16069) /* FIX(1.961570560) */
+#define FIX_2_053119869 ((int32_t)16819) /* FIX(2.053119869) */
+#define FIX_2_562915447 ((int32_t)20995) /* FIX(2.562915447) */
+#define FIX_3_072711026 ((int32_t)25172) /* FIX(3.072711026) */
 
 #define DESCALE(x, n) (((x) + (SCALEDONE << ((n) - 1))) >> (n))
 #define DESCALE_ZEROSHIFT(x, n) (((x) + (128 << (n)) + (SCALEDONE << ((n) - 1))) >> (n))
 
 #define MULTIPLY(var, cnst) ((var) * (cnst))
 
-#define CLAMP(i) ((static_cast<uint>(i) > 255) ? (((~i) >> 31) & 0xFF) : (i))
+#define CLAMP(i) ((static_cast<uint32_t>(i) > 255) ? (((~i) >> 31) & 0xFF) : (i))
 
     // Compiler creates a fast path 1D IDCT for X non-zero columns
     template <int NONZERO_COLS>
@@ -441,7 +441,7 @@ namespace jpgd
     }
 
     // Retrieve one character from the input stream.
-    inline uint jpeg_decoder::get_char()
+    inline uint32_t jpeg_decoder::get_char()
     {
         // Any bytes remaining in buffer?
         if (!m_in_buf_left)
@@ -461,14 +461,14 @@ namespace jpgd
             }
         }
 
-        uint c = *m_pIn_buf_ofs++;
+        uint32_t c = *m_pIn_buf_ofs++;
         m_in_buf_left--;
 
         return c;
     }
 
     // Same as previous method, except can indicate if the character is a pad character or not.
-    inline uint jpeg_decoder::get_char(bool *pPadding_flag)
+    inline uint32_t jpeg_decoder::get_char(bool *pPadding_flag)
     {
         if (!m_in_buf_left)
         {
@@ -487,7 +487,7 @@ namespace jpgd
 
         *pPadding_flag = false;
 
-        uint c = *m_pIn_buf_ofs++;
+        uint32_t c = *m_pIn_buf_ofs++;
         m_in_buf_left--;
 
         return c;
@@ -532,19 +532,19 @@ namespace jpgd
     }
 
     // Retrieves a variable number of bits from the input stream. Does not recognize markers.
-    inline uint jpeg_decoder::get_bits(int num_bits)
+    inline uint32_t jpeg_decoder::get_bits(int num_bits)
     {
         if (!num_bits)
             return 0;
 
-        uint i = m_bit_buf >> (32 - num_bits);
+        uint32_t i = m_bit_buf >> (32 - num_bits);
 
         if ((m_bits_left -= num_bits) <= 0)
         {
             m_bit_buf <<= (num_bits += m_bits_left);
 
-            uint c1 = get_char();
-            uint c2 = get_char();
+            uint32_t c1 = get_char();
+            uint32_t c2 = get_char();
             m_bit_buf = (m_bit_buf & 0xFFFF0000) | (c1 << 8) | c2;
 
             m_bit_buf <<= -m_bits_left;
@@ -560,12 +560,12 @@ namespace jpgd
     }
 
     // Retrieves a variable number of bits from the input stream. Markers will not be read into the input bit buffer. Instead, an infinite number of all 1's will be returned when a marker is encountered.
-    inline uint jpeg_decoder::get_bits_no_markers(int num_bits)
+    inline uint32_t jpeg_decoder::get_bits_no_markers(int num_bits)
     {
         if (!num_bits)
             return 0;
 
-        uint i = m_bit_buf >> (32 - num_bits);
+        uint32_t i = m_bit_buf >> (32 - num_bits);
 
         if ((m_bits_left -= num_bits) <= 0)
         {
@@ -573,13 +573,13 @@ namespace jpgd
 
             if ((m_in_buf_left < 2) || (m_pIn_buf_ofs[0] == 0xFF) || (m_pIn_buf_ofs[1] == 0xFF))
             {
-                uint c1 = get_octet();
-                uint c2 = get_octet();
+                uint32_t c1 = get_octet();
+                uint32_t c2 = get_octet();
                 m_bit_buf |= (c1 << 8) | c2;
             }
             else
             {
-                m_bit_buf |= ((uint)m_pIn_buf_ofs[0] << 8) | m_pIn_buf_ofs[1];
+                m_bit_buf |= ((uint32_t)m_pIn_buf_ofs[0] << 8) | m_pIn_buf_ofs[1];
                 m_in_buf_left -= 2;
                 m_pIn_buf_ofs += 2;
             }
@@ -679,7 +679,7 @@ namespace jpgd
     // Clamps a value between 0-255.
     inline uint8_t jpeg_decoder::clamp(int i)
     {
-        if (static_cast<uint>(i) > 255)
+        if (static_cast<uint32_t>(i) > 255)
             i = (((~i) >> 31) & 0xFF);
 
         return static_cast<uint8_t>(i);
@@ -1017,7 +1017,7 @@ namespace jpgd
         return rv;
     }
 
-    void jpeg_decoder::word_clear(void *p, uint16_t c, uint n)
+    void jpeg_decoder::word_clear(void *p, uint16_t c, uint32_t n)
     {
         uint8_t *pD = (uint8_t *)p;
         const uint8_t l = c & 0xFF, h = (c >> 8) & 0xFF;
@@ -1064,7 +1064,7 @@ namespace jpgd
         uint8_t huff_num[17];
         uint8_t huff_val[256];
 
-        uint num_left = get_bits(16);
+        uint32_t num_left = get_bits(16);
 
         if (num_left < 2)
             stop_decoding(JPGD_BAD_DHT_MARKER);
@@ -1093,7 +1093,7 @@ namespace jpgd
 
             i = 1 + 16 + count;
 
-            if (num_left < (uint)i)
+            if (num_left < (uint32_t)i)
                 stop_decoding(JPGD_BAD_DHT_MARKER);
 
             num_left -= i;
@@ -1122,8 +1122,8 @@ namespace jpgd
     void jpeg_decoder::read_dqt_marker()
     {
         int n, i, prec;
-        uint num_left;
-        uint temp;
+        uint32_t num_left;
+        uint32_t temp;
 
         num_left = get_bits(16);
 
@@ -1160,7 +1160,7 @@ namespace jpgd
             if (prec)
                 i += 64;
 
-            if (num_left < (uint)i)
+            if (num_left < (uint32_t)i)
                 stop_decoding(JPGD_BAD_DQT_LENGTH);
 
             num_left -= i;
@@ -1171,7 +1171,7 @@ namespace jpgd
     void jpeg_decoder::read_sof_marker()
     {
         int i;
-        uint num_left;
+        uint32_t num_left;
 
         num_left = get_bits(16);
 
@@ -1193,7 +1193,7 @@ namespace jpgd
         if (m_comps_in_frame > JPGD_MAX_COMPONENTS)
             stop_decoding(JPGD_TOO_MANY_COMPONENTS);
 
-        if (num_left != (uint)(m_comps_in_frame * 3 + 8))
+        if (num_left != (uint32_t)(m_comps_in_frame * 3 + 8))
             stop_decoding(JPGD_BAD_SOF_LENGTH);
 
         for (i = 0; i < m_comps_in_frame; i++)
@@ -1208,7 +1208,7 @@ namespace jpgd
     // Used to skip unrecognized markers.
     void jpeg_decoder::skip_variable_marker()
     {
-        uint num_left;
+        uint32_t num_left;
 
         num_left = get_bits(16);
 
@@ -1236,7 +1236,7 @@ namespace jpgd
     // Read a start of scan (SOS) marker.
     void jpeg_decoder::read_sos_marker()
     {
-        uint num_left;
+        uint32_t num_left;
         int i, ci, n, c, cc;
 
         num_left = get_bits(16);
@@ -1247,7 +1247,7 @@ namespace jpgd
 
         num_left -= 3;
 
-        if ((num_left != (uint)(n * 2 + 3)) || (n < 1) || (n > JPGD_MAX_COMPS_IN_SCAN))
+        if ((num_left != (uint32_t)(n * 2 + 3)) || (n < 1) || (n > JPGD_MAX_COMPS_IN_SCAN))
             stop_decoding(JPGD_BAD_SOS_LENGTH);
 
         for (i = 0; i < n; i++)
@@ -1291,7 +1291,7 @@ namespace jpgd
     // Finds the next marker.
     int jpeg_decoder::next_marker()
     {
-        uint c, bytes;
+        uint32_t c, bytes;
 
         bytes = 0;
 
@@ -1398,8 +1398,8 @@ namespace jpgd
     // false positives.
     void jpeg_decoder::locate_soi_marker()
     {
-        uint lastchar, thischar;
-        uint bytesleft;
+        uint32_t lastchar, thischar;
+        uint32_t bytesleft;
 
         lastchar = get_bits(8);
 
@@ -1874,7 +1874,7 @@ namespace jpgd
             stop_decoding(JPGD_BAD_RESTART_MARKER);
 
         // Reset each component's DC prediction values.
-        memset(&m_last_dc_val, 0, m_comps_in_frame * sizeof(uint));
+        memset(&m_last_dc_val, 0, m_comps_in_frame * sizeof(uint32_t));
 
         m_eob_run = 0;
 
@@ -2198,8 +2198,8 @@ namespace jpgd
 
         for (int i = m_max_mcus_per_row; i > 0; i--)
         {
-            *(uint *)d = *(uint *)s;
-            *(uint *)(&d[4]) = *(uint *)(&s[4]);
+            *(uint32_t *)d = *(uint32_t *)s;
+            *(uint32_t *)(&d[4]) = *(uint32_t *)(&s[4]);
 
             s += 64;
             d += 8;
@@ -2260,7 +2260,7 @@ namespace jpgd
         m_total_bytes_read -= m_in_buf_left;
     }
 
-    int jpeg_decoder::decode(const void **pScan_line, uint *pScan_line_len)
+    int jpeg_decoder::decode(const void **pScan_line, uint32_t *pScan_line_len)
     {
         if ((m_error_code) || (!m_ready_flag))
             return JPGD_FAILED;
@@ -2353,9 +2353,9 @@ namespace jpgd
     {
         int p, i, l, si;
         uint8_t huffsize[257];
-        uint huffcode[257];
-        uint code;
-        uint subtree;
+        uint32_t huffcode[257];
+        uint32_t code;
+        uint32_t subtree;
         int code_size;
         int lastp;
         int nextfreeentry;
@@ -2587,7 +2587,7 @@ namespace jpgd
 
         check_quant_tables();
 
-        memset(m_last_dc_val, 0, m_comps_in_frame * sizeof(uint));
+        memset(m_last_dc_val, 0, m_comps_in_frame * sizeof(uint32_t));
 
         m_eob_run = 0;
 
@@ -3161,7 +3161,7 @@ namespace jpgd
         return bytes_read;
     }
 
-    bool jpeg_decoder_mem_stream::open(const uint8_t *pSrc_data, uint size)
+    bool jpeg_decoder_mem_stream::open(const uint8_t *pSrc_data, uint32_t size)
     {
         close();
         m_pSrc_data = pSrc_data;
@@ -3177,8 +3177,8 @@ namespace jpgd
         if (!m_pSrc_data)
             return -1;
 
-        uint bytes_remaining = m_size - m_ofs;
-        if ((uint)max_bytes_to_read > bytes_remaining)
+        uint32_t bytes_remaining = m_size - m_ofs;
+        if ((uint32_t)max_bytes_to_read > bytes_remaining)
         {
             max_bytes_to_read = bytes_remaining;
             *pEOF_flag = true;
@@ -3223,7 +3223,7 @@ namespace jpgd
         for (int y = 0; y < image_height; y++)
         {
             const uint8_t *pScan_line;
-            uint scan_line_len;
+            uint32_t scan_line_len;
             if (decoder.decode((const void **)&pScan_line, &scan_line_len) != JPGD_SUCCESS)
             {
                 jpgd_free(pImage_data);

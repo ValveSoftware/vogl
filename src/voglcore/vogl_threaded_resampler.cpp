@@ -70,9 +70,9 @@ namespace vogl
     void threaded_resampler::resample_x_task(uint64_t data, void *pData_ptr)
     {
         VOGL_NOTE_UNUSED(pData_ptr);
-        const uint thread_index = (uint)data;
+        const uint32_t thread_index = (uint32_t)data;
 
-        for (uint src_y = 0; src_y < m_pParams->m_src_height; src_y++)
+        for (uint32_t src_y = 0; src_y < m_pParams->m_src_height; src_y++)
         {
             if (m_pTask_pool->get_num_threads())
             {
@@ -99,7 +99,7 @@ namespace vogl
 
                         while (p != p_end)
                         {
-                            const uint src_pixel = p->pixel;
+                            const uint32_t src_pixel = p->pixel;
                             const float src_weight = p->weight;
 
                             s[0] += pSrc[src_pixel] * src_weight;
@@ -186,11 +186,11 @@ namespace vogl
     {
         VOGL_NOTE_UNUSED(pData_ptr);
 
-        const uint thread_index = (uint)data;
+        const uint32_t thread_index = (uint32_t)data;
 
         vogl::vector<vec4F> tmp(m_pParams->m_dst_width);
 
-        for (uint dst_y = 0; dst_y < m_pParams->m_dst_height; dst_y++)
+        for (uint32_t dst_y = 0; dst_y < m_pParams->m_dst_height; dst_y++)
         {
             if (m_pTask_pool->get_num_threads())
             {
@@ -208,19 +208,19 @@ namespace vogl
             }
             else
             {
-                for (uint src_y_iter = 0; src_y_iter < contribs.n; src_y_iter++)
+                for (uint32_t src_y_iter = 0; src_y_iter < contribs.n; src_y_iter++)
                 {
                     const vec4F *p = m_tmp_img.get_ptr() + m_pParams->m_dst_width * contribs.p[src_y_iter].pixel;
                     const float weight = contribs.p[src_y_iter].weight;
 
                     if (!src_y_iter)
                     {
-                        for (uint i = 0; i < m_pParams->m_dst_width; i++)
+                        for (uint32_t i = 0; i < m_pParams->m_dst_width; i++)
                             tmp[i] = p[i] * weight;
                     }
                     else
                     {
-                        for (uint i = 0; i < m_pParams->m_dst_width; i++)
+                        for (uint32_t i = 0; i < m_pParams->m_dst_width; i++)
                             tmp[i] += p[i] * weight;
                     }
                 }
@@ -331,11 +331,11 @@ namespace vogl
         if (!m_tmp_img.try_resize(m_pParams->m_dst_width * m_pParams->m_src_height))
             return false;
 
-        for (uint i = 0; i <= m_pTask_pool->get_num_threads(); i++)
+        for (uint32_t i = 0; i <= m_pTask_pool->get_num_threads(); i++)
             m_pTask_pool->queue_object_task(this, &threaded_resampler::resample_x_task, i, NULL);
         m_pTask_pool->join();
 
-        for (uint i = 0; i <= m_pTask_pool->get_num_threads(); i++)
+        for (uint32_t i = 0; i <= m_pTask_pool->get_num_threads(); i++)
             m_pTask_pool->queue_object_task(this, &threaded_resampler::resample_y_task, i, NULL);
         m_pTask_pool->join();
 

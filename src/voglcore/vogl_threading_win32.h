@@ -37,7 +37,7 @@
 namespace vogl
 {
     // g_number_of_processors defaults to 1. Will be higher on multicore machines.
-    extern uint g_number_of_processors;
+    extern uint32_t g_number_of_processors;
 
     void vogl_threading_init();
 
@@ -46,7 +46,7 @@ namespace vogl
 
     void vogl_sleep(unsigned int milliseconds);
 
-    uint vogl_get_max_helper_threads();
+    uint32_t vogl_get_max_helper_threads();
 
     class mutex
     {
@@ -113,7 +113,7 @@ namespace vogl
         }
 
     private:
-        volatile int32 m_flag;
+        volatile int32_t m_flag;
     };
 
     class scoped_spinlock
@@ -142,7 +142,7 @@ namespace vogl
 
     public:
         // TODO: Change to uint32_t
-        semaphore(int32 initialCount, int32 maximumCount, const char *pName = NULL);
+        semaphore(int32_t initialCount, int32_t maximumCount, const char *pName = NULL);
 
         ~semaphore();
 
@@ -151,8 +151,8 @@ namespace vogl
             return m_handle;
         }
 
-        void release(int32 releaseCount = 1, int32 *pPreviousCount = NULL);
-        bool try_release(int32 releaseCount = 1, int32 *pPreviousCount = NULL);
+        void release(int32_t releaseCount = 1, int32_t *pPreviousCount = NULL);
+        bool try_release(int32_t releaseCount = 1, int32_t *pPreviousCount = NULL);
 
         bool wait(uint32_t milliseconds = cUINT32_MAX);
 
@@ -284,17 +284,17 @@ namespace vogl
 
     public:
         task_pool();
-        task_pool(uint num_threads);
+        task_pool(uint32_t num_threads);
         ~task_pool();
 
         enum
         {
             cMaxThreads = 16
         };
-        bool init(uint num_threads);
+        bool init(uint32_t num_threads);
         void deinit();
 
-        inline uint get_num_threads() const
+        inline uint32_t get_num_threads() const
         {
             return m_num_threads;
         }
@@ -320,7 +320,7 @@ namespace vogl
         inline bool queue_object_task(S *pObject, T pObject_method, uint64_t data = 0, void *pData_ptr = NULL);
 
         template <typename S, typename T>
-        inline bool queue_multiple_object_tasks(S *pObject, T pObject_method, uint64_t first_data, uint num_tasks, void *pData_ptr = NULL);
+        inline bool queue_multiple_object_tasks(S *pObject, T pObject_method, uint64_t first_data, uint32_t num_tasks, void *pData_ptr = NULL);
 
         // Waits for all outstanding tasks (if any) to complete.
         // The calling thread will steal any outstanding tasks from worker threads, if possible.
@@ -340,13 +340,13 @@ namespace vogl
                 executable_task *m_pObj;
             };
 
-            uint m_flags;
+            uint32_t m_flags;
         };
 
         typedef tsstack<task> ts_task_stack_t;
         ts_task_stack_t *m_pTask_stack;
 
-        uint m_num_threads;
+        uint32_t m_num_threads;
         HANDLE m_threads[cMaxThreads];
 
         // Signalled whenever a task is queued up.
@@ -379,7 +379,7 @@ namespace vogl
     class object_task : public task_pool::executable_task
     {
     public:
-        object_task(uint flags = cObjectTaskFlagDefault)
+        object_task(uint32_t flags = cObjectTaskFlagDefault)
             : m_pObject(NULL),
               m_pMethod(NULL),
               m_flags(flags)
@@ -388,7 +388,7 @@ namespace vogl
 
         typedef void (T::*object_method_ptr)(uint64_t data, void *pData_ptr);
 
-        object_task(T *pObject, object_method_ptr pMethod, uint flags = cObjectTaskFlagDefault)
+        object_task(T *pObject, object_method_ptr pMethod, uint32_t flags = cObjectTaskFlagDefault)
             : m_pObject(pObject),
               m_pMethod(pMethod),
               m_flags(flags)
@@ -396,7 +396,7 @@ namespace vogl
             VOGL_ASSERT(pObject && pMethod);
         }
 
-        void init(T *pObject, object_method_ptr pMethod, uint flags = cObjectTaskFlagDefault)
+        void init(T *pObject, object_method_ptr pMethod, uint32_t flags = cObjectTaskFlagDefault)
         {
             VOGL_ASSERT(pObject && pMethod);
 
@@ -427,7 +427,7 @@ namespace vogl
 
         object_method_ptr m_pMethod;
 
-        uint m_flags;
+        uint32_t m_flags;
     };
 
     template <typename S, typename T>
@@ -440,7 +440,7 @@ namespace vogl
     }
 
     template <typename S, typename T>
-    inline bool task_pool::queue_multiple_object_tasks(S *pObject, T pObject_method, uint64_t first_data, uint num_tasks, void *pData_ptr)
+    inline bool task_pool::queue_multiple_object_tasks(S *pObject, T pObject_method, uint64_t first_data, uint32_t num_tasks, void *pData_ptr)
     {
         VOGL_ASSERT(pObject);
         VOGL_ASSERT(num_tasks);
@@ -449,7 +449,7 @@ namespace vogl
 
         bool status = true;
 
-        uint i;
+        uint32_t i;
         for (i = 0; i < num_tasks; i++)
         {
             task tsk;

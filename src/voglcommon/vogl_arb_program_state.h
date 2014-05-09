@@ -114,7 +114,7 @@ public:
         return true;
     }
 
-    uint get_program_string_size() const
+    uint32_t get_program_string_size() const
     {
         return m_program_string.size();
     }
@@ -177,19 +177,19 @@ public:
         cNumTargets
     };
 
-    GLuint get_cur_program(uint index) const
+    GLuint get_cur_program(uint32_t index) const
     {
         return m_cur_programs[index];
     }
 
-    const vec4F_vec &get_env_params(uint index) const
+    const vec4F_vec &get_env_params(uint32_t index) const
     {
         return m_env_params[index];
     }
 
     bool compare_restorable_state(const vogl_arb_program_environment_state &rhs) const;
 
-    static GLenum get_target_enum(uint index)
+    static GLenum get_target_enum(uint32_t index)
     {
         VOGL_ASSERT(index < cNumTargets);
         return (index == cVertexTarget) ? GL_VERTEX_PROGRAM_ARB : GL_FRAGMENT_PROGRAM_ARB;
@@ -201,7 +201,7 @@ private:
     vec4F_vec m_env_params[cNumTargets];
     bool m_is_valid;
 
-    static const char *get_target_index_name(uint index)
+    static const char *get_target_index_name(uint32_t index)
     {
         VOGL_ASSERT(index < cNumTargets);
         return (index == cVertexTarget) ? "vertex" : "fragment";

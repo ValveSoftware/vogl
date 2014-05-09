@@ -95,14 +95,14 @@ namespace vogl
 
     void dynamic_module_cache::unload_all()
     {
-        for (uint i = 0; i < m_modules.size(); i++)
+        for (uint32_t i = 0; i < m_modules.size(); i++)
             unload_dynamic_module(m_modules[i].m_handle);
         m_modules.clear();
     }
 
     bool dynamic_module_cache::is_module_loaded(const char *pFilename)
     {
-        for (uint i = 0; i < m_modules.size(); i++)
+        for (uint32_t i = 0; i < m_modules.size(); i++)
             if (m_modules[i].m_filename == pFilename)
                 return true;
         return false;
@@ -110,7 +110,7 @@ namespace vogl
 
     dynamic_module_handle_t dynamic_module_cache::get_module(const char *pFilename)
     {
-        for (uint i = 0; i < m_modules.size(); i++)
+        for (uint32_t i = 0; i < m_modules.size(); i++)
             if (m_modules[i].m_filename == pFilename)
                 return m_modules[i].m_handle;
 

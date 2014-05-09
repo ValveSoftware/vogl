@@ -52,12 +52,12 @@ namespace vogl
         m_unique_values.resize(0);
         m_unique_value_weights.resize(0);
 
-        for (uint i = 0; i < 256; i++)
+        for (uint32_t i = 0; i < 256; i++)
             m_unique_value_map[i] = -1;
 
-        for (uint i = 0; i < p.m_num_pixels; i++)
+        for (uint32_t i = 0; i < p.m_num_pixels; i++)
         {
-            uint alpha = p.m_pPixels[i][p.m_comp_index];
+            uint32_t alpha = p.m_pPixels[i][p.m_comp_index];
 
             int index = m_unique_value_map[alpha];
 
@@ -89,13 +89,13 @@ namespace vogl
 
         r.m_error = cUINT64_MAX;
 
-        for (uint i = 0; i < m_unique_values.size() - 1; i++)
+        for (uint32_t i = 0; i < m_unique_values.size() - 1; i++)
         {
-            const uint low_endpoint = m_unique_values[i];
+            const uint32_t low_endpoint = m_unique_values[i];
 
-            for (uint j = i + 1; j < m_unique_values.size(); j++)
+            for (uint32_t j = i + 1; j < m_unique_values.size(); j++)
             {
-                const uint high_endpoint = m_unique_values[j];
+                const uint32_t high_endpoint = m_unique_values[j];
 
                 evaluate_solution(low_endpoint, high_endpoint);
             }
@@ -116,7 +116,7 @@ namespace vogl
                 else if (l > 255)
                     break;
 
-                const uint bit_index = l * 256;
+                const uint32_t bit_index = l * 256;
 
                 for (int h_delta = -cProbeAmount; h_delta <= cProbeAmount; h_delta++)
                 {
@@ -132,14 +132,14 @@ namespace vogl
                         continue;
                     m_flags.set_bit(bit_index + h);
 
-                    evaluate_solution(static_cast<uint>(l), static_cast<uint>(h));
+                    evaluate_solution(static_cast<uint32_t>(l), static_cast<uint32_t>(h));
                 }
             }
         }
 
         if (m_pResults->m_first_endpoint == m_pResults->m_second_endpoint)
         {
-            for (uint i = 0; i < m_best_selectors.size(); i++)
+            for (uint32_t i = 0; i < m_best_selectors.size(); i++)
                 m_best_selectors[i] = 0;
         }
         else if (m_pResults->m_block_type)
@@ -152,20 +152,20 @@ namespace vogl
             if (m_pResults->m_first_endpoint > m_pResults->m_second_endpoint)
             {
                 utils::swap(m_pResults->m_first_endpoint, m_pResults->m_second_endpoint);
-                for (uint i = 0; i < m_best_selectors.size(); i++)
+                for (uint32_t i = 0; i < m_best_selectors.size(); i++)
                     m_best_selectors[i] = g_six_alpha_invert_table[m_best_selectors[i]];
             }
         }
         else if (!(m_pResults->m_first_endpoint > m_pResults->m_second_endpoint))
         {
             utils::swap(m_pResults->m_first_endpoint, m_pResults->m_second_endpoint);
-            for (uint i = 0; i < m_best_selectors.size(); i++)
+            for (uint32_t i = 0; i < m_best_selectors.size(); i++)
                 m_best_selectors[i] = g_eight_alpha_invert_table[m_best_selectors[i]];
         }
 
-        for (uint i = 0; i < m_pParams->m_num_pixels; i++)
+        for (uint32_t i = 0; i < m_pParams->m_num_pixels; i++)
         {
-            uint alpha = m_pParams->m_pPixels[i][m_pParams->m_comp_index];
+            uint32_t alpha = m_pParams->m_pPixels[i][m_pParams->m_comp_index];
 
             int index = m_unique_value_map[alpha];
 
@@ -175,11 +175,11 @@ namespace vogl
         return true;
     }
 
-    void dxt5_endpoint_optimizer::evaluate_solution(uint low_endpoint, uint high_endpoint)
+    void dxt5_endpoint_optimizer::evaluate_solution(uint32_t low_endpoint, uint32_t high_endpoint)
     {
-        for (uint block_type = 0; block_type < (m_pParams->m_use_both_block_types ? 2U : 1U); block_type++)
+        for (uint32_t block_type = 0; block_type < (m_pParams->m_use_both_block_types ? 2U : 1U); block_type++)
         {
-            uint selector_values[8];
+            uint32_t selector_values[8];
 
             if (!block_type)
                 dxt5_block::get_block_values8(selector_values, low_endpoint, high_endpoint);
@@ -188,20 +188,20 @@ namespace vogl
 
             uint64_t trial_error = 0;
 
-            for (uint i = 0; i < m_unique_values.size(); i++)
+            for (uint32_t i = 0; i < m_unique_values.size(); i++)
             {
-                const uint val = m_unique_values[i];
-                const uint weight = m_unique_value_weights[i];
+                const uint32_t val = m_unique_values[i];
+                const uint32_t weight = m_unique_value_weights[i];
 
-                uint best_selector_error = UINT_MAX;
-                uint best_selector = 0;
+                uint32_t best_selector_error = UINT_MAX;
+                uint32_t best_selector = 0;
 
-                for (uint j = 0; j < 8; j++)
+                for (uint32_t j = 0; j < 8; j++)
                 {
                     int selector_error = val - selector_values[j];
                     selector_error = selector_error * selector_error * (int)weight;
 
-                    if (static_cast<uint>(selector_error) < best_selector_error)
+                    if (static_cast<uint32_t>(selector_error) < best_selector_error)
                     {
                         best_selector_error = selector_error;
                         best_selector = j;

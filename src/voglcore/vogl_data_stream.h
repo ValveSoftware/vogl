@@ -48,7 +48,7 @@ namespace vogl
 
     public:
         data_stream();
-        data_stream(const char *pName, uint attribs);
+        data_stream(const char *pName, uint32_t attribs);
 
         virtual ~data_stream()
         {
@@ -105,13 +105,13 @@ namespace vogl
             m_name.set(pName);
         }
 
-        virtual uint read(void *pBuf, uint len) = 0;
-        inline virtual uint peek(char *out_char) { VOGL_VERIFY(!"peek not implemented for this class."); return 0; }
+        virtual uint32_t read(void *pBuf, uint32_t len) = 0;
+        inline virtual uint32_t peek(char *out_char) { VOGL_VERIFY(!"peek not implemented for this class."); return 0; }
         uint64_t read64(void *pBuf, uint64_t len);
 
         virtual uint64_t skip(uint64_t len);
 
-        virtual uint write(const void *pBuf, uint len) = 0;
+        virtual uint32_t write(const void *pBuf, uint32_t len) = 0;
         virtual bool flush() = 0;
 
         virtual bool is_size_known() const

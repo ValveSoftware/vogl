@@ -183,7 +183,7 @@ bool vogl_arb_program_state::restore(const vogl_context_info &context_info, vogl
             }
         }
 
-        for (uint i = 0; i < m_local_params.size(); i++)
+        for (uint32_t i = 0; i < m_local_params.size(); i++)
         {
             GL_ENTRYPOINT(glProgramLocalParameter4fvARB)(m_target, i, m_local_params[i].get_ptr());
             VOGL_CHECK_GL_ERROR;
@@ -200,10 +200,10 @@ bool vogl_arb_program_state::remap_handles(vogl_handle_remapper &remapper)
     if (!m_is_valid)
         return false;
 
-    uint replay_handle = m_snapshot_handle;
+    uint32_t replay_handle = m_snapshot_handle;
     VOGL_NOTE_UNUSED(replay_handle);
 
-    uint trace_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAM_ARB, m_snapshot_handle));
+    uint32_t trace_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAM_ARB, m_snapshot_handle));
 
     m_snapshot_handle = trace_handle;
 
@@ -258,7 +258,7 @@ bool vogl_arb_program_state::serialize(json_node &node, vogl_blob_manager &blob_
     if (m_local_params.size())
     {
         json_node &param_array = node.add_array("local_params");
-        for (uint i = 0; i < m_local_params.size(); i++)
+        for (uint32_t i = 0; i < m_local_params.size(); i++)
             if (!vogl_json_serialize_vec4F(param_array.add_array(), m_local_params[i]))
                 return false;
     }
@@ -299,7 +299,7 @@ bool vogl_arb_program_state::deserialize(const json_node &node, const vogl_blob_
             return false;
 
         m_local_params.resize(pParams_node->size());
-        for (uint i = 0; i < pParams_node->size(); i++)
+        for (uint32_t i = 0; i < pParams_node->size(); i++)
         {
             if (!vogl_json_deserialize_vec4F(*pParams_node->get_child(i), m_local_params[i]))
             {
@@ -338,7 +338,7 @@ bool vogl_arb_program_state::compare_restorable_state(const vogl_gl_object_state
     CMP(m_local_params.size());
 #undef CMP
 
-    for (uint i = 0; i < m_local_params.size(); i++)
+    for (uint32_t i = 0; i < m_local_params.size(); i++)
         if (!m_local_params[i].equal_tol(rhs.m_local_params[i], .00125f))
             return false;
 
@@ -368,7 +368,7 @@ bool vogl_arb_program_environment_state::snapshot(const vogl_context_info &conte
 
     VOGL_CHECK_GL_ERROR;
 
-    for (uint i = 0; i < cNumTargets; i++)
+    for (uint32_t i = 0; i < cNumTargets; i++)
     {
         GLenum target = get_target_enum(i);
 
@@ -378,7 +378,7 @@ bool vogl_arb_program_environment_state::snapshot(const vogl_context_info &conte
         GLuint num = (i == cVertexTarget) ? context_info.get_max_arb_vertex_program_env_params() : context_info.get_max_arb_fragment_program_env_params();
 
         m_env_params[i].resize(num);
-        for (uint j = 0; j < num; j++)
+        for (uint32_t j = 0; j < num; j++)
         {
             GL_ENTRYPOINT(glGetProgramEnvParameterfvARB)(target, j, m_env_params[i][j].get_ptr());
             VOGL_CHECK_GL_ERROR;
@@ -402,7 +402,7 @@ bool vogl_arb_program_environment_state::restore(const vogl_context_info &contex
 
     VOGL_CHECK_GL_ERROR;
 
-    for (uint i = 0; i < cNumTargets; i++)
+    for (uint32_t i = 0; i < cNumTargets; i++)
     {
         GLenum target = get_target_enum(i);
 
@@ -416,9 +416,9 @@ bool vogl_arb_program_environment_state::restore(const vogl_context_info &contex
         if (m_env_params[i].size() > num)
             vogl_error_printf("%s: Context only supports %u max ARB program env programs, but the snapshot has %u params\n", VOGL_FUNCTION_INFO_CSTR, num, m_env_params[i].size());
 
-        num = math::minimum<uint>(num, m_env_params[i].size());
+        num = math::minimum<uint32_t>(num, m_env_params[i].size());
 
-        for (uint j = 0; j < num; j++)
+        for (uint32_t j = 0; j < num; j++)
         {
             GL_ENTRYPOINT(glProgramEnvParameter4fvARB)(target, j, m_env_params[i][j].get_ptr());
             VOGL_CHECK_GL_ERROR;
@@ -438,12 +438,12 @@ bool vogl_arb_program_environment_state::remap_handles(vogl_handle_remapper &rem
         return false;
     }
 
-    for (uint target = 0; target < cNumTargets; target++)
+    for (uint32_t target = 0; target < cNumTargets; target++)
     {
-        uint replay_handle = m_cur_programs[target];
+        uint32_t replay_handle = m_cur_programs[target];
         if (replay_handle)
         {
-            uint trace_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAM_ARB, replay_handle));
+            uint32_t trace_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAM_ARB, replay_handle));
 
             m_cur_programs[target] = trace_handle;
         }
@@ -460,7 +460,7 @@ void vogl_arb_program_environment_state::clear()
 
     m_is_valid = false;
 
-    for (uint i = 0; i < cNumTargets; i++)
+    for (uint32_t i = 0; i < cNumTargets; i++)
         m_env_params[i].clear();
 }
 
@@ -476,7 +476,7 @@ bool vogl_arb_program_environment_state::serialize(json_node &node, vogl_blob_ma
         return false;
     }
 
-    for (uint target = 0; target < cNumTargets; target++)
+    for (uint32_t target = 0; target < cNumTargets; target++)
     {
         json_node &state_node = node.add_object(get_target_index_name(target));
 
@@ -484,7 +484,7 @@ bool vogl_arb_program_environment_state::serialize(json_node &node, vogl_blob_ma
 
         json_node &env_params_node = state_node.add_array("env_params");
 
-        for (uint j = 0; j < m_env_params[target].size(); j++)
+        for (uint32_t j = 0; j < m_env_params[target].size(); j++)
             if (!vogl_json_serialize_vec4F(env_params_node.add_array(), m_env_params[target][j]))
                 return false;
     }
@@ -503,7 +503,7 @@ bool vogl_arb_program_environment_state::deserialize(const json_node &node, cons
     if (!node.is_object())
         return false;
 
-    for (uint target = 0; target < cNumTargets; target++)
+    for (uint32_t target = 0; target < cNumTargets; target++)
     {
         const json_node *pState = node.find_child_object(get_target_index_name(target));
         if (!pState)
@@ -515,7 +515,7 @@ bool vogl_arb_program_environment_state::deserialize(const json_node &node, cons
         if (pArray)
         {
             m_env_params[target].resize(pArray->size());
-            for (uint i = 0; i < pArray->size(); i++)
+            for (uint32_t i = 0; i < pArray->size(); i++)
             {
                 if (!vogl_json_deserialize_vec4F(*pArray->get_value_as_array(i), m_env_params[target][i]))
                 {
@@ -541,7 +541,7 @@ bool vogl_arb_program_environment_state::compare_restorable_state(const vogl_arb
     if (!m_is_valid)
         return true;
 
-    for (uint i = 0; i < cNumTargets; i++)
+    for (uint32_t i = 0; i < cNumTargets; i++)
     {
         if (m_cur_programs[i] != rhs.m_cur_programs[i])
             return false;
@@ -549,7 +549,7 @@ bool vogl_arb_program_environment_state::compare_restorable_state(const vogl_arb
         if (m_env_params[i].size() != rhs.m_env_params[i].size())
             return false;
 
-        for (uint j = 0; j < m_env_params[i].size(); j++)
+        for (uint32_t j = 0; j < m_env_params[i].size(); j++)
             if (!m_env_params[i][j].equal_tol(rhs.m_env_params[i][j], .00125f))
                 return false;
     }

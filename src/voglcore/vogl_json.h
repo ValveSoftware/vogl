@@ -45,7 +45,7 @@ namespace vogl
     class json_deserialize_buf_ptr;
     class json_document;
 
-    template <typename T, uint N>
+    template <typename T, uint32_t N>
     class growable_array;
 
     template <typename Key, typename Value, typename Hasher, typename Equals>
@@ -54,7 +54,7 @@ namespace vogl
     template <typename Key, typename Value, typename Hasher, typename Equals, typename Allocator>
     class rh_hash_map;
 
-    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint MaxLevels>
+    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint32_t MaxLevels>
     class map;
 
     enum json_value_type_t
@@ -89,7 +89,7 @@ namespace vogl
         int m_error_line;
         dynamic_string m_error_msg;
 
-        void set_error(uint line, const char *pMsg, ...) VOGL_ATTRIBUTE_PRINTF(3, 4);
+        void set_error(uint32_t line, const char *pMsg, ...) VOGL_ATTRIBUTE_PRINTF(3, 4);
     };
 
     // Node pool
@@ -114,7 +114,7 @@ namespace vogl
     public:
         inline json_value();
         inline json_value(bool val);
-        inline json_value(int32 nVal);
+        inline json_value(int32_t nVal);
         inline json_value(uint32_t nVal);
         inline json_value(int64_t nVal);
         // Note uint64_t values may be encoded as hex strings or int64_t
@@ -170,7 +170,7 @@ namespace vogl
         inline void set_value(bool val);
         inline void set_value(int8_t nVal);
         inline void set_value(int16_t nVal);
-        inline void set_value(int32 nVal);
+        inline void set_value(int32_t nVal);
         inline void set_value(int64_t nVal);
 
         inline void set_value(uint8_t nVal);
@@ -191,7 +191,7 @@ namespace vogl
         inline void set_value_assume_ownership(json_node *pNode);
 
         inline json_value &operator=(bool val);
-        inline json_value &operator=(int32 nVal);
+        inline json_value &operator=(int32_t nVal);
         inline json_value &operator=(uint32_t nVal);
         inline json_value &operator=(int64_t nVal);
         inline json_value &operator=(uint64_t nVal);
@@ -204,7 +204,7 @@ namespace vogl
         inline bool get_bool(bool &val, bool def = false) const;
         bool get_numeric(int8_t &val, int8_t def = 0) const;
         bool get_numeric(int16_t &val, int16_t def = 0) const;
-        inline bool get_numeric(int32 &val, int32 def = 0) const;
+        inline bool get_numeric(int32_t &val, int32_t def = 0) const;
         inline bool get_numeric(int64_t &val, int64_t def = 0) const;
 
         bool get_numeric(uint8_t &val, uint8_t def = 0) const;
@@ -220,7 +220,7 @@ namespace vogl
 
         inline bool as_bool(bool def = false) const;
         inline int as_int(int def = 0) const;
-        inline int as_int32(int32 def = 0) const;
+        inline int as_int32(int32_t def = 0) const;
         inline uint32_t as_uint32(uint32_t def = 0) const;
         inline int64_t as_int64(int64_t def = 0) const;
         inline uint64_t as_uint64(uint64_t def = 0) const;
@@ -247,13 +247,13 @@ namespace vogl
         bool deserialize(const char *pBuf, size_t buf_size, json_error_info_t *pError_info = NULL);
 
         // Serialize to a UTF8 file, a growable buffer, or a string
-        bool serialize_to_file(const char *pFilename, bool formatted = true, uint max_line_len = CMaxLineLenDefault) const;
-        bool serialize(FILE *pFile, bool formatted = true, uint max_line_len = CMaxLineLenDefault) const;
-        void serialize(vogl::vector<char> &buf, bool formatted = true, uint cur_indent = 0, bool null_terminate = true, uint max_line_len = CMaxLineLenDefault) const;
+        bool serialize_to_file(const char *pFilename, bool formatted = true, uint32_t max_line_len = CMaxLineLenDefault) const;
+        bool serialize(FILE *pFile, bool formatted = true, uint32_t max_line_len = CMaxLineLenDefault) const;
+        void serialize(vogl::vector<char> &buf, bool formatted = true, uint32_t cur_indent = 0, bool null_terminate = true, uint32_t max_line_len = CMaxLineLenDefault) const;
         // Serializes to a dynamic_string
-        dynamic_string &serialize(dynamic_string &str, bool formatted = true, uint cur_indent = 0, uint max_line_len = CMaxLineLenDefault) const;
+        dynamic_string &serialize(dynamic_string &str, bool formatted = true, uint32_t cur_indent = 0, uint32_t max_line_len = CMaxLineLenDefault) const;
         // Serialize to stdout.
-        void print(bool formatted = true, uint cur_indent = 0, uint max_line_len = CMaxLineLenDefault) const;
+        void print(bool formatted = true, uint32_t cur_indent = 0, uint32_t max_line_len = CMaxLineLenDefault) const;
 
         // Deserialize from Universal Binary JSON (UBJ).
         bool binary_deserialize(const uint8_t *pBuf, size_t buf_size);
@@ -271,17 +271,17 @@ namespace vogl
         // Returns true if all parent pointers are correct.
         bool validate(const json_node *pParent = NULL) const;
 
-        void set_line(uint line);
+        void set_line(uint32_t line);
 
-        uint get_line() const;
+        uint32_t get_line() const;
 
     protected:
         json_value_data_t m_data;
         json_value_type_t m_type;
-        uint m_line;
+        uint32_t m_line;
 
         bool convert_to_bool(bool &val, bool def) const;
-        bool convert_to_int32(int32 &val, int32 def) const;
+        bool convert_to_int32(int32_t &val, int32_t def) const;
         bool convert_to_int64(int64_t &val, int64_t def) const;
         bool convert_to_uint64(uint64_t &val, uint64_t def) const;
         bool convert_to_float(float &val, float def) const;
@@ -296,15 +296,15 @@ namespace vogl
                 get_json_node_pool()->destroy(m_data.m_pNode);
         }
 
-        bool deserialize_node(json_deserialize_buf_ptr &pStr, json_node *pParent, uint level, json_error_info_t &error_info);
-        bool estimate_deserialized_string_size(json_deserialize_buf_ptr &pStr, json_error_info_t &error_info, uint &size);
-        bool deserialize_quoted_string_to_buf(char *&pBuf, uint buf_size, json_deserialize_buf_ptr &pStr, json_error_info_t &error_info);
+        bool deserialize_node(json_deserialize_buf_ptr &pStr, json_node *pParent, uint32_t level, json_error_info_t &error_info);
+        bool estimate_deserialized_string_size(json_deserialize_buf_ptr &pStr, json_error_info_t &error_info, uint32_t &size);
+        bool deserialize_quoted_string_to_buf(char *&pBuf, uint32_t buf_size, json_deserialize_buf_ptr &pStr, json_error_info_t &error_info);
         bool deserialize_string(json_deserialize_buf_ptr &pStr, json_error_info_t &error_info);
         bool deserialize_number(json_deserialize_buf_ptr &pStr, json_error_info_t &error_info);
-        bool deserialize(json_deserialize_buf_ptr &pStr, json_node *pParent, uint level, json_error_info_t &error_info);
+        bool deserialize(json_deserialize_buf_ptr &pStr, json_node *pParent, uint32_t level, json_error_info_t &error_info);
 
         void binary_serialize_value(vogl::vector<uint8_t> &buf) const;
-        bool binary_deserialize(const uint8_t *&pBuf, const uint8_t *pBuf_end, json_node *pParent, uint depth);
+        bool binary_deserialize(const uint8_t *&pBuf, const uint8_t *pBuf_end, json_node *pParent, uint32_t depth);
 
     private:
         // Optional: Forbid (the super annoying) implicit conversions of all pointers/const pointers to bool, except for the specializations below.
@@ -353,9 +353,9 @@ namespace vogl
         json_node &operator=(const json_node &rhs);
 
         // Serialize to buffer.
-        void serialize(vogl::vector<char> &buf, bool formatted = true, uint cur_index = 0, bool null_terminate = true, uint max_line_len = CMaxLineLenDefault) const;
+        void serialize(vogl::vector<char> &buf, bool formatted = true, uint32_t cur_index = 0, bool null_terminate = true, uint32_t max_line_len = CMaxLineLenDefault) const;
 
-        void serialize(dynamic_string &str, bool formatted = true, uint cur_index = 0, uint max_line_len = CMaxLineLenDefault) const;
+        void serialize(dynamic_string &str, bool formatted = true, uint32_t cur_index = 0, uint32_t max_line_len = CMaxLineLenDefault) const;
 
         void binary_serialize(vogl::vector<uint8_t> &buf) const;
 
@@ -363,13 +363,13 @@ namespace vogl
         inline const json_node *get_parent() const;
 
         // true if the value at the specified index is an object or array.
-        inline bool is_child(uint index) const;
+        inline bool is_child(uint32_t index) const;
 
         // true if the value at the specified index is an object.
-        inline bool is_child_object(uint index) const;
+        inline bool is_child_object(uint32_t index) const;
 
         // true if the value at the specified index is an array.
-        inline bool is_child_array(uint index) const;
+        inline bool is_child_array(uint32_t index) const;
 
         // Finds the specified child (case insensitive), or NULL if the child cannot be found.
         const json_node *find_child(const char *pKey) const;
@@ -396,8 +396,8 @@ namespace vogl
         bool are_all_children_objects_or_arrays() const;
 
         // Returns pointer to the child array or object at the specified index, or NULL if the value is not an array or object.
-        inline const json_node *get_child(uint index) const;
-        inline json_node *get_child(uint index);
+        inline const json_node *get_child(uint32_t index) const;
+        inline json_node *get_child(uint32_t index);
 
         // true if any of the values in this node are objects or arrays.
         bool has_children() const;
@@ -405,7 +405,7 @@ namespace vogl
         // Object/array info
         inline bool is_object() const;
         inline bool is_array() const;
-        inline uint size() const;
+        inline uint32_t size() const;
 
         // Key retrieval/finding
 
@@ -422,7 +422,7 @@ namespace vogl
         // true if the value associated with the specified key is an array
         inline bool has_array(const char *pKey) const;
 
-        inline const dynamic_string &get_key(uint index) const;
+        inline const dynamic_string &get_key(uint32_t index) const;
 
         // returns get_null_json_value if the key does not exist
         const json_value &find_value(const char *pKey) const;
@@ -431,20 +431,20 @@ namespace vogl
         json_value_type_t find_value_type(const char *pKey) const;
 
         // Value retrieval/finding
-        inline json_value_type_t get_value_type(uint index) const;
-        inline const json_value &get_value(uint index) const;
-        inline const json_value &operator[](uint index) const;
+        inline json_value_type_t get_value_type(uint32_t index) const;
+        inline const json_value &get_value(uint32_t index) const;
+        inline const json_value &operator[](uint32_t index) const;
 
         // Returns NULL if the value is not an object or array.
-        inline const json_node *get_value_as_object_or_array(uint index) const;
-        inline const json_node *get_value_as_object(uint index) const;
-        inline const json_node *get_value_as_array(uint index) const;
+        inline const json_node *get_value_as_object_or_array(uint32_t index) const;
+        inline const json_node *get_value_as_object(uint32_t index) const;
+        inline const json_node *get_value_as_array(uint32_t index) const;
 
         // get() variants returns true if key was found and the JSON value could be losslessly converted to the destination type.
         bool get_value_as_string(const char *pKey, dynamic_string &val, const char *pDef = "") const;
         bool get_value_as_enum(const char *pKey, const char **pStringList, int &val, int def = 0) const;
 
-        // T may be int8_t, int16_t, int32 or uint8_t, uint16_t, uint32_t
+        // T may be int8_t, int16_t, int32_t or uint8_t, uint16_t, uint32_t
         // Internally this fetches the value as int64_t and attempts to convert. Returns false and sets val to def if out of range.
         template <typename T>
         bool get_value_as_int(const char *pKey, T &val, T def = 0) const;
@@ -461,7 +461,7 @@ namespace vogl
         dynamic_string value_as_string(const char *pKey, const char *pDef = "") const;
         const char *value_as_string_ptr(const char *pKey, const char *pDef = "") const;
         int value_as_int(const char *pKey, int def = 0) const;
-        int32 value_as_int32(const char *pKey, int32 def = 0) const;
+        int32_t value_as_int32(const char *pKey, int32_t def = 0) const;
         int64_t value_as_int64(const char *pKey, int64_t def = 0) const;
         uint32_t value_as_uint32(const char *pKey, uint32_t def = 0) const;
         uint64_t value_as_uint64(const char *pKey, uint64_t def = 0) const;
@@ -471,17 +471,17 @@ namespace vogl
 
         // The value_as() variants return the value, or the default if key can't be converted to the desired type.
         // Note that if trying to convert a negative value to an unsigned type, or a value which is too large will fail and you'll get the default.
-        dynamic_string value_as_string(uint index, const char *pDef = "") const;
+        dynamic_string value_as_string(uint32_t index, const char *pDef = "") const;
         // Returns NULL if value is not a string.
-        const char *value_as_string_ptr(uint index, const char *pDef = "") const;
-        int value_as_int(uint index, int def = 0) const;
-        int32 value_as_int32(uint index, int32 def = 0) const;
-        int64_t value_as_int64(uint index, int64_t def = 0) const;
-        uint32_t value_as_uint32(uint index, uint32_t def = 0) const;
-        uint64_t value_as_uint64(uint index, uint64_t def = 0) const;
-        float value_as_float(uint index, float def = 0) const;
-        double value_as_double(uint index, double def = 0) const;
-        bool value_as_bool(uint index, bool def = false) const;
+        const char *value_as_string_ptr(uint32_t index, const char *pDef = "") const;
+        int value_as_int(uint32_t index, int def = 0) const;
+        int32_t value_as_int32(uint32_t index, int32_t def = 0) const;
+        int64_t value_as_int64(uint32_t index, int64_t def = 0) const;
+        uint32_t value_as_uint32(uint32_t index, uint32_t def = 0) const;
+        uint64_t value_as_uint64(uint32_t index, uint64_t def = 0) const;
+        float value_as_float(uint32_t index, float def = 0) const;
+        double value_as_double(uint32_t index, double def = 0) const;
+        bool value_as_bool(uint32_t index, bool def = false) const;
 
         inline bool operator==(const json_node &other) const;
         inline bool operator!=(const json_node &other) const;
@@ -490,8 +490,8 @@ namespace vogl
         // TODO: Add splicing, insert
 
         // Retrieves the json_value at the specified index.
-        inline json_value &get_value(uint index);
-        inline json_value &operator[](uint index);
+        inline json_value &get_value(uint32_t index);
+        inline json_value &operator[](uint32_t index);
 
         // Sets the parent node of this node.
         void set_parent(const json_node *pParent);
@@ -505,10 +505,10 @@ namespace vogl
         void init_array();
 
         // Changes the number of elements in this node. Enlarging will add empty keys (for objects), and values of type cJSONValueTypeNull.
-        void resize(uint new_size);
-        inline uint enlarge(uint n);
+        void resize(uint32_t new_size);
+        inline uint32_t enlarge(uint32_t n);
 
-        void reserve(uint new_capacity);
+        void reserve(uint32_t new_capacity);
 
         // Retrieves the json_value associated with a key, or adds a new named key/value to the node, which must be an object. The newly added json_value will have type cJSONValueTypeNull.
         json_value &get_or_add(const char *pKey);
@@ -548,15 +548,15 @@ namespace vogl
         bool add_parsed_value(const char *pValueToParse);
 
         // Retrieves a node's key. Asserts and returns a ref to get_empty_dynamic_string() if the node is an array.
-        dynamic_string &get_key(uint index);
+        dynamic_string &get_key(uint32_t index);
 
         // Sets the key/value at the specified index. If the node is not an object it will be upgraded to one.
-        void set_key_value(uint index, const char *pKey, const json_value &val);
-        void set_key(uint index, const char *pKey);
-        void set_value(uint index, const json_value &val);
+        void set_key_value(uint32_t index, const char *pKey, const json_value &val);
+        void set_key(uint32_t index, const char *pKey);
+        void set_value(uint32_t index, const json_value &val);
 
         // Sets the value at the specified index. Takes ownership of any node pointed to by val. val will be cleared.
-        void set_value_assume_ownership(uint index, json_value &val);
+        void set_value_assume_ownership(uint32_t index, json_value &val);
         void add_value_assume_ownership(json_value &val);
         void add_key_value_assume_ownership(const char *pKey, json_value &val);
 
@@ -565,7 +565,7 @@ namespace vogl
         bool erase(const dynamic_string &key);
 
         // Removes the specified key at index.
-        void erase(uint index);
+        void erase(uint32_t index);
 
         // true if the node passes some basic tests for validity.
         bool basic_validation(const json_node *pParent) const;
@@ -580,17 +580,17 @@ namespace vogl
         dynamic_string get_path_to_key(const char *pKey) const;
 
         // index is not range checked.
-        dynamic_string get_path_to_item(uint index) const;
+        dynamic_string get_path_to_item(uint32_t index) const;
 
         // Returns true if one or more keys has the same name, which is not valid JSON to many readers (although this seems to be a grey area of the spec).
         // Recursively checks children nodes.
         bool check_for_duplicate_keys() const;
 
         // Set the line number associated with this node.
-        void set_line(uint line);
+        void set_line(uint32_t line);
 
         // Gets the line number associated with this node.
-        uint get_line() const;
+        uint32_t get_line() const;
 
         // High-level container serialization/deserialization to/from JSON nodes.
         // These methods add or retrieve entire containers (vectors, growable_array's, hash_map's, or map's) or user objects to/from JSON nodes.
@@ -606,7 +606,7 @@ namespace vogl
 
         // Retrieves the object at the specified index from this node.
         template <typename T>
-        bool get_object(uint index, T &obj) const;
+        bool get_object(uint32_t index, T &obj) const;
 
         // add_vector() and get_vector() are compatible with vogl::vector or vogl::growable_array.
         // If pKey is NULL, the hash map is read from the current node, otherwise it's read from the child object named pKey.
@@ -632,12 +632,12 @@ namespace vogl
         dynamic_string_array m_keys;
         json_value_array m_values;
 
-        uint m_line;
+        uint32_t m_line;
 
         bool m_is_object;
 
         void ensure_is_object();
-        void serialize(json_growable_char_buf &buf, bool formatted, uint cur_index, uint max_line_len = CMaxLineLenDefault) const;
+        void serialize(json_growable_char_buf &buf, bool formatted, uint32_t cur_index, uint32_t max_line_len = CMaxLineLenDefault) const;
     };
 
     // json_document is an optional helper class that derives from json_value.
@@ -652,7 +652,7 @@ namespace vogl
         explicit json_document(const json_value &other);
         json_document(const json_document &other);
         json_document(const char *pStr, const char *pFilename = "<string>");
-        json_document(const char *pBuf, uint n, const char *pFilename = "<buffer>");
+        json_document(const char *pBuf, uint32_t n, const char *pFilename = "<buffer>");
         json_document(json_value_type_t value_type);
         ~json_document();
 
@@ -686,14 +686,14 @@ namespace vogl
 
         // error messages due to failed parses
         const dynamic_string &get_error_msg() const;
-        uint get_error_line() const;
+        uint32_t get_error_line() const;
         void clear_error();
 
     private:
         dynamic_string m_filename;
 
         dynamic_string m_error_msg;
-        uint m_error_line;
+        uint32_t m_error_line;
     };
 
     bool json_test();

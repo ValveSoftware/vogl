@@ -51,16 +51,16 @@ public:
         m_packets.clear();
     }
 
-    void resize(uint new_size)
+    void resize(uint32_t new_size)
     {
         m_packets.resize(new_size);
     }
-    void reserve(uint new_capacity)
+    void reserve(uint32_t new_capacity)
     {
         m_packets.reserve(new_capacity);
     }
 
-    uint size() const
+    uint32_t size() const
     {
         return m_packets.size();
     }
@@ -74,12 +74,12 @@ public:
         m_packets.push_back(packet);
     }
 
-    void insert(uint index, const uint8_vec &packet)
+    void insert(uint32_t index, const uint8_vec &packet)
     {
         m_packets.insert(index, packet);
     }
 
-    void erase(uint index)
+    void erase(uint32_t index)
     {
         m_packets.erase(index);
     }
@@ -98,44 +98,44 @@ public:
         return m_packets;
     }
 
-    const uint8_vec &get_packet_buf(uint index) const
+    const uint8_vec &get_packet_buf(uint32_t index) const
     {
         return m_packets[index];
     }
-    uint8_vec &get_packet_buf(uint index)
+    uint8_vec &get_packet_buf(uint32_t index)
     {
         return m_packets[index];
     }
 
     template <typename T>
-    inline const T &get_packet(uint index) const
+    inline const T &get_packet(uint32_t index) const
     {
         VOGL_ASSERT(m_packets[index].size() >= sizeof(T));
         return *reinterpret_cast<const T *>(m_packets[index].get_ptr());
     }
 
-    inline const vogl_trace_stream_packet_base &get_base_packet(uint index) const
+    inline const vogl_trace_stream_packet_base &get_base_packet(uint32_t index) const
     {
         return get_packet<vogl_trace_stream_packet_base>(index);
     }
 
-    inline vogl_trace_stream_packet_types_t get_packet_type(uint index) const
+    inline vogl_trace_stream_packet_types_t get_packet_type(uint32_t index) const
     {
         return static_cast<vogl_trace_stream_packet_types_t>(get_base_packet(index).m_type);
     }
-    inline uint get_packet_size(uint index) const
+    inline uint32_t get_packet_size(uint32_t index) const
     {
         return m_packets[index].size();
     }
 
-    inline bool is_eof_packet(uint index) const
+    inline bool is_eof_packet(uint32_t index) const
     {
         VOGL_FUNC_TRACER
 
         return (get_packet_type(index) == cTSPTEOF);
     }
 
-    inline bool is_swap_buffers_packet(uint index) const
+    inline bool is_swap_buffers_packet(uint32_t index) const
     {
         VOGL_FUNC_TRACER
 
@@ -212,10 +212,10 @@ public:
 
     virtual bool can_quickly_seek_forward() const = 0;
 
-    virtual uint get_cur_frame() const = 0;
+    virtual uint32_t get_cur_frame() const = 0;
 
     // Allows random seeking, but it can be very slow to seek forward in binary traces.
-    virtual bool seek_to_frame(uint frame_index) = 0;
+    virtual bool seek_to_frame(uint32_t frame_index) = 0;
 
     virtual int64_t get_max_frame_index() = 0;
 
@@ -237,7 +237,7 @@ public:
     // Also, for binary traces: just because you get an EOF packet doesn't necessarily mean that cEOF will be returned next (the file could somehow be corrupted).
     virtual trace_file_reader_status_t read_next_packet() = 0;
 
-    virtual trace_file_reader_status_t read_frame_packets(uint frame_index, uint num_frames, vogl_trace_packet_array &packets, uint &actual_frames_read);
+    virtual trace_file_reader_status_t read_frame_packets(uint32_t frame_index, uint32_t num_frames, vogl_trace_packet_array &packets, uint32_t &actual_frames_read);
 
     // packet helpers
 
@@ -262,7 +262,7 @@ public:
     {
         return static_cast<vogl_trace_stream_packet_types_t>(get_base_packet().m_type);
     }
-    inline uint get_packet_size() const
+    inline uint32_t get_packet_size() const
     {
         return m_packet_buf.size();
     }
@@ -385,12 +385,12 @@ public:
         return m_found_frame_file_offsets_packet;
     }
 
-    virtual uint get_cur_frame() const
+    virtual uint32_t get_cur_frame() const
     {
         return m_cur_frame_index;
     }
 
-    virtual bool seek_to_frame(uint frame_index);
+    virtual bool seek_to_frame(uint32_t frame_index);
 
     virtual int64_t get_max_frame_index();
 
@@ -416,13 +416,13 @@ private:
     cfile_stream m_trace_stream;
     uint64_t m_trace_file_size;
 
-    uint m_cur_frame_index;
+    uint32_t m_cur_frame_index;
     int64_t m_max_frame_index;
     vogl::vector<uint64_t> m_frame_file_offsets;
 
     struct saved_location
     {
-        uint m_cur_frame_index;
+        uint32_t m_cur_frame_index;
         uint64_t m_cur_ofs;
     };
 
@@ -464,7 +464,7 @@ public:
         return true;
     }
 
-    virtual uint get_cur_frame() const
+    virtual uint32_t get_cur_frame() const
     {
         return m_cur_frame_index;
     }
@@ -474,7 +474,7 @@ public:
         return m_max_frame_index;
     }
 
-    virtual bool seek_to_frame(uint frame_index);
+    virtual bool seek_to_frame(uint32_t frame_index);
 
     virtual trace_file_reader_status_t read_next_packet();
 
@@ -496,13 +496,13 @@ private:
 
     cfile_stream m_trace_stream;
 
-    uint m_cur_frame_index;
-    uint m_max_frame_index;
+    uint32_t m_cur_frame_index;
+    uint32_t m_max_frame_index;
 
     json_document m_cur_doc;
     const json_node *m_pPackets_array;
-    uint m_cur_packet_node_index;
-    uint m_packet_node_size;
+    uint32_t m_cur_packet_node_index;
+    uint32_t m_packet_node_size;
     int m_doc_eof_key_value;
 
     bool m_at_eof;
@@ -514,8 +514,8 @@ private:
     struct saved_location
     {
         dynamic_string m_cur_frame_filename;
-        uint m_cur_frame_index;
-        uint m_cur_packet_node_index;
+        uint32_t m_cur_frame_index;
+        uint32_t m_cur_packet_node_index;
         bool m_at_eof;
     };
 

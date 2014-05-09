@@ -184,7 +184,7 @@ namespace vogl
                 dynamic_string colors = (vogl_colors[0] == '\'') ? (vogl_colors + 1) : vogl_colors;
 
                 colors.tokenize(":", tokens, true);
-                for (uint i = 0; i < tokens.size(); i++)
+                for (uint32_t i = 0; i < tokens.size(); i++)
                 {
                     dynamic_string &str = tokens[i];
                     dynamic_string_array color_tokens;
@@ -195,7 +195,7 @@ namespace vogl
                         eConsoleMessageType color_type = console::get_message_type_from_str(color_tokens[0].c_str());
                         if (color_type >= 0)
                         {
-                            for (uint j = 1; j < color_tokens.size(); j++)
+                            for (uint32_t j = 1; j < color_tokens.size(); j++)
                             {
                                 if (j == 1)
                                     g_colors[color_type].format("\033[%sm", color_tokens[j].c_str());

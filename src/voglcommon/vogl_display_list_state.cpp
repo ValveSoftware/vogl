@@ -98,7 +98,7 @@ bool vogl_display_list::serialize(json_node &node, vogl_blob_manager &blob_manag
         params.m_pBlob_manager = &blob_manager;
 
         json_node &packets_array = node.add_array("packets");
-        for (uint i = 0; i < m_packets.size(); i++)
+        for (uint32_t i = 0; i < m_packets.size(); i++)
         {
             const uint8_vec &packet_buf = m_packets.get_packet_buf(i);
 
@@ -143,7 +143,7 @@ bool vogl_display_list::deserialize(const json_node &node, const vogl_blob_manag
         vogl_trace_packet packet(pCtypes);
 
         m_packets.resize(pPackets_array->size());
-        for (uint i = 0; i < pPackets_array->size(); i++)
+        for (uint32_t i = 0; i < pPackets_array->size(); i++)
         {
             if (!packet.json_deserialize(*pPackets_array->get_child(i), "<display_list>", &blob_manager))
             {
@@ -208,7 +208,7 @@ bool vogl_display_list_state::remap_handles(vogl_handle_remapper &remapper)
 
     for (vogl_display_list_map::const_iterator it = m_display_lists.begin(); it != m_display_lists.end(); ++it)
     {
-        uint new_handle = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_LISTS, it->first));
+        uint32_t new_handle = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_LISTS, it->first));
 
         new_display_lists[new_handle] = it->second;
     }
@@ -249,7 +249,7 @@ bool vogl_display_list_state::deserialize(const json_node &node, const vogl_blob
         if (!pLists_node->are_all_children_objects())
             return false;
 
-        for (uint i = 0; i < pLists_node->size(); i++)
+        for (uint32_t i = 0; i < pLists_node->size(); i++)
         {
             if (!m_display_lists[string_to_uint(pLists_node->get_key(i).get_ptr())].deserialize(*pLists_node->get_child(i), blob_manager, pCtypes))
             {
@@ -416,7 +416,7 @@ bool vogl_display_list_state::parse_list_and_update_shadows(GLuint handle, pBind
 
     vogl_trace_packet trace_packet(&get_vogl_process_gl_ctypes());
 
-    for (uint packet_index = 0; packet_index < packets.size(); packet_index++)
+    for (uint32_t packet_index = 0; packet_index < packets.size(); packet_index++)
     {
         if (packets.get_packet_type(packet_index) != cTSPTGLEntrypoint)
         {
@@ -501,7 +501,7 @@ bool vogl_display_list_state::parse_lists_and_update_shadows(GLsizei n, GLenum t
 {
     VOGL_FUNC_TRACER
 
-    uint type_size = vogl_get_gl_type_size(type);
+    uint32_t type_size = vogl_get_gl_type_size(type);
     if (!type_size)
     {
         vogl_error_printf("%s: type is invalid\n", VOGL_FUNCTION_INFO_CSTR);
@@ -554,8 +554,8 @@ bool vogl_display_list_state::parse_lists_and_update_shadows(GLsizei n, GLenum t
             }
             case GL_INT:
             {
-                handle += *reinterpret_cast<const int32 *>(pTrace_lists_ptr);
-                pTrace_lists_ptr += sizeof(int32);
+                handle += *reinterpret_cast<const int32_t *>(pTrace_lists_ptr);
+                pTrace_lists_ptr += sizeof(int32_t);
                 break;
             }
             case GL_UNSIGNED_INT:

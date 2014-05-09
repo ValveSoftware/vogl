@@ -72,7 +72,7 @@ namespace vogl
         if (ext[0] == '.')
             ext.right(1);
 
-        for (uint i = 0; i < cNumFileFormats; i++)
+        for (uint32_t i = 0; i < cNumFileFormats; i++)
             if (ext == get_extension(static_cast<format>(i)))
                 return static_cast<format>(i);
 

@@ -86,7 +86,7 @@ bool vogl_sync_state::snapshot(const vogl_context_info &context_info, vogl_handl
 
     VOGL_ASSERT(m_params.get_value<GLenum>(GL_OBJECT_TYPE) == GL_SYNC_FENCE);
     VOGL_ASSERT(m_params.get_value<GLenum>(GL_SYNC_CONDITION) == GL_SYNC_GPU_COMMANDS_COMPLETE);
-    VOGL_ASSERT(m_params.get_value<uint>(GL_SYNC_FLAGS) == 0);
+    VOGL_ASSERT(m_params.get_value<uint32_t>(GL_SYNC_FLAGS) == 0);
 
     m_is_valid = true;
 

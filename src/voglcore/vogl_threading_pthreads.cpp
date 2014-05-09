@@ -54,14 +54,14 @@
 
 namespace vogl
 {
-    uint g_number_of_processors = 1;
+    uint32_t g_number_of_processors = 1;
 
     void vogl_threading_init()
     {
         #if defined(COMPILER_MSVC)
             SYSTEM_INFO g_system_info;
             GetSystemInfo(&g_system_info);
-            g_number_of_processors = math::maximum<uint>(1U, g_system_info.dwNumberOfProcessors);
+            g_number_of_processors = math::maximum<uint32_t>(1U, g_system_info.dwNumberOfProcessors);
         #elif defined(COMPILER_GCCLIKE)
             g_number_of_processors = math::maximum<int>(1, get_nprocs());
         #else
@@ -277,7 +277,7 @@ namespace vogl
         utils::zero_object(m_threads);
     }
 
-    task_pool::task_pool(uint num_threads)
+    task_pool::task_pool(uint32_t num_threads)
         : m_num_threads(0),
           m_tasks_available(0, 32767),
           m_all_tasks_completed(0, 1),
@@ -296,10 +296,10 @@ namespace vogl
         deinit();
     }
 
-    bool task_pool::init(uint num_threads)
+    bool task_pool::init(uint32_t num_threads)
     {
         VOGL_ASSERT(num_threads <= cMaxThreads);
-        num_threads = math::minimum<uint>(num_threads, cMaxThreads);
+        num_threads = math::minimum<uint32_t>(num_threads, cMaxThreads);
 
         deinit();
 
@@ -337,7 +337,7 @@ namespace vogl
 
             m_tasks_available.release(m_num_threads);
 
-            for (uint i = 0; i < m_num_threads; i++)
+            for (uint32_t i = 0; i < m_num_threads; i++)
                 pthread_join(m_threads[i], NULL);
 
             m_num_threads = 0;

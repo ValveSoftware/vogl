@@ -72,7 +72,7 @@ vogl_context_attribs::vogl_context_attribs(const int *pAttribs)
     init(pAttribs);
 }
 
-vogl_context_attribs::vogl_context_attribs(const int *pAttribs, uint num_attribs)
+vogl_context_attribs::vogl_context_attribs(const int *pAttribs, uint32_t num_attribs)
 {
     VOGL_FUNC_TRACER
 
@@ -93,7 +93,7 @@ void vogl_context_attribs::init(const int *pAttribs)
     init(pAttribs, vogl_determine_attrib_list_array_size(pAttribs));
 }
 
-void vogl_context_attribs::init(const int *pAttribs, uint num_attribs)
+void vogl_context_attribs::init(const int *pAttribs, uint32_t num_attribs)
 {
     VOGL_FUNC_TRACER
 
@@ -116,7 +116,7 @@ int vogl_context_attribs::find_value_ofs(int key_to_find) const
 {
     VOGL_FUNC_TRACER
 
-    uint ofs = 0;
+    uint32_t ofs = 0;
     while (ofs < m_attribs.size())
     {
         int key = m_attribs[ofs];
@@ -160,7 +160,7 @@ bool vogl_context_attribs::check() const
     if (m_attribs.back() != 0)
         return false;
 
-    uint ofs = 0;
+    uint32_t ofs = 0;
     do
     {
         int key = m_attribs[ofs];
@@ -182,7 +182,7 @@ bool vogl_context_attribs::serialize(vogl::json_node &node) const
     VOGL_FUNC_TRACER
 
     json_node &attribs_array = node.add_array("attribs");
-    for (uint i = 0; i < m_attribs.size(); i++)
+    for (uint32_t i = 0; i < m_attribs.size(); i++)
         attribs_array.add_value(m_attribs[i]);
 
     return true;
@@ -197,7 +197,7 @@ bool vogl_context_attribs::deserialize(const vogl::json_node &node)
         return false;
 
     m_attribs.resize(pAttribs_array->size());
-    for (uint i = 0; i < pAttribs_array->size(); i++)
+    for (uint32_t i = 0; i < pAttribs_array->size(); i++)
         m_attribs[i] = pAttribs_array->value_as_int(i);
 
     return true;
@@ -287,7 +287,7 @@ vogl_gl_version_t vogl_context_info::parse_version_string(const vogl::dynamic_st
     // optionally followed by vendor/driver info
 
     int major = 0, minor = 0;
-    uint n = sscanf(str.get_ptr(), "%d.%d", &major, &minor);
+    uint32_t n = sscanf(str.get_ptr(), "%d.%d", &major, &minor);
     if ((n < 2) || (major < 1) || (minor < 0) || (minor > 255))
     {
         console::error("%s: Failed parsing GL/GLSL version string \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, str.get_ptr());
@@ -691,7 +691,7 @@ bool vogl_context_info::serialize(vogl::json_node &node, const vogl_blob_manager
     node.add_key_value("max_transform_feedback_separate_attribs", m_max_transform_feedback_separate_attribs);
 
     json_node &extensions_array = node.add_array("extensions");
-    for (uint i = 0; i < m_extensions.size(); i++)
+    for (uint32_t i = 0; i < m_extensions.size(); i++)
         extensions_array.add_value(m_extensions[i]);
 
     return true;
@@ -747,7 +747,7 @@ bool vogl_context_info::deserialize(const vogl::json_node &node, const vogl_blob
     {
         m_extensions.resize(pExtensions_array->size());
 
-        for (uint i = 0; i < pExtensions_array->size(); i++)
+        for (uint32_t i = 0; i < pExtensions_array->size(); i++)
             m_extensions[i] = pExtensions_array->get_value(i).as_string();
 
         m_extensions.unique();

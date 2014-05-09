@@ -36,12 +36,12 @@ class vogl_state_vector;
 
 const char *vogl_get_state_type_name(vogl_state_type s);
 vogl_state_type vogl_get_state_type_from_name(const char *pName);
-uint vogl_get_state_type_size(vogl_state_type s);
+uint32_t vogl_get_state_type_size(vogl_state_type s);
 
 class vogl_state_id
 {
 public:
-    vogl_state_id(GLenum val, uint index, bool indexed_variant)
+    vogl_state_id(GLenum val, uint32_t index, bool indexed_variant)
         : m_enum_val(val),
           m_index(index),
           m_indexed_variant(indexed_variant)
@@ -88,7 +88,7 @@ public:
         return false;
     }
 
-    void set(GLenum val, uint index, bool indexed_variant)
+    void set(GLenum val, uint32_t index, bool indexed_variant)
     {
         VOGL_FUNC_TRACER
 
@@ -98,7 +98,7 @@ public:
     }
 
     GLenum m_enum_val;
-    uint m_index;
+    uint32_t m_index;
     bool m_indexed_variant;
 };
 
@@ -108,13 +108,13 @@ class vogl_state_data
 
 public:
     vogl_state_data();
-    vogl_state_data(GLenum enum_val, uint index, uint n, vogl_state_type data_type, bool indexed_variant);
-    vogl_state_data(GLenum enum_val, uint index, const void *pData, uint element_size, bool indexed_variant);
+    vogl_state_data(GLenum enum_val, uint32_t index, uint32_t n, vogl_state_type data_type, bool indexed_variant);
+    vogl_state_data(GLenum enum_val, uint32_t index, const void *pData, uint32_t element_size, bool indexed_variant);
 
-    void init(GLenum enum_val, uint index, uint n, vogl_state_type data_type, bool indexed_variant);
+    void init(GLenum enum_val, uint32_t index, uint32_t n, vogl_state_type data_type, bool indexed_variant);
 
     template <typename T>
-    inline T *init_and_get_data_ptr(GLenum enum_val, uint index, uint n, vogl_state_type data_type, bool indexed_variant)
+    inline T *init_and_get_data_ptr(GLenum enum_val, uint32_t index, uint32_t n, vogl_state_type data_type, bool indexed_variant)
     {
         init(enum_val, index, n, data_type, indexed_variant);
 
@@ -123,7 +123,7 @@ public:
         return reinterpret_cast<T *>(m_data.get_ptr());
     }
 
-    bool init(GLenum enum_val, uint index, const void *pData, uint element_size, bool indexed_variant);
+    bool init(GLenum enum_val, uint32_t index, const void *pData, uint32_t element_size, bool indexed_variant);
 
     void debug_check();
 
@@ -134,7 +134,7 @@ public:
         m_data.clear();
     }
 
-    inline uint get_data_type_size() const
+    inline uint32_t get_data_type_size() const
     {
         return vogl_get_state_type_size(m_data_type);
     }
@@ -151,13 +151,13 @@ public:
     }
 
     template <typename T>
-    const T &get_element(uint index) const
+    const T &get_element(uint32_t index) const
     {
         VOGL_ASSERT(index < m_num_elements);
         return get_data_ptr<T>()[index];
     }
     template <typename T>
-    T &get_element(uint index)
+    T &get_element(uint32_t index)
     {
         VOGL_ASSERT(index < m_num_elements);
         return get_data_ptr<T>()[index];
@@ -185,7 +185,7 @@ public:
     {
         return m_id.m_enum_val;
     }
-    inline uint get_index() const
+    inline uint32_t get_index() const
     {
         return m_id.m_index;
     }
@@ -198,14 +198,14 @@ public:
     {
         return m_data_type;
     }
-    inline uint get_num_elements() const
+    inline uint32_t get_num_elements() const
     {
         return m_num_elements;
     }
 
     void get_bool(bool *pVals) const;
     void get_int(int *pVals) const;
-    void get_uint(uint *pVals) const;
+    void get_uint(uint32_t *pVals) const;
     void get_enum(GLenum *pVals) const
     {
         return get_uint(pVals);
@@ -226,7 +226,7 @@ private:
     vogl_state_id m_id;
 
     vogl_state_type m_data_type;
-    uint m_num_elements;
+    uint32_t m_num_elements;
 
     vogl::vector<uint8_t> m_data;
 };
@@ -243,7 +243,7 @@ inline void vogl_state_data::get<int>(int *pVals) const
     return get_int(pVals);
 }
 template <>
-inline void vogl_state_data::get<uint>(uint *pVals) const
+inline void vogl_state_data::get<uint32_t>(uint32_t *pVals) const
 {
     return get_uint(pVals);
 }
@@ -290,10 +290,10 @@ public:
         return !(*this == rhs);
     }
 
-    bool insert(GLenum enum_val, uint index, const void *pData, uint element_size, bool indexed_variant = false);
+    bool insert(GLenum enum_val, uint32_t index, const void *pData, uint32_t element_size, bool indexed_variant = false);
     bool insert(const vogl_state_data &state_data);
 
-    inline uint size() const
+    inline uint32_t size() const
     {
         return m_states.size();
     }
@@ -320,12 +320,12 @@ public:
         return m_states;
     }
 
-    const vogl_state_data *find(GLenum enum_val, uint index = 0, bool indexed_variant = false) const;
+    const vogl_state_data *find(GLenum enum_val, uint32_t index = 0, bool indexed_variant = false) const;
 
     // true on success, false on failure.
     // pVals is only modified on success.
     template <typename T>
-    bool get(GLenum enum_val, uint index, T *pVals, uint n = 1, bool indexed_variant = false) const
+    bool get(GLenum enum_val, uint32_t index, T *pVals, uint32_t n = 1, bool indexed_variant = false) const
     {
         VOGL_FUNC_TRACER
 
@@ -341,7 +341,7 @@ public:
     // Returns the value, or the default.
     // Safely only returns the first value on states with multiple values.
     template <typename T>
-    T get_value(GLenum enum_val, uint index = 0, T def = (T)0, bool indexed_variant = false) const
+    T get_value(GLenum enum_val, uint32_t index = 0, T def = (T)0, bool indexed_variant = false) const
     {
         VOGL_FUNC_TRACER
 

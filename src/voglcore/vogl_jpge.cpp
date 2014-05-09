@@ -114,7 +114,7 @@ namespace jpge
     const int YR = 19595, YG = 38470, YB = 7471, CB_R = -11059, CB_G = -21709, CB_B = 32768, CR_R = 32768, CR_G = -27439, CR_B = -5329;
     static inline uint8_t clamp(int i)
     {
-        if (static_cast<uint>(i) > 255U)
+        if (static_cast<uint32_t>(i) > 255U)
         {
             if (i < 0)
                 i = 0;
@@ -174,17 +174,17 @@ namespace jpge
         CONST_BITS = 13,
         ROW_BITS = 2
     };
-#define DCT_DESCALE(x, n) (((x) + (((int32)1) << ((n) - 1))) >> (n))
-#define DCT_MUL(var, c) (static_cast<int16_t>(var) * static_cast<int32>(c))
+#define DCT_DESCALE(x, n) (((x) + (((int32_t)1) << ((n) - 1))) >> (n))
+#define DCT_MUL(var, c) (static_cast<int16_t>(var) * static_cast<int32_t>(c))
 #define DCT1D(s0, s1, s2, s3, s4, s5, s6, s7)                                                                             \
-    int32 t0 = s0 + s7, t7 = s0 - s7, t1 = s1 + s6, t6 = s1 - s6, t2 = s2 + s5, t5 = s2 - s5, t3 = s3 + s4, t4 = s3 - s4; \
-    int32 t10 = t0 + t3, t13 = t0 - t3, t11 = t1 + t2, t12 = t1 - t2;                                                     \
-    int32 u1 = DCT_MUL(t12 + t13, 4433);                                                                                  \
+    int32_t t0 = s0 + s7, t7 = s0 - s7, t1 = s1 + s6, t6 = s1 - s6, t2 = s2 + s5, t5 = s2 - s5, t3 = s3 + s4, t4 = s3 - s4; \
+    int32_t t10 = t0 + t3, t13 = t0 - t3, t11 = t1 + t2, t12 = t1 - t2;                                                     \
+    int32_t u1 = DCT_MUL(t12 + t13, 4433);                                                                                  \
     s2 = u1 + DCT_MUL(t13, 6270);                                                                                         \
     s6 = u1 + DCT_MUL(t12, -15137);                                                                                       \
     u1 = t4 + t7;                                                                                                         \
-    int32 u2 = t5 + t6, u3 = t4 + t6, u4 = t5 + t7;                                                                       \
-    int32 z5 = DCT_MUL(u3 + u4, 9633);                                                                                    \
+    int32_t u2 = t5 + t6, u3 = t4 + t6, u4 = t5 + t7;                                                                       \
+    int32_t z5 = DCT_MUL(u3 + u4, 9633);                                                                                    \
     t4 = DCT_MUL(t4, 2446);                                                                                               \
     t5 = DCT_MUL(t5, 16819);                                                                                              \
     t6 = DCT_MUL(t6, 25172);                                                                                              \
@@ -202,12 +202,12 @@ namespace jpge
     s5 = t5 + u2 + u4;                                                                                                    \
     s7 = t4 + u1 + u3;
 
-    static void DCT2D(int32 *p)
+    static void DCT2D(int32_t *p)
     {
-        int32 c, *q = p;
+        int32_t c, *q = p;
         for (c = 7; c >= 0; c--, q += 8)
         {
-            int32 s0 = q[0], s1 = q[1], s2 = q[2], s3 = q[3], s4 = q[4], s5 = q[5], s6 = q[6], s7 = q[7];
+            int32_t s0 = q[0], s1 = q[1], s2 = q[2], s3 = q[3], s4 = q[4], s5 = q[5], s6 = q[6], s7 = q[7];
             DCT1D(s0, s1, s2, s3, s4, s5, s6, s7);
             q[0] = s0 << ROW_BITS;
             q[1] = DCT_DESCALE(s1, CONST_BITS - ROW_BITS);
@@ -220,7 +220,7 @@ namespace jpge
         }
         for (q = p, c = 7; c >= 0; c--, q++)
         {
-            int32 s0 = q[0 * 8], s1 = q[1 * 8], s2 = q[2 * 8], s3 = q[3 * 8], s4 = q[4 * 8], s5 = q[5 * 8], s6 = q[6 * 8], s7 = q[7 * 8];
+            int32_t s0 = q[0 * 8], s1 = q[1 * 8], s2 = q[2 * 8], s3 = q[3 * 8], s4 = q[4 * 8], s5 = q[5 * 8], s6 = q[6 * 8], s7 = q[7 * 8];
             DCT1D(s0, s1, s2, s3, s4, s5, s6, s7);
             q[0 * 8] = DCT_DESCALE(s0, ROW_BITS + 3);
             q[1 * 8] = DCT_DESCALE(s1, CONST_BITS + ROW_BITS + 3);
@@ -235,37 +235,37 @@ namespace jpge
 
     struct sym_freq
     {
-        uint m_key, m_sym_index;
+        uint32_t m_key, m_sym_index;
     };
 
     // Radix sorts sym_freq[] array by 32-bit key m_key. Returns ptr to sorted values.
-    static inline sym_freq *radix_sort_syms(uint num_syms, sym_freq *pSyms0, sym_freq *pSyms1)
+    static inline sym_freq *radix_sort_syms(uint32_t num_syms, sym_freq *pSyms0, sym_freq *pSyms1)
     {
-        const uint cMaxPasses = 4;
+        const uint32_t cMaxPasses = 4;
         uint32_t hist[256 * cMaxPasses];
         clear_obj(hist);
-        for (uint i = 0; i < num_syms; i++)
+        for (uint32_t i = 0; i < num_syms; i++)
         {
-            uint freq = pSyms0[i].m_key;
+            uint32_t freq = pSyms0[i].m_key;
             hist[freq & 0xFF]++;
             hist[256 + ((freq >> 8) & 0xFF)]++;
             hist[256 * 2 + ((freq >> 16) & 0xFF)]++;
             hist[256 * 3 + ((freq >> 24) & 0xFF)]++;
         }
         sym_freq *pCur_syms = pSyms0, *pNew_syms = pSyms1;
-        uint total_passes = cMaxPasses;
+        uint32_t total_passes = cMaxPasses;
         while ((total_passes > 1) && (num_syms == hist[(total_passes - 1) * 256]))
             total_passes--;
-        for (uint pass_shift = 0, pass = 0; pass < total_passes; pass++, pass_shift += 8)
+        for (uint32_t pass_shift = 0, pass = 0; pass < total_passes; pass++, pass_shift += 8)
         {
             const uint32_t *pHist = &hist[pass << 8];
-            uint offsets[256], cur_ofs = 0;
-            for (uint i = 0; i < 256; i++)
+            uint32_t offsets[256], cur_ofs = 0;
+            for (uint32_t i = 0; i < 256; i++)
             {
                 offsets[i] = cur_ofs;
                 cur_ofs += pHist[i];
             }
-            for (uint i = 0; i < num_syms; i++)
+            for (uint32_t i = 0; i < num_syms; i++)
                 pNew_syms[offsets[(pCur_syms[i].m_key >> pass_shift) & 0xFF]++] = pCur_syms[i];
             sym_freq *t = pCur_syms;
             pCur_syms = pNew_syms;
@@ -382,7 +382,7 @@ namespace jpge
         for (int i = 0; i < num_used_syms; i++)
             num_codes[pSyms[i].m_key]++;
 
-        const uint JPGE_CODE_SIZE_LIMIT = 16; // the maximum possible size of a JPEG Huffman code (valid range is [9,16] - 9 vs. 8 because of the dummy symbol)
+        const uint32_t JPGE_CODE_SIZE_LIMIT = 16; // the maximum possible size of a JPEG Huffman code (valid range is [9,16] - 9 vs. 8 because of the dummy symbol)
         huffman_enforce_max_code_size(num_codes, num_used_syms, JPGE_CODE_SIZE_LIMIT);
 
         // Compute m_huff_bits array, which contains the # of symbols per code size.
@@ -411,7 +411,7 @@ namespace jpge
         m_all_stream_writes_succeeded = m_all_stream_writes_succeeded && m_pStream->put_obj(i);
     }
 
-    void jpeg_encoder::emit_word(uint i)
+    void jpeg_encoder::emit_word(uint32_t i)
     {
         emit_byte(uint8_t(i >> 8));
         emit_byte(uint8_t(i & 0xFF));
@@ -534,12 +534,12 @@ namespace jpge
     }
 
     // Compute the actual canonical Huffman codes/code sizes given the JPEG huff bits and val arrays.
-    void jpeg_encoder::compute_huffman_table(uint *codes, uint8_t *code_sizes, uint8_t *bits, uint8_t *val)
+    void jpeg_encoder::compute_huffman_table(uint32_t *codes, uint8_t *code_sizes, uint8_t *bits, uint8_t *val)
     {
         int i, l, last_p, si;
         uint8_t huff_size[257];
-        uint huff_code[257];
-        uint code;
+        uint32_t huff_code[257];
+        uint32_t code;
 
         int p = 0;
         for (l = 1; l <= 16; l++)
@@ -571,16 +571,16 @@ namespace jpge
     }
 
     // Quantization table generation.
-    void jpeg_encoder::compute_quant_table(int32 *pDst, int16_t *pSrc)
+    void jpeg_encoder::compute_quant_table(int32_t *pDst, int16_t *pSrc)
     {
-        int32 q;
+        int32_t q;
         if (m_params.m_quality < 50)
             q = 5000 / m_params.m_quality;
         else
             q = 200 - m_params.m_quality * 2;
         for (int i = 0; i < 64; i++)
         {
-            int32 j = *pSrc++;
+            int32_t j = *pSrc++;
             j = (j * q + 50L) / 100L;
             *pDst++ = JPGE_MIN(JPGE_MAX(j, 1), 255);
         }
@@ -788,7 +788,7 @@ namespace jpge
 
     void jpeg_encoder::load_quantized_coefficients(int component_num)
     {
-        int32 *q = m_quantization_tables[component_num > 0];
+        int32_t *q = m_quantization_tables[component_num > 0];
         int16_t *pDst = m_coefficient_array;
         for (int i = 0; i < 64; i++)
         {
@@ -819,7 +819,7 @@ namespace jpge
         m_out_buf_left = JPGE_OUT_BUF_SIZE;
     }
 
-    void jpeg_encoder::put_bits(uint bits, uint len)
+    void jpeg_encoder::put_bits(uint32_t bits, uint32_t len)
     {
         m_bit_buffer |= ((uint32_t)bits << (24 - (m_bits_in += len)));
         while (m_bits_in >= 8)
@@ -888,7 +888,7 @@ namespace jpge
     {
         int i, j, run_len, nbits, temp1, temp2;
         int16_t *pSrc = m_coefficient_array;
-        uint *codes[2];
+        uint32_t *codes[2];
         uint8_t *code_sizes[2];
 
         if (component_num == 0)
@@ -1226,7 +1226,7 @@ namespace jpge
         if (!dst_image.init(&dst_stream, width, height, num_channels, comp_params))
             return false;
 
-        for (uint pass_index = 0; pass_index < dst_image.get_total_passes(); pass_index++)
+        for (uint32_t pass_index = 0; pass_index < dst_image.get_total_passes(); pass_index++)
         {
             for (int i = 0; i < height; i++)
             {
@@ -1249,10 +1249,10 @@ namespace jpge
         memory_stream &operator=(const memory_stream &);
 
         uint8_t *m_pBuf;
-        uint m_buf_size, m_buf_ofs;
+        uint32_t m_buf_size, m_buf_ofs;
 
     public:
-        memory_stream(void *pBuf, uint buf_size)
+        memory_stream(void *pBuf, uint32_t buf_size)
             : m_pBuf(static_cast<uint8_t *>(pBuf)), m_buf_size(buf_size), m_buf_ofs(0)
         {
         }
@@ -1263,15 +1263,15 @@ namespace jpge
 
         virtual bool put_buf(const void *pBuf, int len)
         {
-            uint buf_remaining = m_buf_size - m_buf_ofs;
-            if ((uint)len > buf_remaining)
+            uint32_t buf_remaining = m_buf_size - m_buf_ofs;
+            if ((uint32_t)len > buf_remaining)
                 return false;
             memcpy(m_pBuf + m_buf_ofs, pBuf, len);
             m_buf_ofs += len;
             return true;
         }
 
-        uint get_size() const
+        uint32_t get_size() const
         {
             return m_buf_ofs;
         }
@@ -1290,7 +1290,7 @@ namespace jpge
         if (!dst_image.init(&dst_stream, width, height, num_channels, comp_params))
             return false;
 
-        for (uint pass_index = 0; pass_index < dst_image.get_total_passes(); pass_index++)
+        for (uint32_t pass_index = 0; pass_index < dst_image.get_total_passes(); pass_index++)
         {
             for (int i = 0; i < height; i++)
             {

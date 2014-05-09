@@ -195,8 +195,8 @@ static bool g_flush_files_after_each_call;
 static bool g_flush_files_after_each_swap;
 static bool g_gather_statistics;
 
-static uint g_vogl_total_frames_to_capture;
-static uint g_vogl_frames_remaining_to_capture;
+static uint32_t g_vogl_total_frames_to_capture;
+static uint32_t g_vogl_frames_remaining_to_capture;
 static bool g_vogl_stop_capturing;
 
 static vogl_capture_status_callback_func_ptr g_vogl_pCapture_status_callback;
@@ -297,13 +297,13 @@ public:
         return m_packet.get_entrypoint_id();
     }
 
-    inline void add_return_param(vogl_ctype_t ctype, const void *pParam, uint param_size)
+    inline void add_return_param(vogl_ctype_t ctype, const void *pParam, uint32_t param_size)
     {
         VOGL_ASSERT(m_in_begin);
         m_packet.set_return_param(ctype, pParam, param_size);
     }
 
-    inline void add_param(uint8_t param_id, vogl_ctype_t ctype, const void *pParam, uint param_size)
+    inline void add_param(uint8_t param_id, vogl_ctype_t ctype, const void *pParam, uint32_t param_size)
     {
         VOGL_ASSERT(m_in_begin);
         m_packet.set_param(param_id, ctype, pParam, param_size);
@@ -333,7 +333,7 @@ public:
         return m_packet.set_key_value(key, blob);
     }
 
-    inline bool add_key_value_blob(const value &key, const void *pData, uint data_size)
+    inline bool add_key_value_blob(const value &key, const void *pData, uint32_t data_size)
     {
         VOGL_ASSERT(m_in_begin);
         return m_packet.set_key_value_blob(key, pData, data_size);
@@ -524,7 +524,7 @@ static void vogl_init_logfile()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_capture_on_next_swap
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_capture_on_next_swap(uint total_frames, const char *pPath, const char *pBase_filename, vogl_capture_status_callback_func_ptr pStatus_callback, void *pStatus_callback_opaque)
+bool vogl_capture_on_next_swap(uint32_t total_frames, const char *pPath, const char *pBase_filename, vogl_capture_status_callback_func_ptr pStatus_callback, void *pStatus_callback_opaque)
 {
     if (!total_frames)
     {
@@ -613,7 +613,7 @@ bool vogl_is_capturing()
 //----------------------------------------------------------------------------------------------------------------------
 static void vogl_dump_statistics()
 {
-    for (uint i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
+    for (uint32_t i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
     {
         if ((!g_vogl_entrypoint_descs[i].m_is_whitelisted) && (g_vogl_entrypoint_descs[i].m_trace_call_counter))
         {
@@ -747,7 +747,7 @@ static void vogl_exception_callback()
 
     vogl_end_capture(true);
 
-    //uint num_contexts = get_context_manager().get_context_map().size();
+    //uint32_t num_contexts = get_context_manager().get_context_map().size();
     //if (num_contexts)
     //   vogl_error_printf("%s: App is exiting with %u active GL context(s)! Any outstanding async buffer readbacks cannot be safely flushed!\n", VOGL_FUNCTION_INFO_CSTR, num_contexts);
 
@@ -771,7 +771,7 @@ static void vogl_init_command_line_params()
     float sleep_time = g_command_line_params().get_value_as_float("vogl_sleep_at_startup");
     if (sleep_time > 0.0f)
     {
-        vogl_sleep(static_cast<uint>(ceil(1000.0f * sleep_time)));
+        vogl_sleep(static_cast<uint32_t>(ceil(1000.0f * sleep_time)));
     }
 
     dynamic_string_array cmd_line_params;
@@ -800,7 +800,7 @@ static void vogl_init_command_line_params()
         else
         {
             dynamic_string all_opts;
-            for (uint i = 0; i < opts.size(); i++)
+            for (uint32_t i = 0; i < opts.size(); i++)
                 all_opts.format_append("%s ", opts[i].get_ptr());
 
             if (!split_command_line_params(all_opts.get_ptr(), cmd_line_params))
@@ -963,7 +963,7 @@ static inline void vogl_check_context(gl_entrypoint_id_t id, vogl_context *pCont
         if (   ((pName[0] != 'g') || (pName[1] != 'l') || (pName[2] != 'X'))
             && ((pName[0] != 'w') || (pName[1] != 'g') || (pName[2] != 'l')))
         {
-            uint n = vogl_strlen(pName);
+            uint32_t n = vogl_strlen(pName);
             if ((n <= 3) || ((pName[n - 3] != 'R') || (pName[n - 2] != 'A') || (pName[n - 1] != 'D')))
             {
                 vogl_error_printf("%s: OpenGL function \"%s\" called without an active context!\n", VOGL_FUNCTION_INFO_CSTR, pName);
@@ -1026,7 +1026,7 @@ struct gl_vertex_attribute
         m_enabled = 0;
     }
 };
-const uint VOGL_MAX_SUPPORTED_GL_VERTEX_ATTRIBUTES = 32;
+const uint32_t VOGL_MAX_SUPPORTED_GL_VERTEX_ATTRIBUTES = 32;
 
 typedef vogl::hash_map<GLenum, GLuint> gl_buffer_binding_map;
 //----------------------------------------------------------------------------------------------------------------------
@@ -1600,11 +1600,11 @@ public:
         return (get_shared_state()->m_buffer_descs.insert(handle, desc).first)->second;
     }
 
-    inline uint get_total_mapped_buffers() const
+    inline uint32_t get_total_mapped_buffers() const
     {
         vogl_scoped_context_shadow_lock lock;
 
-        uint total = 0;
+        uint32_t total = 0;
         for (gl_buffer_desc_map::const_iterator it = get_shared_state()->m_buffer_descs.begin(); it != get_shared_state()->m_buffer_descs.end(); ++it)
         {
             if (it->second.m_pMap)
@@ -1632,7 +1632,7 @@ public:
     {
         return m_frame_index;
     }
-    void set_frame_index(uint f)
+    void set_frame_index(uint32_t f)
     {
         m_frame_index = f;
     }
@@ -2091,7 +2091,7 @@ public:
         return get_shared_state()->m_capture_context_params.m_linked_programs.find_snapshot(handle) != NULL;
     }
 
-    bool add_linked_program_snapshot(gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum binary_format = GL_NONE, const void *pBinary = NULL, uint binary_size = 0)
+    bool add_linked_program_snapshot(gl_entrypoint_id_t link_entrypoint, GLuint handle, GLenum binary_format = GL_NONE, const void *pBinary = NULL, uint32_t binary_size = 0)
     {
         vogl_scoped_context_shadow_lock lock;
 
@@ -2184,7 +2184,7 @@ public:
 
                 get_shared_state()->m_capture_context_params.m_linked_programs.remove_snapshot(prev_program);
 
-                for (uint i = 0; i < prev_attached_replay_shaders.size(); i++)
+                for (uint32_t i = 0; i < prev_attached_replay_shaders.size(); i++)
                 {
                     GLuint shader_handle = prev_attached_replay_shaders[i];
 
@@ -2346,7 +2346,7 @@ public:
                 m_cur_program = 0;
             }
 
-            for (uint i = 0; i < attached_replay_shaders.size(); i++)
+            for (uint32_t i = 0; i < attached_replay_shaders.size(); i++)
             {
                 GLuint shader_handle = attached_replay_shaders[i];
 
@@ -3043,7 +3043,7 @@ static void vogl_atexit()
 // vogl_backtrace
 //----------------------------------------------------------------------------------------------------------------------
 #if VOGL_PLATFORM_SUPPORTS_BTRACE
-    static uint32_t vogl_backtrace(uint addrs_to_skip)
+    static uint32_t vogl_backtrace(uint32_t addrs_to_skip)
     {
         vogl_backtrace_addrs addrs;
         addrs.m_num_addrs = btrace_get(addrs.m_addrs, addrs.cMaxAddrs, addrs_to_skip);
@@ -3083,7 +3083,7 @@ static void vogl_atexit()
         get_backtrace_hashmap_mutex().lock();
 
         vogl_backtrace_hashmap &backtrace_hashmap = get_vogl_intercept_data().backtrace_hashmap;
-        uint backtrace_hashmap_size = backtrace_hashmap.size();
+        uint32_t backtrace_hashmap_size = backtrace_hashmap.size();
         if (backtrace_hashmap_size)
         {
             vogl_message_printf("%s: Writing backtrace %u addrs\n", VOGL_FUNCTION_INFO_CSTR, backtrace_hashmap_size);
@@ -3101,7 +3101,7 @@ static void vogl_atexit()
                 json_node &addrs_arr = node.add_array("addrs");
                 const vogl_backtrace_addrs &addrs = it->first;
 
-                for (uint i = 0; i < addrs.m_num_addrs; i++)
+                for (uint32_t i = 0; i < addrs.m_num_addrs; i++)
                 {
                     addrs_arr.add_value(to_hex_string(static_cast<uint64_t>(addrs.m_addrs[i])));
                 }
@@ -3438,7 +3438,7 @@ static GLsizei vogl_compute_message_log_size_in_bytes(GLuint count, const GLsize
     if (!lengths)
         return 0;
     GLsizei total_length = 0;
-    for (uint i = 0; i < count; i++)
+    for (uint32_t i = 0; i < count; i++)
         total_length += lengths[i];
     return total_length;
 }
@@ -3605,7 +3605,7 @@ static void vogl_print_string(const char *pStr, uint64_t total_size)
 
 //----------------------------------------------------------------------------------------------------------------------
 template <typename T>
-static inline void vogl_dump_value_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pDesc, uint param_index, const char *pParam_name, const char *pType, vogl_ctype_t type, const T &val)
+static inline void vogl_dump_value_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pDesc, uint32_t param_index, const char *pParam_name, const char *pType, vogl_ctype_t type, const T &val)
 {
     VOGL_NOTE_UNUSED(pContext);
 
@@ -3660,7 +3660,7 @@ static inline void vogl_dump_value_param(vogl_context *pContext, vogl_entrypoint
 
 //----------------------------------------------------------------------------------------------------------------------
 template <typename T>
-static inline void vogl_dump_ptr_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pDesc, uint param_index, const char *pParam_name, const char *pType, vogl_ctype_t type, const T &val)
+static inline void vogl_dump_ptr_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pDesc, uint32_t param_index, const char *pParam_name, const char *pType, vogl_ctype_t type, const T &val)
 {
     VOGL_NOTE_UNUSED(pContext);
 
@@ -3683,7 +3683,7 @@ static inline void vogl_dump_ptr_param(vogl_context *pContext, vogl_entrypoint_s
 
 //----------------------------------------------------------------------------------------------------------------------
 template <class T>
-static inline void vogl_dump_ref_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pDesc, uint param_index, const char *pParam_name, const char *pType, vogl_ctype_t type, const T *pObj)
+static inline void vogl_dump_ref_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pDesc, uint32_t param_index, const char *pParam_name, const char *pType, vogl_ctype_t type, const T *pObj)
 {
     VOGL_NOTE_UNUSED(pContext);
 
@@ -3734,7 +3734,7 @@ static inline void vogl_dump_ref_param(vogl_context *pContext, vogl_entrypoint_s
 
 //----------------------------------------------------------------------------------------------------------------------
 template <class T>
-static inline void vogl_dump_array_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pDesc, uint param_index, const char *pParam_name, const char *pType, vogl_ctype_t type, const T *pArray, int64_t size)
+static inline void vogl_dump_array_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pDesc, uint32_t param_index, const char *pParam_name, const char *pType, vogl_ctype_t type, const T *pArray, int64_t size)
 {
     VOGL_NOTE_UNUSED(pContext);
 
@@ -4169,7 +4169,7 @@ static GLFuncType vogl_get_proc_address_helper_return_wrapper(GLFuncType (*realG
     if (!pActual_entrypoint)
         return NULL;
 
-    for (uint i = 0; i < VOGL_NUM_ENTRYPOINTS; ++i)
+    for (uint32_t i = 0; i < VOGL_NUM_ENTRYPOINTS; ++i)
     {
         if (vogl_strcmp(reinterpret_cast<const char *>(procName), g_vogl_entrypoint_descs[i].m_pName) == 0)
         {
@@ -4522,10 +4522,10 @@ static void vogl_glTexStorage2D(	GLenum target,
 
 	if (target == GL_TEXTURE_2D)
 	{
-		for (uint i = 0; i < levels; i++)
+		for (uint32_t i = 0; i < levels; i++)
 		{
-			uint w = math::maximum<uint>(width >> i, 1);
-			uint h = math::maximum<uint>(height >> i, 1);
+			uint32_t w = math::maximum<uint32_t>(width >> i, 1);
+			uint32_t h = math::maximum<uint32_t>(height >> i, 1);
 			vogl::vector<uint8_t> pixels(w * h * 4);
 			GL_ENTRYPOINT(glTexImage2D)(GL_TEXTURE_2D, i, internalformat, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels.get_ptr());
 		}
@@ -4827,7 +4827,7 @@ static void vogl_glTexStorage2D(	GLenum target,
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------
-static bool vogl_screen_capture_callback(uint width, uint height, uint pitch, size_t size, GLenum pixel_format, GLenum pixel_type, const void *pImage, void *pOpaque, uint64_t frame_index)
+static bool vogl_screen_capture_callback(uint32_t width, uint32_t height, uint32_t pitch, size_t size, GLenum pixel_format, GLenum pixel_type, const void *pImage, void *pOpaque, uint64_t frame_index)
 {
     vogl_context *pContext = static_cast<vogl_context *>(pOpaque);
 
@@ -4923,8 +4923,8 @@ static void vogl_tick_screen_capture(vogl_context *pVOGL_context)
     if (!pVOGL_context)
         return;
 
-    uint width = pVOGL_context->get_window_width();
-    uint height = pVOGL_context->get_window_height();
+    uint32_t width = pVOGL_context->get_window_width();
+    uint32_t height = pVOGL_context->get_window_height();
     if ((!width) || (!height))
         return;
 
@@ -5110,7 +5110,7 @@ static void vogl_check_for_capture_trigger_file()
         vogl_sleep(250);
     }
 
-    uint total_frames = 1;
+    uint32_t total_frames = 1;
     dynamic_string path;
     dynamic_string base_name;
 
@@ -5183,8 +5183,8 @@ static void vogl_check_for_capture_trigger_file()
 
         // TODO: Find a better way of determining which window dimensions to use.
         // No context is current, let's just find the biggest window.
-        uint win_width = 0;
-        uint win_height = 0;
+        uint32_t win_width = 0;
+        uint32_t win_height = 0;
         if (pCur_context)
         {
             win_width = pCur_context->get_window_width();
@@ -5736,7 +5736,7 @@ static void vogl_check_for_capture_trigger_file()
             serializer.add_param(4, VOGL_CONST_INT_PTR, &attrib_list, sizeof(attrib_list));
             if (attrib_list)
             {
-                uint n = vogl_determine_attrib_list_array_size(attrib_list);
+                uint32_t n = vogl_determine_attrib_list_array_size(attrib_list);
                 serializer.add_array_client_memory(4, VOGL_INT, n, attrib_list, sizeof(int) * n);
             }
             serializer.add_return_param(VOGL_GLXCONTEXT, &result, sizeof(result));
@@ -5853,7 +5853,7 @@ static void vogl_check_for_capture_trigger_file()
     #undef GET_CONFIG
 
     #if 0
-	    for (uint i = 0; i < attribs.size(); i += 2)
+	    for (uint32_t i = 0; i < attribs.size(); i += 2)
 	    {
 		    if (!attribs[i])
 			    break;
@@ -6217,8 +6217,8 @@ static void vogl_check_for_capture_trigger_file()
 
         // TODO: Find a better way of determining which window dimensions to use.
         // No context is current, let's just find the biggest window.
-        uint win_width = 0;
-        uint win_height = 0;
+        uint32_t win_width = 0;
+        uint32_t win_height = 0;
         if (pCur_context)
         {
             win_width = pCur_context->get_window_width();
@@ -6942,14 +6942,14 @@ static bool vogl_uses_client_side_arrays(vogl_context *pContext, bool indexed)
     GLint prev_client_active_texture = 0;
     GL_ENTRYPOINT(glGetIntegerv)(GL_CLIENT_ACTIVE_TEXTURE, &prev_client_active_texture);
 
-    const uint tex_coords = pContext->get_max_texture_coords();
+    const uint32_t tex_coords = pContext->get_max_texture_coords();
 
-    for (uint i = 0; i < VOGL_NUM_CLIENT_SIDE_ARRAY_DESCS; i++)
+    for (uint32_t i = 0; i < VOGL_NUM_CLIENT_SIDE_ARRAY_DESCS; i++)
     {
         const vogl_client_side_array_desc_t &desc = g_vogl_client_side_array_descs[i];
         if (i == vogl_texcoord_pointer_array_id)
         {
-            for (uint tex_index = 0; tex_index < tex_coords; tex_index++)
+            for (uint32_t tex_index = 0; tex_index < tex_coords; tex_index++)
             {
                 GL_ENTRYPOINT(glClientActiveTexture)(GL_TEXTURE0 + tex_index);
 
@@ -6993,7 +6993,7 @@ static bool vogl_uses_client_side_arrays(vogl_context *pContext, bool indexed)
     uint64_t vertex_attrib_client_side_arrays = 0;
     VOGL_ASSUME(VOGL_MAX_SUPPORTED_GL_VERTEX_ATTRIBUTES <= sizeof(vertex_attrib_client_side_arrays) * 8);
 
-    for (uint i = 0; i < pContext->get_max_vertex_attribs(); i++)
+    for (uint32_t i = 0; i < pContext->get_max_vertex_attribs(); i++)
     {
         GLint is_enabled = 0;
         GL_ENTRYPOINT(glGetVertexAttribiv)(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &is_enabled);
@@ -7031,7 +7031,7 @@ static void vogl_serialize_client_side_arrays_helper(
         return;
     }
 
-    uint index_size = vogl_get_gl_type_size(type);
+    uint32_t index_size = vogl_get_gl_type_size(type);
     if (!index_size)
     {
         vogl_error_printf("%s: Invalid type parameter 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, type);
@@ -7079,14 +7079,14 @@ static void vogl_serialize_client_side_arrays_helper(
     GLint prev_client_active_texture = 0;
     GL_ENTRYPOINT(glGetIntegerv)(GL_CLIENT_ACTIVE_TEXTURE, &prev_client_active_texture);
 
-    const uint tex_coords = pContext->get_max_texture_coords();
+    const uint32_t tex_coords = pContext->get_max_texture_coords();
 
-    for (uint i = 0; i < VOGL_NUM_CLIENT_SIDE_ARRAY_DESCS; i++)
+    for (uint32_t i = 0; i < VOGL_NUM_CLIENT_SIDE_ARRAY_DESCS; i++)
     {
         const vogl_client_side_array_desc_t &desc = g_vogl_client_side_array_descs[i];
         if (i == vogl_texcoord_pointer_array_id)
         {
-            for (uint tex_index = 0; tex_index < tex_coords; tex_index++)
+            for (uint32_t tex_index = 0; tex_index < tex_coords; tex_index++)
             {
                 GL_ENTRYPOINT(glClientActiveTexture)(GL_TEXTURE0 + tex_index);
 
@@ -7127,7 +7127,7 @@ static void vogl_serialize_client_side_arrays_helper(
     uint64_t vertex_attrib_client_side_arrays = 0;
     VOGL_ASSUME(VOGL_MAX_SUPPORTED_GL_VERTEX_ATTRIBUTES <= sizeof(vertex_attrib_client_side_arrays) * 8);
 
-    for (uint i = 0; i < pContext->get_max_vertex_attribs(); i++)
+    for (uint32_t i = 0; i < pContext->get_max_vertex_attribs(); i++)
     {
         GLint is_enabled = 0;
         GL_ENTRYPOINT(glGetVertexAttribiv)(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &is_enabled);
@@ -7149,7 +7149,7 @@ static void vogl_serialize_client_side_arrays_helper(
     {
         if (!start_end_valid)
         {
-            uint total_index_data_size = count * index_size;
+            uint32_t total_index_data_size = count * index_size;
 
             // FIXME: Move index_data array to context state
             vogl::vector<uint8_t> index_data;
@@ -7168,7 +7168,7 @@ static void vogl_serialize_client_side_arrays_helper(
 
             for (int i = 0; i < count; i++)
             {
-                uint v = 0;
+                uint32_t v = 0;
 
                 if (type == GL_UNSIGNED_BYTE)
                     v = pIndices_to_scan[i];
@@ -7195,12 +7195,12 @@ static void vogl_serialize_client_side_arrays_helper(
 
     if (used_old_style_gl_client_side_arrays)
     {
-        for (uint client_array_iter = 0; client_array_iter < VOGL_NUM_CLIENT_SIDE_ARRAY_DESCS; client_array_iter++)
+        for (uint32_t client_array_iter = 0; client_array_iter < VOGL_NUM_CLIENT_SIDE_ARRAY_DESCS; client_array_iter++)
         {
             const vogl_client_side_array_desc_t &desc = g_vogl_client_side_array_descs[client_array_iter];
 
-            uint n = 1;
-            uint base_key_index = 0x1000 + client_array_iter;
+            uint32_t n = 1;
+            uint32_t base_key_index = 0x1000 + client_array_iter;
 
             // Special case texcoord pointers, which are accessed via the client active texture.
             if (client_array_iter == vogl_texcoord_pointer_array_id)
@@ -7209,7 +7209,7 @@ static void vogl_serialize_client_side_arrays_helper(
                 base_key_index = 0x2000;
             }
 
-            for (uint inner_iter = 0; inner_iter < n; inner_iter++)
+            for (uint32_t inner_iter = 0; inner_iter < n; inner_iter++)
             {
                 if (client_array_iter == vogl_texcoord_pointer_array_id)
                 {
@@ -7245,7 +7245,7 @@ static void vogl_serialize_client_side_arrays_helper(
                     GL_ENTRYPOINT(glGetIntegerv)(desc.m_get_size, &size);
                 }
 
-                uint type_size = vogl_get_gl_type_size(inner_type);
+                uint32_t type_size = vogl_get_gl_type_size(inner_type);
                 if (!type_size)
                 {
                     vogl_error_printf("%s: Can't determine type size of enabled client side array set by func %s\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName);
@@ -7271,9 +7271,9 @@ static void vogl_serialize_client_side_arrays_helper(
                 if (!stride)
                     stride = type_size * size;
 
-                uint first_vertex_ofs = (start + basevertex) * stride;
-                uint last_vertex_ofs = (end + basevertex) * stride;
-                uint vertex_data_size = (last_vertex_ofs + stride) - first_vertex_ofs;
+                uint32_t first_vertex_ofs = (start + basevertex) * stride;
+                uint32_t last_vertex_ofs = (end + basevertex) * stride;
+                uint32_t vertex_data_size = (last_vertex_ofs + stride) - first_vertex_ofs;
 
                 if (g_dump_gl_buffers_flag)
                 {
@@ -7284,7 +7284,7 @@ static void vogl_serialize_client_side_arrays_helper(
 
                 if (trace_serializer.is_in_begin())
                 {
-                    uint key_index = base_key_index + inner_iter;
+                    uint32_t key_index = base_key_index + inner_iter;
                     trace_serializer.add_key_value_blob(static_cast<uint16_t>(key_index), static_cast<const uint8_t *>(ptr) + first_vertex_ofs, vertex_data_size);
                 }
             } // inner_iter
@@ -7296,7 +7296,7 @@ static void vogl_serialize_client_side_arrays_helper(
 
     if (vertex_attrib_client_side_arrays)
     {
-        for (uint i = 0; i < pContext->get_max_vertex_attribs(); i++)
+        for (uint32_t i = 0; i < pContext->get_max_vertex_attribs(); i++)
         {
             if ((vertex_attrib_client_side_arrays & (1ULL << i)) == 0)
                 continue;
@@ -7319,7 +7319,7 @@ static void vogl_serialize_client_side_arrays_helper(
             GLint attrib_stride = 0;
             GL_ENTRYPOINT(glGetVertexAttribiv)(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &attrib_stride);
 
-            uint num_comps = 4;
+            uint32_t num_comps = 4;
             if ((attrib_size != GL_BGRA) && (attrib_size < 1) && (attrib_size > 4))
             {
                 vogl_error_printf("%s: Enabled vertex attribute index %i has invalid size 0x%0X\n", VOGL_FUNCTION_INFO_CSTR, i, attrib_size);
@@ -7328,18 +7328,18 @@ static void vogl_serialize_client_side_arrays_helper(
             if ((attrib_size >= 1) && (attrib_size <= 4))
                 num_comps = attrib_size;
 
-            uint type_size = vogl_get_gl_type_size(attrib_type);
+            uint32_t type_size = vogl_get_gl_type_size(attrib_type);
             if (!type_size)
             {
                 vogl_error_printf("%s: Vertex attribute index %i has unsupported type 0x%0X\n", VOGL_FUNCTION_INFO_CSTR, i, attrib_type);
                 continue;
             }
 
-            uint stride = attrib_stride ? attrib_stride : (type_size * num_comps);
+            uint32_t stride = attrib_stride ? attrib_stride : (type_size * num_comps);
 
-            uint first_vertex_ofs = (start + basevertex) * stride;
-            uint last_vertex_ofs = (end + basevertex) * stride;
-            uint vertex_data_size = (last_vertex_ofs + stride) - first_vertex_ofs;
+            uint32_t first_vertex_ofs = (start + basevertex) * stride;
+            uint32_t last_vertex_ofs = (end + basevertex) * stride;
+            uint32_t vertex_data_size = (last_vertex_ofs + stride) - first_vertex_ofs;
 
             if (g_dump_gl_buffers_flag)
             {
@@ -7785,7 +7785,7 @@ static inline void vogl_unmap_buffer_helper(vogl_context *pContext, vogl_entrypo
 
             if (g_dump_gl_buffers_flag)
             {
-                for (uint i = 0; i < buf_desc.m_flushed_ranges.size(); i++)
+                for (uint32_t i = 0; i < buf_desc.m_flushed_ranges.size(); i++)
                 {
                     vogl_log_printf("Flushed buffer data (ofs: %" PRIu64 " size: %" PRIu64 "):\n", buf_desc.m_flushed_ranges[i].m_ofs, buf_desc.m_flushed_ranges[i].m_size);
                     vogl_print_hex(static_cast<const uint8_t *>(buf_desc.m_pMap) + buf_desc.m_flushed_ranges[i].m_ofs, buf_desc.m_flushed_ranges[i].m_size, 1);
@@ -7796,14 +7796,14 @@ static inline void vogl_unmap_buffer_helper(vogl_context *pContext, vogl_entrypo
             if (trace_serializer.is_in_begin())
             {
                 trace_serializer.add_key_value(string_hash("flushed_ranges"), buf_desc.m_flushed_ranges.size());
-                for (uint i = 0; i < buf_desc.m_flushed_ranges.size(); i++)
+                for (uint32_t i = 0; i < buf_desc.m_flushed_ranges.size(); i++)
                 {
                     int key_index = i * 4;
                     trace_serializer.add_key_value(key_index, buf_desc.m_flushed_ranges[i].m_ofs);
                     trace_serializer.add_key_value(key_index + 1, buf_desc.m_flushed_ranges[i].m_size);
                     // TODO
                     VOGL_ASSERT(buf_desc.m_flushed_ranges[i].m_size <= cUINT32_MAX);
-                    trace_serializer.add_key_value_blob(key_index + 2, static_cast<const uint8_t *>(buf_desc.m_pMap) + buf_desc.m_flushed_ranges[i].m_ofs, static_cast<uint>(buf_desc.m_flushed_ranges[i].m_size));
+                    trace_serializer.add_key_value_blob(key_index + 2, static_cast<const uint8_t *>(buf_desc.m_pMap) + buf_desc.m_flushed_ranges[i].m_ofs, static_cast<uint32_t>(buf_desc.m_flushed_ranges[i].m_size));
                 }
             }
         }
@@ -7822,7 +7822,7 @@ static inline void vogl_unmap_buffer_helper(vogl_context *pContext, vogl_entrypo
                 trace_serializer.add_key_value(1, buf_desc.m_map_size);
                 // TODO
                 VOGL_ASSERT(buf_desc.m_map_size <= cUINT32_MAX);
-                trace_serializer.add_key_value_blob(2, static_cast<const uint8_t *>(buf_desc.m_pMap), static_cast<uint>(buf_desc.m_map_size));
+                trace_serializer.add_key_value_blob(2, static_cast<const uint8_t *>(buf_desc.m_pMap), static_cast<uint32_t>(buf_desc.m_map_size));
             }
         }
     }
@@ -8879,7 +8879,7 @@ static void vogl_check_entrypoints()
 {
     vogl_debug_printf("vogl_check_entrypoints: begin (specify --vogl_debug for more validation)\n");
 
-    typedef vogl::hash_map<uint, dynamic_string> array_size_macro_hashmap;
+    typedef vogl::hash_map<uint32_t, dynamic_string> array_size_macro_hashmap;
     array_size_macro_hashmap defined_array_size_macros;
     array_size_macro_hashmap undefined_array_size_macros;
 
@@ -8895,7 +8895,7 @@ static void vogl_check_entrypoints()
 #undef VALIDATE_ARRAY_SIZE_MACRO_DEFINED
 #undef VALIDATE_ARRAY_SIZE_MACRO_NOT_DEFINED
 
-    vogl::vector<uint> undefined_func_return_array_size_macros;
+    vogl::vector<uint32_t> undefined_func_return_array_size_macros;
 
 #define CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_DEFINED(macro_name, func_name)
 #define CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_NOT_DEFINED(macro_name, func_name) g_vogl_entrypoint_descs[VOGL_ENTRYPOINT_##func_name].m_custom_return_param_array_size_macro_is_missing = true;
@@ -8907,12 +8907,12 @@ static void vogl_check_entrypoints()
     {
         for (array_size_macro_hashmap::const_iterator it = undefined_array_size_macros.begin(); it != undefined_array_size_macros.end(); ++it)
         {
-            uint idx = it->first;
+            uint32_t idx = it->first;
             const dynamic_string &name = it->second;
             VOGL_NOTE_UNUSED(name);
 
             gl_entrypoint_id_t func = static_cast<gl_entrypoint_id_t>(idx >> 16);
-            uint param = idx & 0xFFFF;
+            uint32_t param = idx & 0xFFFF;
 
             vogl_warning_printf("%s: Custom array size macro for func %u \"%s\" param %u has not been defined, this function cannot be traced\n",
                                VOGL_FUNCTION_INFO_CSTR, func, g_vogl_entrypoint_descs[func].m_pName, param);
@@ -8932,7 +8932,7 @@ static void vogl_check_entrypoints()
 
         vogl_debug_printf("Undefined return param array size macros:\n");
         vogl_debug_printf("---\n");
-        for (uint i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
+        for (uint32_t i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
         {
             vogl_ctype_t return_ctype = g_vogl_entrypoint_descs[i].m_return_ctype;
 
@@ -8960,7 +8960,7 @@ static void vogl_check_entrypoints()
 
         vogl_debug_printf("Whitelisted funcs with undefined array size macros:\n");
         vogl_debug_printf("---\n");
-        for (uint i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
+        for (uint32_t i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
         {
             const gl_entrypoint_desc_t &desc = g_vogl_entrypoint_descs[i];
             if ((!desc.m_is_whitelisted) || (desc.m_has_custom_func_handler))
@@ -8973,7 +8973,7 @@ static void vogl_check_entrypoints()
 
         vogl_debug_printf("Whitelisted funcs with undefined return param array size macros:\n");
         vogl_debug_printf("---\n");
-        for (uint i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
+        for (uint32_t i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
         {
             const gl_entrypoint_desc_t &desc = g_vogl_entrypoint_descs[i];
             if (desc.m_is_whitelisted)

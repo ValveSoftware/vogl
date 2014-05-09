@@ -68,8 +68,8 @@ namespace vogl
     template <typename T, typename F>
     inline void shell_sort(int size, T *a, F compare_func, void *pCompare_func_data = NULL)
     {
-        static const uint sequence[] = { 1, 4, 10, 23, 57, 132, 301, 701, 1577, 3548 };
-        const uint cSequenceSize = sizeof(sequence) / sizeof(sequence[0]);
+        static const uint32_t sequence[] = { 1, 4, 10, 23, 57, 132, 301, 701, 1577, 3548 };
+        const uint32_t cSequenceSize = sizeof(sequence) / sizeof(sequence[0]);
 
         int s = cSequenceSize - 1;
 
@@ -165,7 +165,7 @@ namespace vogl
     }
 
     template <typename T, typename F>
-    inline void indexed_heap_sort(int size, const T *a, uint *pIndices, F compare_func, void *pCompare_func_data = NULL)
+    inline void indexed_heap_sort(int size, const T *a, uint32_t *pIndices, F compare_func, void *pCompare_func_data = NULL)
     {
         int start = (size - 2) >> 1;
         while (start >= 0)
@@ -223,29 +223,29 @@ namespace vogl
     }
 
     template <typename T>
-    inline void indexed_heap_sort(int size, const T *a, uint *pIndices)
+    inline void indexed_heap_sort(int size, const T *a, uint32_t *pIndices)
     {
         indexed_heap_sort(size, a, pIndices, default_compare_func<T>, NULL);
     }
 
     inline bool sort_test()
     {
-        uint num_failures = 0;
+        uint32_t num_failures = 0;
 
         vogl::random r;
         r.seed(2);
-        for (uint trial = 0; trial < 50000; trial++)
+        for (uint32_t trial = 0; trial < 50000; trial++)
         {
-            uint sz = r.irand_inclusive(1, 8192);
-            uint z = r.irand_inclusive(2, 8192);
+            uint32_t sz = r.irand_inclusive(1, 8192);
+            uint32_t z = r.irand_inclusive(2, 8192);
             printf("%u\n", sz);
 
-            vogl::vector<uint> x(sz);
-            for (uint i = 0; i < x.size(); i++)
+            vogl::vector<uint32_t> x(sz);
+            for (uint32_t i = 0; i < x.size(); i++)
                 x[i] = r.irand(0, z);
 
-            vogl::vector<uint> indices(sz);
-            for (uint i = 0; i < sz; i++)
+            vogl::vector<uint32_t> indices(sz);
+            for (uint32_t i = 0; i < sz; i++)
                 indices[i] = i;
 
             bool used_indices = false;
@@ -269,7 +269,7 @@ namespace vogl
 
             if (used_indices)
             {
-                for (uint i = 1; i < x.size(); i++)
+                for (uint32_t i = 1; i < x.size(); i++)
                 {
                     if (x[indices[i - 1]] > x[indices[i]])
                     {
@@ -280,7 +280,7 @@ namespace vogl
             }
             else
             {
-                for (uint i = 1; i < x.size(); i++)
+                for (uint32_t i = 1; i < x.size(); i++)
                 {
                     if (x[i - 1] > x[i])
                     {

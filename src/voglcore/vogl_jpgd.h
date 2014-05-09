@@ -46,8 +46,8 @@ namespace jpgd
     typedef unsigned char uint8_t;
     typedef signed short int16_t;
     typedef unsigned short uint16_t;
-    typedef unsigned int uint;
-    typedef signed int int32;
+    typedef unsigned int uint32_t;
+    typedef signed int int32_t;
 
     // Loads a JPEG image from a memory buffer or a file.
     // req_comps can be 1 (grayscale), 3 (RGB), or 4 (RGBA).
@@ -146,14 +146,14 @@ namespace jpgd
     class jpeg_decoder_mem_stream : public jpeg_decoder_stream
     {
         const uint8_t *m_pSrc_data;
-        uint m_ofs, m_size;
+        uint32_t m_ofs, m_size;
 
     public:
         jpeg_decoder_mem_stream()
             : m_pSrc_data(NULL), m_ofs(0), m_size(0)
         {
         }
-        jpeg_decoder_mem_stream(const uint8_t *pSrc_data, uint size)
+        jpeg_decoder_mem_stream(const uint8_t *pSrc_data, uint32_t size)
             : m_pSrc_data(pSrc_data), m_ofs(0), m_size(size)
         {
         }
@@ -162,7 +162,7 @@ namespace jpgd
         {
         }
 
-        bool open(const uint8_t *pSrc_data, uint size);
+        bool open(const uint8_t *pSrc_data, uint32_t size);
         void close()
         {
             m_pSrc_data = NULL;
@@ -211,7 +211,7 @@ namespace jpgd
         // Returns JPGD_SUCCESS if a scan line has been returned.
         // Returns JPGD_DONE if all scan lines have been returned.
         // Returns JPGD_FAILED if an error occurred. Call get_error_code() for a more info.
-        int decode(const void **pScan_line, uint *pScan_line_len);
+        int decode(const void **pScan_line, uint32_t *pScan_line_len);
 
         inline jpgd_status get_error_code() const
         {
@@ -256,10 +256,10 @@ namespace jpgd
         struct huff_tables
         {
             bool ac_table;
-            uint look_up[256];
-            uint look_up2[256];
+            uint32_t look_up[256];
+            uint32_t look_up2[256];
             uint8_t code_size[256];
-            uint tree[512];
+            uint32_t tree[512];
         };
 
         struct coeff_buf
@@ -328,7 +328,7 @@ namespace jpgd
         uint8_t m_in_buf[JPGD_IN_BUF_SIZE + 128];
         uint8_t m_in_buf_pad_end[128];
         int m_bits_left;
-        uint m_bit_buf;
+        uint32_t m_bit_buf;
         int m_restart_interval;
         int m_restarts_left;
         int m_next_restart_num;
@@ -339,7 +339,7 @@ namespace jpgd
         int m_expanded_blocks_per_component;
         bool m_freq_domain_chroma_upsample;
         int m_max_mcus_per_col;
-        uint m_last_dc_val[JPGD_MAX_COMPONENTS];
+        uint32_t m_last_dc_val[JPGD_MAX_COMPONENTS];
         jpgd_block_t *m_pMCU_coefficients;
         int m_mcu_block_max_zag[JPGD_MAX_BLOCKS_PER_MCU];
         uint8_t *m_pSample_buf;
@@ -356,7 +356,7 @@ namespace jpgd
         void free_all_blocks();
         JPGD_NORETURN void stop_decoding(jpgd_status status);
         void *alloc(size_t n, bool zero = false);
-        void word_clear(void *p, uint16_t c, uint n);
+        void word_clear(void *p, uint16_t c, uint32_t n);
         void prep_in_buffer();
         void read_dht_marker();
         void read_dqt_marker();
@@ -397,12 +397,12 @@ namespace jpgd
         void gray_convert();
         void expanded_convert();
         void find_eoi();
-        inline uint get_char();
-        inline uint get_char(bool *pPadding_flag);
+        inline uint32_t get_char();
+        inline uint32_t get_char(bool *pPadding_flag);
         inline void stuff_char(uint8_t q);
         inline uint8_t get_octet();
-        inline uint get_bits(int num_bits);
-        inline uint get_bits_no_markers(int numbits);
+        inline uint32_t get_bits(int num_bits);
+        inline uint32_t get_bits_no_markers(int numbits);
         inline int huff_decode(huff_tables *pH);
         inline int huff_decode(huff_tables *pH, int &extrabits);
         static inline uint8_t clamp(int i);

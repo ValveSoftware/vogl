@@ -149,7 +149,7 @@ gl_entrypoint_desc_t g_vogl_entrypoint_descs[VOGL_NUM_ENTRYPOINTS] =
 //----------------------------------------------------------------------------------------------------------------------
 gl_entrypoint_param_desc_t g_vogl_entrypoint_param_descs[VOGL_NUM_ENTRYPOINTS][VOGL_MAX_ENTRYPOINT_PARAMETERS];
 
-static uint g_custom_array_size_macro_indices[] =
+static uint32_t g_custom_array_size_macro_indices[] =
     {
 #include "gl_glx_wgl_array_size_macro_func_param_indices.inc"
     };
@@ -232,18 +232,18 @@ void vogl_init_gl_entrypoint_descs()
 
 #include "gl_glx_wgl_func_descs.inc"
 
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(g_custom_array_size_macro_indices); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(g_custom_array_size_macro_indices); i++)
     {
-        uint idx = g_custom_array_size_macro_indices[i];
-        uint func = idx >> 16;
-        uint param = idx & 0xFFFF;
+        uint32_t idx = g_custom_array_size_macro_indices[i];
+        uint32_t func = idx >> 16;
+        uint32_t param = idx & 0xFFFF;
         VOGL_ASSERT(func < VOGL_NUM_ENTRYPOINTS);
         VOGL_ASSERT(param < g_vogl_entrypoint_descs[func].m_num_params);
 
         g_vogl_entrypoint_param_descs[func][param].m_has_custom_array_size_macro = true;
     }
 
-    for (uint i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
+    for (uint32_t i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
     {
         gl_entrypoint_desc_t &desc = g_vogl_entrypoint_descs[i];
         VOGL_ASSERT(desc.m_return_namespace >= VOGL_NAMESPACE_UNKNOWN);
@@ -267,7 +267,7 @@ void vogl_init_gl_entrypoint_descs()
                 vogl_warning_printf("%s: function %s's return ctype %s is too large\n", VOGL_FUNCTION_INFO_CSTR, desc.m_pName, get_vogl_process_gl_ctypes()[desc.m_return_ctype].m_pName);
         }
 
-        for (uint j = 0; j < desc.m_num_params; j++)
+        for (uint32_t j = 0; j < desc.m_num_params; j++)
         {
             if ((size_t)get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_size < 1)
                 vogl_warning_printf("%s: param %u of function %s ctype %s is too small\n", VOGL_FUNCTION_INFO_CSTR, j, desc.m_pName, get_vogl_process_gl_ctypes()[g_vogl_entrypoint_param_descs[i][j].m_ctype].m_pName);
@@ -292,7 +292,7 @@ void vogl_init_gl_entrypoint_descs()
         }
     }
 
-    for (uint i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
+    for (uint32_t i = 0; i < VOGL_NUM_ENTRYPOINTS; i++)
     {
         get_vogl_entrypoint_hashmap().insert(g_vogl_entrypoint_descs[i].m_pName, static_cast<gl_entrypoint_id_t>(i));
     }
@@ -325,7 +325,7 @@ bool vogl_does_entrypoint_refer_to_namespace(gl_entrypoint_id_t entrypoint_id, v
     if (desc.m_return_namespace == namespace_id)
         return true;
 
-    for (uint i = 0; i < desc.m_num_params; i++)
+    for (uint32_t i = 0; i < desc.m_num_params; i++)
         if (g_vogl_entrypoint_param_descs[entrypoint_id][i].m_namespace == namespace_id)
             return true;
 

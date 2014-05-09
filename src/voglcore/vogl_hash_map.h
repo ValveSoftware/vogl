@@ -148,7 +148,7 @@ namespace vogl
                     node *p = &get_node(0);
                     node *p_end = p + m_values.size();
 
-                    uint num_remaining = m_num_valid;
+                    uint32_t num_remaining = m_num_valid;
                     while (p != p_end)
                     {
                         if (p->state)
@@ -182,7 +182,7 @@ namespace vogl
                 node *p = &get_node(0);
                 node *p_end = p + m_values.size();
 
-                uint num_remaining = m_num_valid;
+                uint32_t num_remaining = m_num_valid;
                 while (p != p_end)
                 {
                     if (p->state)
@@ -207,7 +207,7 @@ namespace vogl
                 node *p = &get_node(0);
                 node *p_end = p + m_values.size();
 
-                uint num_remaining = m_num_valid;
+                uint32_t num_remaining = m_num_valid;
                 while (p != p_end)
                 {
                     if (p->state)
@@ -227,13 +227,13 @@ namespace vogl
         }
 
         // Returns the number of active items in the container.
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_num_valid;
         }
 
         // Returns the size of the hash table.
-        inline uint get_table_size() const
+        inline uint32_t get_table_size() const
         {
             return m_values.size();
         }
@@ -244,7 +244,7 @@ namespace vogl
         }
 
         // Before insertion, when the size() == get_grow_threshold() the container will rehash (double in size).
-        inline uint get_grow_threshold() const
+        inline uint32_t get_grow_threshold() const
         {
             return m_grow_threshold;
         }
@@ -254,19 +254,19 @@ namespace vogl
             return m_num_valid >= m_grow_threshold;
         }
 
-        inline void reserve(uint new_capacity)
+        inline void reserve(uint32_t new_capacity)
         {
             if (!new_capacity)
                 return;
 
-            uint new_hash_size = new_capacity;
+            uint32_t new_hash_size = new_capacity;
 
             new_hash_size = new_hash_size * 2U;
 
             if (!math::is_power_of_2(new_hash_size))
                 new_hash_size = math::next_pow2(new_hash_size);
 
-            new_hash_size = math::maximum<uint>(cMinHashSize, new_hash_size);
+            new_hash_size = math::maximum<uint32_t>(cMinHashSize, new_hash_size);
 
             if (new_hash_size > m_values.size())
                 rehash(new_hash_size);
@@ -284,7 +284,7 @@ namespace vogl
                 : m_pTable(NULL), m_index(0)
             {
             }
-            inline iterator(hash_map_type &table, uint index)
+            inline iterator(hash_map_type &table, uint32_t index)
                 : m_pTable(&table), m_index(index)
             {
             }
@@ -341,14 +341,14 @@ namespace vogl
                 return !(*this == b);
             }
 
-            inline uint get_index() const
+            inline uint32_t get_index() const
             {
                 return m_index;
             }
 
         private:
             hash_map_type *m_pTable;
-            uint m_index;
+            uint32_t m_index;
 
             inline value_type *get_cur() const
             {
@@ -375,7 +375,7 @@ namespace vogl
                 : m_pTable(NULL), m_index(0)
             {
             }
-            inline const_iterator(const hash_map_type &table, uint index)
+            inline const_iterator(const hash_map_type &table, uint32_t index)
                 : m_pTable(&table), m_index(index)
             {
             }
@@ -443,14 +443,14 @@ namespace vogl
                 return !(*this == b);
             }
 
-            inline uint get_index() const
+            inline uint32_t get_index() const
             {
                 return m_index;
             }
 
         private:
             const hash_map_type *m_pTable;
-            uint m_index;
+            uint32_t m_index;
 
             inline const value_type *get_cur() const
             {
@@ -609,7 +609,7 @@ namespace vogl
 
         inline Value *find_value(const Key &key)
         {
-            uint index = find_index(key);
+            uint32_t index = find_index(key);
             if (index == m_values.size())
                 return NULL;
             return &(get_node(index).second);
@@ -617,7 +617,7 @@ namespace vogl
 
         inline const Value *find_value(const Key &key) const
         {
-            uint index = find_index(key);
+            uint32_t index = find_index(key);
             if (index == m_values.size())
                 return NULL;
             return &(get_node(index).second);
@@ -703,9 +703,9 @@ namespace vogl
         }
 
         // Obviously, this method is very slow! It scans the entire hash table.
-        inline uint search_table_for_value_get_count(const Value &val) const
+        inline uint32_t search_table_for_value_get_count(const Value &val) const
         {
-            uint count = 0;
+            uint32_t count = 0;
             for (const_iterator it = begin(); it != end(); ++it)
                 if (it->second == val)
                     ++count;
@@ -741,33 +741,33 @@ namespace vogl
         // Direct hash table low-level manipulation
 
         // index can be retrieved from a iterator by calling get_index()
-        inline bool is_valid_index(uint index) const
+        inline bool is_valid_index(uint32_t index) const
         {
             return (index < m_values.size()) && (get_node(index).state != cStateInvalid);
         }
 
-        inline const value_type &value_type_at_index(uint index) const
+        inline const value_type &value_type_at_index(uint32_t index) const
         {
             return get_node(index).value_type;
         }
 
-        inline const Key &key_at_index(uint index) const
+        inline const Key &key_at_index(uint32_t index) const
         {
             return get_node(index).value_type.first;
         }
 
-        inline const Value &value_at_index(uint index) const
+        inline const Value &value_at_index(uint32_t index) const
         {
             return get_node(index).value_type.first;
         }
 
-        inline Value &value_at_index(uint index)
+        inline Value &value_at_index(uint32_t index)
         {
             return get_node(index).value_type.first;
         }
 
         // Returns index if found, or index==size() if not found.
-        inline uint find_index(const Key &k) const
+        inline uint32_t find_index(const Key &k) const
         {
             if (m_num_valid)
             {
@@ -1004,20 +1004,20 @@ namespace vogl
         typedef vogl::vector<raw_node> node_vector;
 
         node_vector m_values;
-        uint m_hash_shift;
+        uint32_t m_hash_shift;
 
         Hasher m_hasher;
         Equals m_equals;
 
-        uint m_num_valid;
+        uint32_t m_num_valid;
 
-        uint m_grow_threshold;
+        uint32_t m_grow_threshold;
 
         inline int hash_key(const Key &k) const
         {
             VOGL_ASSERT((1U << (32U - m_hash_shift)) == m_values.size());
 
-            uint hash = static_cast<uint>(m_hasher(k));
+            uint32_t hash = static_cast<uint32_t>(m_hasher(k));
 
             // Fibonacci hashing
             hash = (2654435769U * hash) >> m_hash_shift;
@@ -1026,22 +1026,22 @@ namespace vogl
             return hash;
         }
 
-        inline const node &get_node(uint index) const
+        inline const node &get_node(uint32_t index) const
         {
             return *reinterpret_cast<const node *>(&m_values[index]);
         }
 
-        inline node &get_node(uint index)
+        inline node &get_node(uint32_t index)
         {
             return *reinterpret_cast<node *>(&m_values[index]);
         }
 
-        inline state get_node_state(uint index) const
+        inline state get_node_state(uint32_t index) const
         {
             return static_cast<state>(get_node(index).state);
         }
 
-        inline void set_node_state(uint index, bool valid)
+        inline void set_node_state(uint32_t index, bool valid)
         {
             get_node(index).state = valid;
         }
@@ -1055,10 +1055,10 @@ namespace vogl
                 return;
             }
 
-            rehash(math::maximum<uint>(cMinHashSize, m_values.size() * 2U));
+            rehash(math::maximum<uint32_t>(cMinHashSize, m_values.size() * 2U));
         }
 
-        inline void rehash(uint new_hash_size)
+        inline void rehash(uint32_t new_hash_size)
         {
             VOGL_ASSERT(new_hash_size >= m_num_valid);
             VOGL_ASSERT(math::is_power_of_2(new_hash_size));
@@ -1099,7 +1099,7 @@ namespace vogl
             swap(new_map);
         }
 
-        inline uint find_next(int index) const
+        inline uint32_t find_next(int index) const
         {
             index++;
 

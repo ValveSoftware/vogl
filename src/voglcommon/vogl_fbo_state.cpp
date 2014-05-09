@@ -70,7 +70,7 @@ bool vogl_framebuffer_attachment::snapshot(const vogl_context_info &context_info
             GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE, GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE, GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE, GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING
         };
 
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(s_common_queries); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_common_queries); i++)
     {
         DO_QUERY(s_common_queries[i]);
     }
@@ -96,9 +96,9 @@ bool vogl_framebuffer_attachment::remap_handles(vogl_handle_remapper &remapper)
         return false;
 
     if (m_type == GL_RENDERBUFFER)
-        m_params[GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME] = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_RENDER_BUFFERS, get_handle()));
+        m_params[GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME] = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_RENDER_BUFFERS, get_handle()));
     else if (m_type == GL_TEXTURE)
-        m_params[GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME] = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, get_handle()));
+        m_params[GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME] = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, get_handle()));
 
     return true;
 }
@@ -141,7 +141,7 @@ bool vogl_framebuffer_attachment::deserialize(const json_node &node)
     m_attachment = vogl_get_json_value_as_enum(node, "attachment");
     m_type = vogl_get_json_value_as_enum(node, "type");
 
-    for (uint i = 0; i < node.size(); i++)
+    for (uint32_t i = 0; i < node.size(); i++)
     {
         const dynamic_string &key = node.get_key(i);
         const json_value &val = node.get_value(i);
@@ -218,11 +218,11 @@ bool vogl_framebuffer_state::snapshot(const vogl_context_info &context_info, vog
         VOGL_CHECK_GL_ERROR;
 
         // These are per-framebuffer states, not per-context, so save them.
-        uint max_draw_buffers = vogl_get_gl_integer(GL_MAX_DRAW_BUFFERS);
+        uint32_t max_draw_buffers = vogl_get_gl_integer(GL_MAX_DRAW_BUFFERS);
         VOGL_CHECK_GL_ERROR;
 
         m_draw_buffers.resize(max_draw_buffers);
-        for (uint i = 0; i < max_draw_buffers; i++)
+        for (uint32_t i = 0; i < max_draw_buffers; i++)
         {
             m_draw_buffers[i] = vogl_get_gl_integer(GL_DRAW_BUFFER0 + i);
             VOGL_CHECK_GL_ERROR;
@@ -257,7 +257,7 @@ bool vogl_framebuffer_state::snapshot(const vogl_context_info &context_info, vog
             };
 
         const GLenum *pAttachments = s_default_attachments;
-        uint num_attachments = VOGL_ARRAY_SIZE(s_default_attachments);
+        uint32_t num_attachments = VOGL_ARRAY_SIZE(s_default_attachments);
 
         if (handle)
         {
@@ -265,13 +265,13 @@ bool vogl_framebuffer_state::snapshot(const vogl_context_info &context_info, vog
             num_attachments = VOGL_ARRAY_SIZE(s_framebuffer_attachments);
         }
 
-        for (uint i = 0; i < num_attachments; i++)
+        for (uint32_t i = 0; i < num_attachments; i++)
         {
             GLenum attachment = pAttachments[i];
 
             if ((attachment >= GL_COLOR_ATTACHMENT0) && (attachment <= GL_COLOR_ATTACHMENT15))
             {
-                if (attachment > static_cast<uint>((GL_COLOR_ATTACHMENT0 + max_color_attachments - 1)))
+                if (attachment > static_cast<uint32_t>((GL_COLOR_ATTACHMENT0 + max_color_attachments - 1)))
                     continue;
             }
 
@@ -466,7 +466,7 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
             if (m_draw_buffers[last_valid_draw_buffer_idx] != GL_NONE)
                 break;
 
-        uint num_valid_draw_buffers = last_valid_draw_buffer_idx + 1;
+        uint32_t num_valid_draw_buffers = last_valid_draw_buffer_idx + 1;
 
         if (!num_valid_draw_buffers)
         {
@@ -565,7 +565,7 @@ bool vogl_framebuffer_state::serialize(json_node &node, vogl_blob_manager &blob_
     node.add_key_value("read_buffer", m_read_buffer);
 
     json_node &draw_buffers_array = node.add_array("draw_buffers");
-    for (uint i = 0; i < m_draw_buffers.size(); i++)
+    for (uint32_t i = 0; i < m_draw_buffers.size(); i++)
         draw_buffers_array.add_value(m_draw_buffers[i]);
 
     json_node &attachments_array = node.add_array("attachments");
@@ -595,14 +595,14 @@ bool vogl_framebuffer_state::deserialize(const json_node &node, const vogl_blob_
     {
         m_draw_buffers.resize(pDraw_buffers_array->size());
 
-        for (uint i = 0; i < m_draw_buffers.size(); i++)
+        for (uint32_t i = 0; i < m_draw_buffers.size(); i++)
             m_draw_buffers[i] = pDraw_buffers_array->value_as_uint32(i);
     }
 
     const json_node *pAttachments_array = node.find_child_array("attachments");
     if (pAttachments_array)
     {
-        for (uint i = 0; i < pAttachments_array->size(); i++)
+        for (uint32_t i = 0; i < pAttachments_array->size(); i++)
         {
             const json_node *pAttachment = pAttachments_array->get_child(i);
             if (pAttachment)

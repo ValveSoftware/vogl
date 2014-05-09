@@ -664,13 +664,13 @@ namespace vogl
         if (!p)
             return false;
 
-        if (static_cast<uint>(data_size) != data_size)
+        if (static_cast<uint32_t>(data_size) != data_size)
             return false;
 
-        if (!data.try_resize(static_cast<uint>(data_size)))
+        if (!data.try_resize(static_cast<uint32_t>(data_size)))
             return false;
 
-        if (!data.grant_ownership(static_cast<uint8_t *>(p), static_cast<uint>(data_size), static_cast<uint>(data_size)))
+        if (!data.grant_ownership(static_cast<uint8_t *>(p), static_cast<uint32_t>(data_size), static_cast<uint32_t>(data_size)))
         {
             vogl_free(p);
             return false;
@@ -726,7 +726,7 @@ namespace vogl
 		bool file_utils::read_proc_file(const char *filename, vogl::growable_array<char, 2048> &data)
 		{
 			bool ret = false;
-			uint file_length = 0;
+			uint32_t file_length = 0;
 			int nbytes = data.cMaxFixedElements;
     
 			int fd = open(filename, O_RDONLY);
@@ -783,7 +783,7 @@ namespace vogl
     }
 
     // This helper only works on files with valid file sizes (i.e. it won't work on some files under proc such as /proc/self/status).
-    bool file_utils::read_text_file(const char *pPath, dynamic_string_array &lines, uint flags)
+    bool file_utils::read_text_file(const char *pPath, dynamic_string_array &lines, uint32_t flags)
     {
         cfile_stream stream;
         if (!stream.open(pPath, cDataStreamReadable))
@@ -874,7 +874,7 @@ namespace vogl
         if (!stream.open(pPath, cDataStreamWritable))
             return false;
 
-        for (uint i = 0; i < lines.size(); i++)
+        for (uint32_t i = 0; i < lines.size(); i++)
         {
             const dynamic_string &str = lines[i];
             if (str.get_len())

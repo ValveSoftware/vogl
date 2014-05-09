@@ -53,33 +53,33 @@ namespace vogl
             return m_blocks_x > 0;
         }
 
-        uint get_width() const
+        uint32_t get_width() const
         {
             return m_width;
         }
-        uint get_height() const
+        uint32_t get_height() const
         {
             return m_height;
         }
 
-        uint get_blocks_x() const
+        uint32_t get_blocks_x() const
         {
             return m_blocks_x;
         }
-        uint get_blocks_y() const
+        uint32_t get_blocks_y() const
         {
             return m_blocks_y;
         }
-        uint get_total_blocks() const
+        uint32_t get_total_blocks() const
         {
             return m_blocks_x * m_blocks_y;
         }
 
-        uint get_elements_per_block() const
+        uint32_t get_elements_per_block() const
         {
             return m_num_elements_per_block;
         }
-        uint get_bytes_per_block() const
+        uint32_t get_bytes_per_block() const
         {
             return m_bytes_per_block;
         }
@@ -106,14 +106,14 @@ namespace vogl
             cColorETC1, // ETC1 color block
         };
 
-        element_type get_element_type(uint element_index) const
+        element_type get_element_type(uint32_t element_index) const
         {
             VOGL_ASSERT(element_index < m_num_elements_per_block);
             return m_element_type[element_index];
         }
 
         //Returns -1 for RGB, or [0,3]
-        int8_t get_element_component_index(uint element_index) const
+        int8_t get_element_component_index(uint32_t element_index) const
         {
             VOGL_ASSERT(element_index < m_num_elements_per_block);
             return m_element_component_index[element_index];
@@ -123,24 +123,24 @@ namespace vogl
         {
             uint8_t m_bytes[8];
 
-            uint get_le_word(uint index) const
+            uint32_t get_le_word(uint32_t index) const
             {
                 VOGL_ASSERT(index < 4);
                 return m_bytes[index * 2] | (m_bytes[index * 2 + 1] << 8);
             }
-            uint get_be_word(uint index) const
+            uint32_t get_be_word(uint32_t index) const
             {
                 VOGL_ASSERT(index < 4);
                 return m_bytes[index * 2 + 1] | (m_bytes[index * 2] << 8);
             }
 
-            void set_le_word(uint index, uint val)
+            void set_le_word(uint32_t index, uint32_t val)
             {
                 VOGL_ASSERT((index < 4) && (val <= cUINT16_MAX));
                 m_bytes[index * 2] = static_cast<uint8_t>(val & 0xFF);
                 m_bytes[index * 2 + 1] = static_cast<uint8_t>((val >> 8) & 0xFF);
             }
-            void set_be_word(uint index, uint val)
+            void set_be_word(uint32_t index, uint32_t val)
             {
                 VOGL_ASSERT((index < 4) && (val <= cUINT16_MAX));
                 m_bytes[index * 2 + 1] = static_cast<uint8_t>(val & 0xFF);
@@ -155,8 +155,8 @@ namespace vogl
 
         typedef vogl::vector<element> element_vec;
 
-        bool init(dxt_format fmt, uint width, uint height, bool clear_elements);
-        bool init(dxt_format fmt, uint width, uint height, uint num_elements, element *pElements, bool create_copy);
+        bool init(dxt_format fmt, uint32_t width, uint32_t height, bool clear_elements);
+        bool init(dxt_format fmt, uint32_t width, uint32_t height, uint32_t num_elements, element *pElements, bool create_copy);
 
         struct pack_params
         {
@@ -200,9 +200,9 @@ namespace vogl
                 m_compressor = params.m_dxt_compressor_type;
             }
 
-            uint m_dxt1a_alpha_threshold;
+            uint32_t m_dxt1a_alpha_threshold;
 
-            uint m_num_helper_threads;
+            uint32_t m_num_helper_threads;
 
             vogl_dxt_quality m_quality;
 
@@ -215,12 +215,12 @@ namespace vogl
             bool m_endpoint_caching;
             bool m_use_transparent_indices_for_black;
 
-            typedef bool (*progress_callback_func)(uint percentage_complete, void *pUser_data_ptr);
+            typedef bool (*progress_callback_func)(uint32_t percentage_complete, void *pUser_data_ptr);
             progress_callback_func m_pProgress_callback;
             void *m_pProgress_callback_user_data_ptr;
 
-            uint m_progress_start;
-            uint m_progress_range;
+            uint32_t m_progress_start;
+            uint32_t m_progress_range;
 
             task_pool *m_pTask_pool;
 
@@ -233,7 +233,7 @@ namespace vogl
 
         void endian_swap();
 
-        uint get_total_elements() const
+        uint32_t get_total_elements() const
         {
             return m_elements.size();
         }
@@ -247,8 +247,8 @@ namespace vogl
             return m_elements;
         }
 
-        const element &get_element(uint block_x, uint block_y, uint element_index) const;
-        element &get_element(uint block_x, uint block_y, uint element_index);
+        const element &get_element(uint32_t block_x, uint32_t block_y, uint32_t element_index) const;
+        element &get_element(uint32_t block_x, uint32_t block_y, uint32_t element_index);
 
         const element *get_element_ptr() const
         {
@@ -259,22 +259,22 @@ namespace vogl
             return m_pElements;
         }
 
-        uint get_size_in_bytes() const
+        uint32_t get_size_in_bytes() const
         {
             return m_elements.size() * sizeof(element);
         }
-        uint get_row_pitch_in_bytes() const
+        uint32_t get_row_pitch_in_bytes() const
         {
             return m_blocks_x * m_bytes_per_block;
         }
 
-        color_quad_u8 get_pixel(uint x, uint y) const;
-        uint get_pixel_alpha(uint x, uint y, uint element_index) const;
+        color_quad_u8 get_pixel(uint32_t x, uint32_t y) const;
+        uint32_t get_pixel_alpha(uint32_t x, uint32_t y, uint32_t element_index) const;
 
-        void set_pixel(uint x, uint y, const color_quad_u8 &c, bool perceptual = true);
+        void set_pixel(uint32_t x, uint32_t y, const color_quad_u8 &c, bool perceptual = true);
 
         // get_block_pixels() only sets those components stored in the image!
-        bool get_block_pixels(uint block_x, uint block_y, color_quad_u8 *pPixels) const;
+        bool get_block_pixels(uint32_t block_x, uint32_t block_y, color_quad_u8 *pPixels) const;
 
         struct set_block_pixels_context
         {
@@ -282,27 +282,27 @@ namespace vogl
             dxt5_endpoint_optimizer m_dxt5_optimizer;
         };
 
-        void set_block_pixels(uint block_x, uint block_y, const color_quad_u8 *pPixels, const pack_params &p, set_block_pixels_context &context);
-        void set_block_pixels(uint block_x, uint block_y, const color_quad_u8 *pPixels, const pack_params &p);
+        void set_block_pixels(uint32_t block_x, uint32_t block_y, const color_quad_u8 *pPixels, const pack_params &p, set_block_pixels_context &context);
+        void set_block_pixels(uint32_t block_x, uint32_t block_y, const color_quad_u8 *pPixels, const pack_params &p);
 
-        void get_block_endpoints(uint block_x, uint block_y, uint element_index, uint &packed_low_endpoint, uint &packed_high_endpoint) const;
+        void get_block_endpoints(uint32_t block_x, uint32_t block_y, uint32_t element_index, uint32_t &packed_low_endpoint, uint32_t &packed_high_endpoint) const;
 
         // Returns a value representing the component(s) that where actually set, where -1 = RGB.
         // This method does not always set every component!
-        int get_block_endpoints(uint block_x, uint block_y, uint element_index, color_quad_u8 &low_endpoint, color_quad_u8 &high_endpoint, bool scaled = true) const;
+        int get_block_endpoints(uint32_t block_x, uint32_t block_y, uint32_t element_index, color_quad_u8 &low_endpoint, color_quad_u8 &high_endpoint, bool scaled = true) const;
 
         // pColors should point to a 16 entry array, to handle DXT3.
         // Returns the number of block colors: 3, 4, 6, 8, or 16.
-        uint get_block_colors(uint block_x, uint block_y, uint element_index, color_quad_u8 *pColors, uint subblock_index = 0);
+        uint32_t get_block_colors(uint32_t block_x, uint32_t block_y, uint32_t element_index, color_quad_u8 *pColors, uint32_t subblock_index = 0);
 
-        uint get_subblock_index(uint x, uint y, uint element_index) const;
-        uint get_total_subblocks(uint element_index) const;
+        uint32_t get_subblock_index(uint32_t x, uint32_t y, uint32_t element_index) const;
+        uint32_t get_total_subblocks(uint32_t element_index) const;
 
-        uint get_selector(uint x, uint y, uint element_index) const;
+        uint32_t get_selector(uint32_t x, uint32_t y, uint32_t element_index) const;
 
         void change_dxt1_to_dxt1a();
 
-        bool can_flip(uint axis_index);
+        bool can_flip(uint32_t axis_index);
 
         // Returns true if the texture can actually be flipped.
         bool flip_x();
@@ -312,31 +312,31 @@ namespace vogl
         element_vec m_elements;
         element *m_pElements;
 
-        uint m_width;
-        uint m_height;
+        uint32_t m_width;
+        uint32_t m_height;
 
-        uint m_blocks_x;
-        uint m_blocks_y;
-        uint m_total_blocks;
-        uint m_total_elements;
+        uint32_t m_blocks_x;
+        uint32_t m_blocks_y;
+        uint32_t m_total_blocks;
+        uint32_t m_total_elements;
 
-        uint m_num_elements_per_block; // 1 or 2
-        uint m_bytes_per_block;        // 8 or 16
+        uint32_t m_num_elements_per_block; // 1 or 2
+        uint32_t m_bytes_per_block;        // 8 or 16
 
         int8_t m_element_component_index[2];
         element_type m_element_type[2];
 
         dxt_format m_format; // DXT1, 1A, 3, 5, N/3DC, or 5A
 
-        bool init_internal(dxt_format fmt, uint width, uint height);
+        bool init_internal(dxt_format fmt, uint32_t width, uint32_t height);
         void init_task(uint64_t data, void *pData_ptr);
 
 #if VOGL_SUPPORT_ATI_COMPRESS
         bool init_ati_compress(dxt_format fmt, const image_u8 &img, const pack_params &p);
 #endif
 
-        void flip_col(uint x);
-        void flip_row(uint y);
+        void flip_col(uint32_t x);
+        void flip_row(uint32_t y);
     };
 
 } // namespace vogl

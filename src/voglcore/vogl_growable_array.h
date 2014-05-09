@@ -40,7 +40,7 @@
 
 namespace vogl
 {
-    template <typename T, uint N>
+    template <typename T, uint32_t N>
     class growable_array
     {
     public:
@@ -56,7 +56,7 @@ namespace vogl
             VOGL_ASSUME(N > 0);
         }
 
-        inline growable_array(uint initial_size)
+        inline growable_array(uint32_t initial_size)
             : m_fixed_size(0)
         {
             VOGL_ASSUME(N > 0);
@@ -77,7 +77,7 @@ namespace vogl
 
             clear();
 
-            const uint rhs_size = rhs.size();
+            const uint32_t rhs_size = rhs.size();
 
             if (rhs_size > N)
                 m_dynamic_elements = rhs.m_dynamic_elements;
@@ -124,12 +124,12 @@ namespace vogl
             }
         }
 
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_fixed_size ? m_fixed_size : m_dynamic_elements.size();
         }
 
-        inline uint size_in_bytes() const
+        inline uint32_t size_in_bytes() const
         {
             return size() * sizeof(T);
         }
@@ -139,7 +139,7 @@ namespace vogl
             return !size();
         }
 
-        inline uint capacity() const
+        inline uint32_t capacity() const
         {
             return is_dynamic() ? m_dynamic_elements.capacity() : N;
         }
@@ -193,13 +193,13 @@ namespace vogl
             return end()[-1];
         }
 
-        inline const T &operator[](uint i) const
+        inline const T &operator[](uint32_t i) const
         {
             VOGL_ASSERT(i < size());
             return get_ptr()[i];
         }
 
-        inline T &operator[](uint i)
+        inline T &operator[](uint32_t i)
         {
             VOGL_ASSERT(i < size());
             return get_ptr()[i];
@@ -218,7 +218,7 @@ namespace vogl
             }
         }
 
-        inline void resize(uint n, bool grow_hint = false)
+        inline void resize(uint32_t n, bool grow_hint = false)
         {
             if (is_dynamic())
             {
@@ -239,7 +239,7 @@ namespace vogl
             }
         }
 
-        inline void reserve(uint n)
+        inline void reserve(uint32_t n)
         {
             if ((n <= N) || (n <= size()))
                 return;
@@ -263,7 +263,7 @@ namespace vogl
             }
         }
 
-        inline T *enlarge(uint n)
+        inline T *enlarge(uint32_t n)
         {
             if ((m_fixed_size + n) > N)
                 switch_to_dynamic(m_fixed_size + n);
@@ -292,7 +292,7 @@ namespace vogl
             }
         }
 
-        inline void insert(uint index, const T *p, uint n)
+        inline void insert(uint32_t index, const T *p, uint32_t n)
         {
             VOGL_ASSERT(((p + n) <= &fixed_element(0)) || (p >= &fixed_element(m_fixed_size)));
 
@@ -309,12 +309,12 @@ namespace vogl
             if (!n)
                 return;
 
-            const uint orig_size = m_fixed_size;
+            const uint32_t orig_size = m_fixed_size;
             resize(m_fixed_size + n);
 
             VOGL_ASSERT(!is_dynamic());
 
-            const uint num_to_move = orig_size - index;
+            const uint32_t num_to_move = orig_size - index;
 
             if (VOGL_IS_BITWISE_COPYABLE(T))
             {
@@ -326,7 +326,7 @@ namespace vogl
                 const T *pSrc = &fixed_element(0) + orig_size - 1;
                 T *pDst = const_cast<T *>(pSrc) + n;
 
-                for (uint i = 0; i < num_to_move; i++)
+                for (uint32_t i = 0; i < num_to_move; i++)
                 {
                     VOGL_ASSERT((pDst - &fixed_element(0)) < (int)m_fixed_size);
                     *pDst-- = *pSrc--;
@@ -342,7 +342,7 @@ namespace vogl
             }
             else
             {
-                for (uint i = 0; i < n; i++)
+                for (uint32_t i = 0; i < n; i++)
                 {
                     VOGL_ASSERT((pDst - &fixed_element(0)) < (int)m_fixed_size);
                     *pDst++ = *p++;
@@ -350,7 +350,7 @@ namespace vogl
             }
         }
 
-        inline void insert(uint index, const T &obj)
+        inline void insert(uint32_t index, const T &obj)
         {
             insert(index, &obj, 1);
         }
@@ -369,14 +369,14 @@ namespace vogl
             return *this;
         }
 
-        inline growable_array &append(const T *p, uint n)
+        inline growable_array &append(const T *p, uint32_t n)
         {
             if (n)
                 insert(size(), p, n);
             return *this;
         }
 
-        inline void erase(uint start, uint n)
+        inline void erase(uint32_t start, uint32_t n)
         {
             if (is_dynamic())
             {
@@ -391,7 +391,7 @@ namespace vogl
             if (!n)
                 return;
 
-            const uint num_to_move = m_fixed_size - (start + n);
+            const uint32_t num_to_move = m_fixed_size - (start + n);
 
             T *pDst = &fixed_element(0) + start;
 
@@ -424,12 +424,12 @@ namespace vogl
             m_fixed_size -= n;
         }
 
-        inline void erase(uint index)
+        inline void erase(uint32_t index)
         {
             erase(index, 1);
         }
 
-        inline void erase_unordered(uint index)
+        inline void erase_unordered(uint32_t index)
         {
             VOGL_ASSERT(index < size());
 
@@ -452,7 +452,7 @@ namespace vogl
 
         inline bool is_sorted() const
         {
-            for (uint i = 1; i < size(); ++i)
+            for (uint32_t i = 1; i < size(); ++i)
                 if ((*this)[i] < (*this)[i - 1])
                     return false;
             return true;
@@ -464,22 +464,22 @@ namespace vogl
             {
                 sort();
 
-                resize(static_cast<uint>(std::unique(begin(), end()) - begin()));
+                resize(static_cast<uint32_t>(std::unique(begin(), end()) - begin()));
             }
         }
 
         inline void reverse()
         {
-            uint cur_size = size();
-            uint j = cur_size >> 1;
+            uint32_t cur_size = size();
+            uint32_t j = cur_size >> 1;
             T *p = get_ptr();
-            for (uint i = 0; i < j; i++)
+            for (uint32_t i = 0; i < j; i++)
                 utils::swap(p[i], p[cur_size - 1 - i]);
         }
 
         inline int find(const T &key) const
         {
-            uint cur_size;
+            uint32_t cur_size;
             const T *p;
             if (is_dynamic())
             {
@@ -496,7 +496,7 @@ namespace vogl
 
             const T *p_end = p + cur_size;
 
-            uint index = 0;
+            uint32_t index = 0;
 
             while (p != p_end)
             {
@@ -512,7 +512,7 @@ namespace vogl
 
         inline int find_last(const T &key) const
         {
-            uint cur_size;
+            uint32_t cur_size;
             const T *p;
             if (is_dynamic())
             {
@@ -536,7 +536,7 @@ namespace vogl
 
         inline int find_sorted(const T &key) const
         {
-            uint cur_size;
+            uint32_t cur_size;
             const T *p;
             if (is_dynamic())
             {
@@ -582,8 +582,8 @@ namespace vogl
                 helpers::move_array(&rhs.fixed_element(0), &lhs.fixed_element(0), lhs.m_fixed_size);
             else if (!lhs.is_dynamic() && !rhs.is_dynamic())
             {
-                uint common_size = math::minimum(lhs.m_fixed_size, rhs.m_fixed_size);
-                for (uint i = 0; i < common_size; i++)
+                uint32_t common_size = math::minimum(lhs.m_fixed_size, rhs.m_fixed_size);
+                for (uint32_t i = 0; i < common_size; i++)
                     std::swap(lhs.fixed_element(i), rhs.fixed_element(i));
 
                 if (lhs.m_fixed_size > rhs.m_fixed_size)
@@ -596,7 +596,7 @@ namespace vogl
             std::swap(lhs.m_fixed_size, rhs.m_fixed_size);
         }
 
-        void switch_to_dynamic(uint new_capacity)
+        void switch_to_dynamic(uint32_t new_capacity)
         {
             if (is_dynamic())
             {
@@ -634,7 +634,7 @@ namespace vogl
             if (!is_dynamic() || (m_dynamic_elements.size() > N))
                 return;
 
-            uint cur_size = m_dynamic_elements.size();
+            uint32_t cur_size = m_dynamic_elements.size();
             T *pSrc = static_cast<T *>(m_dynamic_elements.assume_ownership());
 
             if (cur_size)
@@ -661,11 +661,11 @@ namespace vogl
 
         inline bool operator==(const growable_array &rhs) const
         {
-            uint n = size();
+            uint32_t n = size();
             if (n != rhs.size())
                 return false;
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
                 if (!((*this)[i] == rhs[i]))
                     return false;
 
@@ -680,11 +680,11 @@ namespace vogl
         template <typename OtherT>
         inline bool operator==(const OtherT &rhs) const
         {
-            uint n = size();
+            uint32_t n = size();
             if (n != rhs.size())
                 return false;
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
                 if (!((*this)[i] == rhs[i]))
                     return false;
 
@@ -699,14 +699,14 @@ namespace vogl
 
     private:
         vogl::vector<T> m_dynamic_elements;
-        uint m_fixed_size;
+        uint32_t m_fixed_size;
         uint64_t m_fixed_elements[(N * sizeof(T) + sizeof(uint64_t) - 1) / sizeof(uint64_t)];
 
-        inline const T &fixed_element(uint i) const
+        inline const T &fixed_element(uint32_t i) const
         {
             return reinterpret_cast<const T *>(m_fixed_elements)[i];
         }
-        inline T &fixed_element(uint i)
+        inline T &fixed_element(uint32_t i)
         {
             return reinterpret_cast<T *>(m_fixed_elements)[i];
         }

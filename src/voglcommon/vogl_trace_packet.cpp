@@ -76,8 +76,8 @@ bool vogl_trace_packet::compare(const vogl_trace_packet &other, bool deep) const
     }
 #undef CMP
 
-    const uint total_params_to_check = m_total_params + m_has_return_value;
-    for (uint i = 0; i < total_params_to_check; i++)
+    const uint32_t total_params_to_check = m_total_params + m_has_return_value;
+    for (uint32_t i = 0; i < total_params_to_check; i++)
     {
         if (m_param_ctype[i] != other.m_param_ctype[i])
             return false;
@@ -166,7 +166,7 @@ bool vogl_trace_packet::check() const
             return false;
     }
 
-    for (uint param_iter = 0; param_iter < entrypoint_desc.m_num_params; param_iter++)
+    for (uint32_t param_iter = 0; param_iter < entrypoint_desc.m_num_params; param_iter++)
     {
         if (m_param_ctype[param_iter] == VOGL_INVALID_CTYPE)
             return false;
@@ -179,8 +179,8 @@ bool vogl_trace_packet::check() const
             return false;
     }
 
-    uint total_params = entrypoint_desc.m_num_params + m_has_return_value;
-    for (uint param_iter = 0; param_iter < total_params; param_iter++)
+    uint32_t total_params = entrypoint_desc.m_num_params + m_has_return_value;
+    for (uint32_t param_iter = 0; param_iter < total_params; param_iter++)
     {
         const client_memory_desc_t &mem_desc = m_client_memory_descs[param_iter];
         if (mem_desc.m_vec_ofs >= 0)
@@ -191,7 +191,7 @@ bool vogl_trace_packet::check() const
             if ((mem_desc.m_vec_ofs + mem_desc.m_data_size) > m_client_memory.size())
                 return false;
 
-            uint pointee_ctype_size = 0;
+            uint32_t pointee_ctype_size = 0;
             bool pointee_is_opaque = false;
             bool is_opaque_ptr = false;
             if (param_iter < entrypoint_desc.m_num_params)
@@ -246,7 +246,7 @@ bool vogl_trace_packet::check() const
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_trace_packet::deserialize
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_trace_packet::deserialize(const uint8_t *pPacket_data, uint packet_data_buf_size, bool check_crc)
+bool vogl_trace_packet::deserialize(const uint8_t *pPacket_data, uint32_t packet_data_buf_size, bool check_crc)
 {
     VOGL_FUNC_TRACER
 
@@ -281,27 +281,27 @@ bool vogl_trace_packet::deserialize(const uint8_t *pPacket_data, uint packet_dat
     if (m_packet.m_entrypoint_id >= VOGL_NUM_ENTRYPOINTS)
         return false;
 
-    uint entrypoint_index = m_packet.m_entrypoint_id;
+    uint32_t entrypoint_index = m_packet.m_entrypoint_id;
     const gl_entrypoint_desc_t &entrypoint_desc = g_vogl_entrypoint_descs[entrypoint_index];
     const gl_entrypoint_param_desc_t *pParam_desc = &g_vogl_entrypoint_param_descs[entrypoint_index][0];
 
     m_total_params = entrypoint_desc.m_num_params;
     m_has_return_value = (entrypoint_desc.m_return_ctype != VOGL_VOID);
 
-    const uint total_params_to_deserialize = m_total_params + m_has_return_value;
+    const uint32_t total_params_to_deserialize = m_total_params + m_has_return_value;
 
     const uint8_t *pExtra_packet_data = pPacket_data + sizeof(vogl_trace_gl_entrypoint_packet);
-    uint num_bytes_remaining = m_packet.m_size - sizeof(vogl_trace_gl_entrypoint_packet);
+    uint32_t num_bytes_remaining = m_packet.m_size - sizeof(vogl_trace_gl_entrypoint_packet);
 
     if (m_packet.m_param_size)
     {
         if (m_packet.m_param_size > num_bytes_remaining)
             return false;
 
-        for (uint param_index = 0; param_index < total_params_to_deserialize; ++param_index, ++pParam_desc)
+        for (uint32_t param_index = 0; param_index < total_params_to_deserialize; ++param_index, ++pParam_desc)
         {
             vogl_ctype_t param_ctype = (param_index >= m_total_params) ? entrypoint_desc.m_return_ctype : pParam_desc->m_ctype;
-            uint param_size = (*m_pCTypes)[param_ctype].m_size;
+            uint32_t param_size = (*m_pCTypes)[param_ctype].m_size;
 
             if (num_bytes_remaining < param_size)
                 return false;
@@ -323,7 +323,7 @@ bool vogl_trace_packet::deserialize(const uint8_t *pPacket_data, uint packet_dat
         if (m_packet.m_client_memory_size > num_bytes_remaining)
             return false;
 
-        uint client_memory_descs_size = (total_params_to_deserialize * sizeof(client_memory_desc_t));
+        uint32_t client_memory_descs_size = (total_params_to_deserialize * sizeof(client_memory_desc_t));
         if (num_bytes_remaining < client_memory_descs_size)
             return false;
 
@@ -334,7 +334,7 @@ bool vogl_trace_packet::deserialize(const uint8_t *pPacket_data, uint packet_dat
         if (client_memory_descs_size > m_packet.m_client_memory_size)
             return false;
 
-        uint client_memory_vec_size = m_packet.m_client_memory_size - client_memory_descs_size;
+        uint32_t client_memory_vec_size = m_packet.m_client_memory_size - client_memory_descs_size;
 
         m_client_memory.append(pExtra_packet_data, client_memory_vec_size);
         pExtra_packet_data += client_memory_vec_size;
@@ -390,11 +390,11 @@ bool vogl_trace_packet::serialize(data_stream &stream) const
 
     uint8_t param_data[512];
 
-    uint total_params_to_serialize = m_total_params + m_has_return_value;
+    uint32_t total_params_to_serialize = m_total_params + m_has_return_value;
     uint8_t *pDst_param_data = param_data;
-    for (uint i = 0; i < total_params_to_serialize; i++)
+    for (uint32_t i = 0; i < total_params_to_serialize; i++)
     {
-        uint size = m_param_size[i];
+        uint32_t size = m_param_size[i];
         VOGL_ASSERT(size);
         memcpy(pDst_param_data, &m_param_data[i], size);
         pDst_param_data += size;
@@ -404,7 +404,7 @@ bool vogl_trace_packet::serialize(data_stream &stream) const
     VOGL_VERIFY((pDst_param_data - param_data) <= cUINT8_MAX);
     packet.m_param_size = static_cast<uint8_t>(pDst_param_data - param_data);
 
-    uint client_memory_descs_size = (total_params_to_serialize * sizeof(client_memory_desc_t));
+    uint32_t client_memory_descs_size = (total_params_to_serialize * sizeof(client_memory_desc_t));
     packet.m_client_memory_size = client_memory_descs_size + m_client_memory.size();
 
     uint64_t kvm_serialize_size = m_key_value_map.get_num_key_values() ? m_key_value_map.get_serialize_size(false) : 0;
@@ -452,7 +452,7 @@ bool vogl_trace_packet::serialize(data_stream &stream) const
             return false;
         }
 
-        uint buf_remaining = static_cast<uint>(m_packet_buf.end() - pDst_buf);
+        uint32_t buf_remaining = static_cast<uint32_t>(m_packet_buf.end() - pDst_buf);
         int result = m_key_value_map.serialize_to_buffer(pDst_buf, buf_remaining, true, false);
         if (result != static_cast<int>(packet.m_name_value_map_size))
             return false;
@@ -470,7 +470,7 @@ bool vogl_trace_packet::serialize(data_stream &stream) const
 
     VOGL_ASSERT(pBuf_packet->full_validation(m_packet_buf.size()));
 
-    uint n = stream.write(pBuf_packet, m_packet_buf.size());
+    uint32_t n = stream.write(pBuf_packet, m_packet_buf.size());
     if (n != m_packet_buf.size())
         return false;
 
@@ -517,7 +517,7 @@ bool vogl_trace_packet::json_serialize(json_node &node, const json_serialize_par
     node.add_key_value("inv_rnd_check", m_packet.m_inv_rnd);
 
     json_node &gl_params_node = node.add_object("params");
-    for (uint param_index = 0; param_index < total_params(); param_index++)
+    for (uint32_t param_index = 0; param_index < total_params(); param_index++)
     {
         if (!json_serialize_param(pFunc_name, gl_params_node, param_index, get_param_desc(param_index).m_pName,
                                   get_param_data(param_index), get_param_size(param_index), get_param_ctype(param_index),
@@ -725,7 +725,7 @@ static void print_json_context(const char *pDocument_filename, const json_node &
 //----------------------------------------------------------------------------------------------------------------------
 // print_json_context
 //----------------------------------------------------------------------------------------------------------------------
-static void print_json_context(const char *pDocument_filename, const json_node &node, uint node_index, eConsoleMessageType msg_category = cErrorConsoleMessage)
+static void print_json_context(const char *pDocument_filename, const json_node &node, uint32_t node_index, eConsoleMessageType msg_category = cErrorConsoleMessage)
 {
     VOGL_FUNC_TRACER
 
@@ -745,7 +745,7 @@ static void print_json_context(const char *pDocument_filename, const json_value 
 //----------------------------------------------------------------------------------------------------------------------
 // print_json_context
 //----------------------------------------------------------------------------------------------------------------------
-static void print_json_context(const char *pDocument_filename, const json_value &val, const json_node &node, uint node_index, eConsoleMessageType msg_category = cErrorConsoleMessage)
+static void print_json_context(const char *pDocument_filename, const json_value &val, const json_node &node, uint32_t node_index, eConsoleMessageType msg_category = cErrorConsoleMessage)
 {
     VOGL_FUNC_TRACER
 
@@ -817,7 +817,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
         return false;
     }
 
-    uint num_params = pParams_node->size();
+    uint32_t num_params = pParams_node->size();
     if (num_params != entrypoint_desc.m_num_params)
     {
         vogl_error_printf("%s: Unexpected number of param keys (expected %u, found %u)\n", VOGL_FUNCTION_INFO_CSTR, entrypoint_desc.m_num_params, num_params);
@@ -868,7 +868,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
     m_total_params = num_params;
     m_has_return_value = has_return_key;
 
-    for (uint param_iter = 0; param_iter < num_params; param_iter++)
+    for (uint32_t param_iter = 0; param_iter < num_params; param_iter++)
     {
         const gl_entrypoint_param_desc_t &param_desc = pEntrypoint_params[param_iter];
 
@@ -905,9 +905,9 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
         uint64_t size = pName_value_array->size();
         VOGL_NOTE_UNUSED(size);
 
-        uint name_value_index = 0;
+        uint32_t name_value_index = 0;
 
-        for (uint name_value_node_iter = 0; name_value_node_iter < pName_value_array->size(); name_value_node_iter++)
+        for (uint32_t name_value_node_iter = 0; name_value_node_iter < pName_value_array->size(); name_value_node_iter++)
         {
             const json_node *pItem_node = pName_value_array->get_value_as_object(name_value_node_iter);
             if (!pItem_node)
@@ -1108,7 +1108,7 @@ bool vogl_trace_packet::json_deserialize(const json_node &node, const char *pDoc
 // vogl_trace_packet::validate_value_conversion
 // Returns true if the dest type is at least large enough to hold the parameter (or the same size in bytes for floats).
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_trace_packet::validate_value_conversion(uint dest_type_size, uint dest_type_loki_type_flags, int param_index) const
+bool vogl_trace_packet::validate_value_conversion(uint32_t dest_type_size, uint32_t dest_type_loki_type_flags, int param_index) const
 {
     VOGL_FUNC_TRACER
 
@@ -1116,7 +1116,7 @@ bool vogl_trace_packet::validate_value_conversion(uint dest_type_size, uint dest
 
     const vogl_ctype_desc_t &param_ctype_desc = (param_index < 0) ? get_return_value_ctype_desc() : get_param_ctype_desc(param_index);
     uint64_t param_data = (param_index < 0) ? get_return_value_data() : get_param_data(param_index);
-    uint param_size = param_ctype_desc.m_size;
+    uint32_t param_size = param_ctype_desc.m_size;
 
     if (param_ctype_desc.m_is_pointer)
     {
@@ -1126,7 +1126,7 @@ bool vogl_trace_packet::validate_value_conversion(uint dest_type_size, uint dest
 
     if (param_ctype_desc.m_loki_type_flags & LOKI_TYPE_BITMASK(LOKI_IS_FLOAT))
     {
-        return dest_type_size == static_cast<uint>(param_ctype_desc.m_size);
+        return dest_type_size == static_cast<uint32_t>(param_ctype_desc.m_size);
     }
 
     // unsigned ints = unsigned char, unsigned short int,unsigned int, unsigned long int, unsigned long long int
@@ -1205,7 +1205,7 @@ void vogl_trace_packet::ctype_to_json_value(json_value &val, gl_entrypoint_id_t 
         {
             const gl_entrypoint_desc_t &entrypoint_desc = g_vogl_entrypoint_descs[entrypoint_id];
             VOGL_NOTE_UNUSED(entrypoint_desc);
-            VOGL_ASSERT((param_index == -1) || (static_cast<uint>(param_index) < entrypoint_desc.m_num_params));
+            VOGL_ASSERT((param_index == -1) || (static_cast<uint32_t>(param_index) < entrypoint_desc.m_num_params));
 
             const char *pName = get_gl_enums().find_name(data, entrypoint_id, param_index);
 
@@ -1256,7 +1256,7 @@ void vogl_trace_packet::ctype_to_json_value(json_value &val, gl_entrypoint_id_t 
         case VOGL_GLSIZEI:
         case VOGL_GLFIXED:
         {
-            val.set_value(static_cast<int32>(data));
+            val.set_value(static_cast<int32_t>(data));
             return;
         }
         case VOGL_GLSHORT:
@@ -1289,8 +1289,8 @@ void vogl_trace_packet::ctype_to_json_value(json_value &val, gl_entrypoint_id_t 
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_trace_packet::json_serialize_param(
     const char *pFunc_name,
-    json_node &gl_params_node, int param_index, const char *pName, const uint64_t param_data, const uint param_size, vogl_ctype_t param_ctype,
-    const void *pClient_mem, uint client_mem_size, vogl_ctype_t client_mem_ctype,
+    json_node &gl_params_node, int param_index, const char *pName, const uint64_t param_data, const uint32_t param_size, vogl_ctype_t param_ctype,
+    const void *pClient_mem, uint32_t client_mem_size, vogl_ctype_t client_mem_ctype,
     const json_serialize_params &params) const
 {
     VOGL_FUNC_TRACER
@@ -1305,7 +1305,7 @@ bool vogl_trace_packet::json_serialize_param(
     if ((param_ctype_desc.m_is_pointer) && (param_data) && (has_client_memory))
     {
         const vogl_ctype_t pointee_ctype = param_ctype_desc.m_pointee_ctype;
-        const uint pointee_size = (*m_pCTypes)[pointee_ctype].m_size;
+        const uint32_t pointee_size = (*m_pCTypes)[pointee_ctype].m_size;
         const bool pointee_is_ptr = (*m_pCTypes)[pointee_ctype].m_is_pointer;
 
         bool print_as_cstring = false;
@@ -1364,9 +1364,9 @@ bool vogl_trace_packet::json_serialize_param(
             {
                 json_node &param_data_values_node = param_node.add_array("values");
 
-                const uint client_mem_array_size = client_mem_size / pointee_size;
+                const uint32_t client_mem_array_size = client_mem_size / pointee_size;
 
-                for (uint i = 0; i < client_mem_array_size; i++)
+                for (uint32_t i = 0; i < client_mem_array_size; i++)
                 {
                     const void *p = reinterpret_cast<const uint8_t *>(pClient_mem) + i * pointee_size;
 
@@ -1396,7 +1396,7 @@ bool vogl_trace_packet::json_serialize_param(
                     buf.set_char(0, '0');
                     buf.set_char(1, 'x');
 
-                    for (uint i = 0; i < client_mem_size; i++)
+                    for (uint32_t i = 0; i < client_mem_size; i++)
                     {
                         const uint8_t c = reinterpret_cast<const uint8_t *>(pClient_mem)[(client_mem_size - 1) - i];
                         buf.set_char(2 + i * 2 + 0, utils::to_hex((c >> 4) & 0xF));
@@ -1470,7 +1470,7 @@ bool vogl_trace_packet::convert_json_value_to_ctype_data(uint64_t &data, const j
     data = 0;
 
     double dbl_data = 0;
-    uint parsed_size = 0;
+    uint32_t parsed_size = 0;
     VOGL_NOTE_UNUSED(parsed_size);
     bool parsed_double = false;
     bool parsed_hex = false;
@@ -1531,12 +1531,12 @@ bool vogl_trace_packet::convert_json_value_to_ctype_data(uint64_t &data, const j
                 return false;
             }
 
-            // TODO - Fix this so it doesn't downcast to uint (can it safely return uint64_t?)
+            // TODO - Fix this so it doesn't downcast to uint32_t (can it safely return uint64_t?)
             VOGL_ASSERT(gl_enum <= cUINT32_MAX);
 
             // a GL enum
-            data = static_cast<uint>(gl_enum);
-            parsed_size = sizeof(uint);
+            data = static_cast<uint32_t>(gl_enum);
+            parsed_size = sizeof(uint32_t);
         }
     }
     else
@@ -1708,7 +1708,7 @@ bool vogl_trace_packet::convert_json_value_to_ctype_data(uint64_t &data, const j
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_trace_packet::json_deserialize_param(
     uint64_t cur_call_counter, const char *pFunc_name,
-    const json_node &params_node, uint param_iter, const char *pParam_name, gl_entrypoint_param_class_t param_class, const vogl_ctype_desc_t &param_ctype_desc,
+    const json_node &params_node, uint32_t param_iter, const char *pParam_name, gl_entrypoint_param_class_t param_class, const vogl_ctype_desc_t &param_ctype_desc,
     const char *pDocument_filename, const vogl_blob_manager *pBlob_manager)
 {
     VOGL_FUNC_TRACER
@@ -1762,7 +1762,7 @@ bool vogl_trace_packet::json_deserialize_param(
         vogl_ctype_t pointee_ctype = param_ctype_desc.m_pointee_ctype;
         VOGL_ASSERT(pointee_ctype != VOGL_INVALID_CTYPE);
 
-        uint pointee_ctype_size = (*m_pCTypes)[pointee_ctype].m_size;
+        uint32_t pointee_ctype_size = (*m_pCTypes)[pointee_ctype].m_size;
 
         const json_node *pParam_obj = val.get_node_ptr();
 
@@ -1776,7 +1776,7 @@ bool vogl_trace_packet::json_deserialize_param(
         if (pParam_obj->has_key("string"))
         {
             const char *pStr = pParam_obj->find_value("string").as_string_ptr();
-            uint str_len = vogl_strlen(pStr);
+            uint32_t str_len = vogl_strlen(pStr);
 
             client_memory_desc_t &mem_desc = m_client_memory_descs[param_iter];
             mem_desc.m_vec_ofs = m_client_memory.size();
@@ -1831,7 +1831,7 @@ bool vogl_trace_packet::json_deserialize_param(
                     return false;
                 }
 
-                uint num_vals = pValues->size();
+                uint32_t num_vals = pValues->size();
                 if (num_vals != (mem_size / pointee_ctype_size))
                 {
                     vogl_error_printf("Array size is invalid for parameter %s\n", pParam_name);
@@ -1846,7 +1846,7 @@ bool vogl_trace_packet::json_deserialize_param(
                     return false;
                 }
 
-                for (uint val_iter = 0; val_iter < num_vals; val_iter++)
+                for (uint32_t val_iter = 0; val_iter < num_vals; val_iter++)
                 {
                     const json_value &val2 = pValues->get_value(val_iter);
 
@@ -1905,7 +1905,7 @@ bool vogl_trace_packet::json_deserialize_param(
                     return false;
                 }
 
-                uint bytes_len = vogl_strlen(pByte_str);
+                uint32_t bytes_len = vogl_strlen(pByte_str);
                 if ((bytes_len != 2 + 2 * mem_size) || (pByte_str[0] != '0') || (pByte_str[1] != 'x'))
                 {
                     vogl_error_printf("Can't parse bytes value string for parameter %s (either size is bad, or string doesn't start with 0x)\n", pFunc_name);
@@ -1913,7 +1913,7 @@ bool vogl_trace_packet::json_deserialize_param(
                     return false;
                 }
 
-                for (uint i = 0; i < mem_size; i++)
+                for (uint32_t i = 0; i < mem_size; i++)
                 {
                     char c0 = pByte_str[2 + i * 2 + 0];
                     char c1 = pByte_str[2 + i * 2 + 1];
@@ -1928,7 +1928,7 @@ bool vogl_trace_packet::json_deserialize_param(
                         return false;
                     }
 
-                    blob[(static_cast<uint>(mem_size) - 1) - i] = (val_c0 << 4) | (val_c1);
+                    blob[(static_cast<uint32_t>(mem_size) - 1) - i] = (val_c0 << 4) | (val_c1);
                 }
             }
             else
@@ -2133,8 +2133,8 @@ bool vogl_trace_packet::fixup_manually_edited_params(gl_entrypoint_id_t gl_entry
         GLsizei count = get_param_value<GLsizei>(1);
         if (count)
         {
-            int32 *pLengths = get_param_client_memory<int32>(3);
-            if ((pLengths) && (get_param_client_memory_data_size(3) == count * sizeof(int32)))
+            int32_t *pLengths = get_param_client_memory<int32_t>(3);
+            if ((pLengths) && (get_param_client_memory_data_size(3) == count * sizeof(int32_t)))
             {
                 for (GLsizei i = 0; i < count; i++)
                 {
@@ -2152,12 +2152,12 @@ bool vogl_trace_packet::fixup_manually_edited_params(gl_entrypoint_id_t gl_entry
                         return false;
                     }
 
-                    uint l = pLengths[i];
+                    uint32_t l = pLengths[i];
 
                     if (pBlob->size() != l)
                     {
                         vogl_warning_printf("GL func %s call counter %" PRIu64 ": Shader source code line %u: blob size is %u bytes, but length field is %u bytes: Fixing up length field to match blob's size\n",
-                                           pGL_func_name, cur_call_counter, static_cast<uint>(i), pBlob->size(), l);
+                                           pGL_func_name, cur_call_counter, static_cast<uint32_t>(i), pBlob->size(), l);
                         pLengths[i] = pBlob->size();
                     }
                 }
@@ -2191,7 +2191,7 @@ bool vogl_trace_packet::pretty_print(dynamic_string &str, bool type_info) const
     str.format("%s %s(", return_val.get_ptr(), get_entrypoint_desc().m_pName);
 
     dynamic_string param_val;
-    for (uint i = 0; i < m_total_params; i++)
+    for (uint32_t i = 0; i < m_total_params; i++)
     {
         if (!pretty_print_param(param_val, i, type_info))
         {
@@ -2213,7 +2213,7 @@ bool vogl_trace_packet::pretty_print(dynamic_string &str, bool type_info) const
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_trace_packet::pretty_print_param
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index, bool type_info) const
+bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint32_t param_index, bool type_info) const
 {
     VOGL_FUNC_TRACER
 
@@ -2227,7 +2227,7 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
     VOGL_ASSERT((param_index < m_total_params) || is_return_param);
 
     uint64_t val_data = m_param_data[param_index];
-    //uint val_size = m_param_size[param_index];
+    //uint32_t val_size = m_param_size[param_index];
 
     const vogl_ctype_desc_t &ctype_desc = trace_ctypes()[m_param_ctype[param_index]];
 
@@ -2239,7 +2239,7 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
     if (ctype_desc.m_is_pointer)
     {
         const void *pClient_mem = NULL;
-        uint client_mem_size = 0;
+        uint32_t client_mem_size = 0;
 
         if (m_client_memory_descs[param_index].m_vec_ofs >= 0)
         {
@@ -2250,7 +2250,7 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
         if ((pClient_mem) && (client_mem_size))
         {
             //const vogl_ctype_t pointee_ctype = ctype_desc.m_pointee_ctype;
-            //const uint pointee_size = (*m_pCTypes)[pointee_ctype].m_size;
+            //const uint32_t pointee_size = (*m_pCTypes)[pointee_ctype].m_size;
             //const bool pointee_is_ptr = (*m_pCTypes)[pointee_ctype].m_is_pointer;
 
             bool print_as_cstring = false;
@@ -2340,7 +2340,7 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
             case VOGL_GLSIZEI:
             case VOGL_GLFIXED:
             {
-                str.format_append("%i", *reinterpret_cast<const int32 *>(&val_data));
+                str.format_append("%i", *reinterpret_cast<const int32_t *>(&val_data));
                 handled = true;
                 break;
             }
@@ -2421,7 +2421,7 @@ bool vogl_does_packet_refer_to_program(const vogl_trace_packet &gl_packet, GLuin
         return true;
     }
 
-    for (uint i = 0; i < entrypoint_desc.m_num_params; i++)
+    for (uint32_t i = 0; i < entrypoint_desc.m_num_params; i++)
     {
         vogl_namespace_t param_namespace = g_vogl_entrypoint_param_descs[entrypoint_id][i].m_namespace;
 

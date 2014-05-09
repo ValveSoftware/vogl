@@ -71,15 +71,15 @@ namespace vogl
 
         void clear();
 
-        inline uint get_width() const
+        inline uint32_t get_width() const
         {
             return m_width;
         }
-        inline uint get_height() const
+        inline uint32_t get_height() const
         {
             return m_height;
         }
-        inline uint get_total_pixels() const
+        inline uint32_t get_total_pixels() const
         {
             return m_width * m_height;
         }
@@ -102,7 +102,7 @@ namespace vogl
             return m_pDXTImage;
         }
 
-        image_u8 *get_unpacked_image(image_u8 &tmp, uint unpack_flags) const;
+        image_u8 *get_unpacked_image(image_u8 &tmp, uint32_t unpack_flags) const;
 
         inline bool is_packed() const
         {
@@ -158,8 +158,8 @@ namespace vogl
         bool flip_y();
 
     private:
-        uint m_width;
-        uint m_height;
+        uint32_t m_width;
+        uint32_t m_height;
 
         pixel_format_helpers::component_flags m_comp_flags;
         pixel_format m_format;
@@ -194,18 +194,18 @@ namespace vogl
 
         void clear();
 
-        void init(uint width, uint height, uint depth, uint levels, uint faces, uint array_size, pixel_format fmt, const char *pName, orientation_flags_t orient_flags);
+        void init(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t faces, uint32_t array_size, pixel_format fmt, const char *pName, orientation_flags_t orient_flags);
 
         // Assumes ownership.
-        void assign(uint array_index, face_vec &faces);
-        void assign(uint array_index, mip_level *pLevel);
-        void assign(uint array_index, image_u8 *p, pixel_format fmt = PIXEL_FMT_INVALID, orientation_flags_t orient_flags = cDefaultOrientationFlags);
-        void assign(uint array_index, dxt_image *p, pixel_format fmt = PIXEL_FMT_INVALID, orientation_flags_t orient_flags = cDefaultOrientationFlags);
+        void assign(uint32_t array_index, face_vec &faces);
+        void assign(uint32_t array_index, mip_level *pLevel);
+        void assign(uint32_t array_index, image_u8 *p, pixel_format fmt = PIXEL_FMT_INVALID, orientation_flags_t orient_flags = cDefaultOrientationFlags);
+        void assign(uint32_t array_index, dxt_image *p, pixel_format fmt = PIXEL_FMT_INVALID, orientation_flags_t orient_flags = cDefaultOrientationFlags);
 
         void set(texture_file_types::format source_file_type, const mipmapped_texture &mipmapped_texture);
 
         // Accessors
-        image_u8 *get_level_image(uint array_index, uint face, uint level, image_u8 &img, uint unpack_flags = cUnpackFlagUncook | cUnpackFlagUnflip) const;
+        image_u8 *get_level_image(uint32_t array_index, uint32_t face, uint32_t level, image_u8 &img, uint32_t unpack_flags = cUnpackFlagUncook | cUnpackFlagUnflip) const;
 
         inline bool is_valid() const
         {
@@ -230,33 +230,33 @@ namespace vogl
             return m_source_file_type;
         }
 
-        inline uint get_width() const
+        inline uint32_t get_width() const
         {
             return m_width;
         }
-        inline uint get_height() const
+        inline uint32_t get_height() const
         {
             return m_height;
         }
-        inline uint get_depth() const
+        inline uint32_t get_depth() const
         {
             return m_depth;
         }
-        inline uint get_total_pixels() const
+        inline uint32_t get_total_pixels() const
         {
             return m_width * m_height;
         }
-        uint get_total_pixels_in_all_faces_and_mips() const;
+        uint32_t get_total_pixels_in_all_faces_and_mips() const;
 
-        inline uint get_array_size() const
+        inline uint32_t get_array_size() const
         {
             return m_array_size;
         }
-        inline uint get_num_faces() const
+        inline uint32_t get_num_faces() const
         {
             return m_faces;
         }
-        inline uint get_num_levels() const
+        inline uint32_t get_num_levels() const
         {
             if (m_face_array.is_empty())
                 return 0;
@@ -284,20 +284,20 @@ namespace vogl
             return false;
         }
 
-        inline const mip_ptr_vec &get_face(uint array_index, uint face) const
+        inline const mip_ptr_vec &get_face(uint32_t array_index, uint32_t face) const
         {
             return m_face_array[array_index][face];
         }
-        inline mip_ptr_vec &get_face(uint array_index, uint face)
+        inline mip_ptr_vec &get_face(uint32_t array_index, uint32_t face)
         {
             return m_face_array[array_index][face];
         }
 
-        inline const mip_level *get_level(uint array_index, uint face, uint mip) const
+        inline const mip_level *get_level(uint32_t array_index, uint32_t face, uint32_t mip) const
         {
             return m_face_array[array_index][face][mip];
         }
-        inline mip_level *get_level(uint array_index, uint face, uint mip)
+        inline mip_level *get_level(uint32_t array_index, uint32_t face, uint32_t mip)
         {
             return m_face_array[array_index][face][mip];
         }
@@ -372,7 +372,7 @@ namespace vogl
             bool m_multithreaded;
         };
 
-        bool resize(uint new_width, uint new_height, const resample_params &params);
+        bool resize(uint32_t new_width, uint32_t new_height, const resample_params &params);
 
         struct generate_mipmap_params : public resample_params
         {
@@ -383,13 +383,13 @@ namespace vogl
             {
             }
 
-            uint m_min_mip_size;
-            uint m_max_mips; // actually the max # of total levels
+            uint32_t m_min_mip_size;
+            uint32_t m_max_mips; // actually the max # of total levels
         };
 
         bool generate_mipmaps(const generate_mipmap_params &params, bool force);
 
-        bool crop(uint x, uint y, uint width, uint height);
+        bool crop(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
 
         bool vertical_cross_to_cubemap();
 
@@ -411,11 +411,11 @@ namespace vogl
     private:
         dynamic_string m_name;
 
-        uint m_width;
-        uint m_height;
-        uint m_depth;
-        uint m_faces;
-        uint m_array_size;
+        uint32_t m_width;
+        uint32_t m_height;
+        uint32_t m_depth;
+        uint32_t m_faces;
+        uint32_t m_array_size;
 
         pixel_format_helpers::component_flags m_comp_flags;
         pixel_format m_format;

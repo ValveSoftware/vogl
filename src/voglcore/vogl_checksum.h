@@ -31,11 +31,11 @@
 
 namespace vogl
 {
-    const uint cInitAdler32 = 1U;
-    uint adler32(const void *pBuf, size_t buflen, uint adler32 = cInitAdler32);
+    const uint32_t cInitAdler32 = 1U;
+    uint32_t adler32(const void *pBuf, size_t buflen, uint32_t adler32 = cInitAdler32);
 
     // crc16() intended for small buffers - doesn't use an acceleration table.
-    const uint cInitCRC16 = 0;
+    const uint32_t cInitCRC16 = 0;
     uint16_t crc16(const void *pBuf, size_t len, uint16_t crc = cInitCRC16);
 
 } // namespace vogl

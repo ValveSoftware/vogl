@@ -52,7 +52,7 @@ vogl_trace_file_writer::~vogl_trace_file_writer()
 
 // pTrace_archive may be NULL. Takes ownership of pTrace_archive.
 // TODO: Get rid of the demarcation packet, etc. Make the initial sequence of packets more explicit.
-bool vogl_trace_file_writer::open(const char *pFilename, vogl_archive_blob_manager *pTrace_archive, bool delete_archive, bool write_demarcation_packet, uint pointer_sizes)
+bool vogl_trace_file_writer::open(const char *pFilename, vogl_archive_blob_manager *pTrace_archive, bool delete_archive, bool write_demarcation_packet, uint32_t pointer_sizes)
 {
     VOGL_FUNC_TRACER
 
@@ -219,11 +219,11 @@ void vogl_trace_file_writer::write_ctypes_packet()
     key_value_map typemap_key_values;
     typemap_key_values.insert("command_type", "ctypes");
     typemap_key_values.insert("num_ctypes", VOGL_NUM_CTYPES);
-    for (uint ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
+    for (uint32_t ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
     {
         const vogl_ctype_desc_t &desc = (*m_pCTypes)[static_cast<vogl_ctype_t>(ctype_iter)];
 
-        uint base_index = ctype_iter << 8;
+        uint32_t base_index = ctype_iter << 8;
         typemap_key_values.insert(base_index++, desc.m_pName);
         typemap_key_values.insert(base_index++, desc.m_pCType);
         typemap_key_values.insert(base_index++, desc.m_size);
@@ -243,7 +243,7 @@ void vogl_trace_file_writer::write_entrypoints_packet()
     key_value_map entrypoint_key_values;
     entrypoint_key_values.insert("command_type", "entrypoints");
     entrypoint_key_values.insert("num_entrypoints", VOGL_NUM_ENTRYPOINTS);
-    for (uint func_iter = 0; func_iter < VOGL_NUM_ENTRYPOINTS; func_iter++)
+    for (uint32_t func_iter = 0; func_iter < VOGL_NUM_ENTRYPOINTS; func_iter++)
     {
         const gl_entrypoint_desc_t &desc = g_vogl_entrypoint_descs[func_iter];
         entrypoint_key_values.insert(func_iter, desc.m_pName);

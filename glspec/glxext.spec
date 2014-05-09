@@ -202,7 +202,7 @@ QueryDrawable(dpy, draw, attribute, value)
 	param		dpy		Display in reference
 	param		draw		GLXDrawable in value
 	param		attribute	int in value
-	param		value		uint out reference
+	param		value		uint32_t out reference
 	category	VERSION_1_3
 	glxflags	client-handcode client-intercept server-handcode
 
@@ -404,7 +404,7 @@ SwapIntervalSGI(interval)
 
 GetVideoSyncSGI(count)
 	return		int
-	param		count		uint out reference
+	param		count		uint32_t out reference
 	category	SGI_video_sync
 	glxflags	client-handcode client-intercept server-handcode
 
@@ -412,7 +412,7 @@ WaitVideoSyncSGI(divisor, remainder, count)
 	return		int
 	param		divisor		int in value
 	param		remainder	int in value
-	param		count		uint out reference
+	param		count		uint32_t out reference
 	category	SGI_video_sync
 	glxflags	client-handcode client-intercept server-handcode
 
@@ -600,8 +600,8 @@ CreateGLXPbufferSGIX(dpy, config, width,  height, attrib_list)
 	return		GLXPbufferSGIX
 	param		dpy		Display in reference
 	param		config		GLXFBConfigSGIX in value
-	param		width		uint in value
-	param		height		uint in value
+	param		width		uint32_t in value
+	param		height		uint32_t in value
 	param		attrib_list	int out reference
 	category	SGIX_pbuffer
 	glxflags	client-handcode server-handcode
@@ -620,7 +620,7 @@ QueryGLXPbufferSGIX(dpy, pbuf, attribute, value)
 	param		dpy		Display in reference
 	param		pbuf		GLXPbufferSGIX in value
 	param		attribute	int in value
-	param		value		uint out reference
+	param		value		uint32_t out reference
 	category	SGIX_pbuffer
 
 SelectEventSGIX(dpy, drawable, mask)
@@ -1057,7 +1057,7 @@ QueryHyperpipeAttribSGIX(dpy, timeSlice, attrib, size, returnAttribList)
 ###############################################################################
 
 GetAGPOffsetMESA(pointer)
-	return		uint
+	return		uint32_t
 	param		pointer		void in reference
 	glxflags	client-handcode client-intercept server-handcode
 	category	MESA_agp_offset
@@ -1126,8 +1126,8 @@ EnumerateVideoDevicesNV(dpy, screen, nelements)
 BindVideoDeviceNV(dpy, video_slot, video_device, attrib_list)
 	return		int
 	param		dpy		Display in reference
-	param		video_slot	uint in value
-	param		video_device	uint in value
+	param		video_slot	uint32_t in value
+	param		video_device	uint32_t in value
 	param		attrib_list	int in array []
 	category	NV_present_video
 	glxflags	client-handcode server-handcode
@@ -1264,7 +1264,7 @@ ResetFrameCountNV(dpy, screen)
 BindVideoCaptureDeviceNV(dpy, video_capture_slot, device)
 	return		int
 	param		dpy		Display in reference
-	param		video_capture_slot uint in value
+	param		video_capture_slot uint32_t in value
 	param		device		GLXVideoCaptureDeviceNV in value
 	category	NV_video_capture
 	glxflags	client-handcode server-handcode

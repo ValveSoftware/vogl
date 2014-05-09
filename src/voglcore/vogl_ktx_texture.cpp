@@ -112,7 +112,7 @@ namespace vogl
         return false;
     }
 
-    uint ktx_get_ogl_type_size(uint32_t ogl_type)
+    uint32_t ktx_get_ogl_type_size(uint32_t ogl_type)
     {
         switch (ogl_type)
         {
@@ -205,9 +205,9 @@ namespace vogl
         return 0;
     }
 
-    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint &block_dim, uint &bytes_per_block)
+    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint32_t &block_dim, uint32_t &bytes_per_block)
     {
-        uint ogl_type_size = ktx_get_ogl_type_size(ogl_type);
+        uint32_t ogl_type_size = ktx_get_ogl_type_size(ogl_type);
 
         block_dim = 1;
         bytes_per_block = 0;
@@ -428,7 +428,7 @@ namespace vogl
         uint8_t pad_bytes[3];
 
         // Read the key value entries
-        uint num_key_value_bytes_remaining = m_header.m_bytesOfKeyValueData;
+        uint32_t num_key_value_bytes_remaining = m_header.m_bytesOfKeyValueData;
         while (num_key_value_bytes_remaining)
         {
             if (num_key_value_bytes_remaining < sizeof(uint32_t))
@@ -456,7 +456,7 @@ namespace vogl
 
             m_key_values.push_back(key_value_data);
 
-            uint padding = 3 - ((key_value_byte_size + 3) % 4);
+            uint32_t padding = 3 - ((key_value_byte_size + 3) % 4);
             if (padding)
             {
                 if (serializer.read(pad_bytes, 1, padding) != padding)
@@ -470,23 +470,23 @@ namespace vogl
         }
 
         // Now read the mip levels
-        uint total_faces = get_num_mips() * get_array_size() * get_num_faces() * get_depth();
+        uint32_t total_faces = get_num_mips() * get_array_size() * get_num_faces() * get_depth();
         if ((!total_faces) || (total_faces > 65535))
             return false;
 
 // See Section 2.8 of KTX file format: No rounding to block sizes should be applied for block compressed textures.
 // OK, I'm going to break that rule otherwise KTX can only store a subset of textures that DDS can handle for no good reason.
 #if 0
-	const uint mip0_row_blocks = m_header.m_pixelWidth / m_block_dim;
-	const uint mip0_col_blocks = VOGL_MAX(1, m_header.m_pixelHeight) / m_block_dim;
+	const uint32_t mip0_row_blocks = m_header.m_pixelWidth / m_block_dim;
+	const uint32_t mip0_col_blocks = VOGL_MAX(1, m_header.m_pixelHeight) / m_block_dim;
 #else
-        const uint mip0_row_blocks = (m_header.m_pixelWidth + m_block_dim - 1) / m_block_dim;
-        const uint mip0_col_blocks = (VOGL_MAX(1, m_header.m_pixelHeight) + m_block_dim - 1) / m_block_dim;
+        const uint32_t mip0_row_blocks = (m_header.m_pixelWidth + m_block_dim - 1) / m_block_dim;
+        const uint32_t mip0_col_blocks = (VOGL_MAX(1, m_header.m_pixelHeight) + m_block_dim - 1) / m_block_dim;
 #endif
         if ((!mip0_row_blocks) || (!mip0_col_blocks))
             return false;
 
-        const uint mip0_depth = VOGL_MAX(1, m_header.m_pixelDepth);
+        const uint32_t mip0_depth = VOGL_MAX(1, m_header.m_pixelDepth);
         VOGL_NOTE_UNUSED(mip0_depth);
 
         bool has_valid_image_size_fields = true;
@@ -496,13 +496,13 @@ namespace vogl
         {
             // PVRTexTool has a bogus KTX writer that doesn't write any imageSize fields. Nice.
             size_t expected_bytes_remaining = 0;
-            for (uint mip_level = 0; mip_level < get_num_mips(); mip_level++)
+            for (uint32_t mip_level = 0; mip_level < get_num_mips(); mip_level++)
             {
-                uint mip_width, mip_height, mip_depth;
+                uint32_t mip_width, mip_height, mip_depth;
                 get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-                const uint mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-                const uint mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+                const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
+                const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
                 if ((!mip_row_blocks) || (!mip_col_blocks))
                     return false;
 
@@ -510,32 +510,32 @@ namespace vogl
 
                 if ((!m_header.m_numberOfArrayElements) && (get_num_faces() == 6))
                 {
-                    for (uint face = 0; face < get_num_faces(); face++)
+                    for (uint32_t face = 0; face < get_num_faces(); face++)
                     {
-                        uint slice_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
+                        uint32_t slice_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
                         expected_bytes_remaining += slice_size;
 
-                        uint num_cube_pad_bytes = 3 - ((slice_size + 3) % 4);
+                        uint32_t num_cube_pad_bytes = 3 - ((slice_size + 3) % 4);
                         expected_bytes_remaining += num_cube_pad_bytes;
                     }
                 }
                 else
                 {
-                    uint total_mip_size = 0;
-                    for (uint array_element = 0; array_element < get_array_size(); array_element++)
+                    uint32_t total_mip_size = 0;
+                    for (uint32_t array_element = 0; array_element < get_array_size(); array_element++)
                     {
-                        for (uint face = 0; face < get_num_faces(); face++)
+                        for (uint32_t face = 0; face < get_num_faces(); face++)
                         {
-                            for (uint zslice = 0; zslice < mip_depth; zslice++)
+                            for (uint32_t zslice = 0; zslice < mip_depth; zslice++)
                             {
-                                uint slice_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
+                                uint32_t slice_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
                                 total_mip_size += slice_size;
                             }
                         }
                     }
                     expected_bytes_remaining += total_mip_size;
 
-                    uint num_mip_pad_bytes = 3 - ((total_mip_size + 3) % 4);
+                    uint32_t num_mip_pad_bytes = 3 - ((total_mip_size + 3) % 4);
                     expected_bytes_remaining += num_mip_pad_bytes;
                 }
             }
@@ -549,13 +549,13 @@ namespace vogl
         }
 #endif
 
-        for (uint mip_level = 0; mip_level < get_num_mips(); mip_level++)
+        for (uint32_t mip_level = 0; mip_level < get_num_mips(); mip_level++)
         {
-            uint mip_width, mip_height, mip_depth;
+            uint32_t mip_width, mip_height, mip_depth;
             get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-            const uint mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-            const uint mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+            const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
+            const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
             if ((!mip_row_blocks) || (!mip_col_blocks))
                 return false;
 
@@ -584,13 +584,13 @@ namespace vogl
             if (!image_size)
                 return false;
 
-            uint total_mip_size = 0;
+            uint32_t total_mip_size = 0;
 
             // The KTX file format has an exception for plain cubemap textures, argh.
             if ((!m_header.m_numberOfArrayElements) && (get_num_faces() == 6))
             {
                 // plain non-array cubemap
-                for (uint face = 0; face < get_num_faces(); face++)
+                for (uint32_t face = 0; face < get_num_faces(); face++)
                 {
                     VOGL_ASSERT(m_image_data.size() == get_image_index(mip_level, 0, face, 0));
 
@@ -604,7 +604,7 @@ namespace vogl
                     if (m_opposite_endianness)
                         utils::endian_swap_mem(&image_data[0], image_size, m_header.m_glTypeSize);
 
-                    uint num_cube_pad_bytes = disable_mip_and_cubemap_padding ? 0 : (3 - ((image_size + 3) % 4));
+                    uint32_t num_cube_pad_bytes = disable_mip_and_cubemap_padding ? 0 : (3 - ((image_size + 3) % 4));
                     if (serializer.read(pad_bytes, 1, num_cube_pad_bytes) != num_cube_pad_bytes)
                         return false;
 
@@ -613,20 +613,20 @@ namespace vogl
             }
             else
             {
-                uint num_image_bytes_remaining = image_size;
+                uint32_t num_image_bytes_remaining = image_size;
 
                 // 1D, 2D, 3D (normal or array texture), or array cubemap
-                for (uint array_element = 0; array_element < get_array_size(); array_element++)
+                for (uint32_t array_element = 0; array_element < get_array_size(); array_element++)
                 {
-                    for (uint face = 0; face < get_num_faces(); face++)
+                    for (uint32_t face = 0; face < get_num_faces(); face++)
                     {
-                        for (uint zslice = 0; zslice < mip_depth; zslice++)
+                        for (uint32_t zslice = 0; zslice < mip_depth; zslice++)
                         {
-                            uint slice_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
+                            uint32_t slice_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
                             if ((!slice_size) || (slice_size > num_image_bytes_remaining))
                                 return false;
 
-                            uint image_index = get_image_index(mip_level, array_element, face, zslice);
+                            uint32_t image_index = get_image_index(mip_level, array_element, face, zslice);
                             m_image_data.ensure_element_is_valid(image_index);
 
                             uint8_vec &image_data = m_image_data[image_index];
@@ -652,7 +652,7 @@ namespace vogl
                 }
             }
 
-            uint num_mip_pad_bytes = disable_mip_and_cubemap_padding ? 0 : (3 - ((total_mip_size + 3) % 4));
+            uint32_t num_mip_pad_bytes = disable_mip_and_cubemap_padding ? 0 : (3 - ((total_mip_size + 3) % 4));
             if (serializer.read(pad_bytes, 1, num_mip_pad_bytes) != num_mip_pad_bytes)
                 return false;
         }
@@ -683,7 +683,7 @@ namespace vogl
         m_header.m_bytesOfKeyValueData = 0;
         if (!no_keyvalue_data)
         {
-            for (uint i = 0; i < m_key_values.size(); i++)
+            for (uint32_t i = 0; i < m_key_values.size(); i++)
                 m_header.m_bytesOfKeyValueData += sizeof(uint32_t) + ((m_key_values[i].size() + 3) & ~3);
         }
 
@@ -698,12 +698,12 @@ namespace vogl
         if (!success)
             return success;
 
-        uint total_key_value_bytes = 0;
+        uint32_t total_key_value_bytes = 0;
         const uint8_t padding[3] = { 0, 0, 0 };
 
         if (!no_keyvalue_data)
         {
-            for (uint i = 0; i < m_key_values.size(); i++)
+            for (uint32_t i = 0; i < m_key_values.size(); i++)
             {
                 uint32_t key_value_size = m_key_values[i].size();
 
@@ -725,7 +725,7 @@ namespace vogl
                         return false;
                     total_key_value_bytes += key_value_size;
 
-                    uint num_padding = 3 - ((key_value_size + 3) % 4);
+                    uint32_t num_padding = 3 - ((key_value_size + 3) % 4);
                     if ((num_padding) && (serializer.write(padding, num_padding, 1) != 1))
                         return false;
                     total_key_value_bytes += num_padding;
@@ -736,13 +736,13 @@ namespace vogl
 
         VOGL_ASSERT(total_key_value_bytes == m_header.m_bytesOfKeyValueData);
 
-        for (uint mip_level = 0; mip_level < get_num_mips(); mip_level++)
+        for (uint32_t mip_level = 0; mip_level < get_num_mips(); mip_level++)
         {
-            uint mip_width, mip_height, mip_depth;
+            uint32_t mip_width, mip_height, mip_depth;
             get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-            const uint mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-            const uint mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+            const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
+            const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
             if ((!mip_row_blocks) || (!mip_col_blocks))
                 return false;
 
@@ -767,13 +767,13 @@ namespace vogl
             if (!success)
                 return false;
 
-            uint total_mip_size = 0;
-            uint total_image_data_size = 0;
+            uint32_t total_mip_size = 0;
+            uint32_t total_image_data_size = 0;
 
             if ((!m_header.m_numberOfArrayElements) && (get_num_faces() == 6))
             {
                 // plain non-array cubemap
-                for (uint face = 0; face < get_num_faces(); face++)
+                for (uint32_t face = 0; face < get_num_faces(); face++)
                 {
                     const uint8_vec &image_data = get_image_data(get_image_index(mip_level, 0, face, 0));
                     if ((!image_data.size()) || (image_data.size() != image_size))
@@ -792,7 +792,7 @@ namespace vogl
                     // Not +=, but =, because of the silly image_size plain cubemap exception in the KTX file format
                     total_image_data_size = image_data.size();
 
-                    uint num_cube_pad_bytes = 3 - ((image_data.size() + 3) % 4);
+                    uint32_t num_cube_pad_bytes = 3 - ((image_data.size() + 3) % 4);
                     if ((num_cube_pad_bytes) && (serializer.write(padding, num_cube_pad_bytes, 1) != 1))
                         return false;
 
@@ -802,11 +802,11 @@ namespace vogl
             else
             {
                 // 1D, 2D, 3D (normal or array texture), or array cubemap
-                for (uint array_element = 0; array_element < get_array_size(); array_element++)
+                for (uint32_t array_element = 0; array_element < get_array_size(); array_element++)
                 {
-                    for (uint face = 0; face < get_num_faces(); face++)
+                    for (uint32_t face = 0; face < get_num_faces(); face++)
                     {
-                        for (uint zslice = 0; zslice < mip_depth; zslice++)
+                        for (uint32_t zslice = 0; zslice < mip_depth; zslice++)
                         {
                             const uint8_vec &image_data = get_image_data(get_image_index(mip_level, array_element, face, zslice));
                             if (!image_data.size())
@@ -829,7 +829,7 @@ namespace vogl
                     }
                 }
 
-                uint num_mip_pad_bytes = 3 - ((total_mip_size + 3) % 4);
+                uint32_t num_mip_pad_bytes = 3 - ((total_mip_size + 3) % 4);
                 if ((num_mip_pad_bytes) && (serializer.write(padding, num_mip_pad_bytes, 1) != 1))
                     return false;
                 total_mip_size += num_mip_pad_bytes;
@@ -842,7 +842,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_1D(uint width, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
+    bool ktx_texture::init_1D(uint32_t width, uint32_t num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -859,7 +859,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_1D_array(uint width, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
+    bool ktx_texture::init_1D_array(uint32_t width, uint32_t num_mips, uint32_t array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -877,7 +877,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_2D(uint width, uint height, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
+    bool ktx_texture::init_2D(uint32_t width, uint32_t height, uint32_t num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -895,7 +895,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_2D_array(uint width, uint height, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
+    bool ktx_texture::init_2D_array(uint32_t width, uint32_t height, uint32_t num_mips, uint32_t array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -914,7 +914,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_3D(uint width, uint height, uint depth, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
+    bool ktx_texture::init_3D(uint32_t width, uint32_t height, uint32_t depth, uint32_t num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -933,7 +933,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_cubemap(uint dim, uint num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
+    bool ktx_texture::init_cubemap(uint32_t dim, uint32_t num_mips, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -951,7 +951,7 @@ namespace vogl
         return true;
     }
 
-    bool ktx_texture::init_cubemap_array(uint dim, uint num_mips, uint array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
+    bool ktx_texture::init_cubemap_array(uint32_t dim, uint32_t num_mips, uint32_t array_size, uint32_t ogl_internal_fmt, uint32_t ogl_fmt, uint32_t ogl_type)
     {
         clear();
 
@@ -984,7 +984,7 @@ namespace vogl
 #if 0
         if (m_header.m_numberOfMipmapLevels)
         {
-            const uint max_mipmap_dimension = 1U << (m_header.m_numberOfMipmapLevels - 1U);
+            const uint32_t max_mipmap_dimension = 1U << (m_header.m_numberOfMipmapLevels - 1U);
             if (max_mipmap_dimension > (VOGL_MAX(VOGL_MAX(m_header.m_pixelWidth, m_header.m_pixelHeight), m_header.m_pixelDepth)))
                 return false;
         }
@@ -993,13 +993,13 @@ namespace vogl
         return true;
     }
 
-    uint ktx_texture::get_expected_image_size(uint mip_level) const
+    uint32_t ktx_texture::get_expected_image_size(uint32_t mip_level) const
     {
-        uint mip_width, mip_height, mip_depth;
+        uint32_t mip_width, mip_height, mip_depth;
         get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-        const uint mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-        const uint mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+        const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
+        const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
         if ((!mip_row_blocks) || (!mip_col_blocks))
         {
             VOGL_ASSERT_ALWAYS;
@@ -1009,7 +1009,7 @@ namespace vogl
         return mip_row_blocks * mip_col_blocks * m_bytes_per_block;
     }
 
-    uint ktx_texture::get_total_images() const
+    uint32_t ktx_texture::get_total_images() const
     {
         if (!is_valid() || !get_num_mips())
             return 0;
@@ -1018,12 +1018,12 @@ namespace vogl
         //return get_num_mips() * (get_depth() * get_num_faces() * get_array_size());
 
         // Naive algorithm, could just compute based off the # of mips
-        uint max_index = 0;
-        for (uint mip_level = 0; mip_level < get_num_mips(); mip_level++)
+        uint32_t max_index = 0;
+        for (uint32_t mip_level = 0; mip_level < get_num_mips(); mip_level++)
         {
-            uint total_zslices = math::maximum<uint>(get_depth() >> mip_level, 1U);
-            uint index = get_image_index(mip_level, get_array_size() - 1, get_num_faces() - 1, total_zslices - 1);
-            max_index = math::maximum<uint>(max_index, index);
+            uint32_t total_zslices = math::maximum<uint32_t>(get_depth() >> mip_level, 1U);
+            uint32_t index = get_image_index(mip_level, get_array_size() - 1, get_num_faces() - 1, total_zslices - 1);
+            max_index = math::maximum<uint32_t>(max_index, index);
         }
 
         return max_index + 1;
@@ -1034,7 +1034,7 @@ namespace vogl
         if (!check_header())
             return false;
 
-        uint block_dim = 0, bytes_per_block = 0;
+        uint32_t block_dim = 0, bytes_per_block = 0;
         if ((!m_header.m_glType) || (!m_header.m_glFormat))
         {
             if ((m_header.m_glType) || (m_header.m_glFormat))
@@ -1056,29 +1056,29 @@ namespace vogl
         if ((m_block_dim != block_dim) || (m_bytes_per_block != bytes_per_block))
             return false;
 
-        uint total_expected_images = get_total_images();
+        uint32_t total_expected_images = get_total_images();
         if (m_image_data.size() != total_expected_images)
             return false;
 
-        for (uint mip_level = 0; mip_level < get_num_mips(); mip_level++)
+        for (uint32_t mip_level = 0; mip_level < get_num_mips(); mip_level++)
         {
-            uint mip_width, mip_height, mip_depth;
+            uint32_t mip_width, mip_height, mip_depth;
             get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-            const uint mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-            const uint mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+            const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
+            const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
             if ((!mip_row_blocks) || (!mip_col_blocks))
                 return false;
 
-            for (uint array_element = 0; array_element < get_array_size(); array_element++)
+            for (uint32_t array_element = 0; array_element < get_array_size(); array_element++)
             {
-                for (uint face = 0; face < get_num_faces(); face++)
+                for (uint32_t face = 0; face < get_num_faces(); face++)
                 {
-                    for (uint zslice = 0; zslice < mip_depth; zslice++)
+                    for (uint32_t zslice = 0; zslice < mip_depth; zslice++)
                     {
                         const uint8_vec &image_data = get_image_data(get_image_index(mip_level, array_element, face, zslice));
 
-                        uint expected_image_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
+                        uint32_t expected_image_size = mip_row_blocks * mip_col_blocks * m_bytes_per_block;
                         if (image_data.size() != expected_image_size)
                             return false;
                     }
@@ -1094,7 +1094,7 @@ namespace vogl
         keys.resize(0);
         keys.reserve(m_key_values.size());
 
-        for (uint i = 0; i < m_key_values.size(); i++)
+        for (uint32_t i = 0; i < m_key_values.size(); i++)
         {
             const uint8_vec &v = m_key_values[i];
 
@@ -1104,8 +1104,8 @@ namespace vogl
 
     const uint8_vec *ktx_texture::find_key(const char *pKey) const
     {
-        const uint n = vogl_strlen(pKey) + 1;
-        for (uint i = 0; i < m_key_values.size(); i++)
+        const uint32_t n = vogl_strlen(pKey) + 1;
+        for (uint32_t i = 0; i < m_key_values.size(); i++)
         {
             const uint8_vec &v = m_key_values[i];
             if ((v.size() >= n) && (!memcmp(&v[0], pKey, n)))
@@ -1124,9 +1124,9 @@ namespace vogl
             return false;
         }
 
-        const uint ofs = vogl_strlen(pKey) + 1;
+        const uint32_t ofs = vogl_strlen(pKey) + 1;
         const uint8_t *pValue = p->get_ptr() + ofs;
-        const uint n = p->size() - ofs;
+        const uint32_t n = p->size() - ofs;
 
         data.resize(n);
         if (n)
@@ -1143,11 +1143,11 @@ namespace vogl
             return false;
         }
 
-        const uint ofs = vogl_strlen(pKey) + 1;
+        const uint32_t ofs = vogl_strlen(pKey) + 1;
         const uint8_t *pValue = p->get_ptr() + ofs;
-        const uint n = p->size() - ofs;
+        const uint32_t n = p->size() - ofs;
 
-        uint i;
+        uint32_t i;
         for (i = 0; i < n; i++)
             if (!pValue[i])
                 break;
@@ -1156,9 +1156,9 @@ namespace vogl
         return true;
     }
 
-    uint ktx_texture::add_key_value(const char *pKey, const void *pVal, uint val_size)
+    uint32_t ktx_texture::add_key_value(const char *pKey, const void *pVal, uint32_t val_size)
     {
-        const uint idx = m_key_values.size();
+        const uint32_t idx = m_key_values.size();
         m_key_values.resize(idx + 1);
         uint8_vec &v = m_key_values.back();
         v.append(reinterpret_cast<const uint8_t *>(pKey), vogl_strlen(pKey) + 1);
@@ -1210,11 +1210,11 @@ namespace vogl
         lhs_keys.sort(dynamic_string_less_than_case_sensitive());
         rhs_keys.sort(dynamic_string_less_than_case_sensitive());
 
-        for (uint i = 0; i < lhs_keys.size(); i++)
+        for (uint32_t i = 0; i < lhs_keys.size(); i++)
             if (lhs_keys[i].compare(rhs_keys[i], true) != 0)
                 return false;
 
-        for (uint i = 0; i < lhs_keys.size(); i++)
+        for (uint32_t i = 0; i < lhs_keys.size(); i++)
         {
             uint8_vec lhs_data, rhs_data;
             if (!get_key_value_data(lhs_keys[i].get_ptr(), lhs_data))
@@ -1226,13 +1226,13 @@ namespace vogl
         }
 
         // Compare images.
-        for (uint l = 0; l < get_num_mips(); l++)
+        for (uint32_t l = 0; l < get_num_mips(); l++)
         {
-            for (uint a = 0; a < get_array_size(); a++)
+            for (uint32_t a = 0; a < get_array_size(); a++)
             {
-                for (uint f = 0; f < get_num_faces(); f++)
+                for (uint32_t f = 0; f < get_num_faces(); f++)
                 {
-                    for (uint z = 0; z < get_depth(); z++)
+                    for (uint32_t z = 0; z < get_depth(); z++)
                     {
                         const uint8_vec &lhs_img = get_image_data(l, a, f, z);
                         const uint8_vec &rhs_img = rhs.get_image_data(l, a, f, z);

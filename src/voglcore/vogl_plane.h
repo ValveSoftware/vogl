@@ -201,7 +201,7 @@ namespace vogl
         }
 
         // computes how much solve_axis changes with movement along exclusively movement_axis
-        inline float get_gradient(uint solve_axis, uint movement_axis, float epsilon = 1e-6f) const
+        inline float get_gradient(uint32_t solve_axis, uint32_t movement_axis, float epsilon = 1e-6f) const
         {
             const float dA = -m_normal[movement_axis];
             const float dB = m_normal[solve_axis];
@@ -247,7 +247,7 @@ namespace vogl
         }
 
         // generalized for any axis
-        inline float solve_for_axis(const vec3F &p, uint axis) const
+        inline float solve_for_axis(const vec3F &p, uint32_t axis) const
         {
             VOGL_ASSERT(axis < 3);
             static const uint8_t axis2[] = { 1, 0, 0 };
@@ -364,9 +364,9 @@ namespace vogl
 
         inline oriented_plane &init_planar_projection(const plane &p)
         {
-            const uint major_axis = p.get_normal().get_major_axis();
-            uint axis0 = math::next_wrap<uint>(major_axis, 3U);
-            uint axis1 = math::next_wrap<uint>(axis0, 3U);
+            const uint32_t major_axis = p.get_normal().get_major_axis();
+            uint32_t axis0 = math::next_wrap<uint32_t>(major_axis, 3U);
+            uint32_t axis1 = math::next_wrap<uint32_t>(axis0, 3U);
             if (p.get_normal()[major_axis] > 0.0f)
                 std::swap(axis0, axis1);
             return init(vec3F(0), vec3F::make_axis(axis0), vec3F::make_axis(axis1));
@@ -386,9 +386,9 @@ namespace vogl
         if (!src_poly.size())
             return;
 
-        uint prev_index = src_poly.size() - 1;
+        uint32_t prev_index = src_poly.size() - 1;
         float prev_dist = p.get_distance(src_poly[prev_index]);
-        for (uint cur_index = 0; cur_index < src_poly.size(); ++cur_index)
+        for (uint32_t cur_index = 0; cur_index < src_poly.size(); ++cur_index)
         {
             if (prev_dist >= 0.0f)
                 result.push_back(src_poly[prev_index]);
@@ -645,7 +645,7 @@ namespace vogl
         }
 
         // computes how much solve_axis changes with movement along exclusively movement_axis
-        inline float get_gradient(uint solve_axis, uint movement_axis, float epsilon = 1e-6f) const
+        inline float get_gradient(uint32_t solve_axis, uint32_t movement_axis, float epsilon = 1e-6f) const
         {
             const float dA = -m_normal[movement_axis];
             const float dB = m_normal[solve_axis];
@@ -684,7 +684,7 @@ namespace vogl
             return p - m_normal * get_distance(p);
         }
 
-        inline float solve_for_axis(const vec2F &p, uint axis) const
+        inline float solve_for_axis(const vec2F &p, uint32_t axis) const
         {
             return m_normal[axis] ? ((m_dist - p[axis ^ 1] * m_normal[axis ^ 1]) / m_normal[axis]) : 0.0f;
         }

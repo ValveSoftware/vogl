@@ -40,11 +40,11 @@ namespace vogl
             return (t + (t >> 8)) >> 8;
         }
 
-        static inline color_quad_u8 &unpack_color(color_quad_u8 &c, uint v)
+        static inline color_quad_u8 &unpack_color(color_quad_u8 &c, uint32_t v)
         {
-            uint rv = (v & 0xf800) >> 11;
-            uint gv = (v & 0x07e0) >> 5;
-            uint bv = (v & 0x001f) >> 0;
+            uint32_t rv = (v & 0xf800) >> 11;
+            uint32_t gv = (v & 0x07e0) >> 5;
+            uint32_t bv = (v & 0x001f) >> 0;
 
             c.r = ryg_dxt::Expand5[rv];
             c.g = ryg_dxt::Expand6[gv];
@@ -54,13 +54,13 @@ namespace vogl
             return c;
         }
 
-        static inline uint pack_color(const color_quad_u8 &c)
+        static inline uint32_t pack_color(const color_quad_u8 &c)
         {
             return (mul_8bit(c.r, 31) << 11) + (mul_8bit(c.g, 63) << 5) + mul_8bit(c.b, 31);
         }
 
 #if 0
-        static inline void lerp_color(color_quad_u8 &result, const color_quad_u8 &p1, const color_quad_u8 &p2, uint f)
+        static inline void lerp_color(color_quad_u8 &result, const color_quad_u8 &p1, const color_quad_u8 &p2, uint32_t f)
         {
             VOGL_ASSERT(f <= 255);
 
@@ -70,7 +70,7 @@ namespace vogl
         }
 #endif
 
-        static inline void eval_colors(color_quad_u8 *pColors, uint c0, uint c1)
+        static inline void eval_colors(color_quad_u8 *pColors, uint32_t c0, uint32_t c1)
         {
             unpack_color(pColors[0], c0);
             unpack_color(pColors[1], c1);
@@ -90,7 +90,7 @@ namespace vogl
         }
 
         // false if all selectors equal
-        static bool match_block_colors(uint n, const color_quad_u8 *pBlock, const color_quad_u8 *pColors, uint8_t *pSelectors)
+        static bool match_block_colors(uint32_t n, const color_quad_u8 *pBlock, const color_quad_u8 *pColors, uint8_t *pSelectors)
         {
             int dirr = pColors[0].r - pColors[1].r;
             int dirg = pColors[0].g - pColors[1].g;
@@ -113,7 +113,7 @@ namespace vogl
             c3Point >>= 1;
 
             bool status = false;
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
                 int dot = pBlock[i].r * dirr + pBlock[i].g * dirg + pBlock[i].b * dirb;
 
@@ -132,11 +132,11 @@ namespace vogl
             return status;
         }
 
-        static bool optimize_block_colors(uint n, const color_quad_u8 *block, uint &max16, uint &min16, uint ave_color[3], float axis[3])
+        static bool optimize_block_colors(uint32_t n, const color_quad_u8 *block, uint32_t &max16, uint32_t &min16, uint32_t ave_color[3], float axis[3])
         {
             int min[3], max[3];
 
-            for (uint ch = 0; ch < 3; ch++)
+            for (uint32_t ch = 0; ch < 3; ch++)
             {
                 const uint8_t *bp = ((const uint8_t *)block) + ch;
                 int minv, maxv;
@@ -144,8 +144,8 @@ namespace vogl
                 int64_t muv = bp[0];
                 minv = maxv = bp[0];
 
-                const uint l = n << 2;
-                for (uint i = 4; i < l; i += 4)
+                const uint32_t l = n << 2;
+                for (uint32_t i = 4; i < l; i += 4)
                 {
                     muv += bp[i];
                     minv = math::minimum<int>(minv, bp[i]);
@@ -165,7 +165,7 @@ namespace vogl
             for (int i = 0; i < 6; i++)
                 cov[i] = 0;
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
                 double r = (int)block[i].r - (int)ave_color[0];
                 double g = (int)block[i].g - (int)ave_color[1];
@@ -187,8 +187,8 @@ namespace vogl
             vfg = max[1] - min[1];
             vfb = max[2] - min[2];
 
-            static const uint nIterPower = 4;
-            for (uint iter = 0; iter < nIterPower; iter++)
+            static const uint32_t nIterPower = 4;
+            for (uint32_t iter = 0; iter < nIterPower; iter++)
             {
                 double r = vfr * covf[0] + vfg * covf[1] + vfb * covf[2];
                 double g = vfr * covf[1] + vfg * covf[3] + vfb * covf[4];
@@ -232,7 +232,7 @@ namespace vogl
             color_quad_u8 minp(block[0]);
             color_quad_u8 maxp(block[0]);
 
-            for (uint i = 1; i < n; i++)
+            for (uint32_t i = 1; i < n; i++)
             {
                 int dot = block[i].r * v_r + block[i].g * v_g + block[i].b * v_b;
 
@@ -258,7 +258,7 @@ namespace vogl
         // The refinement function. (Clever code, part 2)
         // Tries to optimize colors to suit block contents better.
         // (By solving a least squares system via normal equations+Cramer's rule)
-        static bool refine_block(uint n, const color_quad_u8 *block, uint &max16, uint &min16, const uint8_t *pSelectors)
+        static bool refine_block(uint32_t n, const color_quad_u8 *block, uint32_t &max16, uint32_t &min16, const uint8_t *pSelectors)
         {
             static const int w1Tab[4] = { 3, 0, 2, 1 };
 
@@ -274,7 +274,7 @@ namespace vogl
 
             At1_r = At1_g = At1_b = 0;
             At2_r = At2_g = At2_b = 0;
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
                 double r = block[i].r;
                 double g = block[i].g;
@@ -309,8 +309,8 @@ namespace vogl
             double frb = (3.0f * 31.0f / 255.0f) / t;
             double fg = frb * (63.0f / 31.0f);
 
-            uint oldMin = min16;
-            uint oldMax = max16;
+            uint32_t oldMin = min16;
+            uint32_t oldMax = max16;
 
             // solve.
             max16 = math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31) << 11;
@@ -325,7 +325,7 @@ namespace vogl
         }
 
         // false if all selectors equal
-        static bool determine_selectors(uint n, const color_quad_u8 *block, uint min16, uint max16, uint8_t *pSelectors)
+        static bool determine_selectors(uint32_t n, const color_quad_u8 *block, uint32_t min16, uint32_t max16, uint8_t *pSelectors)
         {
             color_quad_u8 color[4];
 
@@ -340,7 +340,7 @@ namespace vogl
             return false;
         }
 
-        static uint64_t determine_error(uint n, const color_quad_u8 *block, uint min16, uint max16, uint64_t early_out_error)
+        static uint64_t determine_error(uint32_t n, const color_quad_u8 *block, uint32_t min16, uint32_t max16, uint64_t early_out_error)
         {
             color_quad_u8 color[4];
 
@@ -365,11 +365,11 @@ namespace vogl
 
             uint64_t total_error = 0;
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
                 const color_quad_u8 &a = block[i];
 
-                uint s = 0;
+                uint32_t s = 0;
                 if (min16 != max16)
                 {
                     int dot = a.r * dirr + a.g * dirg + a.b * dirb;
@@ -398,24 +398,24 @@ namespace vogl
             return total_error;
         }
 
-        static bool refine_endpoints(uint n, const color_quad_u8 *pBlock, uint &low16, uint &high16, uint8_t *pSelectors)
+        static bool refine_endpoints(uint32_t n, const color_quad_u8 *pBlock, uint32_t &low16, uint32_t &high16, uint8_t *pSelectors)
         {
             bool optimized = false;
 
             const int limits[3] = { 31, 63, 31 };
 
-            for (uint trial = 0; trial < 2; trial++)
+            for (uint32_t trial = 0; trial < 2; trial++)
             {
                 color_quad_u8 color[4];
                 eval_colors(color, low16, high16);
 
                 uint64_t total_error[3] = { 0, 0, 0 };
 
-                for (uint i = 0; i < n; i++)
+                for (uint32_t i = 0; i < n; i++)
                 {
                     const color_quad_u8 &a = pBlock[i];
 
-                    const uint s = pSelectors[i];
+                    const uint32_t s = pSelectors[i];
                     const color_quad_u8 &b = color[s];
 
                     int e = a[0] - b[0];
@@ -438,16 +438,16 @@ namespace vogl
 
                 bool trial_optimized = false;
 
-                for (uint axis = 0; axis < 3; axis++)
+                for (uint32_t axis = 0; axis < 3; axis++)
                 {
                     if (!total_error[axis])
                         continue;
 
                     const sU8 *const pExpand = (axis == 1) ? ryg_dxt::Expand6 : ryg_dxt::Expand5;
 
-                    for (uint e = 0; e < 2; e++)
+                    for (uint32_t e = 0; e < 2; e++)
                     {
-                        uint v[4];
+                        uint32_t v[4];
                         v[e ^ 1] = expanded_endpoints[e ^ 1][axis];
 
                         for (int t = -1; t <= 1; t += 2)
@@ -467,7 +467,7 @@ namespace vogl
 
                             uint64_t axis_error = 0;
 
-                            for (uint i = 0; i < n; i++)
+                            for (uint32_t i = 0; i < n; i++)
                             {
                                 const color_quad_u8 &p = pBlock[i];
 
@@ -497,11 +497,11 @@ namespace vogl
 
                                 utils::zero_object(total_error);
 
-                                for (uint i = 0; i < n; i++)
+                                for (uint32_t i = 0; i < n; i++)
                                 {
                                     const color_quad_u8 &a2 = pBlock[i];
 
-                                    const uint s = pSelectors[i];
+                                    const uint32_t s = pSelectors[i];
                                     const color_quad_u8 &b = color[s];
 
                                     int e2 = a2[0] - b[0];
@@ -532,7 +532,7 @@ namespace vogl
             return optimized;
         }
 
-        static void refine_endpoints2(uint n, const color_quad_u8 *pBlock, uint &low16, uint &high16, uint8_t *pSelectors, float axis[3])
+        static void refine_endpoints2(uint32_t n, const color_quad_u8 *pBlock, uint32_t &low16, uint32_t &high16, uint8_t *pSelectors, float axis[3])
         {
             uint64_t orig_error = determine_error(n, pBlock, low16, high16, cUINT64_MAX);
             if (!orig_error)
@@ -543,14 +543,14 @@ namespace vogl
 
             const float dist_per_trial = 0.027063293f;
 
-            const uint cMaxProbeRange = 8;
-            uint probe_low[cMaxProbeRange * 2 + 1];
-            uint probe_high[cMaxProbeRange * 2 + 1];
+            const uint32_t cMaxProbeRange = 8;
+            uint32_t probe_low[cMaxProbeRange * 2 + 1];
+            uint32_t probe_high[cMaxProbeRange * 2 + 1];
 
             int probe_range = 8;
-            uint num_iters = 4;
+            uint32_t num_iters = 4;
 
-            const uint num_trials = probe_range * 2 + 1;
+            const uint32_t num_trials = probe_range * 2 + 1;
 
             vec3F scaled_principle_axis(principle_axis * dist_per_trial);
             scaled_principle_axis[0] *= 31.0f;
@@ -563,7 +563,7 @@ namespace vogl
 
             uint64_t cur_error = orig_error;
 
-            for (uint iter = 0; iter < num_iters; iter++)
+            for (uint32_t iter = 0; iter < num_iters; iter++)
             {
                 color_quad_u8 endpoints[2];
 
@@ -574,7 +574,7 @@ namespace vogl
                 vec3F high_color(endpoints[1][0], endpoints[1][1], endpoints[1][2]);
 
                 vec3F probe_low_color(low_color + initial_ofs);
-                for (uint i = 0; i < num_trials; i++)
+                for (uint32_t i = 0; i < num_trials; i++)
                 {
                     int r = math::clamp((int)floor(probe_low_color[0]), 0, 31);
                     int g = math::clamp((int)floor(probe_low_color[1]), 0, 63);
@@ -585,7 +585,7 @@ namespace vogl
                 }
 
                 vec3F probe_high_color(high_color + initial_ofs);
-                for (uint i = 0; i < num_trials; i++)
+                for (uint32_t i = 0; i < num_trials; i++)
                 {
                     int r = math::clamp((int)floor(probe_high_color[0]), 0, 31);
                     int g = math::clamp((int)floor(probe_high_color[1]), 0, 63);
@@ -595,34 +595,34 @@ namespace vogl
                     probe_high_color += scaled_principle_axis;
                 }
 
-                uint best_l = low16;
-                uint best_h = high16;
+                uint32_t best_l = low16;
+                uint32_t best_h = high16;
 
                 enum
                 {
                     cMaxHash = 4
                 };
                 uint64_t hash[cMaxHash];
-                for (uint i = 0; i < cMaxHash; i++)
+                for (uint32_t i = 0; i < cMaxHash; i++)
                     hash[i] = 0;
 
-                uint c = best_l | (best_h << 16);
+                uint32_t c = best_l | (best_h << 16);
                 c = fast_hash(&c, sizeof(c));
                 hash[(c >> 6) & 3] = 1ULL << (c & 63);
 
-                for (uint i = 0; i < num_trials; i++)
+                for (uint32_t i = 0; i < num_trials; i++)
                 {
-                    for (uint j = 0; j < num_trials; j++)
+                    for (uint32_t j = 0; j < num_trials; j++)
                     {
-                        uint l2 = probe_low[i];
-                        uint h = probe_high[j];
+                        uint32_t l2 = probe_low[i];
+                        uint32_t h = probe_high[j];
                         if (l2 < h)
                             utils::swap(l2, h);
 
-                        uint c2 = l2 | (h << 16);
+                        uint32_t c2 = l2 | (h << 16);
                         c2 = fast_hash(&c2, sizeof(c2));
                         uint64_t mask = 1ULL << (c2 & 63);
-                        uint ofs = (c2 >> 6) & 3;
+                        uint32_t ofs = (c2 >> 6) & 3;
                         if (hash[ofs] & mask)
                             continue;
 
@@ -667,11 +667,11 @@ namespace vogl
             //if (end_error > orig_error) DebugBreak();
         }
 
-        static void compress_solid_block(uint n, uint ave_color[3], uint &low16, uint &high16, uint8_t *pSelectors)
+        static void compress_solid_block(uint32_t n, uint32_t ave_color[3], uint32_t &low16, uint32_t &high16, uint8_t *pSelectors)
         {
-            uint r = ave_color[0];
-            uint g = ave_color[1];
-            uint b = ave_color[2];
+            uint32_t r = ave_color[0];
+            uint32_t g = ave_color[1];
+            uint32_t b = ave_color[2];
 
             memset(pSelectors, 2, n);
 
@@ -679,11 +679,11 @@ namespace vogl
             high16 = (ryg_dxt::OMatch5[r][1] << 11) | (ryg_dxt::OMatch6[g][1] << 5) | ryg_dxt::OMatch5[b][1];
         }
 
-        void compress_color_block(uint n, const color_quad_u8 *block, uint &low16, uint &high16, uint8_t *pSelectors, bool refine)
+        void compress_color_block(uint32_t n, const color_quad_u8 *block, uint32_t &low16, uint32_t &high16, uint8_t *pSelectors, bool refine)
         {
             VOGL_ASSERT((n & 15) == 0);
 
-            uint ave_color[3];
+            uint32_t ave_color[3];
             float axis[3];
 
             if (!optimize_block_colors(n, block, low16, high16, ave_color, axis))
@@ -707,7 +707,7 @@ namespace vogl
             if (low16 < high16)
             {
                 utils::swap(low16, high16);
-                for (uint i = 0; i < n; i++)
+                for (uint32_t i = 0; i < n; i++)
                     pSelectors[i] ^= 1;
             }
         }
@@ -715,13 +715,13 @@ namespace vogl
         void compress_color_block(dxt1_block *pDXT1_block, const color_quad_u8 *pBlock, bool refine)
         {
             uint8_t color_selectors[16];
-            uint low16, high16;
+            uint32_t low16, high16;
             dxt_fast::compress_color_block(16, pBlock, low16, high16, color_selectors, refine);
 
             pDXT1_block->set_low_color(static_cast<uint16_t>(low16));
             pDXT1_block->set_high_color(static_cast<uint16_t>(high16));
 
-            uint mask = 0;
+            uint32_t mask = 0;
             for (int i = 15; i >= 0; i--)
             {
                 mask <<= 2;
@@ -734,12 +734,12 @@ namespace vogl
             pDXT1_block->m_selectors[3] = (uint8_t)((mask >> 24) & 0xFF);
         }
 
-        void compress_alpha_block(uint n, const color_quad_u8 *block, uint &low8, uint &high8, uint8_t *pSelectors, uint comp_index)
+        void compress_alpha_block(uint32_t n, const color_quad_u8 *block, uint32_t &low8, uint32_t &high8, uint8_t *pSelectors, uint32_t comp_index)
         {
             int min, max;
             min = max = block[0][comp_index];
 
-            for (uint i = 1; i < n; i++)
+            for (uint32_t i = 1; i < n; i++)
             {
                 min = math::minimum<int>(min, block[i][comp_index]);
                 max = math::maximum<int>(max, block[i][comp_index]);
@@ -753,7 +753,7 @@ namespace vogl
             int dist4 = dist * 4;
             int dist2 = dist * 2;
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
                 int a = block[i][comp_index] * 7 - bias;
                 int ind, t;
@@ -774,21 +774,21 @@ namespace vogl
             }
         }
 
-        void compress_alpha_block(dxt5_block *pDXT5_block, const color_quad_u8 *pBlock, uint comp_index)
+        void compress_alpha_block(dxt5_block *pDXT5_block, const color_quad_u8 *pBlock, uint32_t comp_index)
         {
             uint8_t selectors[16];
-            uint low8, high8;
+            uint32_t low8, high8;
 
             compress_alpha_block(16, pBlock, low8, high8, selectors, comp_index);
 
             pDXT5_block->set_low_alpha(low8);
             pDXT5_block->set_high_alpha(high8);
 
-            uint mask = 0;
-            uint bits = 0;
+            uint32_t mask = 0;
+            uint32_t bits = 0;
             uint8_t *pDst = pDXT5_block->m_selectors;
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
             {
                 mask |= (selectors[i] << bits);
 
@@ -801,28 +801,28 @@ namespace vogl
             }
         }
 
-        void find_representative_colors(uint n, const color_quad_u8 *pBlock, color_quad_u8 &lo, color_quad_u8 &hi)
+        void find_representative_colors(uint32_t n, const color_quad_u8 *pBlock, color_quad_u8 &lo, color_quad_u8 &hi)
         {
             uint64_t ave64[3];
             ave64[0] = 0;
             ave64[1] = 0;
             ave64[2] = 0;
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
                 ave64[0] += pBlock[i].r;
                 ave64[1] += pBlock[i].g;
                 ave64[2] += pBlock[i].b;
             }
 
-            uint ave[3];
-            ave[0] = static_cast<uint>((ave64[0] + (n / 2)) / n);
-            ave[1] = static_cast<uint>((ave64[1] + (n / 2)) / n);
-            ave[2] = static_cast<uint>((ave64[2] + (n / 2)) / n);
+            uint32_t ave[3];
+            ave[0] = static_cast<uint32_t>((ave64[0] + (n / 2)) / n);
+            ave[1] = static_cast<uint32_t>((ave64[1] + (n / 2)) / n);
+            ave[2] = static_cast<uint32_t>((ave64[2] + (n / 2)) / n);
 
             int furthest_dist = -1;
-            uint furthest_index = 0;
-            for (uint i = 0; i < n; i++)
+            uint32_t furthest_index = 0;
+            for (uint32_t i = 0; i < n; i++)
             {
                 int r = pBlock[i].r - ave[0];
                 int g = pBlock[i].g - ave[1];
@@ -838,8 +838,8 @@ namespace vogl
             color_quad_u8 lo_color(pBlock[furthest_index]);
 
             int opp_dist = -1;
-            uint opp_index = 0;
-            for (uint i = 0; i < n; i++)
+            uint32_t opp_index = 0;
+            for (uint32_t i = 0; i < n; i++)
             {
                 int r = pBlock[i].r - lo_color.r;
                 int g = pBlock[i].g - lo_color.g;
@@ -854,20 +854,20 @@ namespace vogl
 
             color_quad_u8 hi_color(pBlock[opp_index]);
 
-            for (uint i = 0; i < 3; i++)
+            for (uint32_t i = 0; i < 3; i++)
             {
                 lo_color[i] = static_cast<uint8_t>((lo_color[i] + ave[i]) >> 1);
                 hi_color[i] = static_cast<uint8_t>((hi_color[i] + ave[i]) >> 1);
             }
 
-            const uint cMaxIters = 4;
-            for (uint iter_index = 0; iter_index < cMaxIters; iter_index++)
+            const uint32_t cMaxIters = 4;
+            for (uint32_t iter_index = 0; iter_index < cMaxIters; iter_index++)
             {
                 if ((lo_color[0] == hi_color[0]) && (lo_color[1] == hi_color[1]) && (lo_color[2] == hi_color[2]))
                     break;
 
                 uint64_t new_color[2][3];
-                uint weight[2];
+                uint32_t weight[2];
 
                 utils::zero_object(new_color);
                 utils::zero_object(weight);
@@ -884,12 +884,12 @@ namespace vogl
                 vec_g *= 2;
                 vec_b *= 2;
 
-                for (uint i = 0; i < n; i++)
+                for (uint32_t i = 0; i < n; i++)
                 {
                     const color_quad_u8 &c = pBlock[i];
 
                     const int dot = c[0] * vec_r + c[1] * vec_g + c[2] * vec_b;
-                    const uint match_index = (dot > mid_dot);
+                    const uint32_t match_index = (dot > mid_dot);
 
                     new_color[match_index][0] += c.r;
                     new_color[match_index][1] += c.g;
@@ -902,23 +902,23 @@ namespace vogl
 
                 uint8_t new_color8[2][3];
 
-                for (uint j = 0; j < 2; j++)
-                    for (uint i = 0; i < 3; i++)
+                for (uint32_t j = 0; j < 2; j++)
+                    for (uint32_t i = 0; i < 3; i++)
                         new_color8[j][i] = static_cast<uint8_t>((new_color[j][i] + (weight[j] / 2)) / weight[j]);
 
                 if ((new_color8[0][0] == lo_color[0]) && (new_color8[0][1] == lo_color[1]) && (new_color8[0][2] == lo_color[2]) &&
                     (new_color8[1][0] == hi_color[0]) && (new_color8[1][1] == hi_color[1]) && (new_color8[1][2] == hi_color[2]))
                     break;
 
-                for (uint i = 0; i < 3; i++)
+                for (uint32_t i = 0; i < 3; i++)
                 {
                     lo_color[i] = new_color8[0][i];
                     hi_color[i] = new_color8[1][i];
                 }
             }
 
-            uint energy[2] = { 0, 0 };
-            for (uint i = 0; i < 3; i++)
+            uint32_t energy[2] = { 0, 0 };
+            for (uint32_t i = 0; i < 3; i++)
             {
                 energy[0] += lo_color[i] * lo_color[i];
                 energy[1] += hi_color[i] * hi_color[i];

@@ -110,7 +110,7 @@ namespace vogl
         };
 
         // TODO: This only works on files with valid file sizes (i.e. it won't work on /proc/self/status).
-        static bool read_text_file(const char *pPath, dynamic_string_array &lines, uint flags = 0);
+        static bool read_text_file(const char *pPath, dynamic_string_array &lines, uint32_t flags = 0);
 
         static bool read_text_file_crt(const char *pPath, dynamic_string_array &lines);
 

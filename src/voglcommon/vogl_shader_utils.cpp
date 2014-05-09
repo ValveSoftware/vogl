@@ -201,7 +201,7 @@ void vogl_simple_gl_program::set_uniform(const char *pName, int s)
     VOGL_CHECK_GL_ERROR;
 }
 
-void vogl_simple_gl_program::set_uniform(const char *pName, uint s)
+void vogl_simple_gl_program::set_uniform(const char *pName, uint32_t s)
 {
     if (!m_program)
     {

@@ -32,7 +32,7 @@
 
 namespace vogl
 {
-    const uint g_number_of_processors = 1;
+    const uint32_t g_number_of_processors = 1;
 
     inline void vogl_threading_init()
     {
@@ -49,7 +49,7 @@ namespace vogl
         VOGL_NOTE_UNUSED(milliseconds);
     }
 
-    inline uint vogl_get_max_helper_threads()
+    inline uint32_t vogl_get_max_helper_threads()
     {
         return 0;
     }
@@ -181,7 +181,7 @@ namespace vogl
         inline task_pool()
         {
         }
-        inline task_pool(uint num_threads)
+        inline task_pool(uint32_t num_threads)
         {
             num_threads;
         }
@@ -189,7 +189,7 @@ namespace vogl
         {
         }
 
-        inline bool init(uint num_threads)
+        inline bool init(uint32_t num_threads)
         {
             num_threads;
             return true;
@@ -198,11 +198,11 @@ namespace vogl
         {
         }
 
-        inline uint get_num_threads() const
+        inline uint32_t get_num_threads() const
         {
             return 0;
         }
-        inline uint get_num_outstanding_tasks() const
+        inline uint32_t get_num_outstanding_tasks() const
         {
             return 0;
         }
@@ -236,9 +236,9 @@ namespace vogl
         }
 
         template <typename S, typename T>
-        inline bool queue_multiple_object_tasks(S *pObject, T pObject_method, uint64_t first_data, uint num_tasks, void *pData_ptr = NULL)
+        inline bool queue_multiple_object_tasks(S *pObject, T pObject_method, uint64_t first_data, uint32_t num_tasks, void *pData_ptr = NULL)
         {
-            for (uint i = 0; i < num_tasks; i++)
+            for (uint32_t i = 0; i < num_tasks; i++)
             {
                 (pObject->*pObject_method)(first_data + i, pData_ptr);
             }

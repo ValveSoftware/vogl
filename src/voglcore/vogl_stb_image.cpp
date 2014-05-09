@@ -139,8 +139,8 @@ namespace vogl
     typedef unsigned short uint16_t;
     typedef signed short int16_t;
     typedef unsigned int uint32_t;
-    typedef signed int int32;
-    typedef unsigned int uint;
+    typedef signed int int32_t;
+    typedef unsigned int uint32_t;
 
     // should produce compiler error if size is wrong
     typedef unsigned char validate_uint32[sizeof(uint32_t) == 4];
@@ -533,7 +533,7 @@ namespace vogl
         return (uint8_t)(((r * 77) + (g * 150) + (29 * b)) >> 8);
     }
 
-    static unsigned char *convert_format(unsigned char *data, int img_n, int req_comp, uint x, uint y)
+    static unsigned char *convert_format(unsigned char *data, int img_n, int req_comp, uint32_t x, uint32_t y)
     {
         int i, j;
         unsigned char *good;
@@ -1740,7 +1740,7 @@ namespace vogl
         // resample and color-convert
         {
             int k;
-            uint i, j;
+            uint32_t i, j;
             uint8_t *output;
             uint8_t *coutput[4];
 
@@ -4240,7 +4240,7 @@ namespace vogl
                 }
                 case '4':
                 {
-                    int32 x = va_arg(v, int);
+                    int32_t x = va_arg(v, int);
                     write8(f, x);
                     write8(f, x >> 8);
                     write8(f, x >> 16);

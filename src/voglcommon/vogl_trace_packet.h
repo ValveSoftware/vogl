@@ -43,7 +43,7 @@
 class vogl_client_memory_array
 {
 public:
-    inline vogl_client_memory_array(vogl_ctype_t element_ctype, const void *p, uint element_size, uint num_elements)
+    inline vogl_client_memory_array(vogl_ctype_t element_ctype, const void *p, uint32_t element_size, uint32_t num_elements)
         : m_element_ctype(element_ctype), m_pPtr(static_cast<const uint8_t *>(p)), m_element_size(element_size), m_num_elements(num_elements)
     {
         VOGL_FUNC_TRACER
@@ -65,21 +65,21 @@ public:
         return reinterpret_cast<const T *>(m_pPtr);
     }
 
-    inline uint size() const
+    inline uint32_t size() const
     {
         return m_num_elements;
     }
-    inline uint get_element_size() const
+    inline uint32_t get_element_size() const
     {
         return m_element_size;
     }
-    inline uint get_size_in_bytes() const
+    inline uint32_t get_size_in_bytes() const
     {
         return m_element_size * m_num_elements;
     }
 
     template <typename T>
-    inline T get_element(uint index) const
+    inline T get_element(uint32_t index) const
     {
         VOGL_FUNC_TRACER
 
@@ -92,7 +92,7 @@ public:
         }
         else
         {
-            uint n = math::minimum<uint>(sizeof(T), m_element_size);
+            uint32_t n = math::minimum<uint32_t>(sizeof(T), m_element_size);
             if (n < sizeof(T))
                 utils::zero_object(result);
             memcpy(&result, m_pPtr + m_element_size * index, n);
@@ -103,8 +103,8 @@ public:
     vogl_ctype_t m_element_ctype;
 
     const uint8_t *m_pPtr;
-    uint m_element_size;
-    uint m_num_elements;
+    uint32_t m_element_size;
+    uint32_t m_num_elements;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ public:
         utils::zero_object(m_param_data);
         utils::zero_object(m_param_size);
 
-        for (uint i = 0; i < cMaxParams; i++)
+        for (uint32_t i = 0; i < cMaxParams; i++)
             m_client_memory_descs[i].clear();
 
         m_client_memory.resize(0);
@@ -183,7 +183,7 @@ public:
     bool serialize(data_stream &stream) const;
     bool serialize(uint8_vec &buf) const;
 
-    bool deserialize(const uint8_t *pPacket_data, uint packet_data_buf_size, bool check_crc);
+    bool deserialize(const uint8_t *pPacket_data, uint32_t packet_data_buf_size, bool check_crc);
     bool deserialize(const uint8_vec &packet_buf, bool check_crc);
 
     class json_serialize_params
@@ -209,8 +209,8 @@ public:
         dynamic_string m_output_basename;
         vogl_blob_manager *m_pBlob_manager;
 
-        uint m_cur_frame;
-        uint m_blob_file_size_threshold;
+        uint32_t m_cur_frame;
+        uint32_t m_blob_file_size_threshold;
         bool m_write_debug_info;
     };
 
@@ -254,7 +254,7 @@ public:
     {
         return m_is_valid;
     }
-    inline uint total_params() const
+    inline uint32_t total_params() const
     {
         return m_total_params;
     }
@@ -285,8 +285,8 @@ public:
         VOGL_ASSUME(VOGL_INVALID_CTYPE == 0);
         utils::zero_object(m_param_ctype);
 
-        const uint total_params_to_serialize = g_vogl_entrypoint_descs[id].m_num_params + (g_vogl_entrypoint_descs[id].m_return_ctype != VOGL_VOID);
-        for (uint i = 0; i < total_params_to_serialize; ++i)
+        const uint32_t total_params_to_serialize = g_vogl_entrypoint_descs[id].m_num_params + (g_vogl_entrypoint_descs[id].m_return_ctype != VOGL_VOID);
+        for (uint32_t i = 0; i < total_params_to_serialize; ++i)
             m_client_memory_descs[i].clear();
 
         m_client_memory.resize(0);
@@ -339,17 +339,17 @@ public:
     }
 
     // composition
-    inline void set_return_param(vogl_ctype_t ctype, const void *pParam, uint param_size)
+    inline void set_return_param(vogl_ctype_t ctype, const void *pParam, uint32_t param_size)
     {
         VOGL_FUNC_TRACER
 
         VOGL_ASSERT(m_is_valid);
         VOGL_ASSERT(ctype != VOGL_INVALID_CTYPE);
-        VOGL_ASSERT((uint)trace_ctypes()[ctype].m_size == param_size);
+        VOGL_ASSERT((uint32_t)trace_ctypes()[ctype].m_size == param_size);
         VOGL_ASSERT((param_size >= sizeof(uint8_t)) && (param_size <= sizeof(uint64_t)));
         VOGL_ASSERT(g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_return_ctype == ctype);
 
-        uint param_index = g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_num_params;
+        uint32_t param_index = g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_num_params;
         memcpy(&m_param_data[param_index], pParam, param_size);
         m_param_ctype[param_index] = ctype;
         m_param_size[param_index] = static_cast<uint8_t>(param_size);
@@ -357,7 +357,7 @@ public:
         m_has_return_value = true;
     }
 
-    inline void set_param(uint8_t param_id, vogl_ctype_t ctype, const void *pParam, uint param_size)
+    inline void set_param(uint8_t param_id, vogl_ctype_t ctype, const void *pParam, uint32_t param_size)
     {
         VOGL_FUNC_TRACER
 
@@ -371,7 +371,7 @@ public:
         VOGL_ASSERT(ctype != VOGL_INVALID_CTYPE);
         VOGL_ASSERT(param_id < g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_num_params);
         VOGL_ASSERT(g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_num_params < cMaxParams);
-        VOGL_ASSERT((uint)trace_ctypes()[ctype].m_size == param_size);
+        VOGL_ASSERT((uint32_t)trace_ctypes()[ctype].m_size == param_size);
         VOGL_ASSERT((param_size >= sizeof(uint8_t)) && (param_size <= sizeof(uint64_t)));
         VOGL_ASSERT(g_vogl_entrypoint_param_descs[m_packet.m_entrypoint_id][param_id].m_ctype == ctype);
 
@@ -401,7 +401,7 @@ public:
             VOGL_FAIL("vogl_entrypoint_serializer::add_param_client_memory: Need to support streaming more than 2GB of client memory per call!\n");
         }
 
-        uint param_index = param_id;
+        uint32_t param_index = param_id;
         if (param_id == VOGL_RETURN_PARAM_INDEX)
         {
             VOGL_ASSERT(trace_ctypes()[g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_return_ctype].m_is_pointer);
@@ -454,7 +454,7 @@ public:
         return res.second;
     }
 
-    inline bool set_key_value_blob(const value &key, const void *pData, uint data_size)
+    inline bool set_key_value_blob(const value &key, const void *pData, uint32_t data_size)
     {
         VOGL_FUNC_TRACER
 
@@ -475,45 +475,45 @@ public:
     }
 
     // param accessors
-    inline const uint64_t &get_param_data(uint param_index) const
+    inline const uint64_t &get_param_data(uint32_t param_index) const
     {
         VOGL_ASSERT(param_index < m_total_params);
         return m_param_data[param_index];
     }
-    inline uint get_param_size(uint param_index) const
+    inline uint32_t get_param_size(uint32_t param_index) const
     {
         VOGL_ASSERT(param_index < m_total_params);
         return m_param_size[param_index];
     }
-    inline vogl_ctype_t get_param_ctype(uint param_index) const
+    inline vogl_ctype_t get_param_ctype(uint32_t param_index) const
     {
         VOGL_ASSERT(param_index < m_total_params);
         return m_param_ctype[param_index];
     }
-    inline const gl_entrypoint_param_desc_t &get_param_desc(uint param_index) const
+    inline const gl_entrypoint_param_desc_t &get_param_desc(uint32_t param_index) const
     {
         VOGL_ASSERT(param_index < m_total_params);
         return g_vogl_entrypoint_param_descs[m_packet.m_entrypoint_id][param_index];
     }
-    inline const vogl_ctype_desc_t &get_param_ctype_desc(uint param_index) const
+    inline const vogl_ctype_desc_t &get_param_ctype_desc(uint32_t param_index) const
     {
         VOGL_ASSERT(param_index < m_total_params);
         return trace_ctypes()[m_param_ctype[param_index]];
     }
-    inline vogl_namespace_t get_param_namespace(uint param_index) const
+    inline vogl_namespace_t get_param_namespace(uint32_t param_index) const
     {
         return get_param_desc(param_index).m_namespace;
     }
 
     // It's acceptable to call this on params which have sizeof's less than T, the upper bytes are 0's.
     template <typename T>
-    inline T get_param_value(uint param_index) const
+    inline T get_param_value(uint32_t param_index) const
     {
         VOGL_FUNC_TRACER
 
         VOGL_ASSERT(sizeof(T) <= sizeof(uint64_t));
         VOGL_ASSUME(!Loki::type_is_ptr<T>::result);
-        VOGL_ASSERT(sizeof(T) >= static_cast<uint>(get_param_ctype_desc(param_index).m_size));
+        VOGL_ASSERT(sizeof(T) >= static_cast<uint32_t>(get_param_ctype_desc(param_index).m_size));
         VOGL_ASSERT(!get_param_ctype_desc(param_index).m_is_pointer);
 
         if (sizeof(T) != get_param_size(param_index))
@@ -524,7 +524,7 @@ public:
                                  (unsigned long long)m_packet.m_call_counter,
                                  get_entrypoint_desc().m_pName,
                                  get_param_ctype_desc(param_index).m_pName, get_param_desc(param_index).m_pName,
-                                 (uint)sizeof(T),
+                                 (uint32_t)sizeof(T),
                                  get_param_size(param_index),
                                  (unsigned long long)get_param_data(param_index));
             }
@@ -533,7 +533,7 @@ public:
         return *reinterpret_cast<const T *>(&get_param_data(param_index));
     }
 
-    inline vogl_trace_ptr_value get_param_ptr_value(uint param_index) const
+    inline vogl_trace_ptr_value get_param_ptr_value(uint32_t param_index) const
     {
         VOGL_FUNC_TRACER
 
@@ -550,14 +550,14 @@ public:
         const gl_entrypoint_param_desc_t *pParams = &g_vogl_entrypoint_param_descs[m_packet.m_entrypoint_id][0];
         VOGL_ASSERT(g_vogl_entrypoint_descs[m_packet.m_entrypoint_id].m_num_params == m_total_params);
 
-        for (uint i = 0; i < m_total_params; i++)
+        for (uint32_t i = 0; i < m_total_params; i++)
             if (vogl_strcmp(pName, pParams->m_pName) == 0)
                 return i;
 
         return cInvalidIndex;
     }
 
-    bool pretty_print_param(dynamic_string &str, uint param_index, bool type_info) const;
+    bool pretty_print_param(dynamic_string &str, uint32_t param_index, bool type_info) const;
     bool pretty_print_return_value(dynamic_string &str, bool type_info) const;
 
     // return value
@@ -566,7 +566,7 @@ public:
         VOGL_ASSERT(m_has_return_value);
         return m_param_data[m_total_params];
     }
-    inline uint get_return_value_size() const
+    inline uint32_t get_return_value_size() const
     {
         VOGL_ASSERT(m_has_return_value);
         return m_param_size[m_total_params];
@@ -593,7 +593,7 @@ public:
 
         VOGL_ASSERT(sizeof(T) <= sizeof(uint64_t));
         VOGL_ASSUME(!Loki::type_is_ptr<T>::result);
-        VOGL_ASSERT(sizeof(T) >= static_cast<uint>(get_return_value_ctype_desc().m_size));
+        VOGL_ASSERT(sizeof(T) >= static_cast<uint32_t>(get_return_value_ctype_desc().m_size));
         VOGL_ASSERT(!get_return_value_ctype_desc().m_is_pointer);
 
         if (sizeof(T) != get_return_value_size())
@@ -604,7 +604,7 @@ public:
                                  (unsigned long long)m_packet.m_call_counter,
                                  get_entrypoint_desc().m_pName,
                                  get_return_value_ctype_desc().m_pName,
-                                 (uint)sizeof(T),
+                                 (uint32_t)sizeof(T),
                                  get_return_value_size(),
                                  (unsigned long long)get_return_value_data());
             }
@@ -623,40 +623,40 @@ public:
     }
 
     // param client memory accessors
-    inline bool has_param_client_memory(uint param_index) const
+    inline bool has_param_client_memory(uint32_t param_index) const
     {
         VOGL_ASSERT(param_index < m_total_params);
         return m_client_memory_descs[param_index].m_vec_ofs != -1;
     }
-    inline const void *get_param_client_memory_ptr(uint param_index) const
+    inline const void *get_param_client_memory_ptr(uint32_t param_index) const
     {
         VOGL_ASSERT(param_index < m_total_params);
         int ofs = m_client_memory_descs[param_index].m_vec_ofs;
         return (ofs < 0) ? NULL : &m_client_memory[ofs];
     }
-    inline void *get_param_client_memory_ptr(uint param_index)
+    inline void *get_param_client_memory_ptr(uint32_t param_index)
     {
         VOGL_ASSERT(param_index < m_total_params);
         int ofs = m_client_memory_descs[param_index].m_vec_ofs;
         return (ofs < 0) ? NULL : &m_client_memory[ofs];
     }
-    inline uint get_param_client_memory_data_size(uint param_index) const
+    inline uint32_t get_param_client_memory_data_size(uint32_t param_index) const
     {
         VOGL_ASSERT(param_index < m_total_params);
         return m_client_memory_descs[param_index].m_data_size;
     }
-    inline vogl_ctype_t get_param_client_memory_ctype(uint param_index) const
+    inline vogl_ctype_t get_param_client_memory_ctype(uint32_t param_index) const
     {
         VOGL_ASSERT(param_index < m_total_params);
         return static_cast<vogl_ctype_t>(m_client_memory_descs[param_index].m_pointee_ctype);
     }
-    inline const vogl_ctype_desc_t &get_param_client_memory_ctype_desc(uint param_index) const
+    inline const vogl_ctype_desc_t &get_param_client_memory_ctype_desc(uint32_t param_index) const
     {
         return trace_ctypes()[get_param_client_memory_ctype(param_index)];
     }
 
     template <typename T>
-    inline const T *get_param_client_memory(uint param_index) const
+    inline const T *get_param_client_memory(uint32_t param_index) const
     {
         VOGL_FUNC_TRACER
 
@@ -665,7 +665,7 @@ public:
     };
 
     template <typename T>
-    inline T *get_param_client_memory(uint param_index)
+    inline T *get_param_client_memory(uint32_t param_index)
     {
         VOGL_FUNC_TRACER
 
@@ -673,13 +673,13 @@ public:
         return static_cast<T *>(get_param_client_memory_ptr(param_index));
     };
 
-    inline const vogl_client_memory_array get_param_client_memory_array(uint param_index) const
+    inline const vogl_client_memory_array get_param_client_memory_array(uint32_t param_index) const
     {
         VOGL_FUNC_TRACER
 
         const vogl_ctype_desc_t &ctype_desc = get_param_client_memory_ctype_desc(param_index);
-        uint element_size = ctype_desc.m_size;
-        uint data_size = get_param_client_memory_data_size(param_index);
+        uint32_t element_size = ctype_desc.m_size;
+        uint32_t data_size = get_param_client_memory_data_size(param_index);
         if (element_size <= 0)
             return vogl_client_memory_array(get_param_client_memory_ctype(param_index), get_param_client_memory_ptr(param_index), data_size, 1);
         else
@@ -721,8 +721,8 @@ public:
         VOGL_FUNC_TRACER
 
         const vogl_ctype_desc_t &ctype_desc = get_return_client_memory_ctype_desc();
-        uint element_size = ctype_desc.m_size;
-        uint data_size = get_return_client_memory_data_size();
+        uint32_t element_size = ctype_desc.m_size;
+        uint32_t data_size = get_return_client_memory_data_size();
         if (element_size <= 0)
             return vogl_client_memory_array(get_return_client_memory_ctype(), get_return_client_memory_ptr(), data_size, 1);
         else
@@ -743,7 +743,7 @@ private:
     // the "_size" fields in m_packet are not valid until binary serialization
     vogl_trace_gl_entrypoint_packet m_packet;
 
-    uint m_total_params;
+    uint32_t m_total_params;
     bool m_has_return_value;
     bool m_is_valid;
 
@@ -763,7 +763,7 @@ private:
 #pragma pack(1)
     struct client_memory_desc_t
     {
-        int32 m_vec_ofs;
+        int32_t m_vec_ofs;
         uint32_t m_data_size;
         uint8_t m_pointee_ctype; // vogl_ctype_t
 
@@ -780,7 +780,7 @@ private:
 
     mutable uint8_vec m_packet_buf;
 
-    bool validate_value_conversion(uint dest_type_size, uint dest_type_loki_type_flags, int param_index) const;
+    bool validate_value_conversion(uint32_t dest_type_size, uint32_t dest_type_loki_type_flags, int param_index) const;
 
     static bool should_always_write_as_blob_file(const char *pFunc_name);
 
@@ -788,15 +788,15 @@ private:
 
     bool json_serialize_param(
         const char *pFunc_name,
-        json_node &gl_params_node, int param_index, const char *pName, const uint64_t param_data, const uint param_size, vogl_ctype_t param_ctype,
-        const void *pClient_mem, uint client_mem_size, vogl_ctype_t client_mem_ctype,
+        json_node &gl_params_node, int param_index, const char *pName, const uint64_t param_data, const uint32_t param_size, vogl_ctype_t param_ctype,
+        const void *pClient_mem, uint32_t client_mem_size, vogl_ctype_t client_mem_ctype,
         const json_serialize_params &params) const;
 
     bool convert_json_value_to_ctype_data(uint64_t &data, const json_value &val, vogl_ctype_t ctype, const char *pName, int param_iter, gl_entrypoint_param_class_t param_class, bool permit_client_strings, const json_node &node, const char *pDocument_filename);
 
     bool json_deserialize_param(
         uint64_t cur_call_counter, const char *pFunc_name,
-        const json_node &params_node, uint param_iter, const char *pParam_name, gl_entrypoint_param_class_t param_class, const vogl_ctype_desc_t &param_ctype_desc,
+        const json_node &params_node, uint32_t param_iter, const char *pParam_name, gl_entrypoint_param_class_t param_class, const vogl_ctype_desc_t &param_ctype_desc,
         const char *pDocument_filename, const vogl_blob_manager *pBlob_manager);
 
     static bool get_uint64_from_json_node(const json_node &node, const char *pKey, uint64_t &val, uint64_t def = 0);

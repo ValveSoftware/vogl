@@ -615,14 +615,14 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
 //----------------------------------------------------------------------------------------------------------------------
 // get_replayer_flags_from_command_line_params
 //----------------------------------------------------------------------------------------------------------------------
-static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
+static uint32_t get_replayer_flags_from_command_line_params(bool interactive_mode)
 {
-    uint replayer_flags = 0;
+    uint32_t replayer_flags = 0;
 
     static struct
     {
         const char *m_pCommand;
-        uint m_flag;
+        uint32_t m_flag;
     } s_replayer_command_line_params[] =
           {
               { "benchmark", cGLReplayerBenchmarkMode },
@@ -644,7 +644,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
               { "disable_frontbuffer_restore", cGLReplayerDisableRestoreFrontBuffer },
           };
 
-    for (uint i = 0; i < sizeof(s_replayer_command_line_params) / sizeof(s_replayer_command_line_params[0]); i++)
+    for (uint32_t i = 0; i < sizeof(s_replayer_command_line_params) / sizeof(s_replayer_command_line_params[0]); i++)
         if (g_command_line_params().get_value_as_bool(s_replayer_command_line_params[i].m_pCommand))
             replayer_flags |= s_replayer_command_line_params[i].m_flag;
 
@@ -683,7 +683,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
 
         vogl_gl_replayer replayer;
 
-        uint replayer_flags = get_replayer_flags_from_command_line_params(interactive_mode);
+        uint32_t replayer_flags = get_replayer_flags_from_command_line_params(interactive_mode);
 
         vogl_replay_window window;
 
@@ -745,7 +745,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                 return false;
             }
 
-            for (uint i = 0; i < finder.get_files().size(); i++)
+            for (uint32_t i = 0; i < finder.get_files().size(); i++)
             {
                 dynamic_string base_name(finder.get_files()[i].m_name);
                 dynamic_string ext(base_name);
@@ -789,8 +789,8 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
         dynamic_string write_snapshot_filename = g_command_line_params().get_value_as_string("write_snapshot_file", 0, "state_snapshot.json");
 
         int64_t trim_call_index = g_command_line_params().get_value_as_int64("trim_call", 0, -1, 0);
-        vogl::vector<uint> trim_frames(g_command_line_params().get_count("trim_frame"));
-        for (uint i = 0; i < trim_frames.size(); i++)
+        vogl::vector<uint32_t> trim_frames(g_command_line_params().get_count("trim_frame"));
+        for (uint32_t i = 0; i < trim_frames.size(); i++)
         {
             bool parsed_successfully;
             trim_frames[i] = g_command_line_params().get_value_as_uint("trim_frame", i, 0, 0, cUINT32_MAX, 0, &parsed_successfully);
@@ -802,7 +802,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
         }
 
         vogl::vector<dynamic_string> trim_filenames(g_command_line_params().get_count("trim_file"));
-        for (uint i = 0; i < trim_filenames.size(); i++)
+        for (uint32_t i = 0; i < trim_filenames.size(); i++)
         {
             dynamic_string filename(g_command_line_params().get_value_as_string("trim_file", i));
 
@@ -818,8 +818,8 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                 vogl_message_printf("%s: Trim output filename \"%s\", didn't have an extension, appended \".bin\" to the filename: %s\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr(), trim_filenames[i].get_ptr());
         }
 
-        vogl::vector<uint> trim_lens(g_command_line_params().get_count("trim_len"));
-        for (uint i = 0; i < trim_lens.size(); i++)
+        vogl::vector<uint32_t> trim_lens(g_command_line_params().get_count("trim_len"));
+        for (uint32_t i = 0; i < trim_lens.size(); i++)
         {
             bool parsed_successfully;
             trim_lens[i] = g_command_line_params().get_value_as_uint("trim_len", i, 1, 0, cUINT32_MAX, 0, &parsed_successfully);
@@ -830,8 +830,8 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
             }
         }
 
-        uint num_trim_files_written = 0;
-        uint highest_frame_to_trim = 0;
+        uint32_t num_trim_files_written = 0;
+        uint32_t highest_frame_to_trim = 0;
 
         vogl_loose_file_blob_manager trim_file_blob_manager;
 
@@ -943,9 +943,9 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
 
             if (trim_call_index == -1)
             {
-                for (uint tf = 0; tf < trim_frames.size(); tf++)
+                for (uint32_t tf = 0; tf < trim_frames.size(); tf++)
                 {
-                    uint len = 1;
+                    uint32_t len = 1;
                     if (trim_lens.size())
                     {
                         if (trim_lens.size() < trim_frames.size())
@@ -954,7 +954,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                             len = trim_lens[tf];
                     }
                     len = math::maximum(len, 1U);
-                    highest_frame_to_trim = math::maximum<uint>(highest_frame_to_trim, trim_frames[tf] + len - 1);
+                    highest_frame_to_trim = math::maximum<uint32_t>(highest_frame_to_trim, trim_frames[tf] + len - 1);
                 }
             }
         }
@@ -1090,7 +1090,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                     if (replayer.is_valid())
                     {
                         dynamic_string filename;
-                        for (uint i = 0; i < 10000000; i++)
+                        for (uint32_t i = 0; i < 10000000; i++)
                         {
                             filename.format("screenshot_%06u.png", i);
                             if (!file_utils::does_file_exist(filename.get_ptr()))
@@ -1223,7 +1223,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                             frame_to_trim = replayer.get_frame_index();
 
                         dynamic_string trim_name;
-                        for (uint i = 0; i < 1000000; i++)
+                        for (uint32_t i = 0; i < 1000000; i++)
                         {
                             trim_name.format("trim_%06" PRIu64 "_%u", frame_to_trim, i);
                             if (!file_utils::does_dir_exist(trim_name.get_ptr()))
@@ -1238,7 +1238,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                         {
                             dynamic_string trim_filename(trim_name + "/" + trim_name + ".bin");
                             dynamic_string snapshot_id;
-                            uint write_trim_file_flags = vogl_gl_replayer::cWriteTrimFileFromStartOfFrame | (g_command_line_params().get_value_as_bool("no_trim_optimization") ? 0 : vogl_gl_replayer::cWriteTrimFileOptimizeSnapshot);
+                            uint32_t write_trim_file_flags = vogl_gl_replayer::cWriteTrimFileFromStartOfFrame | (g_command_line_params().get_value_as_bool("no_trim_optimization") ? 0 : vogl_gl_replayer::cWriteTrimFileOptimizeSnapshot);
                             if (replayer.write_trim_file(write_trim_file_flags, trim_filename, 1, *pTrace_reader, &snapshot_id))
                             {
                                 dynamic_string json_trim_base_filename(trim_name + "/j" + trim_name);
@@ -1425,7 +1425,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
 
                             if ((keyframes.size()) && (keys_down.contains(XK_Alt_L) || keys_down.contains(XK_Alt_R)))
                             {
-                                uint keyframe_array_index = 0;
+                                uint32_t keyframe_array_index = 0;
                                 for (keyframe_array_index = 1; keyframe_array_index < keyframes.size(); keyframe_array_index++)
                                     if ((int64_t)keyframes[keyframe_array_index] > paused_mode_frame_index)
                                         break;
@@ -1488,7 +1488,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                                 goto error_exit;
                             }
 
-                            pTrace_reader->seek_to_frame(static_cast<uint>(paused_mode_frame_index));
+                            pTrace_reader->seek_to_frame(static_cast<uint32_t>(paused_mode_frame_index));
                         }
                     }
                 }
@@ -1504,7 +1504,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                         take_snapshot_at_frame_index = seek_to_target_frame;
                     else
                     {
-                        uint keyframe_array_index = 0;
+                        uint32_t keyframe_array_index = 0;
                         for (keyframe_array_index = 1; keyframe_array_index < keyframes.size(); keyframe_array_index++)
                             if (static_cast<int64_t>(keyframes[keyframe_array_index]) > seek_to_target_frame)
                                 break;
@@ -1561,9 +1561,9 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                                 goto error_exit;
                             }
 
-                            pKeyframe_snapshot->set_frame_index(static_cast<uint>(keyframe_index));
+                            pKeyframe_snapshot->set_frame_index(static_cast<uint32_t>(keyframe_index));
 
-                            if (!pTrace_reader->seek_to_frame(static_cast<uint>(keyframe_index)))
+                            if (!pTrace_reader->seek_to_frame(static_cast<uint32_t>(keyframe_index)))
                             {
                                 vogl_error_printf("%s: Failed seeking to keyframe!\n", VOGL_FUNCTION_INFO_CSTR);
                                 goto error_exit;
@@ -1599,8 +1599,8 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                     if (trim_frames.size())
                     {
                         bool should_trim = false;
-                        uint tf = 0;
-                        uint len = 1;
+                        uint32_t tf = 0;
+                        uint32_t len = 1;
 
                         for (tf = 0; tf < trim_frames.size(); tf++)
                         {
@@ -1681,7 +1681,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
 
                             file_utils::create_directories(trim_path, false);
 
-                            uint write_trim_file_flags = vogl_gl_replayer::cWriteTrimFileFromStartOfFrame | (g_command_line_params().get_value_as_bool("no_trim_optimization") ? 0 : vogl_gl_replayer::cWriteTrimFileOptimizeSnapshot);
+                            uint32_t write_trim_file_flags = vogl_gl_replayer::cWriteTrimFileFromStartOfFrame | (g_command_line_params().get_value_as_bool("no_trim_optimization") ? 0 : vogl_gl_replayer::cWriteTrimFileOptimizeSnapshot);
                             if (!replayer.write_trim_file(write_trim_file_flags, filename, multitrim_mode ? 1 : len, *pTrace_reader))
                                 goto error_exit;
 
@@ -1826,7 +1826,7 @@ static uint get_replayer_flags_from_command_line_params(bool interactive_mode)
                     if ((status != vogl_gl_replayer::cStatusOK) && (status != vogl_gl_replayer::cStatusResizeWindow))
                         goto error_exit;
 
-                    pTrace_reader->seek_to_frame(static_cast<uint>(snapshot_loop_start_frame));
+                    pTrace_reader->seek_to_frame(static_cast<uint32_t>(snapshot_loop_start_frame));
 
                     if (draw_kill_max_thresh > 0)
                     {
@@ -2025,8 +2025,8 @@ static bool tool_dump_mode()
 
     vogl_trace_packet gl_packet_cracker(&trace_gl_ctypes);
 
-    uint cur_file_index = 0;
-    uint cur_frame_index = 0;
+    uint32_t cur_file_index = 0;
+    uint32_t cur_frame_index = 0;
     uint64_t cur_packet_index = 0;
     VOGL_NOTE_UNUSED(cur_packet_index);
     json_document cur_doc;
@@ -2042,7 +2042,7 @@ static bool tool_dump_mode()
             sof_node.add_key_value("archive_filename", archive_name);
 
         json_node &uuid_array = sof_node.add_array("uuid");
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(pTrace_reader->get_sof_packet().m_uuid); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(pTrace_reader->get_sof_packet().m_uuid); i++)
             uuid_array.add_value(pTrace_reader->get_sof_packet().m_uuid[i]);
     }
 
@@ -2116,7 +2116,7 @@ static bool tool_dump_mode()
             note_node.add_key_value("cur_frame", cur_frame_index);
 
             json_node &uuid_array = note_node.add_array("uuid");
-            for (uint i = 0; i < VOGL_ARRAY_SIZE(pTrace_reader->get_sof_packet().m_uuid); i++)
+            for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(pTrace_reader->get_sof_packet().m_uuid); i++)
                 uuid_array.add_value(pTrace_reader->get_sof_packet().m_uuid[i]);
 
             pPacket_array = &cur_doc.get_root()->add_array("packets");
@@ -2369,7 +2369,7 @@ static bool tool_parse_mode()
     if (pTrace_reader->get_archive_blob_manager().is_initialized())
     {
         dynamic_string_array blob_files(pTrace_reader->get_archive_blob_manager().enumerate());
-        for (uint i = 0; i < blob_files.size(); i++)
+        for (uint32_t i = 0; i < blob_files.size(); i++)
         {
             if (blob_files[i] == VOGL_TRACE_ARCHIVE_FRAME_FILE_OFFSETS_FILENAME)
                 continue;
@@ -2441,7 +2441,7 @@ failed:
 //----------------------------------------------------------------------------------------------------------------------
 typedef vogl::map<dynamic_string> dynamic_string_set;
 typedef vogl::map<dynamic_string, uint64_t> dynamic_string_hash_map;
-typedef vogl::map<uint> uint_map;
+typedef vogl::map<uint32_t> uint_map;
 
 struct histo_entry
 {
@@ -2477,7 +2477,7 @@ static void dump_histogram(const char *pMsg, const dynamic_string_hash_map &map,
     mergesort(histo);
     vogl_printf("\n----------------------\n%s: %u\n", pMsg, map.size());
 
-    for (uint i = 0; i < histo.size(); i++)
+    for (uint32_t i = 0; i < histo.size(); i++)
     {
         dynamic_string_hash_map::const_iterator it = histo[i].m_it;
         vogl_printf("%s: Total calls: %" PRIu64 " %3.1f%%, Avg calls per frame: %f\n", it->first.get_ptr(), it->second, SAFE_FLOAT_DIV(it->second * 100.0f, total_gl_entrypoint_packets), SAFE_FLOAT_DIV(it->second, total_swaps));
@@ -2530,13 +2530,13 @@ static bool tool_info_mode()
         vogl_printf("----------------------\n");
         vogl::vector<dynamic_string> archive_files(pTrace_reader->get_archive_blob_manager().enumerate());
         vogl_printf("Total trace archive files: %u\n", archive_files.size());
-        for (uint i = 0; i < archive_files.size(); i++)
+        for (uint32_t i = 0; i < archive_files.size(); i++)
             vogl_printf("\"%s\"\n", archive_files[i].get_ptr());
         vogl_printf("----------------------\n");
     }
 
-    uint min_packet_size = cUINT32_MAX;
-    uint max_packet_size = 0;
+    uint32_t min_packet_size = cUINT32_MAX;
+    uint32_t max_packet_size = 0;
     uint64_t total_packets = 1; // 1, not 0, to account for the SOF packet
     uint64_t total_packet_bytes = 0;
     uint64_t total_swaps = 0;
@@ -2570,13 +2570,13 @@ static bool tool_info_mode()
     uint64_t total_program_binary_calls = 0;
     uint_map unique_programs_used;
 
-    uint total_gl_state_snapshots = 0;
+    uint32_t total_gl_state_snapshots = 0;
 
-    uint total_display_list_calls = false;
-    uint total_gl_get_errors = 0;
+    uint32_t total_display_list_calls = false;
+    uint32_t total_gl_get_errors = 0;
 
-    uint total_context_creates = 0;
-    uint total_context_destroys = 0;
+    uint32_t total_context_creates = 0;
+    uint32_t total_context_destroys = 0;
 
     dynamic_string_hash_map all_apis_called, category_histogram, version_histogram, profile_histogram, deprecated_histogram;
 
@@ -2604,10 +2604,10 @@ static bool tool_info_mode()
         const vogl::vector<uint8_t> &packet_buf = pTrace_reader->get_packet_buf();
         VOGL_NOTE_UNUSED(packet_buf);
 
-        uint packet_size = pTrace_reader->get_packet_size();
+        uint32_t packet_size = pTrace_reader->get_packet_size();
 
-        min_packet_size = math::minimum<uint>(min_packet_size, packet_size);
-        max_packet_size = math::maximum<uint>(max_packet_size, packet_size);
+        min_packet_size = math::minimum<uint32_t>(min_packet_size, packet_size);
+        max_packet_size = math::maximum<uint32_t>(max_packet_size, packet_size);
         total_packets++;
         total_packet_bytes += packet_size;
 
@@ -2893,7 +2893,7 @@ static bool param_value_matches(const bigint128 &value_to_find, vogl_namespace_t
         case VOGL_GLSIZEI:
         case VOGL_GLFIXED:
         {
-            value = static_cast<int32>(value_data);
+            value = static_cast<int32_t>(value_data);
             break;
         }
         case VOGL_GLSHORT:
@@ -3117,7 +3117,7 @@ static bool tool_find_mode()
                 }
             }
 
-            for (uint i = 0; i < trace_packet.total_params(); i++)
+            for (uint32_t i = 0; i < trace_packet.total_params(); i++)
             {
                 if ((find_param_name.has_content()) && (find_param_name != trace_packet.get_param_desc(i).m_pName))
                     continue;
@@ -3130,7 +3130,7 @@ static bool tool_find_mode()
                     {
                         const vogl_client_memory_array array(trace_packet.get_param_client_memory_array(i));
 
-                        for (uint j = 0; j < array.size(); j++)
+                        for (uint32_t j = 0; j < array.size(); j++)
                         {
                             if (param_value_matches(value_to_find, find_namespace, array.get_element<uint64_t>(j), array.get_element_ctype(), trace_packet.get_param_namespace(i)))
                             {
@@ -3192,14 +3192,14 @@ static bool tool_compare_hash_files()
 
     const uint64_t sum_comp_thresh = g_command_line_params().get_value_as_uint64("sum_compare_threshold");
 
-    const uint compare_first_frame = g_command_line_params().get_value_as_uint("compare_first_frame");
+    const uint32_t compare_first_frame = g_command_line_params().get_value_as_uint("compare_first_frame");
     if (compare_first_frame > src2_lines.size())
     {
         vogl_error_printf("%s: -compare_first_frame is %u, but the second file only has %u frames!\n", VOGL_FUNCTION_INFO_CSTR, compare_first_frame, src2_lines.size());
         return false;
     }
 
-    const uint lines_to_comp = math::minimum(src1_lines.size(), src2_lines.size() - compare_first_frame);
+    const uint32_t lines_to_comp = math::minimum(src1_lines.size(), src2_lines.size() - compare_first_frame);
 
     if (src1_lines.size() != src2_lines.size())
     {
@@ -3215,7 +3215,7 @@ static bool tool_compare_hash_files()
         }
     }
 
-    const uint compare_ignore_frames = g_command_line_params().get_value_as_uint("compare_ignore_frames");
+    const uint32_t compare_ignore_frames = g_command_line_params().get_value_as_uint("compare_ignore_frames");
     if (compare_ignore_frames > lines_to_comp)
     {
         vogl_error_printf("%s: -compare_ignore_frames is too large!\n", VOGL_FUNCTION_INFO_CSTR);
@@ -3226,7 +3226,7 @@ static bool tool_compare_hash_files()
 
     if (g_command_line_params().has_key("compare_expected_frames"))
     {
-        const uint compare_expected_frames = g_command_line_params().get_value_as_uint("compare_expected_frames");
+        const uint32_t compare_expected_frames = g_command_line_params().get_value_as_uint("compare_expected_frames");
         if ((src1_lines.size() != compare_expected_frames) || (src2_lines.size() != compare_expected_frames))
         {
             vogl_warning_printf("%s: Expected %u frames! First file has %u frames, second file has %u frames.\n", VOGL_FUNCTION_INFO_CSTR, compare_expected_frames, src1_lines.size(), src2_lines.size());
@@ -3234,10 +3234,10 @@ static bool tool_compare_hash_files()
         }
     }
 
-    uint total_mismatches = 0;
+    uint32_t total_mismatches = 0;
     uint64_t max_sum_delta = 0;
 
-    for (uint i = compare_ignore_frames; i < lines_to_comp; i++)
+    for (uint32_t i = compare_ignore_frames; i < lines_to_comp; i++)
     {
         const char *pStr1 = src1_lines[i].get_ptr();
         const char *pStr2 = src2_lines[i + compare_first_frame].get_ptr();

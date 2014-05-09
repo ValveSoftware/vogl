@@ -58,7 +58,7 @@ bool vogl_material_state::snapshot(const vogl_context_info &context_info)
             any_gl_errors = true;                                      \
         m_params[side].insert(pname, 0, values, sizeof(values[0]));    \
     } while (0)
-    for (uint s = 0; s < cTotalSides; s++)
+    for (uint32_t s = 0; s < cTotalSides; s++)
     {
         GET_FLOAT(s, GL_AMBIENT);
         GET_FLOAT(s, GL_DIFFUSE);
@@ -82,7 +82,7 @@ bool vogl_material_state::snapshot(const vogl_context_info &context_info)
     return true;
 }
 
-bool vogl_material_state::set_material_parameter(uint side, GLenum pname) const
+bool vogl_material_state::set_material_parameter(uint32_t side, GLenum pname) const
 {
     VOGL_FUNC_TRACER
 
@@ -142,7 +142,7 @@ bool vogl_material_state::restore(const vogl_context_info &context_info) const
     VOGL_CHECK_GL_ERROR;
 
 #define SET_FLOAT(side, pname) set_material_parameter(side, pname)
-    for (uint s = 0; s < cTotalSides; s++)
+    for (uint32_t s = 0; s < cTotalSides; s++)
     {
         SET_FLOAT(s, GL_AMBIENT);
         SET_FLOAT(s, GL_DIFFUSE);
@@ -160,7 +160,7 @@ void vogl_material_state::clear()
 {
     VOGL_FUNC_TRACER
 
-    for (uint i = 0; i < cTotalSides; i++)
+    for (uint32_t i = 0; i < cTotalSides; i++)
         m_params[i].clear();
 
     m_valid = false;

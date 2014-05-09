@@ -113,7 +113,7 @@ public:
     };
 
     typedef vogl::sparse_vector<handle_def, 5> handle_def_vec;
-    typedef vogl::hash_map<handle_t, uint> handle_hash_map_t;
+    typedef vogl::hash_map<handle_t, uint32_t> handle_hash_map_t;
 
     vogl_handle_tracker();
     vogl_handle_tracker(vogl_namespace_t handle_namespace);
@@ -130,18 +130,18 @@ public:
         m_namespace = handle_namespace;
     }
 
-    uint get_total_valid_handles() const
+    uint32_t get_total_valid_handles() const
     {
         return m_inv_handles.size();
     }
 
     // size() and operator[] allow you to iterate over the entire handle namespace, but beware that not all handles may be valid!
     // size() is not necessarily always equal to get_total_valid_handles()!
-    uint size() const
+    uint32_t size() const
     {
         return m_handles.size();
     }
-    const handle_def &operator[](uint index) const
+    const handle_def &operator[](uint32_t index) const
     {
         return m_handles[index];
     }

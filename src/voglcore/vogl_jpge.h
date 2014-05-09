@@ -35,10 +35,10 @@ namespace jpge
 {
     typedef unsigned char uint8_t;
     typedef signed short int16_t;
-    typedef signed int int32;
+    typedef signed int int32_t;
     typedef unsigned short uint16_t;
     typedef unsigned int uint32_t;
-    typedef unsigned int uint;
+    typedef unsigned int uint32_t;
 
     // JPEG chroma subsampling factors. Y_ONLY (grayscale images) and H2V2 (color images) are the most common.
     enum subsampling_t
@@ -61,7 +61,7 @@ namespace jpge
         {
             if ((m_quality < 1) || (m_quality > 100))
                 return false;
-            if ((uint)m_subsampling > (uint)H2V2)
+            if ((uint32_t)m_subsampling > (uint32_t)H2V2)
                 return false;
             return true;
         }
@@ -129,11 +129,11 @@ namespace jpge
         // Deinitializes the compressor, freeing any allocated memory. May be called at any time.
         void deinit();
 
-        uint get_total_passes() const
+        uint32_t get_total_passes() const
         {
             return m_params.m_two_pass_flag ? 2 : 1;
         }
-        inline uint get_cur_pass()
+        inline uint32_t get_cur_pass()
         {
             return m_pass_num;
         }
@@ -148,7 +148,7 @@ namespace jpge
         jpeg_encoder(const jpeg_encoder &);
         jpeg_encoder &operator=(const jpeg_encoder &);
 
-        typedef int32 sample_array_t;
+        typedef int32_t sample_array_t;
 
         output_stream *m_pStream;
         params m_params;
@@ -163,8 +163,8 @@ namespace jpge
         uint8_t m_mcu_y_ofs;
         sample_array_t m_sample_array[64];
         int16_t m_coefficient_array[64];
-        int32 m_quantization_tables[2][64];
-        uint m_huff_codes[4][256];
+        int32_t m_quantization_tables[2][64];
+        uint32_t m_huff_codes[4][256];
         uint8_t m_huff_code_sizes[4][256];
         uint8_t m_huff_bits[4][17];
         uint8_t m_huff_val[4][256];
@@ -176,15 +176,15 @@ namespace jpge
         };
         uint8_t m_out_buf[JPGE_OUT_BUF_SIZE];
         uint8_t *m_pOut_buf;
-        uint m_out_buf_left;
+        uint32_t m_out_buf_left;
         uint32_t m_bit_buffer;
-        uint m_bits_in;
+        uint32_t m_bits_in;
         uint8_t m_pass_num;
         bool m_all_stream_writes_succeeded;
 
         void optimize_huffman_table(int table_num, int table_len);
         void emit_byte(uint8_t i);
-        void emit_word(uint i);
+        void emit_word(uint32_t i);
         void emit_marker(int marker);
         void emit_jfif_app0();
         void emit_dqt();
@@ -193,9 +193,9 @@ namespace jpge
         void emit_dhts();
         void emit_sos();
         void emit_markers();
-        void compute_huffman_table(uint *codes, uint8_t *code_sizes, uint8_t *bits, uint8_t *val);
-        void compute_quant_table(int32 *dst, int16_t *src);
-        void adjust_quant_table(int32 *dst, int32 *src);
+        void compute_huffman_table(uint32_t *codes, uint8_t *code_sizes, uint8_t *bits, uint8_t *val);
+        void compute_quant_table(int32_t *dst, int16_t *src);
+        void adjust_quant_table(int32_t *dst, int32_t *src);
         void first_pass_init();
         bool second_pass_init();
         bool jpg_open(int p_x_res, int p_y_res, int src_channels);
@@ -205,7 +205,7 @@ namespace jpge
         void load_block_16_8_8(int x, int c);
         void load_quantized_coefficients(int component_num);
         void flush_output_buffer();
-        void put_bits(uint bits, uint len);
+        void put_bits(uint32_t bits, uint32_t len);
         void code_coefficients_pass_one(int component_num);
         void code_coefficients_pass_two(int component_num);
         void code_block(int component_num);

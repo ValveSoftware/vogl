@@ -37,9 +37,9 @@ namespace vogl
         typedef uint16_t uint16_t;
         typedef int16_t int16_t;
         typedef uint32_t uint32_t;
+        typedef uint32_t uint32_t;
+        typedef int32_t int32_t;
     #endif
-    typedef uint32_t uint;
-    typedef int32_t int32;
 
     const uint8_t cUINT8_MIN = 0;
     const uint8_t cUINT8_MAX = 0xFFU;
@@ -54,8 +54,8 @@ namespace vogl
     const int8_t cINT8_MAX = 127;
     const int16_t cINT16_MIN = -32768;
     const int16_t cINT16_MAX = 32767;
-    const int32 cINT32_MIN = (-2147483647 - 1);
-    const int32 cINT32_MAX = 2147483647;
+    const int32_t cINT32_MIN = (-2147483647 - 1);
+    const int32_t cINT32_MAX = 2147483647;
     const int64_t cINT64_MIN = (int64_t)0x8000000000000000ULL; //(-9223372036854775807i64 - 1);
     const int64_t cINT64_MAX = (int64_t)0x7FFFFFFFFFFFFFFFULL; // 9223372036854775807i64;
 
@@ -89,7 +89,7 @@ namespace vogl
         cBitwise
     };
 
-    const uint cIntBits = 32;
+    const uint32_t cIntBits = 32;
 
     template <bool condition, class Then, class Else>
     struct template_if

@@ -66,7 +66,7 @@ namespace vogl
         }
         dynamic_string(eVarArg dummy, const char *p, ...) VOGL_ATTRIBUTE_PRINTF(3, 4);
         dynamic_string(const char *p);
-        dynamic_string(const char *p, uint len);
+        dynamic_string(const char *p, uint32_t len);
         dynamic_string(const dynamic_string &other);
 
         inline ~dynamic_string()
@@ -79,7 +79,7 @@ namespace vogl
         void clear();
         void optimize();
 
-        void reserve(uint new_capacity);
+        void reserve(uint32_t new_capacity);
 
         // Truncates the string to 0 chars, but does not free the buffer.
         void empty();
@@ -94,11 +94,11 @@ namespace vogl
             return p;
         }
 
-        inline uint get_len() const
+        inline uint32_t get_len() const
         {
             return m_len;
         }
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_len;
         }
@@ -143,14 +143,14 @@ namespace vogl
             return m_len ? get_ptr_priv()[m_len - 1] : '\0';
         }
 
-        inline char operator[](uint i) const
+        inline char operator[](uint32_t i) const
         {
             VOGL_ASSERT(i <= m_len);
             return get_ptr()[i];
         }
 
         // Index string, beginning from back, 0 = last character, 1 = next to last char, etc.
-        inline char get_char_at_end(uint i) const
+        inline char get_char_at_end(uint32_t i) const
         {
             VOGL_ASSERT(i <= m_len);
             return (i < m_len) ? get_ptr()[m_len - 1U - i] : '\0';
@@ -230,13 +230,13 @@ namespace vogl
             return rhs.compare(p) == 0;
         }
 
-        dynamic_string &set(const char *p, uint max_len = UINT_MAX);
-        dynamic_string &set(const dynamic_string &other, uint max_len = UINT_MAX);
+        dynamic_string &set(const char *p, uint32_t max_len = UINT_MAX);
+        dynamic_string &set(const dynamic_string &other, uint32_t max_len = UINT_MAX);
 
-        bool set_len(uint new_len, char fill_char = ' ');
+        bool set_len(uint32_t new_len, char fill_char = ' ');
 
         // Set from a NON-zero terminated buffer (i.e. pBuf cannot contain any 0's, buf_len_in_chars is the size of the string).
-        dynamic_string &set_from_buf(const void *pBuf, uint buf_len_in_chars);
+        dynamic_string &set_from_buf(const void *pBuf, uint32_t buf_len_in_chars);
 
         dynamic_string &operator=(const dynamic_string &rhs)
         {
@@ -247,20 +247,20 @@ namespace vogl
             return set(p);
         }
 
-        dynamic_string &set_char(uint index, char c);
+        dynamic_string &set_char(uint32_t index, char c);
         dynamic_string &append_char(char c);
         dynamic_string &append_char(int c)
         {
             VOGL_ASSERT((c > 0) && (c <= 255));
             return append_char(static_cast<char>(c));
         }
-        dynamic_string &truncate(uint new_len);
-        dynamic_string &shorten(uint chars_to_remove);
+        dynamic_string &truncate(uint32_t new_len);
+        dynamic_string &shorten(uint32_t chars_to_remove);
         dynamic_string &tolower();
         dynamic_string &toupper();
 
         dynamic_string &append(const char *p);
-        dynamic_string &append(const char *p, uint len);
+        dynamic_string &append(const char *p, uint32_t len);
         dynamic_string &append(const dynamic_string &other);
         dynamic_string &operator+=(const char *p)
         {
@@ -282,28 +282,28 @@ namespace vogl
         // Note many of these ops are IN-PLACE string operations to avoid constructing new dynamic_string objects.
         // Yes this is awkward, one way to work around this is to close the string like this (which introduces a clone and then does the op in-place):
         // result = str.get_clone().left(x);
-        dynamic_string &crop(uint start, uint len);
-        dynamic_string &remove(uint start, uint len);
+        dynamic_string &crop(uint32_t start, uint32_t len);
+        dynamic_string &remove(uint32_t start, uint32_t len);
 
         // trims string to [start, end), i.e. up to but not including end
-        dynamic_string &substring(uint start, uint end);
+        dynamic_string &substring(uint32_t start, uint32_t end);
 
-        dynamic_string &left(uint len);
-        dynamic_string &mid(uint start, uint len);
-        dynamic_string &right(uint start);
-        dynamic_string &tail(uint num);
+        dynamic_string &left(uint32_t len);
+        dynamic_string &mid(uint32_t start, uint32_t len);
+        dynamic_string &right(uint32_t start);
+        dynamic_string &tail(uint32_t num);
 
-        dynamic_string &replace(const char *pFind, const char *pReplacement, bool case_sensitive = true, uint *pNum_found = NULL, uint max_replacements = UINT_MAX);
+        dynamic_string &replace(const char *pFind, const char *pReplacement, bool case_sensitive = true, uint32_t *pNum_found = NULL, uint32_t max_replacements = UINT_MAX);
 
         dynamic_string &unquote();
 
-        uint count_char(char c) const;
+        uint32_t count_char(char c) const;
 
-        int find_left(const char *p, bool case_sensitive = false, uint start_ofs = 0) const;
+        int find_left(const char *p, bool case_sensitive = false, uint32_t start_ofs = 0) const;
         int find_left(char c, int start_ofs = 0) const;
 
         int find_right(char c) const;
-        int find_right(char c, uint start_ofs) const;
+        int find_right(char c, uint32_t start_ofs) const;
         int find_right(const char *p, bool case_sensitive = false) const;
 
         bool contains(const char *p, bool case_sensitive = false) const;
@@ -322,27 +322,27 @@ namespace vogl
 
         void tokenize(const char *pDelims, dynamic_string_array &tokens, bool trim = false) const;
 
-        uint get_serialize_size() const
+        uint32_t get_serialize_size() const
         {
             return sizeof(uint32_t) + m_len;
         }
 
         // Returns -1 on failure, or the number of bytes written.
-        int serialize(void *pBuf, uint buf_size, bool little_endian) const;
+        int serialize(void *pBuf, uint32_t buf_size, bool little_endian) const;
 
         // Returns -1 on failure, or the number of bytes read.
-        int deserialize(const void *pBuf, uint buf_size, bool little_endian);
+        int deserialize(const void *pBuf, uint32_t buf_size, bool little_endian);
 
         void translate_lf_to_crlf();
 
-        static inline char *create_raw_buffer(uint &buf_size_in_chars);
+        static inline char *create_raw_buffer(uint32_t &buf_size_in_chars);
         static inline void free_raw_buffer(char *p)
         {
             vogl_delete_array(p);
         }
 
         // Buf size must be a power of 2, or cUINT32_MAX. TODO: Relax this BS.
-        dynamic_string &set_from_raw_buf_and_assume_ownership(char *pBuf, uint buf_size_in_bytes, uint len_in_chars);
+        dynamic_string &set_from_raw_buf_and_assume_ownership(char *pBuf, uint32_t buf_size_in_bytes, uint32_t len_in_chars);
 
         bool validate() const;
 
@@ -399,14 +399,14 @@ namespace vogl
         }
 
         // expands buffer to at least new_buf_size bytes
-        bool expand_buf(uint new_buf_size, bool preserve_contents);
+        bool expand_buf(uint32_t new_buf_size, bool preserve_contents);
 
         // ensures a buffer at least large enough to hold len chars + zero terminator
-        bool ensure_buf(uint len, bool preserve_contents = true);
+        bool ensure_buf(uint32_t len, bool preserve_contents = true);
 
-        inline uint get_buf_size() const
+        inline uint32_t get_buf_size() const
         {
-            return is_dynamic() ? static_cast<uint>(m_dyn.m_buf_size) : static_cast<uint>(cSmallStringBufSize);
+            return is_dynamic() ? static_cast<uint32_t>(m_dyn.m_buf_size) : static_cast<uint32_t>(cSmallStringBufSize);
         }
 
         inline void set_small_string_flag()
@@ -460,15 +460,15 @@ namespace vogl
         a.swap(b);
     }
 
-    inline char *dynamic_string::create_raw_buffer(uint &buf_size_in_chars)
+    inline char *dynamic_string::create_raw_buffer(uint32_t &buf_size_in_chars)
     {
-        buf_size_in_chars = static_cast<uint>(math::minimum<uint64_t>(cUINT32_MAX, math::next_pow2(static_cast<uint64_t>(buf_size_in_chars))));
+        buf_size_in_chars = static_cast<uint32_t>(math::minimum<uint64_t>(cUINT32_MAX, math::next_pow2(static_cast<uint64_t>(buf_size_in_chars))));
         return vogl_new_array(char, buf_size_in_chars);
     }
 
     inline int scan_dynamic_string_array_for_string(const dynamic_string_array &strings, const char *pStr, bool case_sensitive)
     {
-        for (uint i = 0; i < strings.size(); i++)
+        for (uint32_t i = 0; i < strings.size(); i++)
             if (!strings[i].compare(pStr, case_sensitive))
                 return i;
         return -1;

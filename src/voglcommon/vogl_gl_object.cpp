@@ -72,7 +72,7 @@ vogl_gl_object_state_type determine_gl_object_state_type_from_str(const char *pS
 {
     VOGL_FUNC_TRACER
 
-    for (uint i = 0; i < cGLSTTotalTypes; i++)
+    for (uint32_t i = 0; i < cGLSTTotalTypes; i++)
         if (!vogl_stricmp(pStr, get_gl_object_state_type_str(static_cast<vogl_gl_object_state_type>(i))))
             return static_cast<vogl_gl_object_state_type>(i);
     return cGLSTInvalid;

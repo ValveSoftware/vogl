@@ -127,7 +127,7 @@ namespace vogl
             return m_pBuf;
         }
 
-        virtual uint read(void *pBuf, uint len)
+        virtual uint32_t read(void *pBuf, uint32_t len)
         {
             VOGL_ASSERT(len <= 0x7FFFFFFF);
 
@@ -138,7 +138,7 @@ namespace vogl
 
             uint64_t bytes_left = m_size - m_ofs;
 
-            len = static_cast<uint>(math::minimum<uint64_t>(len, bytes_left));
+            len = static_cast<uint32_t>(math::minimum<uint64_t>(len, bytes_left));
 
             if (len)
                 memcpy(pBuf, &m_pBuf[m_ofs], len);
@@ -148,7 +148,7 @@ namespace vogl
             return len;
         }
 
-        virtual uint peek(char *pBuf)
+        virtual uint32_t peek(char *pBuf)
         {
             if ((!m_opened) || (!is_readable()))
                 return -1;
@@ -161,7 +161,7 @@ namespace vogl
             return 1;
         }
 
-        virtual uint write(const void *pBuf, uint len)
+        virtual uint32_t write(const void *pBuf, uint32_t len)
         {
             VOGL_ASSERT(len <= 0x7FFFFFFF);
 
@@ -172,7 +172,7 @@ namespace vogl
 
             uint64_t bytes_left = m_size - m_ofs;
 
-            len = static_cast<uint>(math::minimum<uint64_t>(len, bytes_left));
+            len = static_cast<uint32_t>(math::minimum<uint64_t>(len, bytes_left));
 
             if (len)
                 memcpy(&m_pBuf[m_ofs], pBuf, len);

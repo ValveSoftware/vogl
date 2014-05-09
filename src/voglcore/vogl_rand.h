@@ -68,7 +68,7 @@ namespace vogl
         inline uint32_t get_bit();
 
         int irand(int l, int h);
-        uint urand(uint l, uint h);
+        uint32_t urand(uint32_t l, uint32_t h);
 
         double drand(double l, double h);
 
@@ -113,10 +113,10 @@ namespace vogl
         int irand_inclusive(int l, int h);
 
         // Returns random unsigned int between [l, h)
-        uint urand(uint l, uint h);
+        uint32_t urand(uint32_t l, uint32_t h);
 
         // Returns random unsigned int between [l, h]
-        uint urand_inclusive(uint l, uint h);
+        uint32_t urand_inclusive(uint32_t l, uint32_t h);
 
         // Returns random 64-bit unsigned int between [l, h)
         uint64_t urand64(uint64_t l, uint64_t h);

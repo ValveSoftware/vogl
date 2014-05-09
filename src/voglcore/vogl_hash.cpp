@@ -76,9 +76,9 @@ namespace vogl
             DEFINE_WELL_KNOWN_STRING_HASH("viewport_height"),
             DEFINE_WELL_KNOWN_STRING_HASH("func_id"),
         };
-        const uint s_num_well_known_string_hashes = VOGL_ARRAY_SIZE(s_well_known_string_hashes);
+        const uint32_t s_num_well_known_string_hashes = VOGL_ARRAY_SIZE(s_well_known_string_hashes);
 
-        for (uint i = 0; i < s_num_well_known_string_hashes; i++)
+        for (uint32_t i = 0; i < s_num_well_known_string_hashes; i++)
             if (s_well_known_string_hashes[i].m_hash == hash)
                 return s_well_known_string_hashes[i].m_pStr;
         return NULL;
@@ -178,13 +178,13 @@ namespace vogl
         return ~crc;
     }
 
-    uint64_t calc_sum64(const uint8_t *buf, size_t size, uint shift_amount)
+    uint64_t calc_sum64(const uint8_t *buf, size_t size, uint32_t shift_amount)
     {
         uint64_t sum = 0;
 
         while (size != 0)
         {
-            uint c = *buf++;
+            uint32_t c = *buf++;
             c >>= shift_amount;
             sum += c;
             --size;

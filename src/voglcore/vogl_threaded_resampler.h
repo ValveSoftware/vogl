@@ -74,14 +74,14 @@ namespace vogl
             pixel_format m_fmt;
 
             const void *m_pSrc_pixels;
-            uint m_src_width;
-            uint m_src_height;
-            uint m_src_pitch;
+            uint32_t m_src_width;
+            uint32_t m_src_height;
+            uint32_t m_src_pitch;
 
             void *m_pDst_pixels;
-            uint m_dst_width;
-            uint m_dst_height;
-            uint m_dst_pitch;
+            uint32_t m_dst_width;
+            uint32_t m_dst_height;
+            uint32_t m_dst_pitch;
 
             Resampler::Boundary_Op m_boundary_op;
 
@@ -105,7 +105,7 @@ namespace vogl
 
         Resampler::Contrib_List *m_pX_contribs;
         Resampler::Contrib_List *m_pY_contribs;
-        uint m_bytes_per_pixel;
+        uint32_t m_bytes_per_pixel;
 
         vogl::vector<vec4F> m_tmp_img;
 

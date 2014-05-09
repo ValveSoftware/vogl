@@ -31,7 +31,7 @@
 
 namespace vogl
 {
-    template <typename T, uint N>
+    template <typename T, uint32_t N>
     class fixed_array
     {
     public:
@@ -46,22 +46,22 @@ namespace vogl
             VOGL_ASSUME(N > 0);
         }
 
-        inline uint size() const
+        inline uint32_t size() const
         {
             return N;
         }
 
-        inline uint size_in_bytes() const
+        inline uint32_t size_in_bytes() const
         {
             return sizeof(T) * N;
         }
 
-        inline const T &operator[](uint i) const
+        inline const T &operator[](uint32_t i) const
         {
             VOGL_ASSERT(i < N);
             return m[i];
         }
-        inline T &operator[](uint i)
+        inline T &operator[](uint32_t i)
         {
             VOGL_ASSERT(i < N);
             return m[i];
@@ -114,7 +114,7 @@ namespace vogl
 
         inline void set_all(const T &val)
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 m[i] = val;
         }
 
@@ -133,7 +133,7 @@ namespace vogl
         T m[N];
     };
 
-    template <typename T, uint W, uint H>
+    template <typename T, uint32_t W, uint32_t H>
     class fixed_array2D
     {
     public:
@@ -165,7 +165,7 @@ namespace vogl
             if (this == &rhs)
                 return *this;
 
-            for (uint i = 0; i < total_elements; i++)
+            for (uint32_t i = 0; i < total_elements; i++)
                 m_vec[i] = rhs.m_vec[i];
 
             return *this;
@@ -176,26 +176,26 @@ namespace vogl
             set_all(T());
         }
 
-        void resize(uint width, uint height, bool preserve = true)
+        void resize(uint32_t width, uint32_t height, bool preserve = true)
         {
             (void)width, (void)height, (void)preserve;
             // blindly ignoring resize for compat with vector2D
         }
 
-        inline uint width() const
+        inline uint32_t width() const
         {
             return array_width;
         }
-        inline uint height() const
+        inline uint32_t height() const
         {
             return array_height;
         }
-        inline uint size() const
+        inline uint32_t size() const
         {
             return total_elements;
         }
 
-        inline uint size_in_bytes() const
+        inline uint32_t size_in_bytes() const
         {
             return total_elements * sizeof(T);
         }
@@ -209,28 +209,28 @@ namespace vogl
             return m_vec;
         }
 
-        inline const T &operator[](uint i) const
+        inline const T &operator[](uint32_t i) const
         {
             return m_vec[math::open_range_check(i, total_elements)];
         }
-        inline T &operator[](uint i)
+        inline T &operator[](uint32_t i)
         {
             return m_vec[math::open_range_check(i, total_elements)];
         }
 
-        inline const T &operator()(uint x, uint y) const
+        inline const T &operator()(uint32_t x, uint32_t y) const
         {
             VOGL_ASSERT((x < array_width) && (y < array_height));
             return m_vec[x + y * array_width];
         }
 
-        inline T &operator()(uint x, uint y)
+        inline T &operator()(uint32_t x, uint32_t y)
         {
             VOGL_ASSERT((x < array_width) && (y < array_height));
             return m_vec[x + y * array_width];
         }
 
-        inline const T &at(uint x, uint y) const
+        inline const T &at(uint32_t x, uint32_t y) const
         {
             if ((x >= array_width) || (y >= array_height))
             {
@@ -240,7 +240,7 @@ namespace vogl
             return m_vec[x + y * array_width];
         }
 
-        inline T &at(uint x, uint y)
+        inline T &at(uint32_t x, uint32_t y)
         {
             if ((x >= array_width) || (y >= array_height))
             {
@@ -287,7 +287,7 @@ namespace vogl
 
         inline void set_all(const T &x)
         {
-            for (uint i = 0; i < total_elements; i++)
+            for (uint32_t i = 0; i < total_elements; i++)
                 m_vec[i] = x;
         }
 
@@ -296,23 +296,23 @@ namespace vogl
             utils::zero_this(this);
         }
 
-        inline void extract_block_clamped(fixed_array2D &dst, uint dst_x, uint dst_y, int src_x, int src_y, uint w, uint h) const
+        inline void extract_block_clamped(fixed_array2D &dst, uint32_t dst_x, uint32_t dst_y, int src_x, int src_y, uint32_t w, uint32_t h) const
         {
-            for (uint y = 0; y < h; y++)
-                for (uint x = 0; x < w; x++)
+            for (uint32_t y = 0; y < h; y++)
+                for (uint32_t x = 0; x < w; x++)
                     dst.at(dst_x + x, dst_y + y) = at_clamped(src_x + x, src_y + y);
         }
 
-        inline void extract_block_wrapped(fixed_array2D &dst, uint dst_x, uint dst_y, int src_x, int src_y, uint w, uint h) const
+        inline void extract_block_wrapped(fixed_array2D &dst, uint32_t dst_x, uint32_t dst_y, int src_x, int src_y, uint32_t w, uint32_t h) const
         {
-            for (uint y = 0; y < h; y++)
-                for (uint x = 0; x < w; x++)
+            for (uint32_t y = 0; y < h; y++)
+                for (uint32_t x = 0; x < w; x++)
                     dst.at(dst_x + x, dst_y + y) = at_wrapped(src_x + x, src_y + y);
         }
 
         inline bool operator==(const fixed_array2D &rhs) const
         {
-            for (uint i = 0; i < total_elements; i++)
+            for (uint32_t i = 0; i < total_elements; i++)
                 if (m_vec[i] != rhs.m_vec[i])
                     return false;
             return true;

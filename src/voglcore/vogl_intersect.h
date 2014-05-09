@@ -149,7 +149,7 @@ namespace vogl
         }
 
         template <typename ray_type, typename scalar_type>
-        inline result ray_plane(scalar_type &result, uint plane_axis, scalar_type positive_plane_dist, const ray_type &the_ray, bool front_only, scalar_type epsilon = 1e-6f)
+        inline result ray_plane(scalar_type &result, uint32_t plane_axis, scalar_type positive_plane_dist, const ray_type &the_ray, bool front_only, scalar_type epsilon = 1e-6f)
         {
             const scalar_type dir_dot = the_ray.get_direction()[plane_axis];
             if (fabs(dir_dot) <= epsilon)

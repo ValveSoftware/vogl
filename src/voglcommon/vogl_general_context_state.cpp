@@ -43,8 +43,8 @@
 struct gl_get_def
 {
     GLenum m_enum_val;
-    uint m_min_ver;
-    uint m_max_ver;
+    uint32_t m_min_ver;
+    uint32_t m_max_ver;
     const char *m_pExtension;
     GLenum m_enum_val_max;
 };
@@ -180,36 +180,36 @@ public:
     {
         VOGL_FUNC_TRACER
 
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(g_vogl_get_defs); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(g_vogl_get_defs); i++)
             m_gl_enum_to_get_def_index.insert(g_vogl_get_defs[i].m_enum_val, i);
     }
 
-    inline uint get_total() const
+    inline uint32_t get_total() const
     {
         return VOGL_ARRAY_SIZE(g_vogl_get_defs);
     }
 
-    inline GLenum get_enum_val(uint index) const
+    inline GLenum get_enum_val(uint32_t index) const
     {
         return get_desc(index).m_enum_val;
     }
-    inline uint get_min_vers(uint index) const
+    inline uint32_t get_min_vers(uint32_t index) const
     {
-        uint packed_ver = get_desc(index).m_min_ver;
+        uint32_t packed_ver = get_desc(index).m_min_ver;
         VOGL_ASSERT(packed_ver <= 0xFF);
         return VOGL_CREATE_GL_VERSION(packed_ver >> 4, packed_ver & 0xF, 0);
     }
-    inline uint get_max_vers(uint index) const
+    inline uint32_t get_max_vers(uint32_t index) const
     {
-        uint packed_ver = get_desc(index).m_max_ver;
+        uint32_t packed_ver = get_desc(index).m_max_ver;
         VOGL_ASSERT(packed_ver <= 0xFF);
         return VOGL_CREATE_GL_VERSION(packed_ver >> 4, packed_ver & 0xF, 0);
     }
-    inline const char *get_extension(uint index)
+    inline const char *get_extension(uint32_t index)
     {
         return get_desc(index).m_pExtension;
     }
-    inline uint get_enum_val_max(uint index) const
+    inline uint32_t get_enum_val_max(uint32_t index) const
     {
         return get_desc(index).m_enum_val_max;
     }
@@ -221,7 +221,7 @@ public:
         if (enum_val > cUINT32_MAX)
             return vogl::cInvalidIndex;
 
-        gl_enum_to_get_def_index_hash_map::const_iterator it(m_gl_enum_to_get_def_index.find(static_cast<uint>(enum_val)));
+        gl_enum_to_get_def_index_hash_map::const_iterator it(m_gl_enum_to_get_def_index.find(static_cast<uint32_t>(enum_val)));
         if (it == m_gl_enum_to_get_def_index.end())
             return vogl::cInvalidIndex;
 
@@ -232,19 +232,19 @@ public:
     {
         VOGL_FUNC_TRACER
 
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(g_vogl_client_active_texture_dependent_enums); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(g_vogl_client_active_texture_dependent_enums); i++)
             if (g_vogl_client_active_texture_dependent_enums[i] == val)
                 return true;
         return false;
     }
 
 private:
-    typedef vogl::hash_map<GLenum, uint> gl_enum_to_get_def_index_hash_map;
+    typedef vogl::hash_map<GLenum, uint32_t> gl_enum_to_get_def_index_hash_map;
     gl_enum_to_get_def_index_hash_map m_gl_enum_to_get_def_index;
 
-    const gl_get_def &get_desc(uint index) const
+    const gl_get_def &get_desc(uint32_t index) const
     {
-        return g_vogl_get_defs[vogl::math::open_range_check<uint>(index, get_total())];
+        return g_vogl_get_defs[vogl::math::open_range_check<uint32_t>(index, get_total())];
     }
 };
 
@@ -336,10 +336,10 @@ bool vogl_general_context_state::restore_buffer_binding(GLenum binding_enum, GLe
 {
     VOGL_FUNC_TRACER
 
-    uint buffer = 0;
+    uint32_t buffer = 0;
     if (get(binding_enum, 0, &buffer, 1, false))
     {
-        buffer = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, buffer));
+        buffer = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, buffer));
 
         GL_ENTRYPOINT(glBindBuffer)(set_enum, 0);
         VOGL_CHECK_GL_ERROR;
@@ -356,19 +356,19 @@ bool vogl_general_context_state::restore_buffer_binding(GLenum binding_enum, GLe
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_general_context_state::restore_buffer_binding_range
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_general_context_state::restore_buffer_binding_range(GLenum binding_enum, GLenum start_enum, GLenum size_enum, GLenum set_enum, uint index, bool indexed_variant, vogl_handle_remapper &remapper) const
+bool vogl_general_context_state::restore_buffer_binding_range(GLenum binding_enum, GLenum start_enum, GLenum size_enum, GLenum set_enum, uint32_t index, bool indexed_variant, vogl_handle_remapper &remapper) const
 {
     VOGL_FUNC_TRACER
 
     uint64_t start, size = 0;
-    uint buffer = 0;
+    uint32_t buffer = 0;
     if (get(binding_enum, index, &buffer, 1, indexed_variant) &&
         get(start_enum, index, &start, 1, indexed_variant) &&
         get(size_enum, index, &size, 1, indexed_variant))
     {
         if (buffer)
         {
-            buffer = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, buffer));
+            buffer = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, buffer));
 
             if ((!start) && (!size))
             {
@@ -391,14 +391,14 @@ bool vogl_general_context_state::restore_buffer_binding_range(GLenum binding_enu
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_general_context_state::can_snapshot_state
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_general_context_state::can_snapshot_state(const vogl_context_info &context_info, vogl_snapshot_context_info &context, uint get_desc_index)
+bool vogl_general_context_state::can_snapshot_state(const vogl_context_info &context_info, vogl_snapshot_context_info &context, uint32_t get_desc_index)
 {
     VOGL_FUNC_TRACER
 
     gl_get_desc& gl_desc = get_gl_get_desc();
     const GLenum enum_val = gl_desc.get_enum_val(get_desc_index);
-    const uint min_vers = gl_desc.get_min_vers(get_desc_index);
-    const uint max_vers = gl_desc.get_max_vers(get_desc_index);
+    const uint32_t min_vers = gl_desc.get_min_vers(get_desc_index);
+    const uint32_t max_vers = gl_desc.get_max_vers(get_desc_index);
     const char *pExtension = gl_desc.get_extension(get_desc_index);
     if (pExtension)
     {
@@ -431,7 +431,7 @@ bool vogl_general_context_state::can_snapshot_state(const vogl_context_info &con
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_general_context_state::snapshot_state
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_general_context_state::snapshot_state(const vogl_context_info &context_info, vogl_snapshot_context_info &context, uint get_desc_index, uint index, bool indexed_variant)
+bool vogl_general_context_state::snapshot_state(const vogl_context_info &context_info, vogl_snapshot_context_info &context, uint32_t get_desc_index, uint32_t index, bool indexed_variant)
 {
     VOGL_FUNC_TRACER
 
@@ -492,7 +492,7 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
 
     vogl_state_type state_type = static_cast<vogl_state_type>(pname_def.m_type);
 
-    uint n = get_gl_enums().get_pname_count(enum_val);
+    uint32_t n = get_gl_enums().get_pname_count(enum_val);
     if (!n)
         return false;
 
@@ -546,7 +546,7 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
         case 'I':
         case 'U':
         {
-            int32 *p = trial_state_data.init_and_get_data_ptr<int32>(enum_val, index, n, state_type, indexed_variant);
+            int32_t *p = trial_state_data.init_and_get_data_ptr<int32_t>(enum_val, index, n, state_type, indexed_variant);
             VOGL_ASSERT(!p[0]);
 
             if (indexed_variant)
@@ -700,7 +700,7 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
             VOGL_ASSERT(p[16] == (void *)0xCFCFCFCF);
 
             uint64_t *q = trial_state_data.init_and_get_data_ptr<uint64_t>(enum_val, index, n, state_type, indexed_variant);
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
                 q[i] = reinterpret_cast<uint64_t>(p[i]);
 
             break;
@@ -809,7 +809,7 @@ bool vogl_general_context_state::snapshot(const vogl_context_info &context_info)
 
     gl_get_desc& gl_desc = get_gl_get_desc();
 
-    for (uint get_desc_index = 0; get_desc_index < gl_desc.get_total(); get_desc_index++)
+    for (uint32_t get_desc_index = 0; get_desc_index < gl_desc.get_total(); get_desc_index++)
     {
         const GLenum enum_val = gl_desc.get_enum_val(get_desc_index);
 
@@ -826,10 +826,10 @@ bool vogl_general_context_state::snapshot(const vogl_context_info &context_info)
             snapshot_state(context_info, snapshot_context_info, get_desc_index, 0, false);
         else
         {
-            uint max_indices = vogl_get_gl_integer(enum_val_max);
+            uint32_t max_indices = vogl_get_gl_integer(enum_val_max);
             VOGL_CHECK_GL_ERROR;
 
-            for (uint i = 0; i < max_indices; i++)
+            for (uint32_t i = 0; i < max_indices; i++)
                 snapshot_state(context_info, snapshot_context_info, get_desc_index, i, true);
         }
     }
@@ -843,17 +843,17 @@ bool vogl_general_context_state::snapshot(const vogl_context_info &context_info)
         prev_gl_error = vogl_check_gl_error();
         VOGL_ASSERT(!prev_gl_error);
 
-        const uint max_client_texture_coords = snapshot_context_info.m_max_texture_coords;
+        const uint32_t max_client_texture_coords = snapshot_context_info.m_max_texture_coords;
         VOGL_ASSERT(max_client_texture_coords);
 
-        for (uint texcoord_index = 0; texcoord_index < max_client_texture_coords; texcoord_index++)
+        for (uint32_t texcoord_index = 0; texcoord_index < max_client_texture_coords; texcoord_index++)
         {
             GL_ENTRYPOINT(glClientActiveTexture)(GL_TEXTURE0 + texcoord_index);
 
             prev_gl_error = vogl_check_gl_error();
             VOGL_ASSERT(!prev_gl_error);
 
-            for (uint get_desc_index = 0; get_desc_index < gl_desc.get_total(); get_desc_index++)
+            for (uint32_t get_desc_index = 0; get_desc_index < gl_desc.get_total(); get_desc_index++)
             {
                 const GLenum enum_val = gl_desc.get_enum_val(get_desc_index);
 
@@ -880,17 +880,17 @@ bool vogl_general_context_state::snapshot(const vogl_context_info &context_info)
     VOGL_ASSERT(!prev_gl_error);
 
     // FIXME: Test on core profiles (that'll be fun)
-    const uint max_texture_coords = math::maximum<uint>(snapshot_context_info.m_max_texture_coords, snapshot_context_info.m_max_combined_texture_coords);
+    const uint32_t max_texture_coords = math::maximum<uint32_t>(snapshot_context_info.m_max_texture_coords, snapshot_context_info.m_max_combined_texture_coords);
     VOGL_ASSERT(max_texture_coords);
 
-    for (uint texcoord_index = 0; texcoord_index < max_texture_coords; texcoord_index++)
+    for (uint32_t texcoord_index = 0; texcoord_index < max_texture_coords; texcoord_index++)
     {
         GL_ENTRYPOINT(glActiveTexture)(GL_TEXTURE0 + texcoord_index);
 
         prev_gl_error = vogl_check_gl_error();
         VOGL_ASSERT(!prev_gl_error);
 
-        for (uint get_desc_index = 0; get_desc_index < gl_desc.get_total(); get_desc_index++)
+        for (uint32_t get_desc_index = 0; get_desc_index < gl_desc.get_total(); get_desc_index++)
         {
             const GLenum enum_val = gl_desc.get_enum_val(get_desc_index);
 
@@ -981,7 +981,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
         const vogl_state_data &state = it->second;
 
         const GLenum enum_val = state.get_enum_val();
-        const uint index = state.get_index();
+        const uint32_t index = state.get_index();
 
         if (enum_val == GL_CLIENT_ACTIVE_TEXTURE)
         {
@@ -997,7 +997,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
         }
         else if (enum_val == GL_ARRAY_BUFFER_BINDING)
         {
-            prev_array_buffer_binding = state.get_element<uint>(0);
+            prev_array_buffer_binding = state.get_element<uint32_t>(0);
             prev_array_buffer_binding = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, prev_array_buffer_binding));
             ADD_PROCESSED_STATE(enum_val, index);
             continue;
@@ -1226,7 +1226,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                     // Client side arrays
                     // TODO: Unfortunately, all this crap is tied to VAO state, except for client side arrays.
 
-                    uint client_side_array_index;
+                    uint32_t client_side_array_index;
                     for (client_side_array_index = 0; client_side_array_index < VOGL_NUM_CLIENT_SIDE_ARRAY_DESCS; client_side_array_index++)
                         if (g_vogl_client_side_array_descs[client_side_array_index].m_get_binding == enum_val)
                             break;
@@ -1235,8 +1235,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
 
                     const vogl_client_side_array_desc_t &array_desc = g_vogl_client_side_array_descs[client_side_array_index];
 
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, binding));
 
                     int size = 0, stride = 0;
                     GLenum type = 0;
@@ -1311,8 +1311,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_1D:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_1D, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1320,8 +1320,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_2D:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_2D, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1329,8 +1329,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_3D:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_3D, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1338,8 +1338,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_1D_ARRAY:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_1D_ARRAY, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1347,8 +1347,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_2D_ARRAY:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_2D_ARRAY, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1356,8 +1356,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_2D_MULTISAMPLE:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_2D_MULTISAMPLE, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1365,8 +1365,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1374,8 +1374,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_CUBE_MAP:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_CUBE_MAP, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1383,8 +1383,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_CUBE_MAP_ARRAY:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_CUBE_MAP_ARRAY, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1392,8 +1392,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_RECTANGLE:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_RECTANGLE, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1401,8 +1401,8 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 case GL_TEXTURE_BINDING_BUFFER:
                 {
-                    uint binding = state.get_element<uint>(0);
-                    binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
+                    uint32_t binding = state.get_element<uint32_t>(0);
+                    binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, binding));
                     GL_ENTRYPOINT(glBindTexture)(GL_TEXTURE_BUFFER, binding);
                     VOGL_CHECK_GL_ERROR;
                     ADD_PROCESSED_STATE(enum_val, index);
@@ -1418,7 +1418,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     GLuint vao_binding;
     if (get(GL_VERTEX_ARRAY_BINDING, 0, &vao_binding))
     {
-        vao_binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_VERTEX_ARRAYS, vao_binding));
+        vao_binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_VERTEX_ARRAYS, vao_binding));
         GL_ENTRYPOINT(glBindVertexArray)(vao_binding);
         VOGL_CHECK_GL_ERROR;
         ADD_PROCESSED_STATE(GL_VERTEX_ARRAY_BINDING, 0);
@@ -1486,7 +1486,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     // Restore indexed color masks (we've already restored the global state, which sets all the indexed states)
-    for (uint i = 0; i < context_info.get_max_draw_buffers(); i++)
+    for (uint32_t i = 0; i < context_info.get_max_draw_buffers(); i++)
     {
         if (get(GL_COLOR_WRITEMASK, i, color_mask, 4, true))
         {
@@ -1560,10 +1560,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     // draw framebuffer binding
-    uint draw_framebuffer_binding = 0;
+    uint32_t draw_framebuffer_binding = 0;
     if (get(GL_DRAW_FRAMEBUFFER_BINDING, 0, &draw_framebuffer_binding))
     {
-        draw_framebuffer_binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_FRAMEBUFFERS, draw_framebuffer_binding));
+        draw_framebuffer_binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_FRAMEBUFFERS, draw_framebuffer_binding));
 
         GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, draw_framebuffer_binding);
         VOGL_CHECK_GL_ERROR;
@@ -1571,10 +1571,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     // read framebuffer binding
-    uint read_framebuffer_binding = 0;
+    uint32_t read_framebuffer_binding = 0;
     if (get(GL_READ_FRAMEBUFFER_BINDING, 0, &read_framebuffer_binding))
     {
-        read_framebuffer_binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_FRAMEBUFFERS, read_framebuffer_binding));
+        read_framebuffer_binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_FRAMEBUFFERS, read_framebuffer_binding));
 
         GL_ENTRYPOINT(glBindFramebuffer)(GL_READ_FRAMEBUFFER, read_framebuffer_binding);
         VOGL_CHECK_GL_ERROR;
@@ -1591,12 +1591,12 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     // draw buffers
-    const uint MAX_DRAW_BUFFERS = 16;
+    const uint32_t MAX_DRAW_BUFFERS = 16;
 
     GLenum draw_buffers[MAX_DRAW_BUFFERS];
     utils::zero_object(draw_buffers);
 
-    uint draw_buffer_index;
+    uint32_t draw_buffer_index;
     for (draw_buffer_index = 0; draw_buffer_index < MAX_DRAW_BUFFERS; draw_buffer_index++)
     {
         if (!get(GL_DRAW_BUFFER0 + draw_buffer_index, 0, &draw_buffers[draw_buffer_index]))
@@ -1642,10 +1642,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     // renderbuffer binding
-    uint renderbuffer_binding = 0;
+    uint32_t renderbuffer_binding = 0;
     if (get(GL_RENDERBUFFER_BINDING, 0, &renderbuffer_binding))
     {
-        renderbuffer_binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_RENDER_BUFFERS, renderbuffer_binding));
+        renderbuffer_binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_RENDER_BUFFERS, renderbuffer_binding));
 
         GL_ENTRYPOINT(glBindRenderbuffer)(GL_RENDERBUFFER, renderbuffer_binding);
         VOGL_CHECK_GL_ERROR;
@@ -1868,7 +1868,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     ADD_PROCESSED_STATE(GL_TEXTURE_BUFFER, 0);
 
     // restore transform feedback targets
-    for (uint i = 0; i < context_info.get_max_transform_feedback_separate_attribs(); i++)
+    for (uint32_t i = 0; i < context_info.get_max_transform_feedback_separate_attribs(); i++)
     {
         restore_buffer_binding_range(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, GL_TRANSFORM_FEEDBACK_BUFFER_START, GL_TRANSFORM_FEEDBACK_BUFFER_SIZE, GL_TRANSFORM_FEEDBACK_BUFFER, i, true, remapper);
         ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, i);
@@ -1880,7 +1880,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     ADD_PROCESSED_STATE(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, 0);
 
     // restore uniform buffer binding target, and the indexed variants
-    for (uint i = 0; i < context_info.get_max_uniform_buffer_bindings(); i++)
+    for (uint32_t i = 0; i < context_info.get_max_uniform_buffer_bindings(); i++)
     {
         restore_buffer_binding_range(GL_UNIFORM_BUFFER_BINDING, GL_UNIFORM_BUFFER_START, GL_UNIFORM_BUFFER_SIZE, GL_UNIFORM_BUFFER, i, true, remapper);
         ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_UNIFORM_BUFFER_BINDING, i);
@@ -1892,7 +1892,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     ADD_PROCESSED_STATE(GL_UNIFORM_BUFFER_BINDING, 0);
 
     // Restore indexed blending state (we've already restored the global state, which sets all the indexed states)
-    for (uint i = 0; i < context_info.get_max_draw_buffers(); i++)
+    for (uint32_t i = 0; i < context_info.get_max_draw_buffers(); i++)
     {
         GLint enabled = 0;
         if (get(GL_BLEND, i, &enabled, 1, true))
@@ -1930,7 +1930,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
             GL_POST_CONVOLUTION_GREEN_BIAS, GL_POST_CONVOLUTION_BLUE_BIAS, GL_POST_CONVOLUTION_ALPHA_BIAS
         };
 
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_pnames); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_pnames); i++)
     {
         GLenum enum_val = s_pixel_transfer_pnames[i];
 
@@ -1974,7 +1974,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     // fog states
     static const GLenum s_fog_pnames[] = { GL_FOG_MODE, GL_FOG_DENSITY, GL_FOG_START, GL_FOG_END, GL_FOG_INDEX, GL_FOG_COLOR, GL_FOG_COORD_SRC };
 
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(s_fog_pnames); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_fog_pnames); i++)
     {
         GLenum enum_val = s_fog_pnames[i];
 
@@ -2038,7 +2038,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
 
     // hints
     static GLenum s_hint_pnames[] = { GL_GENERATE_MIPMAP_HINT, GL_FOG_HINT, GL_FRAGMENT_SHADER_DERIVATIVE_HINT, GL_LINE_SMOOTH_HINT, GL_POLYGON_SMOOTH_HINT, GL_TEXTURE_COMPRESSION_HINT, GL_PERSPECTIVE_CORRECTION_HINT, GL_POINT_SMOOTH_HINT };
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(s_hint_pnames); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_hint_pnames); i++)
     {
         GLenum enum_val = s_hint_pnames[i];
         GLenum val;
@@ -2051,7 +2051,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     // primitive restart index
-    uint prim_restart_index;
+    uint32_t prim_restart_index;
     if (get(GL_PRIMITIVE_RESTART_INDEX, 0, &prim_restart_index))
     {
         GL_ENTRYPOINT(glPrimitiveRestartIndex)(prim_restart_index);
@@ -2151,7 +2151,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
             GL_PACK_ALIGNMENT, GL_PACK_IMAGE_HEIGHT, GL_PACK_ROW_LENGTH, GL_PACK_SKIP_IMAGES, GL_PACK_SKIP_PIXELS, GL_PACK_SKIP_ROWS
         };
 
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(s_pixel_store_pnames); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_store_pnames); i++)
     {
         GLenum enum_val = s_pixel_store_pnames[i];
 
@@ -2176,11 +2176,11 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     // program pipeline binding
-    uint program_pipeline_binding;
+    uint32_t program_pipeline_binding;
     if (get(GL_PROGRAM_PIPELINE_BINDING, 0, &program_pipeline_binding))
     {
         // is this correct?
-        program_pipeline_binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_PIPELINES, program_pipeline_binding));
+        program_pipeline_binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_PIPELINES, program_pipeline_binding));
         GL_ENTRYPOINT(glBindProgramPipeline)(program_pipeline_binding);
         VOGL_CHECK_GL_ERROR;
         ADD_PROCESSED_STATE(GL_PROGRAM_PIPELINE_BINDING, 0);
@@ -2212,10 +2212,10 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     }
 
     // current program
-    uint cur_trace_program;
+    uint32_t cur_trace_program;
     if (get(GL_CURRENT_PROGRAM, 0, &cur_trace_program))
     {
-        uint cur_program = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAMS, cur_trace_program));
+        uint32_t cur_program = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAMS, cur_trace_program));
         GL_ENTRYPOINT(glUseProgram)(cur_program);
         VOGL_CHECK_GL_ERROR;
         ADD_PROCESSED_STATE(GL_CURRENT_PROGRAM, 0);
@@ -2341,7 +2341,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
 
         ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_NAME, i);
 
-        GLuint replay_binding = static_cast<uint>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, trace_binding));
+        GLuint replay_binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, trace_binding));
 
         int level = 0;
         get(GL_IMAGE_BINDING_LEVEL, i, &level, 1, true);
@@ -2373,7 +2373,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
 
     // begin any active queries
 
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(g_query_targets); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(g_query_targets); i++)
     {
         const GLenum target = g_query_targets[i];
 
@@ -2580,7 +2580,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     {
         const vogl_state_data &state = it->second;
 
-        uint i;
+        uint32_t i;
         for (i = 0; i < processed_states.size(); i++)
             if (state.get_id() == processed_states[i])
                 break;
@@ -2604,7 +2604,7 @@ bool vogl_general_context_state::remap_handles(vogl_handle_remapper &remapper)
         vogl_state_data &state = it->second;
 
         const GLenum enum_val = state.get_enum_val();
-        const uint index = state.get_index();
+        const uint32_t index = state.get_index();
         VOGL_NOTE_UNUSED(index);
 
         vogl_namespace_t handle_namespace = VOGL_NAMESPACE_INVALID;
@@ -2778,7 +2778,7 @@ bool vogl_polygon_stipple_state::serialize(json_node &node, vogl_blob_manager &b
         return false;
 
     json_node &arr_node = node.add_array("pattern");
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(m_pattern); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(m_pattern); i++)
         arr_node.add_value(m_pattern[i]);
 
     return true;
@@ -2802,7 +2802,7 @@ bool vogl_polygon_stipple_state::deserialize(const json_node &node, const vogl_b
     // An earlier version wrote the wrong size, so ignore that data.
     if (pArr_node->size() == VOGL_ARRAY_SIZE(m_pattern))
     {
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(m_pattern); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(m_pattern); i++)
             m_pattern[i] = static_cast<uint8_t>(pArr_node->value_as_uint32(i));
     }
     else
@@ -2815,12 +2815,12 @@ bool vogl_polygon_stipple_state::deserialize(const json_node &node, const vogl_b
     return true;
 }
 
-uint vogl_polygon_stipple_state::get_num_pattern_rows() const
+uint32_t vogl_polygon_stipple_state::get_num_pattern_rows() const
 {
     return 32;
 }
 
-uint32_t vogl_polygon_stipple_state::get_pattern_row(uint row_index) const
+uint32_t vogl_polygon_stipple_state::get_pattern_row(uint32_t row_index) const
 {
     VOGL_ASSERT(row_index < 32);
 

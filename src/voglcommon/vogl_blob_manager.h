@@ -74,18 +74,18 @@ public:
 
     virtual vogl_blob_manager_type_t get_type() const = 0;
 
-    vogl::dynamic_string compute_unique_id(const void *pData, uint size, const vogl::dynamic_string &prefix = "", const dynamic_string &ext = "", const uint64_t *pCRC64 = NULL) const;
+    vogl::dynamic_string compute_unique_id(const void *pData, uint32_t size, const vogl::dynamic_string &prefix = "", const dynamic_string &ext = "", const uint64_t *pCRC64 = NULL) const;
     vogl::dynamic_string get_prefix(const vogl::dynamic_string &id) const;
     vogl::dynamic_string get_extension(const vogl::dynamic_string &id) const;
 
     virtual bool get(const dynamic_string &id, vogl::uint8_vec &data) const;
 
-    virtual vogl::dynamic_string add_buf_compute_unique_id(const void *pData, uint size, const vogl::dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64 = NULL);
+    virtual vogl::dynamic_string add_buf_compute_unique_id(const void *pData, uint32_t size, const vogl::dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64 = NULL);
     virtual vogl::dynamic_string add_stream_compute_unique_id(vogl::data_stream &stream, const vogl::dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64 = NULL);
 
     virtual vogl::dynamic_string add_stream_using_id(vogl::data_stream &stream, const vogl::dynamic_string &id);
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id) = 0;
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id) = 0;
 
     virtual vogl::data_stream *open(const vogl::dynamic_string &id) const = 0;
     virtual void close(data_stream *pStream) const = 0;
@@ -161,7 +161,7 @@ public:
         return cBMTNull;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id)
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id)
     {
         VOGL_NOTE_UNUSED(pData);
         VOGL_NOTE_UNUSED(size);
@@ -215,7 +215,7 @@ public:
         return cBMTMemory;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id);
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id);
 
     virtual vogl::data_stream *open(const dynamic_string &id) const;
     virtual void close(vogl::data_stream *pStream) const;
@@ -268,7 +268,7 @@ public:
         return cBMTFile;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id);
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id);
 
     virtual vogl::data_stream *open(const vogl::dynamic_string &id) const;
     virtual void close(vogl::data_stream *pStream) const;
@@ -323,7 +323,7 @@ public:
         return cBMTArchive;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id);
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id);
 
     virtual vogl::data_stream *open(const vogl::dynamic_string &id) const;
     virtual void close(vogl::data_stream *pStream) const;
@@ -341,13 +341,13 @@ private:
     struct blob
     {
         vogl::dynamic_string m_id;
-        uint m_file_index;
+        uint32_t m_file_index;
         uint64_t m_size;
 
         blob()
         {
         }
-        blob(const dynamic_string &id, uint file_index, uint64_t size)
+        blob(const dynamic_string &id, uint32_t file_index, uint64_t size)
             : m_id(id), m_file_index(file_index), m_size(size)
         {
         }
@@ -394,7 +394,7 @@ public:
         return cBMTMulti;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id);
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id);
 
     virtual vogl::data_stream *open(const dynamic_string &id) const;
 

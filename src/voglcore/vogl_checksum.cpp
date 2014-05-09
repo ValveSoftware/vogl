@@ -30,7 +30,7 @@
 namespace vogl
 {
     // From the public domain stb.h header.
-    uint adler32(const void *pBuf, size_t buflen, uint adler32)
+    uint32_t adler32(const void *pBuf, size_t buflen, uint32_t adler32)
     {
         const uint8_t *buffer = static_cast<const uint8_t *>(pBuf);
 
@@ -63,7 +63,7 @@ namespace vogl
             buflen -= blocklen;
             blocklen = 5552;
         }
-        return static_cast<uint>((s2 << 16) + s1);
+        return static_cast<uint32_t>((s2 << 16) + s1);
     }
 
     uint16_t crc16(const void *pBuf, size_t len, uint16_t crc)

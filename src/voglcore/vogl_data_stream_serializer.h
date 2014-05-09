@@ -89,51 +89,51 @@ namespace vogl
             m_little_endian = little_endian;
         }
 
-        bool write(const void *pBuf, uint len)
+        bool write(const void *pBuf, uint32_t len)
         {
             return m_pStream->write(pBuf, len) == len;
         }
 
-        bool read(void *pBuf, uint len)
+        bool read(void *pBuf, uint32_t len)
         {
             return m_pStream->read(pBuf, len) == len;
         }
 
         // size = size of each element, count = number of elements, returns actual count of elements written
-        uint write(const void *pBuf, uint size, uint count)
+        uint32_t write(const void *pBuf, uint32_t size, uint32_t count)
         {
-            uint actual_size = size * count;
+            uint32_t actual_size = size * count;
             if (!actual_size)
                 return 0;
-            uint n = m_pStream->write(pBuf, actual_size);
+            uint32_t n = m_pStream->write(pBuf, actual_size);
             if (n == actual_size)
                 return count;
             return n / size;
         }
 
         // size = size of each element, count = number of elements, returns actual count of elements read
-        uint read(void *pBuf, uint size, uint count)
+        uint32_t read(void *pBuf, uint32_t size, uint32_t count)
         {
-            uint actual_size = size * count;
+            uint32_t actual_size = size * count;
             if (!actual_size)
                 return 0;
-            uint n = m_pStream->read(pBuf, actual_size);
+            uint32_t n = m_pStream->read(pBuf, actual_size);
             if (n == actual_size)
                 return count;
             return n / size;
         }
 
-        bool write_chars(const char *pBuf, uint len)
+        bool write_chars(const char *pBuf, uint32_t len)
         {
             return write(pBuf, len);
         }
 
-        bool read_chars(char *pBuf, uint len)
+        bool read_chars(char *pBuf, uint32_t len)
         {
             return read(pBuf, len);
         }
 
-        bool skip(uint len)
+        bool skip(uint32_t len)
         {
             return m_pStream->skip(len) == len;
         }
@@ -146,7 +146,7 @@ namespace vogl
             else
             {
                 uint8_t buf[sizeof(T)];
-                uint buf_size = sizeof(T);
+                uint32_t buf_size = sizeof(T);
                 void *pBuf = buf;
                 utils::write_obj(obj, pBuf, buf_size, m_little_endian);
 
@@ -165,7 +165,7 @@ namespace vogl
                 if (!read(buf, sizeof(T)))
                     return false;
 
-                uint buf_size = sizeof(T);
+                uint32_t buf_size = sizeof(T);
                 const void *pBuf = buf;
                 utils::read_obj(obj, pBuf, buf_size, m_little_endian);
 
@@ -220,9 +220,9 @@ namespace vogl
             return result;
         }
 
-        int32 read_int32(int32 def = 0)
+        int32_t read_int32(int32_t def = 0)
         {
-            int32 result;
+            int32_t result;
             if (!read_object(result))
                 result = def;
             return result;
@@ -281,8 +281,8 @@ namespace vogl
             return static_cast<T>(read_value<int>());
         }
 
-        // Writes uint using a simple variable length code (VLC).
-        bool write_uint_vlc(uint val)
+        // Writes uint32_t using a simple variable length code (VLC).
+        bool write_uint_vlc(uint32_t val)
         {
             do
             {
@@ -299,11 +299,11 @@ namespace vogl
             return true;
         }
 
-        // Reads uint using a simple variable length code (VLC).
-        bool read_uint_vlc(uint &val)
+        // Reads uint32_t using a simple variable length code (VLC).
+        bool read_uint_vlc(uint32_t &val)
         {
             val = 0;
-            uint shift = 0;
+            uint32_t shift = 0;
 
             for (;;)
             {
@@ -326,16 +326,16 @@ namespace vogl
 
         bool write_c_str(const char *p)
         {
-            uint len = static_cast<uint>(strlen(p));
+            uint32_t len = static_cast<uint32_t>(strlen(p));
             if (!write_uint_vlc(len))
                 return false;
 
             return write_chars(p, len);
         }
 
-        bool read_c_str(char *pBuf, uint buf_size)
+        bool read_c_str(char *pBuf, uint32_t buf_size)
         {
-            uint len;
+            uint32_t len;
             if (!read_uint_vlc(len))
                 return false;
             if ((len + 1) > buf_size)
@@ -356,7 +356,7 @@ namespace vogl
 
         bool read_string(dynamic_string &str)
         {
-            uint len;
+            uint32_t len;
             if (!read_uint_vlc(len))
                 return false;
 
@@ -384,7 +384,7 @@ namespace vogl
             if (!write_uint_vlc(vec.size()))
                 return false;
 
-            for (uint i = 0; i < vec.size(); i++)
+            for (uint32_t i = 0; i < vec.size(); i++)
             {
                 *this << vec[i];
                 if (get_error())
@@ -395,9 +395,9 @@ namespace vogl
         };
 
         template <typename T>
-        bool read_vector(T &vec, uint num_expected = UINT_MAX)
+        bool read_vector(T &vec, uint32_t num_expected = UINT_MAX)
         {
-            uint size;
+            uint32_t size;
             if (!read_uint_vlc(size))
                 return false;
 
@@ -408,7 +408,7 @@ namespace vogl
                 return false;
 
             vec.resize(size);
-            for (uint i = 0; i < vec.size(); i++)
+            for (uint32_t i = 0; i < vec.size(); i++)
             {
                 *this >> vec[i];
 
@@ -442,19 +442,19 @@ namespace vogl
                 {
                     case '1':
                     {
-                        const uint8_t x = static_cast<uint8_t>(va_arg(v, uint));
+                        const uint8_t x = static_cast<uint8_t>(va_arg(v, uint32_t));
                         if (!write_value(x))
                             return false;
                     }
                     case '2':
                     {
-                        const uint16_t x = static_cast<uint16_t>(va_arg(v, uint));
+                        const uint16_t x = static_cast<uint16_t>(va_arg(v, uint32_t));
                         if (!write_value(x))
                             return false;
                     }
                     case '4':
                     {
-                        const uint32_t x = static_cast<uint32_t>(va_arg(v, uint));
+                        const uint32_t x = static_cast<uint32_t>(va_arg(v, uint32_t));
                         if (!write_value(x))
                             return false;
                     }
@@ -556,7 +556,7 @@ namespace vogl
         serializer.write_value(val);
         return serializer;
     }
-    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, int32 val)
+    inline data_stream_serializer &operator<<(data_stream_serializer &serializer, int32_t val)
     {
         serializer.write_value(val);
         return serializer;
@@ -638,7 +638,7 @@ namespace vogl
         serializer.read_object(val);
         return serializer;
     }
-    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, int32 &val)
+    inline data_stream_serializer &operator>>(data_stream_serializer &serializer, int32_t &val)
     {
         serializer.read_object(val);
         return serializer;

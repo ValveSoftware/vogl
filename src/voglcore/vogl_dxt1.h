@@ -134,13 +134,13 @@ namespace vogl
         inline unique_color()
         {
         }
-        inline unique_color(const color_quad_u8 &color, uint weight)
+        inline unique_color(const color_quad_u8 &color, uint32_t weight)
             : m_color(color), m_weight(weight)
         {
         }
 
         color_quad_u8 m_color;
-        uint m_weight;
+        uint32_t m_weight;
 
         inline bool operator<(const unique_color &c) const
         {
@@ -181,11 +181,11 @@ namespace vogl
                 m_color_weights[2] = 1;
             }
 
-            uint m_block_index;
+            uint32_t m_block_index;
 
             const color_quad_u8 *m_pPixels;
-            uint m_num_pixels;
-            uint m_dxt1a_alpha_threshold;
+            uint32_t m_num_pixels;
+            uint32_t m_dxt1a_alpha_threshold;
 
             vogl_dxt_quality m_quality;
 
@@ -273,7 +273,7 @@ namespace vogl
         unique_color_vec m_unique_colors; // excludes transparent colors!
         unique_color_vec m_temp_unique_colors;
 
-        uint m_total_unique_color_weight;
+        uint32_t m_total_unique_color_weight;
 
         bool m_has_transparent_pixels;
 
@@ -298,12 +298,12 @@ namespace vogl
             cMaxPrevResults = 4
         };
         dxt1_solution_coordinates m_prev_results[cMaxPrevResults];
-        uint m_num_prev_results;
+        uint32_t m_num_prev_results;
 
         vogl::vector<vec3I> m_lo_cells;
         vogl::vector<vec3I> m_hi_cells;
 
-        uint m_total_evals;
+        uint32_t m_total_evals;
 
         struct potential_solution
         {
@@ -331,8 +331,8 @@ namespace vogl
             {
                 if (m_selectors.is_empty())
                     return false;
-                const uint s = m_selectors[0];
-                for (uint i = 1; i < m_selectors.size(); i++)
+                const uint32_t s = m_selectors[0];
+                for (uint32_t i = 1; i < m_selectors.size(); i++)
                     if (m_selectors[i] != s)
                         return false;
                 return true;
@@ -342,7 +342,7 @@ namespace vogl
         potential_solution m_trial_solution;
         potential_solution m_best_solution;
 
-        typedef vogl::hash_map<uint, empty_type> solution_hash_map;
+        typedef vogl::hash_map<uint32_t, empty_type> solution_hash_map;
         solution_hash_map m_solutions_tried;
 
         bool refine_solution(int refinement_level = 0);
@@ -387,7 +387,7 @@ namespace vogl
 
         unique_color lerp_color(const color_quad_u8 &a, const color_quad_u8 &b, float f, int rounding = 1);
 
-        inline uint color_distance(bool perceptual, const color_quad_u8 &e1, const color_quad_u8 &e2, bool alpha);
+        inline uint32_t color_distance(bool perceptual, const color_quad_u8 &e1, const color_quad_u8 &e2, bool alpha);
 
         static inline vec3F unpack_to_vec3F_raw(uint16_t packed_color);
         static inline vec3F unpack_to_vec3F(uint16_t packed_color);

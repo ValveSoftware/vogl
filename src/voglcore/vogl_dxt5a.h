@@ -49,11 +49,11 @@ namespace vogl
             {
             }
 
-            uint m_block_index;
+            uint32_t m_block_index;
 
             const color_quad_u8 *m_pPixels;
-            uint m_num_pixels;
-            uint m_comp_index;
+            uint32_t m_num_pixels;
+            uint32_t m_comp_index;
 
             vogl_dxt_quality m_quality;
 
@@ -79,7 +79,7 @@ namespace vogl
         results *m_pResults;
 
         vogl::vector<uint8_t> m_unique_values;
-        vogl::vector<uint> m_unique_value_weights;
+        vogl::vector<uint32_t> m_unique_value_weights;
 
         vogl::vector<uint8_t> m_trial_selectors;
         vogl::vector<uint8_t> m_best_selectors;
@@ -87,7 +87,7 @@ namespace vogl
 
         sparse_bit_array m_flags;
 
-        void evaluate_solution(uint low_endpoint, uint high_endpoint);
+        void evaluate_solution(uint32_t low_endpoint, uint32_t high_endpoint);
     };
 
 } // namespace vogl

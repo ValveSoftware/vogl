@@ -66,7 +66,7 @@ uint32_t plat_rand();
 #define PLAT_WRITE 0x02
 
 // Returns the size of a virtual page of memory.
-vogl::int32 plat_get_virtual_page_size();
+int32_t plat_get_virtual_page_size();
 
 void* plat_virtual_alloc(size_t size_requested, uint32_t access_flags, size_t* out_size_provided);
 void plat_virtual_free(void* free_addr, size_t size);

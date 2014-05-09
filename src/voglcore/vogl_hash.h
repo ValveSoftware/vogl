@@ -37,7 +37,7 @@ namespace vogl
     void crc64_init();
     uint64_t calc_crc64(uint64_t crc, const uint8_t *buf, size_t size);
 
-    uint64_t calc_sum64(const uint8_t *buf, size_t size, uint shift_amount = 0);
+    uint64_t calc_sum64(const uint8_t *buf, size_t size, uint32_t shift_amount = 0);
 
     uint32_t fast_hash(const void *p, int len);
 
@@ -81,7 +81,7 @@ namespace vogl
             : m_hash(0)
         {
         }
-        inline string_hash(uint hash)
+        inline string_hash(uint32_t hash)
             : m_hash(hash)
         {
         }
@@ -95,19 +95,19 @@ namespace vogl
             return *this;
         }
 
-        template <uint N>
+        template <uint32_t N>
         inline string_hash(const char (&str)[N])
             : m_hash(fnv_hash<N, N>::hash(str))
         {
         }
 
-        template <uint N>
+        template <uint32_t N>
         inline bool operator==(const char (&str)[N]) const
         {
             return m_hash == fnv_hash<N, N>::hash(str);
         }
 
-        template <uint N>
+        template <uint32_t N>
         inline bool operator!=(const char (&str)[N]) const
         {
             return m_hash != fnv_hash<N, N>::hash(str);
@@ -152,11 +152,11 @@ namespace vogl
             finalize((const char *)pStr, len);
         }
 
-        inline uint get_hash() const
+        inline uint32_t get_hash() const
         {
             return m_hash;
         }
-        inline void set_hash(uint hash)
+        inline void set_hash(uint32_t hash)
         {
             m_hash = hash;
         }
@@ -166,13 +166,13 @@ namespace vogl
             return get_hash();
         }
 
-        inline uint set(const char *pStr, size_t len)
+        inline uint32_t set(const char *pStr, size_t len)
         {
             init();
             return finalize(pStr, len);
         }
 
-        inline uint set(const char *pStr)
+        inline uint32_t set(const char *pStr)
         {
             init();
             return finalize(pStr);
@@ -183,21 +183,21 @@ namespace vogl
             m_hash = 2166136261U;
         }
 
-        inline uint finalize(const char *pStr, size_t len)
+        inline uint32_t finalize(const char *pStr, size_t len)
         {
             update(pStr, len);
             m_hash *= 16777619u;
             return m_hash;
         }
 
-        inline uint finalize(const char *pStr)
+        inline uint32_t finalize(const char *pStr)
         {
             return finalize(pStr, strlen(pStr));
         }
 
-        inline uint update(const char *pStr, size_t len)
+        inline uint32_t update(const char *pStr, size_t len)
         {
-            uint hash = m_hash;
+            uint32_t hash = m_hash;
             for (const char *pEnd = pStr + len; pStr != pEnd; ++pStr)
             {
                 hash ^= *pStr;
@@ -207,27 +207,27 @@ namespace vogl
             return hash;
         }
 
-        inline uint update(const char *pStr)
+        inline uint32_t update(const char *pStr)
         {
             return update(pStr, strlen(pStr));
         }
 
     private:
-        uint m_hash;
+        uint32_t m_hash;
 
-        template <uint N, uint I>
+        template <uint32_t N, uint32_t I>
         struct fnv_hash
         {
-            inline static uint hash(const char (&str)[N])
+            inline static uint32_t hash(const char (&str)[N])
             {
                 return (fnv_hash<N, I - 1>::hash(str) ^ str[I - 1]) * 16777619U;
             }
         };
 
-        template <uint N>
+        template <uint32_t N>
         struct fnv_hash<N, 1>
         {
-            inline static uint hash(const char (&str)[N])
+            inline static uint32_t hash(const char (&str)[N])
             {
                 return (2166136261U ^ str[0]) * 16777619U;
             }
