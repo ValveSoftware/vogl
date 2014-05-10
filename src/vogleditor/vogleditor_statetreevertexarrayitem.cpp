@@ -278,7 +278,7 @@ vogleditor_stateTreeVertexArrayItem::vogleditor_stateTreeVertexArrayItem(QString
       m_pDiffBaseState(NULL)
 {
     static QString tmp;
-    for (uint i = 0; i < info.get_max_vertex_attribs(); i++)
+    for (uint i = 0; i < state.get_vertex_attrib_count(); i++)
     {
        vogleditor_stateTreeItem* pAttribNode = new vogleditor_stateTreeItem(tmp.sprintf("GL_VERTEX_ATTRIB %u", i), "", this);
        this->appendChild(pAttribNode);
