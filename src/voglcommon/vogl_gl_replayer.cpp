@@ -318,7 +318,7 @@ void vogl_gl_replayer::dump_packet_as_func_call(const vogl_trace_packet& trace_p
 
     dynamic_string str;
     str.reserve(128);
-    if (!trace_packet.pretty_print(str, false))
+    if (!trace_packet.pretty_print(str, true))
         vogl_error_printf("%s: packet pretty print failed!\n", VOGL_FUNCTION_INFO_CSTR);
     else
         vogl_debug_printf("%s\n", str.get_ptr());

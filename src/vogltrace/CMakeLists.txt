@@ -50,6 +50,14 @@ if (NOT MSVC)
   add_shared_linker_flag("-Wl,--version-script=${PROJECT_SOURCE_DIR}/libvogltrace_linker_script.txt")
 endif()
 
+if (MSVC)
+    if (BUILD_X64)
+        set(SRC_LIST ${SRC_LIST} vogl_trace_x64.def)
+    else()
+        set(SRC_LIST ${SRC_LIST} vogl_trace_x86.def)
+    endif()
+endif()
+
 add_library(${PROJECT_NAME} SHARED ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 

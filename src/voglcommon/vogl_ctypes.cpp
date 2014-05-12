@@ -97,10 +97,8 @@ void vogl_ctypes::init(uint trace_ptr_size)
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_ctypes::change_pointer_sizes(uint trace_ptr_size)
 {
-#if defined(PLATFORM_LINUX)
     VOGL_ASSUME(sizeof(intptr_t) == sizeof(void *));
     VOGL_ASSUME(sizeof(ptrdiff_t) == sizeof(void *));
-    VOGL_ASSUME(sizeof(long) == sizeof(void *));
     VOGL_ASSUME(sizeof(long long) == sizeof(uint64_t));
 
     VOGL_ASSERT((trace_ptr_size == sizeof(uint32_t)) || (trace_ptr_size == sizeof(uint64_t)));
@@ -158,9 +156,6 @@ void vogl_ctypes::change_pointer_sizes(uint trace_ptr_size)
 
         VOGL_ASSERT(desc.m_size == static_cast<int>(trace_ptr_size));
     }
-#endif
-#else
-    VOGL_ASSERT(!"impl change_pointer_sizes");
 #endif
 }
 

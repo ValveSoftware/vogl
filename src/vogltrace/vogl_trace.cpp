@@ -206,30 +206,40 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
         }
     }
 #elif defined(PLATFORM_WINDOWS)
-BOOL WINAPI DllMain(_In_  HINSTANCE hinstDLL, _In_  DWORD fdwReason, _In_  LPVOID lpvReserved)
-{
-    switch (fdwReason)
+    BOOL WINAPI DllMain(_In_  HINSTANCE hinstDLL, _In_  DWORD fdwReason, _In_  LPVOID lpvReserved)
     {
-        case DLL_PROCESS_ATTACH:
-            vogl_init();
-            break;
-        case DLL_PROCESS_DETACH:    
-            vogl_deinit();
-            break;
+        switch (fdwReason)
+        {
+            case DLL_PROCESS_ATTACH:
+                vogl_init();
+                break;
+            case DLL_PROCESS_DETACH:    
+                vogl_deinit();
+                break;
 
-        case DLL_THREAD_ATTACH:
-        case DLL_THREAD_DETACH:
-            // Nothing to do for this case.
-            break;
+            case DLL_THREAD_ATTACH:
+            case DLL_THREAD_DETACH:
+                // Nothing to do for this case.
+                break;
 
-        default:
-            VOGL_ASSERT(!"Unexpected fdwReason passed to DllMain.");
-            break;
-    };
+            default:
+                VOGL_ASSERT(!"Unexpected fdwReason passed to DllMain.");
+                break;
+        };
 
-    return TRUE;
-}
+        return TRUE;
+    }
 
+    VOGL_API_EXPORT void VOGL_API_CALLCONV GlmfBeginGlsBlock(DWORD _d1) { }
+    VOGL_API_EXPORT void VOGL_API_CALLCONV GlmfCloseMetaFile(DWORD _d1) { }
+    VOGL_API_EXPORT void VOGL_API_CALLCONV GlmfEndGlsBlock(DWORD _d1) { }
+    VOGL_API_EXPORT void VOGL_API_CALLCONV GlmfEndPlayback(DWORD _d1) { }
+    VOGL_API_EXPORT void VOGL_API_CALLCONV GlmfInitPlayback(DWORD _d1, DWORD _d2, DWORD _d3) { }
+    VOGL_API_EXPORT void VOGL_API_CALLCONV GlmfPlayGlsRecord(DWORD _d1, DWORD _d2, DWORD _d3, DWORD _d4) { }
+    VOGL_API_EXPORT void VOGL_API_CALLCONV glDebugEntry(DWORD _d1, DWORD _d2) { }
+    VOGL_API_EXPORT DWORD VOGL_API_CALLCONV wglSwapMultipleBuffers(UINT, CONST WGLSWAP *) { return 0; }
+    VOGL_API_EXPORT BOOL VOGL_API_CALLCONV wglUseFontOutlinesA(HDC hdc, DWORD first, DWORD count, DWORD listBase, FLOAT deviation, FLOAT extrusion, int format, LPGLYPHMETRICSFLOAT lpgmf) { return FALSE; }
+    VOGL_API_EXPORT BOOL VOGL_API_CALLCONV wglUseFontOutlinesW(HDC hdc, DWORD first, DWORD count, DWORD listBase, FLOAT deviation, FLOAT extrusion, int format, LPGLYPHMETRICSFLOAT lpgmf) { return FALSE; }
 #else
     #error "Need a way to call vogl_init and vogl_deinit for this platform."
 #endif

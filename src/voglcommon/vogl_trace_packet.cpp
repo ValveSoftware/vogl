@@ -2231,15 +2231,15 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
 
     const vogl_ctype_desc_t &ctype_desc = trace_ctypes()[m_param_ctype[param_index]];
 
-    if (type_info)
-        str.format("(%s) ", ctype_desc.m_pCType);
-
     bool handled = false;
+
+    const void *pClient_mem = NULL;
+    uint client_mem_size = 0;
 
     if (ctype_desc.m_is_pointer)
     {
-        const void *pClient_mem = NULL;
-        uint client_mem_size = 0;
+        if (type_info)
+            str.format("(%s) ", ctype_desc.m_pCType);
 
         if (m_client_memory_descs[param_index].m_vec_ofs >= 0)
         {
@@ -2249,23 +2249,17 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
 
         if ((pClient_mem) && (client_mem_size))
         {
-            //const vogl_ctype_t pointee_ctype = ctype_desc.m_pointee_ctype;
-            //const uint pointee_size = (*m_pCTypes)[pointee_ctype].m_size;
-            //const bool pointee_is_ptr = (*m_pCTypes)[pointee_ctype].m_is_pointer;
-
             bool print_as_cstring = false;
             switch (ctype_desc.m_ctype)
             {
-                case VOGL_CONST_GLUBYTE_PTR:
+                case VOGL_CONST_GLUBYTE_PTR: // TODO: This could false positive!
                 case VOGL_CONST_GLCHAR_PTR:
                 case VOGL_GLCHARARB_PTR:
-                case VOGL_CONST_GLBYTE_PTR:
-                case VOGL_GLUBYTE_PTR:
                 case VOGL_GLCHAR_PTR:
                 case VOGL_CONST_GLCHARARB_PTR:
                 case VOGL_LPCSTR:
                 {
-                    if ((client_mem_size <= 64) && (utils::is_buffer_printable(pClient_mem, client_mem_size, true, true)))
+                    if ((client_mem_size <= 65536) && (utils::is_buffer_printable(pClient_mem, client_mem_size, true, true)))
                     {
                         print_as_cstring = true;
                         break;
@@ -2279,7 +2273,23 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
             if (print_as_cstring)
             {
                 const char *pStr = reinterpret_cast<const char *>(pClient_mem);
-                str.format_append("\"%s\"", pStr);
+                uint strlen = vogl_strlen(pStr);
+
+                const uint MAX_STR_LEN = 64;
+
+                uint chars_to_print = math::minimum<uint>(MAX_STR_LEN, strlen);
+
+                if (chars_to_print == strlen)
+                    str.format_append("[\"%s\"]", pStr);
+                else
+                {
+                    str.append("[");
+
+                    for (uint i = 0; i < chars_to_print; i++)
+                        str.append_char(pStr[i]);
+
+                    str.append("...]");
+                }
 
                 handled = true;
             }
@@ -2287,93 +2297,107 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint param_index
     }
     else
     {
-        switch (ctype_desc.m_ctype)
-        {
-            case VOGL_BOOL:
-            case VOGL_GLBOOLEAN:
-            {
-                if (val_data == 0)
-                {
-                    str += "false";
-                    handled = true;
-                }
-                else if (val_data == 1)
-                {
-                    str += "true";
-                    handled = true;
-                }
-
-                break;
-            }
-            case VOGL_GLENUM:
-            {
-                const char *pName = get_gl_enums().find_name(val_data, get_entrypoint_id(), is_return_param ? -1 : param_index);
-
-                if (pName)
-                {
-                    VOGL_ASSERT(get_gl_enums().find_enum(pName) == val_data);
-
-                    str += pName;
-                    handled = true;
-                }
-
-                break;
-            }
-            case VOGL_FLOAT:
-            case VOGL_GLFLOAT:
-            case VOGL_GLCLAMPF:
-            {
-                str.format_append("%f", *reinterpret_cast<const float *>(&val_data));
-                handled = true;
-                break;
-            }
-            case VOGL_GLDOUBLE:
-            case VOGL_GLCLAMPD:
-            {
-                str.format_append("%f", *reinterpret_cast<const double *>(&val_data));
-                handled = true;
-                break;
-            }
-            case VOGL_GLINT:
-            case VOGL_INT:
-            case VOGL_INT32T:
-            case VOGL_GLSIZEI:
-            case VOGL_GLFIXED:
-            {
-                str.format_append("%i", *reinterpret_cast<const int32 *>(&val_data));
-                handled = true;
-                break;
-            }
-            case VOGL_GLSHORT:
-            {
-                str.format_append("%i", *reinterpret_cast<const int16 *>(&val_data));
-                handled = true;
-                break;
-            }
-            case VOGL_GLBYTE:
-            {
-                str.format_append("%i", *reinterpret_cast<const int8 *>(&val_data));
-                handled = true;
-                break;
-            }
-            case VOGL_GLINT64:
-            case VOGL_GLINT64EXT:
-            {
-                str.format_append("%" PRIi64, val_data);
-                handled = true;
-                break;
-            }
-            default:
-                break;
-        }
+        handled = pretty_print_param_val(str, ctype_desc, val_data, get_entrypoint_id(), is_return_param ? -1 : param_index);
     }
 
     if (!handled)
     {
-        if ((ctype_desc.m_is_pointer) && (!type_info))
-            str.format_append("(%s) 0x%" PRIX64, ctype_desc.m_pCType, val_data);
+        if (ctype_desc.m_is_pointer)
+        {
+            const vogl_ctype_t pointee_ctype = ctype_desc.m_pointee_ctype;
+            const vogl_ctype_desc_t &pointee_ctype_desc = trace_ctypes()[pointee_ctype];
+            const uint pointee_size = (*m_pCTypes)[pointee_ctype].m_size;
+            //const bool pointee_is_ptr = (*m_pCTypes)[pointee_ctype].m_is_pointer;
+
+            if ((!val_data) && (!client_mem_size))
+                str.format_append("NULL");
+            else if ((pointee_ctype == VOGL_INVALID_CTYPE) && (!client_mem_size))
+            {
+                str.format_append("ptr=0x%" PRIX64, val_data);
+            }
+            else
+            {
+                dynamic_string shortened_ctype(pointee_ctype_desc.m_pName);
+                if (shortened_ctype.begins_with("VOGL_"))
+                    shortened_ctype.right(5);
+
+                if ((pointee_size > 1) && ((client_mem_size % pointee_size) == 0))
+                    str.format_append("ptr=0x%" PRIX64 " size=%u elements=%u pointee_type=%s", val_data, client_mem_size, client_mem_size / pointee_size, shortened_ctype.get_ptr());
+                else
+                    str.format_append("ptr=0x%" PRIX64 " size=%u pointee_type=%s", val_data, client_mem_size, shortened_ctype.get_ptr());
+
+                uint bytes_to_dump = math::minimum<uint>(64, client_mem_size);
+                if ((pClient_mem) && (bytes_to_dump))
+                {
+                    str.append(" [");
+
+                    if ((pointee_size == sizeof(uint64_t)) && ((client_mem_size & 7) == 0))
+                    {
+                        for (uint i = 0; i < bytes_to_dump / sizeof(uint64_t); i++)
+                        {
+                            if (i)
+                                str.format_append(" ");
+
+                            uint64_t array_val_data = reinterpret_cast<const uint64_t *>(pClient_mem)[i];
+                            if (!pretty_print_param_val(str, pointee_ctype_desc, array_val_data, get_entrypoint_id(), is_return_param ? -1 : param_index))
+                                str.format_append("0x%" PRIX64, array_val_data);
+                        }
+                    }
+                    else if ((pointee_size == sizeof(uint32)) && ((client_mem_size & 3) == 0))
+                    {
+                        for (uint i = 0; i < bytes_to_dump / sizeof(uint32); i++)
+                        {
+                            if (i)
+                                str.format_append(" ");
+
+                            uint64_t array_val_data = reinterpret_cast<const uint32 *>(pClient_mem)[i];
+                            if (!pretty_print_param_val(str, pointee_ctype_desc, array_val_data, get_entrypoint_id(), is_return_param ? -1 : param_index))
+                                str.format_append("0x%" PRIX64, array_val_data);
+                        }
+                    }
+                    else if ((pointee_size == sizeof(uint16)) && ((client_mem_size & 1) == 0))
+                    {
+                        for (uint i = 0; i < bytes_to_dump / sizeof(uint16); i++)
+                        {
+                            if (i)
+                                str.format_append(" ");
+
+                            uint64_t array_val_data = reinterpret_cast<const uint16 *>(pClient_mem)[i];
+                            if (!pretty_print_param_val(str, pointee_ctype_desc, array_val_data, get_entrypoint_id(), is_return_param ? -1 : param_index))
+                                str.format_append("0x%" PRIX64, array_val_data);
+                        }
+                    }
+                    else
+                    {
+                        bytes_to_dump = math::minimum<uint>(16, client_mem_size);
+
+                        for (uint i = 0; i < bytes_to_dump; i++)
+                        {
+                            if (i)
+                                str.format_append(" ");
+
+                            uint32 array_val_data = reinterpret_cast<const uint8 *>(pClient_mem)[i];
+
+                            handled = false;
+                            if (pointee_size == sizeof(uint8))
+                                handled = pretty_print_param_val(str, pointee_ctype_desc, array_val_data, get_entrypoint_id(), is_return_param ? -1 : param_index);
+
+                            if (!handled)
+                                str.format_append("%02X", array_val_data);
+                        }
+                    }
+
+                    if (bytes_to_dump < client_mem_size)
+                        str.append("...");
+
+                    str.append("]");
+                }
+            }
+        }
         else
+        {
             str.format_append("0x%" PRIX64, val_data);
+        }
     }
 
     return true;

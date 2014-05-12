@@ -278,14 +278,15 @@ vogleditor_stateTreeVertexArrayItem::vogleditor_stateTreeVertexArrayItem(QString
       m_pDiffBaseState(NULL)
 {
     static QString tmp;
-    for (uint i = 0; i < info.get_max_vertex_attribs(); i++)
+    for (uint i = 0; i < state.get_vertex_attrib_count(); i++)
     {
        vogleditor_stateTreeItem* pAttribNode = new vogleditor_stateTreeItem(tmp.sprintf("GL_VERTEX_ATTRIB %u", i), "", this);
        this->appendChild(pAttribNode);
 
        const vogl_vertex_attrib_desc& desc = state.get_vertex_attrib_desc(i);
 
-       { vogleditor_stateTreeVertexArrayUIntItem* pItem = new vogleditor_stateTreeVertexArrayUIntItem("GL_ELEMENT_ARRAY_BUFFER_BINDING", &vogl_vertex_attrib_desc::m_element_array_binding, pAttribNode, desc, i); m_diffableItems.push_back(pItem); pAttribNode->appendChild(pItem); }
+       // Peter: FIXME, this is now vao state
+       //{ vogleditor_stateTreeVertexArrayUIntItem* pItem = new vogleditor_stateTreeVertexArrayUIntItem("GL_ELEMENT_ARRAY_BUFFER_BINDING", &vogl_vertex_attrib_desc::m_element_array_binding, pAttribNode, desc, i); m_diffableItems.push_back(pItem); pAttribNode->appendChild(pItem); }
        { vogleditor_stateTreeVertexArrayUIntItem* pItem = new vogleditor_stateTreeVertexArrayUIntItem("GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING", &vogl_vertex_attrib_desc::m_array_binding, pAttribNode, desc, i); m_diffableItems.push_back(pItem); pAttribNode->appendChild(pItem); }
        { vogleditor_stateTreeVertexArrayBoolItem* pItem = new vogleditor_stateTreeVertexArrayBoolItem("GL_VERTEX_ATTRIB_ARRAY_ENABLED", &vogl_vertex_attrib_desc::m_enabled, pAttribNode, desc, i); m_diffableItems.push_back(pItem); pAttribNode->appendChild(pItem); }
        { vogleditor_stateTreeVertexArrayIntItem* pItem = new vogleditor_stateTreeVertexArrayIntItem("GL_VERTEX_ATTRIB_ARRAY_SIZE", &vogl_vertex_attrib_desc::m_size, pAttribNode, desc, i); m_diffableItems.push_back(pItem); pAttribNode->appendChild(pItem); }

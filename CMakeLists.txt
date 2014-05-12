@@ -9,7 +9,6 @@ if (WIN32)
     set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../external/windows")
     set(WIN32_PTHREADS_PATH "${CMAKE_PREFIX_PATH}/pthreads.2")
     set(WIN32_PTHREADS_INCLUDE_PATH "${WIN32_PTHREADS_PATH}/include")
-    set(WIN32_PTHREADS_LIB_PATH "${WIN32_PTHREADS_PATH}/lib/x86")
 endif()
 
 # Always look. It won't be found on Windows. Later build scripts will understand how to 
@@ -37,10 +36,13 @@ message("")
 add_subdirectory(src/voglcore) # 1
 add_subdirectory(src/voglgen) # 2
 add_subdirectory(src/voglcommon) # 3
+add_subdirectory(src/voglreplay) # 4
 add_subdirectory(src/vogltrace) # 7
 
+add_subdirectory(src/extlib/pxfmt) # 15
+add_subdirectory(src/ktxtool) # 16
+
 if (NOT WIN32)
-    add_subdirectory(src/voglreplay) # 4
     add_subdirectory(src/voglbench) # 5
     add_subdirectory(src/voglsyms) # 6
 
@@ -51,6 +53,4 @@ if (NOT WIN32)
     add_subdirectory(src/vogleditor) # 12
     add_subdirectory(src/libbacktrace) # 13
     add_subdirectory(src/libbacktrace_test) # 14
-    add_subdirectory(src/extlib/pxfmt) # 15
-    add_subdirectory(src/ktxtool) # 16
 endif()

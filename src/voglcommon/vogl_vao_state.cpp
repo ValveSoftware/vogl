@@ -34,7 +34,6 @@ bool vogl_vertex_attrib_desc::operator==(const vogl_vertex_attrib_desc &rhs) con
     if (x != rhs.x) \
         return false;
     CMP(m_pointer);
-    CMP(m_element_array_binding);
     CMP(m_array_binding);
     CMP(m_size);
     CMP(m_type);
@@ -49,8 +48,9 @@ bool vogl_vertex_attrib_desc::operator==(const vogl_vertex_attrib_desc &rhs) con
 
 vogl_vao_state::vogl_vao_state()
     : m_snapshot_handle(0),
-      m_has_been_bound(false),
-      m_is_valid(false)
+      m_element_array_binding(0),
+      m_is_valid(false),
+      m_has_been_bound(false)
 {
     VOGL_FUNC_TRACER
 }
@@ -112,13 +112,14 @@ bool vogl_vao_state::snapshot(const vogl_context_info &context_info, vogl_handle
         GL_ENTRYPOINT(glBindVertexArray)(m_snapshot_handle);
         VOGL_CHECK_GL_ERROR;
 
+        m_element_array_binding = vogl_get_gl_integer(GL_ELEMENT_ARRAY_BUFFER_BINDING);
+
         m_vertex_attribs.resize(context_info.get_max_vertex_attribs());
 
         for (uint i = 0; i < context_info.get_max_vertex_attribs(); i++)
         {
             vogl_vertex_attrib_desc &desc = m_vertex_attribs[i];
 
-            desc.m_element_array_binding = vogl_get_gl_integer(GL_ELEMENT_ARRAY_BUFFER_BINDING);
             desc.m_array_binding = vogl_get_vertex_attrib_int(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING);
             desc.m_enabled = vogl_get_vertex_attrib_int(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED) != 0;
             desc.m_size = vogl_get_vertex_attrib_int(i, GL_VERTEX_ATTRIB_ARRAY_SIZE);
@@ -183,6 +184,9 @@ bool vogl_vao_state::restore(const vogl_context_info &context_info, vogl_handle_
 
     if (m_has_been_bound)
     {
+        GL_ENTRYPOINT(glBindBuffer)(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, m_element_array_binding)));
+        VOGL_CHECK_GL_ERROR;
+
         if (m_vertex_attribs.size() > context_info.get_max_vertex_attribs())
         {
             vogl_warning_printf("%s: Saved VAO state has %u attribs, but context only allows %u attribs\n", VOGL_FUNCTION_INFO_CSTR, m_vertex_attribs.size(), context_info.get_max_vertex_attribs());
@@ -191,9 +195,6 @@ bool vogl_vao_state::restore(const vogl_context_info &context_info, vogl_handle_
         for (uint i = 0; i < math::minimum<uint>(context_info.get_max_vertex_attribs(), m_vertex_attribs.size()); i++)
         {
             const vogl_vertex_attrib_desc &desc = m_vertex_attribs[i];
-
-            GL_ENTRYPOINT(glBindBuffer)(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, desc.m_element_array_binding)));
-            VOGL_CHECK_GL_ERROR;
 
             GL_ENTRYPOINT(glBindBuffer)(GL_ARRAY_BUFFER, static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, desc.m_array_binding)));
             VOGL_CHECK_GL_ERROR;
@@ -257,11 +258,11 @@ bool vogl_vao_state::remap_handles(vogl_handle_remapper &remapper)
 
     m_snapshot_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_VERTEX_ARRAYS, m_snapshot_handle));
 
+    if (m_element_array_binding)
+        m_element_array_binding = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, m_element_array_binding));
+
     for (uint i = 0; i < m_vertex_attribs.size(); i++)
     {
-        if (m_vertex_attribs[i].m_element_array_binding)
-            m_vertex_attribs[i].m_element_array_binding = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, m_vertex_attribs[i].m_element_array_binding));
-
         if (m_vertex_attribs[i].m_array_binding)
             m_vertex_attribs[i].m_array_binding = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, m_vertex_attribs[i].m_array_binding));
 
@@ -278,8 +279,9 @@ void vogl_vao_state::clear()
 
     m_vertex_attribs.clear();
     m_snapshot_handle = 0;
-    m_has_been_bound = false;
+    m_element_array_binding = 0;
     m_is_valid = false;
+    m_has_been_bound = false;
 }
 
 bool vogl_vao_state::serialize(json_node &node, vogl_blob_manager &blob_manager) const
@@ -293,6 +295,7 @@ bool vogl_vao_state::serialize(json_node &node, vogl_blob_manager &blob_manager)
 
     node.add_key_value("handle", m_snapshot_handle);
     node.add_key_value("has_been_bound", m_has_been_bound);
+    node.add_key_value("element_array_binding", m_element_array_binding);
 
     json_node &vertex_attribs_array = node.add_array("vertex_attribs");
     for (uint i = 0; i < m_vertex_attribs.size(); i++)
@@ -301,7 +304,6 @@ bool vogl_vao_state::serialize(json_node &node, vogl_blob_manager &blob_manager)
 
         json_node &attribs_obj = vertex_attribs_array.add_object();
         attribs_obj.add_key_value("pointer", desc.m_pointer);
-        attribs_obj.add_key_value("element_array_binding", desc.m_element_array_binding);
         attribs_obj.add_key_value("array_binding", desc.m_array_binding);
         attribs_obj.add_key_value("size", desc.m_size);
         attribs_obj.add_key_value("type", get_gl_enums().find_gl_name(desc.m_type));
@@ -325,6 +327,7 @@ bool vogl_vao_state::deserialize(const json_node &node, const vogl_blob_manager 
 
     m_snapshot_handle = node.value_as_uint32("handle");
     m_has_been_bound = node.value_as_bool("has_been_bound", true);
+    m_element_array_binding = node.value_as_uint32("element_array_binding");
 
     const json_node *pVertex_attribs_array = node.find_child_array("vertex_attribs");
     if (!pVertex_attribs_array)
@@ -340,7 +343,11 @@ bool vogl_vao_state::deserialize(const json_node &node, const vogl_blob_manager 
             return false;
 
         desc.m_pointer = static_cast<vogl_trace_ptr_value>(pAttribs_obj->value_as_uint64("pointer"));
-        desc.m_element_array_binding = pAttribs_obj->value_as_uint32("element_array_binding");
+
+        // Fallback for old traces
+        if ((!i) && (pAttribs_obj->has_key("element_array_binding")))
+            m_element_array_binding = pAttribs_obj->value_as_uint32("element_array_binding");
+
         desc.m_array_binding = pAttribs_obj->value_as_uint32("array_binding");
         desc.m_size = pAttribs_obj->value_as_int("size");
         desc.m_type = vogl_get_json_value_as_enum(*pAttribs_obj, "type");
@@ -356,63 +363,16 @@ bool vogl_vao_state::deserialize(const json_node &node, const vogl_blob_manager 
     return true;
 }
 
+// Unused
 bool vogl_vao_state::compare_all_state(const vogl_vao_state &rhs) const
 {
     VOGL_FUNC_TRACER
-
-    if ((!is_valid()) || (!rhs.is_valid()))
-        return false;
-
-    if (this == &rhs)
-        return true;
-
-    return (m_snapshot_handle == rhs.m_snapshot_handle) && (m_vertex_attribs == rhs.m_vertex_attribs) && (m_has_been_bound == rhs.m_has_been_bound);
+    return false;
 }
 
+// Unused
 bool vogl_vao_state::compare_restorable_state(const vogl_gl_object_state &rhs_obj) const
 {
     VOGL_FUNC_TRACER
-
-    if ((!is_valid()) || (!rhs_obj.is_valid()))
-        return false;
-
-    if (rhs_obj.get_type() != cGLSTVertexArray)
-        return false;
-
-    const vogl_vao_state &rhs = static_cast<const vogl_vao_state &>(rhs_obj);
-
-    if (this == &rhs)
-        return true;
-
-    if (m_has_been_bound != rhs.m_has_been_bound)
-        return false;
-
-    if (m_vertex_attribs.size() != rhs.m_vertex_attribs.size())
-        return false;
-
-    for (uint i = 0; i < m_vertex_attribs.size(); i++)
-    {
-        const vogl_vertex_attrib_desc &lhs_desc = m_vertex_attribs[i];
-        const vogl_vertex_attrib_desc &rhs_desc = rhs.m_vertex_attribs[i];
-
-        if ((lhs_desc.m_element_array_binding != 0) != (rhs_desc.m_element_array_binding != 0))
-            return false;
-
-        if ((lhs_desc.m_array_binding != 0) != (rhs_desc.m_array_binding != 0))
-            return false;
-
-#define CMP(x)                    \
-    if (lhs_desc.x != rhs_desc.x) \
-        return false;
-        CMP(m_enabled);
-        CMP(m_size);
-        CMP(m_type);
-        CMP(m_normalized);
-        CMP(m_stride);
-        CMP(m_integer);
-        CMP(m_divisor);
-#undef CMP
-    }
-
-    return true;
+    return false;
 }

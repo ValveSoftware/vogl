@@ -55,9 +55,6 @@ uint64_t plat_posix_gettid();
 // Get the process id for this process.
 pid_t plat_getpid();
 
-// Get the process id of the parent process.
-pid_t plat_getppid();
-
 // Provides out_array_length uint32s of random data from a secure service (/dev/urandom, crypto apis, etc).
 size_t plat_rand_s(vogl::uint32* out_array, size_t out_array_length);
 
@@ -79,11 +76,22 @@ void plat_virtual_free(void* free_addr, size_t size);
     void plat_try_sem_post(sem_t* sem, vogl::uint32 release_count);
 #endif
 
-void* plat_dlsym(void* handle, const char* symbol);
-
 #if defined(PLATFORM_WINDOWS)
     #define PLAT_RTLD_NEXT ((void*)0)
+    #define PLAT_RTLD_LAZY ((int)0)
 #elif defined(PLATFORM_POSIX)
     #define PLAT_RTLD_NEXT (RTLD_NEXT)
+    #define PLAT_RTLD_LAZY (RTLD_LAZY)
 #endif
 
+#if defined(PLATFORM_LINUX)
+    inline const char* plat_get_system_gl_module_name() { return "libGL.so.1"; }
+#elif defined(PLATFORM_WINDOWS)
+    inline const char* plat_get_system_gl_module_name() { return "opengl32.dll"; }
+#else
+    #error "Need to define plat_get_system_gl_module_name for this platform."
+#endif
+
+void* plat_dlsym(void* handle, const char* symbol);
+
+void* plat_load_system_gl(int _flags);
