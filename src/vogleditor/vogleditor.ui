@@ -290,6 +290,11 @@
               <string>Buffers</string>
              </attribute>
             </widget>
+            <widget class="QWidget" name="vertexArrayTab">
+             <attribute name="title">
+              <string>Vertex Arrays</string>
+             </attribute>
+            </widget>
            </widget>
           </item>
          </layout>

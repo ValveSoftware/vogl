@@ -56,6 +56,7 @@ set(SRC_LIST
     vogleditor_qtextureviewer.cpp
     vogleditor_qtimelineview.cpp
     vogleditor_qtrimdialog.cpp
+    vogleditor_qvertexarrayexplorer.cpp
     vogleditor_output.cpp
     vogleditor_settings.cpp
     vogleditor_statetreearbprogramitem.cpp
@@ -99,6 +100,7 @@ set(UI_HEADER_LIST
     vogleditor_qtextureexplorer.h
     vogleditor_qtimelineview.h
     vogleditor_qtrimdialog.h
+    vogleditor_qvertexarrayexplorer.h
    )
 
 # these are for non-QOBJECT headers
@@ -147,6 +149,7 @@ set(FORM_LIST
     vogleditor_qshaderexplorer.ui
     vogleditor_qtextureexplorer.ui
     vogleditor_qtrimdialog.ui
+    vogleditor_qvertexarrayexplorer.ui
    )
 
 set(RESOURCE_LIST

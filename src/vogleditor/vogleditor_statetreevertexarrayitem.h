@@ -99,6 +99,20 @@ private:
     GLint vogl_vertex_attrib_desc::* m_pVal;
 };
 
+class vogleditor_stateTreeElementArrayUIntItem : public vogleditor_stateTreeVertexArrayDiffableItem
+{
+public:
+    vogleditor_stateTreeElementArrayUIntItem(QString name, GLuint (vogl_vao_state::* pVal)() const, vogleditor_stateTreeItem* parent, const vogl_vao_state& state);
+    virtual ~vogleditor_stateTreeElementArrayUIntItem() { m_pState = NULL; }
+
+    virtual bool hasChanged() const;
+    virtual QString getDiffedValue() const;
+
+private:
+    const vogl_vao_state* m_pState;
+    GLuint (vogl_vao_state::* m_pVal)() const;
+};
+
 class vogleditor_stateTreeVertexArrayItem : public vogleditor_stateTreeItem
 {
 public:

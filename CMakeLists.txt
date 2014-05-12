@@ -39,6 +39,9 @@ add_subdirectory(src/voglcommon) # 3
 add_subdirectory(src/voglreplay) # 4
 add_subdirectory(src/vogltrace) # 7
 
+add_subdirectory(src/extlib/pxfmt) # 15
+add_subdirectory(src/ktxtool) # 16
+
 if (NOT WIN32)
     add_subdirectory(src/voglbench) # 5
     add_subdirectory(src/voglsyms) # 6
@@ -50,6 +53,4 @@ if (NOT WIN32)
     add_subdirectory(src/vogleditor) # 12
     add_subdirectory(src/libbacktrace) # 13
     add_subdirectory(src/libbacktrace_test) # 14
-    add_subdirectory(src/extlib/pxfmt) # 15
-    add_subdirectory(src/ktxtool) # 16
 endif()

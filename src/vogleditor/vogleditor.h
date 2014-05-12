@@ -52,8 +52,9 @@ class vogleditor_QStateTreeModel;
 class vogleditor_QProgramArbExplorer;
 class vogleditor_QProgramExplorer;
 class vogleditor_QFramebufferExplorer;
-class vogleditor_QTimelineView;
 class vogleditor_QShaderExplorer;
+class vogleditor_QTimelineView;
+class vogleditor_QVertexArrayExplorer;
 
 class VoglEditor : public QMainWindow
 {
@@ -149,6 +150,7 @@ private:
    vogleditor_QProgramExplorer* m_pProgramExplorer;
    vogleditor_QShaderExplorer* m_pShaderExplorer;
    vogleditor_QBufferExplorer* m_pBufferExplorer;
+   vogleditor_QVertexArrayExplorer* m_pVertexArrayExplorer;
    vogleditor_QTimelineView* m_timeline;
 
    QGridLayout* m_pFramebufferTab_layout;
@@ -158,6 +160,7 @@ private:
    QGridLayout* m_pProgramTab_layout;
    QGridLayout* m_pShaderTab_layout;
    QGridLayout* m_pBufferTab_layout;
+   QGridLayout* m_pVertexArrayTab_layout;
 
    vogleditor_gl_state_snapshot* m_currentSnapshot;
    vogleditor_apiCallTreeItem* m_pCurrentCallTreeItem;

@@ -2685,26 +2685,26 @@ public:
 	enum { isFundamental    = isStdFundamental || isArith };
 
 	enum { typeFlags =
-	           ((uint)isConst				<< LOKI_IS_CONST_BIT) +
-	           ((uint)isVolatile			<< LOKI_IS_VOLATILE_BIT) +
-	           ((uint)isReference			<< LOKI_IS_REFERENCE_BIT) +
-	           ((uint)isFunction			<< LOKI_IS_FUNCTION) +
-	           ((uint)isFunctionPointer << LOKI_IS_FUNCTION_POINTER) +
-	           ((uint)isMemberFunctionPointer << LOKI_IS_MEMBER_FUNCTION_POINTER) +
-	           ((uint)isMemberPointer	<< LOKI_IS_MEMBER_POINTER) +
-	           ((uint)isPointer			<< LOKI_IS_POINTER) +
-	           ((uint)isStdUnsignedInt	<< LOKI_IS_STD_UNSIGNED_INT) +
-	           ((uint)isStdSignedInt		<< LOKI_IS_STD_SIGNED_INT) +
-	           ((uint)isStdIntegral		<< LOKI_IS_STD_INTEGRAL) +
-	           ((uint)isStdFundamental	<< LOKI_IS_STD_FUNDAMENTAL) +
-	           ((uint)isUnsignedInt		<< LOKI_IS_UNSIGNED_INT) +
-	           ((uint)isSignedInt			<< LOKI_IS_SIGNED_INT) +
-	           ((uint)isIntegral			<< LOKI_IS_INTEGRAL) +
-	           ((uint)isFloat				<< LOKI_IS_FLOAT) +
-	           ((uint)isArith				<< LOKI_IS_ARITH) +
-	           ((uint)isFundamental		<< LOKI_IS_FUNDAMENTAL) +
-	           ((uint)isStdSignedLong   << LOKI_IS_SIGNED_LONG) +
-	           ((uint)isStdUnsignedLong << LOKI_IS_UNSIGNED_LONG)
+	           ((uint32_t)isConst				<< LOKI_IS_CONST_BIT) +
+	           ((uint32_t)isVolatile			<< LOKI_IS_VOLATILE_BIT) +
+	           ((uint32_t)isReference			<< LOKI_IS_REFERENCE_BIT) +
+	           ((uint32_t)isFunction			<< LOKI_IS_FUNCTION) +
+	           ((uint32_t)isFunctionPointer << LOKI_IS_FUNCTION_POINTER) +
+	           ((uint32_t)isMemberFunctionPointer << LOKI_IS_MEMBER_FUNCTION_POINTER) +
+	           ((uint32_t)isMemberPointer	<< LOKI_IS_MEMBER_POINTER) +
+	           ((uint32_t)isPointer			<< LOKI_IS_POINTER) +
+	           ((uint32_t)isStdUnsignedInt	<< LOKI_IS_STD_UNSIGNED_INT) +
+	           ((uint32_t)isStdSignedInt		<< LOKI_IS_STD_SIGNED_INT) +
+	           ((uint32_t)isStdIntegral		<< LOKI_IS_STD_INTEGRAL) +
+	           ((uint32_t)isStdFundamental	<< LOKI_IS_STD_FUNDAMENTAL) +
+	           ((uint32_t)isUnsignedInt		<< LOKI_IS_UNSIGNED_INT) +
+	           ((uint32_t)isSignedInt			<< LOKI_IS_SIGNED_INT) +
+	           ((uint32_t)isIntegral			<< LOKI_IS_INTEGRAL) +
+	           ((uint32_t)isFloat				<< LOKI_IS_FLOAT) +
+	           ((uint32_t)isArith				<< LOKI_IS_ARITH) +
+	           ((uint32_t)isFundamental		<< LOKI_IS_FUNDAMENTAL) +
+	           ((uint32_t)isStdSignedLong   << LOKI_IS_SIGNED_LONG) +
+	           ((uint32_t)isStdUnsignedLong << LOKI_IS_UNSIGNED_LONG)
 	     };
 
 	typedef typename Select<isStdArith || isPointer || isMemberPointer, T,
