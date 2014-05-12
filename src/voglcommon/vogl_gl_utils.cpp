@@ -2495,13 +2495,13 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
         case VOGL_GLUINT:
         case VOGL_GLBITFIELD:
         {
-            str.format_append("%u", *reinterpret_cast<const uint32 *>(&val_data));
+            str.format_append("%u", *reinterpret_cast<const uint32_t *>(&val_data));
             handled = true;
             break;
         }
         case VOGL_GLCHAR:
         {
-            uint v = *reinterpret_cast<const uint8 *>(&val_data);
+            uint32_t v = *reinterpret_cast<const uint8_t *>(&val_data);
             if ((v >= 32) && (v < 128))
                 str.format_append("'%c'", v);
             else
@@ -2511,13 +2511,13 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
         }
         case VOGL_GLUBYTE:
         {
-            str.format_append("%u", *reinterpret_cast<const uint8 *>(&val_data));
+            str.format_append("%u", *reinterpret_cast<const uint8_t *>(&val_data));
             handled = true;
             break;
         }
         case VOGL_GLUSHORT:
         {
-            str.format_append("%u", *reinterpret_cast<const uint16 *>(&val_data));
+            str.format_append("%u", *reinterpret_cast<const uint16_t *>(&val_data));
             handled = true;
             break;
         }
@@ -2527,19 +2527,19 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
         case VOGL_GLSIZEI:
         case VOGL_GLFIXED:
         {
-            str.format_append("%i", *reinterpret_cast<const int32 *>(&val_data));
+            str.format_append("%i", *reinterpret_cast<const int32_t *>(&val_data));
             handled = true;
             break;
         }
         case VOGL_GLSHORT:
         {
-            str.format_append("%i", *reinterpret_cast<const int16 *>(&val_data));
+            str.format_append("%i", *reinterpret_cast<const int16_t *>(&val_data));
             handled = true;
             break;
         }
         case VOGL_GLBYTE:
         {
-            str.format_append("%i", *reinterpret_cast<const int8 *>(&val_data));
+            str.format_append("%i", *reinterpret_cast<const int8_t *>(&val_data));
             handled = true;
             break;
         }

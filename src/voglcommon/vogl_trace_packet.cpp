@@ -2363,6 +2363,7 @@ bool vogl_trace_packet::pretty_print_param(dynamic_string &str, uint32_t param_i
                                 str.format_append(" ");
 
                             uint64_t array_val_data = reinterpret_cast<const uint16_t *>(pClient_mem)[i];
+
                             if (!pretty_print_param_val(str, pointee_ctype_desc, array_val_data, get_entrypoint_id(), is_return_param ? -1 : param_index))
                                 str.format_append("0x%" PRIX64, array_val_data);
                         }
