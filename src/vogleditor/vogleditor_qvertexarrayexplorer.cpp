@@ -310,28 +310,21 @@ void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged
     QStringList headers;
 
     // identify if there is an index buffer
-    uint indexBufferHandle = 0;
+    uint indexBufferHandle = pState->get_element_array_binding();
     vogl_buffer_state* pIndexBufferState = NULL;
-    if (pState->get_vertex_attrib_count() > 0)
+    if (indexBufferHandle != 0)
     {
-        indexBufferHandle = pState->get_vertex_attrib_desc(0).m_element_array_binding;
-        if (indexBufferHandle != 0)
+        for (uint b = 0; b < bufferVec.size(); b++)
         {
-            for (uint b = 0; b < bufferVec.size(); b++)
+            if (bufferVec[b]->get_snapshot_handle() == indexBufferHandle)
             {
-                if (bufferVec[b]->get_snapshot_handle() == indexBufferHandle)
-                {
-                    pIndexBufferState = static_cast<vogl_buffer_state*>(bufferVec[b]);
-                    break;
-                }
+                pIndexBufferState = static_cast<vogl_buffer_state*>(bufferVec[b]);
+                break;
             }
         }
 
         headers << QString("Element Buffer %1").arg(indexBufferHandle);
     }
-
-    // set appropriate number of columns (one for each attrib + one for the index buffer if it is available)
-    ui->vertexTableWidget->setColumnCount(attribCount + ((indexBufferHandle > 0)? 1 : 0));
 
     for (uint b = 0; b < buffers.size(); b++)
     {
@@ -341,6 +334,8 @@ void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged
         }
     }
 
+    // set column headers
+    ui->vertexTableWidget->setColumnCount(headers.size());
     ui->vertexTableWidget->setHorizontalHeaderLabels(headers);
 
     uint indexCount = 0;
