@@ -54,6 +54,7 @@
 #include "vogleditor_qprogramexplorer.h"
 #include "vogleditor_qshaderexplorer.h"
 #include "vogleditor_qtimelineview.h"
+#include "vogleditor_qvertexarrayexplorer.h"
 #include "vogleditor_apicalltreeitem.h"
 #include "vogleditor_frameitem.h"
 
@@ -120,13 +121,16 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pProgramExplorer(NULL),
    m_pShaderExplorer(NULL),
    m_pBufferExplorer(NULL),
+   m_pVertexArrayExplorer(NULL),
    m_timeline(NULL),
    m_pFramebufferTab_layout(NULL),
    m_pTextureTab_layout(NULL),
    m_pRenderbufferTab_layout(NULL),
+   m_pProgramArbTab_layout(NULL),
    m_pProgramTab_layout(NULL),
    m_pShaderTab_layout(NULL),
    m_pBufferTab_layout(NULL),
+   m_pVertexArrayTab_layout(NULL),
    m_currentSnapshot(NULL),
    m_pCurrentCallTreeItem(NULL),
    m_pVoglReplayProcess(new QProcess()),
@@ -201,6 +205,12 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pBufferExplorer = new vogleditor_QBufferExplorer(ui->bufferTab);
    m_pBufferTab_layout->addWidget(m_pBufferExplorer, 0, 0);
    ui->bufferTab->setLayout(m_pBufferTab_layout);
+
+   // setup vertex array tab
+   m_pVertexArrayTab_layout = new QGridLayout();
+   m_pVertexArrayExplorer = new vogleditor_QVertexArrayExplorer(ui->vertexArrayTab);
+   m_pVertexArrayTab_layout->addWidget(m_pVertexArrayExplorer, 0, 0);
+   ui->vertexArrayTab->setLayout(m_pVertexArrayTab_layout);
 
    // setup timeline
    m_timeline = new vogleditor_QTimelineView();
@@ -289,6 +299,12 @@ VoglEditor::~VoglEditor()
         m_pBufferExplorer = NULL;
     }
 
+    if (m_pVertexArrayExplorer != NULL)
+    {
+        delete m_pVertexArrayExplorer;
+        m_pVertexArrayExplorer = NULL;
+    }
+
     if (m_pPlayButton != NULL)
     {
         delete m_pPlayButton;
@@ -341,6 +357,12 @@ VoglEditor::~VoglEditor()
     {
         delete m_pBufferTab_layout;
         m_pBufferTab_layout = NULL;
+    }
+
+    if (m_pVertexArrayTab_layout != NULL)
+    {
+        delete m_pVertexArrayTab_layout;
+        m_pVertexArrayTab_layout = NULL;
     }
 
     if (m_pStateTreeModel != NULL)
@@ -1443,6 +1465,7 @@ void VoglEditor::reset_snapshot_ui()
     m_pProgramExplorer->clear();
     m_pShaderExplorer->clear();
     m_pBufferExplorer->clear();
+    m_pVertexArrayExplorer->clear();
     ui->contextComboBox->clear();
     ui->contextComboBox->setEnabled(false);
 
@@ -1458,6 +1481,7 @@ void VoglEditor::reset_snapshot_ui()
     VOGLEDITOR_DISABLE_STATE_TAB(ui->shaderTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->textureTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->renderbufferTab);
+    VOGLEDITOR_DISABLE_STATE_TAB(ui->vertexArrayTab);
 
     ui->tabWidget->setCurrentWidget(pCurrentTab);
 }
@@ -1729,6 +1753,10 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
     uint bufferCount = m_pBufferExplorer->set_buffer_objects(sharingContexts);
     if (bufferCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->bufferTab); }
 
+    // buffers
+    m_pVertexArrayExplorer->clear();
+    uint vaoCount = m_pVertexArrayExplorer->set_vertexarray_objects(pContext, sharingContexts);
+    if (vaoCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->vertexArrayTab); }
 }
 
 void VoglEditor::on_stateTreeView_clicked(const QModelIndex &index)
