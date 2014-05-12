@@ -140,20 +140,20 @@ int main(int argc, char **argv)
     }
 
     // TODO: This is a total work in progress!
-    for (uint array_index = 0; array_index < tex.get_array_size(); array_index++)
+    for (uint32_t array_index = 0; array_index < tex.get_array_size(); array_index++)
     {
-        for (uint face_index = 0; face_index < tex.get_num_faces(); face_index++)
+        for (uint32_t face_index = 0; face_index < tex.get_num_faces(); face_index++)
         {
-            for (uint mip_level = 0; mip_level < tex.get_num_mips(); mip_level++)
+            for (uint32_t mip_level = 0; mip_level < tex.get_num_mips(); mip_level++)
             {
-                uint mip_depth = math::maximum<uint>(1U, tex.get_depth() >> mip_level);
+                uint32_t mip_depth = math::maximum<uint32_t>(1U, tex.get_depth() >> mip_level);
 
-                for (uint zslice_index = 0; zslice_index < mip_depth; zslice_index++)
+                for (uint32_t zslice_index = 0; zslice_index < mip_depth; zslice_index++)
                 {
-                    uint mip_width = math::maximum<uint>(1U, tex.get_width() >> mip_level);
-                    uint mip_height = math::maximum<uint>(1U, tex.get_height() >> mip_level);
+                    uint32_t mip_width = math::maximum<uint32_t>(1U, tex.get_width() >> mip_level);
+                    uint32_t mip_height = math::maximum<uint32_t>(1U, tex.get_height() >> mip_level);
 
-                    uint image_index = tex.get_image_index(mip_level, array_index, face_index, zslice_index);
+                    uint32_t image_index = tex.get_image_index(mip_level, array_index, face_index, zslice_index);
                     if (image_index >= tex.get_num_images())
                         continue;
 
@@ -179,11 +179,11 @@ int main(int argc, char **argv)
                     image_u8 rgb_img(mip_width, mip_height);
                     image_u8 alpha_img(mip_width, mip_height);
 
-                    for (uint y = 0; y < mip_height; y++)
+                    for (uint32_t y = 0; y < mip_height; y++)
                     {
                         const color_quad_u8 *pPixel = reinterpret_cast<color_quad_u8 *>(temp_buf.get_ptr() + y * mip_width * sizeof(uint32_t));
 
-                        for (uint x = 0; x < mip_width; x++)
+                        for (uint32_t x = 0; x < mip_width; x++)
                         {
                             rgb_img.set_pixel_unclipped(x, y, *pPixel);
                             alpha_img.set_pixel_unclipped(x, y, color_quad_u8((*pPixel)[3]));
