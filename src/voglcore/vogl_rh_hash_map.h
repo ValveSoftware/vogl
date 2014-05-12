@@ -239,7 +239,7 @@ namespace vogl
         // erases container, but doesn't free the allocated memory block
         inline void reset()
         {
-            uint num_remaining = m_num_valid;
+            uint32_t num_remaining = m_num_valid;
             if (!num_remaining)
                 return;
 
@@ -269,7 +269,7 @@ namespace vogl
             hash_entry *p = m_values.begin();
             hash_entry *p_end = m_values.end();
 
-            uint num_remaining = m_num_valid;
+            uint32_t num_remaining = m_num_valid;
             while (p != p_end)
             {
                 value_type *pValue = p->m_pValue;
@@ -296,13 +296,13 @@ namespace vogl
         }
 
         // Returns the number of active items in the container.
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_num_valid;
         }
 
         // Returns the size of the hash table.
-        inline uint get_table_size() const
+        inline uint32_t get_table_size() const
         {
             return m_values.size();
         }
@@ -313,7 +313,7 @@ namespace vogl
         }
 
         // Before insertion, when the size() == get_grow_threshold() the container will rehash (double in size).
-        inline uint get_grow_threshold() const
+        inline uint32_t get_grow_threshold() const
         {
             return m_grow_threshold;
         }
@@ -323,19 +323,19 @@ namespace vogl
             return m_num_valid >= m_grow_threshold;
         }
 
-        inline void reserve(uint new_capacity)
+        inline void reserve(uint32_t new_capacity)
         {
             if (!new_capacity)
                 return;
 
-            uint new_hash_size = new_capacity;
+            uint32_t new_hash_size = new_capacity;
 
             new_hash_size = new_hash_size * 2U;
 
             if (!math::is_power_of_2(new_hash_size))
                 new_hash_size = math::next_pow2(new_hash_size);
 
-            new_hash_size = math::maximum<uint>(cMinHashSize, new_hash_size);
+            new_hash_size = math::maximum<uint32_t>(cMinHashSize, new_hash_size);
 
             if (new_hash_size > m_values.size())
                 rehash(new_hash_size);
@@ -353,7 +353,7 @@ namespace vogl
                 : m_pTable(NULL), m_index(0)
             {
             }
-            inline iterator(rh_hash_map_type &table, uint index)
+            inline iterator(rh_hash_map_type &table, uint32_t index)
                 : m_pTable(&table), m_index(index)
             {
             }
@@ -410,14 +410,14 @@ namespace vogl
                 return !(*this == b);
             }
 
-            inline uint get_index() const
+            inline uint32_t get_index() const
             {
                 return m_index;
             }
 
         private:
             rh_hash_map_type *m_pTable;
-            uint m_index;
+            uint32_t m_index;
 
             inline value_type *get_cur() const
             {
@@ -443,7 +443,7 @@ namespace vogl
                 : m_pTable(NULL), m_index(0)
             {
             }
-            inline const_iterator(const rh_hash_map_type &table, uint index)
+            inline const_iterator(const rh_hash_map_type &table, uint32_t index)
                 : m_pTable(&table), m_index(index)
             {
             }
@@ -511,14 +511,14 @@ namespace vogl
                 return !(*this == b);
             }
 
-            inline uint get_index() const
+            inline uint32_t get_index() const
             {
                 return m_index;
             }
 
         private:
             const rh_hash_map_type *m_pTable;
-            uint m_index;
+            uint32_t m_index;
 
             inline const value_type *get_cur() const
             {
@@ -593,13 +593,13 @@ namespace vogl
                 return false;
 
             value_type *pValue = NULL;
-            uint hash = hash_key(k);
-            uint index_init = hash >> m_hash_shift;
+            uint32_t hash = hash_key(k);
+            uint32_t index_init = hash >> m_hash_shift;
 
-            const uint size = m_values.size();
+            const uint32_t size = m_values.size();
 
-            uint index_current = index_init & (size - 1);
-            uint probe_current = 0;
+            uint32_t index_current = index_init & (size - 1);
+            uint32_t probe_current = 0;
             while (true)
             {
                 hash_entry *pEntry = &m_values[index_current];
@@ -629,7 +629,7 @@ namespace vogl
                     break;
                 }
 
-                uint probe_distance = calc_distance(index_current);
+                uint32_t probe_distance = calc_distance(index_current);
                 if (probe_current > probe_distance)
                 {
                     if (!pValue)
@@ -644,7 +644,7 @@ namespace vogl
                     }
 
                     value_type *pTemp_value = pEntry->m_pValue;
-                    uint temp_hash = pEntry->m_hash;
+                    uint32_t temp_hash = pEntry->m_hash;
 
                     pEntry->m_pValue = pValue;
                     pEntry->m_hash = hash;
@@ -679,22 +679,22 @@ namespace vogl
         }
 
         // Returns index if found, or index==size() if not found.
-        uint find_index(const Key &k) const
+        uint32_t find_index(const Key &k) const
         {
-            uint hash = hash_key(k);
-            uint index_init = hash >> m_hash_shift;
+            uint32_t hash = hash_key(k);
+            uint32_t index_init = hash >> m_hash_shift;
 
-            const uint size = m_values.size();
+            const uint32_t size = m_values.size();
 
-            for (uint i = 0; i < size; ++i)
+            for (uint32_t i = 0; i < size; ++i)
             {
-                uint index_current = (index_init + i) & (size - 1);
+                uint32_t index_current = (index_init + i) & (size - 1);
                 const hash_entry *pEntry = &m_values[index_current];
 
                 if (!pEntry->m_pValue)
                     break;
 
-                uint probe_distance = calc_distance(index_current);
+                uint32_t probe_distance = calc_distance(index_current);
                 if (i > probe_distance)
                     break;
 
@@ -717,7 +717,7 @@ namespace vogl
 
         inline Value *find_value(const Key &key)
         {
-            uint index = find_index(key);
+            uint32_t index = find_index(key);
             if (index == m_values.size())
                 return NULL;
             return &(m_values[index].m_pEntry->second);
@@ -725,7 +725,7 @@ namespace vogl
 
         inline const Value *find_value(const Key &key) const
         {
-            uint index = find_index(key);
+            uint32_t index = find_index(key);
             if (index == m_values.size())
                 return NULL;
             return &(m_values[index].m_pEntry->second);
@@ -742,14 +742,14 @@ namespace vogl
             if (!m_num_valid)
                 return false;
 
-            uint hash = hash_key(k);
-            uint index_init = hash >> m_hash_shift;
+            uint32_t hash = hash_key(k);
+            uint32_t index_init = hash >> m_hash_shift;
 
-            uint index_current = 0;
+            uint32_t index_current = 0;
 
-            const uint size = m_values.size();
+            const uint32_t size = m_values.size();
 
-            for (uint i = 0; i < size; ++i)
+            for (uint32_t i = 0; i < size; ++i)
             {
                 index_current = (index_init + i) & (size - 1);
                 hash_entry *pEntry = &m_values[index_current];
@@ -757,7 +757,7 @@ namespace vogl
                 if (!pEntry->m_pValue)
                     return false;
 
-                uint probe_distance = calc_distance(index_current);
+                uint32_t probe_distance = calc_distance(index_current);
                 if (i > probe_distance)
                     return false;
 
@@ -770,10 +770,10 @@ namespace vogl
                 }
             }
 
-            for (uint i = 1; i < size; ++i)
+            for (uint32_t i = 1; i < size; ++i)
             {
-                uint prev = (index_current + i - 1) & (size - 1);
-                uint idx = (index_current + i) & (size - 1);
+                uint32_t prev = (index_current + i - 1) & (size - 1);
+                uint32_t idx = (index_current + i) & (size - 1);
 
                 if (!m_values[idx].m_pValue)
                 {
@@ -781,7 +781,7 @@ namespace vogl
                     break;
                 }
 
-                uint dist = calc_distance(idx);
+                uint32_t dist = calc_distance(idx);
                 if (!dist)
                 {
                     m_values[prev].m_pValue = NULL;
@@ -797,22 +797,22 @@ namespace vogl
 
         inline bool erase(const iterator &it)
         {
-            uint index_current = it.m_index;
+            uint32_t index_current = it.m_index;
             if ((index_current >= m_values.size()) || (!m_values[index_current].m_pValue))
             {
                 VOGL_ASSERT_ALWAYS;
                 return false;
             }
 
-            const uint size = m_values.size();
+            const uint32_t size = m_values.size();
 
             delete_value_type(m_values[index_current].m_pValue);
             --m_num_valid;
 
-            for (uint i = 1; i < size; ++i)
+            for (uint32_t i = 1; i < size; ++i)
             {
-                uint prev = (index_current + i - 1) & (size - 1);
-                uint idx = (index_current + i) & (size - 1);
+                uint32_t prev = (index_current + i - 1) & (size - 1);
+                uint32_t idx = (index_current + i) & (size - 1);
 
                 if (!m_values[idx].m_pValue)
                 {
@@ -820,7 +820,7 @@ namespace vogl
                     break;
                 }
 
-                uint dist = calc_distance(idx);
+                uint32_t dist = calc_distance(idx);
                 if (!dist)
                 {
                     m_values[prev].m_pValue = NULL;
@@ -864,9 +864,9 @@ namespace vogl
         }
 
         // Obviously, this method is very slow! It scans the entire hash table.
-        inline uint search_table_for_value_get_count(const Value &val) const
+        inline uint32_t search_table_for_value_get_count(const Value &val) const
         {
-            uint count = 0;
+            uint32_t count = 0;
             for (const_iterator it = begin(); it != end(); ++it)
                 if (it->second == val)
                     ++count;
@@ -920,23 +920,23 @@ namespace vogl
             if (m_hash_shift != (32U - math::floor_log2i(m_values.size())))
                 return check_failure();
 
-            uint total_found = 0;
-            uint max_dist = 0;
-            for (uint i = 0; i < m_values.size(); i++)
+            uint32_t total_found = 0;
+            uint32_t max_dist = 0;
+            for (uint32_t i = 0; i < m_values.size(); i++)
             {
                 if (m_values[i].m_pValue)
                 {
                     if (!m_allocator.is_valid_ptr(m_values[i].m_pValue))
                         return check_failure();
 
-                    uint actual_hash = hash_key(m_values[i].m_pValue->first);
+                    uint32_t actual_hash = hash_key(m_values[i].m_pValue->first);
                     if (m_values[i].m_hash != actual_hash)
                         return check_failure();
 
-                    uint dist = calc_distance(i);
-                    max_dist = math::maximum<uint>(max_dist, dist);
+                    uint32_t dist = calc_distance(i);
+                    max_dist = math::maximum<uint32_t>(max_dist, dist);
 
-                    uint k = find_index(m_values[i].m_pValue->first);
+                    uint32_t k = find_index(m_values[i].m_pValue->first);
                     if (k != i)
                         return check_failure();
 
@@ -953,27 +953,27 @@ namespace vogl
         // Direct hash table low-level manipulation
 
         // index can be retrieved from a iterator by calling get_index()
-        inline bool is_valid_index(uint index) const
+        inline bool is_valid_index(uint32_t index) const
         {
             return (index < m_values.size()) && (m_values[index].m_pValue != NULL);
         }
 
-        inline const value_type &value_type_at_index(uint index) const
+        inline const value_type &value_type_at_index(uint32_t index) const
         {
             return *m_values[index].m_pValue;
         }
 
-        inline const Key &key_at_index(uint index) const
+        inline const Key &key_at_index(uint32_t index) const
         {
             return m_values[index].m_pValue->first;
         }
 
-        inline const Value &value_at_index(uint index) const
+        inline const Value &value_at_index(uint32_t index) const
         {
             return m_values[index].m_pValue->second;
         }
 
-        inline Value &value_at_index(uint index)
+        inline Value &value_at_index(uint32_t index)
         {
             return m_values[index].m_pValue->second;
         }
@@ -982,18 +982,18 @@ namespace vogl
         struct hash_entry
         {
             value_type *m_pValue;
-            uint32 m_hash;
+            uint32_t m_hash;
         };
 
         typedef vogl::vector<hash_entry> hash_entry_vec;
 
         hash_entry_vec m_values;
 
-        uint m_hash_shift;
+        uint32_t m_hash_shift;
 
-        uint m_num_valid;
+        uint32_t m_num_valid;
 
-        uint m_grow_threshold;
+        uint32_t m_grow_threshold;
 
         Hasher m_hasher;
         Equals m_equals;
@@ -1027,25 +1027,25 @@ namespace vogl
             m_allocator.destroy_no_destruction(p);
         }
 
-        inline uint32 calc_distance(uint32 index_stored) const
+        inline uint32_t calc_distance(uint32_t index_stored) const
         {
             VOGL_ASSERT(m_values[index_stored].m_pValue);
 
-            uint32 initial_index = m_values[index_stored].m_hash >> m_hash_shift;
+            uint32_t initial_index = m_values[index_stored].m_hash >> m_hash_shift;
             VOGL_ASSERT((index_stored < m_values.size()) && (initial_index < m_values.size()));
 
-            uint32 distance = index_stored - initial_index;
+            uint32_t distance = index_stored - initial_index;
             if (initial_index > index_stored)
                 distance += m_values.size();
 
             return distance;
         }
 
-        inline uint hash_key(const Key &k) const
+        inline uint32_t hash_key(const Key &k) const
         {
             VOGL_ASSERT((1U << (32U - m_hash_shift)) == m_values.size());
 
-            uint hash = static_cast<uint>(m_hasher(k));
+            uint32_t hash = static_cast<uint32_t>(m_hasher(k));
 
             // Fibonacci hashing
             return 2654435769U * hash;
@@ -1060,7 +1060,7 @@ namespace vogl
                 return;
             }
 
-            rehash(math::maximum<uint>(cMinHashSize, m_values.size() * 2U));
+            rehash(math::maximum<uint32_t>(cMinHashSize, m_values.size() * 2U));
         }
 
         inline void move_into_container(hash_entry *pEntry_to_move)
@@ -1069,17 +1069,17 @@ namespace vogl
             VOGL_ASSERT(m_num_valid <= m_values.size());
 
             value_type *pValue = pEntry_to_move->m_pValue;
-            uint hash = pEntry_to_move->m_hash;
+            uint32_t hash = pEntry_to_move->m_hash;
 
-            uint index_init = hash >> m_hash_shift;
-            uint probe_current = 0;
+            uint32_t index_init = hash >> m_hash_shift;
+            uint32_t probe_current = 0;
 
-            const uint size = m_values.size();
+            const uint32_t size = m_values.size();
 
-            uint i;
+            uint32_t i;
             for (i = 0; i < size; ++i, ++probe_current)
             {
-                uint index_current = (index_init + i) & (m_values.size() - 1);
+                uint32_t index_current = (index_init + i) & (m_values.size() - 1);
                 hash_entry *pEntry = &m_values[index_current];
 
                 if (!pEntry->m_pValue)
@@ -1089,11 +1089,11 @@ namespace vogl
                     break;
                 }
 
-                uint probe_distance = calc_distance(index_current);
+                uint32_t probe_distance = calc_distance(index_current);
                 if (probe_current > probe_distance)
                 {
                     value_type *pTemp_value = pEntry->m_pValue;
-                    uint temp_hash = pEntry->m_hash;
+                    uint32_t temp_hash = pEntry->m_hash;
 
                     pEntry->m_pValue = pValue;
                     pEntry->m_hash = hash;
@@ -1108,7 +1108,7 @@ namespace vogl
             VOGL_ASSERT(i != size);
         }
 
-        inline void rehash(uint new_hash_size)
+        inline void rehash(uint32_t new_hash_size)
         {
             VOGL_ASSERT(new_hash_size >= m_num_valid);
             VOGL_ASSERT(math::is_power_of_2(new_hash_size));
@@ -1159,7 +1159,7 @@ namespace vogl
             VOGL_ASSERT(check());
         }
 
-        inline uint find_next(uint index) const
+        inline uint32_t find_next(uint32_t index) const
         {
             if (++index >= m_values.size())
                 return index;
@@ -1173,7 +1173,7 @@ namespace vogl
                     break;
             }
 
-            return static_cast<uint>(pEntry - m_values.begin());
+            return static_cast<uint32_t>(pEntry - m_values.begin());
         }
     };
 

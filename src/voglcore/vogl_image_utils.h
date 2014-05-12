@@ -46,12 +46,12 @@ namespace vogl
 
         bool read_from_stream_stb(data_stream_serializer &serializer, image_u8 &img);
         bool read_from_stream_jpgd(data_stream_serializer &serializer, image_u8 &img);
-        bool read_from_stream(image_u8 &dest, data_stream_serializer &serializer, uint read_flags = 0);
-        bool read_from_file(image_u8 &dest, const char *pFilename, uint read_flags = 0);
+        bool read_from_stream(image_u8 &dest, data_stream_serializer &serializer, uint32_t read_flags = 0);
+        bool read_from_file(image_u8 &dest, const char *pFilename, uint32_t read_flags = 0);
 
         // Reads texture from memory, results returned stb_image.c style.
         // *pActual_comps is set to 1, 3, or 4. req_comps must range from 1-4.
-        uint8 *read_from_memory(const uint8 *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename);
+        uint8_t *read_from_memory(const uint8_t *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename);
 
         enum
         {
@@ -72,7 +72,7 @@ namespace vogl
             cJPEGMaxQualityLevel = 100
         };
 
-        inline uint create_jpeg_write_flags(uint base_flags, uint quality_level)
+        inline uint32_t create_jpeg_write_flags(uint32_t base_flags, uint32_t quality_level)
         {
             VOGL_ASSERT(quality_level <= 100);
             return base_flags | ((quality_level << cWriteFlagJPEGQualityLevelShift) & cWriteFlagJPEGQualityLevelMask);
@@ -80,8 +80,8 @@ namespace vogl
 
         const int cLumaComponentIndex = -1;
 
-        bool write_to_file(const char *pFilename, const image_u8 &img, uint write_flags = 0, int grayscale_comp_index = cLumaComponentIndex);
-        bool write_to_file(const char *pFilename, const image_f &img, const vec4F &l, const vec4F &h, uint write_flags = 0, int grayscale_comp_index = cLumaComponentIndex);
+        bool write_to_file(const char *pFilename, const image_u8 &img, uint32_t write_flags = 0, int grayscale_comp_index = cLumaComponentIndex);
+        bool write_to_file(const char *pFilename, const image_f &img, const vec4F &l, const vec4F &h, uint32_t write_flags = 0, int grayscale_comp_index = cLumaComponentIndex);
 
         bool has_alpha(const image_u8 &img);
         bool is_normal_map(const image_u8 &img, const char *pFilename = NULL);
@@ -105,14 +105,14 @@ namespace vogl
             {
             }
 
-            uint m_dst_width;
-            uint m_dst_height;
+            uint32_t m_dst_width;
+            uint32_t m_dst_height;
             const char *m_pFilter;
             float m_filter_scale;
             bool m_srgb;
             bool m_wrapping;
-            uint m_first_comp;
-            uint m_num_comps;
+            uint32_t m_first_comp;
+            uint32_t m_num_comps;
             float m_source_gamma;
             bool m_multithreaded;
             float m_x_ofs;
@@ -124,7 +124,7 @@ namespace vogl
         bool resample(const image_u8 &src, image_u8 &dst, const resample_params &params);
         bool resample(const image_f &src, image_f &dst, const resample_params &params);
 
-        bool compute_delta(image_u8 &dest, const image_u8 &a, const image_u8 &b, uint scale = 2);
+        bool compute_delta(image_u8 &dest, const image_u8 &a, const image_u8 &b, uint32_t scale = 2);
 
         class error_metrics
         {
@@ -138,9 +138,9 @@ namespace vogl
 
             // If num_channels==0, luma error is computed.
             // If pHist != NULL, it must point to a 256 entry array.
-            bool compute(const image_u8 &a, const image_u8 &b, uint first_channel, uint num_channels, bool average_component_error = true);
+            bool compute(const image_u8 &a, const image_u8 &b, uint32_t first_channel, uint32_t num_channels, bool average_component_error = true);
 
-            uint mMax;
+            uint32_t mMax;
             double mMean;
             double mMeanSquared;
             double mRootMeanSquared;
@@ -166,7 +166,7 @@ namespace vogl
 
         void print_image_metrics(const image_u8 &src_img, const image_u8 &dst_img);
 
-        double compute_block_ssim(uint n, const uint8 *pX, const uint8 *pY);
+        double compute_block_ssim(uint32_t n, const uint8_t *pX, const uint8_t *pY);
         double compute_ssim(const image_u8 &a, const image_u8 &b, int channel_index);
         void print_ssim(const image_u8 &src_img, const image_u8 &dst_img);
 
@@ -192,27 +192,27 @@ namespace vogl
         void convert_image(image_u8 &img, conversion_type conv_type);
 
         template <typename image_type>
-        inline uint8 *pack_image(const image_type &img, const pixel_packer &packer, uint &n)
+        inline uint8_t *pack_image(const image_type &img, const pixel_packer &packer, uint32_t &n)
         {
             n = 0;
 
             if (!packer.is_valid())
                 return NULL;
 
-            const uint width = img.get_width(), height = img.get_height();
-            uint dst_pixel_stride = packer.get_pixel_stride();
-            uint dst_pitch = width * dst_pixel_stride;
+            const uint32_t width = img.get_width(), height = img.get_height();
+            uint32_t dst_pixel_stride = packer.get_pixel_stride();
+            uint32_t dst_pitch = width * dst_pixel_stride;
 
             n = dst_pitch * height;
 
-            uint8 *pImage = static_cast<uint8 *>(vogl_malloc(n));
+            uint8_t *pImage = static_cast<uint8_t *>(vogl_malloc(n));
 
-            uint8 *pDst = pImage;
-            for (uint y = 0; y < height; y++)
+            uint8_t *pDst = pImage;
+            for (uint32_t y = 0; y < height; y++)
             {
                 const typename image_type::color_t *pSrc = img.get_scanline(y);
-                for (uint x = 0; x < width; x++)
-                    pDst = (uint8 *)packer.pack(*pSrc++, pDst);
+                for (uint32_t x = 0; x < width; x++)
+                    pDst = (uint8_t *)packer.pack(*pSrc++, pDst);
             }
 
             return pImage;
@@ -222,11 +222,11 @@ namespace vogl
 
         image_utils::conversion_type get_image_conversion_type_from_vogl_format(vogl_format fmt);
 
-        double compute_std_dev(uint n, const color_quad_u8 *pPixels, uint first_channel, uint num_channels);
+        double compute_std_dev(uint32_t n, const color_quad_u8 *pPixels, uint32_t first_channel, uint32_t num_channels);
 
-        uint8 *read_image_from_memory(const uint8 *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename);
+        uint8_t *read_image_from_memory(const uint8_t *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename);
 
-        template <uint M>
+        template <uint32_t M>
         void create_normalized_convolution_matrix(matrix<M, M, float> &weights, const float *pSrc_weights)
         {
             if ((M & 1) == 0)
@@ -255,27 +255,27 @@ namespace vogl
             weights /= tw;
         }
 
-        inline void convolution_filter(image_u8 &dst, const image_u8 &src, const float *pWeights, uint M, uint N, bool wrapping);
+        inline void convolution_filter(image_u8 &dst, const image_u8 &src, const float *pWeights, uint32_t M, uint32_t N, bool wrapping);
 
         // M = num rows (Y), N = num cols (X)
-        template <uint M, uint N>
+        template <uint32_t M, uint32_t N>
         void convolution_filter(image_u8 &dst, const image_u8 &src, const matrix<M, N, float> &weights, bool wrapping)
         {
             convolution_filter(dst, src, &weights[0][0], M, N, wrapping);
         }
 
-        void convolution_filter(image_f &dst, const image_f &src, const float *pWeights, uint M, uint N, bool wrapping);
+        void convolution_filter(image_f &dst, const image_f &src, const float *pWeights, uint32_t M, uint32_t N, bool wrapping);
 
         // M = num rows (Y), N = num cols (X)
-        template <uint M, uint N>
+        template <uint32_t M, uint32_t N>
         inline void convolution_filter(image_f &dst, const image_f &src, const matrix<M, N, float> &weights, bool wrapping)
         {
             convolution_filter(dst, src, &weights[0][0], M, N, wrapping);
         }
 
-        bool forward_fourier_transform(const image_u8 &src, image_u8 &dst, uint comp_mask = 0xF);
+        bool forward_fourier_transform(const image_u8 &src, image_u8 &dst, uint32_t comp_mask = 0xF);
 
-        void gaussian_filter(image_u8 &dst, const image_u8 &orig_img, uint width_divisor, uint height_divisor, uint odd_filter_width, float sigma_sqr, bool wrapping);
+        void gaussian_filter(image_u8 &dst, const image_u8 &orig_img, uint32_t width_divisor, uint32_t height_divisor, uint32_t odd_filter_width, float sigma_sqr, bool wrapping);
 
     } // namespace image_utils
 

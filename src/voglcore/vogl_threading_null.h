@@ -32,7 +32,7 @@
 
 namespace vogl
 {
-    const uint g_number_of_processors = 1;
+    const uint32_t g_number_of_processors = 1;
 
     inline void vogl_threading_init()
     {
@@ -49,7 +49,7 @@ namespace vogl
         VOGL_NOTE_UNUSED(milliseconds);
     }
 
-    inline uint vogl_get_max_helper_threads()
+    inline uint32_t vogl_get_max_helper_threads()
     {
         return 0;
     }
@@ -110,12 +110,12 @@ namespace vogl
         {
         }
 
-        inline void lock(uint32 max_spins = 4096, bool yielding = true, bool memoryBarrier = true)
+        inline void lock(uint32_t max_spins = 4096, bool yielding = true, bool memoryBarrier = true)
         {
             VOGL_NOTE_UNUSED(max_spins), VOGL_NOTE_UNUSED(yielding), VOGL_NOTE_UNUSED(memoryBarrier);
         }
 
-        inline void lock_no_barrier(uint32 max_spins = 4096, bool yielding = true)
+        inline void lock_no_barrier(uint32_t max_spins = 4096, bool yielding = true)
         {
             VOGL_NOTE_UNUSED(max_spins), VOGL_NOTE_UNUSED(yielding);
         }
@@ -154,7 +154,7 @@ namespace vogl
         VOGL_NO_COPY_OR_ASSIGNMENT_OP(semaphore);
 
     public:
-        inline semaphore(uint32 initialCount, uint32 maximumCount, const char *pName = NULL)
+        inline semaphore(uint32_t initialCount, uint32_t maximumCount, const char *pName = NULL)
         {
             VOGL_NOTE_UNUSED(initialCount), VOGL_NOTE_UNUSED(maximumCount), VOGL_NOTE_UNUSED(pName);
         }
@@ -163,12 +163,12 @@ namespace vogl
         {
         }
 
-        inline void release(uint32 releaseCount = 1)
+        inline void release(uint32_t releaseCount = 1)
         {
             VOGL_NOTE_UNUSED(releaseCount);
         }
 
-        inline bool wait(uint32 milliseconds = cUINT32_MAX)
+        inline bool wait(uint32_t milliseconds = cUINT32_MAX)
         {
             VOGL_NOTE_UNUSED(milliseconds);
             return true;
@@ -181,7 +181,7 @@ namespace vogl
         inline task_pool()
         {
         }
-        inline task_pool(uint num_threads)
+        inline task_pool(uint32_t num_threads)
         {
             num_threads;
         }
@@ -189,7 +189,7 @@ namespace vogl
         {
         }
 
-        inline bool init(uint num_threads)
+        inline bool init(uint32_t num_threads)
         {
             num_threads;
             return true;
@@ -198,11 +198,11 @@ namespace vogl
         {
         }
 
-        inline uint get_num_threads() const
+        inline uint32_t get_num_threads() const
         {
             return 0;
         }
-        inline uint get_num_outstanding_tasks() const
+        inline uint32_t get_num_outstanding_tasks() const
         {
             return 0;
         }
@@ -236,9 +236,9 @@ namespace vogl
         }
 
         template <typename S, typename T>
-        inline bool queue_multiple_object_tasks(S *pObject, T pObject_method, uint64_t first_data, uint num_tasks, void *pData_ptr = NULL)
+        inline bool queue_multiple_object_tasks(S *pObject, T pObject_method, uint64_t first_data, uint32_t num_tasks, void *pData_ptr = NULL)
         {
-            for (uint i = 0; i < num_tasks; i++)
+            for (uint32_t i = 0; i < num_tasks; i++)
             {
                 (pObject->*pObject_method)(first_data + i, pData_ptr);
             }

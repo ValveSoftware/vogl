@@ -120,7 +120,7 @@ bool vogl_replay_window::open(int width, int height, int samples)
                               pVisual_info->depth, InputOutput,
                               pVisual_info->visual, winmask, &winAttribs);
 
-        const char *pWindow_name = (sizeof(void *) == sizeof(uint32)) ? "voglreplay 32-bit" : "voglreplay 64-bit";
+        const char *pWindow_name = (sizeof(void *) == sizeof(uint32_t)) ? "voglreplay 32-bit" : "voglreplay 64-bit";
         XStoreName(m_dpy, m_win, pWindow_name);
         XSetIconName(m_dpy, m_win, pWindow_name);
 
@@ -142,7 +142,7 @@ bool vogl_replay_window::open(int width, int height, int samples)
         m_width = width;
         m_height = height;
 
-        uint actual_width = 0, actual_height = 0;
+        uint32_t actual_width = 0, actual_height = 0;
         vogl_replay_window::get_actual_dimensions(actual_width, actual_height);
         vogl_debug_printf("%s: Created window, requested dimensions %ux%u, actual dimensions %ux%u\n", VOGL_FUNCTION_INFO_CSTR, m_width, m_height, actual_width, actual_height);
 
@@ -249,13 +249,13 @@ void vogl_replay_window::update_dimensions()
 
     //m_width = winData.width;
     //m_height = winData.height;
-    uint w, h;
+    uint32_t w, h;
     get_actual_dimensions(w, h);
     m_width = w;
     m_height = h;
 }
 
-bool vogl_replay_window::get_actual_dimensions(uint &width, uint &height) const
+bool vogl_replay_window::get_actual_dimensions(uint32_t &width, uint32_t &height) const
 {
     VOGL_FUNC_TRACER
     #if (VOGL_PLATFORM_HAS_GLX)

@@ -77,9 +77,9 @@ namespace vogl
             cFlagAllowHidden = 8
         };
 
-        bool find(const char *pBasepath, const char *pFilespec, uint flags = cFlagAllowFiles);
+        bool find(const char *pBasepath, const char *pFilespec, uint32_t flags = cFlagAllowFiles);
 
-        bool find(const char *pSpec, uint flags = cFlagAllowFiles);
+        bool find(const char *pSpec, uint32_t flags = cFlagAllowFiles);
 
         // An HRESULT under Win32. FIXME: Abstract this better?
         inline int64_t get_last_error() const
@@ -98,7 +98,7 @@ namespace vogl
         // A HRESULT under Win32
         int64_t m_last_error;
 
-        bool find_internal(const char *pBasepath, const char *pRelpath, const char *pFilespec, uint flags, int level);
+        bool find_internal(const char *pBasepath, const char *pRelpath, const char *pFilespec, uint32_t flags, int level);
 
     }; // class find_files
 

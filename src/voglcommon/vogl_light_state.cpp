@@ -48,7 +48,7 @@ bool vogl_light_state::snapshot(const vogl_context_info &context_info)
     bool any_gl_errors = false;
 
     m_lights.resize(context_info.get_max_lights());
-    for (uint light = 0; light < context_info.get_max_lights(); light++)
+    for (uint32_t light = 0; light < context_info.get_max_lights(); light++)
     {
 #define GET_FLOAT(light, pname)                                            \
     do                                                                     \
@@ -86,7 +86,7 @@ bool vogl_light_state::snapshot(const vogl_context_info &context_info)
     return true;
 }
 
-bool vogl_light_state::set_light_parameter(uint light, GLenum pname) const
+bool vogl_light_state::set_light_parameter(uint32_t light, GLenum pname) const
 {
     VOGL_FUNC_TRACER
 
@@ -137,13 +137,13 @@ bool vogl_light_state::restore(const vogl_context_info &context_info) const
         VOGL_ASSERT_ALWAYS;
     }
 
-    const uint num_lights = math::minimum<uint>(m_lights.size(), context_info.get_max_lights());
+    const uint32_t num_lights = math::minimum<uint32_t>(m_lights.size(), context_info.get_max_lights());
     if (m_lights.size() > context_info.get_max_lights())
     {
         vogl_warning_printf("%s: Object has %u lights, but the context only supports %u lights!\n", VOGL_FUNCTION_INFO_CSTR, m_lights.size(), context_info.get_max_lights());
     }
 
-    for (uint light = 0; light < num_lights; light++)
+    for (uint32_t light = 0; light < num_lights; light++)
     {
 #define SET_FLOAT(light, pname) set_light_parameter(light, pname)
         SET_FLOAT(light, GL_CONSTANT_ATTENUATION);
@@ -179,7 +179,7 @@ bool vogl_light_state::serialize(json_node &node, vogl_blob_manager &blob_manage
     }
 
     json_node &light_array_node = node.add_array("lights");
-    for (uint i = 0; i < m_lights.size(); i++)
+    for (uint32_t i = 0; i < m_lights.size(); i++)
         if (!m_lights[i].serialize(light_array_node.add_object(), blob_manager))
             return false;
 
@@ -200,7 +200,7 @@ bool vogl_light_state::deserialize(const json_node &node, const vogl_blob_manage
 
     m_lights.resize(pLight_array_node->size());
 
-    for (uint i = 0; i < m_lights.size(); i++)
+    for (uint32_t i = 0; i < m_lights.size(); i++)
     {
         if (!m_lights[i].deserialize(*pLight_array_node->get_child(i), blob_manager))
         {

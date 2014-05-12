@@ -350,21 +350,21 @@ namespace vogl
         if (!pImage->crop(pImg->get_width(), pImg->get_height()))
             return false;
 
-        for (uint y = 0; y < pImg->get_height(); y++)
+        for (uint32_t y = 0; y < pImg->get_height(); y++)
         {
-            for (uint x = 0; x < pImg->get_width(); x++)
+            for (uint32_t x = 0; x < pImg->get_width(); x++)
             {
                 color_quad_u8 c((*pImg)(x, y));
 
                 if ((pixel_format_helpers::is_alpha_only(fmt)) && (!pImg->has_alpha()))
                 {
-                    c.a = static_cast<uint8>(c.get_luma());
+                    c.a = static_cast<uint8_t>(c.get_luma());
                 }
                 else
                 {
                     if (pImage->is_grayscale())
                     {
-                        uint8 g = static_cast<uint8>(c.get_luma());
+                        uint8_t g = static_cast<uint8_t>(c.get_luma());
                         c.r = g;
                         c.g = g;
                         c.b = g;
@@ -399,7 +399,7 @@ namespace vogl
             image_utils::convert_image(img, conv_type);
     }
 
-    image_u8 *mip_level::get_unpacked_image(image_u8 &tmp, uint unpack_flags) const
+    image_u8 *mip_level::get_unpacked_image(image_u8 &tmp, uint32_t unpack_flags) const
     {
         if (!is_valid())
             return NULL;
@@ -498,9 +498,9 @@ namespace vogl
 
     void mipmapped_texture::free_all_mips()
     {
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint i = 0; i < m_face_array[a].size(); i++)
-                for (uint j = 0; j < m_face_array[a][i].size(); j++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t i = 0; i < m_face_array[a].size(); i++)
+                for (uint32_t j = 0; j < m_face_array[a][i].size(); j++)
                     vogl_delete(m_face_array[a][i][j]);
 
         m_face_array.clear();
@@ -536,14 +536,14 @@ namespace vogl
         m_format = rhs.m_format;
 
         m_face_array.resize(rhs.m_face_array.size());
-        for (uint a = 0; a < m_face_array.size(); a++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
         {
             m_face_array[a].resize(rhs.m_face_array[a].size());
-            for (uint i = 0; i < m_face_array[a].size(); i++)
+            for (uint32_t i = 0; i < m_face_array[a].size(); i++)
             {
                 m_face_array[a][i].resize(rhs.m_face_array[a][i].size());
 
-                for (uint j = 0; j < rhs.m_face_array[a][i].size(); j++)
+                for (uint32_t j = 0; j < rhs.m_face_array[a][i].size(); j++)
                     m_face_array[a][i][j] = vogl_new(mip_level, *rhs.m_face_array[a][i][j]);
             }
         }
@@ -572,7 +572,7 @@ namespace vogl
 
         set_last_error("Not a DDS file");
 
-        uint8 hdr[4];
+        uint8_t hdr[4];
         if (!serializer.read(hdr, sizeof(hdr)))
             return false;
 
@@ -584,7 +584,7 @@ namespace vogl
             return false;
 
         if (!c_vogl_little_endian_platform)
-            utils::endian_switch_dwords(reinterpret_cast<uint32 *>(&desc), sizeof(desc) / sizeof(uint32));
+            utils::endian_switch_dwords(reinterpret_cast<uint32_t *>(&desc), sizeof(desc) / sizeof(uint32_t));
 
         if (desc.dwSize != sizeof(desc))
             return false;
@@ -595,7 +595,7 @@ namespace vogl
         m_width = desc.dwWidth;
         m_height = desc.dwHeight;
 
-        uint num_mip_levels = 1;
+        uint32_t num_mip_levels = 1;
 
         if ((desc.dwFlags & DDSD_MIPMAPCOUNT) && (desc.ddsCaps.dwCaps & DDSCAPS_MIPMAP) && (desc.dwMipMapCount))
         {
@@ -604,13 +604,13 @@ namespace vogl
                 return false;
         }
 
-        uint num_faces = 1;
+        uint32_t num_faces = 1;
 
         if (desc.ddsCaps.dwCaps & DDSCAPS_COMPLEX)
         {
             if (desc.ddsCaps.dwCaps2 & DDSCAPS2_CUBEMAP)
             {
-                const uint all_faces_mask = DDSCAPS2_CUBEMAP_POSITIVEX | DDSCAPS2_CUBEMAP_NEGATIVEX | DDSCAPS2_CUBEMAP_POSITIVEY | DDSCAPS2_CUBEMAP_NEGATIVEY | DDSCAPS2_CUBEMAP_POSITIVEZ | DDSCAPS2_CUBEMAP_NEGATIVEZ;
+                const uint32_t all_faces_mask = DDSCAPS2_CUBEMAP_POSITIVEX | DDSCAPS2_CUBEMAP_NEGATIVEX | DDSCAPS2_CUBEMAP_POSITIVEY | DDSCAPS2_CUBEMAP_NEGATIVEY | DDSCAPS2_CUBEMAP_POSITIVEZ | DDSCAPS2_CUBEMAP_NEGATIVEZ;
                 if ((desc.ddsCaps.dwCaps2 & all_faces_mask) != all_faces_mask)
                 {
                     set_last_error("Incomplete cubemaps unsupported");
@@ -762,20 +762,20 @@ namespace vogl
 
         m_comp_flags = pixel_format_helpers::get_component_flags(m_format);
 
-        uint bits_per_pixel = desc.ddpfPixelFormat.dwRGBBitCount;
+        uint32_t bits_per_pixel = desc.ddpfPixelFormat.dwRGBBitCount;
 
         if (desc.ddpfPixelFormat.dwFlags & DDPF_FOURCC)
             bits_per_pixel = pixel_format_helpers::get_bpp(m_format);
 
         set_last_error("Load failed");
 
-        uint default_pitch;
+        uint32_t default_pitch;
         if (desc.ddpfPixelFormat.dwFlags & DDPF_FOURCC)
             default_pitch = (((desc.dwWidth + 3) & ~3) * ((desc.dwHeight + 3) & ~3) * bits_per_pixel) >> 3;
         else
             default_pitch = (desc.dwWidth * bits_per_pixel) >> 3;
 
-        uint pitch = 0;
+        uint32_t pitch = 0;
         if ((desc.dwFlags & DDSD_PITCH) && (!(desc.dwFlags & DDSD_LINEARSIZE)))
         {
             pitch = desc.lPitch;
@@ -799,15 +799,15 @@ namespace vogl
             return false;
         }
 
-        vogl::vector<uint8> load_buf;
+        vogl::vector<uint8_t> load_buf;
 
-        uint mask_size[4];
+        uint32_t mask_size[4];
         mask_size[0] = math::bitmask_size(desc.ddpfPixelFormat.dwRBitMask);
         mask_size[1] = math::bitmask_size(desc.ddpfPixelFormat.dwGBitMask);
         mask_size[2] = math::bitmask_size(desc.ddpfPixelFormat.dwBBitMask);
         mask_size[3] = math::bitmask_size(desc.ddpfPixelFormat.dwRGBAlphaBitMask);
 
-        uint mask_ofs[4];
+        uint32_t mask_ofs[4];
         mask_ofs[0] = math::bitmask_ofs(desc.ddpfPixelFormat.dwRBitMask);
         mask_ofs[1] = math::bitmask_ofs(desc.ddpfPixelFormat.dwGBitMask);
         mask_ofs[2] = math::bitmask_ofs(desc.ddpfPixelFormat.dwBBitMask);
@@ -825,27 +825,27 @@ namespace vogl
 
         bool dxt1_alpha = false;
 
-        for (uint face_index = 0; face_index < num_faces; face_index++)
+        for (uint32_t face_index = 0; face_index < num_faces; face_index++)
         {
             m_face_array[0][face_index].resize(num_mip_levels);
 
-            for (uint level_index = 0; level_index < num_mip_levels; level_index++)
+            for (uint32_t level_index = 0; level_index < num_mip_levels; level_index++)
             {
-                const uint width = math::maximum<uint>(desc.dwWidth >> level_index, 1U);
-                const uint height = math::maximum<uint>(desc.dwHeight >> level_index, 1U);
+                const uint32_t width = math::maximum<uint32_t>(desc.dwWidth >> level_index, 1U);
+                const uint32_t height = math::maximum<uint32_t>(desc.dwHeight >> level_index, 1U);
 
                 mip_level *pMip = vogl_new(mip_level);
                 m_face_array[0][face_index][level_index] = pMip;
 
                 if (desc.ddpfPixelFormat.dwFlags & DDPF_FOURCC)
                 {
-                    const uint bytes_per_block = pixel_format_helpers::get_dxt_bytes_per_block(m_format);
+                    const uint32_t bytes_per_block = pixel_format_helpers::get_dxt_bytes_per_block(m_format);
 
-                    const uint num_blocks_x = (width + 3) >> 2;
-                    const uint num_blocks_y = (height + 3) >> 2;
+                    const uint32_t num_blocks_x = (width + 3) >> 2;
+                    const uint32_t num_blocks_y = (height + 3) >> 2;
 
-                    const uint actual_level_pitch = num_blocks_x * num_blocks_y * bytes_per_block;
-                    const uint level_pitch = level_index ? actual_level_pitch : pitch;
+                    const uint32_t actual_level_pitch = num_blocks_x * num_blocks_y * bytes_per_block;
+                    const uint32_t level_pitch = level_index ? actual_level_pitch : pitch;
 
                     dxt_image *pDXTImage = vogl_new(dxt_image);
                     if (!pDXTImage->init(dxt_fmt, width, height, false))
@@ -867,7 +867,7 @@ namespace vogl
 
                     // DDS image in memory are always assumed to be little endian - the same as DDS itself.
                     //if (c_vogl_big_endian_platform)
-                    //   utils::endian_switch_words(reinterpret_cast<uint16*>(&pDXTImage->get_element_vec()[0]), actual_level_pitch / sizeof(uint16));
+                    //   utils::endian_switch_words(reinterpret_cast<uint16_t*>(&pDXTImage->get_element_vec()[0]), actual_level_pitch / sizeof(uint16_t));
 
                     if (level_pitch > actual_level_pitch)
                     {
@@ -890,16 +890,16 @@ namespace vogl
 
                     pImage->set_comp_flags(m_comp_flags);
 
-                    const uint bytes_per_pixel = desc.ddpfPixelFormat.dwRGBBitCount >> 3;
-                    const uint actual_line_pitch = width * bytes_per_pixel;
-                    const uint line_pitch = level_index ? actual_line_pitch : pitch;
+                    const uint32_t bytes_per_pixel = desc.ddpfPixelFormat.dwRGBBitCount >> 3;
+                    const uint32_t actual_line_pitch = width * bytes_per_pixel;
+                    const uint32_t line_pitch = level_index ? actual_line_pitch : pitch;
 
                     if (load_buf.size() < line_pitch)
                         load_buf.resize(line_pitch);
 
                     color_quad_u8 q(0, 0, 0, 255);
 
-                    for (uint y = 0; y < height; y++)
+                    for (uint32_t y = 0; y < height; y++)
                     {
                         if (!serializer.read(&load_buf[0], line_pitch))
                         {
@@ -909,24 +909,24 @@ namespace vogl
 
                         color_quad_u8 *pDst = pImage->get_scanline(y);
 
-                        for (uint x = 0; x < width; x++)
+                        for (uint32_t x = 0; x < width; x++)
                         {
-                            const uint8 *pPixel = &load_buf[x * bytes_per_pixel];
+                            const uint8_t *pPixel = &load_buf[x * bytes_per_pixel];
 
-                            uint c = 0;
+                            uint32_t c = 0;
                             // Assumes DDS is always little endian.
-                            for (uint l = 0; l < bytes_per_pixel; l++)
+                            for (uint32_t l = 0; l < bytes_per_pixel; l++)
                                 c |= (pPixel[l] << (l * 8U));
 
-                            for (uint i = 0; i < 4; i++)
+                            for (uint32_t i = 0; i < 4; i++)
                             {
                                 if (!mask_size[i])
                                     continue;
 
-                                uint mask = (1U << mask_size[i]) - 1U;
-                                uint bits = (c >> mask_ofs[i]) & mask;
+                                uint32_t mask = (1U << mask_size[i]) - 1U;
+                                uint32_t bits = (c >> mask_ofs[i]) & mask;
 
-                                uint v = (bits * 255 + (mask >> 1)) / mask;
+                                uint32_t v = (bits * 255 + (mask >> 1)) / mask;
 
                                 q.set_component(i, v);
                             }
@@ -965,11 +965,11 @@ namespace vogl
 
         m_comp_flags = pixel_format_helpers::get_component_flags(m_format);
 
-        for (uint a = 0; a < m_face_array.size(); a++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
         {
-            for (uint f = 0; f < m_face_array[a].size(); f++)
+            for (uint32_t f = 0; f < m_face_array[a].size(); f++)
             {
-                for (uint l = 0; l < m_face_array[a][f].size(); l++)
+                for (uint32_t l = 0; l < m_face_array[a][f].size(); l++)
                 {
                     if (m_face_array[a][f][l]->get_dxt_image())
                     {
@@ -985,11 +985,11 @@ namespace vogl
 
     bool mipmapped_texture::check() const
     {
-        uint levels = 0;
+        uint32_t levels = 0;
         orientation_flags_t orient_flags = cDefaultOrientationFlags;
-        for (uint a = 0; a < m_face_array.size(); a++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
         {
-            for (uint f = 0; f < m_face_array[a].size(); f++)
+            for (uint32_t f = 0; f < m_face_array[a].size(); f++)
             {
                 if (!f)
                 {
@@ -1000,7 +1000,7 @@ namespace vogl
                 else if (m_face_array[a][f].size() != levels)
                     return false;
 
-                for (uint l = 0; l < m_face_array[a][f].size(); l++)
+                for (uint32_t l = 0; l < m_face_array[a][f].size(); l++)
                 {
                     mip_level *p = m_face_array[a][f][l];
                     if (!p)
@@ -1057,7 +1057,7 @@ namespace vogl
 
         set_last_error("write_dds() failed");
 
-        if (!serializer.write("DDS ", sizeof(uint32)))
+        if (!serializer.write("DDS ", sizeof(uint32_t)))
             return false;
 
         DDSURFACEDESC2 desc;
@@ -1097,55 +1097,55 @@ namespace vogl
             {
                 case PIXEL_FMT_ETC1:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_ETC1;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_ETC1;
                     desc.ddpfPixelFormat.dwRGBBitCount = 0;
                     break;
                 }
                 case PIXEL_FMT_DXN:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_3DC;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_3DC;
                     desc.ddpfPixelFormat.dwRGBBitCount = PIXEL_FMT_DXN;
                     break;
                 }
                 case PIXEL_FMT_DXT1A:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT1;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT1;
                     desc.ddpfPixelFormat.dwRGBBitCount = 0;
                     break;
                 }
                 case PIXEL_FMT_DXT5_CCxY:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT5;
-                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32)PIXEL_FMT_DXT5_CCxY;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT5;
+                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32_t)PIXEL_FMT_DXT5_CCxY;
                     break;
                 }
                 case PIXEL_FMT_DXT5_xGxR:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT5;
-                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32)PIXEL_FMT_DXT5_xGxR;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT5;
+                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32_t)PIXEL_FMT_DXT5_xGxR;
                     break;
                 }
                 case PIXEL_FMT_DXT5_xGBR:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT5;
-                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32)PIXEL_FMT_DXT5_xGBR;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT5;
+                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32_t)PIXEL_FMT_DXT5_xGBR;
                     break;
                 }
                 case PIXEL_FMT_DXT5_AGBR:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)PIXEL_FMT_DXT5;
-                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32)PIXEL_FMT_DXT5_AGBR;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)PIXEL_FMT_DXT5;
+                    desc.ddpfPixelFormat.dwRGBBitCount = (uint32_t)PIXEL_FMT_DXT5_AGBR;
                     break;
                 }
                 default:
                 {
-                    desc.ddpfPixelFormat.dwFourCC = (uint32)m_format;
+                    desc.ddpfPixelFormat.dwFourCC = (uint32_t)m_format;
                     desc.ddpfPixelFormat.dwRGBBitCount = 0;
                     break;
                 }
             }
 
-            uint bits_per_pixel = pixel_format_helpers::get_bpp(m_format);
+            uint32_t bits_per_pixel = pixel_format_helpers::get_bpp(m_format);
             desc.lPitch = (((desc.dwWidth + 3) & ~3) * ((desc.dwHeight + 3) & ~3) * bits_per_pixel) >> 3;
             desc.dwFlags |= DDSD_LINEARSIZE;
         }
@@ -1201,21 +1201,21 @@ namespace vogl
                 }
             }
 
-            uint bits_per_pixel = desc.ddpfPixelFormat.dwRGBBitCount;
+            uint32_t bits_per_pixel = desc.ddpfPixelFormat.dwRGBBitCount;
             desc.lPitch = (desc.dwWidth * bits_per_pixel) >> 3;
             desc.dwFlags |= DDSD_LINEARSIZE;
         }
 
         if (!c_vogl_little_endian_platform)
-            utils::endian_switch_dwords(reinterpret_cast<uint32 *>(&desc), sizeof(desc) / sizeof(uint32));
+            utils::endian_switch_dwords(reinterpret_cast<uint32_t *>(&desc), sizeof(desc) / sizeof(uint32_t));
 
         if (!serializer.write(&desc, sizeof(desc)))
             return false;
 
         if (!c_vogl_little_endian_platform)
-            utils::endian_switch_dwords(reinterpret_cast<uint32 *>(&desc), sizeof(desc) / sizeof(uint32));
+            utils::endian_switch_dwords(reinterpret_cast<uint32_t *>(&desc), sizeof(desc) / sizeof(uint32_t));
 
-        vogl::vector<uint8> write_buf;
+        vogl::vector<uint8_t> write_buf;
 
         const bool can_unflip_packed_texture = can_unflip_without_unpacking();
         if ((is_packed()) && (is_flipped()) && (!can_unflip_without_unpacking()))
@@ -1223,19 +1223,19 @@ namespace vogl
             console::warning("mipmapped_texture::write_dds: One or more faces/miplevels cannot be unflipped without unpacking. Writing flipped .DDS texture.\n");
         }
 
-        for (uint face = 0; face < get_num_faces(); face++)
+        for (uint32_t face = 0; face < get_num_faces(); face++)
         {
-            for (uint level = 0; level < get_num_levels(); level++)
+            for (uint32_t level = 0; level < get_num_levels(); level++)
             {
                 const mip_level *pLevel = get_level(0, face, level);
 
                 if (dxt_format)
                 {
-                    const uint width = pLevel->get_width();
-                    const uint height = pLevel->get_height();
+                    const uint32_t width = pLevel->get_width();
+                    const uint32_t height = pLevel->get_height();
 
-                    VOGL_ASSERT(width == math::maximum<uint>(1, m_width >> level));
-                    VOGL_ASSERT(height == math::maximum<uint>(1, m_height >> level));
+                    VOGL_ASSERT(width == math::maximum<uint32_t>(1, m_width >> level));
+                    VOGL_ASSERT(height == math::maximum<uint32_t>(1, m_height >> level));
 
                     const dxt_image *p = pLevel->get_dxt_image();
                     dxt_image tmp;
@@ -1256,8 +1256,8 @@ namespace vogl
                         p = &tmp;
                     }
 
-                    const uint num_blocks_x = (width + 3) >> 2;
-                    const uint num_blocks_y = (height + 3) >> 2;
+                    const uint32_t num_blocks_x = (width + 3) >> 2;
+                    const uint32_t num_blocks_y = (height + 3) >> 2;
 
                     VOGL_ASSERT(num_blocks_x * num_blocks_y * p->get_elements_per_block() == p->get_total_elements());
                     VOGL_NOTE_UNUSED(width);
@@ -1265,7 +1265,7 @@ namespace vogl
                     VOGL_NOTE_UNUSED(num_blocks_x);
                     VOGL_NOTE_UNUSED(num_blocks_y);
 
-                    const uint size_in_bytes = p->get_total_elements() * sizeof(dxt_image::element);
+                    const uint32_t size_in_bytes = p->get_total_elements() * sizeof(dxt_image::element);
                     if (size_in_bytes > write_buf.size())
                         write_buf.resize(size_in_bytes);
 
@@ -1281,8 +1281,8 @@ namespace vogl
                 }
                 else
                 {
-                    const uint width = pLevel->get_width();
-                    const uint height = pLevel->get_height();
+                    const uint32_t width = pLevel->get_width();
+                    const uint32_t height = pLevel->get_height();
 
                     const image_u8 *p = pLevel->get_image();
                     image_u8 tmp;
@@ -1291,25 +1291,25 @@ namespace vogl
                         p = pLevel->get_unpacked_image(tmp, cUnpackFlagUnflip);
                     }
 
-                    const uint bits_per_pixel = desc.ddpfPixelFormat.dwRGBBitCount;
-                    const uint bytes_per_pixel = bits_per_pixel >> 3;
+                    const uint32_t bits_per_pixel = desc.ddpfPixelFormat.dwRGBBitCount;
+                    const uint32_t bytes_per_pixel = bits_per_pixel >> 3;
 
-                    const uint pitch = width * bytes_per_pixel;
+                    const uint32_t pitch = width * bytes_per_pixel;
                     if (pitch > write_buf.size())
                         write_buf.resize(pitch);
 
-                    for (uint y = 0; y < height; y++)
+                    for (uint32_t y = 0; y < height; y++)
                     {
                         const color_quad_u8 *pSrc = p->get_scanline(y);
                         const color_quad_u8 *pEnd = pSrc + width;
 
-                        uint8 *pDst = &write_buf[0];
+                        uint8_t *pDst = &write_buf[0];
 
                         do
                         {
                             const color_quad_u8 &c = *pSrc;
 
-                            uint x = 0;
+                            uint32_t x = 0;
                             switch (m_format)
                             {
                                 case PIXEL_FMT_A8R8G8B8:
@@ -1341,17 +1341,17 @@ namespace vogl
                                     break;
                             }
 
-                            pDst[0] = static_cast<uint8>(x);
+                            pDst[0] = static_cast<uint8_t>(x);
                             if (bytes_per_pixel > 1)
                             {
-                                pDst[1] = static_cast<uint8>(x >> 8);
+                                pDst[1] = static_cast<uint8_t>(x >> 8);
 
                                 if (bytes_per_pixel > 2)
                                 {
-                                    pDst[2] = static_cast<uint8>(x >> 16);
+                                    pDst[2] = static_cast<uint8_t>(x >> 16);
 
                                     if (bytes_per_pixel > 3)
-                                        pDst[3] = static_cast<uint8>(x >> 24);
+                                        pDst[3] = static_cast<uint8_t>(x >> 24);
                                 }
                             }
 
@@ -1393,9 +1393,9 @@ namespace vogl
         m_depth = ktx.get_depth();
         m_faces = ktx.get_num_faces();
 
-        uint num_mip_levels = ktx.get_num_mips();
+        uint32_t num_mip_levels = ktx.get_num_mips();
 
-        uint32 vogl_fourcc = 0;
+        uint32_t vogl_fourcc = 0;
         dynamic_string vogl_fourcc_str;
         if (ktx.get_key_value_as_string("VOGL_FOURCC", vogl_fourcc_str))
         {
@@ -1482,8 +1482,8 @@ namespace vogl
         else
         {
             m_format = PIXEL_FMT_A8R8G8B8;
-            const uint type_size = ktx_get_ogl_type_size(ktx.get_ogl_type());
-            const uint type_bits = type_size * 8;
+            const uint32_t type_size = ktx_get_ogl_type_size(ktx.get_ogl_type());
+            const uint32_t type_bits = type_size * 8;
 
             // In GL the component order is specified as R_G_B_A, and is normally read/stored RIGHT to LEFT (last comp is first in memory), unless it's a REV format where it's read/stored LEFT to RIGHT (first comp is first in memory).
             // Normal component order:   1,2,3,4 (*last* component packed into LSB of output type)
@@ -1707,18 +1707,18 @@ namespace vogl
         m_array_size = ktx.get_array_size();
         m_face_array.resize(ktx.get_array_size());
 
-        uint num_faces = is_cubemap() ? m_faces : m_depth;
+        uint32_t num_faces = is_cubemap() ? m_faces : m_depth;
 
-        for (uint array_index = 0; array_index < m_face_array.size(); array_index++)
+        for (uint32_t array_index = 0; array_index < m_face_array.size(); array_index++)
         {
             m_face_array[array_index].resize(num_faces);
 
-            for (uint face_index = 0; face_index < num_faces; face_index++)
+            for (uint32_t face_index = 0; face_index < num_faces; face_index++)
             {
                 m_face_array[array_index][face_index].resize(num_mip_levels);
 
-                uint ktx_face_index = face_index;
-                uint ktx_zslice_index = 0;
+                uint32_t ktx_face_index = face_index;
+                uint32_t ktx_zslice_index = 0;
                 if (!is_cubemap())
                 {
                     // If the mipmapped texture is not for a cube map, then the face_index actually represents the zslice, so set variables appropriately.
@@ -1726,24 +1726,24 @@ namespace vogl
                     ktx_zslice_index = face_index;
                 }
 
-                for (uint level_index = 0; level_index < num_mip_levels; level_index++)
+                for (uint32_t level_index = 0; level_index < num_mip_levels; level_index++)
                 {
-                    const uint width = math::maximum<uint>(m_width >> level_index, 1U);
-                    const uint height = math::maximum<uint>(m_height >> level_index, 1U);
+                    const uint32_t width = math::maximum<uint32_t>(m_width >> level_index, 1U);
+                    const uint32_t height = math::maximum<uint32_t>(m_height >> level_index, 1U);
 
                     mip_level *pMip = vogl_new(mip_level);
                     m_face_array[array_index][face_index][level_index] = pMip;
 
-                    const vogl::vector<uint8> &image_data = ktx.get_image_data(level_index, array_index, ktx_face_index, ktx_zslice_index);
+                    const vogl::vector<uint8_t> &image_data = ktx.get_image_data(level_index, array_index, ktx_face_index, ktx_zslice_index);
 
                     if (is_compressed_texture)
                     {
-                        const uint bytes_per_block = pixel_format_helpers::get_dxt_bytes_per_block(m_format);
+                        const uint32_t bytes_per_block = pixel_format_helpers::get_dxt_bytes_per_block(m_format);
 
-                        const uint num_blocks_x = (width + 3) >> 2;
-                        const uint num_blocks_y = (height + 3) >> 2;
+                        const uint32_t num_blocks_x = (width + 3) >> 2;
+                        const uint32_t num_blocks_y = (height + 3) >> 2;
 
-                        const uint level_pitch = num_blocks_x * num_blocks_y * bytes_per_block;
+                        const uint32_t level_pitch = num_blocks_x * num_blocks_y * bytes_per_block;
                         if (image_data.size() != level_pitch)
                             return false;
 
@@ -1774,16 +1774,16 @@ namespace vogl
 
                         pImage->set_comp_flags(m_comp_flags);
 
-                        const uint8 *pSrc = image_data.get_ptr();
+                        const uint8_t *pSrc = image_data.get_ptr();
 
                         color_quad_u8 q(0, 0, 0, 255);
 
-                        for (uint y = 0; y < height; y++)
+                        for (uint32_t y = 0; y < height; y++)
                         {
-                            for (uint x = 0; x < width; x++)
+                            for (uint32_t x = 0; x < width; x++)
                             {
                                 color_quad_u8 c;
-                                pSrc = static_cast<const uint8 *>(unpacker.unpack(pSrc, c));
+                                pSrc = static_cast<const uint8_t *>(unpacker.unpack(pSrc, c));
                                 pImage->set_pixel_unclipped(x, y, c);
                             }
                         }
@@ -1814,7 +1814,7 @@ namespace vogl
 
         set_last_error("write_ktx() failed");
 
-        uint32 ogl_internal_fmt = 0, ogl_fmt = 0, ogl_type = 0;
+        uint32_t ogl_internal_fmt = 0, ogl_fmt = 0, ogl_type = 0;
 
         pixel_packer packer;
 
@@ -1938,16 +1938,16 @@ namespace vogl
         dynamic_string ktx_orient_str(cVarArg, "S=%c,T=%c", (pLevel0->get_orientation_flags() & cOrientationFlagXFlipped) ? 'l' : 'r', (pLevel0->get_orientation_flags() & cOrientationFlagYFlipped) ? 'u' : 'd');
         kt.add_key_value("KTXorientation", ktx_orient_str.get_ptr());
 
-        for (uint array_index = 0; array_index < m_face_array.size(); array_index++)
+        for (uint32_t array_index = 0; array_index < m_face_array.size(); array_index++)
         {
-            for (uint face_index = 0; face_index < get_num_faces(); face_index++)
+            for (uint32_t face_index = 0; face_index < get_num_faces(); face_index++)
             {
-                for (uint level_index = 0; level_index < get_num_levels(); level_index++)
+                for (uint32_t level_index = 0; level_index < get_num_levels(); level_index++)
                 {
                     const mip_level *pLevel = get_level(array_index, face_index, level_index);
 
-                    const uint mip_width = pLevel->get_width();
-                    const uint mip_height = pLevel->get_height();
+                    const uint32_t mip_width = pLevel->get_width();
+                    const uint32_t mip_height = pLevel->get_height();
 
                     if (is_packed())
                     {
@@ -1967,12 +1967,12 @@ namespace vogl
                     {
                         const image_u8 *p = pLevel->get_image();
 
-                        vogl::vector<uint8> tmp(mip_width * mip_height * packer.get_pixel_stride());
+                        vogl::vector<uint8_t> tmp(mip_width * mip_height * packer.get_pixel_stride());
 
-                        uint8 *pDst = tmp.get_ptr();
-                        for (uint y = 0; y < mip_height; y++)
-                            for (uint x = 0; x < mip_width; x++)
-                                pDst = (uint8 *)packer.pack(p->get_unclamped(x, y), pDst);
+                        uint8_t *pDst = tmp.get_ptr();
+                        for (uint32_t y = 0; y < mip_height; y++)
+                            for (uint32_t x = 0; x < mip_width; x++)
+                                pDst = (uint8_t *)packer.pack(p->get_unclamped(x, y), pDst);
 
                         if (m_array_size == 0)
                         {
@@ -1995,7 +1995,7 @@ namespace vogl
         return true;
     }
 
-    void mipmapped_texture::assign(uint array_index, face_vec &faces)
+    void mipmapped_texture::assign(uint32_t array_index, face_vec &faces)
     {
         VOGL_ASSERT(!faces.is_empty());
         if (faces.is_empty())
@@ -2004,7 +2004,7 @@ namespace vogl
         free_all_mips();
 
 #ifdef VOGL_BUILD_DEBUG
-        for (uint i = 1; i < faces.size(); i++)
+        for (uint32_t i = 1; i < faces.size(); i++)
             VOGL_ASSERT(faces[i].size() == faces[0].size());
 #endif
 
@@ -2019,20 +2019,20 @@ namespace vogl
         VOGL_ASSERT(check());
     }
 
-    void mipmapped_texture::assign(uint array_index, mip_level *pLevel)
+    void mipmapped_texture::assign(uint32_t array_index, mip_level *pLevel)
     {
         face_vec faces(1, mip_ptr_vec(1, pLevel));
         assign(array_index, faces);
     }
 
-    void mipmapped_texture::assign(uint array_index, image_u8 *p, pixel_format fmt, orientation_flags_t orient_flags)
+    void mipmapped_texture::assign(uint32_t array_index, image_u8 *p, pixel_format fmt, orientation_flags_t orient_flags)
     {
         mip_level *pLevel = vogl_new(mip_level);
         pLevel->assign(p, fmt, orient_flags);
         assign(array_index, pLevel);
     }
 
-    void mipmapped_texture::assign(uint array_index, dxt_image *p, pixel_format fmt, orientation_flags_t orient_flags)
+    void mipmapped_texture::assign(uint32_t array_index, dxt_image *p, pixel_format fmt, orientation_flags_t orient_flags)
     {
         mip_level *pLevel = vogl_new(mip_level);
         pLevel->assign(p, fmt, orient_flags);
@@ -2047,7 +2047,7 @@ namespace vogl
         m_source_file_type = source_file_type;
     }
 
-    image_u8 *mipmapped_texture::get_level_image(uint array_index, uint face, uint level, image_u8 &img, uint unpack_flags) const
+    image_u8 *mipmapped_texture::get_level_image(uint32_t array_index, uint32_t face, uint32_t level, image_u8 &img, uint32_t unpack_flags) const
     {
         if (!is_valid())
             return NULL;
@@ -2087,13 +2087,13 @@ namespace vogl
 
     void mipmapped_texture::discard_mips()
     {
-        for (uint a = 0; a < m_face_array.size(); a++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
         {
-            for (uint f = 0; f < m_face_array[a].size(); f++)
+            for (uint32_t f = 0; f < m_face_array[a].size(); f++)
             {
                 if (m_face_array[a][f].size() > 1)
                 {
-                    for (uint l = 1; l < m_face_array[a][f].size(); l++)
+                    for (uint32_t l = 1; l < m_face_array[a][f].size(); l++)
                         vogl_delete(m_face_array[a][f][l]);
 
                     m_face_array[a][f].resize(1);
@@ -2104,7 +2104,7 @@ namespace vogl
         VOGL_ASSERT(check());
     }
 
-    void mipmapped_texture::init(uint width, uint height, uint depth, uint levels, uint faces, uint array_size, pixel_format fmt, const char *pName, orientation_flags_t orient_flags)
+    void mipmapped_texture::init(uint32_t width, uint32_t height, uint32_t depth, uint32_t levels, uint32_t faces, uint32_t array_size, pixel_format fmt, const char *pName, orientation_flags_t orient_flags)
     {
         clear();
 
@@ -2128,22 +2128,22 @@ namespace vogl
         }
 
         // if the texture has 6 faces, then it must be a cube map, otherwise use the depth to determine how many "faces" there are.
-        uint num_faces = is_cubemap() ? faces : depth;
+        uint32_t num_faces = is_cubemap() ? faces : depth;
 
         m_face_array.resize(array_size);
-        for (uint a = 0; a < array_size; a++)
+        for (uint32_t a = 0; a < array_size; a++)
         {
             m_face_array[a].resize(num_faces);
 
-            for (uint f = 0; f < num_faces; f++)
+            for (uint32_t f = 0; f < num_faces; f++)
             {
                 m_face_array[a][f].resize(levels);
-                for (uint l = 0; l < levels; l++)
+                for (uint32_t l = 0; l < levels; l++)
                 {
                     m_face_array[a][f][l] = vogl_new(mip_level);
 
-                    const uint mip_width = math::maximum(1U, width >> l);
-                    const uint mip_height = math::maximum(1U, height >> l);
+                    const uint32_t mip_width = math::maximum(1U, width >> l);
+                    const uint32_t mip_height = math::maximum(1U, height >> l);
                     if (pixel_format_helpers::is_dxt(fmt))
                     {
                         dxt_image *p = vogl_new(dxt_image);
@@ -2179,29 +2179,29 @@ namespace vogl
         if (fmt == get_format())
             return true;
 
-        uint total_pixels = 0;
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint f = 0; f < m_face_array[a].size(); f++)
-                for (uint l = 0; l < m_face_array[a][f].size(); l++)
+        uint32_t total_pixels = 0;
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t f = 0; f < m_face_array[a].size(); f++)
+                for (uint32_t l = 0; l < m_face_array[a][f].size(); l++)
                     total_pixels += m_face_array[a][f][l]->get_total_pixels();
 
-        uint num_pixels_processed = 0;
+        uint32_t num_pixels_processed = 0;
 
-        uint progress_start = p.m_progress_start;
+        uint32_t progress_start = p.m_progress_start;
 
-        for (uint a = 0; a < m_face_array.size(); a++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
         {
-            for (uint f = 0; f < m_face_array[a].size(); f++)
+            for (uint32_t f = 0; f < m_face_array[a].size(); f++)
             {
-                for (uint l = 0; l < m_face_array[a][f].size(); l++)
+                for (uint32_t l = 0; l < m_face_array[a][f].size(); l++)
                 {
-                    const uint num_pixels = m_face_array[a][f][l]->get_total_pixels();
+                    const uint32_t num_pixels = m_face_array[a][f][l]->get_total_pixels();
 
-                    uint progress_range = (num_pixels * p.m_progress_range) / total_pixels;
+                    uint32_t progress_range = (num_pixels * p.m_progress_range) / total_pixels;
 
                     dxt_image::pack_params tmp_params(p);
-                    tmp_params.m_progress_start = math::clamp<uint>(progress_start, 0, p.m_progress_range);
-                    tmp_params.m_progress_range = math::clamp<uint>(progress_range, 0, p.m_progress_range - tmp_params.m_progress_start);
+                    tmp_params.m_progress_start = math::clamp<uint32_t>(progress_start, 0, p.m_progress_range);
+                    tmp_params.m_progress_range = math::clamp<uint32_t>(progress_range, 0, p.m_progress_range - tmp_params.m_progress_start);
 
                     progress_start += tmp_params.m_progress_range;
 
@@ -2253,9 +2253,9 @@ namespace vogl
         if (is_packed())
             unpack_from_dxt(true);
 
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint f = 0; f < m_face_array[a].size(); f++)
-                for (uint l = 0; l < get_num_levels(); l++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t f = 0; f < m_face_array[a].size(); f++)
+                for (uint32_t l = 0; l < get_num_levels(); l++)
                     get_level(a, f, l)->set_alpha_to_luma();
 
         m_format = get_level(0, 0, 0)->get_format();
@@ -2275,9 +2275,9 @@ namespace vogl
         if (is_packed())
             unpack_from_dxt(true);
 
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint f = 0; f < m_face_array[a].size(); f++)
-                for (uint l = 0; l < get_num_levels(); l++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t f = 0; f < m_face_array[a].size(); f++)
+                for (uint32_t l = 0; l < get_num_levels(); l++)
                     get_level(a, f, l)->convert(conv_type);
 
         m_format = get_level(0, 0, 0)->get_format();
@@ -2298,9 +2298,9 @@ namespace vogl
         if (!pixel_format_helpers::is_dxt(m_format))
             return false;
 
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint f = 0; f < m_face_array[a].size(); f++)
-                for (uint l = 0; l < get_num_levels(); l++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t f = 0; f < m_face_array[a].size(); f++)
+                for (uint32_t l = 0; l < get_num_levels(); l++)
                     if (!get_level(a, f, l)->unpack_from_dxt(uncook))
                         return false;
 
@@ -2324,8 +2324,8 @@ namespace vogl
         if ((m_format == PIXEL_FMT_DXT1) && (get_level(0, 0, 0)->get_dxt_image()))
         {
             // Try scanning DXT1 mip levels to find blocks with transparent pixels.
-            for (uint a = 0; a < m_face_array.size(); a++)
-                for (uint f = 0; f < get_num_faces(); f++)
+            for (uint32_t a = 0; a < m_face_array.size(); a++)
+                for (uint32_t f = 0; f < get_num_faces(); f++)
                     if (get_level(a, f, 0)->get_dxt_image()->has_alpha())
                         return true;
         }
@@ -2376,7 +2376,7 @@ namespace vogl
         return m_faces == 6;
     }
 
-    bool mipmapped_texture::resize(uint new_width, uint new_height, const resample_params &params)
+    bool mipmapped_texture::resize(uint32_t new_width, uint32_t new_height, const resample_params &params)
     {
         VOGL_ASSERT(is_valid());
         if (!is_valid())
@@ -2386,15 +2386,15 @@ namespace vogl
 
         face_vec faces(get_num_faces());
 
-        for (uint f = 0; f < faces.size(); f++)
+        for (uint32_t f = 0; f < faces.size(); f++)
         {
             faces[f].resize(1);
             faces[f][0] = vogl_new(mip_level);
         }
 
-        for (uint a = 0; a < m_face_array.size(); a++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
         {
-            for (uint f = 0; f < faces.size(); f++)
+            for (uint32_t f = 0; f < faces.size(); f++)
             {
                 image_u8 tmp;
                 image_u8 *pImg = m_face_array[a][f][0]->get_unpacked_image(tmp, cUnpackFlagUncook);
@@ -2416,8 +2416,8 @@ namespace vogl
                 {
                     vogl_delete(pMip);
 
-                    for (uint f2 = 0; f2 < faces.size(); f2++)
-                        for (uint l = 0; l < faces[f2].size(); l++)
+                    for (uint32_t f2 = 0; f2 < faces.size(); f2++)
+                        for (uint32_t l = 0; l < faces[f2].size(); l++)
                             vogl_delete(faces[f2][l]);
 
                     return false;
@@ -2445,10 +2445,10 @@ namespace vogl
         if (!is_valid())
             return false;
 
-        uint num_levels = 1;
+        uint32_t num_levels = 1;
         {
-            uint width = get_width();
-            uint height = get_height();
+            uint32_t width = get_width();
+            uint32_t height = get_height();
             while ((width > params.m_min_mip_size) || (height > params.m_min_mip_size))
             {
                 width >>= 1U;
@@ -2467,24 +2467,24 @@ namespace vogl
             return true;
 
         face_vec faces(get_num_faces());
-        for (uint f = 0; f < faces.size(); f++)
+        for (uint32_t f = 0; f < faces.size(); f++)
         {
             faces[f].resize(num_levels);
-            for (uint l = 0; l < num_levels; l++)
+            for (uint32_t l = 0; l < num_levels; l++)
                 faces[f][l] = vogl_new(mip_level);
         }
 
-        for (uint a = 0; a < m_face_array.size(); a++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
         {
-            for (uint f = 0; f < faces.size(); f++)
+            for (uint32_t f = 0; f < faces.size(); f++)
             {
                 image_u8 tmp;
                 image_u8 *pImg = m_face_array[a][f][0]->get_unpacked_image(tmp, cUnpackFlagUncook);
 
-                for (uint l = 0; l < num_levels; l++)
+                for (uint32_t l = 0; l < num_levels; l++)
                 {
-                    const uint mip_width = math::maximum<uint>(1U, get_width() >> l);
-                    const uint mip_height = math::maximum<uint>(1U, get_height() >> l);
+                    const uint32_t mip_width = math::maximum<uint32_t>(1U, get_width() >> l);
+                    const uint32_t mip_height = math::maximum<uint32_t>(1U, get_height() >> l);
 
                     image_u8 *pMip = vogl_new(image_u8);
 
@@ -2507,8 +2507,8 @@ namespace vogl
                         {
                             vogl_delete(pMip);
 
-                            for (uint f2 = 0; f2 < faces.size(); f2++)
-                                for (uint l2 = 0; l2 < faces[f2].size(); l2++)
+                            for (uint32_t f2 = 0; f2 < faces.size(); f2++)
+                                for (uint32_t l2 = 0; l2 < faces[f2].size(); l2++)
                                     vogl_delete(faces[f2][l2]);
 
                             return false;
@@ -2532,7 +2532,7 @@ namespace vogl
         return true;
     }
 
-    bool mipmapped_texture::crop(uint x, uint y, uint width, uint height)
+    bool mipmapped_texture::crop(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
     {
         VOGL_ASSERT(is_valid());
         if (!is_valid())
@@ -2543,7 +2543,7 @@ namespace vogl
         if ((width < 1) || (height < 1))
             return false;
 
-        for (uint array_index = 0; array_index < m_face_array.size(); array_index++)
+        for (uint32_t array_index = 0; array_index < m_face_array.size(); array_index++)
         {
             image_u8 tmp;
             image_u8 *pImg = m_face_array[array_index][0][0]->get_unpacked_image(tmp, cUnpackFlagUncook | cUnpackFlagUnflip);
@@ -2573,7 +2573,7 @@ namespace vogl
         if (!is_vertical_cross())
             return false;
 
-        const uint face_width = get_height() / 4;
+        const uint32_t face_width = get_height() / 4;
 
         bool alpha_is_valid = has_alpha();
 
@@ -2581,7 +2581,7 @@ namespace vogl
 
         pixel_format fmt = alpha_is_valid ? PIXEL_FMT_A8R8G8B8 : PIXEL_FMT_R8G8B8;
 
-        uint array_size = m_face_array.size();
+        uint32_t array_size = m_face_array.size();
         cubemap.init(face_width, face_width, 1, 1, 6, array_size, fmt, m_name.get_ptr(), cDefaultOrientationFlags);
 
         // +x -x +y -y +z -z
@@ -2596,9 +2596,9 @@ namespace vogl
             vec2I(2, 1), vec2I(0, 1), vec2I(1, 0), vec2I(1, 2), vec2I(1, 1), vec2I(1, 3)
         };
 
-        for (uint array_index = 0; array_index < m_face_array.size(); array_index++)
+        for (uint32_t array_index = 0; array_index < m_face_array.size(); array_index++)
         {
-            for (uint face_index = 0; face_index < 6; face_index++)
+            for (uint32_t face_index = 0; face_index < 6; face_index++)
             {
                 const mip_level *pSrc = get_level(array_index, 0, 0);
 
@@ -2610,12 +2610,12 @@ namespace vogl
                 VOGL_ASSERT(pDst_image);
 
                 const bool flipped = (face_index == 5);
-                const uint x_ofs = s_vertical_cross_image_offsets[face_index][0] * face_width;
-                const uint y_ofs = s_vertical_cross_image_offsets[face_index][1] * face_width;
+                const uint32_t x_ofs = s_vertical_cross_image_offsets[face_index][0] * face_width;
+                const uint32_t y_ofs = s_vertical_cross_image_offsets[face_index][1] * face_width;
 
-                for (uint y = 0; y < face_width; y++)
+                for (uint32_t y = 0; y < face_width; y++)
                 {
-                    for (uint x = 0; x < face_width; x++)
+                    for (uint32_t x = 0; x < face_width; x++)
                     {
                         const color_quad_u8 &c = (*pSrc_image)(x_ofs + x, y_ofs + y);
 
@@ -2745,8 +2745,8 @@ namespace vogl
         const char *pFilename,
         texture_file_types::format file_format,
         vogl_comp_params *pComp_params,
-        uint32 *pActual_quality_level, float *pActual_bitrate,
-        uint32 image_write_flags)
+        uint32_t *pActual_quality_level, float *pActual_bitrate,
+        uint32_t image_write_flags)
     {
         if (pActual_quality_level)
             *pActual_quality_level = 0;
@@ -2817,7 +2817,7 @@ namespace vogl
         return success;
     }
 
-    bool mipmapped_texture::write_regular_image(const char *pFilename, uint32 image_write_flags)
+    bool mipmapped_texture::write_regular_image(const char *pFilename, uint32_t image_write_flags)
     {
         image_u8 tmp;
         image_u8 *pLevel_image = get_level_image(0, 0, 0, tmp);
@@ -2831,12 +2831,12 @@ namespace vogl
         return true;
     }
 
-    uint mipmapped_texture::get_total_pixels_in_all_faces_and_mips() const
+    uint32_t mipmapped_texture::get_total_pixels_in_all_faces_and_mips() const
     {
-        uint total_pixels = 0;
-        for (uint a = 0; a < m_face_array.size(); a++)
-        for (uint l = 0; l < m_face_array[a].size(); l++)
-            for (uint m = 0; m < m_face_array[a][l].size(); m++)
+        uint32_t total_pixels = 0;
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+        for (uint32_t l = 0; l < m_face_array[a].size(); l++)
+            for (uint32_t m = 0; m < m_face_array[a][l].size(); m++)
                 total_pixels += m_face_array[a][l][m]->get_total_pixels();
 
         return total_pixels;
@@ -2844,17 +2844,17 @@ namespace vogl
 
     void mipmapped_texture::set_orientation_flags(orientation_flags_t flags)
     {
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint l = 0; l < m_face_array[a].size(); l++)
-                for (uint m = 0; m < m_face_array[a][l].size(); m++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t l = 0; l < m_face_array[a].size(); l++)
+                for (uint32_t m = 0; m < m_face_array[a][l].size(); m++)
                     m_face_array[a][l][m]->set_orientation_flags(flags);
     }
 
     bool mipmapped_texture::is_flipped() const
     {
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint l = 0; l < m_face_array[a].size(); l++)
-                for (uint m = 0; m < m_face_array[a][l].size(); m++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t l = 0; l < m_face_array[a].size(); l++)
+                for (uint32_t m = 0; m < m_face_array[a][l].size(); m++)
                     if (m_face_array[a][l][m]->is_flipped())
                         return true;
 
@@ -2863,9 +2863,9 @@ namespace vogl
 
     bool mipmapped_texture::is_x_flipped() const
     {
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint l = 0; l < m_face_array[a].size(); l++)
-                for (uint m = 0; m < m_face_array[a][l].size(); m++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t l = 0; l < m_face_array[a].size(); l++)
+                for (uint32_t m = 0; m < m_face_array[a][l].size(); m++)
                     if (m_face_array[a][l][m]->is_x_flipped())
                         return true;
 
@@ -2874,9 +2874,9 @@ namespace vogl
 
     bool mipmapped_texture::is_y_flipped() const
     {
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint l = 0; l < m_face_array[a].size(); l++)
-                for (uint m = 0; m < m_face_array[a][l].size(); m++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t l = 0; l < m_face_array[a].size(); l++)
+                for (uint32_t m = 0; m < m_face_array[a][l].size(); m++)
                     if (m_face_array[a][l][m]->is_y_flipped())
                         return true;
 
@@ -2891,9 +2891,9 @@ namespace vogl
         if (!is_packed())
             return true;
 
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint l = 0; l < m_face_array[a].size(); l++)
-                for (uint m = 0; m < m_face_array[a][l].size(); m++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t l = 0; l < m_face_array[a].size(); l++)
+                for (uint32_t m = 0; m < m_face_array[a][l].size(); m++)
                     if (!m_face_array[a][l][m]->can_unflip_without_unpacking())
                         return false;
 
@@ -2921,9 +2921,9 @@ namespace vogl
                 unpack_from_dxt(uncook_if_necessary_to_unpack);
         }
 
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint l = 0; l < m_face_array[a].size(); l++)
-                for (uint m = 0; m < m_face_array[a][l].size(); m++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t l = 0; l < m_face_array[a].size(); l++)
+                for (uint32_t m = 0; m < m_face_array[a][l].size(); m++)
                     if (!m_face_array[a][l][m]->unflip(true, false))
                         return false;
 
@@ -2935,9 +2935,9 @@ namespace vogl
 #if 0
 bool mipmapped_texture::flip_x()
 {
-    for (uint a = 0; a < m_face_array.size(); a++)
-        for (uint l = 0; l < m_face_array[a].size(); l++)
-            for (uint m = 0; m < m_face_array[a][l].size(); m++)
+    for (uint32_t a = 0; a < m_face_array.size(); a++)
+        for (uint32_t l = 0; l < m_face_array[a].size(); l++)
+            for (uint32_t m = 0; m < m_face_array[a][l].size(); m++)
                 if (!m_face_array[a][l][m]->flip_x())
                     return false;
 
@@ -2947,9 +2947,9 @@ bool mipmapped_texture::flip_x()
 
     bool mipmapped_texture::flip_y_helper()
     {
-        for (uint a = 0; a < m_face_array.size(); a++)
-            for (uint l = 0; l < m_face_array[a].size(); l++)
-                for (uint m = 0; m < m_face_array[a][l].size(); m++)
+        for (uint32_t a = 0; a < m_face_array.size(); a++)
+            for (uint32_t l = 0; l < m_face_array[a].size(); l++)
+                for (uint32_t m = 0; m < m_face_array[a][l].size(); m++)
                     if (!m_face_array[a][l][m]->flip_y())
                         return false;
 
@@ -2970,13 +2970,13 @@ bool mipmapped_texture::flip_x()
 
         if (update_orientation_flags)
         {
-            for (uint a = 0; a < m_face_array.size(); a++)
+            for (uint32_t a = 0; a < m_face_array.size(); a++)
             {
-                for (uint f = 0; f < m_face_array[a].size(); f++)
+                for (uint32_t f = 0; f < m_face_array[a].size(); f++)
                 {
-                    for (uint m = 0; m < m_face_array[a][f].size(); m++)
+                    for (uint32_t m = 0; m < m_face_array[a][f].size(); m++)
                     {
-                        uint orient_flags = m_face_array[a][f][m]->get_orientation_flags();
+                        uint32_t orient_flags = m_face_array[a][f][m]->get_orientation_flags();
                         orient_flags ^= cOrientationFlagYFlipped;
                         m_face_array[a][f][m]->set_orientation_flags(static_cast<orientation_flags_t>(orient_flags));
                     }

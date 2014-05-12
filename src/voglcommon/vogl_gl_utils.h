@@ -135,13 +135,13 @@ static inline uint64_t cast_val_to_uint64(const T &value)
 // type/format/texture helpers
 //----------------------------------------------------------------------------------------------------------------------
 uint32_t vogl_get_gl_type_size(uint32_t ogl_type);
-uint vogl_get_image_format_channels(GLenum format);
-void vogl_get_image_format_info(GLenum format, GLenum type, uint &num_channels, uint &bits_per_element, uint &bits_per_pixel);
+uint32_t vogl_get_image_format_channels(GLenum format);
+void vogl_get_image_format_info(GLenum format, GLenum type, uint32_t &num_channels, uint32_t &bits_per_element, uint32_t &bits_per_pixel);
 
 // vogl_get_image_size() reads the current pixel unpack state!
 size_t vogl_get_image_size(GLenum format, GLenum type, GLsizei width, GLsizei height, GLsizei depth);
 size_t vogl_get_tex_target_image_size(GLenum target, GLint level, GLenum format, GLenum type);
-uint vogl_get_image_format_size_in_bytes(GLenum format, GLenum type);
+uint32_t vogl_get_image_format_size_in_bytes(GLenum format, GLenum type);
 
 size_t vogl_determine_glMap1_size(GLenum target, GLint stride, GLint order);
 size_t vogl_determine_glMap2_size(GLenum target, GLint ustride, GLint uorder, GLint vstride, GLint vorder);
@@ -317,12 +317,12 @@ GLenum vogl_get_json_value_as_enum(const json_value &val, GLenum def = 0);
 struct vogl_client_side_array_desc_t
 {
     gl_entrypoint_id_t m_entrypoint;
-    uint m_is_enabled;  // glIsEnabled
-    uint m_get_binding; // glGetIntegerv - this gets the snapshotted binding
-    uint m_get_pointer; // glGetPointerv
-    uint m_get_size;    // will be 0 if there is no associated glGet
-    uint m_get_stride;  // glGetIntegerv
-    uint m_get_type;    // glGetIntegerv
+    uint32_t m_is_enabled;  // glIsEnabled
+    uint32_t m_get_binding; // glGetIntegerv - this gets the snapshotted binding
+    uint32_t m_get_pointer; // glGetPointerv
+    uint32_t m_get_size;    // will be 0 if there is no associated glGet
+    uint32_t m_get_stride;  // glGetIntegerv
+    uint32_t m_get_type;    // glGetIntegerv
 };
 
 #define VOGL_CLIENT_SIDE_ARRAY_DESC(id, entrypoint, is_enabled, get_binding, get_pointer, get_size, get_stride, get_type) id,
@@ -343,11 +343,11 @@ GLuint vogl_get_bound_gl_buffer(GLenum target);
 // glGet() wrappers
 GLint vogl_get_gl_integer(GLenum pname);
 vec4I vogl_get_gl_vec4I(GLenum pname);
-GLint vogl_get_gl_integer_indexed(GLenum pname, uint index);
+GLint vogl_get_gl_integer_indexed(GLenum pname, uint32_t index);
 GLint64 vogl_get_gl_integer64(GLenum pname);
-GLint64 vogl_get_gl_integer64_indexed(GLenum pname, uint index);
+GLint64 vogl_get_gl_integer64_indexed(GLenum pname, uint32_t index);
 GLboolean vogl_get_gl_boolean(GLenum pname);
-GLboolean vogl_get_gl_boolean_indexed(GLenum pname, uint index);
+GLboolean vogl_get_gl_boolean_indexed(GLenum pname, uint32_t index);
 GLfloat vogl_get_gl_float(GLenum pname);
 vec4F vogl_get_gl_vec4F(GLenum pname);
 matrix44F vogl_get_gl_matrix44F(GLenum pname);
@@ -358,7 +358,7 @@ matrix44D vogl_get_gl_matrix44D(GLenum pname);
 void vogl_reset_pixel_store_states();
 void vogl_reset_pixel_transfer_states();
 
-bool vogl_copy_buffer_to_image(void *pDst, uint dst_size, uint width, uint height, GLuint format = GL_RGB, GLuint type = GL_UNSIGNED_BYTE, bool flip_image = false, GLuint framebuffer = 0, GLuint read_buffer = GL_BACK, GLuint pixel_pack_buffer = 0);
+bool vogl_copy_buffer_to_image(void *pDst, uint32_t dst_size, uint32_t width, uint32_t height, GLuint format = GL_RGB, GLuint type = GL_UNSIGNED_BYTE, bool flip_image = false, GLuint framebuffer = 0, GLuint read_buffer = GL_BACK, GLuint pixel_pack_buffer = 0);
 
 //----------------------------------------------------------------------------------------------------------------------
 // Entrypoint helpers
@@ -385,7 +385,7 @@ bool vogl_is_end_nested_entrypoint(gl_entrypoint_id_t id);
 extern bool g_gl_get_error_enabled;
 
 // Returns *true* if there was an error.
-bool vogl_check_gl_error_internal(bool suppress_error_message = false, const char *pFile = "", uint line = 0, const char *pFunc = "");
+bool vogl_check_gl_error_internal(bool suppress_error_message = false, const char *pFile = "", uint32_t line = 0, const char *pFunc = "");
 #define vogl_check_gl_error() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(false, __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR) : false)
 #define vogl_check_gl_error_suppress_message() (g_gl_get_error_enabled ? vogl_check_gl_error_internal(true, __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR) : false)
 
@@ -485,7 +485,7 @@ public:
             };
 
         m_bindings.reserve(VOGL_ARRAY_SIZE(s_texture_targets) + 8);
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(s_texture_targets); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_texture_targets); i++)
             save(s_texture_targets[i]);
     }
 
@@ -504,7 +504,7 @@ public:
             };
 
         m_bindings.reserve(VOGL_ARRAY_SIZE(s_buffer_targets) + 8);
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(s_buffer_targets); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_buffer_targets); i++)
             save(s_buffer_targets[i]);
     }
 
@@ -512,7 +512,7 @@ public:
     {
         VOGL_FUNC_TRACER
 
-        for (uint i = 0; i < m_bindings.size(); i++)
+        for (uint32_t i = 0; i < m_bindings.size(); i++)
             vogl_bind_object(m_bindings[i].m_target, m_bindings[i].m_handle);
     }
 };
@@ -718,7 +718,7 @@ inline bool vogl_json_serialize_vec(json_node &node, vogl_blob_manager &blob_man
     VOGL_FUNC_TRACER
 
     json_node &array_node = node.add_array(pKey);
-    for (uint i = 0; i < vec.size(); i++)
+    for (uint32_t i = 0; i < vec.size(); i++)
     {
         json_node &obj_node = array_node.add_object();
         if (!vec[i].serialize(obj_node, blob_manager))
@@ -736,7 +736,7 @@ inline bool vogl_json_serialize_ptr_vec(json_node &node, vogl_blob_manager &blob
     VOGL_FUNC_TRACER
 
     json_node &array_node = node.add_array(pKey);
-    for (uint i = 0; i < vec.size(); i++)
+    for (uint32_t i = 0; i < vec.size(); i++)
     {
         json_node &obj_node = array_node.add_object();
         if (vec[i])
@@ -757,7 +757,7 @@ inline bool vogl_json_serialize_ptr_vec(json_node &node, vogl_blob_manager &blob
     VOGL_FUNC_TRACER
 
     json_node &array_node = node.add_array(pKey);
-    for (uint i = 0; i < vec.size(); i++)
+    for (uint32_t i = 0; i < vec.size(); i++)
     {
         json_node &obj_node = array_node.add_object();
         if (vec[i])
@@ -786,7 +786,7 @@ inline bool vogl_json_deserialize_vec(const json_node &node, const vogl_blob_man
 
     vec.resize(pArray_node->size());
 
-    for (uint i = 0; i < pArray_node->size(); i++)
+    for (uint32_t i = 0; i < pArray_node->size(); i++)
     {
         const json_node *pObj_node = pArray_node->get_value_as_object(i);
         if (!pObj_node)
@@ -814,7 +814,7 @@ inline bool vogl_json_deserialize_ptr_vec(const json_node &node, const vogl_blob
 
     vec.resize(0);
 
-    for (uint i = 0; i < pArray_node->size(); i++)
+    for (uint32_t i = 0; i < pArray_node->size(); i++)
     {
         const json_node *pObj_node = pArray_node->get_value_as_object(i);
         if (!pObj_node)
@@ -850,7 +850,7 @@ inline bool vogl_json_deserialize_ptr_vec(const json_node &node, const vogl_blob
 
     vec.resize(0);
 
-    for (uint i = 0; i < pArray_node->size(); i++)
+    for (uint32_t i = 0; i < pArray_node->size(); i++)
     {
         const json_node *pObj_node = pArray_node->get_value_as_object(i);
         if (!pObj_node)
@@ -906,7 +906,7 @@ inline bool vogl_json_serialize_vec4F(json_node &dst_node, const vec4F &vec)
     VOGL_FUNC_TRACER
 
     dst_node.init_array();
-    for (uint j = 0; j < 4; j++)
+    for (uint32_t j = 0; j < 4; j++)
         dst_node.add_value(vec[j]);
     return true;
 }
@@ -922,7 +922,7 @@ inline bool vogl_json_deserialize_vec4F(const json_node &src_node, vec4F &vec)
     if ((!src_node.is_array()) || (src_node.size() != 4))
         return false;
 
-    for (uint j = 0; j < 4; j++)
+    for (uint32_t j = 0; j < 4; j++)
     {
         if (src_node[j].is_object_or_array())
             return false;
@@ -958,13 +958,13 @@ enum
     cCHCCompatProfileFlag = 4,
 };
 
-vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config fb_config, vogl_gl_context share_context, uint major_ver, uint minor_ver, uint flags, vogl_context_desc *pDesc = NULL);
+vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config fb_config, vogl_gl_context share_context, uint32_t major_ver, uint32_t minor_ver, uint32_t flags, vogl_context_desc *pDesc = NULL);
 vogl_gl_context vogl_get_current_context();
 vogl_gl_display vogl_get_current_display();
 vogl_gl_drawable vogl_get_current_drawable();
 
 // vogl_get_current_fb_config() assumes a context is current.
-vogl_gl_fb_config vogl_get_current_fb_config(uint screen = 0);
+vogl_gl_fb_config vogl_get_current_fb_config(uint32_t screen = 0);
 
 void vogl_make_current(vogl_gl_display display, vogl_gl_drawable drawable, vogl_gl_context context);
 

@@ -65,7 +65,7 @@ typedef vogl::hash_map<uint64_t, empty_type> vogl_sync_hash_set;
 inline GLsync vogl_handle_to_sync(uint64_t handle)
 {
     GLsync sync = 0;
-    memcpy(&sync, &handle, math::minimum<uint>(sizeof(GLsync), sizeof(uint64_t)));
+    memcpy(&sync, &handle, math::minimum<uint32_t>(sizeof(GLsync), sizeof(uint64_t)));
     return sync;
 }
 
@@ -75,7 +75,7 @@ inline GLsync vogl_handle_to_sync(uint64_t handle)
 inline uint64_t vogl_sync_to_handle(GLsync sync)
 {
     uint64_t handle = 0;
-    memcpy(&handle, &sync, math::minimum<uint>(sizeof(GLsync), sizeof(uint64_t)));
+    memcpy(&handle, &sync, math::minimum<uint32_t>(sizeof(GLsync), sizeof(uint64_t)));
     return handle;
 }
 
@@ -331,19 +331,19 @@ struct vogl_client_side_array_desc
     vogl_client_side_array_desc()
     {
     }
-    vogl_client_side_array_desc(vogl_trace_ptr_value ptr, uint size)
+    vogl_client_side_array_desc(vogl_trace_ptr_value ptr, uint32_t size)
         : m_ptr(ptr), m_size(size)
     {
     }
 
-    void init(vogl_trace_ptr_value ptr, uint size)
+    void init(vogl_trace_ptr_value ptr, uint32_t size)
     {
         m_ptr = ptr;
         m_size = size;
     }
 
     vogl_trace_ptr_value m_ptr;
-    uint m_size;
+    uint32_t m_size;
 
     bool serialize(json_node &node, vogl_blob_manager &blob_manager) const
     {
@@ -384,7 +384,7 @@ public:
     void clear();
 
     // frame_index indicates the beginning of frame X, at a swap boundary
-    bool begin_capture(uint window_width, uint window_height, vogl_trace_ptr_value cur_context, uint frame_index, int64_t gl_call_counter, bool at_frame_boundary);
+    bool begin_capture(uint32_t window_width, uint32_t window_height, vogl_trace_ptr_value cur_context, uint32_t frame_index, int64_t gl_call_counter, bool at_frame_boundary);
 
     void add_client_side_array_ptrs(const vogl_client_side_array_desc_vec &client_side_vertex_attrib_ptrs, const vogl_client_side_array_desc_vec &client_side_array_ptrs, const vogl_client_side_array_desc_vec &client_side_texcoord_ptrs);
 
@@ -406,11 +406,11 @@ public:
     {
         return m_uuid;
     }
-    uint get_window_width() const
+    uint32_t get_window_width() const
     {
         return m_window_width;
     }
-    uint get_window_height() const
+    uint32_t get_window_height() const
     {
         return m_window_height;
     }
@@ -419,11 +419,11 @@ public:
         return m_cur_trace_context;
     }
 
-    void set_frame_index(uint frame_index)
+    void set_frame_index(uint32_t frame_index)
     {
         m_frame_index = frame_index;
     }
-    uint get_frame_index() const
+    uint32_t get_frame_index() const
     {
         return m_frame_index;
     }
@@ -490,10 +490,10 @@ public:
 
 private:
     md5_hash m_uuid;
-    uint m_window_width;
-    uint m_window_height;
+    uint32_t m_window_width;
+    uint32_t m_window_height;
     vogl_trace_ptr_value m_cur_trace_context;
-    uint m_frame_index;
+    uint32_t m_frame_index;
     int64_t m_gl_call_counter;
     bool m_at_frame_boundary;
     bool m_is_restorable;
@@ -511,7 +511,7 @@ private:
 
     void destroy_contexts()
     {
-        for (uint i = 0; i < m_context_ptrs.size(); i++)
+        for (uint32_t i = 0; i < m_context_ptrs.size(); i++)
             vogl_delete(m_context_ptrs[i]);
         m_context_ptrs.clear();
     }

@@ -69,10 +69,10 @@ public:
     bool remap_handles(vogl_handle_remapper &remapper);
 
 private:
-    bool can_snapshot_state(const vogl_context_info &context_info, vogl_snapshot_context_info &context, uint get_desc_index);
-    bool snapshot_state(const vogl_context_info &context_info, vogl_snapshot_context_info &context, uint get_desc_index, uint index, bool indexed_variant);
+    bool can_snapshot_state(const vogl_context_info &context_info, vogl_snapshot_context_info &context, uint32_t get_desc_index);
+    bool snapshot_state(const vogl_context_info &context_info, vogl_snapshot_context_info &context, uint32_t get_desc_index, uint32_t index, bool indexed_variant);
     bool restore_buffer_binding(GLenum binding_enum, GLenum set_enum, vogl_handle_remapper &remapper) const;
-    bool restore_buffer_binding_range(GLenum binding_enum, GLenum start_enum, GLenum size_enum, GLenum set_enum, uint index, bool indexed_variant, vogl_handle_remapper &remapper) const;
+    bool restore_buffer_binding_range(GLenum binding_enum, GLenum start_enum, GLenum size_enum, GLenum set_enum, uint32_t index, bool indexed_variant, vogl_handle_remapper &remapper) const;
     bool snapshot_active_queries(const vogl_context_info &context_info);
 };
 
@@ -95,12 +95,12 @@ public:
     bool serialize(json_node &node, vogl_blob_manager &blob_manager) const;
     bool deserialize(const json_node &node, const vogl_blob_manager &blob_manager);
 
-    uint get_num_pattern_rows() const;
-    uint32_t get_pattern_row(uint row_index) const;
+    uint32_t get_num_pattern_rows() const;
+    uint32_t get_pattern_row(uint32_t row_index) const;
 
 private:
     bool m_valid;
-    uint8 m_pattern[32 * 4];
+    uint8_t m_pattern[32 * 4];
 };
 
 #endif // VOGL_BASIC_CONTEXT_STATE_H

@@ -118,7 +118,7 @@ public:
 
     void clear();
 
-    uint size() const
+    uint32_t size() const
     {
         return m_display_lists.size();
     }

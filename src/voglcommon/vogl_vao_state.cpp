@@ -60,7 +60,7 @@ vogl_vao_state::~vogl_vao_state()
     VOGL_FUNC_TRACER
 }
 
-static int vogl_get_vertex_attrib_int(uint index, GLenum pname)
+static int vogl_get_vertex_attrib_int(uint32_t index, GLenum pname)
 {
     VOGL_FUNC_TRACER
 
@@ -69,17 +69,17 @@ static int vogl_get_vertex_attrib_int(uint index, GLenum pname)
     return values[0];
 }
 
-static uint vogl_get_vertex_attrib_uint(uint index, GLenum pname)
+static uint32_t vogl_get_vertex_attrib_uint(uint32_t index, GLenum pname)
 {
     VOGL_FUNC_TRACER
 
-    uint values[4] = { 0, 0, 0, 0 };
+    uint32_t values[4] = { 0, 0, 0, 0 };
     GL_ENTRYPOINT(glGetVertexAttribIuiv)(index, pname, values);
     return values[0];
 }
 
 #if 0
-static vec4D vogl_get_vertex_attrib_vec4D(uint index, GLenum pname)
+static vec4D vogl_get_vertex_attrib_vec4D(uint32_t index, GLenum pname)
 {
 	vec4D values(0);
 	ACTUAL_GL_ENTRYPOINT(glGetVertexAttribdv)(index, pname, &values[0]);
@@ -116,7 +116,7 @@ bool vogl_vao_state::snapshot(const vogl_context_info &context_info, vogl_handle
 
         m_vertex_attribs.resize(context_info.get_max_vertex_attribs());
 
-        for (uint i = 0; i < context_info.get_max_vertex_attribs(); i++)
+        for (uint32_t i = 0; i < context_info.get_max_vertex_attribs(); i++)
         {
             vogl_vertex_attrib_desc &desc = m_vertex_attribs[i];
 
@@ -192,7 +192,7 @@ bool vogl_vao_state::restore(const vogl_context_info &context_info, vogl_handle_
             vogl_warning_printf("%s: Saved VAO state has %u attribs, but context only allows %u attribs\n", VOGL_FUNCTION_INFO_CSTR, m_vertex_attribs.size(), context_info.get_max_vertex_attribs());
         }
 
-        for (uint i = 0; i < math::minimum<uint>(context_info.get_max_vertex_attribs(), m_vertex_attribs.size()); i++)
+        for (uint32_t i = 0; i < math::minimum<uint32_t>(context_info.get_max_vertex_attribs(), m_vertex_attribs.size()); i++)
         {
             const vogl_vertex_attrib_desc &desc = m_vertex_attribs[i];
 
@@ -216,7 +216,7 @@ bool vogl_vao_state::restore(const vogl_context_info &context_info, vogl_handle_
                 if ((pRestore_ptr != NULL) || (desc.m_stride) || (desc.m_enabled))
                 {
                     vogl_warning_printf("%s: Can't bind client side vertex array data on a non-default VAO, trace handle %u GL handle %u, restore ptr %p, size %i stride %i enabled %u\n",
-                                       VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, static_cast<uint>(handle), pRestore_ptr, desc.m_size, desc.m_stride, desc.m_enabled);
+                                       VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, static_cast<uint32_t>(handle), pRestore_ptr, desc.m_size, desc.m_stride, desc.m_enabled);
                 }
             }
             else
@@ -261,7 +261,7 @@ bool vogl_vao_state::remap_handles(vogl_handle_remapper &remapper)
     if (m_element_array_binding)
         m_element_array_binding = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, m_element_array_binding));
 
-    for (uint i = 0; i < m_vertex_attribs.size(); i++)
+    for (uint32_t i = 0; i < m_vertex_attribs.size(); i++)
     {
         if (m_vertex_attribs[i].m_array_binding)
             m_vertex_attribs[i].m_array_binding = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_BUFFERS, m_vertex_attribs[i].m_array_binding));
@@ -298,7 +298,7 @@ bool vogl_vao_state::serialize(json_node &node, vogl_blob_manager &blob_manager)
     node.add_key_value("element_array_binding", m_element_array_binding);
 
     json_node &vertex_attribs_array = node.add_array("vertex_attribs");
-    for (uint i = 0; i < m_vertex_attribs.size(); i++)
+    for (uint32_t i = 0; i < m_vertex_attribs.size(); i++)
     {
         const vogl_vertex_attrib_desc &desc = m_vertex_attribs[i];
 
@@ -334,7 +334,7 @@ bool vogl_vao_state::deserialize(const json_node &node, const vogl_blob_manager 
         return false;
 
     m_vertex_attribs.resize(pVertex_attribs_array->size());
-    for (uint i = 0; i < pVertex_attribs_array->size(); i++)
+    for (uint32_t i = 0; i < pVertex_attribs_array->size(); i++)
     {
         vogl_vertex_attrib_desc &desc = m_vertex_attribs[i];
 

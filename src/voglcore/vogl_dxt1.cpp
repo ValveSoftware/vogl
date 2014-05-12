@@ -44,17 +44,17 @@ namespace vogl
 {
     //-----------------------------------------------------------------------------------------------------------------------------------------
 
-    static const int16 g_fast_probe_table[] = { 0, 1, 2, 3 };
-    static const uint cFastProbeTableSize = sizeof(g_fast_probe_table) / sizeof(g_fast_probe_table[0]);
+    static const int16_t g_fast_probe_table[] = { 0, 1, 2, 3 };
+    static const uint32_t cFastProbeTableSize = sizeof(g_fast_probe_table) / sizeof(g_fast_probe_table[0]);
 
-    static const int16 g_normal_probe_table[] = { 0, 1, 3, 5, 7 };
-    static const uint cNormalProbeTableSize = sizeof(g_normal_probe_table) / sizeof(g_normal_probe_table[0]);
+    static const int16_t g_normal_probe_table[] = { 0, 1, 3, 5, 7 };
+    static const uint32_t cNormalProbeTableSize = sizeof(g_normal_probe_table) / sizeof(g_normal_probe_table[0]);
 
-    static const int16 g_better_probe_table[] = { 0, 1, 2, 3, 5, 9, 15, 19, 27, 43 };
-    static const uint cBetterProbeTableSize = sizeof(g_better_probe_table) / sizeof(g_better_probe_table[0]);
+    static const int16_t g_better_probe_table[] = { 0, 1, 2, 3, 5, 9, 15, 19, 27, 43 };
+    static const uint32_t cBetterProbeTableSize = sizeof(g_better_probe_table) / sizeof(g_better_probe_table[0]);
 
-    static const int16 g_uber_probe_table[] = { 0, 1, 2, 3, 5, 7, 9, 10, 13, 15, 19, 27, 43, 59, 91 };
-    static const uint cUberProbeTableSize = sizeof(g_uber_probe_table) / sizeof(g_uber_probe_table[0]);
+    static const int16_t g_uber_probe_table[] = { 0, 1, 2, 3, 5, 7, 9, 10, 13, 15, 19, 27, 43, 59, 91 };
+    static const uint32_t cUberProbeTableSize = sizeof(g_uber_probe_table) / sizeof(g_uber_probe_table[0]);
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -131,10 +131,10 @@ namespace vogl
         uint64_t tot_g = 0;
         uint64_t tot_b = 0;
 
-        uint total_weight = 0;
-        for (uint i = 0; i < m_unique_colors.size(); i++)
+        uint32_t total_weight = 0;
+        for (uint32_t i = 0; i < m_unique_colors.size(); i++)
         {
-            uint weight = m_unique_colors[i].m_weight;
+            uint32_t weight = m_unique_colors[i].m_weight;
             total_weight += weight;
 
             tot_r += m_unique_colors[i].m_color.r * weight;
@@ -142,42 +142,42 @@ namespace vogl
             tot_b += m_unique_colors[i].m_color.b * weight;
         }
 
-        const uint half_total_weight = total_weight >> 1;
-        uint ave_r = static_cast<uint>((tot_r + half_total_weight) / total_weight);
-        uint ave_g = static_cast<uint>((tot_g + half_total_weight) / total_weight);
-        uint ave_b = static_cast<uint>((tot_b + half_total_weight) / total_weight);
+        const uint32_t half_total_weight = total_weight >> 1;
+        uint32_t ave_r = static_cast<uint32_t>((tot_r + half_total_weight) / total_weight);
+        uint32_t ave_g = static_cast<uint32_t>((tot_g + half_total_weight) / total_weight);
+        uint32_t ave_b = static_cast<uint32_t>((tot_b + half_total_weight) / total_weight);
 
-        uint low_color = (ryg_dxt::OMatch5[ave_r][0] << 11) | (ryg_dxt::OMatch6[ave_g][0] << 5) | ryg_dxt::OMatch5[ave_b][0];
-        uint high_color = (ryg_dxt::OMatch5[ave_r][1] << 11) | (ryg_dxt::OMatch6[ave_g][1] << 5) | ryg_dxt::OMatch5[ave_b][1];
-        bool improved = evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+        uint32_t low_color = (ryg_dxt::OMatch5[ave_r][0] << 11) | (ryg_dxt::OMatch6[ave_g][0] << 5) | ryg_dxt::OMatch5[ave_b][0];
+        uint32_t high_color = (ryg_dxt::OMatch5[ave_r][1] << 11) | (ryg_dxt::OMatch6[ave_g][1] << 5) | ryg_dxt::OMatch5[ave_b][1];
+        bool improved = evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
 
         if ((m_pParams->m_use_alpha_blocks) && (m_best_solution.m_error))
         {
             low_color = (ryg_dxt::OMatch5_3[ave_r][0] << 11) | (ryg_dxt::OMatch6_3[ave_g][0] << 5) | ryg_dxt::OMatch5_3[ave_b][0];
             high_color = (ryg_dxt::OMatch5_3[ave_r][1] << 11) | (ryg_dxt::OMatch6_3[ave_g][1] << 5) | ryg_dxt::OMatch5_3[ave_b][1];
-            improved |= evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+            improved |= evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
         }
 
         if (m_pParams->m_quality == cCRNDXTQualityUber)
         {
             // Try compressing as all-solid using the other (non-average) colors in the block in uber.
-            for (uint i = 0; i < m_unique_colors.size(); i++)
+            for (uint32_t i = 0; i < m_unique_colors.size(); i++)
             {
-                uint r = m_unique_colors[i].m_color[0];
-                uint g = m_unique_colors[i].m_color[1];
-                uint b = m_unique_colors[i].m_color[2];
+                uint32_t r = m_unique_colors[i].m_color[0];
+                uint32_t g = m_unique_colors[i].m_color[1];
+                uint32_t b = m_unique_colors[i].m_color[2];
                 if ((r == ave_r) && (g == ave_g) && (b == ave_b))
                     continue;
 
                 low_color = (ryg_dxt::OMatch5[r][0] << 11) | (ryg_dxt::OMatch6[g][0] << 5) | ryg_dxt::OMatch5[b][0];
                 high_color = (ryg_dxt::OMatch5[r][1] << 11) | (ryg_dxt::OMatch6[g][1] << 5) | ryg_dxt::OMatch5[b][1];
-                improved |= evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+                improved |= evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
 
                 if ((m_pParams->m_use_alpha_blocks) && (m_best_solution.m_error))
                 {
                     low_color = (ryg_dxt::OMatch5_3[r][0] << 11) | (ryg_dxt::OMatch6_3[g][0] << 5) | ryg_dxt::OMatch5_3[b][0];
                     high_color = (ryg_dxt::OMatch5_3[r][1] << 11) | (ryg_dxt::OMatch6_3[g][1] << 5) | ryg_dxt::OMatch5_3[b][1];
-                    improved |= evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+                    improved |= evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
                 }
             }
         }
@@ -192,18 +192,18 @@ namespace vogl
         int g = m_unique_colors[0].m_color.g;
         int b = m_unique_colors[0].m_color.b;
 
-        //uint packed_color = dxt1_block::pack_color(r, g, b, true);
-        //evaluate_solution(dxt1_solution_coordinates((uint16)packed_color, (uint16)packed_color), false, &m_best_solution);
+        //uint32_t packed_color = dxt1_block::pack_color(r, g, b, true);
+        //evaluate_solution(dxt1_solution_coordinates((uint16_t)packed_color, (uint16_t)packed_color), false, &m_best_solution);
 
-        uint low_color = (ryg_dxt::OMatch5[r][0] << 11) | (ryg_dxt::OMatch6[g][0] << 5) | ryg_dxt::OMatch5[b][0];
-        uint high_color = (ryg_dxt::OMatch5[r][1] << 11) | (ryg_dxt::OMatch6[g][1] << 5) | ryg_dxt::OMatch5[b][1];
-        evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), false, &m_best_solution);
+        uint32_t low_color = (ryg_dxt::OMatch5[r][0] << 11) | (ryg_dxt::OMatch6[g][0] << 5) | ryg_dxt::OMatch5[b][0];
+        uint32_t high_color = (ryg_dxt::OMatch5[r][1] << 11) | (ryg_dxt::OMatch6[g][1] << 5) | ryg_dxt::OMatch5[b][1];
+        evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), false, &m_best_solution);
 
         if ((m_pParams->m_use_alpha_blocks) && (m_best_solution.m_error))
         {
             low_color = (ryg_dxt::OMatch5_3[r][0] << 11) | (ryg_dxt::OMatch6_3[g][0] << 5) | ryg_dxt::OMatch5_3[b][0];
             high_color = (ryg_dxt::OMatch5_3[r][1] << 11) | (ryg_dxt::OMatch6_3[g][1] << 5) | ryg_dxt::OMatch5_3[b][1];
-            evaluate_solution(dxt1_solution_coordinates((uint16)low_color, (uint16)high_color), true, &m_best_solution);
+            evaluate_solution(dxt1_solution_coordinates((uint16_t)low_color, (uint16_t)high_color), true, &m_best_solution);
         }
 
         return_solution(*m_pResults, m_best_solution);
@@ -219,10 +219,10 @@ namespace vogl
         m_mean_norm_color.clear();
         m_mean_norm_color_weighted.clear();
 
-        for (uint i = 0; i < m_unique_colors.size(); i++)
+        for (uint32_t i = 0; i < m_unique_colors.size(); i++)
         {
             const color_quad_u8 &color = m_unique_colors[i].m_color;
-            const uint weight = m_unique_colors[i].m_weight;
+            const uint32_t weight = m_unique_colors[i].m_weight;
 
             vec3F norm_color(color.r * 1.0f / 255.0f, color.g * 1.0f / 255.0f, color.b * 1.0f / 255.0f);
             vec3F norm_color_weighted(vec3F::mul_components(perceptual_weights, norm_color));
@@ -240,7 +240,7 @@ namespace vogl
             m_mean_norm_color_weighted *= (1.0f / m_total_unique_color_weight);
         }
 
-        for (uint i = 0; i < m_unique_colors.size(); i++)
+        for (uint32_t i = 0; i < m_unique_colors.size(); i++)
         {
             m_norm_unique_colors[i] -= m_mean_norm_color;
             m_norm_unique_colors_weighted[i] -= m_mean_norm_color_weighted;
@@ -257,11 +257,11 @@ namespace vogl
 
 	// Incremental PCA
 	bool first = true;
-	for (uint i = 0; i < norm_colors.size(); i++)
+	for (uint32_t i = 0; i < norm_colors.size(); i++)
 	{
-		const uint weight = m_unique_colors[i].m_weight;
+		const uint32_t weight = m_unique_colors[i].m_weight;
 
-		for (uint j = 0; j < weight; j++)
+		for (uint32_t j = 0; j < weight; j++)
 		{
 			vec3F x(norm_colors[i] * norm_colors[i][0]);
 			vec3F y(norm_colors[i] * norm_colors[i][1]);
@@ -285,7 +285,7 @@ namespace vogl
         //vec3F lo(math::cNearlyInfinite);
         //vec3F hi(-math::cNearlyInfinite);
 
-        for (uint i = 0; i < norm_colors.size(); i++)
+        for (uint32_t i = 0; i < norm_colors.size(); i++)
         {
             const vec3F &v = norm_colors[i];
 
@@ -331,9 +331,9 @@ namespace vogl
         vfg = 1.0f;
         vfb = .7f;
 
-        const uint cNumIters = 8;
+        const uint32_t cNumIters = 8;
 
-        for (uint iter = 0; iter < cNumIters; iter++)
+        for (uint32_t iter = 0; iter < cNumIters; iter++)
         {
             double r = vfr * cov[0] + vfg * cov[1] + vfb * cov[2];
             double g = vfr * cov[1] + vfg * cov[3] + vfb * cov[4];
@@ -376,9 +376,9 @@ namespace vogl
 #endif
     }
 
-    static const uint8 g_invTableNull[4] = { 0, 1, 2, 3 };
-    static const uint8 g_invTableAlpha[4] = { 1, 0, 2, 3 };
-    static const uint8 g_invTableColor[4] = { 1, 0, 3, 2 };
+    static const uint8_t g_invTableNull[4] = { 0, 1, 2, 3 };
+    static const uint8_t g_invTableAlpha[4] = { 1, 0, 2, 3 };
+    static const uint8_t g_invTableColor[4] = { 1, 0, 3, 2 };
 
     // Computes a valid (encodable) DXT1 solution (low/high colors, swizzled selectors) from input.
     void dxt1_endpoint_optimizer::return_solution(results &res, const potential_solution &solution)
@@ -405,18 +405,18 @@ namespace vogl
             res.m_high_color = solution.m_coords.m_high_color;
         }
 
-        const uint8 *pInvert_table = g_invTableNull;
+        const uint8_t *pInvert_table = g_invTableNull;
         if (invert_selectors)
             pInvert_table = solution.m_alpha_block ? g_invTableAlpha : g_invTableColor;
 
-        const uint alpha_thresh = m_pParams->m_pixels_have_alpha ? (m_pParams->m_dxt1a_alpha_threshold << 24U) : 0;
+        const uint32_t alpha_thresh = m_pParams->m_pixels_have_alpha ? (m_pParams->m_dxt1a_alpha_threshold << 24U) : 0;
 
-        const uint32 *pSrc_pixels = reinterpret_cast<const uint32 *>(m_pParams->m_pPixels);
-        uint8 *pDst_selectors = res.m_pSelectors;
+        const uint32_t *pSrc_pixels = reinterpret_cast<const uint32_t *>(m_pParams->m_pPixels);
+        uint8_t *pDst_selectors = res.m_pSelectors;
 
         if ((m_unique_colors.size() == 1) && (!m_pParams->m_pixels_have_alpha))
         {
-            uint32 c = utils::read_le32(pSrc_pixels);
+            uint32_t c = utils::read_le32(pSrc_pixels);
 
             VOGL_ASSERT(c >= alpha_thresh);
 
@@ -425,25 +425,25 @@ namespace vogl
             unique_color_hash_map::const_iterator it(m_unique_color_hash_map.find(c));
             VOGL_ASSERT(it != m_unique_color_hash_map.end());
 
-            uint unique_color_index = it->second;
+            uint32_t unique_color_index = it->second;
 
-            uint selector = pInvert_table[solution.m_selectors[unique_color_index]];
+            uint32_t selector = pInvert_table[solution.m_selectors[unique_color_index]];
 
             memset(pDst_selectors, selector, m_pParams->m_num_pixels);
         }
         else
         {
-            uint8 *pDst_selectors_end = pDst_selectors + m_pParams->m_num_pixels;
+            uint8_t *pDst_selectors_end = pDst_selectors + m_pParams->m_num_pixels;
 
-            uint8 prev_selector = 0;
-            uint32 prev_color = 0;
+            uint8_t prev_selector = 0;
+            uint32_t prev_color = 0;
 
             do
             {
-                uint32 c = utils::read_le32(pSrc_pixels);
+                uint32_t c = utils::read_le32(pSrc_pixels);
                 pSrc_pixels++;
 
-                uint8 selector = 3;
+                uint8_t selector = 3;
 
                 if (c >= alpha_thresh)
                 {
@@ -457,7 +457,7 @@ namespace vogl
 
                         VOGL_ASSERT(it != m_unique_color_hash_map.end());
 
-                        uint unique_color_index = it->second;
+                        uint32_t unique_color_index = it->second;
 
                         selector = pInvert_table[solution.m_selectors[unique_color_index]];
 
@@ -475,14 +475,14 @@ namespace vogl
         res.m_error = solution.m_error;
     }
 
-    inline vec3F dxt1_endpoint_optimizer::unpack_to_vec3F(uint16 packed_color)
+    inline vec3F dxt1_endpoint_optimizer::unpack_to_vec3F(uint16_t packed_color)
     {
         color_quad_u8 c(dxt1_block::unpack_color(packed_color, false));
 
         return vec3F(c.r * 1.0f / 31.0f, c.g * 1.0f / 63.0f, c.b * 1.0f / 31.0f);
     }
 
-    inline vec3F dxt1_endpoint_optimizer::unpack_to_vec3F_raw(uint16 packed_color)
+    inline vec3F dxt1_endpoint_optimizer::unpack_to_vec3F_raw(uint16_t packed_color)
     {
         color_quad_u8 c(dxt1_block::unpack_color(packed_color, false));
 
@@ -497,35 +497,35 @@ namespace vogl
 
         //color_quad_u8 orig_l(dxt1_block::unpack_color(m_best_solution.m_coords.m_low_color, false));
         //color_quad_u8 orig_h(dxt1_block::unpack_color(m_best_solution.m_coords.m_high_color, false));
-        //uint orig_error = m_best_solution.m_error;
+        //uint32_t orig_error = m_best_solution.m_error;
 
         color_quad_u8 orig_l_scaled(dxt1_block::unpack_color(m_best_solution.m_coords.m_low_color, true));
         color_quad_u8 orig_h_scaled(dxt1_block::unpack_color(m_best_solution.m_coords.m_high_color, true));
 
         color_quad_u8 min_color(0xFF, 0xFF, 0xFF, 0xFF);
         color_quad_u8 max_color(0, 0, 0, 0);
-        for (uint i = 0; i < m_unique_colors.size(); i++)
+        for (uint32_t i = 0; i < m_unique_colors.size(); i++)
         {
             min_color = color_quad_u8::component_min(min_color, m_unique_colors[i].m_color);
             max_color = color_quad_u8::component_max(max_color, m_unique_colors[i].m_color);
         }
 
         // Try to separately optimize each component. This is a 1D problem so it's easy to compute accurate per-component error bounds.
-        for (uint comp_index = 0; comp_index < 3; comp_index++)
+        for (uint32_t comp_index = 0; comp_index < 3; comp_index++)
         {
-            uint ll[4];
+            uint32_t ll[4];
             ll[0] = orig_l_scaled[comp_index];
             ll[1] = orig_h_scaled[comp_index];
             ll[2] = (ll[0] * 2 + ll[1]) / 3;
             ll[3] = (ll[0] + ll[1] * 2) / 3;
 
-            uint error_to_beat = 0;
-            uint min_color_weight = 0;
-            uint max_color_weight = 0;
-            for (uint i = 0; i < m_unique_colors.size(); i++)
+            uint32_t error_to_beat = 0;
+            uint32_t min_color_weight = 0;
+            uint32_t max_color_weight = 0;
+            for (uint32_t i = 0; i < m_unique_colors.size(); i++)
             {
-                uint c = m_unique_colors[i].m_color[comp_index];
-                uint w = m_unique_colors[i].m_weight;
+                uint32_t c = m_unique_colors[i].m_color[comp_index];
+                uint32_t w = m_unique_colors[i].m_weight;
 
                 int delta = ll[m_best_solution.m_selectors[i]] - c;
                 error_to_beat += (int)w * (delta * delta);
@@ -540,54 +540,54 @@ namespace vogl
                 continue;
 
             VOGL_ASSERT((min_color_weight > 0) && (max_color_weight > 0));
-            const uint error_to_beat_div_min_color_weight = min_color_weight ? ((error_to_beat + min_color_weight - 1) / min_color_weight) : 0;
-            const uint error_to_beat_div_max_color_weight = max_color_weight ? ((error_to_beat + max_color_weight - 1) / max_color_weight) : 0;
+            const uint32_t error_to_beat_div_min_color_weight = min_color_weight ? ((error_to_beat + min_color_weight - 1) / min_color_weight) : 0;
+            const uint32_t error_to_beat_div_max_color_weight = max_color_weight ? ((error_to_beat + max_color_weight - 1) / max_color_weight) : 0;
 
-            const uint m = (comp_index == 1) ? 63 : 31;
-            const uint m_shift = (comp_index == 1) ? 3 : 2;
+            const uint32_t m = (comp_index == 1) ? 63 : 31;
+            const uint32_t m_shift = (comp_index == 1) ? 3 : 2;
 
-            for (uint o = 0; o <= m; o++)
+            for (uint32_t o = 0; o <= m; o++)
             {
-                uint tl[4];
+                uint32_t tl[4];
 
                 tl[0] = (comp_index == 1) ? ((o << 2) | (o >> 4)) : ((o << 3) | (o >> 2));
 
-                for (uint h = 0; h < 8; h++)
+                for (uint32_t h = 0; h < 8; h++)
                 {
-                    const uint pl = h << m_shift;
-                    const uint ph = ((h + 1) << m_shift) - 1;
+                    const uint32_t pl = h << m_shift;
+                    const uint32_t ph = ((h + 1) << m_shift) - 1;
 
-                    uint tl_l = (comp_index == 1) ? ((pl << 2) | (pl >> 4)) : ((pl << 3) | (pl >> 2));
-                    uint tl_h = (comp_index == 1) ? ((ph << 2) | (ph >> 4)) : ((ph << 3) | (ph >> 2));
+                    uint32_t tl_l = (comp_index == 1) ? ((pl << 2) | (pl >> 4)) : ((pl << 3) | (pl >> 2));
+                    uint32_t tl_h = (comp_index == 1) ? ((ph << 2) | (ph >> 4)) : ((ph << 3) | (ph >> 2));
 
                     tl_l = math::minimum(tl_l, tl[0]);
                     tl_h = math::maximum(tl_h, tl[0]);
 
-                    uint c_l = min_color[comp_index];
-                    uint c_h = max_color[comp_index];
+                    uint32_t c_l = min_color[comp_index];
+                    uint32_t c_h = max_color[comp_index];
 
                     if (c_h < tl_l)
                     {
-                        uint min_possible_error = math::square<int>(tl_l - c_l);
+                        uint32_t min_possible_error = math::square<int>(tl_l - c_l);
                         if (min_possible_error > error_to_beat_div_min_color_weight)
                             continue;
                     }
                     else if (c_l > tl_h)
                     {
-                        uint min_possible_error = math::square<int>(c_h - tl_h);
+                        uint32_t min_possible_error = math::square<int>(c_h - tl_h);
                         if (min_possible_error > error_to_beat_div_max_color_weight)
                             continue;
                     }
 
-                    for (uint p = pl; p <= ph; p++)
+                    for (uint32_t p = pl; p <= ph; p++)
                     {
                         tl[1] = (comp_index == 1) ? ((p << 2) | (p >> 4)) : ((p << 3) | (p >> 2));
 
                         tl[2] = (tl[0] * 2 + tl[1]) / 3;
                         tl[3] = (tl[0] + tl[1] * 2) / 3;
 
-                        uint trial_error = 0;
-                        for (uint i = 0; i < m_unique_colors.size(); i++)
+                        uint32_t trial_error = 0;
+                        for (uint32_t i = 0; i < m_unique_colors.size(); i++)
                         {
                             int delta = tl[m_best_solution.m_selectors[i]] - m_unique_colors[i].m_color[comp_index];
                             trial_error += m_unique_colors[i].m_weight * (delta * delta);
@@ -601,8 +601,8 @@ namespace vogl
                         {
                             color_quad_u8 l(dxt1_block::unpack_color(m_best_solution.m_coords.m_low_color, false));
                             color_quad_u8 h2(dxt1_block::unpack_color(m_best_solution.m_coords.m_high_color, false));
-                            l[comp_index] = static_cast<uint8>(o);
-                            h2[comp_index] = static_cast<uint8>(p);
+                            l[comp_index] = static_cast<uint8_t>(o);
+                            h2[comp_index] = static_cast<uint8_t>(p);
 
                             bool better = evaluate_solution(
                                 dxt1_solution_coordinates(dxt1_block::pack_color(l, false), dxt1_block::pack_color(h2, false)),
@@ -621,7 +621,7 @@ namespace vogl
                                     return;
 
                                 error_to_beat = 0;
-                                for (uint i = 0; i < m_unique_colors.size(); i++)
+                                for (uint32_t i = 0; i < m_unique_colors.size(); i++)
                                 {
                                     int delta = tl[m_best_solution.m_selectors[i]] - m_unique_colors[i].m_color[comp_index];
                                     error_to_beat += m_unique_colors[i].m_weight * (delta * delta);
@@ -632,10 +632,10 @@ namespace vogl
                             //goto early_out;
                         } // if (trial_error < error_to_beat)
 
-                    } // for (uint p = 0; p <= m; p++)
+                    } // for (uint32_t p = 0; p <= m; p++)
                 }
 
-            } // for (uint o = 0; o <= m; o++)
+            } // for (uint32_t o = 0; o <= m; o++)
 
         } // comp_index
     }
@@ -643,7 +643,7 @@ namespace vogl
     // Voxel adjacency delta coordinations.
     static const struct adjacent_coords
     {
-        int8 x, y, z;
+        int8_t x, y, z;
     } g_adjacency[26] =
           {
               { -1, -1, -1 },
@@ -693,7 +693,7 @@ namespace vogl
 
         At1_r = At1_g = At1_b = 0;
         At2_r = At2_g = At2_b = 0;
-        for (uint i = 0; i < m_unique_colors.size(); i++)
+        for (uint32_t i = 0; i < m_unique_colors.size(); i++)
         {
             const color_quad_u8 &c = m_unique_colors[i].m_color;
             const double weight = m_unique_colors[i].m_weight;
@@ -735,17 +735,17 @@ namespace vogl
 
         if (refinement_level == 0)
         {
-            uint max16;
+            uint32_t max16;
             max16 = math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31) << 11;
             max16 |= math::clamp<int>(static_cast<int>((At1_g * yy - At2_g * xy) * fg + 0.5f), 0, 63) << 5;
             max16 |= math::clamp<int>(static_cast<int>((At1_b * yy - At2_b * xy) * frb + 0.5f), 0, 31) << 0;
 
-            uint min16;
+            uint32_t min16;
             min16 = math::clamp<int>(static_cast<int>((At2_r * xx - At1_r * xy) * frb + 0.5f), 0, 31) << 11;
             min16 |= math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63) << 5;
             min16 |= math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31) << 0;
 
-            dxt1_solution_coordinates nc((uint16)min16, (uint16)max16);
+            dxt1_solution_coordinates nc((uint16_t)min16, (uint16_t)max16);
             nc.canonicalize();
             improved |= evaluate_solution(nc, true, &m_best_solution, false);
         }
@@ -755,16 +755,16 @@ namespace vogl
             color_quad_u8 e[2];
 
             e[0].clear();
-            e[0][0] = (uint8)math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31);
-            e[0][1] = (uint8)math::clamp<int>(static_cast<int>((At1_g * yy - At2_g * xy) * fg + 0.5f), 0, 63);
-            e[0][2] = (uint8)math::clamp<int>(static_cast<int>((At1_b * yy - At2_b * xy) * frb + 0.5f), 0, 31);
+            e[0][0] = (uint8_t)math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31);
+            e[0][1] = (uint8_t)math::clamp<int>(static_cast<int>((At1_g * yy - At2_g * xy) * fg + 0.5f), 0, 63);
+            e[0][2] = (uint8_t)math::clamp<int>(static_cast<int>((At1_b * yy - At2_b * xy) * frb + 0.5f), 0, 31);
 
             e[1].clear();
-            e[1][0] = (uint8)math::clamp<int>(static_cast<int>((At2_r * xx - At1_r * xy) * frb + 0.5f), 0, 31);
-            e[1][1] = (uint8)math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63);
-            e[1][2] = (uint8)math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31);
+            e[1][0] = (uint8_t)math::clamp<int>(static_cast<int>((At2_r * xx - At1_r * xy) * frb + 0.5f), 0, 31);
+            e[1][1] = (uint8_t)math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63);
+            e[1][2] = (uint8_t)math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31);
 
-            for (uint i = 0; i < 2; i++)
+            for (uint32_t i = 0; i < 2; i++)
             {
                 for (int rr = -1; rr <= 1; rr++)
                 {
@@ -778,9 +778,9 @@ namespace vogl
                             c[0] = e[0];
                             c[1] = e[1];
 
-                            c[i][0] = (uint8)math::clamp<int>(c[i][0] + rr, 0, 31);
-                            c[i][1] = (uint8)math::clamp<int>(c[i][1] + gr, 0, 63);
-                            c[i][2] = (uint8)math::clamp<int>(c[i][2] + br, 0, 31);
+                            c[i][0] = (uint8_t)math::clamp<int>(c[i][0] + rr, 0, 31);
+                            c[i][1] = (uint8_t)math::clamp<int>(c[i][1] + gr, 0, 63);
+                            c[i][2] = (uint8_t)math::clamp<int>(c[i][2] + br, 0, 31);
 
                             nc.m_low_color = dxt1_block::pack_color(c[0], false);
                             nc.m_high_color = dxt1_block::pack_color(c[1], false);
@@ -801,14 +801,14 @@ namespace vogl
             // Try even harder to explore the local lattice neighbors of the least squares optimized result.
             color_quad_u8 e[2];
             e[0].clear();
-            e[0][0] = (uint8)math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31);
-            e[0][1] = (uint8)math::clamp<int>(static_cast<int>((At1_g * yy - At2_g * xy) * fg + 0.5f), 0, 63);
-            e[0][2] = (uint8)math::clamp<int>(static_cast<int>((At1_b * yy - At2_b * xy) * frb + 0.5f), 0, 31);
+            e[0][0] = (uint8_t)math::clamp<int>(static_cast<int>((At1_r * yy - At2_r * xy) * frb + 0.5f), 0, 31);
+            e[0][1] = (uint8_t)math::clamp<int>(static_cast<int>((At1_g * yy - At2_g * xy) * fg + 0.5f), 0, 63);
+            e[0][2] = (uint8_t)math::clamp<int>(static_cast<int>((At1_b * yy - At2_b * xy) * frb + 0.5f), 0, 31);
 
             e[1].clear();
-            e[1][0] = (uint8)math::clamp<int>(static_cast<int>((At2_r * xx - At1_r * xy) * frb + 0.5f), 0, 31);
-            e[1][1] = (uint8)math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63);
-            e[1][2] = (uint8)math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31);
+            e[1][0] = (uint8_t)math::clamp<int>(static_cast<int>((At2_r * xx - At1_r * xy) * frb + 0.5f), 0, 31);
+            e[1][1] = (uint8_t)math::clamp<int>(static_cast<int>((At2_g * xx - At1_g * xy) * fg + 0.5f), 0, 63);
+            e[1][2] = (uint8_t)math::clamp<int>(static_cast<int>((At2_b * xx - At1_b * xy) * frb + 0.5f), 0, 31);
 
             for (int orr = -1; orr <= 1; orr++)
             {
@@ -822,9 +822,9 @@ namespace vogl
                         c[0] = e[0];
                         c[1] = e[1];
 
-                        c[0][0] = (uint8)math::clamp<int>(c[0][0] + orr, 0, 31);
-                        c[0][1] = (uint8)math::clamp<int>(c[0][1] + ogr, 0, 63);
-                        c[0][2] = (uint8)math::clamp<int>(c[0][2] + obr, 0, 31);
+                        c[0][0] = (uint8_t)math::clamp<int>(c[0][0] + orr, 0, 31);
+                        c[0][1] = (uint8_t)math::clamp<int>(c[0][1] + ogr, 0, 63);
+                        c[0][2] = (uint8_t)math::clamp<int>(c[0][2] + obr, 0, 31);
 
                         for (int rr = -1; rr <= 1; rr++)
                         {
@@ -832,9 +832,9 @@ namespace vogl
                             {
                                 for (int br = -1; br <= 1; br++)
                                 {
-                                    c[1][0] = (uint8)math::clamp<int>(c[1][0] + rr, 0, 31);
-                                    c[1][1] = (uint8)math::clamp<int>(c[1][1] + gr, 0, 63);
-                                    c[1][2] = (uint8)math::clamp<int>(c[1][2] + br, 0, 31);
+                                    c[1][0] = (uint8_t)math::clamp<int>(c[1][0] + rr, 0, 31);
+                                    c[1][1] = (uint8_t)math::clamp<int>(c[1][1] + gr, 0, 63);
+                                    c[1][2] = (uint8_t)math::clamp<int>(c[1][2] + br, 0, 31);
 
                                     nc.m_low_color = dxt1_block::pack_color(c[0], false);
                                     nc.m_high_color = dxt1_block::pack_color(c[1], false);
@@ -862,9 +862,9 @@ namespace vogl
 
         m_trial_solution.clear();
 
-        uint num_passes;
-        const int16 *pProbe_table = g_uber_probe_table;
-        uint probe_range;
+        uint32_t num_passes;
+        const int16_t *pProbe_table = g_uber_probe_table;
+        uint32_t probe_range;
         float dist_per_trial = .015625f;
 
         // How many probes, and the distance between each probe depends on the quality level.
@@ -905,8 +905,8 @@ namespace vogl
         if (m_pParams->m_endpoint_caching)
         {
             // Try the previous X winning endpoints. This may not give us optimal results, but it may increase the probability of early outs while evaluating potential solutions.
-            const uint num_prev_results = math::minimum<uint>(cMaxPrevResults, m_num_prev_results);
-            for (uint i = 0; i < num_prev_results; i++)
+            const uint32_t num_prev_results = math::minimum<uint32_t>(cMaxPrevResults, m_num_prev_results);
+            for (uint32_t i = 0; i < num_prev_results; i++)
             {
                 const dxt1_solution_coordinates &coords = m_prev_results[i];
 
@@ -933,8 +933,8 @@ namespace vogl
             try_median4(orig_low_color, orig_high_color);
         }
 
-        uint probe_low[cUberProbeTableSize * 2 + 1];
-        uint probe_high[cUberProbeTableSize * 2 + 1];
+        uint32_t probe_low[cUberProbeTableSize * 2 + 1];
+        uint32_t probe_high[cUberProbeTableSize * 2 + 1];
 
         vec3F scaled_principle_axis[2];
 
@@ -958,7 +958,7 @@ namespace vogl
         high_color[1] = math::clamp(high_color[1] * 63.0f, 0.0f, 63.0f);
         high_color[2] = math::clamp(high_color[2] * 31.0f, 0.0f, 31.0f);
 
-        for (uint pass = 0; pass < num_passes; pass++)
+        for (uint32_t pass = 0; pass < num_passes; pass++)
         {
             // Now separately sweep or probe the low and high colors along the principle axis, both positively and negatively.
             // This results in two arrays of candidate low/high endpoints. Every unique combination of candidate endpoints is tried as a potential solution.
@@ -978,9 +978,9 @@ namespace vogl
 
             // Sweep low endpoint along principle axis, record positions
             int prev_packed_color[2] = { -1, -1 };
-            uint num_low_trials = 0;
+            uint32_t num_low_trials = 0;
             vec3F initial_probe_low_color(low_color + vec3F(.5f));
-            for (uint i = 0; i < probe_range; i++)
+            for (uint32_t i = 0; i < probe_range; i++)
             {
                 const int ls = i ? 0 : 1;
                 int x = pProbe_table[i];
@@ -1006,9 +1006,9 @@ namespace vogl
             prev_packed_color[1] = -1;
 
             // Sweep high endpoint along principle axis, record positions
-            uint num_high_trials = 0;
+            uint32_t num_high_trials = 0;
             vec3F initial_probe_high_color(high_color + vec3F(.5f));
-            for (uint i = 0; i < probe_range; i++)
+            for (uint32_t i = 0; i < probe_range; i++)
             {
                 const int ls = i ? 0 : 1;
                 int x = pProbe_table[i];
@@ -1031,11 +1031,11 @@ namespace vogl
             }
 
             // Now try all unique combinations.
-            for (uint i = 0; i < num_low_trials; i++)
+            for (uint32_t i = 0; i < num_low_trials; i++)
             {
-                for (uint j = 0; j < num_high_trials; j++)
+                for (uint32_t j = 0; j < num_high_trials; j++)
                 {
-                    dxt1_solution_coordinates coords((uint16)probe_low[i], (uint16)probe_high[j]);
+                    dxt1_solution_coordinates coords((uint16_t)probe_low[i], (uint16_t)probe_high[j]);
                     coords.canonicalize();
 
                     solution_hash_map::insert_result solution_res(m_solutions_tried.insert(coords.m_low_color | (coords.m_high_color << 16U)));
@@ -1089,7 +1089,7 @@ namespace vogl
                             if ((q < 0) || (q > limit))
                                 continue;
 
-                            c[a] = (uint8)q;
+                            c[a] = (uint8_t)q;
 
                             dxt1_solution_coordinates coords(dxt1_block::pack_color(c, false), m_best_solution.m_coords.m_high_color);
                             coords.canonicalize();
@@ -1142,7 +1142,7 @@ namespace vogl
                             if ((q < 0) || (q > limit))
                                 continue;
 
-                            c[a] = (uint8)q;
+                            c[a] = (uint8_t)q;
 
                             dxt1_solution_coordinates coords(m_best_solution.m_coords.m_low_color, dxt1_block::pack_color(c, false));
                             coords.canonicalize();
@@ -1214,7 +1214,7 @@ namespace vogl
 
     bool dxt1_endpoint_optimizer::handle_multicolor_block()
     {
-        uint num_passes = 1;
+        uint32_t num_passes = 1;
         vec3F perceptual_weights(1.0f);
 
         if (m_perceptual)
@@ -1225,7 +1225,7 @@ namespace vogl
             float ave_blueness = 0;
             float ave_l = 0;
 
-            for (uint i = 0; i < m_unique_colors.size(); i++)
+            for (uint32_t i = 0; i < m_unique_colors.size(); i++)
             {
                 const color_quad_u8 &c = m_unique_colors[i].m_color;
                 const float weight = (float)m_unique_colors[i].m_weight;
@@ -1260,7 +1260,7 @@ namespace vogl
             }
         }
 
-        for (uint pass_index = 0; pass_index < num_passes; pass_index++)
+        for (uint32_t pass_index = 0; pass_index < num_passes; pass_index++)
         {
             compute_vectors(perceptual_weights);
 
@@ -1296,7 +1296,7 @@ namespace vogl
         float l = 1e+9;
         float h = -1e+9;
 
-        for (uint i = 0; i < m_norm_unique_colors.size(); i++)
+        for (uint32_t i = 0; i < m_norm_unique_colors.size(); i++)
         {
             float d = m_norm_unique_colors[i].dot(m_principle_axis);
             l = math::minimum(l, d);
@@ -1348,7 +1348,7 @@ namespace vogl
 
         if (m_unique_colors.size() <= 4)
         {
-            for (uint i = 0; i < 4; i++)
+            for (uint32_t i = 0; i < 4; i++)
                 means[i] = m_norm_unique_colors[math::minimum<int>(m_norm_unique_colors.size() - 1, i)];
         }
         else
@@ -1360,10 +1360,10 @@ namespace vogl
 
             fast_random rm;
 
-            const uint cMaxIters = 8;
-            uint reassign_rover = 0;
+            const uint32_t cMaxIters = 8;
+            uint32_t reassign_rover = 0;
             float prev_total_dist = math::cNearlyInfinite;
-            for (uint iter = 0; iter < cMaxIters; iter++)
+            for (uint32_t iter = 0; iter < cMaxIters; iter++)
             {
                 vec3F new_means[4];
                 float new_weights[4];
@@ -1372,14 +1372,14 @@ namespace vogl
 
                 float total_dist = 0;
 
-                for (uint i = 0; i < m_unique_colors.size(); i++)
+                for (uint32_t i = 0; i < m_unique_colors.size(); i++)
                 {
                     const vec3F &v = m_norm_unique_colors[i];
 
                     float best_dist = means[0].squared_distance(v);
                     int best_index = 0;
 
-                    for (uint j = 1; j < 4; j++)
+                    for (uint32_t j = 1; j < 4; j++)
                     {
                         float dist = means[j].squared_distance(v);
                         if (dist < best_dist)
@@ -1395,10 +1395,10 @@ namespace vogl
                     new_weights[best_index] += (float)m_unique_colors[i].m_weight;
                 }
 
-                uint highest_index = 0;
+                uint32_t highest_index = 0;
                 float highest_weight = 0;
                 bool empty_cell = false;
-                for (uint j = 0; j < 4; j++)
+                for (uint32_t j = 0; j < 4; j++)
                 {
                     if (new_weights[j] > 0.0f)
                     {
@@ -1425,10 +1425,10 @@ namespace vogl
 
                 if ((empty_cell) && (iter != (cMaxIters - 1)))
                 {
-                    const uint ri = (highest_index + reassign_rover) & 3;
+                    const uint32_t ri = (highest_index + reassign_rover) & 3;
                     reassign_rover++;
 
-                    for (uint j = 0; j < 4; j++)
+                    for (uint32_t j = 0; j < 4; j++)
                     {
                         if (new_weights[j] == 0.0f)
                         {
@@ -1442,9 +1442,9 @@ namespace vogl
 
         bool improved = false;
 
-        for (uint i = 0; i < 3; i++)
+        for (uint32_t i = 0; i < 3; i++)
         {
-            for (uint j = i + 1; j < 4; j++)
+            for (uint32_t j = i + 1; j < 4; j++)
             {
                 const vec3F v0(means[i] + m_mean_norm_color);
                 const vec3F v1(means[j] + m_mean_norm_color);
@@ -1503,7 +1503,7 @@ namespace vogl
         return false;
     }
 
-    inline uint dxt1_endpoint_optimizer::color_distance(bool perceptual, const color_quad_u8 &e1, const color_quad_u8 &e2, bool alpha)
+    inline uint32_t dxt1_endpoint_optimizer::color_distance(bool perceptual, const color_quad_u8 &e1, const color_quad_u8 &e2, bool alpha)
     {
         if (perceptual)
         {
@@ -1571,8 +1571,8 @@ namespace vogl
         solution.m_alpha_block = false;
         solution.m_valid = false;
 
-        uint first_block_type = 0;
-        uint last_block_type = 1;
+        uint32_t first_block_type = 0;
+        uint32_t last_block_type = 1;
 
         if ((m_pParams->m_pixels_have_alpha) || (m_pParams->m_force_alpha_blocks))
             first_block_type = 1;
@@ -1586,7 +1586,7 @@ namespace vogl
         colors[0] = dxt1_block::unpack_color(coords.m_low_color, true);
         colors[1] = dxt1_block::unpack_color(coords.m_high_color, true);
 
-        for (uint block_type = first_block_type; block_type <= last_block_type; block_type++)
+        for (uint32_t block_type = first_block_type; block_type <= last_block_type; block_type++)
         {
             uint64_t trial_error = 0;
 
@@ -1601,10 +1601,10 @@ namespace vogl
                     {
                         const color_quad_u8 &c = m_unique_colors[unique_color_index].m_color;
 
-                        uint best_error = color_distance(true, c, colors[0], false);
-                        uint best_color_index = 0;
+                        uint32_t best_error = color_distance(true, c, colors[0], false);
+                        uint32_t best_color_index = 0;
 
-                        uint err = color_distance(true, c, colors[1], false);
+                        uint32_t err = color_distance(true, c, colors[1], false);
                         if (err < best_error)
                         {
                             best_error = err;
@@ -1629,7 +1629,7 @@ namespace vogl
                         if (trial_error >= solution.m_error)
                             break;
 
-                        m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                        m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                     }
                 }
                 else
@@ -1638,10 +1638,10 @@ namespace vogl
                     {
                         const color_quad_u8 &c = m_unique_colors[unique_color_index].m_color;
 
-                        uint best_error = color_distance(false, c, colors[0], false);
-                        uint best_color_index = 0;
+                        uint32_t best_error = color_distance(false, c, colors[0], false);
+                        uint32_t best_color_index = 0;
 
-                        uint err = color_distance(false, c, colors[1], false);
+                        uint32_t err = color_distance(false, c, colors[1], false);
                         if (err < best_error)
                         {
                             best_error = err;
@@ -1666,7 +1666,7 @@ namespace vogl
                         if (trial_error >= solution.m_error)
                             break;
 
-                        m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                        m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                     }
                 }
             }
@@ -1680,10 +1680,10 @@ namespace vogl
                     {
                         const color_quad_u8 &c = m_unique_colors[unique_color_index].m_color;
 
-                        uint best_error = color_distance(true, c, colors[0], false);
-                        uint best_color_index = 0;
+                        uint32_t best_error = color_distance(true, c, colors[0], false);
+                        uint32_t best_color_index = 0;
 
-                        uint err = color_distance(true, c, colors[1], false);
+                        uint32_t err = color_distance(true, c, colors[1], false);
                         if (err < best_error)
                         {
                             best_error = err;
@@ -1701,7 +1701,7 @@ namespace vogl
                         if (trial_error >= solution.m_error)
                             break;
 
-                        m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                        m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                     }
                 }
                 else
@@ -1710,10 +1710,10 @@ namespace vogl
                     {
                         const color_quad_u8 &c = m_unique_colors[unique_color_index].m_color;
 
-                        uint best_error = color_distance(false, c, colors[0], false);
-                        uint best_color_index = 0;
+                        uint32_t best_error = color_distance(false, c, colors[0], false);
+                        uint32_t best_color_index = 0;
 
-                        uint err = color_distance(false, c, colors[1], false);
+                        uint32_t err = color_distance(false, c, colors[1], false);
                         if (err < best_error)
                         {
                             best_error = err;
@@ -1731,7 +1731,7 @@ namespace vogl
                         if (trial_error >= solution.m_error)
                             break;
 
-                        m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                        m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                     }
                 }
             }
@@ -1747,7 +1747,7 @@ namespace vogl
 
         if ((!solution.m_alpha_block) && (solution.m_coords.m_low_color == solution.m_coords.m_high_color))
         {
-            uint s;
+            uint32_t s;
             if ((solution.m_coords.m_low_color & 31) != 31)
             {
                 solution.m_coords.m_low_color++;
@@ -1759,8 +1759,8 @@ namespace vogl
                 s = 0;
             }
 
-            for (uint i = 0; i < m_unique_colors.size(); i++)
-                solution.m_selectors[i] = static_cast<uint8>(s);
+            for (uint32_t i = 0; i < m_unique_colors.size(); i++)
+                solution.m_selectors[i] = static_cast<uint8_t>(s);
         }
 
         if ((pBest_solution) && (solution.m_error < pBest_solution->m_error))
@@ -1790,8 +1790,8 @@ namespace vogl
         solution.m_alpha_block = false;
         solution.m_valid = false;
 
-        uint first_block_type = 0;
-        uint last_block_type = 1;
+        uint32_t first_block_type = 0;
+        uint32_t last_block_type = 1;
 
         if ((m_pParams->m_pixels_have_alpha) || (m_pParams->m_force_alpha_blocks))
             first_block_type = 1;
@@ -1821,7 +1821,7 @@ namespace vogl
         int dirg = vg * 2;
         int dirb = vb * 2;
 
-        for (uint block_type = first_block_type; block_type <= last_block_type; block_type++)
+        for (uint32_t block_type = first_block_type; block_type <= last_block_type; block_type++)
         {
             uint64_t trial_error = 0;
 
@@ -1844,19 +1844,19 @@ namespace vogl
 
                     int dot = c.r * dirr + c.g * dirg + c.b * dirb;
 
-                    uint8 best_color_index;
+                    uint8_t best_color_index;
                     if (dot < halfPoint)
                         best_color_index = (dot < c3Point) ? 0 : 2;
                     else
                         best_color_index = (dot < c0Point) ? 3 : 1;
 
-                    uint best_error = color_distance(m_perceptual, c, colors[best_color_index], false);
+                    uint32_t best_error = color_distance(m_perceptual, c, colors[best_color_index], false);
 
                     trial_error += best_error * m_unique_colors[unique_color_index].m_weight;
                     if (trial_error >= solution.m_error)
                         break;
 
-                    m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                    m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                 }
             }
             else
@@ -1875,7 +1875,7 @@ namespace vogl
 
                     int dot = c.r * dirr + c.g * dirg + c.b * dirb;
 
-                    uint8 best_color_index;
+                    uint8_t best_color_index;
                     if (dot < c02Point)
                         best_color_index = 0;
                     else if (dot < c21Point)
@@ -1883,13 +1883,13 @@ namespace vogl
                     else
                         best_color_index = 1;
 
-                    uint best_error = color_distance(m_perceptual, c, colors[best_color_index], false);
+                    uint32_t best_error = color_distance(m_perceptual, c, colors[best_color_index], false);
 
                     trial_error += best_error * m_unique_colors[unique_color_index].m_weight;
                     if (trial_error >= solution.m_error)
                         break;
 
-                    m_trial_selectors[unique_color_index] = static_cast<uint8>(best_color_index);
+                    m_trial_selectors[unique_color_index] = static_cast<uint8_t>(best_color_index);
                 }
             }
 
@@ -1904,7 +1904,7 @@ namespace vogl
 
         if ((!solution.m_alpha_block) && (solution.m_coords.m_low_color == solution.m_coords.m_high_color))
         {
-            uint s;
+            uint32_t s;
             if ((solution.m_coords.m_low_color & 31) != 31)
             {
                 solution.m_coords.m_low_color++;
@@ -1916,8 +1916,8 @@ namespace vogl
                 s = 0;
             }
 
-            for (uint i = 0; i < m_unique_colors.size(); i++)
-                solution.m_selectors[i] = static_cast<uint8>(s);
+            for (uint32_t i = 0; i < m_unique_colors.size(); i++)
+                solution.m_selectors[i] = static_cast<uint8_t>(s);
         }
 
         if ((pBest_solution) && (solution.m_error < pBest_solution->m_error))
@@ -1934,9 +1934,9 @@ namespace vogl
         color_quad_u8 res;
 
         float r = rounding ? 1.0f : 0.0f;
-        res[0] = static_cast<uint8>(math::clamp(math::float_to_int(r + math::lerp<float>(a[0], b[0], f)), 0, 255));
-        res[1] = static_cast<uint8>(math::clamp(math::float_to_int(r + math::lerp<float>(a[1], b[1], f)), 0, 255));
-        res[2] = static_cast<uint8>(math::clamp(math::float_to_int(r + math::lerp<float>(a[2], b[2], f)), 0, 255));
+        res[0] = static_cast<uint8_t>(math::clamp(math::float_to_int(r + math::lerp<float>(a[0], b[0], f)), 0, 255));
+        res[1] = static_cast<uint8_t>(math::clamp(math::float_to_int(r + math::lerp<float>(a[1], b[1], f)), 0, 255));
+        res[2] = static_cast<uint8_t>(math::clamp(math::float_to_int(r + math::lerp<float>(a[2], b[2], f)), 0, 255));
         res[3] = 255;
 
         return unique_color(res, 1);
@@ -1956,11 +1956,11 @@ namespace vogl
             // a    b    c   d
             // 0.0  1/3 2/3  1.0
 
-            for (uint k = 0; k < 2; k++)
+            for (uint32_t k = 0; k < 2; k++)
             {
-                for (uint q = 0; q < 2; q++)
+                for (uint32_t q = 0; q < 2; q++)
                 {
-                    const uint r = q ^ 1;
+                    const uint32_t r = q ^ 1;
 
                     // a b
                     m_temp_unique_colors.push_back(lerp_color(m_temp_unique_colors[q].m_color, m_temp_unique_colors[r].m_color, 2.0f, k));
@@ -1991,9 +1991,9 @@ namespace vogl
             // a    b    c   d
             // 0.0  1/3 2/3  1.0
 
-            for (uint i = 0; i <= 2; i++)
+            for (uint32_t i = 0; i <= 2; i++)
             {
-                for (uint j = 0; j <= 2; j++)
+                for (uint32_t j = 0; j <= 2; j++)
                 {
                     if (i == j)
                         continue;
@@ -2015,10 +2015,10 @@ namespace vogl
 
         m_unique_packed_colors.resize(0);
 
-        for (uint i = 0; i < m_temp_unique_colors.size(); i++)
+        for (uint32_t i = 0; i < m_temp_unique_colors.size(); i++)
         {
             const color_quad_u8 &unique_color = m_temp_unique_colors[i].m_color;
-            const uint16 packed_color = dxt1_block::pack_color(unique_color, true);
+            const uint16_t packed_color = dxt1_block::pack_color(unique_color, true);
 
             if (std::find(m_unique_packed_colors.begin(), m_unique_packed_colors.end(), packed_color) != m_unique_packed_colors.end())
                 continue;
@@ -2029,11 +2029,11 @@ namespace vogl
         if (m_unique_packed_colors.size() < 2)
             return;
 
-        for (uint alt_rounding = 0; alt_rounding < 2; alt_rounding++)
+        for (uint32_t alt_rounding = 0; alt_rounding < 2; alt_rounding++)
         {
-            for (uint i = 0; i < m_unique_packed_colors.size() - 1; i++)
+            for (uint32_t i = 0; i < m_unique_packed_colors.size() - 1; i++)
             {
-                for (uint j = i + 1; j < m_unique_packed_colors.size(); j++)
+                for (uint32_t j = i + 1; j < m_unique_packed_colors.size(); j++)
                 {
                     evaluate_solution(
                         dxt1_solution_coordinates(m_unique_packed_colors[i], m_unique_packed_colors[j]),
@@ -2063,9 +2063,9 @@ namespace vogl
         VOGL_NOTE_UNUSED(pOrig_params);
         results *pOrig_results = m_pResults;
 
-        uint num_dark_colors = 0;
+        uint32_t num_dark_colors = 0;
 
-        for (uint i = 0; i < m_unique_colors.size(); i++)
+        for (uint32_t i = 0; i < m_unique_colors.size(); i++)
             if ((m_unique_colors[i].m_color[0] <= 4) && (m_unique_colors[i].m_color[1] <= 4) && (m_unique_colors[i].m_color[2] <= 4))
                 num_dark_colors++;
 
@@ -2079,13 +2079,13 @@ namespace vogl
         trial_params.m_pPixels = trial_colors.get_ptr();
         trial_params.m_pixels_have_alpha = true;
 
-        for (uint i = 0; i < trial_colors.size(); i++)
+        for (uint32_t i = 0; i < trial_colors.size(); i++)
             if ((trial_colors[i][0] <= 4) && (trial_colors[i][1] <= 4) && (trial_colors[i][2] <= 4))
                 trial_colors[i][3] = 0;
 
         results trial_results;
 
-        vogl::vector<uint8> trial_selectors(m_pParams->m_num_pixels);
+        vogl::vector<uint8_t> trial_selectors(m_pParams->m_num_pixels);
         trial_results.m_pSelectors = trial_selectors.get_ptr();
 
         if (!compute_internal(trial_params, trial_results, NULL))
@@ -2098,7 +2098,7 @@ namespace vogl
 
         uint64_t trial_error = 0;
 
-        for (uint i = 0; i < trial_colors.size(); i++)
+        for (uint32_t i = 0; i < trial_colors.size(); i++)
         {
             if (trial_colors[i][3] == 0)
             {
@@ -2185,21 +2185,21 @@ namespace vogl
     {
         m_has_transparent_pixels = false;
 
-        uint num_opaque_pixels = 0;
+        uint32_t num_opaque_pixels = 0;
 
-        const uint alpha_thresh = m_pParams->m_pixels_have_alpha ? (m_pParams->m_dxt1a_alpha_threshold << 24U) : 0;
+        const uint32_t alpha_thresh = m_pParams->m_pixels_have_alpha ? (m_pParams->m_dxt1a_alpha_threshold << 24U) : 0;
 
-        const uint32 *pSrc_pixels = reinterpret_cast<const uint32 *>(m_pParams->m_pPixels);
-        const uint32 *pSrc_pixels_end = pSrc_pixels + m_pParams->m_num_pixels;
+        const uint32_t *pSrc_pixels = reinterpret_cast<const uint32_t *>(m_pParams->m_pPixels);
+        const uint32_t *pSrc_pixels_end = pSrc_pixels + m_pParams->m_num_pixels;
 
         m_unique_colors.resize(m_pParams->m_num_pixels);
-        uint num_unique_colors = 0;
+        uint32_t num_unique_colors = 0;
 
         m_all_pixels_grayscale = true;
 
         do
         {
-            uint32 c = utils::read_le32(pSrc_pixels);
+            uint32_t c = utils::read_le32(pSrc_pixels);
             pSrc_pixels++;
 
             if (c < alpha_thresh)
@@ -2210,9 +2210,9 @@ namespace vogl
 
             if (m_all_pixels_grayscale)
             {
-                uint r = c & 0xFF;
-                uint g = (c >> 8) & 0xFF;
-                uint b = (c >> 16) & 0xFF;
+                uint32_t r = c & 0xFF;
+                uint32_t g = (c >> 8) & 0xFF;
+                uint32_t b = (c >> 16) & 0xFF;
                 if ((r != g) || (r != b))
                     m_all_pixels_grayscale = false;
             }

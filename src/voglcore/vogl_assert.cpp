@@ -59,7 +59,7 @@ void vogl_assert(const char *pExp, const char *pFile, unsigned line)
 	if (get_printable_backtrace(backtrace))
 	{
 		vogl_output_debug_string("Backtrace:");
-		for (uint i = 0; i < backtrace.size(); i++)
+		for (uint32_t i = 0; i < backtrace.size(); i++)
 			vogl_output_debug_string(backtrace[i].get_ptr());
 	}
 #endif
@@ -80,7 +80,7 @@ void vogl_fail(const char *pExp, const char *pFile, unsigned line)
     if (get_printable_backtrace(backtrace))
     {
         vogl_output_debug_string("Backtrace:");
-        for (vogl::uint i = 0; i < backtrace.size(); i++)
+        for (uint32_t i = 0; i < backtrace.size(); i++)
             vogl_output_debug_string(backtrace[i].get_ptr());
     }
 

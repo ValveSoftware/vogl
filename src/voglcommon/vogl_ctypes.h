@@ -97,7 +97,7 @@ struct vogl_ctype_desc_t
     const char *m_pCType;
     int m_size; // will be 0 for void, -1 for opaque types, note this is the size of the ctype in the current process!
 
-    uint m_loki_type_flags; // see loki::TypeTraits::typeFlags
+    uint32_t m_loki_type_flags; // see loki::TypeTraits::typeFlags
 
     bool m_is_pointer;
     bool m_is_opaque_pointer; // true if the pointer points to an opaque type of unknown/undefind size
@@ -112,20 +112,20 @@ class vogl_ctypes
 {
 public:
     vogl_ctypes(); // purposely do nothing here, because this object is initialized before global construction time
-    vogl_ctypes(uint trace_ptr_size)
+    vogl_ctypes(uint32_t trace_ptr_size)
     {
         init(trace_ptr_size);
     }
 
     void init();
-    void init(uint trace_ptr_size);
+    void init(uint32_t trace_ptr_size);
 
-    inline uint get_pointer_size() const
+    inline uint32_t get_pointer_size() const
     {
         return m_pointer_size;
     }
 
-    void change_pointer_sizes(uint trace_ptr_size);
+    void change_pointer_sizes(uint32_t trace_ptr_size);
 
     inline const vogl_ctype_desc_t &operator[](vogl_ctype_t ctype) const
     {
@@ -165,7 +165,7 @@ public:
     {
         return (*this)[ctype].m_size;
     }
-    inline uint get_loki_type_flags(vogl_ctype_t ctype) const
+    inline uint32_t get_loki_type_flags(vogl_ctype_t ctype) const
     {
         return (*this)[ctype].m_loki_type_flags;
     }
@@ -182,7 +182,7 @@ public:
 
 private:
     vogl_ctype_desc_t m_vogl_ctype_descs[VOGL_NUM_CTYPES];
-    uint m_pointer_size;
+    uint32_t m_pointer_size;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

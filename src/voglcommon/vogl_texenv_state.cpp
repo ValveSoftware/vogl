@@ -54,8 +54,8 @@ bool vogl_texenv_state::snapshot(const vogl_context_info &context_info)
     if (vogl_check_gl_error())
         any_gl_errors = true;
 
-    //for (uint texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
-    for (uint texcoord_index = 0; texcoord_index < context_info.get_max_texture_units(); texcoord_index++)
+    //for (uint32_t texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
+    for (uint32_t texcoord_index = 0; texcoord_index < context_info.get_max_texture_units(); texcoord_index++)
     {
         GL_ENTRYPOINT(glActiveTexture)(GL_TEXTURE0 + texcoord_index);
 
@@ -173,7 +173,7 @@ bool vogl_texenv_state::snapshot(const vogl_context_info &context_info)
     return true;
 }
 
-bool vogl_texenv_state::set_texenv_parameter(GLenum target, uint index, GLenum pname) const
+bool vogl_texenv_state::set_texenv_parameter(GLenum target, uint32_t index, GLenum pname) const
 {
     VOGL_FUNC_TRACER
 
@@ -217,7 +217,7 @@ bool vogl_texenv_state::set_texenv_parameter(GLenum target, uint index, GLenum p
     return !vogl_check_gl_error();
 }
 
-bool vogl_texenv_state::set_texgen_parameter(GLenum coord, uint index, GLenum pname) const
+bool vogl_texenv_state::set_texgen_parameter(GLenum coord, uint32_t index, GLenum pname) const
 {
     VOGL_FUNC_TRACER
 
@@ -284,7 +284,7 @@ bool vogl_texenv_state::restore(const vogl_context_info &context_info) const
     if (vogl_check_gl_error())
         any_gl_errors = true;
 
-    for (uint texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
+    for (uint32_t texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
     {
         GL_ENTRYPOINT(glActiveTexture)(GL_TEXTURE0 + texcoord_index);
 
@@ -391,7 +391,7 @@ bool vogl_texenv_state::deserialize(const json_node &node, const vogl_blob_manag
     if (!node.is_object() || !node.are_all_children_objects_or_arrays())
         return false;
 
-    for (uint i = 0; i < node.size(); i++)
+    for (uint32_t i = 0; i < node.size(); i++)
     {
         const dynamic_string &name = node.get_key(i);
         uint64_t enum_val = get_gl_enums().find_enum(name);

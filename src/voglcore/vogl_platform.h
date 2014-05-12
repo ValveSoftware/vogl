@@ -107,7 +107,7 @@ const bool c_vogl_big_endian_platform = !c_vogl_little_endian_platform;
     #define VOGL_NOINLINE
 #endif
 
-#define VOGL_GET_ALIGNMENT(v) ((!sizeof(v)) ? 1 : (__alignof(v) ? __alignof(v) : sizeof(uint32)))
+#define VOGL_GET_ALIGNMENT(v) ((!sizeof(v)) ? 1 : (__alignof(v) ? __alignof(v) : sizeof(uint32_t)))
 
 #if defined(COMPILER_GCCLIKE)
 

@@ -31,7 +31,7 @@ namespace vogl
 {
     namespace math
     {
-        uint g_bitmasks[32] =
+        uint32_t g_bitmasks[32] =
             {
                 1U << 0U, 1U << 1U, 1U << 2U, 1U << 3U,
                 1U << 4U, 1U << 5U, 1U << 6U, 1U << 7U,
@@ -43,7 +43,7 @@ namespace vogl
                 1U << 28U, 1U << 29U, 1U << 30U, 1U << 31U
             };
 
-        bool is_prime(uint n)
+        bool is_prime(uint32_t n)
         {
             if (n <= 2)
                 return n == 2;
@@ -51,9 +51,9 @@ namespace vogl
             if ((n & 1) == 0)
                 return false;
 
-            const uint end = (uint)sqrt(static_cast<double>(n));
+            const uint32_t end = (uint32_t)sqrt(static_cast<double>(n));
 
-            for (uint i = 3; i <= end; i += 2)
+            for (uint32_t i = 3; i <= end; i += 2)
                 if ((n % i) == 0)
                     return false;
 
@@ -61,25 +61,25 @@ namespace vogl
         }
 
         // Find the smallest prime >= n.
-        uint get_prime(uint n)
+        uint32_t get_prime(uint32_t n)
         {
             while (!is_prime(n))
                 n++;
             return n;
         }
 
-        double compute_entropy(const uint8 *p, uint n)
+        double compute_entropy(const uint8_t *p, uint32_t n)
         {
-            uint hist[256];
+            uint32_t hist[256];
             utils::zero_object(hist);
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
                 hist[*p++]++;
 
             double entropy = 0.0f;
 
             const double invln2 = 1.0f / log(2.0f);
-            for (uint i = 0; i < 256; i++)
+            for (uint32_t i = 0; i < 256; i++)
             {
                 if (!hist[i])
                     continue;
@@ -115,11 +115,11 @@ namespace vogl
 
         void compute_upper_pow2_dim(int &width, int &height)
         {
-            if (!math::is_power_of_2((uint32)width))
-                width = math::next_pow2((uint32)width);
+            if (!math::is_power_of_2((uint32_t)width))
+                width = math::next_pow2((uint32_t)width);
 
-            if (!math::is_power_of_2((uint32)height))
-                height = math::next_pow2((uint32)height);
+            if (!math::is_power_of_2((uint32_t)height))
+                height = math::next_pow2((uint32_t)height);
         }
 
         float gauss(int x, int y, float sigma_sqr)
@@ -130,7 +130,7 @@ namespace vogl
         }
 
         // size_x/y should be odd
-        void compute_gaussian_kernel(float *pDst, int size_x, int size_y, float sigma_sqr, uint flags)
+        void compute_gaussian_kernel(float *pDst, int size_x, int size_y, float sigma_sqr, uint32_t flags)
         {
             VOGL_ASSERT(size_x & size_y & 1);
 

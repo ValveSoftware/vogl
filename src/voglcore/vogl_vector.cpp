@@ -34,7 +34,7 @@
 
 namespace vogl
 {
-    bool elemental_vector::increase_capacity(uint min_new_capacity, bool grow_hint, uint element_size, object_mover pMover, bool nofail)
+    bool elemental_vector::increase_capacity(uint32_t min_new_capacity, bool grow_hint, uint32_t element_size, object_mover pMover, bool nofail)
     {
         VOGL_ASSERT(m_size <= m_capacity);
 #ifdef VOGL_64BIT_POINTERS
@@ -81,7 +81,7 @@ namespace vogl
                     return false;
 
                 char buf[256];
-                sprintf(buf, "%s: vogl_realloc() failed allocating %u bytes", VOGL_FUNCTION_INFO_CSTR, (uint)desired_size);
+                sprintf(buf, "%s: vogl_realloc() failed allocating %u bytes", VOGL_FUNCTION_INFO_CSTR, (uint32_t)desired_size);
                 VOGL_FAIL(buf);
             }
             m_p = new_p;
@@ -95,7 +95,7 @@ namespace vogl
                     return false;
 
                 char buf[256];
-                sprintf(buf, "%s: vogl_malloc() failed allocating %u bytes", VOGL_FUNCTION_INFO_CSTR, (uint)desired_size);
+                sprintf(buf, "%s: vogl_malloc() failed allocating %u bytes", VOGL_FUNCTION_INFO_CSTR, (uint32_t)desired_size);
                 VOGL_FAIL(buf);
             }
 
@@ -108,9 +108,9 @@ namespace vogl
         }
 
         if (actual_size > desired_size)
-            m_capacity = static_cast<uint>(actual_size / element_size);
+            m_capacity = static_cast<uint32_t>(actual_size / element_size);
         else
-            m_capacity = static_cast<uint>(new_capacity);
+            m_capacity = static_cast<uint32_t>(new_capacity);
 
         return true;
     }

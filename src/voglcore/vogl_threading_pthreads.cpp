@@ -54,14 +54,14 @@
 
 namespace vogl
 {
-    uint g_number_of_processors = 1;
+    uint32_t g_number_of_processors = 1;
 
     void vogl_threading_init()
     {
         #if defined(COMPILER_MSVC)
             SYSTEM_INFO g_system_info;
             GetSystemInfo(&g_system_info);
-            g_number_of_processors = math::maximum<uint>(1U, g_system_info.dwNumberOfProcessors);
+            g_number_of_processors = math::maximum<uint32_t>(1U, g_system_info.dwNumberOfProcessors);
         #elif defined(COMPILER_GCCLIKE)
             g_number_of_processors = math::maximum<int>(1, get_nprocs());
         #else
@@ -156,7 +156,7 @@ namespace vogl
         VOGL_NOTE_UNUSED(count);
     }
 
-    semaphore::semaphore(uint32 initialCount, uint32 maximumCount, const char *pName)
+    semaphore::semaphore(uint32_t initialCount, uint32_t maximumCount, const char *pName)
     {
         VOGL_NOTE_UNUSED(maximumCount);
         VOGL_NOTE_UNUSED(pName);
@@ -175,7 +175,7 @@ namespace vogl
         sem_destroy(&m_sem);
     }
 
-    void semaphore::release(uint32 releaseCount)
+    void semaphore::release(uint32_t releaseCount)
     {
         VOGL_ASSERT(releaseCount >= 1);
 
@@ -185,14 +185,14 @@ namespace vogl
         }
     }
 
-    void semaphore::try_release(uint32 releaseCount)
+    void semaphore::try_release(uint32_t releaseCount)
     {
         VOGL_ASSERT(releaseCount >= 1);
 
         plat_try_sem_post(&m_sem, releaseCount);
     }
 
-    bool semaphore::wait(uint32 milliseconds)
+    bool semaphore::wait(uint32_t milliseconds)
     {
         int status;
         if (milliseconds == cUINT32_MAX)
@@ -277,7 +277,7 @@ namespace vogl
         utils::zero_object(m_threads);
     }
 
-    task_pool::task_pool(uint num_threads)
+    task_pool::task_pool(uint32_t num_threads)
         : m_num_threads(0),
           m_tasks_available(0, 32767),
           m_all_tasks_completed(0, 1),
@@ -296,10 +296,10 @@ namespace vogl
         deinit();
     }
 
-    bool task_pool::init(uint num_threads)
+    bool task_pool::init(uint32_t num_threads)
     {
         VOGL_ASSERT(num_threads <= cMaxThreads);
-        num_threads = math::minimum<uint>(num_threads, cMaxThreads);
+        num_threads = math::minimum<uint32_t>(num_threads, cMaxThreads);
 
         deinit();
 
@@ -337,7 +337,7 @@ namespace vogl
 
             m_tasks_available.release(m_num_threads);
 
-            for (uint i = 0; i < m_num_threads; i++)
+            for (uint32_t i = 0; i < m_num_threads; i++)
                 pthread_join(m_threads[i], NULL);
 
             m_num_threads = 0;

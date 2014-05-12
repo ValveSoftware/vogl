@@ -45,7 +45,7 @@ namespace vogl
         int_to_string_vec_map blah;
         if (blah.contains(0))
             return false;
-        for (uint i = 0; i < 100; i++)
+        for (uint32_t i = 0; i < 100; i++)
         {
             vogl::vector<dynamic_string> v;
             v.push_back(dynamic_string(cVarArg, "hello %u", i));
@@ -62,7 +62,7 @@ namespace vogl
                 return false;
 
             printf("%u:\n", it->first);
-            for (uint i = 0; i < it->second.size(); i++)
+            for (uint32_t i = 0; i < it->second.size(); i++)
             {
                 printf("%s\n", it->second[i].get_ptr());
             }
@@ -92,12 +92,12 @@ namespace vogl
 
         int_map z;
 
-        for (uint i = 0; i < 10000; i++)
+        for (uint32_t i = 0; i < 10000; i++)
             z.insert_multi(frm.irand(0, 5000));
 
         z.reset();
 
-        for (uint i = 0; i < 10000; i++)
+        for (uint32_t i = 0; i < 10000; i++)
             z.insert_multi(frm.irand(0, 5000));
 
         int_map z1;
@@ -133,7 +133,7 @@ namespace vogl
         if (z2.size())
             return false;
 
-        for (uint i = 0; i < 1000; i++)
+        for (uint32_t i = 0; i < 1000; i++)
         {
             int l = frm.irand(0, 5000);
             int h = frm.irand(0, 5000);
@@ -143,7 +143,7 @@ namespace vogl
             printf("%i %i\n", l, h);
 
             std::pair<int_map::iterator, int_map::iterator> p(z.equal_range(l));
-            uint cnt = z.count(l);
+            uint32_t cnt = z.count(l);
             if (!cnt)
             {
                 if ((p.first != z.end()) || (p.second != z.end()))
@@ -151,7 +151,7 @@ namespace vogl
             }
             else
             {
-                uint u = 0;
+                uint32_t u = 0;
                 int_map::const_iterator it(p.first);
                 while (it != p.second)
                 {
@@ -166,7 +166,7 @@ namespace vogl
             z.get_unique_keys(uk);
 
             int_map tst;
-            for (uint i2 = 0; i2 < uk.size(); i2++)
+            for (uint32_t i2 = 0; i2 < uk.size(); i2++)
             {
                 if (!tst.insert(uk[i2]).second)
                     return false;
@@ -182,7 +182,7 @@ namespace vogl
             int_map::const_iterator l_it(z.lower_bound(l));
             int_map::const_iterator h_it(z.upper_bound(h));
 
-            uint n = 0;
+            uint32_t n = 0;
             for (int_map::const_iterator it = l_it; it != h_it; it++)
             {
                 if ((it->first < l) || (it->first > h))
@@ -190,7 +190,7 @@ namespace vogl
                 n++;
             }
 
-            uint cn = 0;
+            uint32_t cn = 0;
             for (int_map::const_iterator it = z.begin(); it != z.end(); ++it)
                 if ((it->first >= l) && (it->first <= h))
                     cn++;
@@ -201,7 +201,7 @@ namespace vogl
 
         int_map set_test;
 
-        for (uint i = 0; i < 1000; i++)
+        for (uint32_t i = 0; i < 1000; i++)
             set_test.insert_multi(frm.irand(0, 100));
 
         for (int_map::const_iterator it = set_test.begin(); it != set_test.end(); it++)
@@ -372,8 +372,8 @@ namespace vogl
         }
 
         {
-            typedef map<dynamic_string, vogl::vector<uint> > string_to_vec_map;
-            vogl::vector<uint> k;
+            typedef map<dynamic_string, vogl::vector<uint32_t> > string_to_vec_map;
+            vogl::vector<uint32_t> k;
             k.push_back(1);
             k.push_back(2);
             k.push_back(3);
@@ -422,15 +422,15 @@ namespace vogl
         vogl::random rm;
         rm.seed(51553);
 
-        for (uint t = 0; t < 100; t++)
+        for (uint32_t t = 0; t < 100; t++)
         {
-            uint n = rm.irand(1, 50000);
-            uint k = rm.irand(1, n);
+            uint32_t n = rm.irand(1, 50000);
+            uint32_t k = rm.irand(1, n);
 
             int_to_int_map m;
             if (rm.get_bit())
             {
-                uint max_level = (n < 512) ? rm.irand(0, 5) : rm.irand(5, 20);
+                uint32_t max_level = (n < 512) ? rm.irand(0, 5) : rm.irand(5, 20);
                 m.set_fixed_map_level(max_level);
                 printf("Using fixed max level of %u\n", max_level);
             }
@@ -440,9 +440,9 @@ namespace vogl
             printf("n=%u\n", n);
 
             vogl::vector<int> keys(n);
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
-                uint c = rm.irand_inclusive(0, k);
+                uint32_t c = rm.irand_inclusive(0, k);
                 keys[i] = c;
                 m.insert_multi(c, i);
             }
@@ -504,7 +504,7 @@ namespace vogl
             if (!success)
                 return false;
 
-            for (uint j = 0; j < keys.size() / 2; j++)
+            for (uint32_t j = 0; j < keys.size() / 2; j++)
             {
                 if (j == keys.size() / 4)
                 {
@@ -593,19 +593,19 @@ namespace vogl
 
 #define VOGL_MAP_INSERT_ONLY_SPEED_TEST 0
 
-    void map_perf_test(uint Q)
+    void map_perf_test(uint32_t Q)
     {
         printf("--------------------------------------------------\n");
         printf("map_perf_test int->int Q: %u\n", Q);
 
-        vogl::vector<uint> rand_indices(Q);
-        for (uint i = 0; i < Q; i++)
+        vogl::vector<uint32_t> rand_indices(Q);
+        for (uint32_t i = 0; i < Q; i++)
             rand_indices[i] = i;
 
         random rm;
         rand_indices.shuffle(rm);
 
-        for (uint i = 0; i < 2; i++)
+        for (uint32_t i = 0; i < 2; i++)
         {
             printf("---------------------------- Run %u\n", i);
 
@@ -617,10 +617,10 @@ namespace vogl
                 timed_scope ts;
 
                 int_to_int_map m;
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(std::make_pair(t, t * 2));
 
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(t);
                     m.erase(t);
@@ -632,11 +632,11 @@ namespace vogl
                 timed_scope ts;
 
                 int_to_int_map m;
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(std::make_pair(Q - 1 - t, t * 2));
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(Q - 1 - t);
                     m.erase(Q - 1 - t);
@@ -649,11 +649,11 @@ namespace vogl
                 timed_scope ts;
 
                 int_to_int_map m;
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(std::make_pair(rand_indices[t], t * 2));
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(rand_indices[t]);
                     m.erase(rand_indices[t]);
@@ -669,11 +669,11 @@ namespace vogl
                 typedef vogl::hash_map<int, int> int_to_int_hash_map;
                 int_to_int_hash_map m;
 
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(t, t * 2);
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(t);
                     m.erase(t);
@@ -690,11 +690,11 @@ namespace vogl
 
                 m.reserve(Q);
 
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(t, t * 2);
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(t);
                     m.erase(t);
@@ -712,10 +712,10 @@ namespace vogl
                 timed_scope ts;
 
                 int_to_int_treap m;
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(t, t * 2);
 
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(t);
                     m.erase(t);
@@ -727,11 +727,11 @@ namespace vogl
                 timed_scope ts;
 
                 int_to_int_treap m;
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(Q - 1 - t, t * 2);
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(Q - 1 - t);
                     m.erase(Q - 1 - t);
@@ -744,11 +744,11 @@ namespace vogl
                 timed_scope ts;
 
                 int_to_int_treap m;
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(rand_indices[t], t * 2);
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(rand_indices[t]);
                     m.erase(rand_indices[t]);
@@ -767,10 +767,10 @@ namespace vogl
                 timed_scope ts;
 
                 int_to_int_avl_tree m;
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(t, t * 2);
 
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(t);
                     m.erase(t);
@@ -782,11 +782,11 @@ namespace vogl
                 timed_scope ts;
 
                 int_to_int_avl_tree m;
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(Q - 1 - t, t * 2);
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(Q - 1 - t);
                     m.erase(Q - 1 - t);
@@ -799,11 +799,11 @@ namespace vogl
                 timed_scope ts;
 
                 int_to_int_avl_tree m;
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(rand_indices[t], t * 2);
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(rand_indices[t]);
                     m.erase(rand_indices[t]);
@@ -832,11 +832,11 @@ namespace vogl
                 if (l >= 0)
                     m.set_fixed_map_level(l);
 
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(t, t * 2);
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(t);
                     m.erase(t);
@@ -859,11 +859,11 @@ namespace vogl
                 if (l >= 0)
                     m.set_fixed_map_level(l);
 
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(Q - 1 - t, t * 2);
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(Q - 1 - t);
                     m.erase(Q - 1 - t);
@@ -886,11 +886,11 @@ namespace vogl
                 if (l >= 0)
                     m.set_fixed_map_level(l);
 
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                     m.insert(rand_indices[t], t * 2);
 
 #if !VOGL_MAP_INSERT_ONLY_SPEED_TEST
-                for (uint t = 0; t < Q; t++)
+                for (uint32_t t = 0; t < Q; t++)
                 {
                     m.find(rand_indices[t]);
                     m.erase(rand_indices[t]);

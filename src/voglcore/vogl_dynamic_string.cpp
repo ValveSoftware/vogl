@@ -62,7 +62,7 @@ namespace vogl
         set(p);
     }
 
-    dynamic_string::dynamic_string(const char *p, uint len)
+    dynamic_string::dynamic_string(const char *p, uint32_t len)
     {
         VOGL_ASSERT(p);
 
@@ -123,7 +123,7 @@ namespace vogl
                     return;
                 }
 
-                uint32 min_buf_size = m_len + 1;
+                uint32_t min_buf_size = m_len + 1;
 
                 // TODO: In some cases it'll make no difference to try to shrink the block due to allocation alignment, etc. issues
                 if (m_dyn.m_buf_size > min_buf_size)
@@ -143,7 +143,7 @@ namespace vogl
         check();
     }
 
-    void dynamic_string::reserve(uint new_capacity)
+    void dynamic_string::reserve(uint32_t new_capacity)
     {
         ensure_buf(new_capacity, true);
     }
@@ -169,8 +169,8 @@ namespace vogl
 
     int dynamic_string::compare_using_length(const char *p, bool case_sensitive) const
     {
-        uint l_len = get_len();
-        uint r_len = vogl_strlen(p);
+        uint32_t l_len = get_len();
+        uint32_t r_len = vogl_strlen(p);
 
         if (l_len < r_len)
             return -1;
@@ -185,11 +185,11 @@ namespace vogl
         return compare_using_length(rhs.get_ptr(), case_sensitive);
     }
 
-    dynamic_string &dynamic_string::set(const char *p, uint max_len)
+    dynamic_string &dynamic_string::set(const char *p, uint32_t max_len)
     {
         VOGL_ASSERT(p);
 
-        const uint len = math::minimum<uint>(max_len, vogl_strlen(p));
+        const uint32_t len = math::minimum<uint32_t>(max_len, vogl_strlen(p));
         VOGL_ASSERT(len <= cMaxDynamicStringLen);
 
         if ((!len) || (len > cMaxDynamicStringLen))
@@ -197,7 +197,7 @@ namespace vogl
         else
         {
             char *pStr = get_ptr_priv();
-            uint buf_size = get_buf_size();
+            uint32_t buf_size = get_buf_size();
             if ((p >= pStr) && (p < (pStr + buf_size)))
             {
                 if (pStr != p)
@@ -218,7 +218,7 @@ namespace vogl
         return *this;
     }
 
-    dynamic_string &dynamic_string::set(const dynamic_string &other, uint max_len)
+    dynamic_string &dynamic_string::set(const dynamic_string &other, uint32_t max_len)
     {
         if (this == &other)
         {
@@ -230,7 +230,7 @@ namespace vogl
         }
         else
         {
-            const uint len = math::minimum<uint>(max_len, other.m_len);
+            const uint32_t len = math::minimum<uint32_t>(max_len, other.m_len);
 
             if (!len)
                 clear();
@@ -248,7 +248,7 @@ namespace vogl
         return *this;
     }
 
-    bool dynamic_string::set_len(uint new_len, char fill_char)
+    bool dynamic_string::set_len(uint32_t new_len, char fill_char)
     {
         if ((new_len > cMaxDynamicStringLen) || (!fill_char))
         {
@@ -256,7 +256,7 @@ namespace vogl
             return false;
         }
 
-        uint cur_len = m_len;
+        uint32_t cur_len = m_len;
 
         if (ensure_buf(new_len, true))
         {
@@ -275,7 +275,7 @@ namespace vogl
         return true;
     }
 
-    dynamic_string &dynamic_string::set_from_raw_buf_and_assume_ownership(char *pBuf, uint buf_size_in_bytes, uint len_in_chars)
+    dynamic_string &dynamic_string::set_from_raw_buf_and_assume_ownership(char *pBuf, uint32_t buf_size_in_bytes, uint32_t len_in_chars)
     {
         VOGL_ASSERT(buf_size_in_bytes <= cMaxDynamicStringBufSize);
         VOGL_ASSERT((len_in_chars + 1) <= buf_size_in_bytes);
@@ -297,7 +297,7 @@ namespace vogl
         return *this;
     }
 
-    dynamic_string &dynamic_string::set_from_buf(const void *pBuf, uint buf_len_in_chars)
+    dynamic_string &dynamic_string::set_from_buf(const void *pBuf, uint32_t buf_len_in_chars)
     {
         if (!pBuf)
         {
@@ -339,7 +339,7 @@ namespace vogl
         return *this;
     }
 
-    dynamic_string &dynamic_string::set_char(uint index, char c)
+    dynamic_string &dynamic_string::set_char(uint32_t index, char c)
     {
         VOGL_ASSERT(index <= m_len);
 
@@ -385,7 +385,7 @@ namespace vogl
         return *this;
     }
 
-    dynamic_string &dynamic_string::truncate(uint new_len)
+    dynamic_string &dynamic_string::truncate(uint32_t new_len)
     {
         if (new_len < m_len)
         {
@@ -396,7 +396,7 @@ namespace vogl
         return *this;
     }
 
-    dynamic_string &dynamic_string::shorten(uint chars_to_remove)
+    dynamic_string &dynamic_string::shorten(uint32_t chars_to_remove)
     {
         VOGL_ASSERT(m_len >= chars_to_remove);
         if (m_len < chars_to_remove)
@@ -422,7 +422,7 @@ namespace vogl
         return *this;
     }
 
-    dynamic_string &dynamic_string::append(const char *p, uint len)
+    dynamic_string &dynamic_string::append(const char *p, uint32_t len)
     {
         VOGL_ASSERT(p);
         VOGL_ASSERT(len <= vogl_strlen(p));
@@ -444,7 +444,7 @@ namespace vogl
             return *this;
         }
 
-        uint new_total_len = m_len + len;
+        uint32_t new_total_len = m_len + len;
         VOGL_ASSERT(new_total_len <= cMaxDynamicStringLen);
         if ((new_total_len) && (ensure_buf(new_total_len)))
         {
@@ -471,14 +471,14 @@ namespace vogl
             return *this;
         }
 
-        uint len = vogl_strlen(p);
+        uint32_t len = vogl_strlen(p);
         if (len > (cMaxDynamicStringLen - m_len))
         {
             VOGL_ASSERT_ALWAYS;
             return *this;
         }
 
-        uint new_total_len = m_len + len;
+        uint32_t new_total_len = m_len + len;
         VOGL_ASSERT(new_total_len <= cMaxDynamicStringLen);
         if ((new_total_len) && (ensure_buf(new_total_len)))
         {
@@ -500,7 +500,7 @@ namespace vogl
             return *this;
         }
 
-        uint len = other.m_len;
+        uint32_t len = other.m_len;
 
         if (len > (cMaxDynamicStringLen - m_len))
         {
@@ -508,7 +508,7 @@ namespace vogl
             return *this;
         }
 
-        uint new_total_len = m_len + len;
+        uint32_t new_total_len = m_len + len;
         VOGL_ASSERT(new_total_len <= cMaxDynamicStringLen);
         if ((new_total_len) && ensure_buf(new_total_len))
         {
@@ -539,7 +539,7 @@ namespace vogl
     {
         VOGL_ASSERT(p);
 
-        const uint cBufSize = 4096;
+        const uint32_t cBufSize = 4096;
         int buf_size = cBufSize;
         char buf[cBufSize];
         char *pBuf = buf;
@@ -615,7 +615,7 @@ namespace vogl
         return *this;
     }
 
-    dynamic_string &dynamic_string::crop(uint start, uint len)
+    dynamic_string &dynamic_string::crop(uint32_t start, uint32_t len)
     {
         if (start >= m_len)
         {
@@ -623,7 +623,7 @@ namespace vogl
             return *this;
         }
 
-        len = math::minimum<uint>(len, m_len - start);
+        len = math::minimum<uint32_t>(len, m_len - start);
 
         char *pStr = get_ptr_priv();
 
@@ -639,19 +639,19 @@ namespace vogl
         return *this;
     }
 
-    dynamic_string &dynamic_string::remove(uint start, uint len)
+    dynamic_string &dynamic_string::remove(uint32_t start, uint32_t len)
     {
         VOGL_ASSERT(start < m_len);
 
         if ((start >= m_len) || (!len))
             return *this;
 
-        uint max_len = m_len - start;
+        uint32_t max_len = m_len - start;
         VOGL_ASSERT(len <= max_len);
         if (len > max_len)
             return *this;
 
-        uint num_chars_remaining = m_len - (start + len);
+        uint32_t num_chars_remaining = m_len - (start + len);
 
         // + 1 to move terminator
         memmove(get_ptr_priv() + start, get_ptr_priv() + start + len, num_chars_remaining + 1);
@@ -663,7 +663,7 @@ namespace vogl
         return *this;
     }
 
-    dynamic_string &dynamic_string::substring(uint start, uint end)
+    dynamic_string &dynamic_string::substring(uint32_t start, uint32_t end)
     {
         VOGL_ASSERT(start <= end);
         if (start > end)
@@ -671,28 +671,28 @@ namespace vogl
         return crop(start, end - start);
     }
 
-    dynamic_string &dynamic_string::left(uint len)
+    dynamic_string &dynamic_string::left(uint32_t len)
     {
         return substring(0, len);
     }
 
-    dynamic_string &dynamic_string::mid(uint start, uint len)
+    dynamic_string &dynamic_string::mid(uint32_t start, uint32_t len)
     {
         return crop(start, len);
     }
 
-    dynamic_string &dynamic_string::right(uint start)
+    dynamic_string &dynamic_string::right(uint32_t start)
     {
         return substring(start, get_len());
     }
 
-    dynamic_string &dynamic_string::tail(uint num)
+    dynamic_string &dynamic_string::tail(uint32_t num)
     {
         return substring(math::maximum<int>(static_cast<int>(get_len()) - static_cast<int>(num), 0), get_len());
     }
 
     // This is not particularly efficient. Just here as a one-off utility method.
-    dynamic_string &dynamic_string::replace(const char *pFind, const char *pReplacement, bool case_sensitive, uint *pNum_found, uint max_replacements)
+    dynamic_string &dynamic_string::replace(const char *pFind, const char *pReplacement, bool case_sensitive, uint32_t *pNum_found, uint32_t max_replacements)
     {
         VOGL_ASSERT(pFind);
 
@@ -703,10 +703,10 @@ namespace vogl
         if (!max_replacements)
             return *this;
 
-        uint num_found = 0;
+        uint32_t num_found = 0;
 
-        uint find_len = vogl_strlen(pFind);
-        uint replacement_len = pReplacement ? vogl_strlen(pReplacement) : 0;
+        uint32_t find_len = vogl_strlen(pFind);
+        uint32_t replacement_len = pReplacement ? vogl_strlen(pReplacement) : 0;
 
         dynamic_string temp;
 
@@ -750,19 +750,19 @@ namespace vogl
         return *this;
     }
 
-    int dynamic_string::find_left(const char *p, bool case_sensitive, uint start_ofs) const
+    int dynamic_string::find_left(const char *p, bool case_sensitive, uint32_t start_ofs) const
     {
         VOGL_ASSERT(p);
         VOGL_ASSERT(start_ofs <= m_len);
 
-        const uint p_len = vogl_strlen(p);
+        const uint32_t p_len = vogl_strlen(p);
 
         if (p_len > m_len)
             return -1;
 
         const char *pStr = get_ptr_priv();
 
-        for (uint i = start_ofs; i <= m_len - p_len; i++)
+        for (uint32_t i = start_ofs; i <= m_len - p_len; i++)
             if ((case_sensitive ? strncmp : vogl_strnicmp)(p, pStr + i, p_len) == 0)
                 return i;
 
@@ -783,7 +783,7 @@ namespace vogl
     {
         VOGL_ASSERT(p);
 
-        const uint p_len = vogl_strlen(p);
+        const uint32_t p_len = vogl_strlen(p);
         if ((!p_len) || (m_len < p_len))
             return false;
 
@@ -794,19 +794,19 @@ namespace vogl
     {
         VOGL_ASSERT(p);
 
-        const uint p_len = vogl_strlen(p);
+        const uint32_t p_len = vogl_strlen(p);
         if ((!p_len) || (m_len < p_len))
             return false;
 
         return (case_sensitive ? strcmp : vogl_stricmp)(get_ptr_priv() + m_len - p_len, p) == 0;
     }
 
-    uint dynamic_string::count_char(char c) const
+    uint32_t dynamic_string::count_char(char c) const
     {
         const char *pStr = get_ptr_priv();
 
-        uint count = 0;
-        for (uint i = 0; i < m_len; i++)
+        uint32_t count = 0;
+        for (uint32_t i = 0; i < m_len; i++)
             if (pStr[i] == c)
                 count++;
         return count;
@@ -816,7 +816,7 @@ namespace vogl
     {
         const char *pStr = get_ptr_priv();
 
-        for (uint i = start_ofs; i < m_len; i++)
+        for (uint32_t i = start_ofs; i < m_len; i++)
             if (pStr[i] == c)
                 return i;
         return -1;
@@ -828,7 +828,7 @@ namespace vogl
         {
             const char *pStr = get_ptr_priv();
 
-            uint i = m_len - 1;
+            uint32_t i = m_len - 1;
             for (;;)
             {
                 if (pStr[i] == c)
@@ -842,7 +842,7 @@ namespace vogl
         return -1;
     }
 
-    int dynamic_string::find_right(char c, uint start_ofs) const
+    int dynamic_string::find_right(char c, uint32_t start_ofs) const
     {
         if (start_ofs >= m_len)
         {
@@ -854,7 +854,7 @@ namespace vogl
         {
             const char *pStr = get_ptr_priv();
 
-            uint i = start_ofs;
+            uint32_t i = start_ofs;
             for (;;)
             {
                 if (pStr[i] == c)
@@ -871,7 +871,7 @@ namespace vogl
     int dynamic_string::find_right(const char *p, bool case_sensitive) const
     {
         VOGL_ASSERT(p);
-        const uint p_len = vogl_strlen(p);
+        const uint32_t p_len = vogl_strlen(p);
 
         if (p_len > m_len)
             return -1;
@@ -880,7 +880,7 @@ namespace vogl
         {
             const char *pStr = get_ptr_priv();
 
-            uint i = m_len - p_len;
+            uint32_t i = m_len - p_len;
             for (;;)
             {
                 if ((case_sensitive ? strncmp : vogl_strnicmp)(p, &pStr[i], p_len) == 0)
@@ -945,7 +945,7 @@ namespace vogl
     {
         char *pStr = get_ptr_priv();
 
-        for (uint i = 0; i < m_len; i++)
+        for (uint32_t i = 0; i < m_len; i++)
             if (pStr[i] == from_char)
                 pStr[i] = static_cast<char>(to_char);
 
@@ -991,9 +991,9 @@ namespace vogl
         if (is_dynamic())
             return;
 
-        uint new_buf_size = math::maximum(m_len + 1, 16U);
+        uint32_t new_buf_size = math::maximum(m_len + 1, 16U);
 
-        new_buf_size = math::minimum<uint>(new_buf_size, cMaxDynamicStringBufSize);
+        new_buf_size = math::minimum<uint32_t>(new_buf_size, cMaxDynamicStringBufSize);
 
         char *p = vogl_new_array(char, new_buf_size);
 
@@ -1002,15 +1002,15 @@ namespace vogl
 
         set_dyn_string_ptr(p);
 
-        m_dyn.m_buf_size = static_cast<uint32>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, vogl_msize_array(m_dyn.m_pStr)));
+        m_dyn.m_buf_size = static_cast<uint32_t>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, vogl_msize_array(m_dyn.m_pStr)));
         VOGL_ASSERT(m_dyn.m_buf_size >= new_buf_size);
 
         check();
     }
 
-    bool dynamic_string::ensure_buf(uint len, bool preserve_contents)
+    bool dynamic_string::ensure_buf(uint32_t len, bool preserve_contents)
     {
-        uint buf_size_needed = len + 1;
+        uint32_t buf_size_needed = len + 1;
         if (buf_size_needed > cMaxDynamicStringBufSize)
         {
             VOGL_ASSERT_ALWAYS;
@@ -1023,11 +1023,11 @@ namespace vogl
         return true;
     }
 
-    bool dynamic_string::expand_buf(uint new_buf_size, bool preserve_contents)
+    bool dynamic_string::expand_buf(uint32_t new_buf_size, bool preserve_contents)
     {
         VOGL_ASSERT(new_buf_size <= cMaxDynamicStringBufSize);
 
-        new_buf_size = static_cast<uint>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, math::next_pow2(new_buf_size)));
+        new_buf_size = static_cast<uint32_t>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, math::next_pow2(new_buf_size)));
 
         char *p = vogl_new_array(char, new_buf_size);
 
@@ -1043,7 +1043,7 @@ namespace vogl
         }
 
         set_dyn_string_ptr(p);
-        m_dyn.m_buf_size = static_cast<uint32>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, vogl_msize_array(m_dyn.m_pStr)));
+        m_dyn.m_buf_size = static_cast<uint32_t>(math::minimum<uint64_t>(cMaxDynamicStringBufSize, vogl_msize_array(m_dyn.m_pStr)));
         VOGL_ASSERT(m_dyn.m_buf_size >= new_buf_size);
 
         if (preserve_contents)
@@ -1054,11 +1054,11 @@ namespace vogl
 
     void dynamic_string::swap(dynamic_string &other)
     {
-        VOGL_ASSUME((sizeof(*this) & (sizeof(uint32) - 1)) == 0);
-        uint32 *pA = reinterpret_cast<uint32 *>(this);
-        uint32 *pB = reinterpret_cast<uint32 *>(&other);
+        VOGL_ASSUME((sizeof(*this) & (sizeof(uint32_t) - 1)) == 0);
+        uint32_t *pA = reinterpret_cast<uint32_t *>(this);
+        uint32_t *pB = reinterpret_cast<uint32_t *>(&other);
 
-        uint num_uint32s = sizeof(*this) / sizeof(uint32);
+        uint32_t num_uint32s = sizeof(*this) / sizeof(uint32_t);
         while (num_uint32s >= 4)
         {
             std::swap(reinterpret_cast<uint64_t *>(pA)[0], reinterpret_cast<uint64_t *>(pB)[0]);
@@ -1080,13 +1080,13 @@ namespace vogl
             std::swap(pA[0], pB[0]);
     }
 
-    int dynamic_string::serialize(void *pBuf, uint buf_size, bool little_endian) const
+    int dynamic_string::serialize(void *pBuf, uint32_t buf_size, bool little_endian) const
     {
-        uint buf_left = buf_size;
+        uint32_t buf_left = buf_size;
 
-        VOGL_ASSUME(sizeof(m_len) == sizeof(uint32));
+        VOGL_ASSUME(sizeof(m_len) == sizeof(uint32_t));
 
-        if (!utils::write_val(static_cast<uint32>(m_len), pBuf, buf_left, little_endian))
+        if (!utils::write_val(static_cast<uint32_t>(m_len), pBuf, buf_left, little_endian))
             return -1;
 
         if (buf_left < m_len)
@@ -1099,14 +1099,14 @@ namespace vogl
         return buf_size - buf_left;
     }
 
-    int dynamic_string::deserialize(const void *pBuf, uint buf_size, bool little_endian)
+    int dynamic_string::deserialize(const void *pBuf, uint32_t buf_size, bool little_endian)
     {
-        uint buf_left = buf_size;
+        uint32_t buf_left = buf_size;
 
-        if (buf_left < sizeof(uint32))
+        if (buf_left < sizeof(uint32_t))
             return -1;
 
-        uint32 len;
+        uint32_t len;
         if (!utils::read_obj(len, pBuf, buf_left, little_endian))
             return -1;
 
@@ -1138,7 +1138,7 @@ namespace vogl
         // normal sequence is 0x0D 0x0A (CR LF, \r\n)
 
         int prev_char = -1;
-        for (uint i = 0; i < get_len(); i++)
+        for (uint32_t i = 0; i < get_len(); i++)
         {
             const int cur_char = (*this)[i];
 
@@ -1176,7 +1176,7 @@ namespace vogl
 
         if (trim)
         {
-            for (uint i = 0; i < tokens.size(); i++)
+            for (uint32_t i = 0; i < tokens.size(); i++)
                 tokens[i].trim();
         }
     }
@@ -1276,10 +1276,10 @@ namespace vogl
         }
 
         {
-            const uint N = 10000;
+            const uint32_t N = 10000;
             dynamic_string_array x(N);
             vogl::vector<uint64_t> y(N);
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
             {
                 uint64_t r = rnd.urand64();
                 x[i].format("%" PRIu64, r);
@@ -1287,10 +1287,10 @@ namespace vogl
                 y[i] = r;
             }
 
-            for (uint i = 0; i < 100000; i++)
+            for (uint32_t i = 0; i < 100000; i++)
             {
-                uint k = rnd.irand(0, N);
-                uint l = rnd.irand(0, N);
+                uint32_t k = rnd.irand(0, N);
+                uint32_t l = rnd.irand(0, N);
                 CHECK(string_to_uint64(x[k].get_ptr()) == y[k]);
                 CHECK(string_to_uint64(x[l].get_ptr()) == y[l]);
 
@@ -1301,37 +1301,37 @@ namespace vogl
                 CHECK(string_to_uint64(x[l].get_ptr()) == y[l]);
             }
 
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 x[i].ensure_dynamic();
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 CHECK(string_to_uint64(x[i].get_ptr()) == y[i]);
 
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 x[i].optimize();
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 CHECK(string_to_uint64(x[i].get_ptr()) == y[i]);
 
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
             {
                 dynamic_string temp(x[i]);
                 x[i] = temp;
             }
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 CHECK(string_to_uint64(x[i].get_ptr()) == y[i]);
 
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
             {
                 dynamic_string temp(x[i]);
                 x[i] = temp.get_ptr();
             }
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 CHECK(string_to_uint64(x[i].get_ptr()) == y[i]);
         }
 
         {
             dynamic_string x;
             vogl::vector<char> y;
-            for (uint t = 0; t < 10000000; t++)
+            for (uint32_t t = 0; t < 10000000; t++)
             {
                 if ((rnd.irand(0, 1000) == 0) || (x.size() > 8000000))
                 {
@@ -1360,11 +1360,11 @@ namespace vogl
                 else if (rnd.irand(0, 4000) == 0)
                 {
                     x.truncate(0);
-                    uint pos = 0;
-                    uint left = y.size();
+                    uint32_t pos = 0;
+                    uint32_t left = y.size();
                     while (left)
                     {
-                        uint n = rnd.irand_inclusive(1, left);
+                        uint32_t n = rnd.irand_inclusive(1, left);
 
                         if ((n == 1) && (rnd.get_bit()))
                             x.append_char(y[pos]);
@@ -1397,8 +1397,8 @@ namespace vogl
                 {
                     case 0:
                     {
-                        uint n = (uint)fabs(rnd.gaussian(10, 10));
-                        for (uint i = 0; i < n; i++)
+                        uint32_t n = (uint32_t)fabs(rnd.gaussian(10, 10));
+                        for (uint32_t i = 0; i < n; i++)
                         {
                             int c = rnd.irand_inclusive(1, 255);
                             x.append_char(c);
@@ -1410,8 +1410,8 @@ namespace vogl
                     {
                         if (x.get_len())
                         {
-                            uint p = rnd.irand(0, x.get_len());
-                            uint n = (uint)fabs(rnd.gaussian(10, 10));
+                            uint32_t p = rnd.irand(0, x.get_len());
+                            uint32_t n = (uint32_t)fabs(rnd.gaussian(10, 10));
                             n = math::minimum(n, x.get_len() - p);
 
                             if (rnd.get_bit())
@@ -1427,7 +1427,7 @@ namespace vogl
                     case 2:
                     {
                         int c = rnd.irand_inclusive(1, 255);
-                        uint p = rnd.irand_inclusive(0, x.get_len());
+                        uint32_t p = rnd.irand_inclusive(0, x.get_len());
 
                         x = dynamic_string(x).left(p) + dynamic_string(cVarArg, "%c", c) + dynamic_string(x).right(p);
                         y.insert(p, c);
@@ -1449,7 +1449,7 @@ namespace vogl
                     case 4:
                     {
                         char buf[3] = {(char)rnd.irand_inclusive(1, 255), rnd.get_bit() ? (char)rnd.irand(1, 255) : (char)0, 0 };
-                        uint l = vogl_strlen(buf);
+                        uint32_t l = vogl_strlen(buf);
 
                         int p0 = x.find_left(buf, true);
 
@@ -1470,7 +1470,7 @@ namespace vogl
                     case 5:
                     {
                         char buf[3] = {(char)rnd.irand_inclusive(1, 255), rnd.get_bit() ? (char)rnd.irand(1, 255) : (char)0, 0 };
-                        uint l = vogl_strlen(buf);
+                        uint32_t l = vogl_strlen(buf);
 
                         int p0 = x.find_right(buf, true);
 
@@ -1494,7 +1494,7 @@ namespace vogl
                 }
 
                 CHECK(x.get_len() == y.size());
-                for (uint i = 0; i < x.get_len(); i++)
+                for (uint32_t i = 0; i < x.get_len(); i++)
                 {
                     CHECK(x[i] == y[i]);
                 }
@@ -1504,10 +1504,10 @@ namespace vogl
         }
 
         {
-            const uint N = 5;
-            for (uint t = 0; t < N; t++)
+            const uint32_t N = 5;
+            for (uint32_t t = 0; t < N; t++)
             {
-                uint i = rnd.irand_inclusive(0, cMaxDynamicStringLen);
+                uint32_t i = rnd.irand_inclusive(0, cMaxDynamicStringLen);
                 printf("Size: %u\n", i);
 
                 dynamic_string k;
@@ -1527,7 +1527,7 @@ namespace vogl
 
                 CHECK(k.get_len() == i);
 
-                for (uint i2 = 0; i2 < k.get_len(); i2++)
+                for (uint32_t i2 = 0; i2 < k.get_len(); i2++)
                     CHECK(k[i2] == (char)fill_char);
 
                 //if ((t & 4095) == 4095)
@@ -1535,10 +1535,10 @@ namespace vogl
             }
         }
 
-        for (uint i = 0; i < 1000000; i++)
+        for (uint32_t i = 0; i < 1000000; i++)
         {
-            uint k0 = rnd.irand(0, 20000);
-            uint k1 = rnd.irand(0, 20000);
+            uint32_t k0 = rnd.irand(0, 20000);
+            uint32_t k1 = rnd.irand(0, 20000);
 
             dynamic_string a0(cVarArg, "%u", k0);
             dynamic_string a1(cVarArg, "%u", k1);

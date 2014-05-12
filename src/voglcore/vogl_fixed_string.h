@@ -47,7 +47,7 @@ namespace vogl
     // case insensitive (using locale independent helper functions) by default, mostly because
     // the last X engines I've worked on used this default and I got used to it. Its the day after
     // and now I'm regretting this idea.
-    template <uint BufSize>
+    template <uint32_t BufSize>
     class fixed_string
     {
     public:
@@ -60,14 +60,14 @@ namespace vogl
         inline fixed_string()
             : m_len(0)
         {
-            VOGL_ASSUME(BufSize < static_cast<uint>(cINT32_MAX));
+            VOGL_ASSUME(BufSize < static_cast<uint32_t>(cINT32_MAX));
             m_buf[0] = 0;
         }
 
         inline fixed_string(eVarArg dummy, const char *p, ...) VOGL_ATTRIBUTE_PRINTF(3, 4)
         {
             VOGL_NOTE_UNUSED(dummy);
-            VOGL_ASSUME(BufSize < static_cast<uint>(cINT32_MAX));
+            VOGL_ASSUME(BufSize < static_cast<uint32_t>(cINT32_MAX));
 
             va_list args;
             va_start(args, p);
@@ -77,12 +77,12 @@ namespace vogl
 
         inline fixed_string(const char *p)
         {
-            VOGL_ASSUME(BufSize < static_cast<uint>(cINT32_MAX));
+            VOGL_ASSUME(BufSize < static_cast<uint32_t>(cINT32_MAX));
 
             set(p);
         }
 
-        template <uint OtherBufSize>
+        template <uint32_t OtherBufSize>
         explicit inline fixed_string(const fixed_string<OtherBufSize> &other)
             : m_len(other.get_len())
         {
@@ -101,22 +101,22 @@ namespace vogl
             return *this;
         }
 
-        inline uint get_buf_size() const
+        inline uint32_t get_buf_size() const
         {
             return cBufSize;
         }
 
-        inline uint get_max_len() const
+        inline uint32_t get_max_len() const
         {
             return cMaxLen;
         }
 
-        inline uint get_len() const
+        inline uint32_t get_len() const
         {
             return m_len;
         }
 
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_len;
         }
@@ -151,13 +151,13 @@ namespace vogl
             return m_len ? get_ptr()[m_len - 1] : '\0';
         }
 
-        inline char operator[](uint i) const
+        inline char operator[](uint32_t i) const
         {
             return m_buf[i];
         }
 
         // Index string, beginning from back, 0 = last character, 1 = next to last char, etc.
-        inline char get_char_at_end(uint i) const
+        inline char get_char_at_end(uint32_t i) const
         {
             VOGL_ASSERT(i <= m_len);
             return (i < m_len) ? get_ptr()[static_cast<int>(m_len) - 1 - static_cast<int>(i)] : '\0';
@@ -183,7 +183,7 @@ namespace vogl
         {
             VOGL_ASSERT(p);
 
-            uint l_len = m_len;
+            uint32_t l_len = m_len;
 
             int result = 0;
             if (case_sensitive)
@@ -245,13 +245,13 @@ namespace vogl
             return rhs.compare(p) == 0;
         }
 
-        inline bool set(const char *p, uint max_len = UINT_MAX)
+        inline bool set(const char *p, uint32_t max_len = UINT_MAX)
         {
             VOGL_ASSERT(p);
 
-            uint len = vogl_strlen(p);
+            uint32_t len = vogl_strlen(p);
 
-            const uint copy_len = math::minimum<uint>(max_len, len, cMaxLen);
+            const uint32_t copy_len = math::minimum<uint32_t>(max_len, len, cMaxLen);
 
             memmove(m_buf.get_ptr(), p, copy_len * sizeof(char));
 
@@ -264,7 +264,7 @@ namespace vogl
             return copy_len == len;
         }
 
-        template <uint OtherBufSize>
+        template <uint32_t OtherBufSize>
         inline fixed_string &operator=(const fixed_string<OtherBufSize> &other)
         {
             if ((void *)this != (void *)&other)
@@ -284,7 +284,7 @@ namespace vogl
             return *this;
         }
 
-        inline fixed_string &set_char(uint index, char c)
+        inline fixed_string &set_char(uint32_t index, char c)
         {
             VOGL_ASSERT(index <= m_len);
             VOGL_ASSERT(c != 0);
@@ -297,7 +297,7 @@ namespace vogl
                 if (index == m_len)
                 {
                     m_buf[index + 1] = 0;
-                    m_len = math::minimum<uint>(cMaxLen, m_len + 1);
+                    m_len = math::minimum<uint32_t>(cMaxLen, m_len + 1);
                 }
 
                 check();
@@ -311,7 +311,7 @@ namespace vogl
             return set_char(m_len, c);
         }
 
-        inline fixed_string &truncate(uint new_len)
+        inline fixed_string &truncate(uint32_t new_len)
         {
             VOGL_ASSERT(new_len <= m_len);
             if (new_len < m_len)
@@ -337,7 +337,7 @@ namespace vogl
 
         inline fixed_string &append(const char *p)
         {
-            uint p_len = math::minimum<uint>(cMaxLen - m_len, vogl_strlen(p));
+            uint32_t p_len = math::minimum<uint32_t>(cMaxLen - m_len, vogl_strlen(p));
 
             if (p_len)
             {
@@ -353,10 +353,10 @@ namespace vogl
             return *this;
         }
 
-        template <uint OtherBufSize>
+        template <uint32_t OtherBufSize>
         inline fixed_string &append(const fixed_string<OtherBufSize> &b)
         {
-            uint b_len = math::minimum<uint>(cMaxLen - m_len, b.get_len());
+            uint32_t b_len = math::minimum<uint32_t>(cMaxLen - m_len, b.get_len());
 
             if (b_len)
             {
@@ -377,7 +377,7 @@ namespace vogl
             return append(p);
         }
 
-        template <uint OtherBufSize>
+        template <uint32_t OtherBufSize>
         inline fixed_string &operator+=(const fixed_string<OtherBufSize> &b)
         {
             return append(b);
@@ -412,7 +412,7 @@ namespace vogl
         }
 
         // Note many of these ops are IN-PLACE string operations to avoid constructing new objects, which can make them inconvienent.
-        inline fixed_string &crop(uint start, uint len)
+        inline fixed_string &crop(uint32_t start, uint32_t len)
         {
             if (start >= m_len)
             {
@@ -420,7 +420,7 @@ namespace vogl
                 return *this;
             }
 
-            len = math::minimum<uint>(len, m_len - start);
+            len = math::minimum<uint32_t>(len, m_len - start);
 
             if (start)
                 memmove(m_buf.get_ptr(), m_buf.get_ptr() + start, len);
@@ -435,7 +435,7 @@ namespace vogl
         }
 
         // half-open interval
-        inline fixed_string &substring(uint start, uint end)
+        inline fixed_string &substring(uint32_t start, uint32_t end)
         {
             VOGL_ASSERT(start <= end);
             if (start > end)
@@ -443,17 +443,17 @@ namespace vogl
             return crop(start, end - start);
         }
 
-        inline fixed_string &left(uint len)
+        inline fixed_string &left(uint32_t len)
         {
             return substring(0, len);
         }
 
-        inline fixed_string &mid(uint start, uint len)
+        inline fixed_string &mid(uint32_t start, uint32_t len)
         {
             return crop(start, len);
         }
 
-        inline fixed_string &right(uint start)
+        inline fixed_string &right(uint32_t start)
         {
             return substring(start, get_len());
         }
@@ -473,7 +473,7 @@ namespace vogl
 
         inline int find_left(char c) const
         {
-            for (uint i = 0; i < m_len; i++)
+            for (uint32_t i = 0; i < m_len; i++)
                 if (m_buf[i] == c)
                     return i;
             return -1;
@@ -515,7 +515,7 @@ namespace vogl
         }
 
     private:
-        uint m_len;
+        uint32_t m_len;
         fixed_array<char, BufSize> m_buf;
 
         inline void check() const
@@ -530,7 +530,7 @@ namespace vogl
     typedef fixed_string<128> fixed_string128;
     typedef fixed_string<256> fixed_string256;
 
-    template <uint N>
+    template <uint32_t N>
     struct bitwise_movable<fixed_string<N> >
     {
         enum
@@ -539,7 +539,7 @@ namespace vogl
         };
     };
 
-    template <uint N>
+    template <uint32_t N>
     struct hasher<fixed_string<N> >
     {
         inline size_t operator()(const fixed_string<N> &key) const

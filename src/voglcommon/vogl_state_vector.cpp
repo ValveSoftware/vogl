@@ -54,9 +54,9 @@ const char *vogl_get_state_type_name(vogl_state_type s)
         case cSTGLenum:
             return "GLenum";
         case cSTInt32:
-            return "int32";
+            return "int32_t";
         case cSTUInt32:
-            return "uint32";
+            return "uint32_t";
         case cSTInt64:
             return "int64_t";
         case cSTUInt64:
@@ -87,9 +87,9 @@ vogl_state_type vogl_get_state_type_from_name(const char *pName)
         return cSTGLboolean;
     else if (vogl_strcmp(pName, "GLenum") == 0)
         return cSTGLenum;
-    else if (vogl_strcmp(pName, "int32") == 0)
+    else if (vogl_strcmp(pName, "int32_t") == 0)
         return cSTInt32;
-    else if (vogl_strcmp(pName, "uint32") == 0)
+    else if (vogl_strcmp(pName, "uint32_t") == 0)
         return cSTUInt32;
     else if (vogl_strcmp(pName, "int64_t") == 0)
         return cSTInt64;
@@ -108,7 +108,7 @@ vogl_state_type vogl_get_state_type_from_name(const char *pName)
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_state_type_size
 //----------------------------------------------------------------------------------------------------------------------
-uint vogl_get_state_type_size(vogl_state_type s)
+uint32_t vogl_get_state_type_size(vogl_state_type s)
 {
     VOGL_FUNC_TRACER
 
@@ -121,9 +121,9 @@ uint vogl_get_state_type_size(vogl_state_type s)
         case cSTGLenum:
             return sizeof(GLenum);
         case cSTInt32:
-            return sizeof(int32);
+            return sizeof(int32_t);
         case cSTUInt32:
-            return sizeof(uint32);
+            return sizeof(uint32_t);
         case cSTInt64:
             return sizeof(int64_t);
         case cSTUInt64:
@@ -154,7 +154,7 @@ vogl_state_data::vogl_state_data()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_state_data::vogl_state_data
 //----------------------------------------------------------------------------------------------------------------------
-vogl_state_data::vogl_state_data(GLenum enum_val, uint index, uint n, vogl_state_type data_type, bool indexed_variant)
+vogl_state_data::vogl_state_data(GLenum enum_val, uint32_t index, uint32_t n, vogl_state_type data_type, bool indexed_variant)
     : m_id(enum_val, index, indexed_variant),
       m_data_type(data_type),
       m_num_elements(n),
@@ -166,7 +166,7 @@ vogl_state_data::vogl_state_data(GLenum enum_val, uint index, uint n, vogl_state
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_state_data::vogl_state_data
 //----------------------------------------------------------------------------------------------------------------------
-vogl_state_data::vogl_state_data(GLenum enum_val, uint index, const void *pData, uint element_size, bool indexed_variant)
+vogl_state_data::vogl_state_data(GLenum enum_val, uint32_t index, const void *pData, uint32_t element_size, bool indexed_variant)
     : m_id(0, 0, false),
       m_data_type(cSTInvalid),
       m_num_elements(0)
@@ -179,7 +179,7 @@ vogl_state_data::vogl_state_data(GLenum enum_val, uint index, const void *pData,
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_state_data::init
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_state_data::init(GLenum enum_val, uint index, uint n, vogl_state_type data_type, bool indexed_variant)
+void vogl_state_data::init(GLenum enum_val, uint32_t index, uint32_t n, vogl_state_type data_type, bool indexed_variant)
 {
     VOGL_FUNC_TRACER
 
@@ -187,7 +187,7 @@ void vogl_state_data::init(GLenum enum_val, uint index, uint n, vogl_state_type 
     m_data_type = data_type;
     m_num_elements = n;
 
-    uint data_type_size = vogl_get_state_type_size(data_type);
+    uint32_t data_type_size = vogl_get_state_type_size(data_type);
 
 #if VOGL_CONTEXT_STATE_DEBUG
     m_data.resize((n + 1) * data_type_size);
@@ -200,7 +200,7 @@ void vogl_state_data::init(GLenum enum_val, uint index, uint n, vogl_state_type 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_state_data::init
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_state_data::init(GLenum enum_val, uint index, const void *pData, uint element_size, bool indexed_variant)
+bool vogl_state_data::init(GLenum enum_val, uint32_t index, const void *pData, uint32_t element_size, bool indexed_variant)
 {
     VOGL_FUNC_TRACER
 
@@ -226,14 +226,14 @@ bool vogl_state_data::init(GLenum enum_val, uint index, const void *pData, uint 
         return false;
     }
 
-    uint n = get_gl_enums().get_pname_count(enum_val);
+    uint32_t n = get_gl_enums().get_pname_count(enum_val);
     if (!n)
     {
         VOGL_ASSERT_ALWAYS;
         return false;
     }
 
-    uint state_type_size = vogl_get_state_type_size(state_type);
+    uint32_t state_type_size = vogl_get_state_type_size(state_type);
     VOGL_ASSERT(state_type_size);
 
     init(enum_val, index, n, state_type, indexed_variant);
@@ -245,7 +245,7 @@ bool vogl_state_data::init(GLenum enum_val, uint index, const void *pData, uint 
             memcpy(pDst, pData, state_type_size * n);
         else if ((state_type == cSTGLboolean) && (element_size == sizeof(GLint)))
         {
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
                 static_cast<GLboolean *>(pDst)[i] = static_cast<const GLint *>(pData)[i];
         }
         else
@@ -260,7 +260,7 @@ bool vogl_state_data::init(GLenum enum_val, uint index, const void *pData, uint 
         // Convert from native 32/64 ptrs to 64-bit values
         const void *const *pSrc_ptrs = static_cast<const void *const *>(pData);
         uint64_t *pDst_u64 = static_cast<uint64_t *>(pDst);
-        for (uint i = 0; i < n; i++)
+        for (uint32_t i = 0; i < n; i++)
             pDst_u64[i] = reinterpret_cast<uint64_t>(pSrc_ptrs[i]);
     }
 
@@ -277,11 +277,11 @@ void vogl_state_data::debug_check()
 #if VOGL_CONTEXT_STATE_DEBUG
     if (m_data.size())
     {
-        const uint data_type_size = get_data_type_size();
+        const uint32_t data_type_size = get_data_type_size();
         VOGL_ASSERT((data_type_size) && ((m_data.size() / data_type_size) == (m_num_elements + 1)));
-        const uint8 *p = get_data_ptr<const uint8>() + m_num_elements * data_type_size;
+        const uint8_t *p = get_data_ptr<const uint8_t>() + m_num_elements * data_type_size;
         (void)p;
-        for (uint i = 0; i < data_type_size; i++)
+        for (uint32_t i = 0; i < data_type_size; i++)
             VOGL_ASSERT(p[i] == 0xCF);
     }
 #endif
@@ -314,7 +314,7 @@ bool vogl_state_data::is_equal(const vogl_state_data &rhs) const
     if (m_num_elements != rhs.m_num_elements)
         return false;
 
-    uint total_size = get_data_type_size() * m_num_elements;
+    uint32_t total_size = get_data_type_size() * m_num_elements;
     if ((m_data.size() < total_size) || (rhs.m_data.size() < total_size))
     {
         VOGL_ASSERT_ALWAYS;
@@ -338,55 +338,55 @@ void vogl_state_data::get_bool(bool *pVals) const
     {
         case cSTGLboolean:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLboolean>(i);
             break;
         }
         case cSTGLenum:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLenum>(i) != 0;
             break;
         }
         case cSTInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<int32>(i) != 0;
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = get_element<int32_t>(i) != 0;
             break;
         }
         case cSTUInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i) != 0;
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = get_element<uint32_t>(i) != 0;
             break;
         }
         case cSTInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<int64_t>(i) != 0;
             break;
         }
         case cSTUInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<uint64_t>(i) != 0;
             break;
         }
         case cSTFloat:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<float>(i) != 0.0f;
             break;
         }
         case cSTDouble:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<double>(i) != 0.0f;
             break;
         }
         case cSTPointer:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLuint64>(i) != 0;
             break;
         }
@@ -417,44 +417,44 @@ void vogl_state_data::get_uint64(uint64_t *pVals) const
     {
         case cSTGLboolean:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLboolean>(i);
             break;
         }
         case cSTGLenum:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLenum>(i);
             break;
         }
         case cSTInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = static_cast<int64_t>(get_element<int32>(i));
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = static_cast<int64_t>(get_element<int32_t>(i));
             break;
         }
         case cSTUInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i);
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = get_element<uint32_t>(i);
             break;
         }
         case cSTInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<int64_t>(i);
             break;
         }
         case cSTPointer:
         case cSTUInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<uint64_t>(i);
             break;
         }
         case cSTFloat:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
             {
                 double v = get_element<float>(i);
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
@@ -468,7 +468,7 @@ void vogl_state_data::get_uint64(uint64_t *pVals) const
         }
         case cSTDouble:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
             {
                 double v = get_element<double>(i);
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
@@ -497,7 +497,7 @@ void vogl_state_data::get_uint64(uint64_t *pVals) const
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_state_data::get_uint
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_state_data::get_uint(uint *pVals) const
+void vogl_state_data::get_uint(uint32_t *pVals) const
 {
     VOGL_FUNC_TRACER
 
@@ -505,66 +505,66 @@ void vogl_state_data::get_uint(uint *pVals) const
     {
         case cSTGLboolean:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLboolean>(i);
             break;
         }
         case cSTGLenum:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLenum>(i);
             break;
         }
         case cSTInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<int32>(i);
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = get_element<int32_t>(i);
             break;
         }
         case cSTUInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i);
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = get_element<uint32_t>(i);
             break;
         }
         case cSTInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = static_cast<uint>(get_element<int64_t>(i));
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = static_cast<uint32_t>(get_element<int64_t>(i));
             break;
         }
         case cSTPointer:
         case cSTUInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = static_cast<uint>(get_element<uint64_t>(i));
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = static_cast<uint32_t>(get_element<uint64_t>(i));
             break;
         }
         case cSTFloat:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
             {
                 double v = get_element<float>(i);
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
                 v = math::clamp<double>(v, static_cast<double>(cINT32_MIN), static_cast<double>(cUINT32_MAX));
                 if (v < 0)
-                    pVals[i] = static_cast<int32>(v);
+                    pVals[i] = static_cast<int32_t>(v);
                 else
-                    pVals[i] = static_cast<uint32>(v);
+                    pVals[i] = static_cast<uint32_t>(v);
             }
             break;
         }
         case cSTDouble:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
             {
                 double v = get_element<double>(i);
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
                 v = math::clamp<double>(v, static_cast<double>(cINT32_MIN), static_cast<double>(cUINT32_MAX));
                 if (v < 0)
-                    pVals[i] = static_cast<int32>(v);
+                    pVals[i] = static_cast<int32_t>(v);
                 else
-                    pVals[i] = static_cast<uint32>(v);
+                    pVals[i] = static_cast<uint32_t>(v);
             }
             break;
         }
@@ -593,44 +593,44 @@ void vogl_state_data::get_int64(int64_t *pVals) const
     {
         case cSTGLboolean:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLboolean>(i);
             break;
         }
         case cSTGLenum:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLenum>(i);
             break;
         }
         case cSTInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<int32>(i);
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = get_element<int32_t>(i);
             break;
         }
         case cSTUInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i);
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = get_element<uint32_t>(i);
             break;
         }
         case cSTInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<int64_t>(i);
             break;
         }
         case cSTPointer:
         case cSTUInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<uint64_t>(i);
             break;
         }
         case cSTFloat:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
             {
                 double v = get_element<float>(i);
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
@@ -644,7 +644,7 @@ void vogl_state_data::get_int64(int64_t *pVals) const
         }
         case cSTDouble:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
             {
                 double v = get_element<double>(i);
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
@@ -681,66 +681,66 @@ void vogl_state_data::get_int(int *pVals) const
     {
         case cSTGLboolean:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLboolean>(i);
             break;
         }
         case cSTGLenum:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<GLenum>(i);
             break;
         }
         case cSTInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<int32>(i);
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = get_element<int32_t>(i);
             break;
         }
         case cSTUInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<uint32>(i);
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = get_element<uint32_t>(i);
             break;
         }
         case cSTInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = static_cast<int>(get_element<int64_t>(i));
             break;
         }
         case cSTPointer:
         case cSTUInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = static_cast<int>(get_element<uint64_t>(i));
             break;
         }
         case cSTFloat:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
             {
                 double v = get_element<float>(i);
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
                 v = math::clamp<double>(v, static_cast<double>(cINT32_MIN), static_cast<double>(cUINT32_MAX));
                 if (v > cINT32_MAX)
-                    pVals[i] = static_cast<uint32>(v);
+                    pVals[i] = static_cast<uint32_t>(v);
                 else
-                    pVals[i] = static_cast<int32>(v);
+                    pVals[i] = static_cast<int32_t>(v);
             }
             break;
         }
         case cSTDouble:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
             {
                 double v = get_element<double>(i);
                 v = trunc((v < 0.0f) ? (v - .5f) : (v + .5f));
                 v = math::clamp<double>(v, static_cast<double>(cINT32_MIN), static_cast<double>(cUINT32_MAX));
                 if (v > cINT32_MAX)
-                    pVals[i] = static_cast<uint32>(v);
+                    pVals[i] = static_cast<uint32_t>(v);
                 else
-                    pVals[i] = static_cast<int32>(v);
+                    pVals[i] = static_cast<int32_t>(v);
             }
             break;
         }
@@ -769,7 +769,7 @@ void vogl_state_data::get_pointer(void **ppVals) const
 
     get_uint64(temp.get_ptr());
 
-    for (uint i = 0; i < m_num_elements; i++)
+    for (uint32_t i = 0; i < m_num_elements; i++)
     {
         uint64_t v = temp[i];
         ppVals[i] = *reinterpret_cast<void **>(&v);
@@ -787,50 +787,50 @@ void vogl_state_data::get_double(double *pVals) const
     {
         case cSTGLboolean:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = static_cast<double>(get_element<GLboolean>(i));
             break;
         }
         case cSTGLenum:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = static_cast<double>(get_element<GLenum>(i));
             break;
         }
         case cSTInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = static_cast<double>(get_element<int32>(i));
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = static_cast<double>(get_element<int32_t>(i));
             break;
         }
         case cSTUInt32:
         {
-            for (uint i = 0; i < m_num_elements; i++)
-                pVals[i] = static_cast<double>(get_element<uint32>(i));
+            for (uint32_t i = 0; i < m_num_elements; i++)
+                pVals[i] = static_cast<double>(get_element<uint32_t>(i));
             break;
         }
         case cSTInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = static_cast<double>(get_element<int64_t>(i));
             break;
         }
         case cSTPointer:
         case cSTUInt64:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = static_cast<double>(get_element<uint64_t>(i));
             break;
         }
         case cSTFloat:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = static_cast<double>(get_element<float>(i));
             break;
         }
         case cSTDouble:
         {
-            for (uint i = 0; i < m_num_elements; i++)
+            for (uint32_t i = 0; i < m_num_elements; i++)
                 pVals[i] = get_element<double>(i);
             break;
         }
@@ -856,7 +856,7 @@ void vogl_state_data::get_float(float *pVals) const
 
     get_double(temp.get_ptr());
 
-    for (uint i = 0; i < m_num_elements; i++)
+    for (uint32_t i = 0; i < m_num_elements; i++)
         pVals[i] = static_cast<float>(temp[i]);
 }
 
@@ -884,7 +884,7 @@ bool vogl_state_data::serialize(json_node &node) const
     // >=, not ==, in case of VOGL_CONTEXT_STATE_DEBUG
     VOGL_ASSERT(m_data.size_in_bytes() >= m_num_elements * get_data_type_size());
 
-    for (uint i = 0; i < m_num_elements; i++)
+    for (uint32_t i = 0; i < m_num_elements; i++)
     {
         const void *pElement = m_data.get_ptr() + i * get_data_type_size();
 
@@ -912,13 +912,13 @@ bool vogl_state_data::serialize(json_node &node) const
             }
             case cSTInt32:
             {
-                const int32 *pVal = reinterpret_cast<const int32 *>(pElement);
+                const int32_t *pVal = reinterpret_cast<const int32_t *>(pElement);
                 values_node.add_value(*pVal);
                 break;
             }
             case cSTUInt32:
             {
-                const uint32 *pVal = reinterpret_cast<const uint32 *>(pElement);
+                const uint32_t *pVal = reinterpret_cast<const uint32_t *>(pElement);
                 values_node.add_value(*pVal);
                 break;
             }
@@ -1006,13 +1006,13 @@ bool vogl_state_data::deserialize(const json_node &node)
         return false;
     }
 
-    uint num_elements = pValues_array->size();
-    uint state_type_size = vogl_get_state_type_size(state_type);
+    uint32_t num_elements = pValues_array->size();
+    uint32_t state_type_size = vogl_get_state_type_size(state_type);
 
     vogl_state_data state;
     init(static_cast<GLenum>(gl_enum), index, num_elements, state_type, indexed_variant);
 
-    for (uint element_index = 0; element_index < num_elements; element_index++)
+    for (uint32_t element_index = 0; element_index < num_elements; element_index++)
     {
         void *pElement = m_data.get_ptr() + element_index * state_type_size;
 
@@ -1052,16 +1052,16 @@ bool vogl_state_data::deserialize(const json_node &node)
             }
             case cSTInt32:
             {
-                int32 *pVal = reinterpret_cast<int32 *>(pElement);
+                int32_t *pVal = reinterpret_cast<int32_t *>(pElement);
                 *pVal = pValues_array->value_as_int(element_index);
                 break;
             }
             case cSTUInt32:
             {
-                uint32 *pVal = reinterpret_cast<uint32 *>(pElement);
+                uint32_t *pVal = reinterpret_cast<uint32_t *>(pElement);
 
                 int64_t v = pValues_array->value_as_int64(element_index);
-                *pVal = static_cast<uint32>(math::clamp<int64_t>(v, 0, cUINT32_MAX));
+                *pVal = static_cast<uint32_t>(math::clamp<int64_t>(v, 0, cUINT32_MAX));
 
                 break;
             }
@@ -1136,7 +1136,7 @@ void vogl_state_vector::clear()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_state_vector::find
 //----------------------------------------------------------------------------------------------------------------------
-const vogl_state_data *vogl_state_vector::find(GLenum enum_val, uint index, bool indexed_variant) const
+const vogl_state_data *vogl_state_vector::find(GLenum enum_val, uint32_t index, bool indexed_variant) const
 {
     VOGL_FUNC_TRACER
 
@@ -1180,7 +1180,7 @@ bool vogl_state_vector::deserialize(const json_node &node, const vogl_blob_manag
     if (!pNode_array)
         return false;
 
-    for (uint value_index = 0; value_index < pNode_array->size(); value_index++)
+    for (uint32_t value_index = 0; value_index < pNode_array->size(); value_index++)
     {
         const json_node *pState_node = pNode_array->get_child(value_index);
         if (!pState_node)
@@ -1257,7 +1257,7 @@ bool vogl_state_vector::operator==(const vogl_state_vector &rhs) const
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_state_vector::insert
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_state_vector::insert(GLenum enum_val, uint index, const void *pData, uint element_size, bool indexed_variant)
+bool vogl_state_vector::insert(GLenum enum_val, uint32_t index, const void *pData, uint32_t element_size, bool indexed_variant)
 {
     VOGL_FUNC_TRACER
 

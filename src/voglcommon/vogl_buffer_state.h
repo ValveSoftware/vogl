@@ -96,7 +96,7 @@ public:
     bool get_is_mapped() const { return m_is_mapped; }
     uint64_t get_map_ofs() const { return m_map_ofs; }
     uint64_t get_map_size() const { return m_map_size; }
-    uint get_map_access() const { return m_map_access; }
+    uint32_t get_map_access() const { return m_map_access; }
 
 private:
     GLuint m_snapshot_handle;
@@ -108,7 +108,7 @@ private:
 
     uint64_t m_map_ofs;
     uint64_t m_map_size;
-    uint m_map_access;
+    uint32_t m_map_access;
     bool m_map_range;
     bool m_is_mapped;
 

@@ -36,8 +36,8 @@ namespace vogl
 {
     namespace pixel_format_helpers
     {
-        uint get_num_formats();
-        pixel_format get_pixel_format_by_index(uint index);
+        uint32_t get_num_formats();
+        pixel_format get_pixel_format_by_index(uint32_t index);
 
         const char *get_pixel_format_string(pixel_format fmt);
 
@@ -256,7 +256,7 @@ namespace vogl
             return false;
         }
 
-        inline uint get_bpp(pixel_format fmt)
+        inline uint32_t get_bpp(pixel_format fmt)
         {
             switch (fmt)
             {
@@ -305,7 +305,7 @@ namespace vogl
             return 0;
         };
 
-        inline uint get_dxt_bytes_per_block(pixel_format fmt)
+        inline uint32_t get_dxt_bytes_per_block(pixel_format fmt)
         {
             switch (fmt)
             {

@@ -69,56 +69,56 @@ namespace vogl
 #endif
         }
 
-        void endian_switch_words(uint16 *p, uint num)
+        void endian_switch_words(uint16_t *p, uint32_t num)
         {
-            uint16 *p_end = p + num;
+            uint16_t *p_end = p + num;
             while (p != p_end)
             {
-                uint16 k = *p;
+                uint16_t k = *p;
                 *p++ = swap16(k);
             }
         }
 
-        void endian_switch_dwords(uint32 *p, uint num)
+        void endian_switch_dwords(uint32_t *p, uint32_t num)
         {
-            uint32 *p_end = p + num;
+            uint32_t *p_end = p + num;
             while (p != p_end)
             {
-                uint32 k = *p;
+                uint32_t k = *p;
                 *p++ = swap32(k);
             }
         }
 
-        void copy_words(uint16 *pDst, const uint16 *pSrc, uint num, bool endian_switch)
+        void copy_words(uint16_t *pDst, const uint16_t *pSrc, uint32_t num, bool endian_switch)
         {
             if (!endian_switch)
                 memcpy(pDst, pSrc, num << 1U);
             else
             {
-                uint16 *pDst_end = pDst + num;
+                uint16_t *pDst_end = pDst + num;
                 while (pDst != pDst_end)
                     *pDst++ = swap16(*pSrc++);
             }
         }
 
-        void copy_dwords(uint32 *pDst, const uint32 *pSrc, uint num, bool endian_switch)
+        void copy_dwords(uint32_t *pDst, const uint32_t *pSrc, uint32_t num, bool endian_switch)
         {
             if (!endian_switch)
                 memcpy(pDst, pSrc, num << 2U);
             else
             {
-                uint32 *pDst_end = pDst + num;
+                uint32_t *pDst_end = pDst + num;
                 while (pDst != pDst_end)
                     *pDst++ = swap32(*pSrc++);
             }
         }
 
-        uint compute_max_mips(uint width, uint height, uint min_width, uint min_height)
+        uint32_t compute_max_mips(uint32_t width, uint32_t height, uint32_t min_width, uint32_t min_height)
         {
             if ((width | height) == 0)
                 return 0;
 
-            uint total_mips = 1;
+            uint32_t total_mips = 1;
 
             while ((width > min_width) || (height > min_height))
             {
@@ -130,12 +130,12 @@ namespace vogl
             return total_mips;
         }
 
-        uint compute_max_mips3D(uint width, uint height, uint depth, uint min_width, uint min_height, uint min_depth)
+        uint32_t compute_max_mips3D(uint32_t width, uint32_t height, uint32_t depth, uint32_t min_width, uint32_t min_height, uint32_t min_depth)
         {
             if ((width | height | depth) == 0)
                 return 0;
 
-            uint total_mips = 1;
+            uint32_t total_mips = 1;
 
             while ((width > min_width) || (height > min_height) || (depth > min_depth))
             {
@@ -148,18 +148,18 @@ namespace vogl
             return total_mips;
         }
 
-        bool is_buffer_printable(const void *pBuf, uint buf_size, bool allow_crlf, bool expect_null_terminator)
+        bool is_buffer_printable(const void *pBuf, uint32_t buf_size, bool allow_crlf, bool expect_null_terminator)
         {
             if (!pBuf)
                 return false;
             if (!buf_size)
                 return true;
 
-            uint scan_size = expect_null_terminator ? (buf_size - 1) : buf_size;
+            uint32_t scan_size = expect_null_terminator ? (buf_size - 1) : buf_size;
 
-            for (uint i = 0; i < scan_size; i++)
+            for (uint32_t i = 0; i < scan_size; i++)
             {
-                uint8 c = reinterpret_cast<const uint8 *>(pBuf)[i];
+                uint8_t c = reinterpret_cast<const uint8_t *>(pBuf)[i];
                 if (allow_crlf)
                 {
                     if ((c == 0x0A) || (c == 0x0D))
@@ -172,7 +172,7 @@ namespace vogl
 
             if (expect_null_terminator)
             {
-                if (reinterpret_cast<const uint8 *>(pBuf)[buf_size - 1] != 0)
+                if (reinterpret_cast<const uint8_t *>(pBuf)[buf_size - 1] != 0)
                     return false;
             }
 

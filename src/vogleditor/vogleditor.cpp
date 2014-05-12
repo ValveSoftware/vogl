@@ -1241,7 +1241,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
                     for (uint i = 0; i < pRoot->size(); i++)
                     {
                         json_node* pChild = pRoot->get_child(i);
-                        uint32 index = 0;
+                        uint32_t index = 0;
                         VOGL_ASSERT("Backtrace node does not have an 'index' child" && pChild != NULL && pChild->get_value_as_uint32("index", index));
                         if (pChild != NULL && pChild->get_value_as_uint32("index", index))
                         {

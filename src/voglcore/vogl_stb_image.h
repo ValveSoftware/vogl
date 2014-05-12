@@ -300,12 +300,12 @@ namespace vogl
 
 // define faster low-level operations (typically SIMD support)
 #if STBI_SIMD
-    typedef void (*stbi_idct_8x8)(uint8 *out, int out_stride, short data[64], unsigned short *dequantize);
+    typedef void (*stbi_idct_8x8)(uint8_t *out, int out_stride, short data[64], unsigned short *dequantize);
     // compute an integer IDCT on "input"
     //     input[x] = data[x] * dequantize[x]
     //     write results to 'out': 64 samples, each run of 8 spaced by 'out_stride'
     //                             CLAMP results to 0..255
-    typedef void (*stbi_YCbCr_to_RGB_run)(uint8 *output, uint8 const *y, uint8 const *cb, uint8 const *cr, int count, int step);
+    typedef void (*stbi_YCbCr_to_RGB_run)(uint8_t *output, uint8_t const *y, uint8_t const *cb, uint8_t const *cr, int count, int step);
     // compute a conversion from YCbCr to RGB
     //     'count' pixels
     //     write pixels to 'output'; each pixel is 'step' bytes (either 3 or 4; if 4, write '255' as 4th), order R,G,B

@@ -52,19 +52,19 @@ public:
     bool serialize(json_node &node, vogl_blob_manager &blob_manager) const;
     bool deserialize(const json_node &node, const vogl_blob_manager &blob_manager);
 
-    uint get_num_lights() const
+    uint32_t get_num_lights() const
     {
         return m_lights.size();
     }
 
-    const vogl_state_vector &get_light(uint index) const
+    const vogl_state_vector &get_light(uint32_t index) const
     {
         VOGL_ASSERT(index < m_lights.size());
 
         return m_lights[index];
     }
 
-    static GLenum get_light_enum(uint light)
+    static GLenum get_light_enum(uint32_t light)
     {
         return GL_LIGHT0 + light;
     }
@@ -74,7 +74,7 @@ private:
 
     bool m_valid;
 
-    bool set_light_parameter(uint light, GLenum pname) const;
+    bool set_light_parameter(uint32_t light, GLenum pname) const;
 };
 
 #endif // VOGL_LIGHT_STATE_H

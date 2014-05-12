@@ -61,7 +61,7 @@ struct vogl_internal_tex_format
     int m_shared_size;
 
     // Bitmask of vogl_tex_image_types's - indicates which glTexImage API's are valid to use with this internal format.
-    uint m_tex_image_flags;
+    uint32_t m_tex_image_flags;
 
     GLenum m_optimum_get_image_fmt;
     GLenum m_optimum_get_image_type;
@@ -81,26 +81,26 @@ struct vogl_internal_tex_format
         int s0, int s1, int s2, int s3, int s4, int s5, int s6, int s7,
         GLenum t0, GLenum t1, GLenum t2, GLenum t3, GLenum t4, GLenum t5, GLenum t6, GLenum t7,
         int shared_size, int tex_storage_type_flags, bool compressed, GLenum optimum_get_fmt, GLenum optimum_get_type,
-        uint image_bytes_per_pixel_or_block, uint block_width, uint block_height);
+        uint32_t image_bytes_per_pixel_or_block, uint32_t block_width, uint32_t block_height);
 
-    inline uint get_max_comp_size() const
+    inline uint32_t get_max_comp_size() const
     {
-        uint n = 0;
-        for (uint i = 0; i < cTCTotalComponents; i++)
-            n = math::maximum<uint>(n, m_comp_sizes[i]);
+        uint32_t n = 0;
+        for (uint32_t i = 0; i < cTCTotalComponents; i++)
+            n = math::maximum<uint32_t>(n, m_comp_sizes[i]);
         return n;
     }
-    inline uint get_total_comps() const
+    inline uint32_t get_total_comps() const
     {
-        uint n = 0;
-        for (uint i = 0; i < cTCTotalComponents; i++)
+        uint32_t n = 0;
+        for (uint32_t i = 0; i < cTCTotalComponents; i++)
             if (m_comp_sizes[i])
                 n++;
         return n;
     }
     inline GLenum get_first_comp_type() const
     {
-        for (uint i = 0; i < cTCTotalComponents; i++)
+        for (uint32_t i = 0; i < cTCTotalComponents; i++)
             if (m_comp_sizes[i])
                 return m_comp_types[i];
         return GL_NONE;

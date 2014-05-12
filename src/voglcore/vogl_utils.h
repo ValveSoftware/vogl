@@ -32,7 +32,7 @@
 #endif
 #include "vogl_core.h"
 
-#define VOGL_OFFSETOF(t, e) ((uint32)(intptr_t)(&((t *)(0))->e))
+#define VOGL_OFFSETOF(t, e) ((uint32_t)(intptr_t)(&((t *)(0))->e))
 
 #define VOGL_MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define VOGL_MAX(a, b) (((a) < (b)) ? (b) : (a))
@@ -60,7 +60,7 @@ template <class T, size_t N>
 T decay_array_to_subtype(T (&a)[N]);
 #define VOGL_ARRAY_SIZE(X) (sizeof(X) / sizeof(decay_array_to_subtype(X)))
 
-#define VOGL_SIZEOF_U32(x) static_cast<uint32>(sizeof(x))
+#define VOGL_SIZEOF_U32(x) static_cast<uint32_t>(sizeof(x))
 
 // Returns # of bits needed to encode x, i.e. 0=0, 1=1, 0xFFFF=15, 0x10000=16, etc.
 #define VOGL_SIGNIFICANT_BITS(x)                                                               \
@@ -151,12 +151,12 @@ namespace vogl
             memset((void *)pObj, 0, sizeof(*pObj));
         }
 
-        inline bool is_bit_set(uint bits, uint mask)
+        inline bool is_bit_set(uint32_t bits, uint32_t mask)
         {
             return (bits & mask) != 0;
         }
 
-        inline void set_bit(uint &bits, uint mask, bool state)
+        inline void set_bit(uint32_t &bits, uint32_t mask, bool state)
         {
             if (state)
                 bits |= mask;
@@ -164,24 +164,24 @@ namespace vogl
                 bits &= ~mask;
         }
 
-        inline bool is_flag_set(uint bits, uint flag)
+        inline bool is_flag_set(uint32_t bits, uint32_t flag)
         {
             VOGL_ASSERT(flag < 32U);
             return is_bit_set(bits, 1U << flag);
         }
 
-        inline void set_flag(uint &bits, uint flag, bool state)
+        inline void set_flag(uint32_t &bits, uint32_t flag, bool state)
         {
             VOGL_ASSERT(flag < 32U);
             set_bit(bits, 1U << flag, state);
         }
 
-        inline void invert_buf(void *pBuf, uint size)
+        inline void invert_buf(void *pBuf, uint32_t size)
         {
-            uint8 *p = static_cast<uint8 *>(pBuf);
+            uint8_t *p = static_cast<uint8_t *>(pBuf);
 
-            const uint half_size = size >> 1;
-            for (uint i = 0; i < half_size; i++)
+            const uint32_t half_size = size >> 1;
+            for (uint32_t i = 0; i < half_size; i++)
                 utils::swap(p[i], p[size - 1U - i]);
         }
 
@@ -189,14 +189,14 @@ namespace vogl
         template <typename T>
         inline void write_obj(const T &obj, void *pBuf, bool buffer_is_little_endian)
         {
-            const uint8 *pSrc = reinterpret_cast<const uint8 *>(&obj);
-            uint8 *pDst = static_cast<uint8 *>(pBuf);
+            const uint8_t *pSrc = reinterpret_cast<const uint8_t *>(&obj);
+            uint8_t *pDst = static_cast<uint8_t *>(pBuf);
 
             if (c_vogl_little_endian_platform == buffer_is_little_endian)
                 memcpy(pDst, pSrc, sizeof(T));
             else
             {
-                for (uint i = 0; i < sizeof(T); i++)
+                for (uint32_t i = 0; i < sizeof(T); i++)
                     pDst[i] = pSrc[sizeof(T) - 1 - i];
             }
         }
@@ -205,63 +205,63 @@ namespace vogl
         template <typename T>
         inline void read_obj(T &obj, const void *pBuf, bool buffer_is_little_endian)
         {
-            const uint8 *pSrc = reinterpret_cast<const uint8 *>(pBuf);
-            uint8 *pDst = reinterpret_cast<uint8 *>(&obj);
+            const uint8_t *pSrc = reinterpret_cast<const uint8_t *>(pBuf);
+            uint8_t *pDst = reinterpret_cast<uint8_t *>(&obj);
 
             if (c_vogl_little_endian_platform == buffer_is_little_endian)
                 memcpy(pDst, pSrc, sizeof(T));
             else
             {
-                for (uint i = 0; i < sizeof(T); i++)
+                for (uint32_t i = 0; i < sizeof(T); i++)
                     pDst[i] = pSrc[sizeof(T) - 1 - i];
             }
         }
 
         template <typename T>
-        inline bool write_obj(const T &obj, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_obj(const T &obj, void *&pBuf, uint32_t &buf_size, bool buffer_is_little_endian)
         {
             if (buf_size < sizeof(T))
                 return false;
 
             utils::write_obj(obj, pBuf, buffer_is_little_endian);
 
-            pBuf = static_cast<uint8 *>(pBuf) + sizeof(T);
+            pBuf = static_cast<uint8_t *>(pBuf) + sizeof(T);
             buf_size -= sizeof(T);
 
             return true;
         }
 
-        inline bool write_val(uint8 val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_val(uint8_t val, void *&pBuf, uint32_t &buf_size, bool buffer_is_little_endian)
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
-        inline bool write_val(uint16 val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_val(uint16_t val, void *&pBuf, uint32_t &buf_size, bool buffer_is_little_endian)
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
-        inline bool write_val(uint val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_val(uint32_t val, void *&pBuf, uint32_t &buf_size, bool buffer_is_little_endian)
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
-        inline bool write_val(int val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_val(int val, void *&pBuf, uint32_t &buf_size, bool buffer_is_little_endian)
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
-        inline bool write_val(uint64_t val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_val(uint64_t val, void *&pBuf, uint32_t &buf_size, bool buffer_is_little_endian)
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
-        inline bool write_val(float val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_val(float val, void *&pBuf, uint32_t &buf_size, bool buffer_is_little_endian)
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
-        inline bool write_val(double val, void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool write_val(double val, void *&pBuf, uint32_t &buf_size, bool buffer_is_little_endian)
         {
             return write_obj(val, pBuf, buf_size, buffer_is_little_endian);
         }
 
         template <typename T>
-        inline bool read_obj(T &obj, const void *&pBuf, uint &buf_size, bool buffer_is_little_endian)
+        inline bool read_obj(T &obj, const void *&pBuf, uint32_t &buf_size, bool buffer_is_little_endian)
         {
             if (buf_size < sizeof(T))
             {
@@ -271,18 +271,18 @@ namespace vogl
 
             utils::read_obj(obj, pBuf, buffer_is_little_endian);
 
-            pBuf = static_cast<const uint8 *>(pBuf) + sizeof(T);
+            pBuf = static_cast<const uint8_t *>(pBuf) + sizeof(T);
             buf_size -= sizeof(T);
 
             return true;
         }
 
 #if defined(COMPILER_MSVC)
-        VOGL_FORCE_INLINE uint16 swap16(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap16(uint16_t x)
         {
             return _byteswap_ushort(x);
         }
-        VOGL_FORCE_INLINE uint32 swap32(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap32(uint32_t x)
         {
             return _byteswap_ulong(x);
         }
@@ -291,11 +291,11 @@ namespace vogl
             return _byteswap_uint64(x);
         }
 #elif defined(COMPILER_GCCLIKE)
-        VOGL_FORCE_INLINE uint16 swap16(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap16(uint16_t x)
         {
-            return static_cast<uint16>((x << 8U) | (x >> 8U));
+            return static_cast<uint16_t>((x << 8U) | (x >> 8U));
         }
-        VOGL_FORCE_INLINE uint32 swap32(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap32(uint32_t x)
         {
             return __builtin_bswap32(x);
         }
@@ -304,26 +304,26 @@ namespace vogl
             return __builtin_bswap64(x);
         }
 #else
-        VOGL_FORCE_INLINE uint16 swap16(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap16(uint16_t x)
         {
-            return static_cast<uint16>((x << 8U) | (x >> 8U));
+            return static_cast<uint16_t>((x << 8U) | (x >> 8U));
         }
-        VOGL_FORCE_INLINE uint32 swap32(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap32(uint32_t x)
         {
             return ((x << 24U) | ((x << 8U) & 0x00FF0000U) | ((x >> 8U) & 0x0000FF00U) | (x >> 24U));
         }
         VOGL_FORCE_INLINE uint64_t swap64(uint64_t x)
         {
-            return (static_cast<uint64_t>(swap32(static_cast<uint32>(x))) << 32ULL) | swap32(static_cast<uint32>(x >> 32U));
+            return (static_cast<uint64_t>(swap32(static_cast<uint32_t>(x))) << 32ULL) | swap32(static_cast<uint32_t>(x >> 32U));
         }
 #endif
 
         // Assumes x has been read from memory as a little endian value, converts to native endianness for manipulation.
-        VOGL_FORCE_INLINE uint16 swap_le16_to_native(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap_le16_to_native(uint16_t x)
         {
             return c_vogl_little_endian_platform ? x : swap16(x);
         }
-        VOGL_FORCE_INLINE uint32 swap_le32_to_native(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap_le32_to_native(uint32_t x)
         {
             return c_vogl_little_endian_platform ? x : swap32(x);
         }
@@ -333,11 +333,11 @@ namespace vogl
         }
 
         // Assumes x has been read from memory as a big endian value, converts to native endianness for manipulation.
-        VOGL_FORCE_INLINE uint16 swap_be16_to_native(uint16 x)
+        VOGL_FORCE_INLINE uint16_t swap_be16_to_native(uint16_t x)
         {
             return c_vogl_big_endian_platform ? x : swap16(x);
         }
-        VOGL_FORCE_INLINE uint32 swap_be32_to_native(uint32 x)
+        VOGL_FORCE_INLINE uint32_t swap_be32_to_native(uint32_t x)
         {
             return c_vogl_big_endian_platform ? x : swap32(x);
         }
@@ -346,13 +346,13 @@ namespace vogl
             return c_vogl_big_endian_platform ? x : swap64(x);
         }
 
-        VOGL_FORCE_INLINE uint32 read_le32(const void *p)
+        VOGL_FORCE_INLINE uint32_t read_le32(const void *p)
         {
-            return swap_le32_to_native(*static_cast<const uint32 *>(p));
+            return swap_le32_to_native(*static_cast<const uint32_t *>(p));
         }
-        VOGL_FORCE_INLINE void write_le32(void *p, uint32 x)
+        VOGL_FORCE_INLINE void write_le32(void *p, uint32_t x)
         {
-            *static_cast<uint32 *>(p) = swap_le32_to_native(x);
+            *static_cast<uint32_t *>(p) = swap_le32_to_native(x);
         }
         VOGL_FORCE_INLINE uint64_t read_le64(const void *p)
         {
@@ -363,13 +363,13 @@ namespace vogl
             *static_cast<uint64_t *>(p) = swap_le64_to_native(x);
         }
 
-        VOGL_FORCE_INLINE uint32 read_be32(const void *p)
+        VOGL_FORCE_INLINE uint32_t read_be32(const void *p)
         {
-            return swap_be32_to_native(*static_cast<const uint32 *>(p));
+            return swap_be32_to_native(*static_cast<const uint32_t *>(p));
         }
-        VOGL_FORCE_INLINE void write_be32(void *p, uint32 x)
+        VOGL_FORCE_INLINE void write_be32(void *p, uint32_t x)
         {
-            *static_cast<uint32 *>(p) = swap_be32_to_native(x);
+            *static_cast<uint32_t *>(p) = swap_be32_to_native(x);
         }
         VOGL_FORCE_INLINE uint64_t read_be64(const void *p)
         {
@@ -380,7 +380,7 @@ namespace vogl
             *static_cast<uint64_t *>(p) = swap_be64_to_native(x);
         }
 
-        inline void endian_swap_mem16(uint16 *p, uint n)
+        inline void endian_swap_mem16(uint16_t *p, uint32_t n)
         {
             while (n--)
             {
@@ -388,7 +388,7 @@ namespace vogl
                 ++p;
             }
         }
-        inline void endian_swap_mem32(uint32 *p, uint n)
+        inline void endian_swap_mem32(uint32_t *p, uint32_t n)
         {
             while (n--)
             {
@@ -396,7 +396,7 @@ namespace vogl
                 ++p;
             }
         }
-        inline void endian_swap_mem64(uint64_t *p, uint n)
+        inline void endian_swap_mem64(uint64_t *p, uint32_t n)
         {
             while (n--)
             {
@@ -405,17 +405,17 @@ namespace vogl
             }
         }
 
-        inline void endian_swap_mem(void *p, uint size_in_bytes, uint type_size)
+        inline void endian_swap_mem(void *p, uint32_t size_in_bytes, uint32_t type_size)
         {
             switch (type_size)
             {
-                case sizeof(uint16)
+                case sizeof(uint16_t)
                     :
-                    endian_swap_mem16(static_cast<uint16 *>(p), size_in_bytes / type_size);
+                    endian_swap_mem16(static_cast<uint16_t *>(p), size_in_bytes / type_size);
                     break;
-                case sizeof(uint32)
+                case sizeof(uint32_t)
                     :
-                    endian_swap_mem32(static_cast<uint32 *>(p), size_in_bytes / type_size);
+                    endian_swap_mem32(static_cast<uint32_t *>(p), size_in_bytes / type_size);
                     break;
                 case sizeof(uint64_t)
                     :
@@ -434,10 +434,10 @@ namespace vogl
             memcpy(pDst, pSrc, size);
         }
 
-        inline uint count_leading_zeros(uint v)
+        inline uint32_t count_leading_zeros(uint32_t v)
         {
-            uint temp;
-            uint n = 32;
+            uint32_t temp;
+            uint32_t n = 32;
 
             temp = v >> 16;
             if (temp)
@@ -480,12 +480,12 @@ namespace vogl
             return n;
         }
 
-        inline uint count_leading_zeros16(uint v)
+        inline uint32_t count_leading_zeros16(uint32_t v)
         {
             VOGL_ASSERT(v < 0x10000);
 
-            uint temp;
-            uint n = 16;
+            uint32_t temp;
+            uint32_t n = 16;
 
             temp = v >> 8;
             if (temp)
@@ -521,16 +521,16 @@ namespace vogl
             return n;
         }
 
-        void endian_switch_words(uint16 *p, uint num);
-        void endian_switch_dwords(uint32 *p, uint num);
-        void copy_words(uint16 *pDst, const uint16 *pSrc, uint num, bool endian_switch);
-        void copy_dwords(uint32 *pDst, const uint32 *pSrc, uint num, bool endian_switch);
+        void endian_switch_words(uint16_t *p, uint32_t num);
+        void endian_switch_dwords(uint32_t *p, uint32_t num);
+        void copy_words(uint16_t *pDst, const uint16_t *pSrc, uint32_t num, bool endian_switch);
+        void copy_dwords(uint32_t *pDst, const uint32_t *pSrc, uint32_t num, bool endian_switch);
 
         // Returns the maximum number of mip levels given the specified width/height, including the first (largest) mip level.
-        uint compute_max_mips(uint width, uint height, uint min_width = 1U, uint min_height = 1U);
-        uint compute_max_mips3D(uint width, uint height, uint depth, uint min_width = 1U, uint min_height = 1U, uint min_depth = 1U);
+        uint32_t compute_max_mips(uint32_t width, uint32_t height, uint32_t min_width = 1U, uint32_t min_height = 1U);
+        uint32_t compute_max_mips3D(uint32_t width, uint32_t height, uint32_t depth, uint32_t min_width = 1U, uint32_t min_height = 1U, uint32_t min_depth = 1U);
 
-        inline char to_hex(uint v)
+        inline char to_hex(uint32_t v)
         {
             VOGL_ASSERT(v <= 0xF);
             if (v < 10)
@@ -551,13 +551,13 @@ namespace vogl
             return -1;
         }
 
-        bool is_buffer_printable(const void *pBuf, uint buf_size, bool include_crlf, bool expect_null_terminator);
+        bool is_buffer_printable(const void *pBuf, uint32_t buf_size, bool include_crlf, bool expect_null_terminator);
 
         extern const int64_t s_signed_mins[9];
         extern const int64_t s_signed_maxs[9];
         extern const uint64_t s_unsigned_maxes[9];
 
-        inline int64_t get_signed_min_value(uint integral_type_size)
+        inline int64_t get_signed_min_value(uint32_t integral_type_size)
         {
             VOGL_ASSERT(integral_type_size <= 8);
             int64_t val = (integral_type_size <= 8) ? s_signed_mins[integral_type_size] : 0;
@@ -565,7 +565,7 @@ namespace vogl
             return val;
         }
 
-        inline int64_t get_signed_max_value(uint integral_type_size)
+        inline int64_t get_signed_max_value(uint32_t integral_type_size)
         {
             VOGL_ASSERT(integral_type_size <= 8);
             int64_t val = (integral_type_size <= 8) ? s_signed_maxs[integral_type_size] : 0;
@@ -573,7 +573,7 @@ namespace vogl
             return val;
         }
 
-        inline uint64_t get_unsigned_max_value(uint integral_type_size)
+        inline uint64_t get_unsigned_max_value(uint32_t integral_type_size)
         {
             VOGL_ASSERT(integral_type_size <= 8);
             uint64_t val = (integral_type_size <= 8) ? s_unsigned_maxes[integral_type_size] : 0;

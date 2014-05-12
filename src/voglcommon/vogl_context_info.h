@@ -81,11 +81,11 @@ public:
 
     vogl_context_attribs();
     vogl_context_attribs(const int *pAttribs);
-    vogl_context_attribs(const int *pAttribs, uint num_attribs);
+    vogl_context_attribs(const int *pAttribs, uint32_t num_attribs);
     vogl_context_attribs(const attrib_vec &vec);
 
     void init(const int *pAttribs);
-    void init(const int *pAttribs, uint num_attribs);
+    void init(const int *pAttribs, uint32_t num_attribs);
     void init(const attrib_vec &vec);
 
     void clear()
@@ -114,15 +114,15 @@ public:
         return m_attribs.get_ptr();
     }
 
-    uint size() const
+    uint32_t size() const
     {
         return m_attribs.size();
     }
-    int operator[](uint i) const
+    int operator[](uint32_t i) const
     {
         return m_attribs[i];
     }
-    int &operator[](uint i)
+    int &operator[](uint32_t i)
     {
         return m_attribs[i];
     }
@@ -331,54 +331,54 @@ public:
     // Not case sensitive. Currently uses a binary search of strings, so it's not terribly slow but it's not super fast either.
     bool supports_extension(const char *pExt) const;
 
-    uint get_max_vertex_attribs() const
+    uint32_t get_max_vertex_attribs() const
     {
         return m_max_vertex_attribs;
     }
 
     // compat only - will be 0 in core
-    uint get_max_texture_coords() const
+    uint32_t get_max_texture_coords() const
     {
         return m_max_texture_coords;
     }
     // compat only - will be 0 in core
-    uint get_max_texture_units() const
+    uint32_t get_max_texture_units() const
     {
         return m_max_texture_units;
     }
-    uint get_max_texture_image_units() const
+    uint32_t get_max_texture_image_units() const
     {
         return m_max_texture_image_units;
     }
-    uint get_max_combined_texture_coords() const
+    uint32_t get_max_combined_texture_coords() const
     {
         return m_max_combined_texture_coords;
     }
-    uint get_max_draw_buffers() const
+    uint32_t get_max_draw_buffers() const
     {
         return m_max_draw_buffers;
     }
-    uint get_max_lights() const
+    uint32_t get_max_lights() const
     {
         return m_max_lights;
     }
-    uint get_max_uniform_buffer_bindings() const
+    uint32_t get_max_uniform_buffer_bindings() const
     {
         return m_max_uniform_buffer_bindings;
     }
-    uint get_max_arb_program_matrices() const
+    uint32_t get_max_arb_program_matrices() const
     {
         return m_max_arb_program_matrices;
     }
-    uint get_max_arb_vertex_program_env_params() const
+    uint32_t get_max_arb_vertex_program_env_params() const
     {
         return m_max_arb_vertex_program_env_params;
     }
-    uint get_max_arb_fragment_program_env_params() const
+    uint32_t get_max_arb_fragment_program_env_params() const
     {
         return m_max_arb_fragment_program_env_params;
     }
-    uint get_max_transform_feedback_separate_attribs() const
+    uint32_t get_max_transform_feedback_separate_attribs() const
     {
         return m_max_transform_feedback_separate_attribs;
     }
@@ -403,18 +403,18 @@ private:
     // "Core" extensions are those extensions we know this context must support, independent of whether or not it actually appears in extensions.
     vogl::dynamic_string_array m_core_extensions;
 
-    uint m_max_vertex_attribs;
-    uint m_max_texture_coords;
-    uint m_max_texture_units;
-    uint m_max_texture_image_units;
-    uint m_max_combined_texture_coords;
-    uint m_max_draw_buffers;
-    uint m_max_lights;
-    uint m_max_uniform_buffer_bindings;
-    uint m_max_arb_program_matrices;
-    uint m_max_arb_vertex_program_env_params;
-    uint m_max_arb_fragment_program_env_params;
-    uint m_max_transform_feedback_separate_attribs;
+    uint32_t m_max_vertex_attribs;
+    uint32_t m_max_texture_coords;
+    uint32_t m_max_texture_units;
+    uint32_t m_max_texture_image_units;
+    uint32_t m_max_combined_texture_coords;
+    uint32_t m_max_draw_buffers;
+    uint32_t m_max_lights;
+    uint32_t m_max_uniform_buffer_bindings;
+    uint32_t m_max_arb_program_matrices;
+    uint32_t m_max_arb_vertex_program_env_params;
+    uint32_t m_max_arb_fragment_program_env_params;
+    uint32_t m_max_transform_feedback_separate_attribs;
 
     bool m_is_valid;
 

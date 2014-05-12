@@ -91,7 +91,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
          return false;
       }
 
-      const vogl::vector<uint8> &packet_buf = pTrace_reader->get_packet_buf(); VOGL_NOTE_UNUSED(packet_buf);
+      const vogl::vector<uint8_t> &packet_buf = pTrace_reader->get_packet_buf(); VOGL_NOTE_UNUSED(packet_buf);
 
       const vogl_trace_stream_packet_base &base_packet = pTrace_reader->get_base_packet(); VOGL_NOTE_UNUSED(base_packet);
       const vogl_trace_gl_entrypoint_packet *pGL_packet = NULL;

@@ -36,7 +36,7 @@ namespace vogl
     {
     }
 
-    regexp::regexp(const char *pPattern, uint flags)
+    regexp::regexp(const char *pPattern, uint32_t flags)
         : m_is_initialized(false)
     {
         init(pPattern, flags);
@@ -60,7 +60,7 @@ namespace vogl
         m_match_locs.clear();
     }
 
-    bool regexp::init(const char *pPattern, uint flags)
+    bool regexp::init(const char *pPattern, uint32_t flags)
     {
         deinit();
 
@@ -72,7 +72,7 @@ namespace vogl
             size_t errbuf_size = vogl_regerror(errcode, &m_regex, NULL, 0);
             if ((errbuf_size) && (errbuf_size < cUINT32_MAX))
             {
-                vogl::vector<char> errbuf(static_cast<uint>(errbuf_size));
+                vogl::vector<char> errbuf(static_cast<uint32_t>(errbuf_size));
 
                 vogl_regerror(errcode, &m_regex, errbuf.get_ptr(), errbuf_size);
 
@@ -136,7 +136,7 @@ namespace vogl
         return (!begin) && (pString[end] == '\0');
     }
 
-    uint regexp::find(const char *pString)
+    uint32_t regexp::find(const char *pString)
     {
         if (!m_is_initialized)
             return false;
@@ -186,9 +186,9 @@ namespace vogl
         return m_match_strings.size();
     }
 
-    uint regexp::replace(dynamic_string &result, const char *pString, const char *pReplacement)
+    uint32_t regexp::replace(dynamic_string &result, const char *pString, const char *pReplacement)
     {
-        uint n = find(pString);
+        uint32_t n = find(pString);
         if (!n)
         {
             result = pString;
@@ -197,10 +197,10 @@ namespace vogl
 
         result.set_len(0);
 
-        uint str_len = vogl_strlen(pString);
-        uint cur_ofs = 0;
+        uint32_t str_len = vogl_strlen(pString);
+        uint32_t cur_ofs = 0;
 
-        for (uint i = 0; i < n; i++)
+        for (uint32_t i = 0; i < n; i++)
         {
             const regexp_match_loc &cur_match = m_match_locs[i];
 
@@ -223,11 +223,11 @@ namespace vogl
         return n;
     }
 
-    static uint regexp_test(const char *pPat, const char *pStr)
+    static uint32_t regexp_test(const char *pPat, const char *pStr)
     {
         dynamic_string_array matches(regexp_find(pStr, pPat));
         printf("Pattern: \"%s\" String: \"%s\" Find: %u\n", pPat, pStr, matches.size());
-        for (uint i = 0; i < matches.size(); i++)
+        for (uint32_t i = 0; i < matches.size(); i++)
             printf("\"%s\"\n", matches[i].get_ptr());
         return matches.size();
     }
@@ -246,7 +246,7 @@ namespace vogl
         return result;
     }
 
-    static uint g_regexp_test_fail_count;
+    static uint32_t g_regexp_test_fail_count;
     static void regexp_test_check(bool success)
     {
         if (!success)

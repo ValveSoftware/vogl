@@ -48,7 +48,7 @@ bool vogl_current_vertex_attrib_state::snapshot(const vogl_context_info &context
     {
         m_current_vertex_attribs[0].set(0, 0, 0, 1);
 
-        for (uint i = 1; i < context_info.get_max_vertex_attribs(); i++)
+        for (uint32_t i = 1; i < context_info.get_max_vertex_attribs(); i++)
         {
             GL_ENTRYPOINT(glGetVertexAttribdv)(i, GL_CURRENT_VERTEX_ATTRIB, m_current_vertex_attribs[i].get_ptr());
 
@@ -73,9 +73,9 @@ bool vogl_current_vertex_attrib_state::restore(const vogl_context_info &context_
         vogl_error_printf("%s: Unable to restore all current vertex attribs, object has %u attribs, context only supports %u attribs\n", VOGL_FUNCTION_INFO_CSTR, m_current_vertex_attribs.size(), context_info.get_max_vertex_attribs());
     }
 
-    uint max_vertex_attribs_to_restore = math::minimum<uint>(m_current_vertex_attribs.size(), context_info.get_max_vertex_attribs());
+    uint32_t max_vertex_attribs_to_restore = math::minimum<uint32_t>(m_current_vertex_attribs.size(), context_info.get_max_vertex_attribs());
 
-    for (uint i = 1; i < max_vertex_attribs_to_restore; i++)
+    for (uint32_t i = 1; i < max_vertex_attribs_to_restore; i++)
     {
         GL_ENTRYPOINT(glVertexAttrib4dv)(i, m_current_vertex_attribs[i].get_ptr());
 
@@ -99,10 +99,10 @@ bool vogl_current_vertex_attrib_state::serialize(json_node &node, vogl_blob_mana
         return false;
 
     node.init_array();
-    for (uint i = 0; i < m_current_vertex_attribs.size(); i++)
+    for (uint32_t i = 0; i < m_current_vertex_attribs.size(); i++)
     {
         json_node &vec_node = node.add_array();
-        for (uint j = 0; j < 4; j++)
+        for (uint32_t j = 0; j < 4; j++)
             vec_node.add_value(m_current_vertex_attribs[i][j]);
     }
 
@@ -119,7 +119,7 @@ bool vogl_current_vertex_attrib_state::deserialize(const json_node &node, const 
         return false;
 
     m_current_vertex_attribs.resize(node.size());
-    for (uint i = 0; i < node.size(); i++)
+    for (uint32_t i = 0; i < node.size(); i++)
     {
         const json_node &vec_node = *node.get_child(i);
         if (vec_node.size() != 4)

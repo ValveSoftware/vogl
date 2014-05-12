@@ -32,11 +32,11 @@
 
 #undef get16bits
 #if (defined(COMPILER_GCCLIKE) && defined(__i386__)) || defined(__WATCOMC__) || defined(COMPILER_MSVC) || defined(__BORLANDC__) || defined(__TURBOC__)
-#define get16bits(d) (*((const uint16 *)(d)))
+#define get16bits(d) (*((const uint16_t *)(d)))
 #endif
 
 #if !defined(get16bits)
-#define get16bits(d) ((((uint32)(((const uint8 *)(d))[1])) << 8) + (uint32)(((const uint8 *)(d))[0]))
+#define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8) + (uint32_t)(((const uint8_t *)(d))[0]))
 #endif
 
 namespace vogl
@@ -76,19 +76,19 @@ namespace vogl
             DEFINE_WELL_KNOWN_STRING_HASH("viewport_height"),
             DEFINE_WELL_KNOWN_STRING_HASH("func_id"),
         };
-        const uint s_num_well_known_string_hashes = VOGL_ARRAY_SIZE(s_well_known_string_hashes);
+        const uint32_t s_num_well_known_string_hashes = VOGL_ARRAY_SIZE(s_well_known_string_hashes);
 
-        for (uint i = 0; i < s_num_well_known_string_hashes; i++)
+        for (uint32_t i = 0; i < s_num_well_known_string_hashes; i++)
             if (s_well_known_string_hashes[i].m_hash == hash)
                 return s_well_known_string_hashes[i].m_pStr;
         return NULL;
     }
 
-    uint32 fast_hash(const void *p, int len)
+    uint32_t fast_hash(const void *p, int len)
     {
         const char *data = static_cast<const char *>(p);
 
-        uint32 hash = len, tmp;
+        uint32_t hash = len, tmp;
         int rem;
 
         if (len <= 0 || data == NULL)
@@ -103,7 +103,7 @@ namespace vogl
             hash += get16bits(data);
             tmp = (get16bits(data + 2) << 11) ^ hash;
             hash = (hash << 16) ^ tmp;
-            data += 2 * sizeof(uint16);
+            data += 2 * sizeof(uint16_t);
             hash += hash >> 11;
         }
 
@@ -113,7 +113,7 @@ namespace vogl
             case 3:
                 hash += get16bits(data);
                 hash ^= hash << 16;
-                hash ^= data[sizeof(uint16)] << 18;
+                hash ^= data[sizeof(uint16_t)] << 18;
                 hash += hash >> 11;
                 break;
             case 2:
@@ -162,7 +162,7 @@ namespace vogl
         return;
     }
 
-    uint64_t calc_crc64(uint64_t crc, const uint8 *buf, size_t size)
+    uint64_t calc_crc64(uint64_t crc, const uint8_t *buf, size_t size)
     {
         if (!g_crc64_table[0])
             crc64_init();
@@ -178,13 +178,13 @@ namespace vogl
         return ~crc;
     }
 
-    uint64_t calc_sum64(const uint8 *buf, size_t size, uint shift_amount)
+    uint64_t calc_sum64(const uint8_t *buf, size_t size, uint32_t shift_amount)
     {
         uint64_t sum = 0;
 
         while (size != 0)
         {
-            uint c = *buf++;
+            uint32_t c = *buf++;
             c >>= shift_amount;
             sum += c;
             --size;
