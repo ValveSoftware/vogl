@@ -351,6 +351,16 @@ FMT_INFO(PXFMT_RGB565_UNORM,  uint16, double, 3, 2,  true, true, false, true,   
 FMT_INFO(PXFMT_RGB565REV_UNORM,uint16,double, 3, 2,  true, true, false, true,   0, 1, 2, -1,      5,  6,  5,  0,   0, 5, 11, 0);
 FMT_INFO_SFP(PXFMT_RGB10F_11F_11F, uint32, double, 3, 4,         false,         0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP10, FP11, FP11, NON_FP);
 
+// GL_BGR
+FMT_INFO(PXFMT_BGR8_UNORM,        uint8,  double, 3, 3,  true, true, false, false,   2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR8_SNORM,        int8,   double, 3, 3,  true, true, true, false,    2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR16_UNORM,       uint16, double, 3, 6,  true, true, false, false,   2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR16_SNORM,       int16,  double, 3, 6,  true, true, true, false,    2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR32_UNORM,       uint32, double, 3, 12, true, true, false, false,   2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR32_SNORM,       int32,  double, 3, 12, true, true, true, false,    2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_BGR16_FLOAT,   uint16, double, 3, 6,              true,           2, 1, 0, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, NON_FP);
+FMT_INFO(PXFMT_BGR32_FLOAT,       float,  double, 3, 12, true, false, false, false,  2, 1, 0, -1,      0,  0,  0,  0,   0, 0, 0, 0);
+
 // GL_RGBA
 FMT_INFO(PXFMT_RGBA8_UNORM,  uint32, double, 4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
 FMT_INFO(PXFMT_RGBA8_SNORM,  uint32, double, 4, 4,  true, true, true, true,     0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
@@ -439,6 +449,14 @@ FMT_INFO(PXFMT_RGB332_UINT,  uint8,  uint32, 3, 1,  false, false, false, true,  
 FMT_INFO(PXFMT_RGB233_UINT,  uint8,  uint32, 3, 1,  false, false, false, true,  0, 1, 2, -1,      3,  3,  2,  0,    0, 3, 6, 0);
 FMT_INFO(PXFMT_RGB565_UINT,  uint8,  uint32, 3, 2,  false, false, false, true,  0, 1, 2, -1,      5,  6,  5,  0,   11, 5, 0, 0);
 FMT_INFO(PXFMT_RGB565REV_UINT,uint8, uint32, 3, 2,  false, false, false, true,  0, 1, 2, -1,      5,  6,  5,  0,   0, 5, 11, 0);
+
+// GL_BGR_INTEGER
+FMT_INFO(PXFMT_BGR8_UINT,   uint8,  uint32, 3, 3,  false, false, false, false, 2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR8_SINT,   int8,   uint32, 3, 3,  false, false, true, false,  2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR16_UINT,  uint16, uint32, 3, 6,  false, false, false, false, 2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR16_SINT,  int16,  uint32, 3, 6,  false, false, true, false,  2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR32_UINT,  uint32, uint32, 3, 12, false, false, false, false, 2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR32_SINT,  int32,  uint32, 3, 12, false, false, true, false,  2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
 
 // GL_RGBA_INTEGER
 FMT_INFO(PXFMT_RGBA8_UINT,  uint32, uint32, 4, 4,   false, false, false, true,  0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
@@ -957,10 +975,11 @@ template <pxfmt_sized_format F, pxfmt_small_fp S, typename Tdst, typename Tint>
 inline
 void from_int_comp_small_fp(Tdst *dst, const Tint *src, const uint32 c)
 {
+    uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
     // Get the intermediate value in a form that we can split it into its
     // components:
     double_conversion d;
-    d.d = src[c];
+    d.d = src[index];
     // Note: the bottom 32-bits of the mantissa is always ignored, because a
     // small-floating-point value is too small to ever need it.
 
@@ -1325,6 +1344,29 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             break;
         }
         break;
+    case GL_BGR:
+        switch (type)
+        {
+        case GL_UNSIGNED_BYTE:
+            return PXFMT_BGR8_UNORM;
+        case GL_BYTE:
+            return PXFMT_BGR8_SNORM;
+        case GL_UNSIGNED_SHORT:
+            return PXFMT_BGR16_UNORM;
+        case GL_SHORT:
+            return PXFMT_BGR16_SNORM;
+        case GL_UNSIGNED_INT:
+            return PXFMT_BGR32_UNORM;
+        case GL_INT:
+            return PXFMT_BGR32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_BGR16_FLOAT;
+        case GL_FLOAT:
+            return PXFMT_BGR32_FLOAT;
+        default:
+            break;
+        }
+        break;
     case GL_RGBA:
         switch (type)
         {
@@ -1524,6 +1566,25 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_RGB565_UINT;
         case GL_UNSIGNED_SHORT_5_6_5_REV:
             return PXFMT_RGB565REV_UINT;
+        default:
+            break;
+        }
+        break;
+    case GL_BGR_INTEGER:
+        switch (type)
+        {
+        case GL_UNSIGNED_BYTE:
+            return PXFMT_BGR8_UINT;
+        case GL_BYTE:
+            return PXFMT_BGR8_SINT;
+        case GL_UNSIGNED_SHORT:
+            return PXFMT_BGR16_UINT;
+        case GL_SHORT:
+            return PXFMT_BGR16_SINT;
+        case GL_UNSIGNED_INT:
+            return PXFMT_BGR32_UINT;
+        case GL_INT:
+            return PXFMT_BGR32_SINT;
         default:
             break;
         }

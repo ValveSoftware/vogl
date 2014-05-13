@@ -124,6 +124,16 @@ enum pxfmt_sized_format
     PXFMT_RGB565REV_UNORM,
     PXFMT_RGB10F_11F_11F,
 
+// GL_BGR
+    PXFMT_BGR8_UNORM,
+    PXFMT_BGR8_SNORM,
+    PXFMT_BGR16_UNORM,
+    PXFMT_BGR16_SNORM,
+    PXFMT_BGR32_UNORM,
+    PXFMT_BGR32_SNORM,
+    PXFMT_BGR16_FLOAT,
+    PXFMT_BGR32_FLOAT,
+
 // GL_RGBA
     // NOTE: The following two OpenGL format-type combinations are actually
     // laid out the same in memory:
@@ -216,6 +226,14 @@ enum pxfmt_sized_format
     PXFMT_RGB233_UINT,
     PXFMT_RGB565_UINT,
     PXFMT_RGB565REV_UINT,
+
+// GL_BGR_INTEGER
+    PXFMT_BGR8_UINT,
+    PXFMT_BGR8_SINT,
+    PXFMT_BGR16_UINT,
+    PXFMT_BGR16_SINT,
+    PXFMT_BGR32_UINT,
+    PXFMT_BGR32_SINT,
 
 // GL_RGBA_INTEGER
     // NOTE: The following two OpenGL format-type combinations are actually
