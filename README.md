@@ -111,3 +111,9 @@ THE SOFTWARE.
 libbacktrace is BSD licensed. [Libbacktrace license](https://github.com/mirrors/gcc/blob/master/libbacktrace/README).
 
 apitrace is BSD licensed: [Apitrace license](https://github.com/apitrace/apitrace/blob/master/LICENSE).
+
+Loki is MIT licensed: [Loki license](http://loki-lib.sourceforge.net/index.php?n=Main.License)
+
+Valgrind header files are BSD-style licensed: [Valgrind header files](http://valgrind.org/docs/manual/manual-intro.html)
+
+GL header files are MIT licensed: [GL header files](http://www.opengl.org/registry/)
