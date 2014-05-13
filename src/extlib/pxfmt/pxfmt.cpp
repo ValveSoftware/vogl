@@ -476,10 +476,10 @@ void to_int_comp_packed(Tint *dst, const Tsrc *src, const uint32 c)
         uint32 max = pxfmt_per_fmt_info<F>::m_max[c];
 
         raw = ((raw & mask) >> shift);
-        dst[index] = (double) raw / (double) max;
+        dst[index] = (Tint) ((double) raw / (double) max);
         if (pxfmt_per_fmt_info<F>::m_is_signed)
         {
-            dst[index] = std::max<double>(dst[index], -1.0);
+            dst[index] = (Tint) std::max<double>(dst[index], -1.0);
         }
     }
     else
@@ -498,10 +498,10 @@ void to_int_comp_norm_unpacked(Tint *dst, const Tsrc *src, const uint32 c)
     uint32 raw = (uint32) src[c];
     uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
     uint32 max = pxfmt_per_fmt_info<F>::m_max[c];
-    dst[index] = (double) raw / (double) max;
+    dst[index] = (Tint) ((double) raw / (double) max);
     if (pxfmt_per_fmt_info<F>::m_is_signed)
     {
-        dst[index] = std::max<double>(dst[index], -1.0);
+        dst[index] = (Tint) std::max<double>(dst[index], -1.0);
     }
 }
 
@@ -513,7 +513,7 @@ inline
 void to_int_comp_copy(Tint *dst, const Tsrc *src, const uint32 c)
 {
     uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
-    dst[index] = src[c];
+    dst[index] = (Tint) src[c];
 }
 
 
@@ -525,14 +525,19 @@ inline
 void to_int_d24_unorm_s8_uint(Tint *dst, const Tsrc *src)
 {
     // Convert the depth value:
-    uint32 depth = *src;
+    uint32 depth = (uint32) *src;
     double *pDepthDst = (double *) &dst[0];
-    *pDepthDst = (((double) ((depth & pxfmt_per_fmt_info<F>::m_mask[0]) >>
-                             pxfmt_per_fmt_info<F>::m_shift[0])) /
-                  ((double) pxfmt_per_fmt_info<F>::m_max[0]));
+    // The following compile-time "if" check is to avoid compile-time warnings
+    // about "potential divide by 0" errors:
+    if (pxfmt_per_fmt_info<F>::m_max[0] != 0)
+    {
+      *pDepthDst = (((double) ((depth & pxfmt_per_fmt_info<F>::m_mask[0]) >>
+                               pxfmt_per_fmt_info<F>::m_shift[0])) /
+                    ((double) pxfmt_per_fmt_info<F>::m_max[0]));
+    }
 
     // Convert the stencil value:
-    uint32 stencil = *src;
+    uint32 stencil = (uint32) *src;
     uint32 *pStencilDst = (uint32 *) &dst[1];
     *pStencilDst = ((stencil & pxfmt_per_fmt_info<F>::m_mask[1]) >>
                     pxfmt_per_fmt_info<F>::m_shift[1]);
@@ -661,14 +666,14 @@ void from_int_comp_packed(Tdst *dst, const Tint *src)
     Tint alpha = ((pxfmt_per_fmt_info<F>::m_is_normalized) ?
                   (src[3] * pxfmt_per_fmt_info<F>::m_max[3]) : src[3]);
 
-    *dst = ((((uint32) red << pxfmt_per_fmt_info<F>::m_shift[0]) &
-             pxfmt_per_fmt_info<F>::m_mask[0]) |
-            (((uint32) green << pxfmt_per_fmt_info<F>::m_shift[1]) &
-             pxfmt_per_fmt_info<F>::m_mask[1]) |
-            (((uint32) blue << pxfmt_per_fmt_info<F>::m_shift[2]) &
-             pxfmt_per_fmt_info<F>::m_mask[2]) |
-            (((uint32) alpha << pxfmt_per_fmt_info<F>::m_shift[3]) &
-             pxfmt_per_fmt_info<F>::m_mask[3]));
+    *dst = (Tdst) ((((uint32) red << pxfmt_per_fmt_info<F>::m_shift[0]) &
+                    pxfmt_per_fmt_info<F>::m_mask[0]) |
+                   (((uint32) green << pxfmt_per_fmt_info<F>::m_shift[1]) &
+                    pxfmt_per_fmt_info<F>::m_mask[1]) |
+                   (((uint32) blue << pxfmt_per_fmt_info<F>::m_shift[2]) &
+                    pxfmt_per_fmt_info<F>::m_mask[2]) |
+                   (((uint32) alpha << pxfmt_per_fmt_info<F>::m_shift[3]) &
+                    pxfmt_per_fmt_info<F>::m_mask[3]));
 }
 
 
@@ -682,7 +687,7 @@ void from_int_comp_norm_unpacked(Tdst *dst, const Tint *src, const uint32 c)
     uint32 raw = (uint32) src[index]; (void)raw;
     uint32 max = pxfmt_per_fmt_info<F>::m_max[c];
 
-    dst[c] = (Tint) ((double) src[index] * (double) max);
+    dst[c] = (Tdst) ((double) src[index] * (double) max);
 }
 
 
@@ -693,7 +698,7 @@ inline
 void from_int_comp_copy(Tdst *dst, const Tint *src, const uint32 c)
 {
     uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
-    dst[c] = (Tint) src[index];
+    dst[c] = (Tdst) src[index];
 }
 
 
@@ -716,7 +721,7 @@ void from_int_d24_unorm_s8_uint(Tdst *dst, const Tint *src)
                       pxfmt_per_fmt_info<F>::m_mask[1]);
 
     // Combine the depth and stencil values into one, packed-integer value:
-    *dst = depth_uint32 | stencil;
+    *dst = (Tdst) (depth_uint32 | stencil);
 }
 
 
