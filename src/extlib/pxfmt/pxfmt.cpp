@@ -187,7 +187,7 @@ union double_conversion
 // pxfmt_sized_format (i.e. for each OpenGL format/type combination):
 template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
 
-#define FMT_INFO_BASE(F, ftype, itype, ncomps, bypp,                    \
+#define FMT_INFO_BASE(F, ogl_fmt, ftype, itype, ncomps, bypp,           \
                       needfp, norm, is_signed, pack,                    \
                       in0, in1, in2, in3,                               \
                       nbits0, nbits1, nbits2, nbits3,                   \
@@ -196,6 +196,7 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
     template <> struct pxfmt_per_fmt_info<F>                            \
     {                                                                   \
         static const pxfmt_sized_format m_fmt = F;                      \
+        static const GLenum m_format = ogl_fmt;                         \
         /* The type to access components and/or pixels of formatted data: */ \
         typedef ftype m_formatted_type;                                 \
         /* The type of intermediate values (convert to/from): */        \
@@ -250,13 +251,13 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
          (max_values<is_signed,nbits3>::m_max << shift3)};
 
     // This variation is used for most cases:
-#define FMT_INFO(F, ftype, itype, ncomps, bypp,                         \
+#define FMT_INFO(F, ogl_fmt, ftype, itype, ncomps, bypp,                \
                  needfp, norm, is_signed, pack,                         \
                  in0, in1, in2, in3,                                    \
                  nbits0, nbits1, nbits2, nbits3,                        \
                  shift0, shift1, shift2, shift3)                        \
                                                                         \
-    FMT_INFO_BASE(F, ftype, itype, ncomps, bypp,                        \
+    FMT_INFO_BASE(F, ogl_fmt, ftype, itype, ncomps, bypp,               \
                   needfp, norm, is_signed, pack,                        \
                   in0, in1, in2, in3,                                   \
                   nbits0, nbits1, nbits2, nbits3,                       \
@@ -265,14 +266,14 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
         {NON_FP, NON_FP, NON_FP, NON_FP};
 
 // This variation is used for the few "small-fp" cases:
-#define FMT_INFO_SFP(F, ftype, itype, ncomps, bypp,                     \
+#define FMT_INFO_SFP(F, ogl_fmt, ftype, itype, ncomps, bypp,            \
                      is_signed,                                         \
                      in0, in1, in2, in3,                                \
                      nbits0, nbits1, nbits2, nbits3,                    \
                      shift0, shift1, shift2, shift3,                    \
                      sfp0, sfp1, sfp2, sfp3)                            \
                                                                         \
-    FMT_INFO_BASE(F, ftype, itype, ncomps, bypp,                        \
+    FMT_INFO_BASE(F, ogl_fmt, ftype, itype, ncomps, bypp,               \
                   true, false, is_signed, false,                        \
                   in0, in1, in2, in3,                                   \
                   nbits0, nbits1, nbits2, nbits3,                       \
@@ -286,233 +287,233 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
 // information:
 
 // GL_RED
-FMT_INFO(PXFMT_R8_UNORM,  uint8,  double, 1, 1, true, true, false, false,       0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R8_SNORM,  int8,   double, 1, 1, true, true, true, false,        0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R16_UNORM, uint16, double, 1, 2, true, true, false, false,       0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R16_SNORM, int16,  double, 1, 2, true, true, true, false,        0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R32_UNORM, uint32, double, 1, 4, true, true, false, false,       0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R32_SNORM, int32,  double, 1, 4, true, true, true, false,        0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_R16_FLOAT, uint16, double, 1, 2,         true,               0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   FP16, NON_FP, NON_FP, NON_FP);
-FMT_INFO(PXFMT_R32_FLOAT, float,  double, 1, 4, true, false, false, false,      0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R8_UNORM,   GL_RED,    uint8,  double, 1, 1, true, true, false, false,       0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R8_SNORM,   GL_RED,    int8,   double, 1, 1, true, true, true, false,        0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R16_UNORM,  GL_RED,    uint16, double, 1, 2, true, true, false, false,       0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R16_SNORM,  GL_RED,    int16,  double, 1, 2, true, true, true, false,        0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R32_UNORM,  GL_RED,    uint32, double, 1, 4, true, true, false, false,       0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R32_SNORM,  GL_RED,    int32,  double, 1, 4, true, true, true, false,        0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_R16_FLOAT,GL_RED, uint16,  double, 1, 2,             true,               0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   FP16, NON_FP, NON_FP, NON_FP);
+FMT_INFO(PXFMT_R32_FLOAT,  GL_RED,    float,  double, 1, 4, true, false, false, false,      0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_GREEN
-FMT_INFO(PXFMT_G8_UNORM,  uint8,  double, 1, 1, true, true, false, false,       1, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G8_SNORM,  int8,  double, 1, 1,  true, true, true, false,        1, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G16_UNORM, uint16, double, 1, 2,  true, true, false, false,      1, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G16_SNORM, int16,  double, 1, 2,  true, true, true, false,       1, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G32_UNORM, uint32, double, 1, 4, true, true, false, false,       1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G32_SNORM, int32,  double, 1, 4, true, true, true, false,        1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_G16_FLOAT, uint16, double, 1, 2,         true,               1, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, FP16, NON_FP, NON_FP);
-FMT_INFO(PXFMT_G32_FLOAT, float,  double, 1, 4, true, false, false, false,      1, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G8_UNORM,   GL_GREEN,  uint8,  double, 1, 1, true, true, false, false,       1, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G8_SNORM,   GL_GREEN,  int8,   double, 1, 1, true, true, true, false,        1, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G16_UNORM,  GL_GREEN,  uint16, double, 1, 2, true, true, false, false,       1, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G16_SNORM,  GL_GREEN,  int16,  double, 1, 2, true, true, true, false,        1, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G32_UNORM,  GL_GREEN,  uint32, double, 1, 4, true, true, false, false,       1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G32_SNORM,  GL_GREEN,  int32,  double, 1, 4, true, true, true, false,        1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_G16_FLOAT,GL_GREEN,uint16, double,1, 2,              true,               1, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, FP16, NON_FP, NON_FP);
+FMT_INFO(PXFMT_G32_FLOAT,  GL_GREEN,  float,  double, 1, 4, true, false, false, false,      1, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_BLUE
-FMT_INFO(PXFMT_B8_UNORM,  uint8,  double, 1, 1, true, true, false, false,       2, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B8_SNORM,  int8,  double, 1, 1,  true, true, true, false,        2, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B16_UNORM, uint16, double, 1, 2,  true, true, false, false,      2, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B16_SNORM, int16,  double, 1, 2,  true, true, true, false,       2, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B32_UNORM, uint32, double, 1, 4, true, true, false, false,       2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B32_SNORM, int32,  double, 1, 4, true, true, true, false,        2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_B16_FLOAT, uint16, double, 1, 2,         true,               2, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, NON_FP, FP16, NON_FP);
-FMT_INFO(PXFMT_B32_FLOAT, float,  double, 1, 4, true, false, false, false,      2, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B8_UNORM,   GL_BLUE,   uint8,  double, 1, 1, true, true, false, false,       2, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B8_SNORM,   GL_BLUE,   int8,   double, 1, 1, true, true, true, false,        2, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B16_UNORM,  GL_BLUE,   uint16, double, 1, 2, true, true, false, false,       2, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B16_SNORM,  GL_BLUE,   int16,  double, 1, 2, true, true, true, false,        2, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B32_UNORM,  GL_BLUE,   uint32, double, 1, 4, true, true, false, false,       2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B32_SNORM,  GL_BLUE,   int32,  double, 1, 4, true, true, true, false,        2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_B16_FLOAT,GL_BLUE, uint16, double, 1, 2,             true,               2, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, NON_FP, FP16, NON_FP);
+FMT_INFO(PXFMT_B32_FLOAT,  GL_BLUE,   float,  double, 1, 4, true, false, false, false,      2, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_ALPHA
-FMT_INFO(PXFMT_A8_UNORM,  uint8,  double, 1, 1, true, true, false, false,       3, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A8_SNORM,  int8,   double, 1, 1, true, true, true, false,        3, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A16_UNORM, uint16, double, 1, 2, true, true, false, false,       3, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A16_SNORM, int16,  double, 1, 2, true, true, true, false,        3, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A32_UNORM, uint32, double, 1, 4, true, true, false, false,       3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A32_SNORM, int32,  double, 1, 4, true, true, true, false,        3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_A16_FLOAT, uint16, double, 1, 2,         true,               3, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, NON_FP, NON_FP, FP16);
-FMT_INFO(PXFMT_A32_FLOAT, float,  double, 1, 4, true, false, false, false,      3, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A8_UNORM,          GL_ALPHA,  uint8,  double, 1, 1, true, true, false, false,    3, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A8_SNORM,          GL_ALPHA,  int8,   double, 1, 1, true, true, true, false,     3, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A16_UNORM,         GL_ALPHA,  uint16, double, 1, 2, true, true, false, false,    3, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A16_SNORM,         GL_ALPHA,  int16,  double, 1, 2, true, true, true, false,     3, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A32_UNORM,         GL_ALPHA,  uint32, double, 1, 4, true, true, false, false,    3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A32_SNORM,         GL_ALPHA,  int32,  double, 1, 4, true, true, true, false,     3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_A16_FLOAT,     GL_ALPHA,  uint16, double, 1, 2,             true,            3, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, NON_FP, NON_FP, FP16);
+FMT_INFO(PXFMT_A32_FLOAT,         GL_ALPHA,  float,  double, 1, 4, true, false, false, false,   3, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_RG
-FMT_INFO(PXFMT_RG8_UNORM,  uint8,  double, 2, 2, true, true, false, false,      0, 1, -1, -1,     8,  8,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG8_SNORM,  int8,   double, 2, 2, true, true, true, false,       0, 1, -1, -1,     8,  8,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG16_UNORM, uint16, double, 2, 4, true, true, false, false,      0, 1, -1, -1,    16, 16,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG16_SNORM, int16,  double, 2, 4, true, true, true, false,       0, 1, -1, -1,    16, 16,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG32_UNORM, uint32, double, 2, 8, true, true, false, false,      0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG32_SNORM, int32,  double, 2, 8, true, true, true, false,       0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_RG16_FLOAT, uint16, double, 2, 4,         true,              0, 1, -1, -1,     0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, NON_FP, NON_FP);
-FMT_INFO(PXFMT_RG32_FLOAT, float,  double, 2, 8, true, false, false, false,     0, 1, -1, -1,     0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG8_UNORM,         GL_RG,     uint8,  double, 2, 2, true, true, false, false,    0, 1, -1, -1,     8,  8,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG8_SNORM,         GL_RG,     int8,   double, 2, 2, true, true, true, false,     0, 1, -1, -1,     8,  8,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG16_UNORM,        GL_RG,     uint16, double, 2, 4, true, true, false, false,    0, 1, -1, -1,    16, 16,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG16_SNORM,        GL_RG,     int16,  double, 2, 4, true, true, true, false,     0, 1, -1, -1,    16, 16,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG32_UNORM,        GL_RG,     uint32, double, 2, 8, true, true, false, false,    0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG32_SNORM,        GL_RG,     int32,  double, 2, 8, true, true, true, false,     0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_RG16_FLOAT,    GL_RG,     uint16, double, 2, 4,             true,            0, 1, -1, -1,     0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, NON_FP, NON_FP);
+FMT_INFO(PXFMT_RG32_FLOAT,        GL_RG,     float,  double, 2, 8, true, false, false, false,   0, 1, -1, -1,     0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_RGB
-FMT_INFO(PXFMT_RGB8_UNORM,  uint8,  double, 3, 3,  true, true, false, false,    0, 1, 2, -1,      8,  8,  8,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB8_SNORM,  int8,   double, 3, 3,  true, true, true, false,     0, 1, 2, -1,      8,  8,  8,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB16_UNORM, uint16, double, 3, 6,  true, true, false, false,    0, 1, 2, -1,     16, 16, 16,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB16_SNORM, int16,  double, 3, 6,  true, true, true, false,     0, 1, 2, -1,     16, 16, 16,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB32_UNORM, uint32, double, 3, 12, true, true, false, false,    0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB32_SNORM, int32,  double, 3, 12, true, true, true, false,     0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_RGB16_FLOAT, uint16, double, 3, 6,          true,            0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, NON_FP);
-FMT_INFO(PXFMT_RGB32_FLOAT, float,  double, 3, 12, true, false, false, false,   0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB8_UNORM,        GL_RGB,    uint8,  double, 3, 3,  true, true, false, false,   0, 1, 2, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB8_SNORM,        GL_RGB,    int8,   double, 3, 3,  true, true, true, false,    0, 1, 2, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB16_UNORM,       GL_RGB,    uint16, double, 3, 6,  true, true, false, false,   0, 1, 2, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB16_SNORM,       GL_RGB,    int16,  double, 3, 6,  true, true, true, false,    0, 1, 2, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB32_UNORM,       GL_RGB,    uint32, double, 3, 12, true, true, false, false,   0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB32_SNORM,       GL_RGB,    int32,  double, 3, 12, true, true, true, false,    0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_RGB16_FLOAT,   GL_RGB,    uint16, double, 3, 6,              true,           0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, NON_FP);
+FMT_INFO(PXFMT_RGB32_FLOAT,       GL_RGB,    float,  double, 3, 12, true, false, false, false,  0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0);
 
-FMT_INFO(PXFMT_RGB332_UNORM,  uint8,  double, 3, 1,  true, true, false, true,   0, 1, 2, -1,      3,  3,  2,  0,    5, 2, 0, 0);
-FMT_INFO(PXFMT_RGB233_UNORM,  uint8,  double, 3, 1,  true, true, false, true,   0, 1, 2, -1,      3,  3,  2,  0,    0, 3, 6, 0);
-FMT_INFO(PXFMT_RGB565_UNORM,  uint16, double, 3, 2,  true, true, false, true,   0, 1, 2, -1,      5,  6,  5,  0,   11, 5, 0, 0);
-FMT_INFO(PXFMT_RGB565REV_UNORM,uint16,double, 3, 2,  true, true, false, true,   0, 1, 2, -1,      5,  6,  5,  0,   0, 5, 11, 0);
-FMT_INFO_SFP(PXFMT_RGB10F_11F_11F, uint32, double, 3, 4,         false,         0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP10, FP11, FP11, NON_FP);
+FMT_INFO(PXFMT_RGB332_UNORM,      GL_RGB,    uint8,  double, 3, 1,  true, true, false, true,    0, 1, 2, -1,      3,  3,  2,  0,   5, 2, 0, 0);
+FMT_INFO(PXFMT_RGB233_UNORM,      GL_RGB,    uint8,  double, 3, 1,  true, true, false, true,    0, 1, 2, -1,      3,  3,  2,  0,   0, 3, 6, 0);
+FMT_INFO(PXFMT_RGB565_UNORM,      GL_RGB,    uint16, double, 3, 2,  true, true, false, true,    0, 1, 2, -1,      5,  6,  5,  0,   11, 5, 0, 0);
+FMT_INFO(PXFMT_RGB565REV_UNORM,   GL_RGB,    uint16, double, 3, 2,  true, true, false, true,    0, 1, 2, -1,      5,  6,  5,  0,   0, 5, 11, 0);
+FMT_INFO_SFP(PXFMT_RGB10F_11F_11F,GL_RGB,    uint32, double, 3, 4,              false,          0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP10, FP11, FP11, NON_FP);
 
 // GL_BGR
-FMT_INFO(PXFMT_BGR8_UNORM,        uint8,  double, 3, 3,  true, true, false, false,   2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR8_SNORM,        int8,   double, 3, 3,  true, true, true, false,    2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR16_UNORM,       uint16, double, 3, 6,  true, true, false, false,   2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR16_SNORM,       int16,  double, 3, 6,  true, true, true, false,    2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR32_UNORM,       uint32, double, 3, 12, true, true, false, false,   2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR32_SNORM,       int32,  double, 3, 12, true, true, true, false,    2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_BGR16_FLOAT,   uint16, double, 3, 6,              true,           2, 1, 0, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, NON_FP);
-FMT_INFO(PXFMT_BGR32_FLOAT,       float,  double, 3, 12, true, false, false, false,  2, 1, 0, -1,      0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR8_UNORM,        GL_BGR,    uint8,  double, 3, 3,  true, true, false, false,   2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR8_SNORM,        GL_BGR,    int8,   double, 3, 3,  true, true, true, false,    2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR16_UNORM,       GL_BGR,    uint16, double, 3, 6,  true, true, false, false,   2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR16_SNORM,       GL_BGR,    int16,  double, 3, 6,  true, true, true, false,    2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR32_UNORM,       GL_BGR,    uint32, double, 3, 12, true, true, false, false,   2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR32_SNORM,       GL_BGR,    int32,  double, 3, 12, true, true, true, false,    2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_BGR16_FLOAT,   GL_BGR,    uint16, double, 3, 6,              true,           2, 1, 0, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, NON_FP);
+FMT_INFO(PXFMT_BGR32_FLOAT,       GL_BGR,    float,  double, 3, 12, true, false, false, false,  2, 1, 0, -1,      0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_RGBA
-FMT_INFO(PXFMT_RGBA8_UNORM,  uint32, double, 4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
-FMT_INFO(PXFMT_RGBA8_SNORM,  uint32, double, 4, 4,  true, true, true, true,     0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
-FMT_INFO(PXFMT_RGBA16_UNORM, uint16, double, 4, 8,  true, true, false, false,   0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGBA16_SNORM, int16,  double, 4, 8,  true, true, true, false,    0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGBA32_UNORM, uint32, double, 4, 16, true, true, false, false,   0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGBA32_SNORM, int32,  double, 4, 16, true, true, true, false,    0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_RGBA16_FLOAT, uint16, double, 4, 8,          true,           0, 1, 2, 3,       0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, FP16);
-FMT_INFO(PXFMT_RGBA32_FLOAT, float,  double, 4, 16, true, false, false, false,  0, 1, 2, 3,       0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGBA8_UNORM,       GL_RGBA,   uint32, double, 4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
+FMT_INFO(PXFMT_RGBA8_SNORM,       GL_RGBA,   uint32, double, 4, 4,  true, true, true, true,     0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
+FMT_INFO(PXFMT_RGBA16_UNORM,      GL_RGBA,   uint16, double, 4, 8,  true, true, false, false,   0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGBA16_SNORM,      GL_RGBA,   int16,  double, 4, 8,  true, true, true, false,    0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGBA32_UNORM,      GL_RGBA,   uint32, double, 4, 16, true, true, false, false,   0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGBA32_SNORM,      GL_RGBA,   int32,  double, 4, 16, true, true, true, false,    0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_RGBA16_FLOAT,  GL_RGBA,   uint16, double, 4, 8,          true,               0, 1, 2, 3,       0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, FP16);
+FMT_INFO(PXFMT_RGBA32_FLOAT,      GL_RGBA,   float,  double, 4, 16, true, false, false, false,  0, 1, 2, 3,       0,  0,  0,  0,   0, 0, 0, 0);
 
-FMT_INFO(PXFMT_RGBA4_UNORM,   uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       4,  4,  4,  4,  12, 8, 4, 0);
-FMT_INFO(PXFMT_RGBA4REV_UNORM,uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       4,  4,  4,  4,  0, 4, 8, 12);
-FMT_INFO(PXFMT_RGB5A1_UNORM,  uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       5,  5,  5,  1,  11, 6, 1, 0);
-FMT_INFO(PXFMT_A1RGB5_UNORM,  uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       5,  5,  5,  1,  0, 5, 10, 15);
-FMT_INFO(PXFMT_RGBA8REV_UNORM, uint32, double,  4, 4, true, true, false, true,  0, 1, 2, 3,       8,  8,  8,  8,  24, 16, 8, 0);
-FMT_INFO(PXFMT_RGB10A2_UNORM, uint32, double, 4, 4, true, true, false, true,    0, 1, 2, 3,      10, 10, 10,  2,  22, 12, 2, 0);
-FMT_INFO(PXFMT_A2RGB10_UNORM, uint32, double, 4, 4, true, true, false, true,    0, 1, 2, 3,      10, 10, 10,  2,  0, 10, 20, 30);
+FMT_INFO(PXFMT_RGBA4_UNORM,       GL_RGBA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       4,  4,  4,  4,   12, 8, 4, 0);
+FMT_INFO(PXFMT_RGBA4REV_UNORM,    GL_RGBA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       4,  4,  4,  4,   0, 4, 8, 12);
+FMT_INFO(PXFMT_RGB5A1_UNORM,      GL_RGBA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       5,  5,  5,  1,   11, 6, 1, 0);
+FMT_INFO(PXFMT_A1RGB5_UNORM,      GL_RGBA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       5,  5,  5,  1,   0, 5, 10, 15);
+FMT_INFO(PXFMT_RGBA8REV_UNORM,    GL_RGBA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,       8,  8,  8,  8,   24, 16, 8, 0);
+FMT_INFO(PXFMT_RGB10A2_UNORM,     GL_RGBA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   22, 12, 2, 0);
+FMT_INFO(PXFMT_A2RGB10_UNORM,     GL_RGBA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   0, 10, 20, 30);
 
 // GL_BGRA
-FMT_INFO(PXFMT_BGRA8_UNORM, uint32, double,  4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,  16, 8, 0, 24);
-FMT_INFO(PXFMT_BGRA8_SNORM, uint32, double,  4, 4,  true, true, true, true,     0, 1, 2, 3,       8,  8,  8,  8,  16, 8, 0, 24);
-FMT_INFO(PXFMT_BGRA16_UNORM, uint16, double, 4, 8,  true, true, false, false,   2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGRA16_SNORM, int16,  double, 4, 8,  true, true, true, false,    2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGRA32_UNORM, uint32, double, 4, 16, true, true, false, false,   2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGRA32_SNORM, int32,  double, 4, 16, true, true, true, false,    2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_BGRA16_FLOAT, uint16, double, 4, 8,          true,           2, 1, 0, 3,       0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, FP16);
-FMT_INFO(PXFMT_BGRA32_FLOAT, float, double, 4, 16,  true, false, false, false,  2, 1, 0, 3,       0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGRA8_UNORM,       GL_BGRA,   uint32, double, 4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,   16, 8, 0, 24);
+FMT_INFO(PXFMT_BGRA8_SNORM,       GL_BGRA,   uint32, double, 4, 4,  true, true, true, true,     0, 1, 2, 3,       8,  8,  8,  8,   16, 8, 0, 24);
+FMT_INFO(PXFMT_BGRA16_UNORM,      GL_BGRA,   uint16, double, 4, 8,  true, true, false, false,   2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGRA16_SNORM,      GL_BGRA,   int16,  double, 4, 8,  true, true, true, false,    2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGRA32_UNORM,      GL_BGRA,   uint32, double, 4, 16, true, true, false, false,   2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGRA32_SNORM,      GL_BGRA,   int32,  double, 4, 16, true, true, true, false,    2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_BGRA16_FLOAT,  GL_BGRA,   uint16, double, 4, 8,              true,           2, 1, 0, 3,       0,  0,  0,  0,   0, 0, 0, 0,   FP16, FP16, FP16, FP16);
+FMT_INFO(PXFMT_BGRA32_FLOAT,      GL_BGRA,   float,  double, 4, 16,  true, false, false, false, 2, 1, 0, 3,       0,  0,  0,  0,   0, 0, 0, 0);
 
-FMT_INFO(PXFMT_BGRA4_UNORM,   uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       4,  4,  4,  4,  4, 8, 12, 0);
-FMT_INFO(PXFMT_BGRA4REV_UNORM,uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       4,  4,  4,  4,  0, 12, 8, 4);
-FMT_INFO(PXFMT_BGR5A1_UNORM,  uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       5,  5,  5,  1,  1, 6, 11, 0);
-FMT_INFO(PXFMT_A1BGR5_UNORM,  uint16, double, 4, 2, true, true, false, true,    0, 1, 2, 3,       5,  5,  5,  1,  10, 5, 0, 15);
-FMT_INFO(PXFMT_BGRA8REV_UNORM,uint32, double, 4, 4,  true, true, false, true,   0, 1, 2, 3,       8,  8,  8,  8,  24, 0, 8, 16);
-FMT_INFO(PXFMT_BGR10A2_UNORM, uint32, double, 4, 4, true, true, false, true,    0, 1, 2, 3,      10, 10, 10,  2,  2, 12, 22, 0);
-FMT_INFO(PXFMT_A2BGR10_UNORM, uint32, double, 4, 4, true, true, false, true,    0, 1, 2, 3,      10, 10, 10,  2,  20, 10, 0, 30);
+FMT_INFO(PXFMT_BGRA4_UNORM,       GL_BGRA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       4,  4,  4,  4,   4, 8, 12, 0);
+FMT_INFO(PXFMT_BGRA4REV_UNORM,    GL_BGRA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       4,  4,  4,  4,   0, 12, 8, 4);
+FMT_INFO(PXFMT_BGR5A1_UNORM,      GL_BGRA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       5,  5,  5,  1,   1, 6, 11, 0);
+FMT_INFO(PXFMT_A1BGR5_UNORM,      GL_BGRA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       5,  5,  5,  1,   10, 5, 0, 15);
+FMT_INFO(PXFMT_BGRA8REV_UNORM,    GL_BGRA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,       8,  8,  8,  8,   24, 0, 8, 16);
+FMT_INFO(PXFMT_BGR10A2_UNORM,     GL_BGRA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   2, 12, 22, 0);
+FMT_INFO(PXFMT_A2BGR10_UNORM,     GL_BGRA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   20, 10, 0, 30);
 
 // GL_RED_INTEGER
-FMT_INFO(PXFMT_R8_UINT,   uint8,  uint32, 1, 1, false, false, false, false,     0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R8_SINT,   int8,   uint32, 1, 1, false, false, true, false,      0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R16_UINT,  uint16, uint32, 1, 2, false, false, false, false,     0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R16_SINT,  int16,  uint32, 1, 2, false, false, true, false,      0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R32_UINT,  uint32, uint32, 1, 4, false, false, false, false,     0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_R32_SINT,  int32,  uint32, 1, 4, false, false, true, false,      0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R8_UINT,     GL_RED_INTEGER,  uint8,  uint32, 1, 1, false, false, false, false,  0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R8_SINT,     GL_RED_INTEGER,  int8,   uint32, 1, 1, false, false, true, false,   0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R16_UINT,    GL_RED_INTEGER,  uint16, uint32, 1, 2, false, false, false, false,  0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R16_SINT,    GL_RED_INTEGER,  int16,  uint32, 1, 2, false, false, true, false,   0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R32_UINT,    GL_RED_INTEGER,  uint32, uint32, 1, 4, false, false, false, false,  0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_R32_SINT,    GL_RED_INTEGER,  int32,  uint32, 1, 4, false, false, true, false,   0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_GREEN_INTEGER
-FMT_INFO(PXFMT_G8_UINT,   uint8,  uint32, 1, 1, false, false, false, false,     1, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G8_SINT,   int8,   uint32, 1, 1, false, false, true, false,      1, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G16_UINT,  uint16, uint32, 1, 2, false, false, false, false,     1, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G16_SINT,  int16,  uint32, 1, 2, false, false, true, false,      1, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G32_UINT,  uint32, uint32, 1, 4, false, false, false, false,     1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_G32_SINT,  int32,  uint32, 1, 4, false, false, true, false,      1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G8_UINT,     GL_GREEN_INTEGER,uint8,  uint32, 1, 1, false, false, false, false,  1, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G8_SINT,     GL_GREEN_INTEGER,int8,   uint32, 1, 1, false, false, true, false,   1, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G16_UINT,    GL_GREEN_INTEGER,uint16, uint32, 1, 2, false, false, false, false,  1, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G16_SINT,    GL_GREEN_INTEGER,int16,  uint32, 1, 2, false, false, true, false,   1, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G32_UINT,    GL_GREEN_INTEGER,uint32, uint32, 1, 4, false, false, false, false,  1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_G32_SINT,    GL_GREEN_INTEGER,int32,  uint32, 1, 4, false, false, true, false,   1, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_BLUE_INTEGER
-FMT_INFO(PXFMT_B8_UINT,   uint8,  uint32, 1, 1, false, false, false, false,     2, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B8_SINT,   int8,   uint32, 1, 1, false, false, true, false,      2, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B16_UINT,  uint16, uint32, 1, 2, false, false, false, false,     2, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B16_SINT,  int16,  uint32, 1, 2, false, false, true, false,      2, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B32_UINT,  uint32, uint32, 1, 4, false, false, false, false,     2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_B32_SINT,  int32,  uint32, 1, 4, false, false, true, false,      2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B8_UINT,     GL_BLUE_INTEGER, uint8,  uint32, 1, 1, false, false, false, false,  2, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B8_SINT,     GL_BLUE_INTEGER, int8,   uint32, 1, 1, false, false, true, false,   2, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B16_UINT,    GL_BLUE_INTEGER, uint16, uint32, 1, 2, false, false, false, false,  2, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B16_SINT,    GL_BLUE_INTEGER, int16,  uint32, 1, 2, false, false, true, false,   2, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B32_UINT,    GL_BLUE_INTEGER, uint32, uint32, 1, 4, false, false, false, false,  2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_B32_SINT,    GL_BLUE_INTEGER, int32,  uint32, 1, 4, false, false, true, false,   2, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_ALPHA_INTEGER
-FMT_INFO(PXFMT_A8_UINT,   uint8,  uint32, 1, 1, false, false, false, false,     3, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A8_SINT,   int8,   uint32, 1, 1, false, false, true, false,      3, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A16_UINT,  uint16, uint32, 1, 2, false, false, false, false,     3, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A16_SINT,  int16,  uint32, 1, 2, false, false, true, false,      3, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A32_UINT,  uint32, uint32, 1, 4, false, false, false, false,     3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_A32_SINT,  int32,  uint32, 1, 4, false, false, true, false,      3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A8_UINT,     GL_ALPHA_INTEGER,uint8,  uint32, 1, 1, false, false, false, false,  3, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A8_SINT,     GL_ALPHA_INTEGER,int8,   uint32, 1, 1, false, false, true, false,   3, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A16_UINT,    GL_ALPHA_INTEGER,uint16, uint32, 1, 2, false, false, false, false,  3, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A16_SINT,    GL_ALPHA_INTEGER,int16,  uint32, 1, 2, false, false, true, false,   3, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A32_UINT,    GL_ALPHA_INTEGER,uint32, uint32, 1, 4, false, false, false, false,  3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_A32_SINT,    GL_ALPHA_INTEGER,int32,  uint32, 1, 4, false, false, true, false,   3, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_RG_INTEGER
-FMT_INFO(PXFMT_RG8_UINT,  uint8,  uint32, 2, 2, false, false, false, false,     0, 1, -1, -1,     8,  8,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG8_SINT,  int8,   uint32, 2, 2, false, false, true, false,      0, 1, -1, -1,     8,  8,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG16_UINT, uint16, uint32, 2, 4, false, false, false, false,     0, 1, -1, -1,    16, 16,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG16_SINT, int16,  uint32, 2, 4, false, false, true, false,      0, 1, -1, -1,    16, 16,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG32_UINT, uint32, uint32, 2, 8, false, false, false, false,     0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RG32_SINT, int32,  uint32, 2, 8, false, false, true, false,      0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG8_UINT,    GL_RG_INTEGER,   uint8,  uint32, 2, 2, false, false, false, false,  0, 1, -1, -1,     8,  8,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG8_SINT,    GL_RG_INTEGER,   int8,   uint32, 2, 2, false, false, true, false,   0, 1, -1, -1,     8,  8,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG16_UINT,   GL_RG_INTEGER,   uint16, uint32, 2, 4, false, false, false, false,  0, 1, -1, -1,    16, 16,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG16_SINT,   GL_RG_INTEGER,   int16,  uint32, 2, 4, false, false, true, false,   0, 1, -1, -1,    16, 16,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG32_UINT,   GL_RG_INTEGER,   uint32, uint32, 2, 8, false, false, false, false,  0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RG32_SINT,   GL_RG_INTEGER,   int32,  uint32, 2, 8, false, false, true, false,   0, 1, -1, -1,    32, 32,  0,  0,   0, 0, 0, 0);
 
 // GL_RGB_INTEGER
-FMT_INFO(PXFMT_RGB8_UINT,  uint8,  uint32, 3, 3,  false, false, false, false,   0, 1, 2, -1,      8,  8,  8,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB8_SINT,  int8,   uint32, 3, 3,  false, false, true, false,    0, 1, 2, -1,      8,  8,  8,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB16_UINT, uint16, uint32, 3, 6,  false, false, false, false,   0, 1, 2, -1,     16, 16, 16,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB16_SINT, int16,  uint32, 3, 6,  false, false, true, false,    0, 1, 2, -1,     16, 16, 16,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB32_UINT, uint32, uint32, 3, 12, false, false, false, false,   0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGB32_SINT, int32,  uint32, 3, 12, false, false, true, false,    0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB8_UINT,   GL_RGB_INTEGER,  uint8,  uint32, 3, 3,  false, false, false, false, 0, 1, 2, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB8_SINT,   GL_RGB_INTEGER,  int8,   uint32, 3, 3,  false, false, true, false,  0, 1, 2, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB16_UINT,  GL_RGB_INTEGER,  uint16, uint32, 3, 6,  false, false, false, false, 0, 1, 2, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB16_SINT,  GL_RGB_INTEGER,  int16,  uint32, 3, 6,  false, false, true, false,  0, 1, 2, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB32_UINT,  GL_RGB_INTEGER,  uint32, uint32, 3, 12, false, false, false, false, 0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGB32_SINT,  GL_RGB_INTEGER,  int32,  uint32, 3, 12, false, false, true, false,  0, 1, 2, -1,     32, 32, 32,  0,   0, 0, 0, 0);
 
-FMT_INFO(PXFMT_RGB332_UINT,  uint8,  uint32, 3, 1,  false, false, false, true,  0, 1, 2, -1,      3,  3,  2,  0,    5, 2, 0, 0);
-FMT_INFO(PXFMT_RGB233_UINT,  uint8,  uint32, 3, 1,  false, false, false, true,  0, 1, 2, -1,      3,  3,  2,  0,    0, 3, 6, 0);
-FMT_INFO(PXFMT_RGB565_UINT,  uint8,  uint32, 3, 2,  false, false, false, true,  0, 1, 2, -1,      5,  6,  5,  0,   11, 5, 0, 0);
-FMT_INFO(PXFMT_RGB565REV_UINT,uint8, uint32, 3, 2,  false, false, false, true,  0, 1, 2, -1,      5,  6,  5,  0,   0, 5, 11, 0);
+FMT_INFO(PXFMT_RGB332_UINT, GL_RGB_INTEGER,  uint8,  uint32, 3, 1,  false, false, false, true,  0, 1, 2, -1,      3,  3,  2,  0,   5, 2, 0, 0);
+FMT_INFO(PXFMT_RGB233_UINT, GL_RGB_INTEGER,  uint8,  uint32, 3, 1,  false, false, false, true,  0, 1, 2, -1,      3,  3,  2,  0,   0, 3, 6, 0);
+FMT_INFO(PXFMT_RGB565_UINT, GL_RGB_INTEGER,  uint8,  uint32, 3, 2,  false, false, false, true,  0, 1, 2, -1,      5,  6,  5,  0,   11, 5, 0, 0);
+FMT_INFO(PXFMT_RGB565REV_UINT,GL_RGB_INTEGER,uint8, uint32, 3, 2,  false, false, false, true,   0, 1, 2, -1,      5,  6,  5,  0,   0, 5, 11, 0);
 
 // GL_BGR_INTEGER
-FMT_INFO(PXFMT_BGR8_UINT,   uint8,  uint32, 3, 3,  false, false, false, false, 2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR8_SINT,   int8,   uint32, 3, 3,  false, false, true, false,  2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR16_UINT,  uint16, uint32, 3, 6,  false, false, false, false, 2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR16_SINT,  int16,  uint32, 3, 6,  false, false, true, false,  2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR32_UINT,  uint32, uint32, 3, 12, false, false, false, false, 2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGR32_SINT,  int32,  uint32, 3, 12, false, false, true, false,  2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR8_UINT,   GL_BGR_INTEGER,  uint8,  uint32, 3, 3,  false, false, false, false, 2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR8_SINT,   GL_BGR_INTEGER,  int8,   uint32, 3, 3,  false, false, true, false,  2, 1, 0, -1,      8,  8,  8,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR16_UINT,  GL_BGR_INTEGER,  uint16, uint32, 3, 6,  false, false, false, false, 2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR16_SINT,  GL_BGR_INTEGER,  int16,  uint32, 3, 6,  false, false, true, false,  2, 1, 0, -1,     16, 16, 16,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR32_UINT,  GL_BGR_INTEGER,  uint32, uint32, 3, 12, false, false, false, false, 2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGR32_SINT,  GL_BGR_INTEGER,  int32,  uint32, 3, 12, false, false, true, false,  2, 1, 0, -1,     32, 32, 32,  0,   0, 0, 0, 0);
 
 // GL_RGBA_INTEGER
-FMT_INFO(PXFMT_RGBA8_UINT,  uint32, uint32, 4, 4,   false, false, false, true,  0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
-FMT_INFO(PXFMT_RGBA8_SINT,  uint32, uint32, 4, 4,   false, false, true, true,   0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
-FMT_INFO(PXFMT_RGBA16_UINT, uint16, uint32, 4, 8,   false, false, false, false, 0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGBA16_SINT, int16,  uint32, 4, 8,   false, false, true, false,  0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGBA32_UINT, uint32, uint32, 4, 16,  false, false, false, false, 0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
-FMT_INFO(PXFMT_RGBA32_SINT, int32,  uint32, 4, 16,  false, false, true, false,  0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGBA8_UINT,  GL_RGBA_INTEGER, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
+FMT_INFO(PXFMT_RGBA8_SINT,  GL_RGBA_INTEGER, uint32, uint32, 4, 4,  false, false, true, true,   0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
+FMT_INFO(PXFMT_RGBA16_UINT, GL_RGBA_INTEGER, uint16, uint32, 4, 8,  false, false, false, false, 0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGBA16_SINT, GL_RGBA_INTEGER, int16,  uint32, 4, 8,  false, false, true, false,  0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGBA32_UINT, GL_RGBA_INTEGER, uint32, uint32, 4, 16, false, false, false, false, 0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO(PXFMT_RGBA32_SINT, GL_RGBA_INTEGER, int32,  uint32, 4, 16, false, false, true, false,  0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
 
-FMT_INFO(PXFMT_RGBA4_UINT, uint16,  uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       4,  4,  4,  4,  12, 8, 4, 0);
-FMT_INFO(PXFMT_RGBA4REV_UINT,uint16,uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       4,  4,  4,  4,  0, 4, 8, 12);
-FMT_INFO(PXFMT_RGB5A1_UINT, uint16, uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       5,  5,  5,  1,  11, 6, 1, 0);
-FMT_INFO(PXFMT_A1RGB5_UINT, uint16, uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       5,  5,  5,  1,  0, 5, 10, 15);
-FMT_INFO(PXFMT_RGBA8REV_UINT, uint32, uint32,  4, 4, false, false, false, true, 0, 1, 2, 3,       8,  8,  8,  8,  24, 16, 8, 0);
-FMT_INFO(PXFMT_RGB10A2_UINT, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,  22, 12, 2, 0);
-FMT_INFO(PXFMT_A2RGB10_UINT, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,  0, 10, 20, 30);
+FMT_INFO(PXFMT_RGBA4_UINT,  GL_RGBA_INTEGER, uint16, uint32, 4, 2,  false, false, false, true,  0, 1, 2, 3,       4,  4,  4,  4,   12, 8, 4, 0);
+FMT_INFO(PXFMT_RGBA4REV_UINT,GL_RGBA_INTEGER,uint16, uint32, 4, 2,  false, false, false, true,  0, 1, 2, 3,       4,  4,  4,  4,   0, 4, 8, 12);
+FMT_INFO(PXFMT_RGB5A1_UINT, GL_RGBA_INTEGER, uint16, uint32, 4, 2,  false, false, false, true,  0, 1, 2, 3,       5,  5,  5,  1,   11, 6, 1, 0);
+FMT_INFO(PXFMT_A1RGB5_UINT, GL_RGBA_INTEGER, uint16, uint32, 4, 2,  false, false, false, true,  0, 1, 2, 3,       5,  5,  5,  1,   0, 5, 10, 15);
+FMT_INFO(PXFMT_RGBA8REV_UINT,GL_RGBA_INTEGER,uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,       8,  8,  8,  8,   24, 16, 8, 0);
+FMT_INFO(PXFMT_RGB10A2_UINT,GL_RGBA_INTEGER, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,   22, 12, 2, 0);
+FMT_INFO(PXFMT_A2RGB10_UINT,GL_RGBA_INTEGER, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,   0, 10, 20, 30);
 
 // GL_BGRA_INTEGER
-FMT_INFO(PXFMT_BGRA8_UINT,  uint32, uint32, 4, 4,   false, false, false, true,  0, 1, 2, 3,       8,  8,  8,  8,  16, 8, 0, 24);
-FMT_INFO(PXFMT_BGRA8_SINT,  uint32, uint32, 4, 4,   false, false, true, true,   0, 1, 2, 3,       8,  8,  8,  8,  16, 8, 0, 24);
-FMT_INFO(PXFMT_BGRA16_UINT, uint16, uint32, 4, 8,   false, false, false, false, 2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGRA16_SINT, int16,  uint32, 4, 8,   false, false, true, false,  2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGRA32_UINT, uint32, uint32, 4, 16,  false, false, false, false, 2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
-FMT_INFO(PXFMT_BGRA32_SINT, int32,  uint32, 4, 16,  false, false, true, false,  2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGRA8_UINT,  GL_BGRA_INTEGER, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,       8,  8,  8,  8,   16, 8, 0, 24);
+FMT_INFO(PXFMT_BGRA8_SINT,  GL_BGRA_INTEGER, uint32, uint32, 4, 4,  false, false, true, true,   0, 1, 2, 3,       8,  8,  8,  8,   16, 8, 0, 24);
+FMT_INFO(PXFMT_BGRA16_UINT, GL_BGRA_INTEGER, uint16, uint32, 4, 8,  false, false, false, false, 2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGRA16_SINT, GL_BGRA_INTEGER, int16,  uint32, 4, 8,  false, false, true, false,  2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGRA32_UINT, GL_BGRA_INTEGER, uint32, uint32, 4, 16, false, false, false, false, 2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
+FMT_INFO(PXFMT_BGRA32_SINT, GL_BGRA_INTEGER, int32,  uint32, 4, 16, false, false, true, false,  2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
 
-FMT_INFO(PXFMT_BGRA4_UINT, uint16,  uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       4,  4,  4,  4,  4, 8, 12, 0);
-FMT_INFO(PXFMT_BGRA4REV_UINT,uint16,uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       4,  4,  4,  4,  0, 12, 8, 4);
-FMT_INFO(PXFMT_BGR5A1_UINT, uint16, uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       5,  5,  5,  1,  1, 6, 11, 0);
-FMT_INFO(PXFMT_A1BGR5_UINT, uint16, uint32, 4, 2,  false, false, false, true,   0, 1, 2, 3,       5,  5,  5,  1,  10, 5, 0, 15);
-FMT_INFO(PXFMT_BGRA8REV_UINT,uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,       8,  8,  8,  8,  24, 0, 8, 16);
-FMT_INFO(PXFMT_BGR10A2_UINT, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,  2, 12, 22, 0);
-FMT_INFO(PXFMT_A2BGR10_UINT, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,  20, 10, 0, 30);
+FMT_INFO(PXFMT_BGRA4_UINT,  GL_BGRA_INTEGER, uint16, uint32, 4, 2,  false, false, false, true,  0, 1, 2, 3,       4,  4,  4,  4,   4, 8, 12, 0);
+FMT_INFO(PXFMT_BGRA4REV_UINT,GL_BGRA_INTEGER,uint16, uint32, 4, 2,  false, false, false, true,  0, 1, 2, 3,       4,  4,  4,  4,   0, 12, 8, 4);
+FMT_INFO(PXFMT_BGR5A1_UINT, GL_BGRA_INTEGER, uint16, uint32, 4, 2,  false, false, false, true,  0, 1, 2, 3,       5,  5,  5,  1,   1, 6, 11, 0);
+FMT_INFO(PXFMT_A1BGR5_UINT, GL_BGRA_INTEGER, uint16, uint32, 4, 2,  false, false, false, true,  0, 1, 2, 3,       5,  5,  5,  1,   10, 5, 0, 15);
+FMT_INFO(PXFMT_BGRA8REV_UINT,GL_BGRA_INTEGER,uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,       8,  8,  8,  8,   24, 0, 8, 16);
+FMT_INFO(PXFMT_BGR10A2_UINT,GL_BGRA_INTEGER, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,   2, 12, 22, 0);
+FMT_INFO(PXFMT_A2BGR10_UINT,GL_BGRA_INTEGER, uint32, uint32, 4, 4,  false, false, false, true,  0, 1, 2, 3,      10, 10, 10,  2,   20, 10, 0, 30);
 
 // GL_DEPTH_COMPONENT
-FMT_INFO(PXFMT_D8_UNORM,  uint8,  double, 1, 1, true, true, false, false,       0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_D8_SNORM,  int8,   double, 1, 1, true, true, true, false,        0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_D16_UNORM, uint16, double, 1, 2, true, true, false, false,       0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_D16_SNORM, int16,  double, 1, 2, true, true, true, false,        0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_D32_UNORM, uint32, double, 1, 4, true, true, false, false,       0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_D32_SNORM, int32,  double, 1, 4, true, true, true, false,        0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_D16_FLOAT, uint16, double, 1, 2,         true,               0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   FP16, NON_FP, NON_FP, NON_FP);
-FMT_INFO(PXFMT_D32_FLOAT, float,  double, 1, 4, true, false, false, false,      0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_D8_UNORM, GL_DEPTH_COMPONENT, uint8,  double, 1, 1, true, true, false, false,    0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_D8_SNORM, GL_DEPTH_COMPONENT, int8,   double, 1, 1, true, true, true, false,     0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_D16_UNORM,GL_DEPTH_COMPONENT, uint16, double, 1, 2, true, true, false, false,    0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_D16_SNORM,GL_DEPTH_COMPONENT, int16,  double, 1, 2, true, true, true, false,     0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_D32_UNORM,GL_DEPTH_COMPONENT, uint32, double, 1, 4, true, true, false, false,    0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_D32_SNORM,GL_DEPTH_COMPONENT, int32,  double, 1, 4, true, true, true, false,     0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_D16_FLOAT,GL_DEPTH_COMPONENT,uint16,double,1,2,             true,            0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   FP16, NON_FP, NON_FP, NON_FP);
+FMT_INFO(PXFMT_D32_FLOAT,GL_DEPTH_COMPONENT, float,  double, 1, 4, true, false, false, false,   0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_STENCIL_INDEX
-FMT_INFO(PXFMT_S8_UINT,   uint8,  uint32, 1, 1, false, false, false, false,     0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_S8_SINT,   int8,   uint32, 1, 1, false, false, true, false,      0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_S16_UINT,  uint16, uint32, 1, 2, false, false, false, false,     0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_S16_SINT,  int16,  uint32, 1, 2, false, false, true, false,      0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_S32_UINT,  uint32, uint32, 1, 4, false, false, false, false,     0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_S32_SINT,  int32,  uint32, 1, 4, false, false, true, false,      0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
-FMT_INFO_SFP(PXFMT_S16_FLOAT, uint16, uint32, 1, 2,           true,             0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   FP16, NON_FP, NON_FP, NON_FP);
-FMT_INFO(PXFMT_S32_FLOAT, float,  uint32, 1, 4, false, false, false, false,     0, -1, -1, -1,   0, 0, 0, 0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_S8_UINT,  GL_STENCIL_INDEX,   uint8,  uint32, 1, 1, false, false, false, false,  0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_S8_SINT,  GL_STENCIL_INDEX,   int8,   uint32, 1, 1, false, false, true, false,   0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_S16_UINT, GL_STENCIL_INDEX,   uint16, uint32, 1, 2, false, false, false, false,  0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_S16_SINT, GL_STENCIL_INDEX,   int16,  uint32, 1, 2, false, false, true, false,   0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_S32_UINT, GL_STENCIL_INDEX,   uint32, uint32, 1, 4, false, false, false, false,  0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_S32_SINT, GL_STENCIL_INDEX,   int32,  uint32, 1, 4, false, false, true, false,   0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_S16_FLOAT,GL_STENCIL_INDEX,uint16,uint32, 1, 2,               true,          0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   FP16, NON_FP, NON_FP, NON_FP);
+FMT_INFO(PXFMT_S32_FLOAT,GL_STENCIL_INDEX,   float,  uint32, 1, 4, false, false, false, false,  0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_DEPTH_STENCIL - Note: These require special treatment; as a result not all of the values look correct:
-FMT_INFO(PXFMT_D24_UNORM_S8_UINT, uint32, double, 2, 4, true, false, false, false, 0, 1, -1, -1,   24,  8,  0,  0,   0, 0, 0, 0);
-FMT_INFO(PXFMT_D32_FLOAT_S8_UINT, float,  double, 2, 8, true, false, false, false, 0, 1, -1, -1,    0,  8,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_D24_UNORM_S8_UINT,GL_DEPTH_STENCIL,uint32,double,2,4,true, false, false, false,  0, 1, -1, -1,    24,  8,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_D32_FLOAT_S8_UINT,GL_DEPTH_STENCIL,float, double,2,8,true, false, false, false,  0, 1, -1, -1,     0,  8,  0,  0,   0, 0, 0, 0);
 
 
 
@@ -1177,6 +1178,148 @@ void from_intermediate(void *pDst, const void *intermediate,
 }
 
 
+// This function fills in information about a given pxfmt_sized_format.
+template <pxfmt_sized_format F>
+inline
+void query_pxfmt_sized_format(bool *has_red,   bool *has_green,
+                              bool *has_blue,  bool *has_alpha,
+                              bool *has_depth, bool *has_stencil,
+                              bool *has_large_components,
+                              bool *is_floating_point,
+                              bool *is_integer,
+                              bool *is_compressed,
+                              unsigned int *bytes_per_pixel,
+                              unsigned int *bytes_per_compressed_block,
+                              unsigned int *block_size)
+{
+    switch (pxfmt_per_fmt_info<F>::m_format)
+    {
+    case GL_RED:
+        *has_red = true;
+        *is_floating_point = true;
+        break;
+    case GL_GREEN:
+        *has_green = true;
+        *is_floating_point = true;
+        break;
+    case GL_BLUE:
+        *has_blue = true;
+        *is_floating_point = true;
+        break;
+    case GL_ALPHA:
+        *has_alpha = true;
+        *is_floating_point = true;
+        break;
+    case GL_RG:
+        *has_red = true;
+        *has_green = true;
+        *is_floating_point = true;
+        break;
+    case GL_RGB:
+        *has_red = true;
+        *has_green = true;
+        *has_blue = true;
+        *is_floating_point = true;
+        break;
+    case GL_RGBA:
+        *has_red = true;
+        *has_green = true;
+        *has_blue = true;
+        *has_alpha = true;
+        *is_floating_point = true;
+        break;
+    case GL_BGRA:
+        *has_red = true;
+        *has_green = true;
+        *has_blue = true;
+        *has_alpha = true;
+        *is_floating_point = true;
+        break;
+    case GL_RED_INTEGER:
+        *has_red = true;
+        *is_integer = true;
+        break;
+    case GL_GREEN_INTEGER:
+        *has_green = true;
+        *is_integer = true;
+        break;
+    case GL_BLUE_INTEGER:
+        *has_blue = true;
+        *is_integer = true;
+        break;
+    case GL_ALPHA_INTEGER:
+        *has_alpha = true;
+        *is_integer = true;
+        break;
+    case GL_RG_INTEGER:
+        *has_red = true;
+        *has_green = true;
+        *is_integer = true;
+        break;
+    case GL_RGB_INTEGER:
+        *has_red = true;
+        *has_green = true;
+        *has_blue = true;
+        *is_integer = true;
+        break;
+    case GL_RGBA_INTEGER:
+        *has_red = true;
+        *has_green = true;
+        *has_blue = true;
+        *has_alpha = true;
+        *is_integer = true;
+        break;
+    case GL_BGRA_INTEGER:
+        *has_red = true;
+        *has_green = true;
+        *has_blue = true;
+        *has_alpha = true;
+        *is_integer = true;
+        break;
+    case GL_DEPTH_COMPONENT:
+        *has_depth = true;
+        *is_floating_point = true;
+        break;
+    case GL_STENCIL_INDEX:
+        *has_stencil = true;
+        *is_integer = true;
+        break;
+    case GL_DEPTH_STENCIL:
+        *has_depth = true;
+        *has_stencil = true;
+        *is_floating_point = true;
+        *is_integer = true;
+        break;
+    default:
+        break;
+    }
+
+    switch (pxfmt_per_fmt_info<F>::m_fmt)
+    {
+    case PXFMT_RGB10A2_UNORM:
+    case PXFMT_A2RGB10_UNORM:
+    case PXFMT_BGR10A2_UNORM:
+    case PXFMT_A2BGR10_UNORM:
+    case PXFMT_RGB10A2_UINT:
+    case PXFMT_A2RGB10_UINT:
+    case PXFMT_BGR10A2_UINT:
+    case PXFMT_A2BGR10_UINT:
+        *has_large_components = true;
+        break;
+    default:
+        *has_large_components =
+            ((pxfmt_per_fmt_info<F>::m_bytes_per_pixel >
+              pxfmt_per_fmt_info<F>::m_num_components) ? true : false);
+        break;
+    }
+
+    *bytes_per_pixel = pxfmt_per_fmt_info<F>::m_bytes_per_pixel;
+
+    // TODO: Add support for compressed texture values
+}
+
+
+
 } // unamed namespace
 
 
@@ -1624,6 +1767,7 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
         default:
             break;
         }
+        break;
     case GL_BGRA_INTEGER:
         switch (type)
         {
@@ -1730,6 +1874,105 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
  *
  ******************************************************************************/
 
+// This function is used to obtain information about a given
+// pxfmt_sized_format.  The first parameter specify the pxfmt_sized_format to
+// obtain info about, and the rest of the parameters are modified by this call.
+//
+// This call converts a run-time call to a compile-time call to a function
+// that actually performs the functionality.
+void query_pxfmt_sized_format(pxfmt_sized_format fmt,
+                              bool *has_red,   bool *has_green,
+                              bool *has_blue,  bool *has_alpha,
+                              bool *has_depth, bool *has_stencil,
+                              bool *has_large_components,
+                              bool *is_floating_point,
+                              bool *is_integer,
+                              bool *is_compressed,
+                              unsigned int *bytes_per_pixel,
+                              unsigned int *bytes_per_compressed_block,
+                              unsigned int *block_size)
+{
+    // Set all values to a default, and modify in a fmt-specific manner:
+    *has_red = false;
+    *has_green = false;
+    *has_blue = false;
+    *has_alpha = false;
+    *has_depth = false;
+    *has_stencil = false;
+    *has_large_components = false;
+    *is_floating_point = false;
+    *is_integer = false;
+    *is_compressed = false;
+    *bytes_per_pixel = 0;
+    *bytes_per_compressed_block = 0;
+    *block_size = 0;
+
+#ifdef CASE_STATEMENT
+#undef CASE_STATEMENT
+#endif
+#define CASE_STATEMENT(fmt)                                             \
+    case fmt:                                                           \
+        query_pxfmt_sized_format<fmt>(has_red,   has_green,             \
+                                      has_blue,  has_alpha,             \
+                                      has_depth, has_stencil,           \
+                                      has_large_components,             \
+                                      is_floating_point,                \
+                                      is_integer,                       \
+                                      is_compressed,                    \
+                                      bytes_per_pixel,                  \
+                                      bytes_per_compressed_block,       \
+                                      block_size);                      \
+        break;
+
+    switch (fmt)
+    {
+#include "pxfmt_case_statements.inl"
+        case PXFMT_INVALID: break;
+    }
+}
+
+
+
+/******************************************************************************
+ *
+ * The following is an externally-visible function of this library:
+ *
+ ******************************************************************************/
+
+// This function is used to obtain information about a given OpenGL "format"
+// and "type".  The first two parameters specify the OpenGL "format" and "type"
+// to obtain info about, and the rest of the parameters are modified by this
+// call.
+pxfmt_sized_format query_pxfmt_sized_format(const GLenum format,
+                                            const GLenum type,
+                                            bool *has_red,   bool *has_green,
+                                            bool *has_blue,  bool *has_alpha,
+                                            bool *has_depth, bool *has_stencil,
+                                            bool *has_large_components,
+                                            bool *is_floating_point,
+                                            bool *is_integer,
+                                            bool *is_compressed,
+                                            unsigned int *bytes_per_pixel,
+                                            unsigned int *bytes_per_compressed_block,
+                                            unsigned int *block_size)
+{
+    pxfmt_sized_format fmt = validate_format_type_combo(format, type);
+    query_pxfmt_sized_format(fmt, has_red, has_green, has_blue, has_alpha,
+                             has_depth, has_stencil, has_large_components,
+                             is_floating_point, is_integer,
+                             is_compressed, bytes_per_pixel,
+                             bytes_per_compressed_block, block_size);
+    return fmt;
+}
+
+
+
+/******************************************************************************
+ *
+ * The following is an externally-visible function of this library:
+ *
+ ******************************************************************************/
+
 // This function is used to convert a rectangular set of pixel data from one
 // pxfmt_sized_format to another.  Size-wise, there are two types of
 // "intermediate data" values (double and uint32, or 64-bit floating-poitn and
@@ -1750,35 +1993,77 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
 // TBD: Does the VOGL GUI need the "scale and bias" capability only for
 // floating-point and fixed-point data, or does it also need it for pure
 // integer data?
-void pxfmt_convert_pixels(void *pDst, const void *pSrc,
-                          const int width, const int height,
-                          const pxfmt_sized_format src_fmt,
-                          const pxfmt_sized_format dst_fmt)
+pxfmt_conversion_status pxfmt_convert_pixels(void *pDst,
+                                             const void *pSrc,
+                                             const int width,
+                                             const int height,
+                                             const pxfmt_sized_format dst_fmt,
+                                             const pxfmt_sized_format src_fmt,
+                                             size_t dst_size,
+                                             size_t src_size,
+                                             size_t alt_dst_row_stride,
+                                             size_t alt_src_row_stride)
 {
+    // Before proceeding, ensure that we are dealing with supported formats:
+    if (dst_fmt == PXFMT_INVALID)
+    {
+        return PXFMT_CONVERSION_UNSUPPORTED_DST;
+    }
+    else if (src_fmt == PXFMT_INVALID)
+    {
+        return PXFMT_CONVERSION_UNSUPPORTED_SRC;
+    }
+
+    // Get the per-pixel and per-row strides for both the src and dst:
+    uint32 dst_pixel_stride;
+    uint32 dst_row_stride;
+    bool dst_needs_fp_intermediate;
+    uint32 src_pixel_stride;
+    uint32 src_row_stride;
+    bool src_needs_fp_intermediate;
+    get_pxfmt_info(width, dst_pixel_stride, dst_row_stride,
+                    dst_needs_fp_intermediate, dst_fmt);
+    get_pxfmt_info(width, src_pixel_stride, src_row_stride,
+                    src_needs_fp_intermediate, src_fmt);
+
+    // Ensure that the values we got make sense, including that the
+    // row_stride*width match the given size:
+    if (!((dst_pixel_stride > 0) ||
+          (dst_row_stride > 0) ||
+          (src_pixel_stride > 0) ||
+          (src_row_stride > 0) ||
+          (src_needs_fp_intermediate == dst_needs_fp_intermediate)))
+    {
+        return PXFMT_CONVERSION_UNKNOWN_ERROR;
+    }
+    // At this point, if the caller provided an alternative row_stride, use it:
+    if (alt_dst_row_stride != 0)
+    {
+        dst_row_stride = (uint32) alt_dst_row_stride;
+    }
+    if (alt_src_row_stride != 0)
+    {
+        src_row_stride = (uint32) alt_src_row_stride;
+    }
+// FIXME - REMOVE THIS #ifdef
+#ifdef TEMPORARILY_DISABLE_SIZE_CHECK
+    // Now check that the row_stride*width match the given size:
+    if ((height * dst_row_stride) != dst_size)
+    {
+        return PXFMT_CONVERSION_BAD_SIZE_DST;
+    }
+    else if ((height * src_row_stride) != src_size)
+    {
+        return PXFMT_CONVERSION_BAD_SIZE_SRC;
+    }
+#endif // TEMPORARILY_DISABLE_SIZE_CHECK
+
     // Use local pointers to the src and dst (both to increment within and
     // between rows) in order to properly deal with all strides:
     uint8 *src, *src_row;
     uint8 *dst, *dst_row;
     src = src_row = (uint8 *) pSrc;
     dst = dst_row = (uint8 *) pDst;
-
-    // Get the per-pixel and per-row strides for both the src and dst:
-    bool src_needs_fp_intermediate;
-    uint32 src_pixel_stride;
-    uint32 src_row_stride;
-    bool dst_needs_fp_intermediate;
-    uint32 dst_pixel_stride;
-    uint32 dst_row_stride;
-    get_pxfmt_info(width, src_pixel_stride, src_row_stride,
-                    src_needs_fp_intermediate, src_fmt);
-    get_pxfmt_info(width, dst_pixel_stride, dst_row_stride,
-                    dst_needs_fp_intermediate, dst_fmt);
-    assert(src_pixel_stride > 0);
-    assert(src_row_stride > 0);
-    assert(dst_pixel_stride > 0);
-    assert(dst_row_stride > 0);
-    assert(src_needs_fp_intermediate == dst_needs_fp_intermediate);
-
 
     if (src_needs_fp_intermediate)
     {
@@ -1819,4 +2104,5 @@ void pxfmt_convert_pixels(void *pDst, const void *pSrc,
             dst = dst_row += dst_row_stride;
         }
     }
+    return PXFMT_CONVERSION_SUCCESS;
 }

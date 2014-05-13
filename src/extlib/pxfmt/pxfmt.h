@@ -304,12 +304,83 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
                                               const GLenum type);
 
 
+// This function is used to obtain information about a given
+// pxfmt_sized_format.  The first parameter specify the pxfmt_sized_format to
+// obtain info about, and the rest of the parameters are modified by this call.
+void query_pxfmt_sized_format(pxfmt_sized_format fmt,
+                              bool *has_red,   bool *has_green,
+                              bool *has_blue,  bool *has_alpha,
+                              bool *has_depth, bool *has_stencil,
+                              bool *has_large_components,
+                              bool *is_floating_point,
+                              bool *is_integer,
+                              bool *is_compressed,
+                              unsigned int *bytes_per_pixel,
+                              unsigned int *bytes_per_compressed_block,
+                              unsigned int *block_size);
+
+
+    // TBD: Should we keep this function, or the previous function?  This
+    // function combined the previous two functions into one.
+// This function is used to obtain information about a given OpenGL "format"
+// and "type".  The first two parameters specify the OpenGL "format" and "type"
+// to obtain info about, and the rest of the parameters are modified by this
+// call.
+pxfmt_sized_format query_pxfmt_sized_format(const GLenum format,
+                                            const GLenum type,
+                                            bool *has_red,   bool *has_green,
+                                            bool *has_blue,  bool *has_alpha,
+                                            bool *has_depth, bool *has_stencil,
+                                            bool *has_large_components,
+                                            bool *is_floating_point,
+                                            bool *is_integer,
+                                            bool *is_compressed,
+                                            unsigned int *bytes_per_pixel,
+                                            unsigned int *bytes_per_compressed_block,
+                                            unsigned int *block_size);
+
+
+// The following are the return values of the pxfmt_convert_pixels() function.
+enum pxfmt_conversion_status
+{
+    PXFMT_CONVERSION_SUCCESS = 0,
+    PXFMT_CONVERSION_UNKNOWN_ERROR = 1,
+    PXFMT_CONVERSION_UNSUPPORTED_DST = 2,
+    PXFMT_CONVERSION_UNSUPPORTED_SRC = 3,
+    PXFMT_CONVERSION_BAD_SIZE_DST = 4,
+    PXFMT_CONVERSION_BAD_SIZE_SRC = 5,
+};
+
+
 // This function is used to convert a rectangular set of pixel data from one
 // pxfmt_sized_format to another.  The implementation of this function is
 // towards the bottom of the "pxfmt.cpp" file.
-void pxfmt_convert_pixels(void *pDst, const void *pSrc,
-                          const int width, const int height,
-                          const pxfmt_sized_format src_fmt,
-                          const pxfmt_sized_format dst_fmt);
+//
+// Parameters:
+//
+//   pDst    (IN) - pointer to memory to copy/convert pixels into.
+//   pSrc    (IN) - pointer to memory to copy/convert pixels from.
+//   width   (IN) - the image is this many pixels wide.
+//   height  (IN) - the image is this many pixels tall.
+//   dst_fmt (IN) - the pxfmt_sized_format of the destination image.
+//   src_fmt (IN) - the pxfmt_sized_format of the source image.
+//   dst_size (IN) - size (in bytes) of the dst.
+//   src_size (IN) - size (in bytes) of the src.
+//   alt_dst_row_stride (IN) - If non-zero, specifies the number of bytes from
+//                             the start of one row of dst pixels to the next.
+//   alt_src_row_stride (IN) - If non-zero, specifies the number of bytes from
+//                             the start of one row of src pixels to the next.
+//
+// Return Value: whether the conversion succeeded, or why it did not succeed.
+pxfmt_conversion_status pxfmt_convert_pixels(void *pDst,
+                                             const void *pSrc,
+                                             const int width,
+                                             const int height,
+                                             const pxfmt_sized_format dst_fmt,
+                                             const pxfmt_sized_format src_fmt,
+                                             size_t dst_size,
+                                             size_t src_size,
+                                             size_t alt_dst_row_stride = 0,
+                                             size_t alt_src_row_stride = 0);
 
 #endif // PXFMT_H

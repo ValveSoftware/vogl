@@ -161,14 +161,42 @@ int main(int argc, char **argv)
                     if (level_data.is_empty())
                         continue;
 
-                    uint32_t temp_size = mip_width * sizeof(uint32_t) * mip_height;
+                    // Get information about the source:
+                    bool has_red;
+                    bool has_green;
+                    bool has_blue;
+                    bool has_alpha;
+                    bool has_depth;
+                    bool has_stencil;
+                    bool has_large_components;
+                    bool is_floating_point;
+                    bool is_integer;
+                    bool is_compressed;
+                    unsigned int bytes_per_pixel;
+                    unsigned int bytes_per_compressed_block;
+                    unsigned int block_size;
+                    query_pxfmt_sized_format(src_pxfmt, &has_red, &has_green, &has_blue, &has_alpha,
+                                             &has_depth, &has_stencil, &has_large_components, &is_floating_point,
+                                             &is_integer, &is_compressed, &bytes_per_pixel,
+                                             &bytes_per_compressed_block, &block_size);
+                    size_t src_size = bytes_per_pixel * mip_width * mip_height;
 
+                    uint32_t temp_size = mip_width * sizeof(uint32_t) * mip_height;
                     uint8_vec temp_buf(temp_size);
                     temp_buf.push_back(0xAB);
                     temp_buf.push_back(0xCD);
 
                     pxfmt_sized_format temp_pxfmt = PXFMT_RGBA8_UNORM;
-                    pxfmt_convert_pixels(temp_buf.get_ptr(), level_data.get_ptr(), mip_width, mip_height, src_pxfmt, temp_pxfmt);
+
+                    pxfmt_conversion_status status;
+                    status = pxfmt_convert_pixels(temp_buf.get_ptr(), level_data.get_ptr(), mip_width, mip_height,
+                                                  temp_pxfmt, src_pxfmt, temp_size, src_size);
+
+                    if (status != PXFMT_CONVERSION_SUCCESS)
+                    {
+                        console::error("pxfmt_convert_pixels() returned a non-success status of %d!\n", status);
+                        return EXIT_FAILURE;
+                    }
 
                     if ((temp_buf[temp_buf.size() - 2] != 0xAB) || (temp_buf[temp_buf.size() - 1] != 0xCD))
                     {

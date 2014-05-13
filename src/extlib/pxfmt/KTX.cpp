@@ -525,14 +525,28 @@ bool EmulatedPixelOps::TestDrawPixels()
                 fflush(stdout);
                 return false;
             }
-            pxfmt_convert_pixels(pPixels, pOriginalPixels,
-                                 imgWidth, imgHeight, fmt, alt_fmt);
+            if (pxfmt_convert_pixels(pPixels, pOriginalPixels,
+                                     imgWidth, imgHeight,
+                                     alt_fmt, fmt, 0, 0) !=
+                PXFMT_CONVERSION_SUCCESS)
+            {
+                printf("CONVERSION STATUS CODE ERROR!!!\n");
+                fflush(stdout);
+                return false;
+            }
             SwizzleRGBPartOfPixels();
         }
         else
         {
-            pxfmt_convert_pixels(pPixels, pOriginalPixels,
-                                 imgWidth, imgHeight, fmt, fmt);
+            if (pxfmt_convert_pixels(pPixels, pOriginalPixels,
+                                     imgWidth, imgHeight,
+                                     fmt, fmt, 0, 0) !=
+                PXFMT_CONVERSION_SUCCESS)
+            {
+                printf("CONVERSION STATUS CODE ERROR!!!\n");
+                fflush(stdout);
+                return false;
+            }
         }
         // Put the converted image on the screen, for a visual check:
         DoDrawPixels(imgWidth, 0);
@@ -597,7 +611,7 @@ float EmulatedPixelOps::BenchmarkDrawPixels(int nFrames, bool swapBuffersBetween
 
     for (frame = 0 ; frame < nFrames ; i++, frame++) {
         pxfmt_convert_pixels(pPixels, pOriginalPixels,
-                             imgWidth, imgHeight, fmt, fmt);
+                             imgWidth, imgHeight, fmt, fmt, 0, 0);
     }
 
     gettimeofday(&end, &tz); /* finish timing */
