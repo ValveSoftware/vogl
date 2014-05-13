@@ -117,3 +117,5 @@ Loki is MIT licensed: [Loki license](http://loki-lib.sourceforge.net/index.php?n
 Valgrind header files are BSD-style licensed: [Valgrind header files](http://valgrind.org/docs/manual/manual-intro.html)
 
 GL header files are MIT licensed: [GL header files](http://www.opengl.org/registry/)
+
+glxspheres (from VirtualGL) is wxWindows Library licensed: [wxWindows Library License](http://www.virtualgl.org/About/License)
