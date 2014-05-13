@@ -247,190 +247,6 @@ matrix44D vogl_get_gl_matrix44D(GLenum pname)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_get_gl_type_size (derived from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-uint32_t vogl_get_gl_type_size(uint32_t ogl_type)
-{
-    VOGL_FUNC_TRACER
-
-    switch (ogl_type)
-    {
-        case GL_BOOL:
-        case GL_UNSIGNED_BYTE:
-        case GL_BYTE:
-        case GL_UNSIGNED_BYTE_3_3_2:
-        case GL_UNSIGNED_BYTE_2_3_3_REV:
-            return 1;
-        case GL_HALF_FLOAT:
-        case GL_UNSIGNED_SHORT:
-        case GL_SHORT:
-        case GL_UNSIGNED_SHORT_5_6_5:
-        case GL_UNSIGNED_SHORT_5_6_5_REV:
-        case GL_UNSIGNED_SHORT_4_4_4_4:
-        case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-        case GL_UNSIGNED_SHORT_5_5_5_1:
-        case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-        case GL_2_BYTES:
-            return 2;
-        case GL_3_BYTES:
-            return 3;
-        case GL_FLOAT:
-        case GL_UNSIGNED_INT:
-        case GL_INT:
-        case GL_FIXED:
-        case GL_UNSIGNED_INT_8_8_8_8:
-        case GL_UNSIGNED_INT_8_8_8_8_REV:
-        case GL_UNSIGNED_INT_10_10_10_2:
-        case GL_UNSIGNED_INT_2_10_10_10_REV:
-        case GL_UNSIGNED_INT_24_8:
-        case GL_UNSIGNED_INT_10F_11F_11F_REV:
-        case GL_UNSIGNED_INT_5_9_9_9_REV:
-        case GL_INT_2_10_10_10_REV:
-        case GL_4_BYTES:
-            return 4;
-        case GL_DOUBLE:
-            return 8;
-        default:
-            vogl_warning_printf("%s: unknown GL type: 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, ogl_type);
-            break;
-    }
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_image_format_channels (derived from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-uint32_t vogl_get_image_format_channels(GLenum format)
-{
-    VOGL_FUNC_TRACER
-
-    switch (format)
-    {
-        case GL_COLOR_INDEX:
-        case GL_RED:
-        case GL_RED_INTEGER:
-        case GL_GREEN:
-        case GL_GREEN_INTEGER:
-        case GL_BLUE:
-        case GL_BLUE_INTEGER:
-        case GL_ALPHA:
-        case GL_ALPHA_INTEGER:
-        case GL_INTENSITY:
-        case GL_LUMINANCE:
-        case GL_LUMINANCE_INTEGER_EXT:
-        case GL_DEPTH_COMPONENT:
-        case GL_STENCIL_INDEX:
-            return 1;
-        case GL_DEPTH_STENCIL:
-        case GL_LUMINANCE_ALPHA:
-        case GL_LUMINANCE_ALPHA_INTEGER_EXT:
-        case GL_RG:
-        case GL_RG_INTEGER:
-        case GL_422_EXT:             // (luminance, chrominance)
-        case GL_422_REV_EXT:         // (luminance, chrominance)
-        case GL_422_AVERAGE_EXT:     // (luminance, chrominance)
-        case GL_422_REV_AVERAGE_EXT: // (luminance, chrominance)
-        case GL_HILO_NV:             // (hi, lo)
-        case GL_DSDT_NV:             // (ds, dt)
-        case GL_YCBCR_422_APPLE:     // (luminance, chroma)
-        case GL_RGB_422_APPLE:       // (G, B) on even pixels, (G, R) on odd pixels
-        case GL_YCRCB_422_SGIX:      // (Y, [Cb,Cr])
-            return 2;
-        case GL_RGB:
-        case GL_RGB_INTEGER:
-        case GL_BGR:
-        case GL_BGR_INTEGER:
-        case GL_DSDT_MAG_NV:    // (ds, dt, magnitude)
-        case GL_YCRCB_444_SGIX: // (Cb, Y, Cr)
-            return 3;
-        case GL_RGBA:
-        case GL_RGBA_INTEGER:
-        case GL_BGRA:
-        case GL_BGRA_INTEGER:
-        case GL_ABGR_EXT:
-        case GL_CMYK_EXT:
-        case GL_DSDT_MAG_VIB_NV: // (ds, dt, magnitude, vibrance)
-            return 4;
-        case GL_CMYKA_EXT:
-            return 5;
-        case GL_FORMAT_SUBSAMPLE_24_24_OML:
-        case GL_FORMAT_SUBSAMPLE_244_244_OML:
-            // requires UNSIGNED_INT_10_10_10_2, so this value will be ignored
-            return 0;
-        default:
-            vogl_warning_printf("%s: unknown format 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, format);
-            break;
-    }
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_image_format_info (derived from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-void vogl_get_image_format_info(GLenum format, GLenum type, uint32_t &num_channels, uint32_t &bits_per_element, uint32_t &bits_per_pixel)
-{
-    VOGL_FUNC_TRACER
-
-    num_channels = vogl_get_image_format_channels(format);
-
-    switch (type)
-    {
-        case GL_BITMAP:
-            bits_per_pixel = bits_per_element = 1;
-            break;
-        case GL_BYTE:
-        case GL_UNSIGNED_BYTE:
-            bits_per_element = 8;
-            bits_per_pixel = bits_per_element * num_channels;
-            break;
-        case GL_SHORT:
-        case GL_UNSIGNED_SHORT:
-        case GL_HALF_FLOAT:
-            bits_per_element = 16;
-            bits_per_pixel = bits_per_element * num_channels;
-            break;
-        case GL_INT:
-        case GL_UNSIGNED_INT:
-        case GL_FLOAT:
-            bits_per_element = 32;
-            bits_per_pixel = bits_per_element * num_channels;
-            break;
-        case GL_UNSIGNED_BYTE_3_3_2:
-        case GL_UNSIGNED_BYTE_2_3_3_REV:
-            bits_per_pixel = bits_per_element = 8;
-            break;
-        case GL_UNSIGNED_SHORT_4_4_4_4:
-        case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-        case GL_UNSIGNED_SHORT_5_5_5_1:
-        case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-        case GL_UNSIGNED_SHORT_5_6_5:
-        case GL_UNSIGNED_SHORT_5_6_5_REV:
-        case GL_UNSIGNED_SHORT_8_8_MESA:
-        case GL_UNSIGNED_SHORT_8_8_REV_MESA:
-            bits_per_pixel = bits_per_element = 16;
-            break;
-        case GL_UNSIGNED_INT_8_8_8_8:
-        case GL_UNSIGNED_INT_8_8_8_8_REV:
-        case GL_UNSIGNED_INT_10_10_10_2:
-        case GL_UNSIGNED_INT_2_10_10_10_REV:
-        case GL_UNSIGNED_INT_24_8:
-        case GL_UNSIGNED_INT_10F_11F_11F_REV:
-        case GL_UNSIGNED_INT_5_9_9_9_REV:
-        case GL_UNSIGNED_INT_S8_S8_8_8_NV:
-        case GL_UNSIGNED_INT_8_8_S8_S8_REV_NV:
-            bits_per_pixel = bits_per_element = 32;
-            break;
-        case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-            bits_per_pixel = bits_per_element = 64;
-            break;
-        default:
-            vogl_warning_printf("%s: unknown type 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, type);
-            bits_per_pixel = bits_per_element = 0;
-            break;
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 // vogl_get_image_format_size_in_bytes
 //----------------------------------------------------------------------------------------------------------------------
 uint32_t vogl_get_image_format_size_in_bytes(GLenum format, GLenum type)
@@ -456,68 +272,6 @@ bool vogl_has_active_context()
         return false;
 
     return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_image_size (derived from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-size_t vogl_get_image_size(GLenum format, GLenum type, GLsizei width, GLsizei height, GLsizei depth)
-{
-    VOGL_FUNC_TRACER
-
-    if (!vogl_has_active_context())
-    {
-        vogl_error_printf("%s: vogl_get_image_size() called without an active context!\n", VOGL_FUNCTION_INFO_CSTR);
-        return 0;
-    }
-
-    uint32_t num_channels;
-    uint32_t bits_per_element;
-    uint32_t bits_per_pixel;
-    vogl_get_image_format_info(format, type, num_channels, bits_per_element, bits_per_pixel);
-
-    GLint alignment = vogl_get_gl_integer(GL_UNPACK_ALIGNMENT);
-    GLint row_length = vogl_get_gl_integer(GL_UNPACK_ROW_LENGTH);
-    GLint image_height = vogl_get_gl_integer(GL_UNPACK_IMAGE_HEIGHT);
-    GLint skip_rows = vogl_get_gl_integer(GL_UNPACK_SKIP_ROWS);
-    GLint skip_pixels = vogl_get_gl_integer(GL_UNPACK_SKIP_PIXELS);
-    GLint skip_images = vogl_get_gl_integer(GL_UNPACK_SKIP_IMAGES);
-
-    //printf("format: 0x%X type: 0x%X width: %i height: %i depth: %i alignment: %i row_length: %i image_height: %i skip_rows: %i skip_pixels: %i skip_images: %i\n",
-    //       format, type, (int)width, (int)height, (int)depth, alignment, row_length, image_height, skip_rows, skip_pixels, skip_images);
-
-    if (row_length <= 0)
-    {
-        row_length = width;
-    }
-
-    size_t row_stride = (row_length * bits_per_pixel + 7) / 8;
-
-    if (((bits_per_element == 1 * 8) ||
-         (bits_per_element == 2 * 8) ||
-         (bits_per_element == 4 * 8) ||
-         (bits_per_element == 8 * 8)) &&
-        ((GLint)bits_per_element < alignment * 8))
-    {
-        row_stride = math::align_up_value(row_stride, alignment);
-    }
-
-    if (image_height <= 0)
-    {
-        image_height = height;
-    }
-
-    // GL_UNPACK_IMAGE_HEIGHT and GL_UNPACK_SKIP_IMAGES should probably not be considered for pixel rectangles
-
-    size_t image_stride = image_height * row_stride;
-
-    size_t size = depth * image_stride;
-
-    size += (skip_pixels * bits_per_pixel + 7) / 8;
-    size += skip_rows * row_stride;
-    size += skip_images * image_stride;
-
-    return size;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -552,90 +306,6 @@ size_t vogl_get_tex_target_image_size(GLenum target, GLint level, GLenum format,
         return 0;
 
     return vogl_get_image_size(format, type, width, height, depth);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_determine_glMap1_size (originally from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-size_t vogl_determine_glMap1_size(GLenum target, GLint stride, GLint order)
-{
-    VOGL_FUNC_TRACER
-
-    if (order < 1)
-        return 0;
-
-    GLint channels;
-    switch (target)
-    {
-        case GL_MAP1_INDEX:
-        case GL_MAP1_TEXTURE_COORD_1:
-            channels = 1;
-            break;
-        case GL_MAP1_TEXTURE_COORD_2:
-            channels = 2;
-            break;
-        case GL_MAP1_NORMAL:
-        case GL_MAP1_TEXTURE_COORD_3:
-        case GL_MAP1_VERTEX_3:
-            channels = 3;
-            break;
-        case GL_MAP1_COLOR_4:
-        case GL_MAP1_TEXTURE_COORD_4:
-        case GL_MAP1_VERTEX_4:
-            channels = 4;
-            break;
-        default:
-            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
-            return 0;
-    }
-
-    if (stride < channels)
-        return 0;
-
-    return channels + stride * (order - 1);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_determine_glMap2_size (originally from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-size_t vogl_determine_glMap2_size(GLenum target, GLint ustride, GLint uorder, GLint vstride, GLint vorder)
-{
-    VOGL_FUNC_TRACER
-
-    if (uorder < 1 || vorder < 1)
-        return 0;
-
-    GLint channels;
-    switch (target)
-    {
-        case GL_MAP2_INDEX:
-        case GL_MAP2_TEXTURE_COORD_1:
-            channels = 1;
-            break;
-        case GL_MAP2_TEXTURE_COORD_2:
-            channels = 2;
-            break;
-        case GL_MAP2_NORMAL:
-        case GL_MAP2_TEXTURE_COORD_3:
-        case GL_MAP2_VERTEX_3:
-            channels = 3;
-            break;
-        case GL_MAP2_COLOR_4:
-        case GL_MAP2_TEXTURE_COORD_4:
-        case GL_MAP2_VERTEX_4:
-            channels = 4;
-            break;
-        default:
-            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
-            return 0;
-    }
-
-    if (ustride < channels || vstride < channels)
-        return 0;
-
-    return channels +
-           ustride * (uorder - 1) +
-           vstride * (vorder - 1);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2557,38 +2227,360 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
     return handled;
 }
 
+/**************************************************************************
+ *
+ * Following functions derived from apitrace. Apitrace license:
+ *
+ * Copyright 2011 Jose Fonseca
+ * Copyright 2008-2010 VMware, Inc.
+ * All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ **************************************************************************/
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_gl_type_size (derived from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+uint32_t vogl_get_gl_type_size(uint32_t ogl_type)
+{
+    VOGL_FUNC_TRACER
 
+    switch (ogl_type)
+    {
+        case GL_BOOL:
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+        case GL_UNSIGNED_BYTE_3_3_2:
+        case GL_UNSIGNED_BYTE_2_3_3_REV:
+            return 1;
+        case GL_HALF_FLOAT:
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+        case GL_UNSIGNED_SHORT_5_6_5:
+        case GL_UNSIGNED_SHORT_5_6_5_REV:
+        case GL_UNSIGNED_SHORT_4_4_4_4:
+        case GL_UNSIGNED_SHORT_4_4_4_4_REV:
+        case GL_UNSIGNED_SHORT_5_5_5_1:
+        case GL_UNSIGNED_SHORT_1_5_5_5_REV:
+        case GL_2_BYTES:
+            return 2;
+        case GL_3_BYTES:
+            return 3;
+        case GL_FLOAT:
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FIXED:
+        case GL_UNSIGNED_INT_8_8_8_8:
+        case GL_UNSIGNED_INT_8_8_8_8_REV:
+        case GL_UNSIGNED_INT_10_10_10_2:
+        case GL_UNSIGNED_INT_2_10_10_10_REV:
+        case GL_UNSIGNED_INT_24_8:
+        case GL_UNSIGNED_INT_10F_11F_11F_REV:
+        case GL_UNSIGNED_INT_5_9_9_9_REV:
+        case GL_INT_2_10_10_10_REV:
+        case GL_4_BYTES:
+            return 4;
+        case GL_DOUBLE:
+            return 8;
+        default:
+            vogl_warning_printf("%s: unknown GL type: 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, ogl_type);
+            break;
+    }
+    return 0;
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_image_format_channels (derived from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+uint32_t vogl_get_image_format_channels(GLenum format)
+{
+    VOGL_FUNC_TRACER
 
+    switch (format)
+    {
+        case GL_COLOR_INDEX:
+        case GL_RED:
+        case GL_RED_INTEGER:
+        case GL_GREEN:
+        case GL_GREEN_INTEGER:
+        case GL_BLUE:
+        case GL_BLUE_INTEGER:
+        case GL_ALPHA:
+        case GL_ALPHA_INTEGER:
+        case GL_INTENSITY:
+        case GL_LUMINANCE:
+        case GL_LUMINANCE_INTEGER_EXT:
+        case GL_DEPTH_COMPONENT:
+        case GL_STENCIL_INDEX:
+            return 1;
+        case GL_DEPTH_STENCIL:
+        case GL_LUMINANCE_ALPHA:
+        case GL_LUMINANCE_ALPHA_INTEGER_EXT:
+        case GL_RG:
+        case GL_RG_INTEGER:
+        case GL_422_EXT:             // (luminance, chrominance)
+        case GL_422_REV_EXT:         // (luminance, chrominance)
+        case GL_422_AVERAGE_EXT:     // (luminance, chrominance)
+        case GL_422_REV_AVERAGE_EXT: // (luminance, chrominance)
+        case GL_HILO_NV:             // (hi, lo)
+        case GL_DSDT_NV:             // (ds, dt)
+        case GL_YCBCR_422_APPLE:     // (luminance, chroma)
+        case GL_RGB_422_APPLE:       // (G, B) on even pixels, (G, R) on odd pixels
+        case GL_YCRCB_422_SGIX:      // (Y, [Cb,Cr])
+            return 2;
+        case GL_RGB:
+        case GL_RGB_INTEGER:
+        case GL_BGR:
+        case GL_BGR_INTEGER:
+        case GL_DSDT_MAG_NV:    // (ds, dt, magnitude)
+        case GL_YCRCB_444_SGIX: // (Cb, Y, Cr)
+            return 3;
+        case GL_RGBA:
+        case GL_RGBA_INTEGER:
+        case GL_BGRA:
+        case GL_BGRA_INTEGER:
+        case GL_ABGR_EXT:
+        case GL_CMYK_EXT:
+        case GL_DSDT_MAG_VIB_NV: // (ds, dt, magnitude, vibrance)
+            return 4;
+        case GL_CMYKA_EXT:
+            return 5;
+        case GL_FORMAT_SUBSAMPLE_24_24_OML:
+        case GL_FORMAT_SUBSAMPLE_244_244_OML:
+            // requires UNSIGNED_INT_10_10_10_2, so this value will be ignored
+            return 0;
+        default:
+            vogl_warning_printf("%s: unknown format 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, format);
+            break;
+    }
+    return 0;
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_image_format_info (derived from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+void vogl_get_image_format_info(GLenum format, GLenum type, uint32_t &num_channels, uint32_t &bits_per_element, uint32_t &bits_per_pixel)
+{
+    VOGL_FUNC_TRACER
 
+    num_channels = vogl_get_image_format_channels(format);
 
+    switch (type)
+    {
+        case GL_BITMAP:
+            bits_per_pixel = bits_per_element = 1;
+            break;
+        case GL_BYTE:
+        case GL_UNSIGNED_BYTE:
+            bits_per_element = 8;
+            bits_per_pixel = bits_per_element * num_channels;
+            break;
+        case GL_SHORT:
+        case GL_UNSIGNED_SHORT:
+        case GL_HALF_FLOAT:
+            bits_per_element = 16;
+            bits_per_pixel = bits_per_element * num_channels;
+            break;
+        case GL_INT:
+        case GL_UNSIGNED_INT:
+        case GL_FLOAT:
+            bits_per_element = 32;
+            bits_per_pixel = bits_per_element * num_channels;
+            break;
+        case GL_UNSIGNED_BYTE_3_3_2:
+        case GL_UNSIGNED_BYTE_2_3_3_REV:
+            bits_per_pixel = bits_per_element = 8;
+            break;
+        case GL_UNSIGNED_SHORT_4_4_4_4:
+        case GL_UNSIGNED_SHORT_4_4_4_4_REV:
+        case GL_UNSIGNED_SHORT_5_5_5_1:
+        case GL_UNSIGNED_SHORT_1_5_5_5_REV:
+        case GL_UNSIGNED_SHORT_5_6_5:
+        case GL_UNSIGNED_SHORT_5_6_5_REV:
+        case GL_UNSIGNED_SHORT_8_8_MESA:
+        case GL_UNSIGNED_SHORT_8_8_REV_MESA:
+            bits_per_pixel = bits_per_element = 16;
+            break;
+        case GL_UNSIGNED_INT_8_8_8_8:
+        case GL_UNSIGNED_INT_8_8_8_8_REV:
+        case GL_UNSIGNED_INT_10_10_10_2:
+        case GL_UNSIGNED_INT_2_10_10_10_REV:
+        case GL_UNSIGNED_INT_24_8:
+        case GL_UNSIGNED_INT_10F_11F_11F_REV:
+        case GL_UNSIGNED_INT_5_9_9_9_REV:
+        case GL_UNSIGNED_INT_S8_S8_8_8_NV:
+        case GL_UNSIGNED_INT_8_8_S8_S8_REV_NV:
+            bits_per_pixel = bits_per_element = 32;
+            break;
+        case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+            bits_per_pixel = bits_per_element = 64;
+            break;
+        default:
+            vogl_warning_printf("%s: unknown type 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, type);
+            bits_per_pixel = bits_per_element = 0;
+            break;
+    }
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_image_size (derived from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+size_t vogl_get_image_size(GLenum format, GLenum type, GLsizei width, GLsizei height, GLsizei depth)
+{
+    VOGL_FUNC_TRACER
 
+    if (!vogl_has_active_context())
+    {
+        vogl_error_printf("%s: vogl_get_image_size() called without an active context!\n", VOGL_FUNCTION_INFO_CSTR);
+        return 0;
+    }
 
+    uint32_t num_channels;
+    uint32_t bits_per_element;
+    uint32_t bits_per_pixel;
+    vogl_get_image_format_info(format, type, num_channels, bits_per_element, bits_per_pixel);
 
+    GLint alignment = vogl_get_gl_integer(GL_UNPACK_ALIGNMENT);
+    GLint row_length = vogl_get_gl_integer(GL_UNPACK_ROW_LENGTH);
+    GLint image_height = vogl_get_gl_integer(GL_UNPACK_IMAGE_HEIGHT);
+    GLint skip_rows = vogl_get_gl_integer(GL_UNPACK_SKIP_ROWS);
+    GLint skip_pixels = vogl_get_gl_integer(GL_UNPACK_SKIP_PIXELS);
+    GLint skip_images = vogl_get_gl_integer(GL_UNPACK_SKIP_IMAGES);
 
+    //printf("format: 0x%X type: 0x%X width: %i height: %i depth: %i alignment: %i row_length: %i image_height: %i skip_rows: %i skip_pixels: %i skip_images: %i\n",
+    //       format, type, (int)width, (int)height, (int)depth, alignment, row_length, image_height, skip_rows, skip_pixels, skip_images);
 
+    if (row_length <= 0)
+    {
+        row_length = width;
+    }
 
+    size_t row_stride = (row_length * bits_per_pixel + 7) / 8;
 
+    if (((bits_per_element == 1 * 8) ||
+         (bits_per_element == 2 * 8) ||
+         (bits_per_element == 4 * 8) ||
+         (bits_per_element == 8 * 8)) &&
+        ((GLint)bits_per_element < alignment * 8))
+    {
+        row_stride = math::align_up_value(row_stride, alignment);
+    }
 
+    if (image_height <= 0)
+    {
+        image_height = height;
+    }
 
+    // GL_UNPACK_IMAGE_HEIGHT and GL_UNPACK_SKIP_IMAGES should probably not be considered for pixel rectangles
 
+    size_t image_stride = image_height * row_stride;
 
+    size_t size = depth * image_stride;
 
+    size += (skip_pixels * bits_per_pixel + 7) / 8;
+    size += skip_rows * row_stride;
+    size += skip_images * image_stride;
 
+    return size;
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_determine_glMap1_size (originally from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+size_t vogl_determine_glMap1_size(GLenum target, GLint stride, GLint order)
+{
+    VOGL_FUNC_TRACER
 
+    if (order < 1)
+        return 0;
 
+    GLint channels;
+    switch (target)
+    {
+        case GL_MAP1_INDEX:
+        case GL_MAP1_TEXTURE_COORD_1:
+            channels = 1;
+            break;
+        case GL_MAP1_TEXTURE_COORD_2:
+            channels = 2;
+            break;
+        case GL_MAP1_NORMAL:
+        case GL_MAP1_TEXTURE_COORD_3:
+        case GL_MAP1_VERTEX_3:
+            channels = 3;
+            break;
+        case GL_MAP1_COLOR_4:
+        case GL_MAP1_TEXTURE_COORD_4:
+        case GL_MAP1_VERTEX_4:
+            channels = 4;
+            break;
+        default:
+            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
+            return 0;
+    }
 
+    if (stride < channels)
+        return 0;
 
+    return channels + stride * (order - 1);
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_determine_glMap2_size (originally from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+size_t vogl_determine_glMap2_size(GLenum target, GLint ustride, GLint uorder, GLint vstride, GLint vorder)
+{
+    VOGL_FUNC_TRACER
 
+    if (uorder < 1 || vorder < 1)
+        return 0;
 
+    GLint channels;
+    switch (target)
+    {
+        case GL_MAP2_INDEX:
+        case GL_MAP2_TEXTURE_COORD_1:
+            channels = 1;
+            break;
+        case GL_MAP2_TEXTURE_COORD_2:
+            channels = 2;
+            break;
+        case GL_MAP2_NORMAL:
+        case GL_MAP2_TEXTURE_COORD_3:
+        case GL_MAP2_VERTEX_3:
+            channels = 3;
+            break;
+        case GL_MAP2_COLOR_4:
+        case GL_MAP2_TEXTURE_COORD_4:
+        case GL_MAP2_VERTEX_4:
+            channels = 4;
+            break;
+        default:
+            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
+            return 0;
+    }
 
+    if (ustride < channels || vstride < channels)
+        return 0;
 
-
-
-
-
+    return channels +
+           ustride * (uorder - 1) +
+           vstride * (vorder - 1);
+}

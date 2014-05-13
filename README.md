@@ -119,3 +119,5 @@ Valgrind header files are BSD-style licensed: [Valgrind header files](http://val
 GL header files are MIT licensed: [GL header files](http://www.opengl.org/registry/).
 
 glxspheres (from VirtualGL) is wxWindows Library licensed: [wxWindows Library License](http://www.virtualgl.org/About/License).
+
+stb files (from Sean Barrett) are public domain.
