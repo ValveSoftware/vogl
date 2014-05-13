@@ -1,15 +1,15 @@
-Now supporting and testing 160 format-type combinations!
+Now supporting and testing 185 format-type combinations!
 
 Cases not covered include:
 
 - OpenGL "formats":
+  - GL_BGR
+  - GL_BGR_INTEGER
   - GL_LUMINANCE
   - GL_LUMINANCE_ALPHA
   - GL_COLOR_INDEX (which I may never support, except maybe for GL_BITMAP)
 
 - OpenGL "types":
-  - GL_HALF_FLOAT
-  - GL_UNSIGNED_INT_10F_11F_11F_REV
   - GL_UNSIGNED_INT_5_9_9_9_REV
   - GL_BITMAP
 

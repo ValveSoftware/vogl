@@ -65,6 +65,7 @@ enum pxfmt_sized_format
     PXFMT_R16_SNORM,
     PXFMT_R32_UNORM,
     PXFMT_R32_SNORM,
+    PXFMT_R16_FLOAT,
     PXFMT_R32_FLOAT,
 
 // GL_GREEN
@@ -74,6 +75,7 @@ enum pxfmt_sized_format
     PXFMT_G16_SNORM,
     PXFMT_G32_UNORM,
     PXFMT_G32_SNORM,
+    PXFMT_G16_FLOAT,
     PXFMT_G32_FLOAT,
 
 // GL_BLUE
@@ -83,6 +85,7 @@ enum pxfmt_sized_format
     PXFMT_B16_SNORM,
     PXFMT_B32_UNORM,
     PXFMT_B32_SNORM,
+    PXFMT_B16_FLOAT,
     PXFMT_B32_FLOAT,
 
 // GL_ALPHA
@@ -92,6 +95,7 @@ enum pxfmt_sized_format
     PXFMT_A16_SNORM,
     PXFMT_A32_UNORM,
     PXFMT_A32_SNORM,
+    PXFMT_A16_FLOAT,
     PXFMT_A32_FLOAT,
 
 // GL_RG
@@ -101,6 +105,7 @@ enum pxfmt_sized_format
     PXFMT_RG16_SNORM,
     PXFMT_RG32_UNORM,
     PXFMT_RG32_SNORM,
+    PXFMT_RG16_FLOAT,
     PXFMT_RG32_FLOAT,
 
 // GL_RGB
@@ -110,12 +115,24 @@ enum pxfmt_sized_format
     PXFMT_RGB16_SNORM,
     PXFMT_RGB32_UNORM,
     PXFMT_RGB32_SNORM,
+    PXFMT_RGB16_FLOAT,
     PXFMT_RGB32_FLOAT,
 
     PXFMT_RGB332_UNORM,
     PXFMT_RGB233_UNORM,
     PXFMT_RGB565_UNORM,
     PXFMT_RGB565REV_UNORM,
+    PXFMT_RGB10F_11F_11F,
+
+// GL_BGR
+    PXFMT_BGR8_UNORM,
+    PXFMT_BGR8_SNORM,
+    PXFMT_BGR16_UNORM,
+    PXFMT_BGR16_SNORM,
+    PXFMT_BGR32_UNORM,
+    PXFMT_BGR32_SNORM,
+    PXFMT_BGR16_FLOAT,
+    PXFMT_BGR32_FLOAT,
 
 // GL_RGBA
     // NOTE: The following two OpenGL format-type combinations are actually
@@ -128,6 +145,7 @@ enum pxfmt_sized_format
     PXFMT_RGBA16_SNORM,
     PXFMT_RGBA32_UNORM,
     PXFMT_RGBA32_SNORM,
+    PXFMT_RGBA16_FLOAT,
     PXFMT_RGBA32_FLOAT,
 
     PXFMT_RGBA4_UNORM,
@@ -145,6 +163,7 @@ enum pxfmt_sized_format
     PXFMT_BGRA16_SNORM,
     PXFMT_BGRA32_UNORM,
     PXFMT_BGRA32_SNORM,
+    PXFMT_BGRA16_FLOAT,
     PXFMT_BGRA32_FLOAT,
 
     PXFMT_BGRA4_UNORM,
@@ -208,6 +227,14 @@ enum pxfmt_sized_format
     PXFMT_RGB565_UINT,
     PXFMT_RGB565REV_UINT,
 
+// GL_BGR_INTEGER
+    PXFMT_BGR8_UINT,
+    PXFMT_BGR8_SINT,
+    PXFMT_BGR16_UINT,
+    PXFMT_BGR16_SINT,
+    PXFMT_BGR32_UINT,
+    PXFMT_BGR32_SINT,
+
 // GL_RGBA_INTEGER
     // NOTE: The following two OpenGL format-type combinations are actually
     // laid out the same in memory:
@@ -251,6 +278,7 @@ enum pxfmt_sized_format
     PXFMT_D16_SNORM,
     PXFMT_D32_UNORM,
     PXFMT_D32_SNORM,
+    PXFMT_D16_FLOAT,
     PXFMT_D32_FLOAT,
 
 // GL_STENCIL_INDEX
@@ -260,6 +288,7 @@ enum pxfmt_sized_format
     PXFMT_S16_SINT,
     PXFMT_S32_UINT,
     PXFMT_S32_SINT,
+    PXFMT_S16_FLOAT,
     PXFMT_S32_FLOAT,
 
 // GL_DEPTH_STENCIL
@@ -275,12 +304,83 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
                                               const GLenum type);
 
 
+// This function is used to obtain information about a given
+// pxfmt_sized_format.  The first parameter specify the pxfmt_sized_format to
+// obtain info about, and the rest of the parameters are modified by this call.
+void query_pxfmt_sized_format(pxfmt_sized_format fmt,
+                              bool *has_red,   bool *has_green,
+                              bool *has_blue,  bool *has_alpha,
+                              bool *has_depth, bool *has_stencil,
+                              bool *has_large_components,
+                              bool *is_floating_point,
+                              bool *is_integer,
+                              bool *is_compressed,
+                              unsigned int *bytes_per_pixel,
+                              unsigned int *bytes_per_compressed_block,
+                              unsigned int *block_size);
+
+
+    // TBD: Should we keep this function, or the previous function?  This
+    // function combined the previous two functions into one.
+// This function is used to obtain information about a given OpenGL "format"
+// and "type".  The first two parameters specify the OpenGL "format" and "type"
+// to obtain info about, and the rest of the parameters are modified by this
+// call.
+pxfmt_sized_format query_pxfmt_sized_format(const GLenum format,
+                                            const GLenum type,
+                                            bool *has_red,   bool *has_green,
+                                            bool *has_blue,  bool *has_alpha,
+                                            bool *has_depth, bool *has_stencil,
+                                            bool *has_large_components,
+                                            bool *is_floating_point,
+                                            bool *is_integer,
+                                            bool *is_compressed,
+                                            unsigned int *bytes_per_pixel,
+                                            unsigned int *bytes_per_compressed_block,
+                                            unsigned int *block_size);
+
+
+// The following are the return values of the pxfmt_convert_pixels() function.
+enum pxfmt_conversion_status
+{
+    PXFMT_CONVERSION_SUCCESS = 0,
+    PXFMT_CONVERSION_UNKNOWN_ERROR = 1,
+    PXFMT_CONVERSION_UNSUPPORTED_DST = 2,
+    PXFMT_CONVERSION_UNSUPPORTED_SRC = 3,
+    PXFMT_CONVERSION_BAD_SIZE_DST = 4,
+    PXFMT_CONVERSION_BAD_SIZE_SRC = 5,
+};
+
+
 // This function is used to convert a rectangular set of pixel data from one
 // pxfmt_sized_format to another.  The implementation of this function is
 // towards the bottom of the "pxfmt.cpp" file.
-void pxfmt_convert_pixels(void *pDst, const void *pSrc,
-                          const int width, const int height,
-                          const pxfmt_sized_format src_fmt,
-                          const pxfmt_sized_format dst_fmt);
+//
+// Parameters:
+//
+//   pDst    (IN) - pointer to memory to copy/convert pixels into.
+//   pSrc    (IN) - pointer to memory to copy/convert pixels from.
+//   width   (IN) - the image is this many pixels wide.
+//   height  (IN) - the image is this many pixels tall.
+//   dst_fmt (IN) - the pxfmt_sized_format of the destination image.
+//   src_fmt (IN) - the pxfmt_sized_format of the source image.
+//   dst_size (IN) - size (in bytes) of the dst.
+//   src_size (IN) - size (in bytes) of the src.
+//   alt_dst_row_stride (IN) - If non-zero, specifies the number of bytes from
+//                             the start of one row of dst pixels to the next.
+//   alt_src_row_stride (IN) - If non-zero, specifies the number of bytes from
+//                             the start of one row of src pixels to the next.
+//
+// Return Value: whether the conversion succeeded, or why it did not succeed.
+pxfmt_conversion_status pxfmt_convert_pixels(void *pDst,
+                                             const void *pSrc,
+                                             const int width,
+                                             const int height,
+                                             const pxfmt_sized_format dst_fmt,
+                                             const pxfmt_sized_format src_fmt,
+                                             size_t dst_size,
+                                             size_t src_size,
+                                             size_t alt_dst_row_stride = 0,
+                                             size_t alt_src_row_stride = 0);
 
 #endif // PXFMT_H
