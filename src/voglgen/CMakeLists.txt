@@ -161,5 +161,9 @@ add_custom_target(voglgen_make_inc
                   DEPENDS voglgen ${GENERATED_FILES}
 )
 
+if (MSVC)
+    add_dependencies(voglgen_make_inc copy_deps)
+endif()
+
 build_options_finalize()
 

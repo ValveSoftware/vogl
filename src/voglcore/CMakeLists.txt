@@ -131,11 +131,11 @@ target_link_libraries(${PROJECT_NAME}
 if (MSVC)
     set (PTHREAD_DEST ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR})
 
-    add_custom_command(TARGET voglcore
-                       POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PTHREAD_SRC_DLL} ${PTHREAD_DEST}
-                       COMMENT "Copying necessary DLLs to output directory."
-                       VERBATIM
+    add_custom_target(copy_deps ALL
+                      ${CMAKE_COMMAND} -E make_directory ${PTHREAD_DEST}
+                      COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PTHREAD_SRC_DLL} ${PTHREAD_DEST}
+                      COMMENT "Copying necessary DLLs to output directory."
+                      VERBATIM
     )
 endif()
 
