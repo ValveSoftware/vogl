@@ -48,7 +48,7 @@ typedef unsigned short uint16;
 typedef signed short int16;
 typedef unsigned int uint32;
 typedef signed int int32;
-typedef unsigned int uint;
+
 
 /******************************************************************************
  *
@@ -818,7 +818,7 @@ void to_intermediate(void *intermediate, const void *pSrc)
     else
     {
         // Convert this pixel to the intermediate, one component at a time:
-        for (uint c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
+        for (uint32 c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
         {
             if (pxfmt_per_fmt_info<F>::m_index[c] >= 0)
             {
@@ -911,7 +911,7 @@ inline
 void from_int_comp_norm_unpacked(Tdst *dst, const Tint *src, const uint32 c)
 {
     uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
-    uint32 raw = (uint32) src[index]; (void)raw;
+    uint32 raw = (uint32) src[index];
     uint32 max = pxfmt_per_fmt_info<F>::m_max[c];
 
     dst[c] = (Tdst) ((double) src[index] * (double) max);
@@ -1133,7 +1133,7 @@ void from_intermediate(void *pDst, const void *intermediate)
     else
     {
         // Convert one component of this pixel at a time:
-        for (uint c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
+        for (uint32 c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
         {
             if (pxfmt_per_fmt_info<F>::m_small_fp[0] != NON_FP)
             {
@@ -1216,18 +1216,13 @@ void query_pxfmt_sized_format(bool *has_red,   bool *has_green,
         *is_floating_point = true;
         break;
     case GL_RGB:
+    case GL_BGR:
         *has_red = true;
         *has_green = true;
         *has_blue = true;
         *is_floating_point = true;
         break;
     case GL_RGBA:
-        *has_red = true;
-        *has_green = true;
-        *has_blue = true;
-        *has_alpha = true;
-        *is_floating_point = true;
-        break;
     case GL_BGRA:
         *has_red = true;
         *has_green = true;
@@ -1257,18 +1252,13 @@ void query_pxfmt_sized_format(bool *has_red,   bool *has_green,
         *is_integer = true;
         break;
     case GL_RGB_INTEGER:
+    case GL_BGR_INTEGER:
         *has_red = true;
         *has_green = true;
         *has_blue = true;
         *is_integer = true;
         break;
     case GL_RGBA_INTEGER:
-        *has_red = true;
-        *has_green = true;
-        *has_blue = true;
-        *has_alpha = true;
-        *is_integer = true;
-        break;
     case GL_BGRA_INTEGER:
         *has_red = true;
         *has_green = true;
