@@ -246,7 +246,8 @@ bool PixelOps::CommonDrawPixelsSetup(FormatTypeCombo *pComboToUse)
     }
     memcpy(pPixels, pOriginalPixels, imgSize);
 
-    if (pCombo->format == GL_LUMINANCE) {
+    if ((pCombo->format == GL_LUMINANCE) ||
+        (pCombo->format == GL_LUMINANCE_ALPHA)) {
         // Read the left-side image again, this time as RGBA/FLOAT:
         GLuint tmpImgSize = imgWidth * imgHeight * 16;
         pTexSubImage2DPixels =
@@ -1028,6 +1029,63 @@ FormatTypeCombo combos[] = {
     {GL_ALPHA,  "GL_ALPHA",  GL_FLOAT, "GL_FLOAT", 4,
      TestSwizzle_NONE},
 #endif // SUPPORT_ALPHA
+
+
+#define SUPPORT_LUMINANCE
+#ifdef SUPPORT_LUMINANCE
+    /*
+     * GL_LUMINANCE source
+     */
+#ifdef SLOW_ON_NVIDIA
+    {GL_LUMINANCE,  "GL_LUMINANCE",  GL_BYTE, "GL_BYTE", 1,
+     TestSwizzle_NONE},
+#endif // SLOW_ON_NVIDIA
+    {GL_LUMINANCE,  "GL_LUMINANCE",  GL_UNSIGNED_BYTE, "GL_UNSIGNED_BYTE", 1,
+     TestSwizzle_NONE},
+#ifdef SLOW_ON_NVIDIA
+    {GL_LUMINANCE,  "GL_LUMINANCE",  GL_SHORT, "GL_SHORT", 2,
+     TestSwizzle_NONE},
+#endif // SLOW_ON_NVIDIA
+    {GL_LUMINANCE,  "GL_LUMINANCE",  GL_UNSIGNED_SHORT, "GL_UNSIGNED_SHORT", 2,
+     TestSwizzle_NONE},
+#ifdef SLOW_ON_NVIDIA
+    {GL_LUMINANCE,  "GL_LUMINANCE",  GL_INT, "GL_INT", 4,
+     TestSwizzle_NONE},
+#endif // SLOW_ON_NVIDIA
+    {GL_LUMINANCE,  "GL_LUMINANCE",  GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 4,
+     TestSwizzle_NONE},
+    {GL_LUMINANCE,  "GL_LUMINANCE",  GL_HALF_FLOAT, "GL_HALF_FLOAT", 2,
+     TestSwizzle_NONE},
+    {GL_LUMINANCE,  "GL_LUMINANCE",  GL_FLOAT, "GL_FLOAT", 4,
+     TestSwizzle_NONE},
+
+
+    /*
+     * GL_LUMINANCE_ALPHA source
+     */
+#ifdef SLOW_ON_NVIDIA
+    {GL_LUMINANCE_ALPHA,  "GL_LUMINANCE_ALPHA",  GL_BYTE, "GL_BYTE", 2,
+     TestSwizzle_NONE},
+#endif // SLOW_ON_NVIDIA
+    {GL_LUMINANCE_ALPHA,  "GL_LUMINANCE_ALPHA",  GL_UNSIGNED_BYTE, "GL_UNSIGNED_BYTE", 2,
+     TestSwizzle_NONE},
+#ifdef SLOW_ON_NVIDIA
+    {GL_LUMINANCE_ALPHA,  "GL_LUMINANCE_ALPHA",  GL_SHORT, "GL_SHORT", 4,
+     TestSwizzle_NONE},
+#endif // SLOW_ON_NVIDIA
+    {GL_LUMINANCE_ALPHA,  "GL_LUMINANCE_ALPHA",  GL_UNSIGNED_SHORT, "GL_UNSIGNED_SHORT", 4,
+     TestSwizzle_NONE},
+#ifdef SLOW_ON_NVIDIA
+    {GL_LUMINANCE_ALPHA,  "GL_LUMINANCE_ALPHA",  GL_INT, "GL_INT", 8,
+     TestSwizzle_NONE},
+#endif // SLOW_ON_NVIDIA
+    {GL_LUMINANCE_ALPHA,  "GL_LUMINANCE_ALPHA",  GL_UNSIGNED_INT, "GL_UNSIGNED_INT", 8,
+     TestSwizzle_NONE},
+    {GL_LUMINANCE_ALPHA,  "GL_LUMINANCE_ALPHA",  GL_HALF_FLOAT, "GL_HALF_FLOAT", 4,
+     TestSwizzle_NONE},
+    {GL_LUMINANCE_ALPHA,  "GL_LUMINANCE_ALPHA",  GL_FLOAT, "GL_FLOAT", 8,
+     TestSwizzle_NONE},
+#endif // SUPPORT_LUMINANCE
 
 
     /*
