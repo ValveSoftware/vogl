@@ -120,4 +120,7 @@ GL header files are MIT licensed: [GL header files](http://www.opengl.org/regist
 
 glxspheres (from VirtualGL) is wxWindows Library licensed: [wxWindows Library License](http://www.virtualgl.org/About/License).
 
+SDL is zlib licensed: [zlib license](http://www.libsdl.org/license.php).
+
 stb files (from Sean Barrett) are public domain.
+
