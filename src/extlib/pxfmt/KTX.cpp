@@ -813,10 +813,8 @@ FormatTypeCombo combos[] = {
     {GL_RGB, "GL_RGB",
      GL_UNSIGNED_INT_10F_11F_11F_REV, "GL_UNSIGNED_INT_10F_11F_11F_REV", 4,
      TestSwizzle_NONE},
-#if 0 // 5999 not supported yet:
     {GL_RGB, "GL_RGB", GL_UNSIGNED_INT_5_9_9_9_REV, "GL_UNSIGNED_INT_5_9_9_9_REV", 4,
      TestSwizzle_NONE},
-#endif
 
 
     /*

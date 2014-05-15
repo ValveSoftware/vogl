@@ -35,6 +35,7 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include "pxfmt.h"
+#include <cmath>  // For std::floor()
 
 // The internal data structures and functions are put into the following
 // unnamed namespace, so that they aren't externally visible to this file:
@@ -98,6 +99,7 @@ MAX_VALUES(false, 4);
 MAX_VALUES(false, 5);
 MAX_VALUES(false, 6);
 MAX_VALUES(false, 8);
+MAX_VALUES(false, 9);
 MAX_VALUES(false, 10);
 MAX_VALUES(false, 16);
 MAX_VALUES(false, 24);
@@ -348,6 +350,7 @@ FMT_INFO(PXFMT_RGB332_UNORM,      GL_RGB,    uint8,  double, 3, 1,  true, true, 
 FMT_INFO(PXFMT_RGB233_UNORM,      GL_RGB,    uint8,  double, 3, 1,  true, true, false, true,    0, 1, 2, -1,      3,  3,  2,  0,   0, 3, 6, 0);
 FMT_INFO(PXFMT_RGB565_UNORM,      GL_RGB,    uint16, double, 3, 2,  true, true, false, true,    0, 1, 2, -1,      5,  6,  5,  0,   11, 5, 0, 0);
 FMT_INFO(PXFMT_RGB565REV_UNORM,   GL_RGB,    uint16, double, 3, 2,  true, true, false, true,    0, 1, 2, -1,      5,  6,  5,  0,   0, 5, 11, 0);
+FMT_INFO(PXFMT_RGB5999_REV,       GL_RGB,    uint32, double, 3, 4,  true, false, false, true,   0, 1, 2, -1,      9,  9,  9,  5,   0, 9, 18, 27);
 FMT_INFO_SFP(PXFMT_RGB10F_11F_11F,GL_RGB,    uint32, double, 3, 4,              false,          0, 1, 2, -1,      0,  0,  0,  0,   0, 0, 0, 0,   FP10, FP11, FP11, NON_FP);
 
 // GL_BGR
@@ -602,6 +605,7 @@ void set_intermediate_to_defaults(void *intermediate)
     dst[3] = 1;
 }
 
+
 // This function converts one component from a packed-integer value, (either
 // integer or normalized-fixed-point) to an intermediate value (either a uint32
 // or a double):
@@ -659,6 +663,33 @@ void to_int_comp_copy(Tint *dst, const Tsrc *src, const uint32 c)
 {
     uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
     dst[index] = (Tint) src[c];
+}
+
+
+// This special function converts all components of a source pixel to an
+// intermediate format for a format of GL_RGB and a type of
+// GL_UNSIGNED_INT_5_9_9_9_REV:
+template <pxfmt_sized_format F, typename Tint, typename Tsrc>
+inline
+void to_int_5999(Tint *dst, const Tsrc *src)
+{
+    uint32 raw = (uint32) *src;
+
+    // Read and calculate the exponent:
+    uint32 mask = pxfmt_per_fmt_info<F>::m_mask[3];
+    uint32 shift = pxfmt_per_fmt_info<F>::m_shift[3];
+// FIXME: USE MACROS FOR THE FOLLOWING CONSTANTS
+    int32 exp = ((raw & mask) >> shift) - 15 - 9;
+    double multiplier = pow(2.0, (double) exp);
+
+    // Read and calculate the RGB values:
+    for (uint32 c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
+    {
+        mask = pxfmt_per_fmt_info<F>::m_mask[c];
+        shift = pxfmt_per_fmt_info<F>::m_shift[c];
+        uint32 component = (raw & mask) >> shift;
+        dst[c] = (Tint) ((double) component * multiplier);
+    }
 }
 
 
@@ -891,7 +922,11 @@ void to_intermediate(void *intermediate, const void *pSrc)
     // optimization, because (at compile time) it can be determined that it is
     // not needed for the given pxfmt_sized_format:
 
-    if (pxfmt_per_fmt_info<F>::m_format == GL_LUMINANCE)
+    if (pxfmt_per_fmt_info<F>::m_fmt == PXFMT_RGB5999_REV)
+    {
+        to_int_5999<F>(dst, src);
+    }
+    else if (pxfmt_per_fmt_info<F>::m_format == GL_LUMINANCE)
     {
         to_int_L<F>(dst, src);
     }
@@ -1021,6 +1056,79 @@ void from_int_comp_copy(Tdst *dst, const Tint *src, const uint32 c)
 {
     uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
     dst[c] = (Tdst) src[index];
+}
+
+
+// This special function converts all components of a source pixel from an
+// intermediate format for a format of GL_RGB and a type of
+// GL_UNSIGNED_INT_5_9_9_9_REV:
+//
+// Part of this function must calculate log2(x).  The log2(x) function is
+// relatively new in C++, and is not available with older C++ implementations
+// (e.g. it's not available with VisualStudio 2010).  However, this can be
+// calculated using the exponent of a C++ double, using an algorithm described
+// at: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogFloat.
+// The implementation below doesn't take into account subnormal numbers
+// (i.e. numbers very close to zero).  That is okay for our purposes.  We will
+// also take advantage of the fact that the number has been clamped such that
+// it is a positive number (i.e. the sign bit is always zero, and thus we don't
+// need to mask the value by 0x7FF00000).
+template <pxfmt_sized_format F, typename Tdst, typename Tint>
+inline
+void from_int_5999(Tdst *dst, const Tint *src)
+{
+    // Note: the following is the result of calculating the following (per the
+    // OpenGL specification), where N is 9, B is 15, and E is 31:
+    //     (((pow(2, N) - 1) / pow(2, N)) * pow(2, E - B))
+    double max_val = 65408.0;
+
+    // Per the OpenGL spec, clamp the starting red, green and blue values:
+    double redc =
+        (double) std::max<double>(0, std::min<double>(src[0], max_val));
+    double greenc =
+        (double) std::max<double>(0, std::min<double>(src[1], max_val));
+    double bluec =
+        (double) std::max<double>(0, std::min<double>(src[2], max_val));
+
+    // Determine the largest value of the 3:
+    double_conversion largest;
+    largest.d =
+        (double) std::max<double>(redc, std::max<double>(greenc, bluec));
+
+    // Calculate a preliminary shared exponent:
+    int32 log2_largest = (largest.i.u[1] >> 20) - 1023;
+    int32 prelim_exp = std::max<int32>((-15 -1), log2_largest) + 1 + 15;
+
+    // Calculate a refined shared exponent:
+    uint32 maxs =
+        (uint32) floor((largest.d /
+                        ((double) pow(2.0, (double) (prelim_exp - 15 - 9)))) +
+                       0.5);
+    int32 shared_exp = (maxs == (1 << 9)) ? prelim_exp + 1 : prelim_exp;
+
+    // Calculate integer values for red, green, and blue, using the shared
+    // exponent:
+    uint32 red =
+        (uint32) floor((redc /
+                        ((double) pow(2.0, (double) (shared_exp - 15 - 9)))) +
+                       0.5);
+    uint32 green =
+        (uint32) floor((greenc /
+                        ((double) pow(2.0, (double) (shared_exp - 15 - 9)))) +
+                       0.5);
+    uint32 blue =
+        (uint32) floor((bluec /
+                        ((double) pow(2.0, (double) (shared_exp - 15 - 9)))) +
+                       0.5);
+
+    *dst = (Tdst) ((((uint32) red << pxfmt_per_fmt_info<F>::m_shift[0]) &
+                    pxfmt_per_fmt_info<F>::m_mask[0]) |
+                   (((uint32) green << pxfmt_per_fmt_info<F>::m_shift[1]) &
+                    pxfmt_per_fmt_info<F>::m_mask[1]) |
+                   (((uint32) blue << pxfmt_per_fmt_info<F>::m_shift[2]) &
+                    pxfmt_per_fmt_info<F>::m_mask[2]) |
+                   (((uint32) shared_exp << pxfmt_per_fmt_info<F>::m_shift[3]) &
+                    pxfmt_per_fmt_info<F>::m_mask[3]));
 }
 
 
@@ -1261,7 +1369,11 @@ void from_intermediate(void *pDst, const void *intermediate)
     // not needed for the given pxfmt_sized_format:
 
     // Convert this pixel from the intermediate, to the destination:
-    if (pxfmt_per_fmt_info<F>::m_format == GL_LUMINANCE)
+    if (pxfmt_per_fmt_info<F>::m_fmt == PXFMT_RGB5999_REV)
+    {
+        from_int_5999<F>(dst, src);
+    }
+    else if (pxfmt_per_fmt_info<F>::m_format == GL_LUMINANCE)
     {
         from_int_L<F>(dst, src);
     }
@@ -1629,6 +1741,8 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_RGB565_UNORM;
         case GL_UNSIGNED_SHORT_5_6_5_REV:
             return PXFMT_RGB565REV_UNORM;
+        case GL_UNSIGNED_INT_5_9_9_9_REV:
+            return PXFMT_RGB5999_REV;
         case GL_UNSIGNED_INT_10F_11F_11F_REV:
             return PXFMT_RGB10F_11F_11F;
         default:
