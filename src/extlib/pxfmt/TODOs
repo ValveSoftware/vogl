@@ -3,8 +3,6 @@ Now supporting and testing 185 format-type combinations!
 Cases not covered include:
 
 - OpenGL "formats":
-  - GL_BGR
-  - GL_BGR_INTEGER
   - GL_LUMINANCE
   - GL_LUMINANCE_ALPHA
   - GL_COLOR_INDEX (which I may never support, except maybe for GL_BITMAP)
@@ -23,5 +21,3 @@ Cases not covered include:
   - Is this also wanted for GL_*_INTEGER values?
 
 - Support for compressed-texture formats.
-
-- Perhaps do better aligment of the columns of the FMT_INFO declarations.

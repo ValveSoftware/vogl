@@ -48,7 +48,7 @@ typedef unsigned short uint16;
 typedef signed short int16;
 typedef unsigned int uint32;
 typedef signed int int32;
-typedef unsigned int uint;
+
 
 /******************************************************************************
  *
@@ -127,16 +127,14 @@ enum pxfmt_small_fp
 
 template <pxfmt_small_fp nbits> struct small_fp { };
 
-#define SMALL_FP(nbits, min, max, is_signed, sign_shift,                \
+#define SMALL_FP(nbits, min, max, sign_shift,                           \
                  exp_mask, exp_shift, bias, man_mask, man_shift,        \
                  inf_exp_mask)                                          \
     template <> struct small_fp<nbits>                                  \
     {                                                                   \
     public:                                                             \
-        static const pxfmt_small_fp m_num_bits = nbits;                 \
         static const int32 m_min = min;                                 \
         static const uint32 m_max = max;                                \
-        static const bool m_is_signed = is_signed;                      \
         static const uint32 m_sign_shift = sign_shift;                  \
         static const uint32 m_exp_mask = exp_mask;                      \
         static const uint32 m_exp_shift = exp_shift;                    \
@@ -153,10 +151,10 @@ template <pxfmt_small_fp nbits> struct small_fp { };
 // - fp10-16's exponent for NAN/INFINITY (i.e. 16).    NOTE: This is bias + 1.
 // - fp10-16's mantissa for NAN (e.g. 0x10 for fp10)
 
-SMALL_FP(NON_FP,    0,     0, false,  0, 0x0000, 0,   0, 0x0000,  0,          0);
-SMALL_FP(FP10,      0, 64512, false, 10, 0x03E0, 5,  15, 0x001f, 15, 0x7FF00000);
-SMALL_FP(FP11,      0, 65024, false, 11, 0x07C0, 6,  15, 0x003f, 14, 0x7FF00000);
-SMALL_FP(FP16, -65504, 65504, false, 15, 0x7C00, 10, 15, 0x03ff, 10, 0x7FF00000);
+SMALL_FP(NON_FP,    0,     0,  0, 0x0000, 0,   0, 0x0000,  0,          0);
+SMALL_FP(FP10,      0, 64512, 10, 0x03E0, 5,  15, 0x001f, 15, 0x7FF00000);
+SMALL_FP(FP11,      0, 65024, 11, 0x07C0, 6,  15, 0x003f, 14, 0x7FF00000);
+SMALL_FP(FP16, -65504, 65504, 15, 0x7C00, 10, 15, 0x03ff, 10, 0x7FF00000);
 
 
 union double_conversion
@@ -818,7 +816,7 @@ void to_intermediate(void *intermediate, const void *pSrc)
     else
     {
         // Convert this pixel to the intermediate, one component at a time:
-        for (uint c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
+        for (uint32 c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
         {
             if (pxfmt_per_fmt_info<F>::m_index[c] >= 0)
             {
@@ -911,7 +909,7 @@ inline
 void from_int_comp_norm_unpacked(Tdst *dst, const Tint *src, const uint32 c)
 {
     uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
-    uint32 raw = (uint32) src[index]; (void)raw;
+    uint32 raw = (uint32) src[index];
     uint32 max = pxfmt_per_fmt_info<F>::m_max[c];
 
     dst[c] = (Tdst) ((double) src[index] * (double) max);
@@ -1133,7 +1131,7 @@ void from_intermediate(void *pDst, const void *intermediate)
     else
     {
         // Convert one component of this pixel at a time:
-        for (uint c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
+        for (uint32 c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
         {
             if (pxfmt_per_fmt_info<F>::m_small_fp[0] != NON_FP)
             {
@@ -1216,18 +1214,13 @@ void query_pxfmt_sized_format(bool *has_red,   bool *has_green,
         *is_floating_point = true;
         break;
     case GL_RGB:
+    case GL_BGR:
         *has_red = true;
         *has_green = true;
         *has_blue = true;
         *is_floating_point = true;
         break;
     case GL_RGBA:
-        *has_red = true;
-        *has_green = true;
-        *has_blue = true;
-        *has_alpha = true;
-        *is_floating_point = true;
-        break;
     case GL_BGRA:
         *has_red = true;
         *has_green = true;
@@ -1257,18 +1250,13 @@ void query_pxfmt_sized_format(bool *has_red,   bool *has_green,
         *is_integer = true;
         break;
     case GL_RGB_INTEGER:
+    case GL_BGR_INTEGER:
         *has_red = true;
         *has_green = true;
         *has_blue = true;
         *is_integer = true;
         break;
     case GL_RGBA_INTEGER:
-        *has_red = true;
-        *has_green = true;
-        *has_blue = true;
-        *has_alpha = true;
-        *is_integer = true;
-        break;
     case GL_BGRA_INTEGER:
         *has_red = true;
         *has_green = true;
