@@ -396,6 +396,26 @@ FMT_INFO(PXFMT_BGRA8REV_UNORM,    GL_BGRA,   uint32, double, 4, 4, true, true, f
 FMT_INFO(PXFMT_BGR10A2_UNORM,     GL_BGRA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   2, 12, 22, 0);
 FMT_INFO(PXFMT_A2BGR10_UNORM,     GL_BGRA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   20, 10, 0, 30);
 
+// GL_LUMINANCE
+FMT_INFO(PXFMT_L8_UNORM,      GL_LUMINANCE,  uint8,  double, 1, 1, true, true, false, false,    0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_L8_SNORM,      GL_LUMINANCE,  int8,   double, 1, 1, true, true, true, false,     0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_L16_UNORM,     GL_LUMINANCE,  uint16, double, 1, 2, true, true, false, false,    0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_L16_SNORM,     GL_LUMINANCE,  int16,  double, 1, 2, true, true, true, false,     0, -1, -1, -1,   16,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_L32_UNORM,     GL_LUMINANCE,  uint32, double, 1, 4, true, true, false, false,    0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_L32_SNORM,     GL_LUMINANCE,  int32,  double, 1, 4, true, true, true, false,     0, -1, -1, -1,   32,  0,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_L16_FLOAT, GL_LUMINANCE,  uint16, double, 1, 2,             true,            0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, NON_FP, NON_FP, FP16);
+FMT_INFO(PXFMT_L32_FLOAT,     GL_LUMINANCE,  float,  double, 1, 4, true, false, false, false,   0, -1, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+
+// GL_LUMINANCE_ALPHA
+FMT_INFO(PXFMT_LA8_UNORM,     GL_LUMINANCE_ALPHA,  uint8,  double, 2, 2, true, true, false, false,    0,  3, -1, -1,    8,  8,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_LA8_SNORM,     GL_LUMINANCE_ALPHA,  int8,   double, 2, 2, true, true, true, false,     0,  3, -1, -1,    8,  8,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_LA16_UNORM,    GL_LUMINANCE_ALPHA,  uint16, double, 2, 4, true, true, false, false,    0,  3, -1, -1,   16, 16,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_LA16_SNORM,    GL_LUMINANCE_ALPHA,  int16,  double, 2, 4, true, true, true, false,     0,  3, -1, -1,   16, 16,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_LA32_UNORM,    GL_LUMINANCE_ALPHA,  uint32, double, 2, 8, true, true, false, false,    0,  3, -1, -1,   32, 32,  0,  0,   0, 0, 0, 0);
+FMT_INFO(PXFMT_LA32_SNORM,    GL_LUMINANCE_ALPHA,  int32,  double, 2, 8, true, true, true, false,     0,  3, -1, -1,   32, 32,  0,  0,   0, 0, 0, 0);
+FMT_INFO_SFP(PXFMT_LA16_FLOAT,GL_LUMINANCE_ALPHA,  uint16, double, 2, 4,             true,            0,  3, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0,   NON_FP, NON_FP, NON_FP, FP16);
+FMT_INFO(PXFMT_LA32_FLOAT,    GL_LUMINANCE_ALPHA,  float,  double, 2, 8, true, false, false, false,   0,  3, -1, -1,    0,  0,  0,  0,   0, 0, 0, 0);
+
 // GL_RED_INTEGER
 FMT_INFO(PXFMT_R8_UINT,     GL_RED_INTEGER,  uint8,  uint32, 1, 1, false, false, false, false,  0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_R8_SINT,     GL_RED_INTEGER,  int8,   uint32, 1, 1, false, false, true, false,   0, -1, -1, -1,    8,  0,  0,  0,   0, 0, 0, 0);
@@ -642,6 +662,76 @@ void to_int_comp_copy(Tint *dst, const Tsrc *src, const uint32 c)
 }
 
 
+// This special function converts a GL_LUMINANCE source pixel to an
+// intermediate value, which is a double:
+template <pxfmt_sized_format F, typename Tint, typename Tsrc>
+inline
+void to_int_L(Tint *dst, const Tsrc *src)
+{
+    if (pxfmt_per_fmt_info<F>::m_is_normalized)
+    {
+        uint32 raw = (uint32) *src;
+        uint32 max = pxfmt_per_fmt_info<F>::m_max[0];
+        Tint dst_value = (Tint) ((double) raw / (double) max);
+        if (pxfmt_per_fmt_info<F>::m_is_signed)
+        {
+            dst[0] = dst[1] = dst[2] = (Tint) std::max<double>(dst_value, -1.0);
+        }
+        else
+        {
+            dst[0] = dst[1] = dst[2] = dst_value;
+        }
+    }
+    else
+    {
+        dst[0] = dst[1] = dst[2] = (Tint) *src;
+    }
+}
+
+
+// This special function converts a GL_LUMINANCE_ALPHA source pixel to an
+// intermediate value, which is a double:
+template <pxfmt_sized_format F, typename Tint, typename Tsrc>
+inline
+void to_int_LA(Tint *dst, const Tsrc *src)
+{
+    if (pxfmt_per_fmt_info<F>::m_is_normalized)
+    {
+        uint32 rawL = (uint32) src[0];
+        uint32 rawA = (uint32) src[1];
+        uint32 maxL = pxfmt_per_fmt_info<F>::m_max[0];
+        uint32 maxA = pxfmt_per_fmt_info<F>::m_max[1];
+        Tint dst_L_value = (Tint) ((double) rawL / (double) maxL);
+        Tint dst_A_value;
+        // The following compile-time "if" check is to avoid compile-time warnings
+        // about "potential divide by 0" errors:
+        if (pxfmt_per_fmt_info<F>::m_max[1] != 0)
+        {
+            dst_A_value = (Tint) ((double) rawA / (double) maxA);
+        }
+        else
+        {
+            dst_A_value = (Tint) 0;
+        }
+        if (pxfmt_per_fmt_info<F>::m_is_signed)
+        {
+            dst[0] = dst[1] = dst[2] = (Tint) std::max<double>(dst_L_value, -1.0);
+            dst[3] = (Tint) std::max<double>(dst_A_value, -1.0);
+        }
+        else
+        {
+            dst[0] = dst[1] = dst[2] = dst_L_value;
+            dst[3] = dst_A_value;
+        }
+    }
+    else
+    {
+        dst[0] = dst[1] = dst[2] = (Tint) src[0];
+        dst[3] = (Tint) src[1];
+    }
+}
+
+
 // This special function converts all components of a source pixel to an
 // intermediate format for a format of GL_DEPTH_STENCIL and a type of
 // GL_UNSIGNED_INT_24_8:
@@ -801,7 +891,15 @@ void to_intermediate(void *intermediate, const void *pSrc)
     // optimization, because (at compile time) it can be determined that it is
     // not needed for the given pxfmt_sized_format:
 
-    if (pxfmt_per_fmt_info<F>::m_fmt == PXFMT_D24_UNORM_S8_UINT)
+    if (pxfmt_per_fmt_info<F>::m_format == GL_LUMINANCE)
+    {
+        to_int_L<F>(dst, src);
+    }
+    else if (pxfmt_per_fmt_info<F>::m_format == GL_LUMINANCE_ALPHA)
+    {
+        to_int_LA<F>(dst, src);
+    }
+    else if (pxfmt_per_fmt_info<F>::m_fmt == PXFMT_D24_UNORM_S8_UINT)
     {
         to_int_d24_unorm_s8_uint<F>(dst, src);
     }
@@ -923,6 +1021,59 @@ void from_int_comp_copy(Tdst *dst, const Tint *src, const uint32 c)
 {
     uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
     dst[c] = (Tdst) src[index];
+}
+
+
+// This special function converts a GL_LUMINANCE pixel from an intermediate
+// format (double) to either a floating-point or normalized-fixed-point value:
+template <pxfmt_sized_format F, typename Tdst, typename Tint>
+inline
+void from_int_L(Tdst *dst, const Tint *src)
+{
+    // Note: We have a bit of a problem to address.  At this point, we've lost
+    // knowledge of what the pxfmt_sized_format is for the original source.  If
+    // it is also GL_LUMINANCE, the code below is correct (because the original
+    // luminance value was copied to the red, green, and blue components of the
+    // intermediate value).  However, if the source was another color format
+    // (e.g. GL_RGBA), then we are simply taking the red intermediate value.
+    // It is doubtful that anybody would want to do such a thing.  It's also
+    // not clear what should be done.  The OpenGL spec for glReadPixels() (as
+    // opposed to for glGetTexImage()) says to compute the luminance value by
+    // summing the red, green, and blue values (which can saturate to/past
+    // 1.0).  Is that desired?  We'll go with this approach for now, which
+    // seems to handle the likely cases.
+    if (pxfmt_per_fmt_info<F>::m_is_normalized)
+    {
+        uint32 max = pxfmt_per_fmt_info<F>::m_max[0];
+        dst[0] = (Tdst) ((double) src[0] * (double) max);
+    }
+    else
+    {
+        dst[0] = (Tdst) src[0];
+    }
+}
+
+
+// This special function converts a GL_LUMINANCE_ALPHA pixel from an
+// intermediate format (double) to either a floating-point or
+// normalized-fixed-point value:
+template <pxfmt_sized_format F, typename Tdst, typename Tint>
+inline
+void from_int_LA(Tdst *dst, const Tint *src)
+{
+    // Note: See the problem discussion in the from_int_L() function (above).
+    if (pxfmt_per_fmt_info<F>::m_is_normalized)
+    {
+        uint32 maxL = pxfmt_per_fmt_info<F>::m_max[0];
+        uint32 maxA = pxfmt_per_fmt_info<F>::m_max[1];
+        dst[0] = (Tdst) ((double) src[0] * (double) maxL);
+        dst[1] = (Tdst) ((double) src[3] * (double) maxA);
+    }
+    else
+    {
+        dst[0] = (Tdst) src[0];
+        dst[1] = (Tdst) src[3];
+    }
 }
 
 
@@ -1110,7 +1261,15 @@ void from_intermediate(void *pDst, const void *intermediate)
     // not needed for the given pxfmt_sized_format:
 
     // Convert this pixel from the intermediate, to the destination:
-    if (pxfmt_per_fmt_info<F>::m_fmt == PXFMT_D24_UNORM_S8_UINT)
+    if (pxfmt_per_fmt_info<F>::m_format == GL_LUMINANCE)
+    {
+        from_int_L<F>(dst, src);
+    }
+    else if (pxfmt_per_fmt_info<F>::m_format == GL_LUMINANCE_ALPHA)
+    {
+        from_int_LA<F>(dst, src);
+    }
+    else if (pxfmt_per_fmt_info<F>::m_fmt == PXFMT_D24_UNORM_S8_UINT)
     {
         from_int_d24_unorm_s8_uint<F>(dst, src);
     }
@@ -1214,6 +1373,7 @@ void query_pxfmt_sized_format(bool *has_red,   bool *has_green,
         break;
     case GL_RGB:
     case GL_BGR:
+    case GL_LUMINANCE:
         *has_red = true;
         *has_green = true;
         *has_blue = true;
@@ -1221,6 +1381,7 @@ void query_pxfmt_sized_format(bool *has_red,   bool *has_green,
         break;
     case GL_RGBA:
     case GL_BGRA:
+    case GL_LUMINANCE_ALPHA:
         *has_red = true;
         *has_green = true;
         *has_blue = true;
@@ -1573,6 +1734,52 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
             return PXFMT_BGR10A2_UNORM;
         case GL_UNSIGNED_INT_2_10_10_10_REV:
             return PXFMT_A2BGR10_UNORM;
+        default:
+            break;
+        }
+        break;
+    case GL_LUMINANCE:
+        switch (type)
+        {
+        case GL_UNSIGNED_BYTE:
+            return PXFMT_L8_UNORM;
+        case GL_BYTE:
+            return PXFMT_L8_SNORM;
+        case GL_UNSIGNED_SHORT:
+            return PXFMT_L16_UNORM;
+        case GL_SHORT:
+            return PXFMT_L16_SNORM;
+        case GL_UNSIGNED_INT:
+            return PXFMT_L32_UNORM;
+        case GL_INT:
+            return PXFMT_L32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_L16_FLOAT;
+        case GL_FLOAT:
+            return PXFMT_L32_FLOAT;
+        default:
+            break;
+        }
+        break;
+    case GL_LUMINANCE_ALPHA:
+        switch (type)
+        {
+        case GL_UNSIGNED_BYTE:
+            return PXFMT_LA8_UNORM;
+        case GL_BYTE:
+            return PXFMT_LA8_SNORM;
+        case GL_UNSIGNED_SHORT:
+            return PXFMT_LA16_UNORM;
+        case GL_SHORT:
+            return PXFMT_LA16_SNORM;
+        case GL_UNSIGNED_INT:
+            return PXFMT_LA32_UNORM;
+        case GL_INT:
+            return PXFMT_LA32_SNORM;
+        case GL_HALF_FLOAT:
+            return PXFMT_LA16_FLOAT;
+        case GL_FLOAT:
+            return PXFMT_LA32_FLOAT;
         default:
             break;
         }
