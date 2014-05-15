@@ -76,7 +76,7 @@ namespace vogl
         }
 
         template <typename T>
-        inline void construct_array(T *p, uint n)
+        inline void construct_array(T *p, uint32_t n)
         {
             T *q = p + n;
             for (; p != q; ++p)
@@ -84,7 +84,7 @@ namespace vogl
         }
 
         template <typename T, typename U>
-        inline void construct_array(T *p, uint n, const U &init)
+        inline void construct_array(T *p, uint32_t n, const U &init)
         {
             T *q = p + n;
             for (; p != q; ++p)
@@ -98,7 +98,7 @@ namespace vogl
         }
 
         template <typename T>
-        inline void destruct_array(T *p, uint n)
+        inline void destruct_array(T *p, uint32_t n)
         {
             T *q = p + n;
             for (; p != q; ++p)

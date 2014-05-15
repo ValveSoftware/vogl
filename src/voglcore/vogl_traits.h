@@ -43,7 +43,7 @@ namespace vogl
     };
 
     template <>
-    struct int_traits<int8>
+    struct int_traits<int8_t>
     {
         enum
         {
@@ -53,7 +53,7 @@ namespace vogl
         };
     };
     template <>
-    struct int_traits<int16>
+    struct int_traits<int16_t>
     {
         enum
         {
@@ -63,7 +63,7 @@ namespace vogl
         };
     };
     template <>
-    struct int_traits<int32>
+    struct int_traits<int32_t>
     {
         enum
         {
@@ -74,7 +74,7 @@ namespace vogl
     };
 
     template <>
-    struct int_traits<uint8>
+    struct int_traits<uint8_t>
     {
         enum
         {
@@ -84,7 +84,7 @@ namespace vogl
         };
     };
     template <>
-    struct int_traits<uint16>
+    struct int_traits<uint16_t>
     {
         enum
         {
@@ -94,7 +94,7 @@ namespace vogl
         };
     };
     template <>
-    struct int_traits<uint32>
+    struct int_traits<uint32_t>
     {
         enum
         {
@@ -120,7 +120,7 @@ namespace vogl
         {
             helpers::construct(p, init);
         }
-        static inline void construct_array(T *p, uint n)
+        static inline void construct_array(T *p, uint32_t n)
         {
             helpers::construct_array(p, n);
         }
@@ -128,7 +128,7 @@ namespace vogl
         {
             helpers::destruct(p);
         }
-        static inline void destruct_array(T *p, uint n)
+        static inline void destruct_array(T *p, uint32_t n)
         {
             helpers::destruct_array(p, n);
         }
@@ -149,7 +149,7 @@ namespace vogl
         {
             *p = init;
         }
-        static inline void construct_array(T **p, uint n)
+        static inline void construct_array(T **p, uint32_t n)
         {
             memset(p, 0, sizeof(T *) * n);
         }
@@ -157,7 +157,7 @@ namespace vogl
         {
             VOGL_NOTE_UNUSED(p);
         }
-        static inline void destruct_array(T **p, uint n)
+        static inline void destruct_array(T **p, uint32_t n)
         {
             VOGL_NOTE_UNUSED(p), VOGL_NOTE_UNUSED(n);
         }
@@ -175,7 +175,7 @@ namespace vogl
         {                                                 \
             memcpy(p, &init, sizeof(X));                  \
         }                                                 \
-        static inline void construct_array(X *p, uint n)  \
+        static inline void construct_array(X *p, uint32_t n)  \
         {                                                 \
             memset(p, 0, sizeof(X) * n);                  \
         }                                                 \
@@ -183,7 +183,7 @@ namespace vogl
         {                                                 \
             VOGL_NOTE_UNUSED(p);                        \
         }                                                 \
-        static inline void destruct_array(X *p, uint n)   \
+        static inline void destruct_array(X *p, uint32_t n)   \
         {                                                 \
             VOGL_NOTE_UNUSED(p), VOGL_NOTE_UNUSED(n); \
         }                                                 \
@@ -318,13 +318,13 @@ namespace vogl
 
         // pDst must be uninitialized memory, pSrc will be destructed
         template <typename T>
-        inline void move_array(T *pDst, T *pSrc, uint n)
+        inline void move_array(T *pDst, T *pSrc, uint32_t n)
         {
             if (VOGL_IS_BITWISE_COPYABLE_OR_MOVABLE(T))
                 memcpy(pDst, pSrc, sizeof(T) * n);
             else
             {
-                for (uint i = 0; i < n; i++)
+                for (uint32_t i = 0; i < n; i++)
                 {
                     construct(pDst + i, pSrc[i]);
                     destruct(pSrc + i);
@@ -334,13 +334,13 @@ namespace vogl
 
         // pDst must be uninitialized memory
         template <typename T>
-        inline void copy_array(T *pDst, const T *pSrc, uint n)
+        inline void copy_array(T *pDst, const T *pSrc, uint32_t n)
         {
             if (VOGL_IS_BITWISE_COPYABLE(T))
                 memcpy(pDst, pSrc, sizeof(T) * n);
             else
             {
-                for (uint i = 0; i < n; i++)
+                for (uint32_t i = 0; i < n; i++)
                     construct(pDst + i, pSrc[i]);
             }
         }

@@ -35,14 +35,14 @@ namespace vogl
     class dynamic_stream : public data_stream
     {
     public:
-        dynamic_stream(uint initial_size, const char *pName = "dynamic_stream", uint attribs = cDataStreamSeekable | cDataStreamWritable | cDataStreamReadable)
+        dynamic_stream(uint32_t initial_size, const char *pName = "dynamic_stream", uint32_t attribs = cDataStreamSeekable | cDataStreamWritable | cDataStreamReadable)
             : data_stream(pName, attribs),
               m_ofs(0)
         {
             open(initial_size, pName, attribs);
         }
 
-        dynamic_stream(const void *pBuf, uint size, const char *pName = "dynamic_stream", uint attribs = cDataStreamSeekable | cDataStreamWritable | cDataStreamReadable)
+        dynamic_stream(const void *pBuf, uint32_t size, const char *pName = "dynamic_stream", uint32_t attribs = cDataStreamSeekable | cDataStreamWritable | cDataStreamReadable)
             : data_stream(pName, attribs),
               m_ofs(0)
         {
@@ -60,7 +60,7 @@ namespace vogl
         {
         }
 
-        bool open(uint initial_size = 0, const char *pName = "dynamic_stream", uint attribs = cDataStreamSeekable | cDataStreamWritable | cDataStreamReadable)
+        bool open(uint32_t initial_size = 0, const char *pName = "dynamic_stream", uint32_t attribs = cDataStreamSeekable | cDataStreamWritable | cDataStreamReadable)
         {
             close();
 
@@ -73,7 +73,7 @@ namespace vogl
             return true;
         }
 
-        bool reopen(const char *pName, uint attribs)
+        bool reopen(const char *pName, uint32_t attribs)
         {
             if (!m_opened)
             {
@@ -85,7 +85,7 @@ namespace vogl
             return true;
         }
 
-        bool open(const void *pBuf, uint size, const char *pName = "dynamic_stream", uint attribs = cDataStreamSeekable | cDataStreamWritable | cDataStreamReadable)
+        bool open(const void *pBuf, uint32_t size, const char *pName = "dynamic_stream", uint32_t attribs = cDataStreamSeekable | cDataStreamWritable | cDataStreamReadable)
         {
             if (!m_opened)
             {
@@ -131,16 +131,16 @@ namespace vogl
             return false;
         }
 
-        const vogl::vector<uint8> &get_buf() const
+        const vogl::vector<uint8_t> &get_buf() const
         {
             return m_buf;
         }
-        vogl::vector<uint8> &get_buf()
+        vogl::vector<uint8_t> &get_buf()
         {
             return m_buf;
         }
 
-        void reserve(uint size)
+        void reserve(uint32_t size)
         {
             if (m_opened)
             {
@@ -153,7 +153,7 @@ namespace vogl
             return m_buf.is_empty() ? NULL : &m_buf[0];
         }
 
-        virtual uint read(void *pBuf, uint len)
+        virtual uint32_t read(void *pBuf, uint32_t len)
         {
             VOGL_ASSERT(len <= 0x7FFFFFFF);
 
@@ -162,9 +162,9 @@ namespace vogl
 
             VOGL_ASSERT(m_ofs <= m_buf.size());
 
-            uint bytes_left = m_buf.size() - m_ofs;
+            uint32_t bytes_left = m_buf.size() - m_ofs;
 
-            len = math::minimum<uint>(len, bytes_left);
+            len = math::minimum<uint32_t>(len, bytes_left);
 
             if (len)
                 memcpy(pBuf, &m_buf[m_ofs], len);
@@ -174,7 +174,7 @@ namespace vogl
             return len;
         }
 
-        virtual uint write(const void *pBuf, uint len)
+        virtual uint32_t write(const void *pBuf, uint32_t len)
         {
             VOGL_ASSERT(len <= 0x7FFFFFFF);
 
@@ -183,7 +183,7 @@ namespace vogl
 
             VOGL_ASSERT(m_ofs <= m_buf.size());
 
-            uint new_ofs = m_ofs + len;
+            uint32_t new_ofs = m_ofs + len;
             if (new_ofs > m_buf.size())
                 m_buf.resize(new_ofs);
 
@@ -239,14 +239,14 @@ namespace vogl
             else if (new_ofs > m_buf.size())
                 return false;
 
-            m_ofs = static_cast<uint>(new_ofs);
+            m_ofs = static_cast<uint32_t>(new_ofs);
 
             return true;
         }
 
     private:
-        vogl::vector<uint8> m_buf;
-        uint m_ofs;
+        vogl::vector<uint8_t> m_buf;
+        uint32_t m_ofs;
     };
 
 } // namespace vogl

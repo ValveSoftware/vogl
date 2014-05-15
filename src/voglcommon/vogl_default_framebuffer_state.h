@@ -37,15 +37,15 @@
 
 struct vogl_default_framebuffer_attribs
 {
-    uint m_width;
-    uint m_height;
-    uint m_r_size;
-    uint m_g_size;
-    uint m_b_size;
-    uint m_a_size;
-    uint m_depth_size;
-    uint m_stencil_size;
-    uint m_samples;
+    uint32_t m_width;
+    uint32_t m_height;
+    uint32_t m_r_size;
+    uint32_t m_g_size;
+    uint32_t m_b_size;
+    uint32_t m_a_size;
+    uint32_t m_depth_size;
+    uint32_t m_stencil_size;
+    uint32_t m_samples;
     bool m_double_buffered;
 
     vogl_default_framebuffer_attribs()
@@ -89,7 +89,7 @@ struct vogl_default_framebuffer_attribs
     }
 };
 
-bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attribs, uint screen);
+bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attribs, uint32_t screen);
 
 enum vogl_default_framebuffer_t
 {

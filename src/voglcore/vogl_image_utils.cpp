@@ -49,7 +49,7 @@
 namespace vogl
 {
     const float cInfinitePSNR = 999999.0f;
-    const uint VOGL_LARGEST_SUPPORTED_IMAGE_DIMENSION = 16384;
+    const uint32_t VOGL_LARGEST_SUPPORTED_IMAGE_DIMENSION = 16384;
 
     namespace image_utils
     {
@@ -135,7 +135,7 @@ namespace vogl
             return true;
         }
 
-        bool read_from_stream(image_u8 &dest, data_stream_serializer &serializer, uint read_flags)
+        bool read_from_stream(image_u8 &dest, data_stream_serializer &serializer, uint32_t read_flags)
         {
             if (read_flags > cReadFlagsAllFlags)
             {
@@ -164,7 +164,7 @@ namespace vogl
             return image_utils::read_from_stream_stb(serializer, dest);
         }
 
-        bool read_from_file(image_u8 &dest, const char *pFilename, uint read_flags)
+        bool read_from_file(image_u8 &dest, const char *pFilename, uint32_t read_flags)
         {
             if (read_flags > cReadFlagsAllFlags)
             {
@@ -180,7 +180,7 @@ namespace vogl
             return read_from_stream(dest, serializer, read_flags);
         }
 
-        bool write_to_file(const char *pFilename, const image_u8 &img, uint write_flags, int grayscale_comp_index)
+        bool write_to_file(const char *pFilename, const image_u8 &img, uint32_t write_flags, int grayscale_comp_index)
         {
             if ((grayscale_comp_index < -1) || (grayscale_comp_index > 3))
             {
@@ -207,8 +207,8 @@ namespace vogl
                 }
             }
 
-            vogl::vector<uint8> temp;
-            uint num_src_chans = 0;
+            vogl::vector<uint8_t> temp;
+            uint32_t num_src_chans = 0;
             const void *pSrc_img = NULL;
 
             if (is_jpeg)
@@ -224,11 +224,11 @@ namespace vogl
 
                 temp.resize(img.get_total_pixels());
 
-                for (uint y = 0; y < img.get_height(); y++)
+                for (uint32_t y = 0; y < img.get_height(); y++)
                 {
                     const color_quad_u8 *pSrc = img.get_scanline(y);
                     const color_quad_u8 *pSrc_end = pSrc + img.get_width();
-                    uint8 *pDst = &temp[y * img.get_width()];
+                    uint8_t *pDst = &temp[y * img.get_width()];
 
                     if (img.get_comp_flags() & pixel_format_helpers::cCompFlagGrayscale)
                     {
@@ -238,7 +238,7 @@ namespace vogl
                     else if (grayscale_comp_index < 0)
                     {
                         while (pSrc != pSrc_end)
-                            *pDst++ = static_cast<uint8>((*pSrc++).get_luma());
+                            *pDst++ = static_cast<uint8_t>((*pSrc++).get_luma());
                     }
                     else
                     {
@@ -254,11 +254,11 @@ namespace vogl
             {
                 temp.resize(img.get_total_pixels() * 3);
 
-                for (uint y = 0; y < img.get_height(); y++)
+                for (uint32_t y = 0; y < img.get_height(); y++)
                 {
                     const color_quad_u8 *pSrc = img.get_scanline(y);
                     const color_quad_u8 *pSrc_end = pSrc + img.get_width();
-                    uint8 *pDst = &temp[y * img.get_width() * 3];
+                    uint8_t *pDst = &temp[y * img.get_width() * 3];
 
                     while (pSrc != pSrc_end)
                     {
@@ -295,7 +295,7 @@ namespace vogl
             {
                 jpge::params params;
                 if (write_flags & cWriteFlagJPEGQualityLevelMask)
-                    params.m_quality = math::clamp<uint>((write_flags & cWriteFlagJPEGQualityLevelMask) >> cWriteFlagJPEGQualityLevelShift, 1U, 100U);
+                    params.m_quality = math::clamp<uint32_t>((write_flags & cWriteFlagJPEGQualityLevelMask) >> cWriteFlagJPEGQualityLevelShift, 1U, 100U);
                 params.m_two_pass_flag = (write_flags & cWriteFlagJPEGTwoPass) != 0;
                 params.m_no_chroma_discrim_flag = (write_flags & cWriteFlagJPEGNoChromaDiscrim) != 0;
 
@@ -306,7 +306,7 @@ namespace vogl
                 else if (write_flags & cWriteFlagJPEGH2V2)
                     params.m_subsampling = jpge::H2V2;
 
-                success = jpge::compress_image_to_jpeg_file(pFilename, img.get_width(), img.get_height(), num_src_chans, (const jpge::uint8 *)pSrc_img, params);
+                success = jpge::compress_image_to_jpeg_file(pFilename, img.get_width(), img.get_height(), num_src_chans, (const jpge::uint8_t *)pSrc_img, params);
             }
             else
             {
@@ -315,23 +315,23 @@ namespace vogl
             return success;
         }
 
-        bool write_to_file(const char *pFilename, const image_f &img, const vec4F &l, const vec4F &h, uint write_flags, int grayscale_comp_index)
+        bool write_to_file(const char *pFilename, const image_f &img, const vec4F &l, const vec4F &h, uint32_t write_flags, int grayscale_comp_index)
         {
             image_u8 temp(img.get_width(), img.get_height());
 
             vec4F scale(h - l);
-            for (uint i = 0; i < 4; i++)
+            for (uint32_t i = 0; i < 4; i++)
                 scale[i] = (scale[i] != 0.0f) ? (255.0f / scale[i]) : 0;
 
-            for (uint y = 0; y < img.get_height(); y++)
+            for (uint32_t y = 0; y < img.get_height(); y++)
             {
-                for (uint x = 0; x < img.get_width(); x++)
+                for (uint32_t x = 0; x < img.get_width(); x++)
                 {
                     const color_quad_f &o = img(x, y);
 
                     color_quad_u8 c;
-                    for (uint i = 0; i < 4; i++)
-                        c[i] = static_cast<uint8>(math::clamp(math::float_to_int_nearest((o[i] - l[i]) * scale[i]), 0, 255));
+                    for (uint32_t i = 0; i < 4; i++)
+                        c[i] = static_cast<uint8_t>(math::clamp(math::float_to_int_nearest((o[i] - l[i]) * scale[i]), 0, 255));
 
                     temp(x, y) = c;
                 }
@@ -342,8 +342,8 @@ namespace vogl
 
         bool has_alpha(const image_u8 &img)
         {
-            for (uint y = 0; y < img.get_height(); y++)
-                for (uint x = 0; x < img.get_width(); x++)
+            for (uint32_t y = 0; y < img.get_height(); y++)
+                for (uint32_t x = 0; x < img.get_width(); x++)
                     if (img(x, y).a < 255)
                         return true;
 
@@ -352,9 +352,9 @@ namespace vogl
 
         void renorm_normal_map(image_u8 &img)
         {
-            for (uint y = 0; y < img.get_height(); y++)
+            for (uint32_t y = 0; y < img.get_height(); y++)
             {
-                for (uint x = 0; x < img.get_width(); x++)
+                for (uint32_t x = 0; x < img.get_width(); x++)
                 {
                     color_quad_u8 &c = img(x, y);
                     if ((c.r == 128) && (c.g == 128) && (c.b == 128))
@@ -374,8 +374,8 @@ namespace vogl
                         if (length)
                             v /= length;
 
-                        for (uint i = 0; i < 3; i++)
-                            c[i] = static_cast<uint8>(math::clamp<float>(floor((v[i] + 1.0f) * .5f * 255.0f + .5f), 0.0f, 255.0f));
+                        for (uint32_t i = 0; i < 3; i++)
+                            c[i] = static_cast<uint8_t>(math::clamp<float>(floor((v[i] + 1.0f) * .5f * 255.0f + .5f), 0.0f, 255.0f));
 
                         if ((c.r == 128) && (c.g == 128))
                         {
@@ -393,14 +393,14 @@ namespace vogl
         {
             float score = 0.0f;
 
-            uint num_invalid_pixels = 0;
+            uint32_t num_invalid_pixels = 0;
 
             // TODO: Derive better score from pixel mean, eigenvecs/vals
             //vogl::vector<vec3F> pixels;
 
-            for (uint y = 0; y < img.get_height(); y++)
+            for (uint32_t y = 0; y < img.get_height(); y++)
             {
-                for (uint x = 0; x < img.get_width(); x++)
+                for (uint32_t x = 0; x < img.get_width(); x++)
                 {
                     const color_quad_u8 &c = img(x, y);
 
@@ -443,8 +443,8 @@ namespace vogl
 
         bool resample_single_thread(const image_u8 &src, image_u8 &dst, const resample_params &params)
         {
-            const uint src_width = src.get_width();
-            const uint src_height = src.get_height();
+            const uint32_t src_width = src.get_width();
+            const uint32_t src_height = src.get_height();
 
             if (math::maximum(src_width, src_height) > VOGL_RESAMPLER_MAX_DIMENSION)
             {
@@ -456,8 +456,8 @@ namespace vogl
             if (((int)params.m_num_comps < 1) || ((int)params.m_num_comps > (int)cMaxComponents))
                 return false;
 
-            const uint dst_width = params.m_dst_width;
-            const uint dst_height = params.m_dst_height;
+            const uint32_t dst_width = params.m_dst_width;
+            const uint32_t dst_height = params.m_dst_height;
 
             if ((math::minimum(dst_width, dst_height) < 1) || (math::maximum(dst_width, dst_height) > VOGL_RESAMPLER_MAX_DIMENSION))
             {
@@ -511,7 +511,7 @@ namespace vogl
                                        params.m_pFilter, (Resampler::Contrib_List *)NULL, (Resampler::Contrib_List *)NULL, params.m_filter_scale, params.m_filter_scale, params.m_x_ofs, params.m_y_ofs);
             samples[0].resize(src_width);
 
-            for (uint i = 1; i < params.m_num_comps; i++)
+            for (uint32_t i = 1; i < params.m_num_comps; i++)
             {
                 resamplers[i] = vogl_new(Resampler, src_width, src_height, dst_width, dst_height,
                                            params.m_wrapping ? Resampler::BOUNDARY_WRAP : Resampler::BOUNDARY_CLAMP, 0.0f, 1.0f,
@@ -519,18 +519,18 @@ namespace vogl
                 samples[i].resize(src_width);
             }
 
-            uint dst_y = 0;
+            uint32_t dst_y = 0;
 
-            for (uint src_y = 0; src_y < src_height; src_y++)
+            for (uint32_t src_y = 0; src_y < src_height; src_y++)
             {
                 const color_quad_u8 *pSrc = src.get_scanline(src_y);
 
-                for (uint x = 0; x < src_width; x++)
+                for (uint32_t x = 0; x < src_width; x++)
                 {
-                    for (uint c = 0; c < params.m_num_comps; c++)
+                    for (uint32_t c = 0; c < params.m_num_comps; c++)
                     {
-                        const uint comp_index = params.m_first_comp + c;
-                        const uint8 v = (*pSrc)[comp_index];
+                        const uint32_t comp_index = params.m_first_comp + c;
+                        const uint8_t v = (*pSrc)[comp_index];
 
                         if (!params.m_srgb || (comp_index == 3))
                             samples[c][x] = v * (1.0f / 255.0f);
@@ -541,11 +541,11 @@ namespace vogl
                     pSrc++;
                 }
 
-                for (uint c = 0; c < params.m_num_comps; c++)
+                for (uint32_t c = 0; c < params.m_num_comps; c++)
                 {
                     if (!resamplers[c]->put_line(&samples[c][0]))
                     {
-                        for (uint i = 0; i < params.m_num_comps; i++)
+                        for (uint32_t i = 0; i < params.m_num_comps; i++)
                             vogl_delete(resamplers[i]);
                         return false;
                     }
@@ -553,10 +553,10 @@ namespace vogl
 
                 for (;;)
                 {
-                    uint c;
+                    uint32_t c;
                     for (c = 0; c < params.m_num_comps; c++)
                     {
-                        const uint comp_index = params.m_first_comp + c;
+                        const uint32_t comp_index = params.m_first_comp + c;
 
                         const float *pOutput_samples = resamplers[c]->get_line();
                         if (!pOutput_samples)
@@ -566,7 +566,7 @@ namespace vogl
                         VOGL_ASSERT(dst_y < dst_height);
                         color_quad_u8 *pDst = dst.get_scanline(dst_y);
 
-                        for (uint x = 0; x < dst_width; x++)
+                        for (uint32_t x = 0; x < dst_width; x++)
                         {
                             if (linear)
                             {
@@ -597,7 +597,7 @@ namespace vogl
                 }
             }
 
-            for (uint i = 0; i < params.m_num_comps; i++)
+            for (uint32_t i = 0; i < params.m_num_comps; i++)
                 vogl_delete(resamplers[i]);
 
             return true;
@@ -605,8 +605,8 @@ namespace vogl
 
         bool resample(const image_f &src, image_f &dst, const resample_params &params)
         {
-            const uint src_width = src.get_width();
-            const uint src_height = src.get_height();
+            const uint32_t src_width = src.get_width();
+            const uint32_t src_height = src.get_height();
 
             if (math::maximum(src_width, src_height) > VOGL_RESAMPLER_MAX_DIMENSION)
             {
@@ -618,8 +618,8 @@ namespace vogl
             if (((int)params.m_num_comps < 1) || ((int)params.m_num_comps > (int)cMaxComponents))
                 return false;
 
-            const uint dst_width = params.m_dst_width;
-            const uint dst_height = params.m_dst_height;
+            const uint32_t dst_width = params.m_dst_width;
+            const uint32_t dst_height = params.m_dst_height;
 
             if ((math::minimum(dst_width, dst_height) < 1) || (math::maximum(dst_width, dst_height) > VOGL_RESAMPLER_MAX_DIMENSION))
             {
@@ -644,7 +644,7 @@ namespace vogl
                                        params.m_pFilter, (Resampler::Contrib_List *)NULL, (Resampler::Contrib_List *)NULL, params.m_filter_scale, params.m_filter_scale, params.m_x_ofs, params.m_y_ofs);
             samples[0].resize(src_width);
 
-            for (uint i = 1; i < params.m_num_comps; i++)
+            for (uint32_t i = 1; i < params.m_num_comps; i++)
             {
                 resamplers[i] = vogl_new(Resampler, src_width, src_height, dst_width, dst_height,
                                            params.m_wrapping ? Resampler::BOUNDARY_WRAP : Resampler::BOUNDARY_CLAMP, 0.0f, 1.0f,
@@ -652,28 +652,28 @@ namespace vogl
                 samples[i].resize(src_width);
             }
 
-            uint dst_y = 0;
+            uint32_t dst_y = 0;
 
-            for (uint src_y = 0; src_y < src_height; src_y++)
+            for (uint32_t src_y = 0; src_y < src_height; src_y++)
             {
                 const color_quad_f *pSrc = src.get_scanline(src_y);
 
-                for (uint x = 0; x < src_width; x++)
+                for (uint32_t x = 0; x < src_width; x++)
                 {
-                    for (uint c = 0; c < params.m_num_comps; c++)
+                    for (uint32_t c = 0; c < params.m_num_comps; c++)
                     {
-                        const uint comp_index = params.m_first_comp + c;
+                        const uint32_t comp_index = params.m_first_comp + c;
                         samples[c][x] = (*pSrc)[comp_index];
                     }
 
                     pSrc++;
                 }
 
-                for (uint c = 0; c < params.m_num_comps; c++)
+                for (uint32_t c = 0; c < params.m_num_comps; c++)
                 {
                     if (!resamplers[c]->put_line(&samples[c][0]))
                     {
-                        for (uint i = 0; i < params.m_num_comps; i++)
+                        for (uint32_t i = 0; i < params.m_num_comps; i++)
                             vogl_delete(resamplers[i]);
                         return false;
                     }
@@ -681,10 +681,10 @@ namespace vogl
 
                 for (;;)
                 {
-                    uint c;
+                    uint32_t c;
                     for (c = 0; c < params.m_num_comps; c++)
                     {
-                        const uint comp_index = params.m_first_comp + c;
+                        const uint32_t comp_index = params.m_first_comp + c;
 
                         const float *pOutput_samples = resamplers[c]->get_line();
                         if (!pOutput_samples)
@@ -693,7 +693,7 @@ namespace vogl
                         VOGL_ASSERT(dst_y < dst_height);
                         color_quad_f *pDst = dst.get_scanline(dst_y);
 
-                        for (uint x = 0; x < dst_width; x++)
+                        for (uint32_t x = 0; x < dst_width; x++)
                         {
                             (*pDst)[comp_index] = pOutput_samples[x];
                             pDst++;
@@ -707,7 +707,7 @@ namespace vogl
                 }
             }
 
-            for (uint i = 0; i < params.m_num_comps; i++)
+            for (uint32_t i = 0; i < params.m_num_comps; i++)
                 vogl_delete(resamplers[i]);
 
             return true;
@@ -715,8 +715,8 @@ namespace vogl
 
         bool resample_multithreaded(const image_u8 &src, image_u8 &dst, const resample_params &params)
         {
-            const uint src_width = src.get_width();
-            const uint src_height = src.get_height();
+            const uint32_t src_width = src.get_width();
+            const uint32_t src_height = src.get_height();
 
             if (math::maximum(src_width, src_height) > VOGL_RESAMPLER_MAX_DIMENSION)
             {
@@ -728,8 +728,8 @@ namespace vogl
             if (((int)params.m_num_comps < 1) || ((int)params.m_num_comps > (int)cMaxComponents))
                 return false;
 
-            const uint dst_width = params.m_dst_width;
-            const uint dst_height = params.m_dst_height;
+            const uint32_t dst_width = params.m_dst_width;
+            const uint32_t dst_height = params.m_dst_height;
 
             if ((math::minimum(dst_width, dst_height) < 1) || (math::maximum(dst_width, dst_height) > VOGL_RESAMPLER_MAX_DIMENSION))
             {
@@ -792,7 +792,7 @@ namespace vogl
             p.m_x_ofs = params.m_x_ofs;
             p.m_y_ofs = params.m_y_ofs;
 
-            uint resampler_comps = 4;
+            uint32_t resampler_comps = 4;
             if (params.m_num_comps == 1)
             {
                 p.m_fmt = threaded_resampler::cPF_Y_F32;
@@ -817,17 +817,17 @@ namespace vogl
             p.m_pDst_pixels = dst_samples.get_ptr();
             p.m_dst_pitch = dst_width * resampler_comps * sizeof(float);
 
-            for (uint src_y = 0; src_y < src_height; src_y++)
+            for (uint32_t src_y = 0; src_y < src_height; src_y++)
             {
                 const color_quad_u8 *pSrc = src.get_scanline(src_y);
                 float *pDst = src_samples.get_ptr() + src_width * resampler_comps * src_y;
 
-                for (uint x = 0; x < src_width; x++)
+                for (uint32_t x = 0; x < src_width; x++)
                 {
-                    for (uint c = 0; c < params.m_num_comps; c++)
+                    for (uint32_t c = 0; c < params.m_num_comps; c++)
                     {
-                        const uint comp_index = params.m_first_comp + c;
-                        const uint8 v = (*pSrc)[comp_index];
+                        const uint32_t comp_index = params.m_first_comp + c;
+                        const uint8_t v = (*pSrc)[comp_index];
 
                         if (!params.m_srgb || (comp_index == 3))
                             pDst[c] = v * (1.0f / 255.0f);
@@ -848,18 +848,18 @@ namespace vogl
             if (!dst.crop(params.m_dst_width, params.m_dst_height))
                 return false;
 
-            for (uint dst_y = 0; dst_y < dst_height; dst_y++)
+            for (uint32_t dst_y = 0; dst_y < dst_height; dst_y++)
             {
                 const float *pSrc = dst_samples.get_ptr() + dst_width * resampler_comps * dst_y;
                 color_quad_u8 *pDst = dst.get_scanline(dst_y);
 
-                for (uint x = 0; x < dst_width; x++)
+                for (uint32_t x = 0; x < dst_width; x++)
                 {
                     color_quad_u8 dst2(0, 0, 0, 255);
 
-                    for (uint c = 0; c < params.m_num_comps; c++)
+                    for (uint32_t c = 0; c < params.m_num_comps; c++)
                     {
-                        const uint comp_index = params.m_first_comp + c;
+                        const uint32_t comp_index = params.m_first_comp + c;
                         const float v = pSrc[c];
 
                         if ((!params.m_srgb) || (comp_index == 3))
@@ -899,26 +899,26 @@ namespace vogl
                 return resample_single_thread(src, dst, params);
         }
 
-        bool compute_delta(image_u8 &dest, const image_u8 &a, const image_u8 &b, uint scale)
+        bool compute_delta(image_u8 &dest, const image_u8 &a, const image_u8 &b, uint32_t scale)
         {
             if ((a.get_width() != b.get_width()) || (a.get_height() != b.get_height()))
                 return false;
 
             dest.crop(a.get_width(), b.get_height());
 
-            for (uint y = 0; y < a.get_height(); y++)
+            for (uint32_t y = 0; y < a.get_height(); y++)
             {
-                for (uint x = 0; x < a.get_width(); x++)
+                for (uint32_t x = 0; x < a.get_width(); x++)
                 {
                     const color_quad_u8 &ca = a(x, y);
                     const color_quad_u8 &cb = b(x, y);
 
                     color_quad_u8 cd;
-                    for (uint c = 0; c < 4; c++)
+                    for (uint32_t c = 0; c < 4; c++)
                     {
                         int d = (ca[c] - cb[c]) * scale + 128;
                         d = math::clamp(d, 0, 255);
-                        cd[c] = static_cast<uint8>(d);
+                        cd[c] = static_cast<uint8_t>(d);
                     }
 
                     dest(x, y) = cd;
@@ -930,11 +930,11 @@ namespace vogl
 
         // See page 605 of http://www.cns.nyu.edu/pub/eero/wang03-reprint.pdf
         // Image Quality Assessment: From Error Visibility to Structural Similarity
-        double compute_block_ssim(uint t, const uint8 *pX, const uint8 *pY)
+        double compute_block_ssim(uint32_t t, const uint8_t *pX, const uint8_t *pY)
         {
             double ave_x = 0.0f;
             double ave_y = 0.0f;
-            for (uint i = 0; i < t; i++)
+            for (uint32_t i = 0; i < t; i++)
             {
                 ave_x += pX[i];
                 ave_y += pY[i];
@@ -945,7 +945,7 @@ namespace vogl
 
             double var_x = 0.0f;
             double var_y = 0.0f;
-            for (uint i = 0; i < t; i++)
+            for (uint32_t i = 0; i < t; i++)
             {
                 var_x += math::square(pX[i] - ave_x);
                 var_y += math::square(pY[i] - ave_y);
@@ -955,7 +955,7 @@ namespace vogl
             var_y = sqrt(var_y / (t - 1));
 
             double covar_xy = 0.0f;
-            for (uint i = 0; i < t; i++)
+            for (uint32_t i = 0; i < t; i++)
                 covar_xy += (pX[i] - ave_x) * (pY[i] - ave_y);
 
             covar_xy /= (t - 1);
@@ -971,29 +971,29 @@ namespace vogl
 
         double compute_ssim(const image_u8 &a, const image_u8 &b, int channel_index)
         {
-            const uint N = 8;
-            uint8 sx[N * N], sy[N * N];
+            const uint32_t N = 8;
+            uint8_t sx[N * N], sy[N * N];
 
             double total_ssim = 0.0f;
-            uint total_blocks = 0;
+            uint32_t total_blocks = 0;
 
-            for (uint y = 0; y < a.get_height(); y += N)
+            for (uint32_t y = 0; y < a.get_height(); y += N)
             {
-                for (uint x = 0; x < a.get_width(); x += N)
+                for (uint32_t x = 0; x < a.get_width(); x += N)
                 {
-                    for (uint iy = 0; iy < N; iy++)
+                    for (uint32_t iy = 0; iy < N; iy++)
                     {
-                        for (uint ix = 0; ix < N; ix++)
+                        for (uint32_t ix = 0; ix < N; ix++)
                         {
                             if (channel_index < 0)
-                                sx[ix + iy * N] = (uint8)a.get_clamped(x + ix, y + iy).get_luma();
+                                sx[ix + iy * N] = (uint8_t)a.get_clamped(x + ix, y + iy).get_luma();
                             else
-                                sx[ix + iy * N] = (uint8)a.get_clamped(x + ix, y + iy)[channel_index];
+                                sx[ix + iy * N] = (uint8_t)a.get_clamped(x + ix, y + iy)[channel_index];
 
                             if (channel_index < 0)
-                                sy[ix + iy * N] = (uint8)b.get_clamped(x + ix, y + iy).get_luma();
+                                sy[ix + iy * N] = (uint8_t)b.get_clamped(x + ix, y + iy).get_luma();
                             else
-                                sy[ix + iy * N] = (uint8)b.get_clamped(x + ix, y + iy)[channel_index];
+                                sy[ix + iy * N] = (uint8_t)b.get_clamped(x + ix, y + iy)[channel_index];
                         }
                     }
 
@@ -1001,7 +1001,7 @@ namespace vogl
                     total_ssim += ssim;
                     total_blocks++;
 
-                    //uint ssim_c = (uint)math::clamp<double>(ssim * 127.0f + 128.0f, 0, 255);
+                    //uint32_t ssim_c = (uint32_t)math::clamp<double>(ssim * 127.0f + 128.0f, 0, 255);
                     //yimg(x / N, y / N).set(ssim_c, ssim_c, ssim_c, 255);
                 }
             }
@@ -1037,13 +1037,13 @@ namespace vogl
                 console::printf("%s Error: Max: %3u, Mean: %3.3f, MSE: %3.3f, RMSE: %3.3f, PSNR: %3.3f, SSIM: %1.6f", pName, mMax, mMean, mMeanSquared, mRootMeanSquared, mPeakSNR, mSSIM);
         }
 
-        bool error_metrics::compute(const image_u8 &a, const image_u8 &b, uint first_channel, uint num_channels, bool average_component_error)
+        bool error_metrics::compute(const image_u8 &a, const image_u8 &b, uint32_t first_channel, uint32_t num_channels, bool average_component_error)
         {
             //if ( (!a.get_width()) || (!b.get_height()) || (a.get_width() != b.get_width()) || (a.get_height() != b.get_height()) )
             //   return false;
 
-            const uint width = math::minimum(a.get_width(), b.get_width());
-            const uint height = math::minimum(a.get_height(), b.get_height());
+            const uint32_t width = math::minimum(a.get_width(), b.get_width());
+            const uint32_t height = math::minimum(a.get_height(), b.get_height());
 
             VOGL_ASSERT((first_channel < 4U) && (first_channel + num_channels <= 4U));
 
@@ -1051,9 +1051,9 @@ namespace vogl
             double hist[256];
             utils::zero_object(hist);
 
-            for (uint y = 0; y < height; y++)
+            for (uint32_t y = 0; y < height; y++)
             {
-                for (uint x = 0; x < width; x++)
+                for (uint32_t x = 0; x < width; x++)
                 {
                     const color_quad_u8 &ca = a(x, y);
                     const color_quad_u8 &cb = b(x, y);
@@ -1062,7 +1062,7 @@ namespace vogl
                         hist[labs(ca.get_luma() - cb.get_luma())]++;
                     else
                     {
-                        for (uint c = 0; c < num_channels; c++)
+                        for (uint32_t c = 0; c < num_channels; c++)
                             hist[labs(ca[first_channel + c] - cb[first_channel + c])]++;
                     }
                 }
@@ -1070,7 +1070,7 @@ namespace vogl
 
             mMax = 0;
             double sum = 0.0f, sum2 = 0.0f;
-            for (uint i = 0; i < 256; i++)
+            for (uint32_t i = 0; i < 256; i++)
             {
                 if (!hist[i])
                     continue;
@@ -1087,7 +1087,7 @@ namespace vogl
             double total_values = width * height;
 
             if (average_component_error)
-                total_values *= math::clamp<uint>(num_channels, 1, 4);
+                total_values *= math::clamp<uint32_t>(num_channels, 1, 4);
 
             mMean = math::clamp<double>(sum / total_values, 0.0f, 255.0f);
             mMeanSquared = math::clamp<double>(sum2 / total_values, 0.0f, 255.0f * 255.0f);
@@ -1142,7 +1142,7 @@ namespace vogl
             }
         }
 
-        static uint8 regen_z(uint x, uint y)
+        static uint8_t regen_z(uint32_t x, uint32_t y)
         {
             float vx = math::clamp((x - 128.0f) * 1.0f / 127.0f, -1.0f, 1.0f);
             float vy = math::clamp((y - 128.0f) * 1.0f / 127.0f, -1.0f, 1.0f);
@@ -1157,7 +1157,7 @@ namespace vogl
 
             int ib = math::float_to_int(vz);
 
-            return static_cast<uint8>(math::clamp(ib, 0, 255));
+            return static_cast<uint8_t>(math::clamp(ib, 0, 255));
         }
 
         void convert_image(image_u8 &img, image_utils::conversion_type conv_type)
@@ -1236,9 +1236,9 @@ namespace vogl
                 }
             }
 
-            for (uint y = 0; y < img.get_height(); y++)
+            for (uint32_t y = 0; y < img.get_height(); y++)
             {
-                for (uint x = 0; x < img.get_width(); x++)
+                for (uint32_t x = 0; x < img.get_width(); x++)
                 {
                     color_quad_u8 src(img(x, y));
                     color_quad_u8 dst;
@@ -1318,12 +1318,12 @@ namespace vogl
                             dst.r = src.r;
                             dst.g = src.g;
                             dst.b = src.b;
-                            dst.a = static_cast<uint8>(src.get_luma());
+                            dst.a = static_cast<uint8_t>(src.get_luma());
                             break;
                         }
                         case image_utils::cConversion_Y_To_RGB:
                         {
-                            uint8 y2 = static_cast<uint8>(src.get_luma());
+                            uint8_t y2 = static_cast<uint8_t>(src.get_luma());
                             dst.r = y2;
                             dst.g = y2;
                             dst.b = y2;
@@ -1340,7 +1340,7 @@ namespace vogl
                         }
                         case image_utils::cConversion_To_Y:
                         {
-                            uint8 y2 = static_cast<uint8>(src.get_luma());
+                            uint8_t y2 = static_cast<uint8_t>(src.get_luma());
                             dst.r = y2;
                             dst.g = y2;
                             dst.b = y2;
@@ -1448,7 +1448,7 @@ namespace vogl
             return image_utils::cConversion_Invalid;
         }
 
-        double compute_std_dev(uint n, const color_quad_u8 *pPixels, uint first_channel, uint num_channels)
+        double compute_std_dev(uint32_t n, const color_quad_u8 *pPixels, uint32_t first_channel, uint32_t num_channels)
         {
             if (!n)
                 return 0.0f;
@@ -1456,21 +1456,21 @@ namespace vogl
             double sum = 0.0f;
             double sum2 = 0.0f;
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
                 const color_quad_u8 &cp = pPixels[i];
 
                 if (!num_channels)
                 {
-                    uint l = cp.get_luma();
+                    uint32_t l = cp.get_luma();
                     sum += l;
                     sum2 += l * l;
                 }
                 else
                 {
-                    for (uint c = 0; c < num_channels; c++)
+                    for (uint32_t c = 0; c < num_channels; c++)
                     {
-                        uint l = cp[first_channel + c];
+                        uint32_t l = cp[first_channel + c];
                         sum += l;
                         sum2 += l * l;
                     }
@@ -1487,7 +1487,7 @@ namespace vogl
             return sqrt(var);
         }
 
-        uint8 *read_image_from_memory(const uint8 *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename)
+        uint8_t *read_image_from_memory(const uint8_t *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename)
         {
             *pWidth = 0;
             *pHeight = 0;
@@ -1526,12 +1526,12 @@ namespace vogl
             else
                 *pActualComps = 3;
 
-            uint8 *pDst = NULL;
+            uint8_t *pDst = NULL;
             if (req_comps == 4)
             {
-                pDst = (uint8 *)vogl_malloc(tex.get_total_pixels() * sizeof(uint32));
-                uint8 *pSrc = (uint8 *)pImg->get_ptr();
-                memcpy(pDst, pSrc, tex.get_total_pixels() * sizeof(uint32));
+                pDst = (uint8_t *)vogl_malloc(tex.get_total_pixels() * sizeof(uint32_t));
+                uint8_t *pSrc = (uint8_t *)pImg->get_ptr();
+                memcpy(pDst, pSrc, tex.get_total_pixels() * sizeof(uint32_t));
             }
             else
             {
@@ -1544,7 +1544,7 @@ namespace vogl
                 }
 
                 pixel_packer packer(req_comps, 8);
-                uint32 n;
+                uint32_t n;
                 pDst = image_utils::pack_image(*pImg, packer, n);
             }
 
@@ -1555,7 +1555,7 @@ namespace vogl
         // TODO: Rewrite this - the license is too restrictive
         // N=width, M=height
         // image in memory is: [x][y][c], C bytes per pixel
-        template <uint C>
+        template <uint32_t C>
         void FFT2D(int n, int m, bool inverse, const float *gRe, const float *gIm, float *GRe, float *GIm)
         {
             int l2n = 0, p = 1; //l2n will become log_2(n)
@@ -1740,12 +1740,12 @@ namespace vogl
         // N=width, M=height
         // image in memory is: [x][y][c], C bytes per pixel
         //void FFT2D(int n, int m, bool inverse, const float *gRe, const float *gIm, float *GRe, float *GIm)
-        bool forward_fourier_transform(const image_u8 &src, image_u8 &dst, uint comp_mask)
+        bool forward_fourier_transform(const image_u8 &src, image_u8 &dst, uint32_t comp_mask)
         {
-            const uint width = src.get_width();
-            const uint height = src.get_height();
-            const uint half_width = src.get_width() / 2;
-            const uint half_height = src.get_height() / 2;
+            const uint32_t width = src.get_width();
+            const uint32_t height = src.get_height();
+            const uint32_t half_width = src.get_width() / 2;
+            const uint32_t half_height = src.get_height() / 2;
 
             if (!math::is_power_of_2(width) || !math::is_power_of_2(height))
             {
@@ -1758,23 +1758,23 @@ namespace vogl
             vogl::vector2D<float> re0(height, width), im0(height, width);
             vogl::vector2D<float> re1(height, width), im1(height, width);
 
-            for (uint c = 0; c < 4; c++)
+            for (uint32_t c = 0; c < 4; c++)
             {
                 if ((comp_mask & (1 << c)) == 0)
                     continue;
 
-                for (uint y = 0; y < height; y++)
-                    for (uint x = 0; x < width; x++)
+                for (uint32_t y = 0; y < height; y++)
+                    for (uint32_t x = 0; x < width; x++)
                         re0(y, x) = src(x, y)[c];
 
                 FFT2D<1>(width, height, false, re0.get_ptr(), im0.get_ptr(), re1.get_ptr(), im1.get_ptr());
 
-                for (uint y = 0; y < height; y++)
+                for (uint32_t y = 0; y < height; y++)
                 {
-                    for (uint x = 0; x < width; x++)
+                    for (uint32_t x = 0; x < width; x++)
                     {
-                        dst(x, y)[c] = static_cast<uint8>(math::clamp<float>(128.5f + re1.at_wrapped(y + half_height, x + half_width), 0.0f, 255.0f));
-                        dst(x + width, y)[c] = static_cast<uint8>(math::clamp<float>(128.5f + im1.at_wrapped(y + half_height, x + half_width), 0.0f, 255.0f));
+                        dst(x, y)[c] = static_cast<uint8_t>(math::clamp<float>(128.5f + re1.at_wrapped(y + half_height, x + half_width), 0.0f, 255.0f));
+                        dst(x + width, y)[c] = static_cast<uint8_t>(math::clamp<float>(128.5f + im1.at_wrapped(y + half_height, x + half_width), 0.0f, 255.0f));
                     }
                 }
             }
@@ -1782,7 +1782,7 @@ namespace vogl
             return true;
         }
 
-        void gaussian_filter(image_u8 &dst, const image_u8 &orig_img, uint width_divisor, uint height_divisor, uint odd_filter_width, float sigma_sqr, bool wrapping)
+        void gaussian_filter(image_u8 &dst, const image_u8 &orig_img, uint32_t width_divisor, uint32_t height_divisor, uint32_t odd_filter_width, float sigma_sqr, bool wrapping)
         {
             VOGL_ASSERT(odd_filter_width && (odd_filter_width & 1));
             odd_filter_width |= 1;
@@ -1827,7 +1827,7 @@ namespace vogl
             }
         }
 
-        void convolution_filter(image_u8 &dst, const image_u8 &src, const float *pWeights, uint M, uint N, bool wrapping)
+        void convolution_filter(image_u8 &dst, const image_u8 &src, const float *pWeights, uint32_t M, uint32_t N, bool wrapping)
         {
             if (((M & 1) == 0) || ((N & 1) == 0))
             {
@@ -1874,7 +1874,7 @@ namespace vogl
             }
         }
 
-        void convolution_filter(image_f &dst, const image_f &src, const float *pWeights, uint M, uint N, bool wrapping)
+        void convolution_filter(image_f &dst, const image_f &src, const float *pWeights, uint32_t M, uint32_t N, bool wrapping)
         {
             if (((M & 1) == 0) || ((N & 1) == 0))
             {

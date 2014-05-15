@@ -58,12 +58,12 @@ namespace vogl
     struct command_line_param_desc
     {
         const char *m_pName;
-        uint m_num_values;
+        uint32_t m_num_values;
         bool m_support_listing_file;
         const char *m_pDesc;
     };
 
-    void dump_command_line_info(uint n, const command_line_param_desc *pDesc, const char *prefix = NULL);
+    void dump_command_line_info(uint32_t n, const command_line_param_desc *pDesc, const char *prefix = NULL);
 
     // I'm pretty torn about this class's design. I flip flop between hating it to tolerating it on every update.
     class command_line_params
@@ -77,8 +77,8 @@ namespace vogl
             }
 
             dynamic_string_array m_values;
-            uint m_split_param_index;
-            int8 m_modifier;
+            uint32_t m_split_param_index;
+            int8_t m_modifier;
         };
 
         // TODO: Get rid of std::multimap!
@@ -114,23 +114,23 @@ namespace vogl
             const char *m_pParam_accept_prefix;
         };
 
-        bool parse(const dynamic_string_array &params, uint total_param_descs, const command_line_param_desc *pParam_desc, const parse_config &config);
-        bool parse(const char *pCmd_line, uint total_param_descs, const command_line_param_desc *pParam_desc, const parse_config &config);
+        bool parse(const dynamic_string_array &params, uint32_t total_param_descs, const command_line_param_desc *pParam_desc, const parse_config &config);
+        bool parse(const char *pCmd_line, uint32_t total_param_descs, const command_line_param_desc *pParam_desc, const parse_config &config);
 
         const dynamic_string_array &get_split_param_array() const
         {
             return m_params;
         }
-        bool is_split_param_an_option(uint split_param_array_index) const;
+        bool is_split_param_an_option(uint32_t split_param_array_index) const;
 
         const param_map &get_param_map() const
         {
             return m_param_map;
         }
 
-        uint get_num_params() const
+        uint32_t get_num_params() const
         {
-            return static_cast<uint>(m_param_map.size());
+            return static_cast<uint32_t>(m_param_map.size());
         }
 
         param_map_const_iterator begin() const
@@ -145,31 +145,31 @@ namespace vogl
         bool find(const char *pKey, param_map_const_iterator &begin, param_map_const_iterator &end) const;
 
         // Returns the # of command line params matching key (use "" key string for regular/non-option params)
-        uint get_count(const char *pKey) const;
+        uint32_t get_count(const char *pKey) const;
 
         // Returns end() if param cannot be found, or index is out of range.
-        param_map_const_iterator get_param(const char *pKey, uint key_index) const;
+        param_map_const_iterator get_param(const char *pKey, uint32_t key_index) const;
 
         bool has_key(const char *pKey) const
         {
             return get_param(pKey, 0) != end();
         }
 
-        bool has_value(const char *pKey, uint key_index) const;
-        uint get_num_values(const char *pKey, uint key_index) const;
+        bool has_value(const char *pKey, uint32_t key_index) const;
+        uint32_t get_num_values(const char *pKey, uint32_t key_index) const;
 
-        bool get_value_as_bool(const char *pKey, uint key_index = 0, bool def = false) const;
+        bool get_value_as_bool(const char *pKey, uint32_t key_index = 0, bool def = false) const;
 
         // *pSuccess will be set to false if the value can't parse, or if the key isn't found, otherwise true (even if the value had to be clamped to the specified range)
-        int get_value_as_int(const char *pKey, uint key_index = 0, int def = 0, int l = cINT32_MIN, int h = cINT32_MAX, uint value_index = 0, bool *pSuccess = NULL) const;
-        int64_t get_value_as_int64(const char *pKey, uint key_index = 0, int64_t def = 0, int64_t l = cINT64_MIN, int64_t h = cINT64_MAX, uint value_index = 0, bool *pSuccess = NULL) const;
-        uint get_value_as_uint(const char *pKey, uint key_index = 0, uint def = 0, uint l = 0, uint h = cUINT32_MAX, uint value_index = 0, bool *pSuccess = NULL) const;
-        uint64_t get_value_as_uint64(const char *pKey, uint key_index = 0, uint64_t def = 0, uint64_t l = 0, uint64_t h = cUINT64_MAX, uint value_index = 0, bool *pSuccess = NULL) const;
-        float get_value_as_float(const char *pKey, uint key_index = 0, float def = 0.0f, float l = -math::cNearlyInfinite, float h = math::cNearlyInfinite, uint value_index = 0, bool *pSuccess = NULL) const;
+        int get_value_as_int(const char *pKey, uint32_t key_index = 0, int def = 0, int l = cINT32_MIN, int h = cINT32_MAX, uint32_t value_index = 0, bool *pSuccess = NULL) const;
+        int64_t get_value_as_int64(const char *pKey, uint32_t key_index = 0, int64_t def = 0, int64_t l = cINT64_MIN, int64_t h = cINT64_MAX, uint32_t value_index = 0, bool *pSuccess = NULL) const;
+        uint32_t get_value_as_uint(const char *pKey, uint32_t key_index = 0, uint32_t def = 0, uint32_t l = 0, uint32_t h = cUINT32_MAX, uint32_t value_index = 0, bool *pSuccess = NULL) const;
+        uint64_t get_value_as_uint64(const char *pKey, uint32_t key_index = 0, uint64_t def = 0, uint64_t l = 0, uint64_t h = cUINT64_MAX, uint32_t value_index = 0, bool *pSuccess = NULL) const;
+        float get_value_as_float(const char *pKey, uint32_t key_index = 0, float def = 0.0f, float l = -math::cNearlyInfinite, float h = math::cNearlyInfinite, uint32_t value_index = 0, bool *pSuccess = NULL) const;
 
-        bool get_value_as_string(dynamic_string &value, const char *pKey, uint key_index = 0, const char *pDef = "", uint value_index = 0) const;
-        dynamic_string get_value_as_string(const char *pKey, uint key_index = 0, const char *pDef = "", uint value_index = 0) const;
-        const dynamic_string &get_value_as_string_or_empty(const char *pKey, uint key_index = 0, uint value_index = 0) const;
+        bool get_value_as_string(dynamic_string &value, const char *pKey, uint32_t key_index = 0, const char *pDef = "", uint32_t value_index = 0) const;
+        dynamic_string get_value_as_string(const char *pKey, uint32_t key_index = 0, const char *pDef = "", uint32_t value_index = 0) const;
+        const dynamic_string &get_value_as_string_or_empty(const char *pKey, uint32_t key_index = 0, uint32_t value_index = 0) const;
 
     private:
         dynamic_string_array m_params;

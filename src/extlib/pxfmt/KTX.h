@@ -13,6 +13,10 @@
 #include <map>
 
 
+// FIXME - REMOVE THIS MACRO, AND ITS USE
+#define TEMPORARILY_DISABLE_SIZE_CHECK
+
+
 #pragma comment( lib, "glew32.lib" )
 
 

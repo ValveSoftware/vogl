@@ -60,16 +60,16 @@ namespace vogl
         };
 
     eConsoleMessageType console::m_default_category = cInfoConsoleMessage;
-    uint console::m_num_output_funcs = 0;
+    uint32_t console::m_num_output_funcs = 0;
     bool console::m_prefixes = true;
     bool console::m_output_disabled;
     data_stream *console::m_pLog_stream;
     mutex *console::m_pMutex;
-    uint console::m_num_messages[cCMTTotal];
+    uint32_t console::m_num_messages[cCMTTotal];
     bool console::m_at_beginning_of_line = true;
     char console::m_tool_prefix[256];
 
-    const uint cConsoleBufSize = 256 * 1024;
+    const uint32_t cConsoleBufSize = 256 * 1024;
 
     void console::init()
     {
@@ -107,7 +107,7 @@ namespace vogl
     {
         dynamic_string msgname = str;
 
-        for (uint type = 0; type < VOGL_ARRAY_SIZE(s_msgnames); type++)
+        for (uint32_t type = 0; type < VOGL_ARRAY_SIZE(s_msgnames); type++)
         {
             if (msgname.compare(s_msgnames[type], false) == 0)
                 return (eConsoleMessageType)type;
@@ -127,7 +127,7 @@ namespace vogl
         static char buf[cConsoleBufSize];
 
         char *pDst = buf;
-        uint buf_left = sizeof(buf);
+        uint32_t buf_left = sizeof(buf);
 
         if ((m_prefixes) && (m_at_beginning_of_line))
         {
@@ -172,7 +172,7 @@ namespace vogl
         {
             console_func *funcs = get_output_funcs();
 
-            for (uint i = 0; i < m_num_output_funcs; i++)
+            for (uint32_t i = 0; i < m_num_output_funcs; i++)
                 if (funcs[i].m_func(type, buf, funcs[i].m_pData))
                     handled = true;
         }
@@ -184,7 +184,7 @@ namespace vogl
             fputs(buf, pFile);
         }
 
-        uint n = static_cast<uint>(strlen(buf));
+        uint32_t n = static_cast<uint32_t>(strlen(buf));
         m_at_beginning_of_line = (n) && (buf[n - 1] == '\n');
 
         if ((type != cProgressConsoleMessage) && (m_pLog_stream))

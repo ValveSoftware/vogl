@@ -53,13 +53,13 @@ public:
 
     // Copies texels from a non-MSAA texture into a single sample of a MSAA texture.
     // Multiple sources, one multisampled destination. Caller creates destination.
-    bool combine(GLuint src_texture, uint dest_sample_index, GLenum dest_target, GLuint dest_texture);
+    bool combine(GLuint src_texture, uint32_t dest_sample_index, GLenum dest_target, GLuint dest_texture);
 
     // Copies MSAA stencil samples from an MSAA 2D to 2D_ARRAY texture to a MSAA 2D or 2D_ARRAY color texture.
     bool copy_stencil_samples_to_color(GLenum target, GLuint src_texture, GLuint &dest_texture);
 
     // Copies MSAA color samples from an MSAA 2D to 2D_ARRAY texture to the stencil buffer of a MSAA 2D or 2D_ARRAY depth/stencil texture.
-    bool copy_color_sample_to_stencil(GLuint src_texture, uint dest_sample_index, GLenum dest_target, GLuint dest_texture);
+    bool copy_color_sample_to_stencil(GLuint src_texture, uint32_t dest_sample_index, GLenum dest_target, GLuint dest_texture);
 
 private:
     vogl_context_info m_context_info;

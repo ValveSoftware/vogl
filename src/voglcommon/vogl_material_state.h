@@ -68,9 +68,9 @@ private:
 
     bool m_valid;
 
-    bool set_material_parameter(uint side, GLenum pname) const;
+    bool set_material_parameter(uint32_t side, GLenum pname) const;
 
-    static inline GLenum get_face(uint side)
+    static inline GLenum get_face(uint32_t side)
     {
         return side ? GL_BACK : GL_FRONT;
     }

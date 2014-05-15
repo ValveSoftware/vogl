@@ -53,9 +53,9 @@ public:
     bool serialize(json_node &node, vogl_blob_manager &blob_manager) const;
     bool deserialize(const json_node &node, const vogl_blob_manager &blob_manager);
 
-    uint get_matrix_stack_depth(GLenum target, uint index) const;
+    uint32_t get_matrix_stack_depth(GLenum target, uint32_t index) const;
 
-    const matrix44D *get_matrix(GLenum target, uint index, uint depth) const;
+    const matrix44D *get_matrix(GLenum target, uint32_t index, uint32_t depth) const;
 
 private:
     typedef vogl::vector<matrix44D> matrix_vec;
@@ -63,7 +63,7 @@ private:
     class matrix_key
     {
     public:
-        matrix_key(GLenum target = GL_NONE, uint index = 0)
+        matrix_key(GLenum target = GL_NONE, uint32_t index = 0)
             : m_target(target),
               m_index(index)
         {
@@ -89,7 +89,7 @@ private:
         }
 
         GLenum m_target;
-        uint m_index;
+        uint32_t m_index;
     };
 
     typedef vogl::map<matrix_key, matrix_vec> matrix_map;
@@ -97,8 +97,8 @@ private:
 
     bool m_valid;
 
-    bool restore_matrix_stack(const vogl_context_info &context_info, GLenum matrix, uint index) const;
-    bool save_matrix_stack(const vogl_context_info &context_info, GLenum matrix, uint index, GLenum depth_get, GLenum matrix_get);
+    bool restore_matrix_stack(const vogl_context_info &context_info, GLenum matrix, uint32_t index) const;
+    bool save_matrix_stack(const vogl_context_info &context_info, GLenum matrix, uint32_t index, GLenum depth_get, GLenum matrix_get);
 };
 
 #endif // VOGL_MATRIX_STATE_H

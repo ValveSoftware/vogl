@@ -95,7 +95,7 @@ vec4I vogl_get_gl_vec4I(GLenum pname)
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_gl_integer_indexed
 //----------------------------------------------------------------------------------------------------------------------
-GLint vogl_get_gl_integer_indexed(GLenum pname, uint index)
+GLint vogl_get_gl_integer_indexed(GLenum pname, uint32_t index)
 {
     VOGL_FUNC_TRACER
 
@@ -123,7 +123,7 @@ GLint64 vogl_get_gl_integer64(GLenum pname)
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_gl_integer64_indexed
 //----------------------------------------------------------------------------------------------------------------------
-GLint64 vogl_get_gl_integer64_indexed(GLenum pname, uint index)
+GLint64 vogl_get_gl_integer64_indexed(GLenum pname, uint32_t index)
 {
     VOGL_FUNC_TRACER
 
@@ -151,7 +151,7 @@ GLboolean vogl_get_gl_boolean(GLenum pname)
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_gl_boolean_indexed
 //----------------------------------------------------------------------------------------------------------------------
-GLboolean vogl_get_gl_boolean_indexed(GLenum pname, uint index)
+GLboolean vogl_get_gl_boolean_indexed(GLenum pname, uint32_t index)
 {
     VOGL_FUNC_TRACER
 
@@ -247,197 +247,13 @@ matrix44D vogl_get_gl_matrix44D(GLenum pname)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_get_gl_type_size (derived from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-uint32_t vogl_get_gl_type_size(uint32_t ogl_type)
-{
-    VOGL_FUNC_TRACER
-
-    switch (ogl_type)
-    {
-        case GL_BOOL:
-        case GL_UNSIGNED_BYTE:
-        case GL_BYTE:
-        case GL_UNSIGNED_BYTE_3_3_2:
-        case GL_UNSIGNED_BYTE_2_3_3_REV:
-            return 1;
-        case GL_HALF_FLOAT:
-        case GL_UNSIGNED_SHORT:
-        case GL_SHORT:
-        case GL_UNSIGNED_SHORT_5_6_5:
-        case GL_UNSIGNED_SHORT_5_6_5_REV:
-        case GL_UNSIGNED_SHORT_4_4_4_4:
-        case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-        case GL_UNSIGNED_SHORT_5_5_5_1:
-        case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-        case GL_2_BYTES:
-            return 2;
-        case GL_3_BYTES:
-            return 3;
-        case GL_FLOAT:
-        case GL_UNSIGNED_INT:
-        case GL_INT:
-        case GL_FIXED:
-        case GL_UNSIGNED_INT_8_8_8_8:
-        case GL_UNSIGNED_INT_8_8_8_8_REV:
-        case GL_UNSIGNED_INT_10_10_10_2:
-        case GL_UNSIGNED_INT_2_10_10_10_REV:
-        case GL_UNSIGNED_INT_24_8:
-        case GL_UNSIGNED_INT_10F_11F_11F_REV:
-        case GL_UNSIGNED_INT_5_9_9_9_REV:
-        case GL_INT_2_10_10_10_REV:
-        case GL_4_BYTES:
-            return 4;
-        case GL_DOUBLE:
-            return 8;
-        default:
-            vogl_warning_printf("%s: unknown GL type: 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, ogl_type);
-            break;
-    }
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_image_format_channels (derived from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-uint vogl_get_image_format_channels(GLenum format)
-{
-    VOGL_FUNC_TRACER
-
-    switch (format)
-    {
-        case GL_COLOR_INDEX:
-        case GL_RED:
-        case GL_RED_INTEGER:
-        case GL_GREEN:
-        case GL_GREEN_INTEGER:
-        case GL_BLUE:
-        case GL_BLUE_INTEGER:
-        case GL_ALPHA:
-        case GL_ALPHA_INTEGER:
-        case GL_INTENSITY:
-        case GL_LUMINANCE:
-        case GL_LUMINANCE_INTEGER_EXT:
-        case GL_DEPTH_COMPONENT:
-        case GL_STENCIL_INDEX:
-            return 1;
-        case GL_DEPTH_STENCIL:
-        case GL_LUMINANCE_ALPHA:
-        case GL_LUMINANCE_ALPHA_INTEGER_EXT:
-        case GL_RG:
-        case GL_RG_INTEGER:
-        case GL_422_EXT:             // (luminance, chrominance)
-        case GL_422_REV_EXT:         // (luminance, chrominance)
-        case GL_422_AVERAGE_EXT:     // (luminance, chrominance)
-        case GL_422_REV_AVERAGE_EXT: // (luminance, chrominance)
-        case GL_HILO_NV:             // (hi, lo)
-        case GL_DSDT_NV:             // (ds, dt)
-        case GL_YCBCR_422_APPLE:     // (luminance, chroma)
-        case GL_RGB_422_APPLE:       // (G, B) on even pixels, (G, R) on odd pixels
-        case GL_YCRCB_422_SGIX:      // (Y, [Cb,Cr])
-            return 2;
-        case GL_RGB:
-        case GL_RGB_INTEGER:
-        case GL_BGR:
-        case GL_BGR_INTEGER:
-        case GL_DSDT_MAG_NV:    // (ds, dt, magnitude)
-        case GL_YCRCB_444_SGIX: // (Cb, Y, Cr)
-            return 3;
-        case GL_RGBA:
-        case GL_RGBA_INTEGER:
-        case GL_BGRA:
-        case GL_BGRA_INTEGER:
-        case GL_ABGR_EXT:
-        case GL_CMYK_EXT:
-        case GL_DSDT_MAG_VIB_NV: // (ds, dt, magnitude, vibrance)
-            return 4;
-        case GL_CMYKA_EXT:
-            return 5;
-        case GL_FORMAT_SUBSAMPLE_24_24_OML:
-        case GL_FORMAT_SUBSAMPLE_244_244_OML:
-            // requires UNSIGNED_INT_10_10_10_2, so this value will be ignored
-            return 0;
-        default:
-            vogl_warning_printf("%s: unknown format 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, format);
-            break;
-    }
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_image_format_info (derived from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-void vogl_get_image_format_info(GLenum format, GLenum type, uint &num_channels, uint &bits_per_element, uint &bits_per_pixel)
-{
-    VOGL_FUNC_TRACER
-
-    num_channels = vogl_get_image_format_channels(format);
-
-    switch (type)
-    {
-        case GL_BITMAP:
-            bits_per_pixel = bits_per_element = 1;
-            break;
-        case GL_BYTE:
-        case GL_UNSIGNED_BYTE:
-            bits_per_element = 8;
-            bits_per_pixel = bits_per_element * num_channels;
-            break;
-        case GL_SHORT:
-        case GL_UNSIGNED_SHORT:
-        case GL_HALF_FLOAT:
-            bits_per_element = 16;
-            bits_per_pixel = bits_per_element * num_channels;
-            break;
-        case GL_INT:
-        case GL_UNSIGNED_INT:
-        case GL_FLOAT:
-            bits_per_element = 32;
-            bits_per_pixel = bits_per_element * num_channels;
-            break;
-        case GL_UNSIGNED_BYTE_3_3_2:
-        case GL_UNSIGNED_BYTE_2_3_3_REV:
-            bits_per_pixel = bits_per_element = 8;
-            break;
-        case GL_UNSIGNED_SHORT_4_4_4_4:
-        case GL_UNSIGNED_SHORT_4_4_4_4_REV:
-        case GL_UNSIGNED_SHORT_5_5_5_1:
-        case GL_UNSIGNED_SHORT_1_5_5_5_REV:
-        case GL_UNSIGNED_SHORT_5_6_5:
-        case GL_UNSIGNED_SHORT_5_6_5_REV:
-        case GL_UNSIGNED_SHORT_8_8_MESA:
-        case GL_UNSIGNED_SHORT_8_8_REV_MESA:
-            bits_per_pixel = bits_per_element = 16;
-            break;
-        case GL_UNSIGNED_INT_8_8_8_8:
-        case GL_UNSIGNED_INT_8_8_8_8_REV:
-        case GL_UNSIGNED_INT_10_10_10_2:
-        case GL_UNSIGNED_INT_2_10_10_10_REV:
-        case GL_UNSIGNED_INT_24_8:
-        case GL_UNSIGNED_INT_10F_11F_11F_REV:
-        case GL_UNSIGNED_INT_5_9_9_9_REV:
-        case GL_UNSIGNED_INT_S8_S8_8_8_NV:
-        case GL_UNSIGNED_INT_8_8_S8_S8_REV_NV:
-            bits_per_pixel = bits_per_element = 32;
-            break;
-        case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-            bits_per_pixel = bits_per_element = 64;
-            break;
-        default:
-            vogl_warning_printf("%s: unknown type 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, type);
-            bits_per_pixel = bits_per_element = 0;
-            break;
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 // vogl_get_image_format_size_in_bytes
 //----------------------------------------------------------------------------------------------------------------------
-uint vogl_get_image_format_size_in_bytes(GLenum format, GLenum type)
+uint32_t vogl_get_image_format_size_in_bytes(GLenum format, GLenum type)
 {
     VOGL_FUNC_TRACER
 
-    uint num_channels, bits_per_element, bits_per_pixel;
+    uint32_t num_channels, bits_per_element, bits_per_pixel;
     vogl_get_image_format_info(format, type, num_channels, bits_per_element, bits_per_pixel);
     return (bits_per_pixel + 7) >> 3;
 }
@@ -456,68 +272,6 @@ bool vogl_has_active_context()
         return false;
 
     return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_image_size (derived from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-size_t vogl_get_image_size(GLenum format, GLenum type, GLsizei width, GLsizei height, GLsizei depth)
-{
-    VOGL_FUNC_TRACER
-
-    if (!vogl_has_active_context())
-    {
-        vogl_error_printf("%s: vogl_get_image_size() called without an active context!\n", VOGL_FUNCTION_INFO_CSTR);
-        return 0;
-    }
-
-    uint num_channels;
-    uint bits_per_element;
-    uint bits_per_pixel;
-    vogl_get_image_format_info(format, type, num_channels, bits_per_element, bits_per_pixel);
-
-    GLint alignment = vogl_get_gl_integer(GL_UNPACK_ALIGNMENT);
-    GLint row_length = vogl_get_gl_integer(GL_UNPACK_ROW_LENGTH);
-    GLint image_height = vogl_get_gl_integer(GL_UNPACK_IMAGE_HEIGHT);
-    GLint skip_rows = vogl_get_gl_integer(GL_UNPACK_SKIP_ROWS);
-    GLint skip_pixels = vogl_get_gl_integer(GL_UNPACK_SKIP_PIXELS);
-    GLint skip_images = vogl_get_gl_integer(GL_UNPACK_SKIP_IMAGES);
-
-    //printf("format: 0x%X type: 0x%X width: %i height: %i depth: %i alignment: %i row_length: %i image_height: %i skip_rows: %i skip_pixels: %i skip_images: %i\n",
-    //       format, type, (int)width, (int)height, (int)depth, alignment, row_length, image_height, skip_rows, skip_pixels, skip_images);
-
-    if (row_length <= 0)
-    {
-        row_length = width;
-    }
-
-    size_t row_stride = (row_length * bits_per_pixel + 7) / 8;
-
-    if (((bits_per_element == 1 * 8) ||
-         (bits_per_element == 2 * 8) ||
-         (bits_per_element == 4 * 8) ||
-         (bits_per_element == 8 * 8)) &&
-        ((GLint)bits_per_element < alignment * 8))
-    {
-        row_stride = math::align_up_value(row_stride, alignment);
-    }
-
-    if (image_height <= 0)
-    {
-        image_height = height;
-    }
-
-    // GL_UNPACK_IMAGE_HEIGHT and GL_UNPACK_SKIP_IMAGES should probably not be considered for pixel rectangles
-
-    size_t image_stride = image_height * row_stride;
-
-    size_t size = depth * image_stride;
-
-    size += (skip_pixels * bits_per_pixel + 7) / 8;
-    size += skip_rows * row_stride;
-    size += skip_images * image_stride;
-
-    return size;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -555,90 +309,6 @@ size_t vogl_get_tex_target_image_size(GLenum target, GLint level, GLenum format,
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_determine_glMap1_size (originally from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-size_t vogl_determine_glMap1_size(GLenum target, GLint stride, GLint order)
-{
-    VOGL_FUNC_TRACER
-
-    if (order < 1)
-        return 0;
-
-    GLint channels;
-    switch (target)
-    {
-        case GL_MAP1_INDEX:
-        case GL_MAP1_TEXTURE_COORD_1:
-            channels = 1;
-            break;
-        case GL_MAP1_TEXTURE_COORD_2:
-            channels = 2;
-            break;
-        case GL_MAP1_NORMAL:
-        case GL_MAP1_TEXTURE_COORD_3:
-        case GL_MAP1_VERTEX_3:
-            channels = 3;
-            break;
-        case GL_MAP1_COLOR_4:
-        case GL_MAP1_TEXTURE_COORD_4:
-        case GL_MAP1_VERTEX_4:
-            channels = 4;
-            break;
-        default:
-            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
-            return 0;
-    }
-
-    if (stride < channels)
-        return 0;
-
-    return channels + stride * (order - 1);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_determine_glMap2_size (originally from apitrace)
-//----------------------------------------------------------------------------------------------------------------------
-size_t vogl_determine_glMap2_size(GLenum target, GLint ustride, GLint uorder, GLint vstride, GLint vorder)
-{
-    VOGL_FUNC_TRACER
-
-    if (uorder < 1 || vorder < 1)
-        return 0;
-
-    GLint channels;
-    switch (target)
-    {
-        case GL_MAP2_INDEX:
-        case GL_MAP2_TEXTURE_COORD_1:
-            channels = 1;
-            break;
-        case GL_MAP2_TEXTURE_COORD_2:
-            channels = 2;
-            break;
-        case GL_MAP2_NORMAL:
-        case GL_MAP2_TEXTURE_COORD_3:
-        case GL_MAP2_VERTEX_3:
-            channels = 3;
-            break;
-        case GL_MAP2_COLOR_4:
-        case GL_MAP2_TEXTURE_COORD_4:
-        case GL_MAP2_VERTEX_4:
-            channels = 4;
-            break;
-        default:
-            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
-            return 0;
-    }
-
-    if (ustride < channels || vstride < channels)
-        return 0;
-
-    return channels +
-           ustride * (uorder - 1) +
-           vstride * (vorder - 1);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 // vogl_enum_desc::init_sort_priority
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_enum_desc::init_sort_priority()
@@ -656,7 +326,7 @@ void vogl_enum_desc::init_sort_priority()
     else
     {
         static const char *s_vendor_suffixes[] = { "_NV", "_AMD", "_INTEL", "_QCOM", "_ATI", "_SGIS", "_SGIX", "_ANGLE", "_APPLE", "_MESA", "_IBM" };
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(s_vendor_suffixes); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_vendor_suffixes); i++)
         {
             if (m_macro_name.ends_with(s_vendor_suffixes[i]))
             {
@@ -696,7 +366,7 @@ gl_enums::gl_enums()
 
     memset(m_gl_enum_to_pname_def_index, 0xFF, sizeof(m_gl_enum_to_pname_def_index));
 
-    for (uint i = 0; i < GL_PNAME_DEFS_ARRAY_SIZE; i++)
+    for (uint32_t i = 0; i < GL_PNAME_DEFS_ARRAY_SIZE; i++)
     {
         if (g_gl_pname_defs[i].m_gl_enum < 0x10000)
         {
@@ -805,7 +475,7 @@ const char *gl_enums::find_name(uint64_t gl_enum, const char *pPreferred_prefix)
 
         if (pPreferred_prefix)
         {
-            for (uint i = 0; i < desc_vec.size(); i++)
+            for (uint32_t i = 0; i < desc_vec.size(); i++)
                 if (!desc_vec[i].m_prefix.compare(pPreferred_prefix, false)) // purposely not case sensitive
                     return desc_vec[i].m_macro_name.get_ptr();
         }
@@ -858,7 +528,7 @@ const char *gl_enums::find_name(const char *pSpec_type, uint64_t gl_enum, const 
 
             if (pPreferred_prefix)
             {
-                for (uint i = 0; i < desc_vec.size(); i++)
+                for (uint32_t i = 0; i < desc_vec.size(); i++)
                     if (!desc_vec[i].m_prefix.compare(pPreferred_prefix, false)) // purposely not case sensitive
                         return desc_vec[i].m_macro_name.get_ptr();
             }
@@ -967,7 +637,7 @@ int gl_enums::find_pname_def_index(uint64_t gl_enum) const
 
     if (gl_enum < 0x10000)
     {
-        int pname_index = m_gl_enum_to_pname_def_index[static_cast<uint>(gl_enum)];
+        int pname_index = m_gl_enum_to_pname_def_index[static_cast<uint32_t>(gl_enum)];
         if (pname_index != 0xFFFF)
             return pname_index;
     }
@@ -1124,7 +794,7 @@ void vogl_reset_pixel_transfer_states()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_copy_buffer_to_image
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_copy_buffer_to_image(void *pDst, uint dst_size, uint width, uint height, GLuint format, GLuint type, bool flip_image, GLuint framebuffer, GLuint read_buffer, GLuint pixel_pack_buffer)
+bool vogl_copy_buffer_to_image(void *pDst, uint32_t dst_size, uint32_t width, uint32_t height, GLuint format, GLuint type, bool flip_image, GLuint framebuffer, GLuint read_buffer, GLuint pixel_pack_buffer)
 {
     VOGL_FUNC_TRACER
 
@@ -1186,12 +856,12 @@ bool vogl_copy_buffer_to_image(void *pDst, uint dst_size, uint width, uint heigh
 
         if ((pitch) && ((image_size / pitch) == height))
         {
-            vogl::vector<uint8> row_buf(static_cast<uint>(pitch));
+            vogl::vector<uint8_t> row_buf(static_cast<uint32_t>(pitch));
 
-            for (uint y = 0; y < (height / 2); y++)
+            for (uint32_t y = 0; y < (height / 2); y++)
             {
-                uint8 *pA = reinterpret_cast<uint8 *>(pDst) + y * pitch;
-                uint8 *pB = reinterpret_cast<uint8 *>(pDst) + (height - 1 - y) * pitch;
+                uint8_t *pA = reinterpret_cast<uint8_t *>(pDst) + y * pitch;
+                uint8_t *pB = reinterpret_cast<uint8_t *>(pDst) + (height - 1 - y) * pitch;
                 memcpy(row_buf.get_ptr(), pA, pitch);
                 memcpy(pA, pB, pitch);
                 memcpy(pB, row_buf.get_ptr(), pitch);
@@ -1218,7 +888,7 @@ bool vogl_copy_buffer_to_image(void *pDst, uint dst_size, uint width, uint heigh
 // vogl_check_gl_error_internal
 // Returns *true* on error
 //----------------------------------------------------------------------------------------------------------------------
-bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile, uint line, const char *pFunc)
+bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile, uint32_t line, const char *pFunc)
 {
     VOGL_FUNC_TRACER
 
@@ -1240,7 +910,7 @@ bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile
 			if (get_printable_backtrace(backtrace))
 			{
 				console::error("Backtrace:\n");
-				for (uint i = 0; i < backtrace.size(); i++)
+				for (uint32_t i = 0; i < backtrace.size(); i++)
 					console::error("%s\n", backtrace[i].get_ptr());
 			}
 #endif
@@ -1627,7 +1297,7 @@ GLenum vogl_determine_texture_target(const vogl_context_info &context_info, GLui
 
     vogl_debug_message_control(context_info, GL_INVALID_OPERATION, false);
 
-    uint i;
+    uint32_t i;
     for (i = 0; i < VOGL_ARRAY_SIZE(s_possible_targets); i++)
     {
         GL_ENTRYPOINT(glBindTexture)(s_possible_targets[i], handle);
@@ -1671,7 +1341,7 @@ void vogl_state_saver::save(vogl_generic_state_type type)
                     GL_UNPACK_SWAP_BYTES, GL_UNPACK_LSB_FIRST, GL_UNPACK_ROW_LENGTH, GL_UNPACK_IMAGE_HEIGHT, GL_UNPACK_SKIP_ROWS, GL_UNPACK_SKIP_PIXELS, GL_UNPACK_SKIP_IMAGES, GL_UNPACK_ALIGNMENT
                 };
 
-            for (uint i = 0; i < VOGL_ARRAY_SIZE(s_pixel_store_enums); i++)
+            for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_store_enums); i++)
                 SAVE_INT_STATE(cGSTPixelStore, s_pixel_store_enums[i]);
 
             break;
@@ -1684,7 +1354,7 @@ void vogl_state_saver::save(vogl_generic_state_type type)
                     GL_MAP_COLOR, GL_MAP_STENCIL, GL_INDEX_SHIFT, GL_INDEX_OFFSET
                 };
 
-            for (uint i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_int_enums); i++)
+            for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_int_enums); i++)
                 SAVE_INT_STATE(cGSTPixelTransfer, s_pixel_transfer_int_enums[i]);
 
             static const GLfloat s_pixel_transfer_float_enums[] =
@@ -1696,7 +1366,7 @@ void vogl_state_saver::save(vogl_generic_state_type type)
                     GL_POST_CONVOLUTION_GREEN_BIAS, GL_POST_CONVOLUTION_BLUE_BIAS, GL_POST_CONVOLUTION_ALPHA_BIAS
                 };
 
-            for (uint i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums); i++)
+            for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums); i++)
                 SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
 
             break;
@@ -1708,10 +1378,10 @@ void vogl_state_saver::save(vogl_generic_state_type type)
         }
         case cGSTDrawBuffer:
         {
-            uint max_draw_buffers = vogl_get_gl_integer(GL_MAX_DRAW_BUFFERS);
+            uint32_t max_draw_buffers = vogl_get_gl_integer(GL_MAX_DRAW_BUFFERS);
             m_draw_buffers.resize(max_draw_buffers);
 
-            for (uint i = 0; i < max_draw_buffers; i++)
+            for (uint32_t i = 0; i < max_draw_buffers; i++)
                 m_draw_buffers[i] = vogl_get_gl_integer(GL_DRAW_BUFFER0 + i);
 
             break;
@@ -1792,7 +1462,7 @@ void vogl_state_saver::restore()
         }
     }
 
-    for (uint i = 0; i < m_states.size(); i++)
+    for (uint32_t i = 0; i < m_states.size(); i++)
     {
         const vogl::value_data_type value_type = m_states[i].m_value.get_data_type();
 
@@ -2311,7 +1981,7 @@ void vogl_enable_generic_context_debug_messages()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_create_context
 //----------------------------------------------------------------------------------------------------------------------
-vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config fb_config, vogl_gl_context share_context, uint major_ver, uint minor_ver, uint flags, vogl_context_desc *pDesc)
+vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config fb_config, vogl_gl_context share_context, uint32_t major_ver, uint32_t minor_ver, uint32_t flags, vogl_context_desc *pDesc)
 {
     #if VOGL_PLATFORM_HAS_GLX
         vogl_context_attribs attribs;
@@ -2320,7 +1990,7 @@ vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config f
 
         if (flags & (cCHCCoreProfileFlag | cCHCCompatProfileFlag))
         {
-            uint profile_mask = 0;
+            uint32_t profile_mask = 0;
             if (flags & cCHCCoreProfileFlag)
                 profile_mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 
@@ -2378,7 +2048,7 @@ vogl_gl_drawable vogl_get_current_drawable()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_get_current_fb_config
 //----------------------------------------------------------------------------------------------------------------------
-vogl_gl_fb_config vogl_get_current_fb_config(uint screen)
+vogl_gl_fb_config vogl_get_current_fb_config(uint32_t screen)
 {
     #if VOGL_PLATFORM_HAS_GLX
         GLXDrawable pDrawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
@@ -2495,13 +2165,13 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
         case VOGL_GLUINT:
         case VOGL_GLBITFIELD:
         {
-            str.format_append("%u", *reinterpret_cast<const uint32 *>(&val_data));
+            str.format_append("%u", *reinterpret_cast<const uint32_t *>(&val_data));
             handled = true;
             break;
         }
         case VOGL_GLCHAR:
         {
-            uint v = *reinterpret_cast<const uint8 *>(&val_data);
+            uint32_t v = *reinterpret_cast<const uint8_t *>(&val_data);
             if ((v >= 32) && (v < 128))
                 str.format_append("'%c'", v);
             else
@@ -2511,13 +2181,13 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
         }
         case VOGL_GLUBYTE:
         {
-            str.format_append("%u", *reinterpret_cast<const uint8 *>(&val_data));
+            str.format_append("%u", *reinterpret_cast<const uint8_t *>(&val_data));
             handled = true;
             break;
         }
         case VOGL_GLUSHORT:
         {
-            str.format_append("%u", *reinterpret_cast<const uint16 *>(&val_data));
+            str.format_append("%u", *reinterpret_cast<const uint16_t *>(&val_data));
             handled = true;
             break;
         }
@@ -2527,19 +2197,19 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
         case VOGL_GLSIZEI:
         case VOGL_GLFIXED:
         {
-            str.format_append("%i", *reinterpret_cast<const int32 *>(&val_data));
+            str.format_append("%i", *reinterpret_cast<const int32_t *>(&val_data));
             handled = true;
             break;
         }
         case VOGL_GLSHORT:
         {
-            str.format_append("%i", *reinterpret_cast<const int16 *>(&val_data));
+            str.format_append("%i", *reinterpret_cast<const int16_t *>(&val_data));
             handled = true;
             break;
         }
         case VOGL_GLBYTE:
         {
-            str.format_append("%i", *reinterpret_cast<const int8 *>(&val_data));
+            str.format_append("%i", *reinterpret_cast<const int8_t *>(&val_data));
             handled = true;
             break;
         }
@@ -2557,38 +2227,360 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
     return handled;
 }
 
+/**************************************************************************
+ *
+ * Following functions derived from apitrace. Apitrace license:
+ *
+ * Copyright 2011 Jose Fonseca
+ * Copyright 2008-2010 VMware, Inc.
+ * All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ **************************************************************************/
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_gl_type_size (derived from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+uint32_t vogl_get_gl_type_size(uint32_t ogl_type)
+{
+    VOGL_FUNC_TRACER
 
+    switch (ogl_type)
+    {
+        case GL_BOOL:
+        case GL_UNSIGNED_BYTE:
+        case GL_BYTE:
+        case GL_UNSIGNED_BYTE_3_3_2:
+        case GL_UNSIGNED_BYTE_2_3_3_REV:
+            return 1;
+        case GL_HALF_FLOAT:
+        case GL_UNSIGNED_SHORT:
+        case GL_SHORT:
+        case GL_UNSIGNED_SHORT_5_6_5:
+        case GL_UNSIGNED_SHORT_5_6_5_REV:
+        case GL_UNSIGNED_SHORT_4_4_4_4:
+        case GL_UNSIGNED_SHORT_4_4_4_4_REV:
+        case GL_UNSIGNED_SHORT_5_5_5_1:
+        case GL_UNSIGNED_SHORT_1_5_5_5_REV:
+        case GL_2_BYTES:
+            return 2;
+        case GL_3_BYTES:
+            return 3;
+        case GL_FLOAT:
+        case GL_UNSIGNED_INT:
+        case GL_INT:
+        case GL_FIXED:
+        case GL_UNSIGNED_INT_8_8_8_8:
+        case GL_UNSIGNED_INT_8_8_8_8_REV:
+        case GL_UNSIGNED_INT_10_10_10_2:
+        case GL_UNSIGNED_INT_2_10_10_10_REV:
+        case GL_UNSIGNED_INT_24_8:
+        case GL_UNSIGNED_INT_10F_11F_11F_REV:
+        case GL_UNSIGNED_INT_5_9_9_9_REV:
+        case GL_INT_2_10_10_10_REV:
+        case GL_4_BYTES:
+            return 4;
+        case GL_DOUBLE:
+            return 8;
+        default:
+            vogl_warning_printf("%s: unknown GL type: 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, ogl_type);
+            break;
+    }
+    return 0;
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_image_format_channels (derived from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+uint32_t vogl_get_image_format_channels(GLenum format)
+{
+    VOGL_FUNC_TRACER
 
+    switch (format)
+    {
+        case GL_COLOR_INDEX:
+        case GL_RED:
+        case GL_RED_INTEGER:
+        case GL_GREEN:
+        case GL_GREEN_INTEGER:
+        case GL_BLUE:
+        case GL_BLUE_INTEGER:
+        case GL_ALPHA:
+        case GL_ALPHA_INTEGER:
+        case GL_INTENSITY:
+        case GL_LUMINANCE:
+        case GL_LUMINANCE_INTEGER_EXT:
+        case GL_DEPTH_COMPONENT:
+        case GL_STENCIL_INDEX:
+            return 1;
+        case GL_DEPTH_STENCIL:
+        case GL_LUMINANCE_ALPHA:
+        case GL_LUMINANCE_ALPHA_INTEGER_EXT:
+        case GL_RG:
+        case GL_RG_INTEGER:
+        case GL_422_EXT:             // (luminance, chrominance)
+        case GL_422_REV_EXT:         // (luminance, chrominance)
+        case GL_422_AVERAGE_EXT:     // (luminance, chrominance)
+        case GL_422_REV_AVERAGE_EXT: // (luminance, chrominance)
+        case GL_HILO_NV:             // (hi, lo)
+        case GL_DSDT_NV:             // (ds, dt)
+        case GL_YCBCR_422_APPLE:     // (luminance, chroma)
+        case GL_RGB_422_APPLE:       // (G, B) on even pixels, (G, R) on odd pixels
+        case GL_YCRCB_422_SGIX:      // (Y, [Cb,Cr])
+            return 2;
+        case GL_RGB:
+        case GL_RGB_INTEGER:
+        case GL_BGR:
+        case GL_BGR_INTEGER:
+        case GL_DSDT_MAG_NV:    // (ds, dt, magnitude)
+        case GL_YCRCB_444_SGIX: // (Cb, Y, Cr)
+            return 3;
+        case GL_RGBA:
+        case GL_RGBA_INTEGER:
+        case GL_BGRA:
+        case GL_BGRA_INTEGER:
+        case GL_ABGR_EXT:
+        case GL_CMYK_EXT:
+        case GL_DSDT_MAG_VIB_NV: // (ds, dt, magnitude, vibrance)
+            return 4;
+        case GL_CMYKA_EXT:
+            return 5;
+        case GL_FORMAT_SUBSAMPLE_24_24_OML:
+        case GL_FORMAT_SUBSAMPLE_244_244_OML:
+            // requires UNSIGNED_INT_10_10_10_2, so this value will be ignored
+            return 0;
+        default:
+            vogl_warning_printf("%s: unknown format 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, format);
+            break;
+    }
+    return 0;
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_image_format_info (derived from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+void vogl_get_image_format_info(GLenum format, GLenum type, uint32_t &num_channels, uint32_t &bits_per_element, uint32_t &bits_per_pixel)
+{
+    VOGL_FUNC_TRACER
 
+    num_channels = vogl_get_image_format_channels(format);
 
+    switch (type)
+    {
+        case GL_BITMAP:
+            bits_per_pixel = bits_per_element = 1;
+            break;
+        case GL_BYTE:
+        case GL_UNSIGNED_BYTE:
+            bits_per_element = 8;
+            bits_per_pixel = bits_per_element * num_channels;
+            break;
+        case GL_SHORT:
+        case GL_UNSIGNED_SHORT:
+        case GL_HALF_FLOAT:
+            bits_per_element = 16;
+            bits_per_pixel = bits_per_element * num_channels;
+            break;
+        case GL_INT:
+        case GL_UNSIGNED_INT:
+        case GL_FLOAT:
+            bits_per_element = 32;
+            bits_per_pixel = bits_per_element * num_channels;
+            break;
+        case GL_UNSIGNED_BYTE_3_3_2:
+        case GL_UNSIGNED_BYTE_2_3_3_REV:
+            bits_per_pixel = bits_per_element = 8;
+            break;
+        case GL_UNSIGNED_SHORT_4_4_4_4:
+        case GL_UNSIGNED_SHORT_4_4_4_4_REV:
+        case GL_UNSIGNED_SHORT_5_5_5_1:
+        case GL_UNSIGNED_SHORT_1_5_5_5_REV:
+        case GL_UNSIGNED_SHORT_5_6_5:
+        case GL_UNSIGNED_SHORT_5_6_5_REV:
+        case GL_UNSIGNED_SHORT_8_8_MESA:
+        case GL_UNSIGNED_SHORT_8_8_REV_MESA:
+            bits_per_pixel = bits_per_element = 16;
+            break;
+        case GL_UNSIGNED_INT_8_8_8_8:
+        case GL_UNSIGNED_INT_8_8_8_8_REV:
+        case GL_UNSIGNED_INT_10_10_10_2:
+        case GL_UNSIGNED_INT_2_10_10_10_REV:
+        case GL_UNSIGNED_INT_24_8:
+        case GL_UNSIGNED_INT_10F_11F_11F_REV:
+        case GL_UNSIGNED_INT_5_9_9_9_REV:
+        case GL_UNSIGNED_INT_S8_S8_8_8_NV:
+        case GL_UNSIGNED_INT_8_8_S8_S8_REV_NV:
+            bits_per_pixel = bits_per_element = 32;
+            break;
+        case GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+            bits_per_pixel = bits_per_element = 64;
+            break;
+        default:
+            vogl_warning_printf("%s: unknown type 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, type);
+            bits_per_pixel = bits_per_element = 0;
+            break;
+    }
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_image_size (derived from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+size_t vogl_get_image_size(GLenum format, GLenum type, GLsizei width, GLsizei height, GLsizei depth)
+{
+    VOGL_FUNC_TRACER
 
+    if (!vogl_has_active_context())
+    {
+        vogl_error_printf("%s: vogl_get_image_size() called without an active context!\n", VOGL_FUNCTION_INFO_CSTR);
+        return 0;
+    }
 
+    uint32_t num_channels;
+    uint32_t bits_per_element;
+    uint32_t bits_per_pixel;
+    vogl_get_image_format_info(format, type, num_channels, bits_per_element, bits_per_pixel);
 
+    GLint alignment = vogl_get_gl_integer(GL_UNPACK_ALIGNMENT);
+    GLint row_length = vogl_get_gl_integer(GL_UNPACK_ROW_LENGTH);
+    GLint image_height = vogl_get_gl_integer(GL_UNPACK_IMAGE_HEIGHT);
+    GLint skip_rows = vogl_get_gl_integer(GL_UNPACK_SKIP_ROWS);
+    GLint skip_pixels = vogl_get_gl_integer(GL_UNPACK_SKIP_PIXELS);
+    GLint skip_images = vogl_get_gl_integer(GL_UNPACK_SKIP_IMAGES);
 
+    //printf("format: 0x%X type: 0x%X width: %i height: %i depth: %i alignment: %i row_length: %i image_height: %i skip_rows: %i skip_pixels: %i skip_images: %i\n",
+    //       format, type, (int)width, (int)height, (int)depth, alignment, row_length, image_height, skip_rows, skip_pixels, skip_images);
 
+    if (row_length <= 0)
+    {
+        row_length = width;
+    }
 
+    size_t row_stride = (row_length * bits_per_pixel + 7) / 8;
 
+    if (((bits_per_element == 1 * 8) ||
+         (bits_per_element == 2 * 8) ||
+         (bits_per_element == 4 * 8) ||
+         (bits_per_element == 8 * 8)) &&
+        ((GLint)bits_per_element < alignment * 8))
+    {
+        row_stride = math::align_up_value(row_stride, alignment);
+    }
 
+    if (image_height <= 0)
+    {
+        image_height = height;
+    }
 
+    // GL_UNPACK_IMAGE_HEIGHT and GL_UNPACK_SKIP_IMAGES should probably not be considered for pixel rectangles
 
+    size_t image_stride = image_height * row_stride;
 
+    size_t size = depth * image_stride;
 
+    size += (skip_pixels * bits_per_pixel + 7) / 8;
+    size += skip_rows * row_stride;
+    size += skip_images * image_stride;
 
+    return size;
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_determine_glMap1_size (originally from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+size_t vogl_determine_glMap1_size(GLenum target, GLint stride, GLint order)
+{
+    VOGL_FUNC_TRACER
 
+    if (order < 1)
+        return 0;
 
+    GLint channels;
+    switch (target)
+    {
+        case GL_MAP1_INDEX:
+        case GL_MAP1_TEXTURE_COORD_1:
+            channels = 1;
+            break;
+        case GL_MAP1_TEXTURE_COORD_2:
+            channels = 2;
+            break;
+        case GL_MAP1_NORMAL:
+        case GL_MAP1_TEXTURE_COORD_3:
+        case GL_MAP1_VERTEX_3:
+            channels = 3;
+            break;
+        case GL_MAP1_COLOR_4:
+        case GL_MAP1_TEXTURE_COORD_4:
+        case GL_MAP1_VERTEX_4:
+            channels = 4;
+            break;
+        default:
+            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
+            return 0;
+    }
 
+    if (stride < channels)
+        return 0;
 
+    return channels + stride * (order - 1);
+}
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_determine_glMap2_size (originally from apitrace)
+//----------------------------------------------------------------------------------------------------------------------
+size_t vogl_determine_glMap2_size(GLenum target, GLint ustride, GLint uorder, GLint vstride, GLint vorder)
+{
+    VOGL_FUNC_TRACER
 
+    if (uorder < 1 || vorder < 1)
+        return 0;
 
+    GLint channels;
+    switch (target)
+    {
+        case GL_MAP2_INDEX:
+        case GL_MAP2_TEXTURE_COORD_1:
+            channels = 1;
+            break;
+        case GL_MAP2_TEXTURE_COORD_2:
+            channels = 2;
+            break;
+        case GL_MAP2_NORMAL:
+        case GL_MAP2_TEXTURE_COORD_3:
+        case GL_MAP2_VERTEX_3:
+            channels = 3;
+            break;
+        case GL_MAP2_COLOR_4:
+        case GL_MAP2_TEXTURE_COORD_4:
+        case GL_MAP2_VERTEX_4:
+            channels = 4;
+            break;
+        default:
+            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
+            return 0;
+    }
 
+    if (ustride < channels || vstride < channels)
+        return 0;
 
-
-
-
-
+    return channels +
+           ustride * (uorder - 1) +
+           vstride * (vorder - 1);
+}

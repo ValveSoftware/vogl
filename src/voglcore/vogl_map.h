@@ -58,7 +58,7 @@
 // Each container uses its own 32-bit PRNG with a constant seed.
 //
 // Item memory overhead: ~13 bytes avg overhead in 32-bit builds, ~26 bytes for 64-bit builds.
-// Min overhead is sizeof(uint32)+sizeof(void*)*2 per element.
+// Min overhead is sizeof(uint32_t)+sizeof(void*)*2 per element.
 #pragma once
 
 #include "vogl_core.h"
@@ -81,15 +81,15 @@ namespace vogl
     template <typename Key, typename Value>
     struct map_node;
 
-    template <typename Key, typename Value, uint N>
+    template <typename Key, typename Value, uint32_t N>
     struct map_node_ptrs
     {
 #ifdef VOGL_ASSERTS_ENABLED
-        uint16 m_debug_marker;
+        uint16_t m_debug_marker;
 #endif
 
         // m_num_next_ptrs is not needed in a basic implementation, but it can simplify erasing (especially with multiple equal elements) and helps debugging.
-        uint8 m_num_next_ptrs;
+        uint8_t m_num_next_ptrs;
 
         map_node<Key, Value> *m_pPrev;
 
@@ -102,11 +102,11 @@ namespace vogl
     {
         map_node_ptrs<Key, Value, 1> m_ptrs;
 
-        inline uint get_num_next_ptrs() const
+        inline uint32_t get_num_next_ptrs() const
         {
             return m_ptrs.m_num_next_ptrs;
         }
-        inline void set_num_next_ptrs(uint n)
+        inline void set_num_next_ptrs(uint32_t n)
         {
             m_ptrs.m_num_next_ptrs = n;
         }
@@ -120,29 +120,29 @@ namespace vogl
             return m_ptrs.m_pPrev;
         }
 
-        inline map_node *get_forward_ptr(uint index) const
+        inline map_node *get_forward_ptr(uint32_t index) const
         {
             VOGL_ASSERT(index < m_ptrs.m_num_next_ptrs);
             return m_ptrs.m_pNext[index];
         }
 
-        inline void set_forward_ptr(uint index, map_node *p)
+        inline void set_forward_ptr(uint32_t index, map_node *p)
         {
             VOGL_ASSERT(index < m_ptrs.m_num_next_ptrs);
             m_ptrs.m_pNext[index] = p;
         }
 
-        inline uint get_allocated_size() const
+        inline uint32_t get_allocated_size() const
         {
             return sizeof(*this) + (get_num_next_ptrs() - 1) * sizeof(map_node *);
         }
 
 #ifdef VOGL_ASSERTS_ENABLED
-        inline uint16 get_debug_marker() const
+        inline uint16_t get_debug_marker() const
         {
             return m_ptrs.m_debug_marker;
         }
-        inline void set_debug_marker(uint16 val)
+        inline void set_debug_marker(uint16_t val)
         {
             m_ptrs.m_debug_marker = val;
         }
@@ -168,7 +168,7 @@ namespace vogl
     template <typename Key, typename Value = empty_type,
               typename LessComp = less_than<Key>,
               typename EqualComp = equal_to_using_less_than<Key>,
-              uint MaxLevels = cMapMaxPossibleLevels>
+              uint32_t MaxLevels = cMapMaxPossibleLevels>
     class map
     {
         friend class iterator_base;
@@ -333,7 +333,7 @@ namespace vogl
             cDefaultMaxLevel = VOGL_MAP_USE_POINT_25_PROB ? 3 : 6
         };
 
-        inline map(uint initial_max_level = cDefaultMaxLevel, const LessComp &less_than_obj = less_comp_type(), const EqualComp &equal_to_obj = equal_comp_type())
+        inline map(uint32_t initial_max_level = cDefaultMaxLevel, const LessComp &less_than_obj = less_comp_type(), const EqualComp &equal_to_obj = equal_comp_type())
             : m_total_allocated(0),
               m_pHead(NULL),
               m_size(0),
@@ -411,7 +411,7 @@ namespace vogl
             VOGL_ASSERT(!m_total_allocated);
 
             m_pHead->set_prev_ptr(m_pHead);
-            for (uint i = 0; i <= m_max_level; i++)
+            for (uint32_t i = 0; i <= m_max_level; i++)
                 m_pHead->set_forward_ptr(i, m_pHead);
 
             m_total_allocated = 0;
@@ -419,7 +419,7 @@ namespace vogl
             m_cur_level = 0;
         }
 
-        inline void reset(uint initial_max_level = cDefaultMaxLevel, const LessComp &less_than_obj = less_comp_type(), const EqualComp &equal_to_obj = equal_comp_type())
+        inline void reset(uint32_t initial_max_level = cDefaultMaxLevel, const LessComp &less_than_obj = less_comp_type(), const EqualComp &equal_to_obj = equal_comp_type())
         {
             clear();
 
@@ -468,25 +468,25 @@ namespace vogl
             return m_total_allocated;
         }
 
-        inline uint get_cur_list_level() const
+        inline uint32_t get_cur_list_level() const
         {
             return m_cur_level;
         }
-        inline uint get_cur_max_level() const
+        inline uint32_t get_cur_max_level() const
         {
             return m_max_level;
         }
-        inline uint get_max_possible_level() const
+        inline uint32_t get_max_possible_level() const
         {
             return cMaxLevels - 1;
         }
 
-        inline uint get_fixed_map_level() const
+        inline uint32_t get_fixed_map_level() const
         {
             return m_fixed_max_level;
         }
 
-        inline void set_fixed_map_level(uint level)
+        inline void set_fixed_map_level(uint32_t level)
         {
             if (m_fixed_max_level)
                 return;
@@ -494,7 +494,7 @@ namespace vogl
             m_fixed_max_level = true;
             m_bump_max_level_size_thresh = cUINT32_MAX;
 
-            level = math::minimum<uint>(level, cMaxLevels - 1);
+            level = math::minimum<uint32_t>(level, cMaxLevels - 1);
 
             if (level > m_max_level)
             {
@@ -631,7 +631,7 @@ namespace vogl
         }
 
         // Returns the # of items associated with the specified key.
-        inline uint count(const Key &key) const
+        inline uint32_t count(const Key &key) const
         {
             m_pHead->check_head_debug_marker();
 
@@ -639,7 +639,7 @@ namespace vogl
             if (it == end())
                 return 0;
 
-            uint n = 1;
+            uint32_t n = 1;
 
             for (;;)
             {
@@ -699,7 +699,7 @@ namespace vogl
             pPrev->set_forward_ptr(0, pNext);
             pNext->set_prev_ptr(pPrev);
 
-            for (uint i = 1; i <= m_cur_level; i++)
+            for (uint32_t i = 1; i <= m_cur_level; i++)
             {
                 if (ppPredecessors[i]->get_forward_ptr(i) != p)
                     break;
@@ -818,7 +818,7 @@ namespace vogl
 
         // Erases all items with the specified key.
         // Returns the total number of erased keys.
-        inline uint erase_all(const Key &key)
+        inline uint32_t erase_all(const Key &key)
         {
             m_pHead->check_head_debug_marker();
 
@@ -826,7 +826,7 @@ namespace vogl
 
             // Use caution here - key could point into one of the items we're about to erase!
 
-            uint n = 0;
+            uint32_t n = 0;
             for (iterator it = it_range.first; it != it_range.second;)
             {
                 iterator next_it(it);
@@ -1117,20 +1117,20 @@ namespace vogl
             console::debug("map 0x%p: Size: %u elements, Max possible level: %u, Cur max level: %u, Cur level: %u\n",
                            this, m_size, cMaxLevels - 1, m_max_level, m_cur_level);
             console::debug("  Bump max level size: %u\n", m_bump_max_level_size_thresh);
-            console::debug("  Key size: %u bytes, Value size: %u bytes, KeyValue size: %u bytes, Min element size: %u bytes\n", (uint)sizeof(Key), (uint)sizeof(Value), (uint)sizeof(value_type), (uint)sizeof(node_type));
+            console::debug("  Key size: %u bytes, Value size: %u bytes, KeyValue size: %u bytes, Min element size: %u bytes\n", (uint32_t)sizeof(Key), (uint32_t)sizeof(Value), (uint32_t)sizeof(value_type), (uint32_t)sizeof(node_type));
             console::debug("  Total allocated: %" PRIu64 " bytes, Avg allocated per element: %f bytes, Avg overhead: %f bytes\n", m_total_allocated,
                            m_size ? m_total_allocated / (double)m_size : 0,
                            m_size ? (m_total_allocated / (double)m_size) - sizeof(value_type) : 0);
-            console::debug("  Max element size: %u bytes\n", (uint)(sizeof(node_type) + sizeof(void *) * m_max_level));
+            console::debug("  Max element size: %u bytes\n", (uint32_t)(sizeof(node_type) + sizeof(void *) * m_max_level));
 
-            for (uint level = 0; level <= m_max_level; level++)
+            for (uint32_t level = 0; level <= m_max_level; level++)
             {
-                uint n = 0;
+                uint32_t n = 0;
 
                 node_type *p = m_pHead->get_forward_ptr(level);
 
                 int64_t total_size_at_this_level = 0;
-                uint total_count_at_this_level = 0;
+                uint32_t total_count_at_this_level = 0;
 
                 while (p != m_pHead)
                 {
@@ -1179,15 +1179,15 @@ namespace vogl
                 return true;
             }
 
-            for (uint i = m_cur_level + 1; i <= m_max_level; i++)
+            for (uint32_t i = m_cur_level + 1; i <= m_max_level; i++)
             {
                 if (m_pHead->get_forward_ptr(i) != m_pHead)
                     return false;
             }
 
-            for (uint i = 0; i <= m_cur_level; i++)
+            for (uint32_t i = 0; i <= m_cur_level; i++)
             {
-                uint num_nodes_examined = 0;
+                uint32_t num_nodes_examined = 0;
                 node_type *pCur = m_pHead;
 
                 int64_t total_node_bytes = 0;
@@ -1283,13 +1283,13 @@ namespace vogl
 
         node_type *m_pHead;
 
-        uint m_size;
-        uint m_bump_max_level_size_thresh;
+        uint32_t m_size;
+        uint32_t m_bump_max_level_size_thresh;
 
         fast_random m_rand;
 
-        uint8 m_cur_level;
-        uint8 m_max_level;
+        uint8_t m_cur_level;
+        uint8_t m_max_level;
 
         bool m_fixed_max_level;
 
@@ -1312,11 +1312,11 @@ namespace vogl
             vogl_free(p);
         }
 
-        inline node_type *alloc_node(uint num_forward_ptrs, const Key &key, const Value &val)
+        inline node_type *alloc_node(uint32_t num_forward_ptrs, const Key &key, const Value &val)
         {
             VOGL_ASSERT(num_forward_ptrs && (num_forward_ptrs < cMaxLevels));
 
-            uint alloc_size = sizeof(node_type) + sizeof(node_type *) * (num_forward_ptrs - 1);
+            uint32_t alloc_size = sizeof(node_type) + sizeof(node_type *) * (num_forward_ptrs - 1);
             m_total_allocated += alloc_size;
 
             node_type *p = static_cast<node_type *>(vogl_malloc(alloc_size));
@@ -1333,7 +1333,7 @@ namespace vogl
             return p;
         }
 
-        void init(uint initial_max_level)
+        void init(uint32_t initial_max_level)
         {
             VOGL_VERIFY(initial_max_level < cMaxLevels);
             VOGL_ASSERT(!m_size && !m_total_allocated);
@@ -1371,7 +1371,7 @@ namespace vogl
                 // Paranoid checks.
                 VOGL_ASSERT(m_pHead->get_prev_ptr() == m_pHead);
                 VOGL_ASSERT(m_pHead->get_num_next_ptrs() < cMaxLevels);
-                for (uint i = 0; i < cMaxLevels; i++)
+                for (uint32_t i = 0; i < cMaxLevels; i++)
                 {
                     VOGL_ASSERT(m_pHead->m_ptrs.m_pNext[i] == m_pHead);
                 }
@@ -1380,7 +1380,7 @@ namespace vogl
             m_pHead->set_prev_ptr(m_pHead);
 
             m_pHead->set_num_next_ptrs(cMaxLevels);
-            for (uint i = 0; i < cMaxLevels; i++)
+            for (uint32_t i = 0; i < cMaxLevels; i++)
                 m_pHead->set_forward_ptr(i, m_pHead);
 
             m_pHead->set_num_next_ptrs(m_max_level + 1);
@@ -1507,12 +1507,12 @@ namespace vogl
                 return std::make_pair(begin(), false);
             }
 
-            uint rnd = m_rand.urand32();
+            uint32_t rnd = m_rand.urand32();
             int new_level = math::count_leading_zero_bits(rnd);
 #if VOGL_MAP_USE_POINT_25_PROB
             new_level >>= 1U;
 #endif
-            new_level = math::minimum<uint>(new_level, m_max_level);
+            new_level = math::minimum<uint32_t>(new_level, m_max_level);
 
             if (new_level > m_cur_level)
             {
@@ -1548,7 +1548,7 @@ namespace vogl
                 m_pHead->set_num_next_ptrs(m_max_level + 1);
                 VOGL_ASSERT(m_pHead->get_forward_ptr(m_max_level) == m_pHead);
 
-                uint orig_thresh_size = m_bump_max_level_size_thresh;
+                uint32_t orig_thresh_size = m_bump_max_level_size_thresh;
                 m_bump_max_level_size_thresh <<= (VOGL_MAP_USE_POINT_25_PROB ? 2U : 1U);
                 if (m_bump_max_level_size_thresh < orig_thresh_size)
                     m_bump_max_level_size_thresh = cUINT32_MAX;
@@ -1558,7 +1558,7 @@ namespace vogl
         }
     };
 
-    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint MaxLevels>
+    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint32_t MaxLevels>
     struct bitwise_movable<map<Key, Value, LessComp, EqualComp, MaxLevels> >
     {
         enum
@@ -1567,20 +1567,20 @@ namespace vogl
         };
     };
 
-    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint MaxLevels>
+    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint32_t MaxLevels>
     inline void swap(map<Key, Value, LessComp, EqualComp, MaxLevels> &a, map<Key, Value, LessComp, EqualComp, MaxLevels> &b)
     {
         a.swap(b);
     }
 
     bool map_test();
-    void map_perf_test(uint Q = 20000);
+    void map_perf_test(uint32_t Q = 20000);
 
 } // namespace vogl
 
 namespace std
 {
-    template <typename Key, typename Value, typename LessComp, typename EqualComp, vogl::uint MaxLevels>
+    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint32_t MaxLevels>
     inline void swap(vogl::map<Key, Value, LessComp, EqualComp, MaxLevels> &a, vogl::map<Key, Value, LessComp, EqualComp, MaxLevels> &b)
     {
         a.swap(b);

@@ -41,10 +41,10 @@ namespace vogl
     {
     }
 
-    data_stream::data_stream(const char *pName, uint attribs)
+    data_stream::data_stream(const char *pName, uint32_t attribs)
         : m_name(pName),
           m_pUser_data(NULL),
-          m_attribs(static_cast<uint16>(attribs)),
+          m_attribs(static_cast<uint16_t>(attribs)),
           m_opened(false), m_error(false)
     {
     }
@@ -55,9 +55,9 @@ namespace vogl
 
         while (total_bytes_read < len)
         {
-            uint bytes_to_read = static_cast<uint>(math::minimum<uint64_t>(0x7FFFFFFFU, len - total_bytes_read));
+            uint32_t bytes_to_read = static_cast<uint32_t>(math::minimum<uint64_t>(0x7FFFFFFFU, len - total_bytes_read));
 
-            if (read(static_cast<uint8 *>(pBuf) + total_bytes_read, bytes_to_read) != bytes_to_read)
+            if (read(static_cast<uint8_t *>(pBuf) + total_bytes_read, bytes_to_read) != bytes_to_read)
                 break;
 
             total_bytes_read += bytes_to_read;
@@ -70,13 +70,13 @@ namespace vogl
     {
         uint64_t total_bytes_read = 0;
 
-        const uint cBufSize = 1024;
-        uint8 buf[cBufSize];
+        const uint32_t cBufSize = 1024;
+        uint8_t buf[cBufSize];
 
         while (len)
         {
             const uint64_t bytes_to_read = math::minimum<uint64_t>(sizeof(buf), len);
-            const uint64_t bytes_read = read(buf, static_cast<uint>(bytes_to_read));
+            const uint64_t bytes_read = read(buf, static_cast<uint32_t>(bytes_to_read));
             total_bytes_read += bytes_read;
 
             if (bytes_read != bytes_to_read)
@@ -142,7 +142,7 @@ namespace vogl
 
     bool data_stream::puts(const char *p)
     {
-        uint len = vogl_strlen(p);
+        uint32_t len = vogl_strlen(p);
         return write(p, len * sizeof(char)) == len * sizeof(char);
     }
 
@@ -154,7 +154,7 @@ namespace vogl
         return true;
     }
 
-    bool data_stream::read_array(vector<uint8> &buf)
+    bool data_stream::read_array(vector<uint8_t> &buf)
     {
         if (buf.size() < get_remaining())
         {
@@ -162,7 +162,7 @@ namespace vogl
             if (get_remaining() > static_cast<uint64_t>(cINT32_MAX))
                 return false;
 
-            if (!buf.try_resize(static_cast<uint>(get_remaining())))
+            if (!buf.try_resize(static_cast<uint32_t>(get_remaining())))
                 return false;
         }
 
@@ -175,7 +175,7 @@ namespace vogl
         return read(&buf[0], buf.size()) == buf.size();
     }
 
-    bool data_stream::write_array(const vector<uint8> &buf)
+    bool data_stream::write_array(const vector<uint8_t> &buf)
     {
         if (!buf.is_empty())
             return write(&buf[0], buf.size()) == buf.size();
@@ -200,7 +200,7 @@ namespace vogl
         uint64_t bytes_remaining = file_size;
         while (bytes_remaining)
         {
-            uint n = static_cast<uint>(math::minimum<uint64_t>(buf.size(), bytes_remaining));
+            uint32_t n = static_cast<uint32_t>(math::minimum<uint64_t>(buf.size(), bytes_remaining));
 
             if (vogl_fread(buf.get_ptr(), 1, n, pFile) != n)
             {

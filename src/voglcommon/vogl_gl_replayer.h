@@ -84,26 +84,26 @@ public:
     ~vogl_gl_replayer();
 
     // The window must be opened before calling init().
-    bool init(uint flags, vogl_replay_window *pWindow, const vogl_trace_stream_start_of_file_packet &sof_packet, const vogl_blob_manager &blob_manager);
+    bool init(uint32_t flags, vogl_replay_window *pWindow, const vogl_trace_stream_start_of_file_packet &sof_packet, const vogl_blob_manager &blob_manager);
 
     void deinit();
 
     // Configuration: call after init().
 
-    void set_flags(uint flags)
+    void set_flags(uint32_t flags)
     {
         m_flags = flags;
     }
-    uint get_flags() const
+    uint32_t get_flags() const
     {
         return m_flags;
     }
 
-    void set_swap_sleep_time(uint swap_sleep_time)
+    void set_swap_sleep_time(uint32_t swap_sleep_time)
     {
         m_swap_sleep_time = swap_sleep_time;
     }
-    uint get_swap_sleep_time() const
+    uint32_t get_swap_sleep_time() const
     {
         return m_swap_sleep_time;
     }
@@ -199,11 +199,11 @@ public:
     {
         return m_pending_window_resize_width != 0;
     }
-    uint get_pending_window_resize_width() const
+    uint32_t get_pending_window_resize_width() const
     {
         return m_pending_window_resize_width;
     }
-    uint get_pending_winow_resize_height() const
+    uint32_t get_pending_winow_resize_height() const
     {
         return m_pending_window_resize_height;
     }
@@ -213,11 +213,11 @@ public:
     // Will cause a screenshot of the front buffer immediately before the next swap. This doesn't take the screenshot immediately because there may not be any active contents, depending on the state of replayer.
     bool dump_frontbuffer_screenshot_before_next_swap(const dynamic_string &filename);
 
-    uint get_frame_index() const
+    uint32_t get_frame_index() const
     {
         return m_frame_index;
     }
-    uint get_total_swaps() const
+    uint32_t get_total_swaps() const
     {
         return m_total_swaps;
     }
@@ -283,7 +283,7 @@ public:
         cWriteTrimFileOptimizeSnapshot = 2
     };
 
-    bool write_trim_file(uint flags, const dynamic_string &trim_filename, uint trim_len, vogl_trace_file_reader &trace_reader, dynamic_string *pSnapshot_id = NULL);
+    bool write_trim_file(uint32_t flags, const dynamic_string &trim_filename, uint32_t trim_len, vogl_trace_file_reader &trace_reader, dynamic_string *pSnapshot_id = NULL);
 
 private:
     status_t handle_ShaderSource(GLhandleARB trace_object,
@@ -293,13 +293,13 @@ private:
 
     status_t post_draw_call();
 
-    bool dump_framebuffer(uint width, uint height, GLuint read_framebuffer, GLenum read_buffer, GLenum internal_format, uint orig_samples, GLuint replay_texture, GLuint replay_rbo,
+    bool dump_framebuffer(uint32_t width, uint32_t height, GLuint read_framebuffer, GLenum read_buffer, GLenum internal_format, uint32_t orig_samples, GLuint replay_texture, GLuint replay_rbo,
                           int channel_to_write, bool force_rgb, GLuint fmt, GLuint type, const char *pFilename_suffix);
     void dump_current_framebuffer();
     void dump_current_shaders();
 
-    uint m_flags;
-    uint m_swap_sleep_time;
+    uint32_t m_flags;
+    uint32_t m_swap_sleep_time;
     dynamic_string m_dump_framebuffer_on_draw_prefix;
     dynamic_string m_screenshot_prefix;
     dynamic_string m_backbuffer_hash_filename;
@@ -311,8 +311,8 @@ private:
 
     vogl_trace_stream_start_of_file_packet m_sof_packet;
     vogl_trace_packet m_ctypes_packet;
-    uint m_trace_pointer_size_in_bytes;
-    uint m_trace_pointer_size_in_uints;
+    uint32_t m_trace_pointer_size_in_bytes;
+    uint32_t m_trace_pointer_size_in_uints;
 
     vogl_ctypes m_trace_gl_ctypes;
 
@@ -325,12 +325,12 @@ private:
 
     vogl_trace_packet m_pending_make_current_packet;
 
-    uint m_pending_window_resize_width, m_pending_window_resize_height;
+    uint32_t m_pending_window_resize_width, m_pending_window_resize_height;
     timer m_time_since_pending_window_resize;
-    uint m_pending_window_resize_attempt_counter;
+    uint32_t m_pending_window_resize_attempt_counter;
 
-    uint m_frame_index;
-    uint m_total_swaps;
+    uint32_t m_frame_index;
+    uint32_t m_total_swaps;
     int64_t m_last_parsed_call_counter;
     int64_t m_last_processed_call_counter;
 
@@ -471,7 +471,7 @@ private:
     uint8_vec m_screenshot_buffer;
     uint8_vec m_screenshot_buffer2;
 
-    vogl::vector<uint8> m_index_data;
+    vogl::vector<uint8_t> m_index_data;
 
     uint64_t m_frame_draw_counter;
     uint64_t m_frame_draw_counter_kill_threshold;
@@ -500,14 +500,14 @@ private:
     void dump_packet_as_func_call(const vogl_trace_packet &trace_packet);
     void dump_trace_gl_packet_debug_info(const vogl_trace_gl_entrypoint_packet &gl_packet);
 
-    status_t trigger_pending_window_resize(uint win_width, uint win_height);
+    status_t trigger_pending_window_resize(uint32_t win_width, uint32_t win_height);
     void clear_pending_window_resize();
     status_t process_frame_check_for_pending_window_resize();
 
     void destroy_pending_snapshot();
 
     // Returns *true* if any errors occurred.
-    bool check_gl_error_internal(bool quietly = false, const char *pFile = "", uint line = 0, const char *pFunc = "");
+    bool check_gl_error_internal(bool quietly = false, const char *pFile = "", uint32_t line = 0, const char *pFunc = "");
 #define check_gl_error() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(false, __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR) : false)
 #define check_gl_error_quietly() (((m_flags &cGLReplayerBenchmarkMode) == 0) ? check_gl_error_internal(true, __FILE__, __LINE__, VOGL_FUNCTION_INFO_CSTR) : false)
 
@@ -549,15 +549,15 @@ private:
 
         virtual bool is_valid_handle(vogl_namespace_t handle_namespace, uint64_t replay_handle);
 
-        virtual int32 remap_location(uint32 replay_program, int32 replay_location);
+        virtual int32_t remap_location(uint32_t replay_program, int32_t replay_location);
 
-        virtual vogl_trace_ptr_value remap_vertex_attrib_ptr(uint index, vogl_trace_ptr_value ptr_val)
+        virtual vogl_trace_ptr_value remap_vertex_attrib_ptr(uint32_t index, vogl_trace_ptr_value ptr_val)
         {
             VOGL_NOTE_UNUSED(index);
             return ptr_val;
         }
 
-        virtual vogl_trace_ptr_value remap_vertex_array_ptr(vogl_client_side_array_desc_id_t id, uint index, vogl_trace_ptr_value ptr_val)
+        virtual vogl_trace_ptr_value remap_vertex_array_ptr(vogl_client_side_array_desc_id_t id, uint32_t index, vogl_trace_ptr_value ptr_val)
         {
             VOGL_NOTE_UNUSED(id);
             VOGL_NOTE_UNUSED(index);
@@ -592,17 +592,17 @@ private:
 
         virtual bool is_valid_handle(vogl_namespace_t handle_namespace, uint64_t replay_handle);
 
-        virtual int32 remap_location(uint32 trace_program, int32 from_location);
+        virtual int32_t remap_location(uint32_t trace_program, int32_t from_location);
 
-        virtual vogl_trace_ptr_value remap_vertex_attrib_ptr(uint index, vogl_trace_ptr_value ptr_val);
+        virtual vogl_trace_ptr_value remap_vertex_attrib_ptr(uint32_t index, vogl_trace_ptr_value ptr_val);
 
-        virtual vogl_trace_ptr_value remap_vertex_array_ptr(vogl_client_side_array_desc_id_t id, uint index, vogl_trace_ptr_value ptr_val);
+        virtual vogl_trace_ptr_value remap_vertex_array_ptr(vogl_client_side_array_desc_id_t id, uint32_t index, vogl_trace_ptr_value ptr_val);
 
         virtual void declare_handle(vogl_namespace_t handle_namespace, uint64_t from_handle, uint64_t to_handle, GLenum target);
 
         virtual void delete_handle_and_object(vogl_namespace_t handle_namespace, uint64_t from_handle, uint64_t to_handle);
 
-        virtual void declare_location(uint32 from_program_handle, uint32 to_program_handle, int32 from_location, int32 to_location);
+        virtual void declare_location(uint32_t from_program_handle, uint32_t to_program_handle, int32_t from_location, int32_t to_location);
 
         virtual bool determine_from_object_target(vogl_namespace_t handle_namespace, uint64_t trace_handle, GLenum &target);
 
@@ -902,7 +902,7 @@ private:
         return (it == m_contexts.end()) ? NULL : it->second;
     }
 
-    context_state *define_new_context(vogl_trace_context_ptr_value trace_context, GLXContext replay_context, vogl_trace_context_ptr_value trace_share_context, GLboolean direct, gl_entrypoint_id_t creation_func, const int *pAttrib_list, uint attrib_list_size);
+    context_state *define_new_context(vogl_trace_context_ptr_value trace_context, GLXContext replay_context, vogl_trace_context_ptr_value trace_share_context, GLboolean direct, gl_entrypoint_id_t creation_func, const int *pAttrib_list, uint32_t attrib_list_size);
 
     GLXContext remap_context(vogl_trace_context_ptr_value trace_context);
 
@@ -923,7 +923,7 @@ private:
         return determine_uniform_replay_location(m_pCur_context_state->m_cur_trace_program, trace_location);
     }
 
-    template <uint N, class T, class F>
+    template <uint32_t N, class T, class F>
     inline void set_uniformv_helper(F func)
     {
         VOGL_FUNC_TRACER
@@ -932,12 +932,12 @@ private:
 
         GLsizei count = m_pCur_gl_packet->get_param_value<GLsizei>(1);
         const T *pValues = m_pCur_gl_packet->get_param_client_memory<T>(2);
-        VOGL_ASSERT((uint)m_pCur_gl_packet->get_param_client_memory_data_size(2) == sizeof(T) * N * count);
+        VOGL_ASSERT((uint32_t)m_pCur_gl_packet->get_param_client_memory_data_size(2) == sizeof(T) * N * count);
 
         func(replay_location, count, pValues);
     }
 
-    template <uint C, uint R, class T, class F>
+    template <uint32_t C, uint32_t R, class T, class F>
     inline void set_uniform_matrixv_helper(F func)
     {
         VOGL_FUNC_TRACER
@@ -947,7 +947,7 @@ private:
         GLsizei count = m_pCur_gl_packet->get_param_value<GLsizei>(1);
         GLboolean transpose = m_pCur_gl_packet->get_param_value<GLboolean>(2);
         const T *pValues = m_pCur_gl_packet->get_param_client_memory<T>(3);
-        VOGL_ASSERT((uint)m_pCur_gl_packet->get_param_client_memory_data_size(3) == sizeof(T) * C * R * count);
+        VOGL_ASSERT((uint32_t)m_pCur_gl_packet->get_param_client_memory_data_size(3) == sizeof(T) * C * R * count);
 
         func(replay_location, count, transpose, pValues);
     }
@@ -1026,7 +1026,7 @@ private:
         func(replay_handle, determine_uniform_replay_location(trace_handle, m_pCur_gl_packet->get_param_value<GLint>(1)), m_pCur_gl_packet->get_param_value<T>(2), m_pCur_gl_packet->get_param_value<T>(3), m_pCur_gl_packet->get_param_value<T>(4), m_pCur_gl_packet->get_param_value<T>(5));
     }
 
-    template <uint C, uint R, class T, class F>
+    template <uint32_t C, uint32_t R, class T, class F>
     inline void set_program_uniform_matrixv_helper(F func)
     {
         VOGL_FUNC_TRACER
@@ -1039,12 +1039,12 @@ private:
         GLsizei count = m_pCur_gl_packet->get_param_value<GLsizei>(2);
         GLboolean transpose = m_pCur_gl_packet->get_param_value<GLboolean>(3);
         const T *pValues = m_pCur_gl_packet->get_param_client_memory<T>(4);
-        VOGL_ASSERT((uint)m_pCur_gl_packet->get_param_client_memory_data_size(4) == sizeof(T) * C * R * count);
+        VOGL_ASSERT((uint32_t)m_pCur_gl_packet->get_param_client_memory_data_size(4) == sizeof(T) * C * R * count);
 
         func(replay_handle, replay_location, count, transpose, pValues);
     }
 
-    template <uint N, class T, class F>
+    template <uint32_t N, class T, class F>
     inline void set_program_uniformv_helper(F func)
     {
         VOGL_FUNC_TRACER
@@ -1057,7 +1057,7 @@ private:
         GLsizei count = m_pCur_gl_packet->get_param_value<GLsizei>(2);
         const T *pValues = m_pCur_gl_packet->get_param_client_memory<T>(3);
 
-        VOGL_ASSERT((uint)m_pCur_gl_packet->get_param_client_memory_data_size(3) == sizeof(T) * N * count);
+        VOGL_ASSERT((uint32_t)m_pCur_gl_packet->get_param_client_memory_data_size(3) == sizeof(T) * N * count);
 
         func(replay_handle, replay_location, count, pValues);
     }
@@ -1081,7 +1081,7 @@ private:
         GLint index = m_pCur_gl_packet->get_param_value<GLint>(0);
         GLenum pname = m_pCur_gl_packet->get_param_value<GLenum>(1);
         const T *pTrace_params = m_pCur_gl_packet->get_param_client_memory<const T>(2);
-        uint num_trace_params = m_pCur_gl_packet->get_param_client_memory_data_size(2) / sizeof(T);
+        uint32_t num_trace_params = m_pCur_gl_packet->get_param_client_memory_data_size(2) / sizeof(T);
 
         int n = get_gl_enums().get_pname_count(pname);
         if (n <= 0)
@@ -1093,7 +1093,7 @@ private:
         vogl::vector<T> params(n);
         entrypoint(index, pname, params.get_ptr());
 
-        if (num_trace_params < static_cast<uint>(n))
+        if (num_trace_params < static_cast<uint32_t>(n))
         {
             process_entrypoint_error("%s: Was expecting at least %u params for GL pname 0x%08X, but only got %u params in the trace\n", VOGL_FUNCTION_INFO_CSTR, n, pname, num_trace_params);
             return cStatusSoftFailure;
@@ -1291,7 +1291,7 @@ private:
 
     bool handle_context_made_current();
 
-    void dump_context_attrib_list(const int *pAttrib_list, uint size);
+    void dump_context_attrib_list(const int *pAttrib_list, uint32_t size);
 
     int find_attrib_key(const vogl::vector<int> &attrib_list, int key_to_find);
 

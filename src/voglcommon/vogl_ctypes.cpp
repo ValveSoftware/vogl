@@ -84,7 +84,7 @@ void vogl_ctypes::init()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_ctypes::init
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_ctypes::init(uint trace_ptr_size)
+void vogl_ctypes::init(uint32_t trace_ptr_size)
 {
     m_pointer_size = trace_ptr_size;
 
@@ -95,7 +95,7 @@ void vogl_ctypes::init(uint trace_ptr_size)
 // vogl_ctypes::change_pointer_sizes
 // This code attempts to programmatically change the ctype sizes depending on the platform (x86 vs. x64).
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_ctypes::change_pointer_sizes(uint trace_ptr_size)
+void vogl_ctypes::change_pointer_sizes(uint32_t trace_ptr_size)
 {
     VOGL_ASSUME(sizeof(intptr_t) == sizeof(void *));
     VOGL_ASSUME(sizeof(ptrdiff_t) == sizeof(void *));
@@ -107,7 +107,7 @@ void vogl_ctypes::change_pointer_sizes(uint trace_ptr_size)
 
     memcpy(m_vogl_ctype_descs, g_vogl_ctype_descs, sizeof(m_vogl_ctype_descs));
 
-    for (uint ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
+    for (uint32_t ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
     {
         vogl_ctype_desc_t &desc = m_vogl_ctype_descs[ctype_iter];
         if ((desc.m_is_pointer_diff) || (desc.m_loki_type_flags & LOKI_TYPE_BITMASK(LOKI_IS_POINTER)))
@@ -145,7 +145,7 @@ void vogl_ctypes::change_pointer_sizes(uint trace_ptr_size)
 
 #if 1
     // sanity check
-    for (uint ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
+    for (uint32_t ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
     {
         vogl_ctype_desc_t &desc = m_vogl_ctype_descs[ctype_iter];
         if ((!desc.m_is_pointer) && (!desc.m_is_pointer_diff))
@@ -323,7 +323,7 @@ void vogl_init_gl_ctypes()
         vogl_dump_gl_ctypes();
 
     // sanity checks
-    for (uint ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
+    for (uint32_t ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
     {
         vogl_ctype_desc_t &desc = g_vogl_ctype_descs[ctype_iter];
         if ((desc.m_is_pointer_diff) ||

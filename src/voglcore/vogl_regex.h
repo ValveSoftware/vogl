@@ -46,10 +46,10 @@ namespace vogl
 
     struct regexp_match_loc
     {
-        uint m_start;
-        uint m_len;
+        uint32_t m_start;
+        uint32_t m_len;
 
-        inline void set(uint start, uint len)
+        inline void set(uint32_t start, uint32_t len)
         {
             m_start = start;
             m_len = len;
@@ -64,10 +64,10 @@ namespace vogl
 
     public:
         regexp();
-        regexp(const char *pPattern, uint flags = 0);
+        regexp(const char *pPattern, uint32_t flags = 0);
         ~regexp();
 
-        bool init(const char *pPattern, uint flags = 0);
+        bool init(const char *pPattern, uint32_t flags = 0);
         void deinit();
 
         inline bool is_initialized() const
@@ -98,15 +98,15 @@ namespace vogl
             return m_match_locs;
         }
 
-        inline uint get_num_matches() const
+        inline uint32_t get_num_matches() const
         {
             return m_match_strings.size();
         }
-        inline const dynamic_string &get_match_string(uint i) const
+        inline const dynamic_string &get_match_string(uint32_t i) const
         {
             return m_match_strings[i];
         }
-        inline const regexp_match_loc &get_match_loc(uint i) const
+        inline const regexp_match_loc &get_match_loc(uint32_t i) const
         {
             return m_match_locs[i];
         }
@@ -122,9 +122,9 @@ namespace vogl
         bool full_match(const char *pString);
 
         // Finds all matches in string. To retrieve the matches, call get_num_matches(), get_match_string(), get_match_loc(), etc.
-        uint find(const char *pString);
+        uint32_t find(const char *pString);
 
-        uint replace(dynamic_string &result, const char *pString, const char *pReplacement);
+        uint32_t replace(dynamic_string &result, const char *pString, const char *pReplacement);
 
     private:
         regex_t m_regex;
@@ -135,7 +135,7 @@ namespace vogl
     };
 
     // Returns true if there are any matches.
-    inline bool regexp_find_any(const char *pString, const char *pPattern, uint flags = 0)
+    inline bool regexp_find_any(const char *pString, const char *pPattern, uint32_t flags = 0)
     {
         // TODO: Compile with REG_NOSUB?
         regexp r;
@@ -145,7 +145,7 @@ namespace vogl
     }
 
     // Returns pointer to first match, or NULL if no matches.
-    inline const char *regexp_find_first(const char *pString, const char *pPattern, int &begin, int &end, uint flags = 0)
+    inline const char *regexp_find_first(const char *pString, const char *pPattern, int &begin, int &end, uint32_t flags = 0)
     {
         regexp r;
         if (!r.init(pPattern, flags))
@@ -154,7 +154,7 @@ namespace vogl
     }
 
     // true if pattern matches the entire string.
-    inline bool regexp_full_match(const char *pString, const char *pPattern, uint flags = 0)
+    inline bool regexp_full_match(const char *pString, const char *pPattern, uint32_t flags = 0)
     {
         regexp r;
         if (!r.init(pPattern, flags))
@@ -163,7 +163,7 @@ namespace vogl
     }
 
     // Returns a string array containing all matches of pattern in string.
-    inline dynamic_string_array regexp_find(const char *pString, const char *pPattern, uint flags = 0)
+    inline dynamic_string_array regexp_find(const char *pString, const char *pPattern, uint32_t flags = 0)
     {
         regexp r;
 
@@ -178,7 +178,7 @@ namespace vogl
     }
 
     // Replaces every instance of pattern in string, returns the new string. pReplacement may be NULL.
-    inline dynamic_string regexp_replace(const char *pString, const char *pPattern, const char *pReplacement, uint flags = 0)
+    inline dynamic_string regexp_replace(const char *pString, const char *pPattern, const char *pReplacement, uint32_t flags = 0)
     {
         dynamic_string result;
 

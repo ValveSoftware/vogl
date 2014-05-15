@@ -410,44 +410,44 @@ void vogl_mem_error(const char *pMsg, const char *pFile_line)
 }
 
 #if VOGL_RAND_FILL_ALLLOCATED_MEMORY || VOGL_SCRUB_FREED_MEMORY
-static uint32 g_cur_rand = 0xDEADBEEF;
+static uint32_t g_cur_rand = 0xDEADBEEF;
 
 static void random_fill(void *p, size_t size)
 {
 #define JSR (jsr ^= (jsr << 17), jsr ^= (jsr >> 13), jsr ^= (jsr << 5));
-    uint32 jsr = g_cur_rand;
+    uint32_t jsr = g_cur_rand;
 
-    while (size >= sizeof(uint32) * 4)
+    while (size >= sizeof(uint32_t) * 4)
     {
-        static_cast<uint32 *>(p)[0] = jsr;
+        static_cast<uint32_t *>(p)[0] = jsr;
         JSR;
-        static_cast<uint32 *>(p)[1] = jsr;
+        static_cast<uint32_t *>(p)[1] = jsr;
         JSR;
-        static_cast<uint32 *>(p)[2] = jsr;
+        static_cast<uint32_t *>(p)[2] = jsr;
         JSR;
-        static_cast<uint32 *>(p)[3] = jsr;
+        static_cast<uint32_t *>(p)[3] = jsr;
         JSR;
 
-        size -= sizeof(uint32) * 4;
-        p = static_cast<uint32 *>(p) + 4;
+        size -= sizeof(uint32_t) * 4;
+        p = static_cast<uint32_t *>(p) + 4;
     }
 
-    while (size >= sizeof(uint32))
+    while (size >= sizeof(uint32_t))
     {
-        static_cast<uint32 *>(p)[0] = jsr;
+        static_cast<uint32_t *>(p)[0] = jsr;
         JSR;
 
-        size -= sizeof(uint32);
-        p = static_cast<uint32 *>(p);
+        size -= sizeof(uint32_t);
+        p = static_cast<uint32_t *>(p);
     }
 
     while (size)
     {
-        static_cast<uint8 *>(p)[0] = static_cast<uint8>(jsr);
+        static_cast<uint8_t *>(p)[0] = static_cast<uint8_t>(jsr);
         JSR;
 
         size--;
-        p = static_cast<uint8 *>(p) + 1;
+        p = static_cast<uint8_t *>(p) + 1;
     }
 
     g_cur_rand = jsr;
@@ -457,9 +457,9 @@ static void random_fill(void *p, size_t size)
 
 void *vogl_tracked_malloc(const char *pFile_line, size_t size, size_t *pActual_size)
 {
-    size = (size + sizeof(uint32) - 1U) & ~(sizeof(uint32) - 1U);
+    size = (size + sizeof(uint32_t) - 1U) & ~(sizeof(uint32_t) - 1U);
     if (!size)
-        size = sizeof(uint32);
+        size = sizeof(uint32_t);
 
     if (size > VOGL_MAX_POSSIBLE_HEAP_BLOCK_SIZE)
     {
@@ -467,9 +467,9 @@ void *vogl_tracked_malloc(const char *pFile_line, size_t size, size_t *pActual_s
         return NULL;
     }
 
-    uint8 *p_new = (uint8 *)malloc_block(size, pFile_line);
+    uint8_t *p_new = (uint8_t *)malloc_block(size, pFile_line);
 
-    VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(p_new) & (VOGL_MIN_ALLOC_ALIGNMENT - 1)) == 0);
+    VOGL_ASSERT((reinterpret_cast<uintptr_t>(p_new) & (VOGL_MIN_ALLOC_ALIGNMENT - 1)) == 0);
 
     if (!p_new)
     {
@@ -497,7 +497,7 @@ void *vogl_tracked_malloc(const char *pFile_line, size_t size, size_t *pActual_s
 
 void *vogl_tracked_realloc(const char *pFile_line, void *p, size_t size, size_t *pActual_size)
 {
-    if ((ptr_bits_t)p & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
+    if ((uintptr_t)p & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
     {
         vogl_mem_error("vogl_realloc: bad ptr", pFile_line);
         return NULL;
@@ -509,8 +509,8 @@ void *vogl_tracked_realloc(const char *pFile_line, void *p, size_t size, size_t 
         return NULL;
     }
 
-    if ((size) && (size < sizeof(uint32)))
-        size = sizeof(uint32);
+    if ((size) && (size < sizeof(uint32_t)))
+        size = sizeof(uint32_t);
 
 #if VOGL_RAND_FILL_ALLLOCATED_MEMORY || VOGL_SCRUB_FREED_MEMORY
     size_t orig_size = p ? msize_block(p, pFile_line) : 0;
@@ -523,7 +523,7 @@ void *vogl_tracked_realloc(const char *pFile_line, void *p, size_t size, size_t 
 
     void *p_new = realloc_block(p, size, pFile_line);
 
-    VOGL_ASSERT((reinterpret_cast<ptr_bits_t>(p_new) & (VOGL_MIN_ALLOC_ALIGNMENT - 1)) == 0);
+    VOGL_ASSERT((reinterpret_cast<uintptr_t>(p_new) & (VOGL_MIN_ALLOC_ALIGNMENT - 1)) == 0);
 
     if (pActual_size)
     {
@@ -550,7 +550,7 @@ void *vogl_tracked_realloc(const char *pFile_line, void *p, size_t size, size_t 
         size_t new_size = msize_block(p_new, pFile_line);
 
         if (new_size > orig_size)
-            random_fill(static_cast<uint8 *>(p_new) + orig_size, new_size - orig_size);
+            random_fill(static_cast<uint8_t *>(p_new) + orig_size, new_size - orig_size);
     }
 #endif
 
@@ -571,7 +571,7 @@ void vogl_tracked_free(const char *pFile_line, void *p)
     if (!p)
         return;
 
-    if (reinterpret_cast<ptr_bits_t>(p) & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
+    if (reinterpret_cast<uintptr_t>(p) & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
     {
         vogl_mem_error("vogl_free: bad ptr", pFile_line);
         return;
@@ -589,7 +589,7 @@ size_t vogl_msize(void *p)
     if (!p)
         return 0;
 
-    if (reinterpret_cast<ptr_bits_t>(p) & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
+    if (reinterpret_cast<uintptr_t>(p) & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
     {
         vogl_mem_error("vogl_msize: bad ptr", VOGL_FILE_POS_STRING);
         return 0;

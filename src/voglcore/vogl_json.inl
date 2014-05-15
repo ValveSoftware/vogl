@@ -15,13 +15,13 @@ namespace vogl
         m_data.m_nVal = val;
     }
 
-    inline json_value::json_value(int32 nVal)
+    inline json_value::json_value(int32_t nVal)
         : m_type(cJSONValueTypeInt), m_line(0)
     {
         m_data.m_nVal = nVal;
     }
 
-    inline json_value::json_value(uint32 nVal)
+    inline json_value::json_value(uint32_t nVal)
         : m_type(cJSONValueTypeInt), m_line(0)
     {
         m_data.m_nVal = nVal;
@@ -231,21 +231,21 @@ namespace vogl
         m_type = cJSONValueTypeBool;
     }
 
-    inline void json_value::set_value(int8 nVal)
+    inline void json_value::set_value(int8_t nVal)
     {
         free_data();
         m_data.m_nVal = nVal;
         m_type = cJSONValueTypeInt;
     }
 
-    inline void json_value::set_value(int16 nVal)
+    inline void json_value::set_value(int16_t nVal)
     {
         free_data();
         m_data.m_nVal = nVal;
         m_type = cJSONValueTypeInt;
     }
 
-    inline void json_value::set_value(int32 nVal)
+    inline void json_value::set_value(int32_t nVal)
     {
         free_data();
         m_data.m_nVal = nVal;
@@ -259,17 +259,17 @@ namespace vogl
         m_type = cJSONValueTypeInt;
     }
 
-    inline void json_value::set_value(uint8 nVal)
+    inline void json_value::set_value(uint8_t nVal)
     {
         set_value(static_cast<int64_t>(nVal));
     }
 
-    inline void json_value::set_value(uint16 nVal)
+    inline void json_value::set_value(uint16_t nVal)
     {
         set_value(static_cast<int64_t>(nVal));
     }
 
-    inline void json_value::set_value(uint32 nVal)
+    inline void json_value::set_value(uint32_t nVal)
     {
         set_value(static_cast<int64_t>(nVal));
     }
@@ -322,13 +322,13 @@ namespace vogl
         return *this;
     }
 
-    inline json_value &json_value::operator=(int32 nVal)
+    inline json_value &json_value::operator=(int32_t nVal)
     {
         set_value(nVal);
         return *this;
     }
 
-    inline json_value &json_value::operator=(uint32 nVal)
+    inline json_value &json_value::operator=(uint32_t nVal)
     {
         set_value(nVal);
         return *this;
@@ -403,11 +403,11 @@ namespace vogl
             return convert_to_bool(val, def);
     }
 
-    inline bool json_value::get_numeric(int32 &val, int32 def) const
+    inline bool json_value::get_numeric(int32_t &val, int32_t def) const
     {
-        if ((is_int()) && (m_data.m_nVal == static_cast<int32>(m_data.m_nVal)))
+        if ((is_int()) && (m_data.m_nVal == static_cast<int32_t>(m_data.m_nVal)))
         {
-            val = static_cast<int32>(m_data.m_nVal);
+            val = static_cast<int32_t>(m_data.m_nVal);
             return true;
         }
         else
@@ -472,21 +472,21 @@ namespace vogl
 
     inline int json_value::as_int(int def) const
     {
-        int32 result;
+        int32_t result;
         get_numeric(result, def);
         return result;
     }
 
-    inline int json_value::as_int32(int32 def) const
+    inline int32_t json_value::as_int32(int32_t def) const
     {
-        int32 result;
+        int32_t result;
         get_numeric(result, def);
         return result;
     }
 
-    inline uint32 json_value::as_uint32(uint32 def) const
+    inline uint32_t json_value::as_uint32(uint32_t def) const
     {
-        uint32 result;
+        uint32_t result;
         get_numeric(result, def);
         return result;
     }
@@ -545,12 +545,12 @@ namespace vogl
         std::swap(m_data.m_nVal, other.m_data.m_nVal);
     }
 
-    inline void json_value::set_line(uint line)
+    inline void json_value::set_line(uint32_t line)
     {
         m_line = line;
     }
 
-    inline uint json_value::get_line() const
+    inline uint32_t json_value::get_line() const
     {
         return m_line;
     }
@@ -584,7 +584,7 @@ namespace vogl
             return false;
         if (m_is_object)
         {
-            for (uint i = 0; i < m_values.size(); i++)
+            for (uint32_t i = 0; i < m_values.size(); i++)
             {
                 int j = other.find_key(m_keys[i].get_ptr());
                 if (j == cInvalidIndex)
@@ -596,7 +596,7 @@ namespace vogl
         }
         else
         {
-            for (uint i = 0; i < m_values.size(); i++)
+            for (uint32_t i = 0; i < m_values.size(); i++)
             {
                 if (m_values[i] != other.m_values[i])
                     return false;
@@ -612,13 +612,13 @@ namespace vogl
     }
 
     // true if the value at the specified index is an object or array.
-    inline bool json_node::is_child(uint index) const
+    inline bool json_node::is_child(uint32_t index) const
     {
         return get_value_type(index) == cJSONValueTypeNode;
     }
 
     // true if the value at the specified index is an object.
-    inline bool json_node::is_child_object(uint index) const
+    inline bool json_node::is_child_object(uint32_t index) const
     {
         const json_node *pChild = get_child(index);
         if (!pChild)
@@ -627,7 +627,7 @@ namespace vogl
     }
 
     // true if the value at the specified index is an array.
-    inline bool json_node::is_child_array(uint index) const
+    inline bool json_node::is_child_array(uint32_t index) const
     {
         const json_node *pChild = get_child(index);
         if (!pChild)
@@ -636,12 +636,12 @@ namespace vogl
     }
 
     // Returns pointer to the child array or object at the specified index, or NULL if the value is not an array or object.
-    inline const json_node *json_node::get_child(uint index) const
+    inline const json_node *json_node::get_child(uint32_t index) const
     {
         return m_values[index].get_node_ptr();
     }
 
-    inline json_node *json_node::get_child(uint index)
+    inline json_node *json_node::get_child(uint32_t index)
     {
         return m_values[index].get_node_ptr();
     }
@@ -657,7 +657,7 @@ namespace vogl
         return !m_is_object;
     }
 
-    inline uint json_node::size() const
+    inline uint32_t json_node::size() const
     {
         return m_values.size();
     }
@@ -685,7 +685,7 @@ namespace vogl
         return is_child_array(index);
     }
 
-    inline const dynamic_string &json_node::get_key(uint index) const
+    inline const dynamic_string &json_node::get_key(uint32_t index) const
     {
         return m_keys[index];
     }
@@ -697,28 +697,28 @@ namespace vogl
     }
 
     // Value retrieval/finding
-    inline json_value_type_t json_node::get_value_type(uint index) const
+    inline json_value_type_t json_node::get_value_type(uint32_t index) const
     {
         return m_values[index].get_type();
     }
 
-    inline const json_value &json_node::get_value(uint index) const
+    inline const json_value &json_node::get_value(uint32_t index) const
     {
         return m_values[index];
     }
 
-    inline const json_value &json_node::operator[](uint index) const
+    inline const json_value &json_node::operator[](uint32_t index) const
     {
         return m_values[index];
     }
 
     // Returns NULL if the value is not an object or array.
-    inline const json_node *json_node::get_value_as_object_or_array(uint index) const
+    inline const json_node *json_node::get_value_as_object_or_array(uint32_t index) const
     {
         return get_child(index);
     }
 
-    inline const json_node *json_node::get_value_as_object(uint index) const
+    inline const json_node *json_node::get_value_as_object(uint32_t index) const
     {
         if (!is_child_object(index))
             return NULL;
@@ -726,7 +726,7 @@ namespace vogl
             return get_child(index);
     }
 
-    inline const json_node *json_node::get_value_as_array(uint index) const
+    inline const json_node *json_node::get_value_as_array(uint32_t index) const
     {
         if (!is_child_array(index))
             return NULL;
@@ -740,12 +740,12 @@ namespace vogl
     }
 
     // Retrieves the json_value at the specified index.
-    inline json_value &json_node::get_value(uint index)
+    inline json_value &json_node::get_value(uint32_t index)
     {
         return m_values[index];
     }
 
-    inline json_value &json_node::operator[](uint index)
+    inline json_value &json_node::operator[](uint32_t index)
     {
         return m_values[index];
     }
@@ -767,9 +767,9 @@ namespace vogl
     }
 
     // Changes the number of elements in this node. Enlarging will add empty keys (for objects), and values of type cJSONValueTypeNull.
-    inline uint json_node::enlarge(uint n)
+    inline uint32_t json_node::enlarge(uint32_t n)
     {
-        uint cur_size = size();
+        uint32_t cur_size = size();
         resize(cur_size + n);
         return cur_size;
     }
@@ -816,13 +816,13 @@ namespace vogl
     }
 
     // Set the light number associated with this node.
-    inline void json_node::set_line(uint line)
+    inline void json_node::set_line(uint32_t line)
     {
         m_line = line;
     }
 
     // Gets the light number associated with this node.
-    inline uint json_node::get_line() const
+    inline uint32_t json_node::get_line() const
     {
         return m_line;
     }
@@ -851,7 +851,7 @@ namespace vogl
     }
 
     template <typename T>
-    bool json_node::get_object(uint index, T &obj) const
+    bool json_node::get_object(uint32_t index, T &obj) const
     {
         return json_deserialize(obj, get_value(index));
     }
@@ -863,7 +863,7 @@ namespace vogl
 
         obj.add_key_value("type", "vector");
 
-        uint size = vec.size();
+        uint32_t size = vec.size();
         obj.add_key_value("size", size);
 
         if (size)
@@ -871,7 +871,7 @@ namespace vogl
             json_node &elements = obj.add_array("elements");
             elements.reserve(size);
 
-            for (uint i = 0; i < size; i++)
+            for (uint32_t i = 0; i < size; i++)
             {
                 json_value &new_val = elements.add_value();
                 if (!json_serialize(vec[i], new_val))
@@ -902,7 +902,7 @@ namespace vogl
         if (size64 > cUINT32_MAX)
             return false;
 
-        uint size = static_cast<uint>(size64);
+        uint32_t size = static_cast<uint32_t>(size64);
 
         vec.resize(size);
 
@@ -913,7 +913,7 @@ namespace vogl
             if ((!pElements) || (pElements->size() != size))
                 return false;
 
-            for (uint i = 0; i < size; i++)
+            for (uint32_t i = 0; i < size; i++)
                 if (!json_deserialize(vec[i], pElements->get_value(i)))
                     return false;
         }
@@ -986,7 +986,7 @@ namespace vogl
         if (!size64)
             return true;
 
-        uint size = static_cast<uint>(size64);
+        uint32_t size = static_cast<uint32_t>(size64);
 
         map.reserve(size);
 
@@ -997,7 +997,7 @@ namespace vogl
         if (pObjects_arr->size() != size)
             return false;
 
-        for (uint i = 0; i < pObjects_arr->size(); i++)
+        for (uint32_t i = 0; i < pObjects_arr->size(); i++)
         {
             const json_node *pArr_node = pObjects_arr->get_child(i);
             if (!pArr_node)
@@ -1042,35 +1042,35 @@ namespace vogl
         return v.json_deserialize(val);
     }
 
-    inline bool json_serialize(const int8 &v, json_value &val)
+    inline bool json_serialize(const int8_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(int8 &v, const json_value &val)
+    inline bool json_deserialize(int8_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const int16 &v, json_value &val)
+    inline bool json_serialize(const int16_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(int16 &v, const json_value &val)
+    inline bool json_deserialize(int16_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const int32 &v, json_value &val)
+    inline bool json_serialize(const int32_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(int32 &v, const json_value &val)
+    inline bool json_deserialize(int32_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }
@@ -1086,35 +1086,35 @@ namespace vogl
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const uint8 &v, json_value &val)
+    inline bool json_serialize(const uint8_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(uint8 &v, const json_value &val)
+    inline bool json_deserialize(uint8_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const uint16 &v, json_value &val)
+    inline bool json_serialize(const uint16_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(uint16 &v, const json_value &val)
+    inline bool json_deserialize(uint16_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }
 
-    inline bool json_serialize(const uint32 &v, json_value &val)
+    inline bool json_serialize(const uint32_t &v, json_value &val)
     {
         val = v;
         return true;
     }
 
-    inline bool json_deserialize(uint32 &v, const json_value &val)
+    inline bool json_deserialize(uint32_t &v, const json_value &val)
     {
         return val.get_numeric(v);
     }
@@ -1198,14 +1198,14 @@ namespace vogl
         return pNode->get_map(NULL, rh_hash_map);
     }
 
-    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint MaxLevels>
+    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint32_t MaxLevels>
     inline bool json_serialize(const vogl::map<Key, Value, LessComp, EqualComp, MaxLevels> &map, json_value &val)
     {
         json_node *pObj = val.init_object();
         return pObj->add_map(NULL, map);
     }
 
-    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint MaxLevels>
+    template <typename Key, typename Value, typename LessComp, typename EqualComp, uint32_t MaxLevels>
     inline bool json_deserialize(vogl::map<Key, Value, LessComp, EqualComp, MaxLevels> &map, const json_value &val)
     {
         if (!val.is_object())
@@ -1230,14 +1230,14 @@ namespace vogl
         return pNode->get_vector(NULL, vec);
     }
 
-    template <typename T, uint N>
+    template <typename T, uint32_t N>
     inline bool json_serialize(const vogl::growable_array<T, N> &vec, json_value &val)
     {
         json_node *pObj = val.init_object();
         return pObj->add_vector(NULL, vec);
     }
 
-    template <typename T, uint N>
+    template <typename T, uint32_t N>
     inline bool json_deserialize(vogl::growable_array<T, N> &vec, const json_value &val)
     {
         if (!val.is_object())
@@ -1292,7 +1292,7 @@ namespace vogl
         return m_error_msg;
     }
 
-    inline uint json_document::get_error_line() const
+    inline uint32_t json_document::get_error_line() const
     {
         return m_error_line;
     }

@@ -92,7 +92,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
     VOGL_ASSERT(handle <= cUINT32_MAX);
 
-    m_snapshot_handle = static_cast<uint32>(handle);
+    m_snapshot_handle = static_cast<uint32_t>(handle);
     m_target = target;
 
     if (m_target == GL_NONE)
@@ -265,10 +265,10 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
         return true;
     }
 
-    uint num_actual_mip_levels = trial_level + 1;
+    uint32_t num_actual_mip_levels = trial_level + 1;
 
     // Try to query the base level
-    if (num_actual_mip_levels != (static_cast<uint>(max_level) + 1U))
+    if (num_actual_mip_levels != (static_cast<uint32_t>(max_level) + 1U))
     {
         vogl_warning_printf("%s: Texture's GL_TEXTURE_MAX_LEVEL is %u, but the max defined mip level is %u. Note GL may not act consistently with this texture object, GL texture %" PRIu64 " target %s\n", VOGL_FUNCTION_INFO_CSTR,
                               max_level, trial_level,
@@ -340,9 +340,9 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
         }
     }
 
-    uint width = base_width << base_level;
-    uint height = 1;
-    uint depth = 1;
+    uint32_t width = base_width << base_level;
+    uint32_t height = 1;
+    uint32_t depth = 1;
 
     switch (target)
     {
@@ -376,7 +376,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
             break;
     }
 
-    //uint max_possible_mip_levels = (m_target == GL_TEXTURE_RECTANGLE) ? 1 : utils::compute_max_mips(width, height, depth);
+    //uint32_t max_possible_mip_levels = (m_target == GL_TEXTURE_RECTANGLE) ? 1 : utils::compute_max_mips(width, height, depth);
 
     GLenum image_fmt = pInternal_tex_fmt->m_optimum_get_image_fmt;
     GLenum image_type = pInternal_tex_fmt->m_optimum_get_image_type;
@@ -397,7 +397,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     }
 #endif
 
-    uint num_faces = 1;
+    uint32_t num_faces = 1;
 
     GLenum ktx_image_fmt = GL_NONE, ktx_image_type = GL_NONE;
     if (!pInternal_tex_fmt->m_compressed)
@@ -493,7 +493,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         ktx_tex_target = GL_TEXTURE_2D;
 
-        for (uint sample_index = 0; sample_index < m_num_samples; sample_index++)
+        for (uint32_t sample_index = 0; sample_index < m_num_samples; sample_index++)
         {
             if (!m_textures[sample_index].init_2D(width, height, num_actual_mip_levels, internal_fmt, ktx_image_fmt, ktx_image_type))
             {
@@ -507,7 +507,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     {
         ktx_tex_target = GL_TEXTURE_2D_ARRAY;
 
-        for (uint sample_index = 0; sample_index < m_num_samples; sample_index++)
+        for (uint32_t sample_index = 0; sample_index < m_num_samples; sample_index++)
         {
             if (!m_textures[sample_index].init_2D_array(width, height, num_actual_mip_levels, base_depth, internal_fmt, ktx_image_fmt, ktx_image_type))
             {
@@ -589,7 +589,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
         }
     }
 
-    for (uint face = 0; face < num_faces; face++)
+    for (uint32_t face = 0; face < num_faces; face++)
     {
         GLenum face_target_to_query = m_target;
         if ((m_target == GL_TEXTURE_CUBE_MAP) || (m_target == GL_TEXTURE_CUBE_MAP_ARRAY))
@@ -597,7 +597,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
         m_level_params[face].resize(num_actual_mip_levels);
 
-        for (uint level = 0; level < num_actual_mip_levels; level++)
+        for (uint32_t level = 0; level < num_actual_mip_levels; level++)
         {
             GLenum level_internal_fmt = 0;
             GL_ENTRYPOINT(glGetTexLevelParameteriv)(target_to_query, level, GL_TEXTURE_INTERNAL_FORMAT, reinterpret_cast<GLint *>(&level_internal_fmt));
@@ -710,7 +710,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                 return false;
             }
 
-            size_t size_in_bytes = level_params.get_value<uint>(GL_TEXTURE_COMPRESSED_IMAGE_SIZE);
+            size_t size_in_bytes = level_params.get_value<uint32_t>(GL_TEXTURE_COMPRESSED_IMAGE_SIZE);
             if (pInternal_tex_fmt->m_compressed)
             {
                 if (!size_in_bytes)
@@ -741,21 +741,21 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     uint8_vec temp_img;
 
     // Now grab the data from each face, mipmap level, and slice/layer and supply it to the KTX texture object.
-    for (uint face = 0; face < num_faces; face++)
+    for (uint32_t face = 0; face < num_faces; face++)
     {
         GLenum face_target_to_query = m_target;
         if ((m_target == GL_TEXTURE_CUBE_MAP) || (m_target == GL_TEXTURE_CUBE_MAP_ARRAY))
             face_target_to_query = GL_TEXTURE_CUBE_MAP_POSITIVE_X + face;
 
         // Query available mip levels and add them to the texture.
-        for (uint level = 0; level < num_actual_mip_levels; level++)
+        for (uint32_t level = 0; level < num_actual_mip_levels; level++)
         {
             const vogl_state_vector &level_params = m_level_params[face][level];
 
             // Insert placeholder images for the missing texture levels
             if (!level_params.find(GL_TEXTURE_WIDTH))
             {
-                for (uint sample_index = 0; sample_index < m_num_samples; sample_index++)
+                for (uint32_t sample_index = 0; sample_index < m_num_samples; sample_index++)
                 {
                     int image_size = m_textures[sample_index].get_expected_image_size(level);
                     temp_img.resize(image_size);
@@ -763,7 +763,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                     if ((ktx_tex_target == GL_TEXTURE_1D_ARRAY) || (ktx_tex_target == GL_TEXTURE_2D_ARRAY) || (ktx_tex_target == GL_TEXTURE_CUBE_MAP_ARRAY))
                     {
                         VOGL_ASSERT(base_depth);
-                        uint num_array_elements = base_depth;
+                        uint32_t num_array_elements = base_depth;
 
                         if (ktx_tex_target == GL_TEXTURE_1D_ARRAY)
                         {
@@ -771,7 +771,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                             num_array_elements = base_height;
                         }
 
-                        for (uint array_index = 0; array_index < num_array_elements; array_index++)
+                        for (uint32_t array_index = 0; array_index < num_array_elements; array_index++)
                         {
                             m_textures[sample_index].add_image(level, array_index, face, 0, temp_img.get_ptr(), image_size);
                         }
@@ -794,7 +794,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
             int level_height = level_params.get_value<int>(GL_TEXTURE_HEIGHT);
             int level_depth = level_params.get_value<int>(GL_TEXTURE_DEPTH);
 
-            int size_in_bytes = level_params.get_value<uint>(GL_TEXTURE_COMPRESSED_IMAGE_SIZE);
+            int size_in_bytes = level_params.get_value<uint32_t>(GL_TEXTURE_COMPRESSED_IMAGE_SIZE);
 
             if (!pInternal_tex_fmt->m_compressed)
             {
@@ -820,7 +820,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                 size_in_bytes = static_cast<int>(size_in_bytes64);
             }
 
-            for (uint sample_index = 0; sample_index < m_num_samples; sample_index++)
+            for (uint32_t sample_index = 0; sample_index < m_num_samples; sample_index++)
             {
                 GLenum get_target = face_target_to_query;
 
@@ -833,7 +833,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                     get_target = ktx_tex_target;
                 }
 
-                const uint num_guard_bytes = 2;
+                const uint32_t num_guard_bytes = 2;
                 if (!temp_img.try_resize(size_in_bytes + num_guard_bytes))
                 {
                     vogl_error_printf("%s: Out of memory while trying to retrieve texture data, texture %" PRIu64 " target %s\n", VOGL_FUNCTION_INFO_CSTR, (uint64_t)handle, get_gl_enums().find_gl_name(m_target));
@@ -904,7 +904,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                         return false;
                     }
 
-                    uint8_vec stencil_image_data(static_cast<uint>(split_color_size_in_bytes64));
+                    uint8_vec stencil_image_data(static_cast<uint32_t>(split_color_size_in_bytes64));
 
                     GL_ENTRYPOINT(glBindTexture)(ktx_tex_target, split_stencil_texture_handles[sample_index]);
                     VOGL_CHECK_GL_ERROR;
@@ -917,16 +917,16 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                         case GL_DEPTH_STENCIL:          // GL_UNSIGNED_INT_24_8
                         case GL_DEPTH24_STENCIL8:       // GL_UNSIGNED_INT_24_8
                         {
-                            for (uint y = 0; y < height; y++)
+                            for (uint32_t y = 0; y < height; y++)
                             {
-                                for (uint x = 0; x < width; x++)
+                                for (uint32_t x = 0; x < width; x++)
                                 {
-                                    uint ofs = (x * sizeof(uint32)) + (y * width * sizeof(uint32));
+                                    uint32_t ofs = (x * sizeof(uint32_t)) + (y * width * sizeof(uint32_t));
                                     // I'm paranoid
                                     if ((ofs < stencil_image_data.size()) && (ofs < temp_img.size()))
                                     {
-                                        uint8 *pSrc = stencil_image_data.get_ptr() + ofs;
-                                        uint8 *pDest = temp_img.get_ptr() + ofs;
+                                        uint8_t *pSrc = stencil_image_data.get_ptr() + ofs;
+                                        uint8_t *pDest = temp_img.get_ptr() + ofs;
 
                                         pDest[0] = pSrc[0];
                                     }
@@ -937,16 +937,16 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                         case GL_DEPTH32F_STENCIL8:      // GL_FLOAT_32_UNSIGNED_INT_24_8_REV
                         case GL_DEPTH32F_STENCIL8_NV:   // GL_FLOAT_32_UNSIGNED_INT_24_8_REV
                         {
-                            for (uint y = 0; y < height; y++)
+                            for (uint32_t y = 0; y < height; y++)
                             {
-                                for (uint x = 0; x < width; x++)
+                                for (uint32_t x = 0; x < width; x++)
                                 {
-                                    uint ofs = (x * sizeof(uint32)) + (y * width * sizeof(uint32));
+                                    uint32_t ofs = (x * sizeof(uint32_t)) + (y * width * sizeof(uint32_t));
                                     // I'm paranoid
                                     if ((ofs < stencil_image_data.size()) && ((ofs + 3) < temp_img.size()))
                                     {
-                                        uint8 *pSrc = stencil_image_data.get_ptr() + ofs;
-                                        uint8 *pDest = temp_img.get_ptr() + ofs;
+                                        uint8_t *pSrc = stencil_image_data.get_ptr() + ofs;
+                                        uint8_t *pDest = temp_img.get_ptr() + ofs;
 
                                         pDest[3] = pSrc[0];
                                     }
@@ -965,7 +965,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
                 if (ktx_tex_target == GL_TEXTURE_3D)
                 {
-                    uint zslice_size = size_in_bytes;
+                    uint32_t zslice_size = size_in_bytes;
                     if (level_depth > 1)
                     {
                         VOGL_ASSERT((size_in_bytes % level_depth) == 0);
@@ -975,7 +975,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
 
                     VOGL_ASSERT((size_in_bytes % zslice_size) == 0);
 
-                    uint cur_ofs = 0;
+                    uint32_t cur_ofs = 0;
                     for (int zslice = 0; zslice < level_depth; zslice++)
                     {
                         m_textures[sample_index].add_image(level, 0, face, zslice, temp_img.get_ptr() + cur_ofs, zslice_size);
@@ -986,7 +986,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                 else if ((ktx_tex_target == GL_TEXTURE_1D_ARRAY) || (ktx_tex_target == GL_TEXTURE_2D_ARRAY) || (ktx_tex_target == GL_TEXTURE_CUBE_MAP_ARRAY))
                 {
                     VOGL_ASSERT(base_depth);
-                    uint num_array_elements = base_depth;
+                    uint32_t num_array_elements = base_depth;
 
                     if (ktx_tex_target == GL_TEXTURE_1D_ARRAY)
                     {
@@ -994,12 +994,12 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
                     }
 
                     VOGL_ASSERT((size_in_bytes % num_array_elements) == 0);
-                    uint element_size = size_in_bytes / num_array_elements;
+                    uint32_t element_size = size_in_bytes / num_array_elements;
                     VOGL_ASSERT(element_size);
                     VOGL_ASSERT((size_in_bytes % element_size) == 0);
 
-                    uint cur_ofs = 0;
-                    for (uint array_index = 0; array_index < num_array_elements; array_index++)
+                    uint32_t cur_ofs = 0;
+                    for (uint32_t array_index = 0; array_index < num_array_elements; array_index++)
                     {
                         m_textures[sample_index].add_image(level, array_index, face, 0, temp_img.get_ptr() + cur_ofs, element_size);
                         cur_ofs += element_size;
@@ -1142,10 +1142,10 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
         return true;
     }
 
-    uint face = 0, level = 0;
+    uint32_t face = 0, level = 0;
     uint8_vec temp_img;
 
-    uint tex_width = 0, tex_height = 0, tex_depth = 0, total_actual_levels = 0, num_faces = 0;
+    uint32_t tex_width = 0, tex_height = 0, tex_depth = 0, total_actual_levels = 0, num_faces = 0;
     int base_level = 0, max_level = 0;
     VOGL_NOTE_UNUSED(base_level);
     VOGL_NOTE_UNUSED(max_level);
@@ -1154,7 +1154,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
 
     const ktx_texture &tex0 = m_textures[0];
 
-    GL_ENTRYPOINT(glBindTexture)(m_target, static_cast<uint32>(handle));
+    GL_ENTRYPOINT(glBindTexture)(m_target, static_cast<uint32_t>(handle));
     if (vogl_check_gl_error())
         goto handle_error;
 
@@ -1268,7 +1268,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
     num_faces = ((m_target == GL_TEXTURE_CUBE_MAP) || (m_target == GL_TEXTURE_CUBE_MAP_ARRAY)) ? cCubeMapFaces : 1;
 
     // Sanity checking
-    for (uint sample_index = 1; sample_index < m_num_samples; sample_index++)
+    for (uint32_t sample_index = 1; sample_index < m_num_samples; sample_index++)
     {
         const ktx_texture &cmp_tex = m_textures[sample_index];
 
@@ -1346,7 +1346,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                     goto handle_error;
                 }
 
-                for (uint sample_index = 0; sample_index < m_num_samples; sample_index++)
+                for (uint32_t sample_index = 0; sample_index < m_num_samples; sample_index++)
                 {
                     const uint8_vec &src_img = m_textures[sample_index].get_image_data(level, 0, face, 0);
                     VOGL_ASSERT(src_img.size());
@@ -1367,12 +1367,12 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
 
                     if (src_target == GL_TEXTURE_2D_ARRAY)
                     {
-                        uint array_size = tex0.get_array_size();
+                        uint32_t array_size = tex0.get_array_size();
 
                         temp_img.resize(0);
                         temp_img.reserve(src_img.size() * array_size);
 
-                        for (uint array_index = 0; array_index < array_size; array_index++)
+                        for (uint32_t array_index = 0; array_index < array_size; array_index++)
                         {
                             temp_img.append(m_textures[sample_index].get_image_data(level, array_index, face, 0));
                         }
@@ -1386,7 +1386,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                         VOGL_CHECK_GL_ERROR;
                     }
 
-                    bool status = splitter.combine(src_texture, sample_index, m_target, static_cast<uint32>(handle));
+                    bool status = splitter.combine(src_texture, sample_index, m_target, static_cast<uint32_t>(handle));
 
                     GL_ENTRYPOINT(glBindTexture)(src_target, 0);
                     VOGL_CHECK_GL_ERROR;
@@ -1426,12 +1426,12 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
 
                         if (src_starget == GL_TEXTURE_2D_ARRAY)
                         {
-                            uint array_size = tex0.get_array_size();
+                            uint32_t array_size = tex0.get_array_size();
 
                             temp_img.resize(0);
                             temp_img.reserve(src_img.size() * array_size);
 
-                            for (uint array_index = 0; array_index < array_size; array_index++)
+                            for (uint32_t array_index = 0; array_index < array_size; array_index++)
                             {
                                 temp_img.append(m_textures[sample_index].get_image_data(level, array_index, face, 0));
                             }
@@ -1445,7 +1445,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                             VOGL_CHECK_GL_ERROR;
                         }
 
-                        status = splitter.copy_color_sample_to_stencil(temp_color_texture, sample_index, m_target, static_cast<uint32>(handle));
+                        status = splitter.copy_color_sample_to_stencil(temp_color_texture, sample_index, m_target, static_cast<uint32_t>(handle));
 
                         GL_ENTRYPOINT(glBindTexture)(src_starget, 0);
                         VOGL_CHECK_GL_ERROR;
@@ -1504,8 +1504,8 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                     {
                         if (m_target == GL_TEXTURE_1D_ARRAY)
                         {
-                            uint array_size = tex0.get_array_size();
-                            for (uint array_index = 0; array_index < array_size; array_index++)
+                            uint32_t array_size = tex0.get_array_size();
+                            for (uint32_t array_index = 0; array_index < array_size; array_index++)
                             {
                                 temp_img.append(tex0.get_image_data(level, array_index, face, 0));
                             }
@@ -1544,8 +1544,8 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
                         else
                         {
                             // 2D_ARRAY or CUBE_MAP_ARRAY
-                            uint array_size = tex0.get_array_size();
-                            for (uint array_index = 0; array_index < array_size; array_index++)
+                            uint32_t array_size = tex0.get_array_size();
+                            for (uint32_t array_index = 0; array_index < array_size; array_index++)
                             {
                                 temp_img.append(tex0.get_image_data(level, array_index, face, 0));
                             }
@@ -1584,7 +1584,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
     if (m_params.get_value<int>(GL_GENERATE_MIPMAP))
     {
         GL_ENTRYPOINT(glGenerateMipmap)(m_target);
-        vogl_debug_printf("%s: Generating mipmaps for texture, snapshot handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, (uint)handle);
+        vogl_debug_printf("%s: Generating mipmaps for texture, snapshot handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, (uint32_t)handle);
     }
 
 #undef SET_INT
@@ -1622,7 +1622,7 @@ bool vogl_texture_state::remap_handles(vogl_handle_remapper &remapper)
     if (!m_is_valid)
         return false;
 
-    m_snapshot_handle = static_cast<uint32>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, m_snapshot_handle));
+    m_snapshot_handle = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, m_snapshot_handle));
 
     if (m_buffer)
     {
@@ -1642,11 +1642,11 @@ void vogl_texture_state::clear()
 
     m_num_samples = 0;
 
-    for (uint i = 0; i < cMaxSamples; i++)
+    for (uint32_t i = 0; i < cMaxSamples; i++)
         m_textures[i].clear();
 
     m_params.clear();
-    for (uint i = 0; i < VOGL_ARRAY_SIZE(m_level_params); i++)
+    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(m_level_params); i++)
         m_level_params[i].clear();
 
     m_is_unquerable = false;
@@ -1677,7 +1677,7 @@ bool vogl_texture_state::serialize(json_node &node, vogl_blob_manager &blob_mana
         {
             json_node &textures_array_node = node.add_array("textures");
 
-            for (uint sample_index = 0; sample_index < m_num_samples; sample_index++)
+            for (uint32_t sample_index = 0; sample_index < m_num_samples; sample_index++)
             {
                 json_node &texture_node = textures_array_node.add_object();
 
@@ -1696,7 +1696,7 @@ bool vogl_texture_state::serialize(json_node &node, vogl_blob_manager &blob_mana
                                                          GL_TEXTURE_2D_MULTISAMPLE_ARRAY, "tex_2d_multisample_array",
                                                          GL_TEXTURE_CUBE_MAP_ARRAY, "tex_cube_array");
 
-                uint actual_mip_levels = m_params.get_value<GLint>(GL_TEXTURE_MAX_LEVEL) + 1;
+                uint32_t actual_mip_levels = m_params.get_value<GLint>(GL_TEXTURE_MAX_LEVEL) + 1;
                 if (tex.is_valid())
                     actual_mip_levels = math::minimum(actual_mip_levels, tex.get_num_mips());
 
@@ -1753,9 +1753,9 @@ bool vogl_texture_state::serialize(json_node &node, vogl_blob_manager &blob_mana
             }
 
             json_node &level_params_array = node.add_array("level_params");
-            for (uint face = 0; face < m_textures[0].get_num_faces(); face++)
+            for (uint32_t face = 0; face < m_textures[0].get_num_faces(); face++)
             {
-                for (uint level = 0; level < m_textures[0].get_num_mips(); level++)
+                for (uint32_t level = 0; level < m_textures[0].get_num_mips(); level++)
                 {
                     json_node &level_param_array_value = level_params_array.add_object();
                     if (m_target == GL_TEXTURE_CUBE_MAP)
@@ -1827,7 +1827,7 @@ bool vogl_texture_state::deserialize(const json_node &node, const vogl_blob_mana
             if ((!pTextures_array_node) || (!pTextures_array_node->size()) || (pTextures_array_node->size() > cMaxSamples))
                 return false;
 
-            for (uint i = 0; i < pTextures_array_node->size(); i++)
+            for (uint32_t i = 0; i < pTextures_array_node->size(); i++)
             {
                 const json_node *pTexture_node = pTextures_array_node->get_child(i);
                 if (!pTexture_node)
@@ -1854,20 +1854,20 @@ bool vogl_texture_state::deserialize(const json_node &node, const vogl_blob_mana
         const json_node *pLevel_params_array = node.find_child_array("level_params");
         if (pLevel_params_array)
         {
-            for (uint i = 0; i < pLevel_params_array->size(); i++)
+            for (uint32_t i = 0; i < pLevel_params_array->size(); i++)
             {
                 const json_node *pLevel_params_node = pLevel_params_array->get_value_as_object(i);
                 if (!pLevel_params_node)
                     return false;
 
-                uint face = pLevel_params_node->value_as_uint32("face");
+                uint32_t face = pLevel_params_node->value_as_uint32("face");
                 if (face)
                 {
                     if ((m_target != GL_TEXTURE_CUBE_MAP) || (face > cCubeMapFaces))
                         return false;
                 }
 
-                uint level = pLevel_params_node->value_as_uint32("level");
+                uint32_t level = pLevel_params_node->value_as_uint32("level");
                 // obviously crazy level
                 if (level > 20)
                     return false;
@@ -1913,12 +1913,12 @@ bool vogl_texture_state::compare_restorable_state(const vogl_gl_object_state &rh
     CMP(m_params);
     CMP(m_buffer);
 
-    for (uint i = 0; i < cCubeMapFaces; i++)
+    for (uint32_t i = 0; i < cCubeMapFaces; i++)
         CMP(m_level_params[i]);
 
     CMP(m_num_samples);
 
-    for (uint i = 0; i < m_num_samples; i++)
+    for (uint32_t i = 0; i < m_num_samples; i++)
     {
         if (m_textures[i].is_valid() != rhs.m_textures[i].is_valid())
             return false;

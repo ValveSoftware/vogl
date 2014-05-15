@@ -125,10 +125,39 @@ struct sigaction g_prev_sigactions[MAX_SIGNALS];
 
 static vogl_exception_callback_t g_exception_callback = NULL;
 
-// Derived from apitrace, but this code appears to have been copied around and tweaked from multiple sources:
-// - http://sourceware.org/git/?p=glibc.git;a=blob;f=debug/segfault.c
-// - http://ggi.cvs.sourceforge.net/viewvc/ggi/ggi-core/libgg/gg/cleanup.c?view=markup
+/**************************************************************************
+ *
+ * Signal handler code derived from apitrace. Apitrace license:
+ *
+ * Copyright 2011 Jose Fonseca
+ * Copyright 2008-2010 VMware, Inc.
+ * All Rights Reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ **************************************************************************/
 
+/*
+ * See also:
+ * - http://sourceware.org/git/?p=glibc.git;a=blob;f=debug/segfault.c
+ * - http://ggi.cvs.sourceforge.net/viewvc/ggi/ggi-core/libgg/gg/cleanup.c?view=markup
+ */
 static void signal_handler(int sig, siginfo_t *info, void *context)
 {
     fixed_string256 buf;

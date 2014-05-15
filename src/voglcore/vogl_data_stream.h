@@ -48,7 +48,7 @@ namespace vogl
 
     public:
         data_stream();
-        data_stream(const char *pName, uint attribs);
+        data_stream(const char *pName, uint32_t attribs);
 
         virtual ~data_stream()
         {
@@ -66,7 +66,7 @@ namespace vogl
             return true;
         }
 
-        typedef uint16 attribs_t;
+        typedef uint16_t attribs_t;
         inline attribs_t get_attribs() const
         {
             return m_attribs;
@@ -105,13 +105,13 @@ namespace vogl
             m_name.set(pName);
         }
 
-        virtual uint read(void *pBuf, uint len) = 0;
-        inline virtual uint peek(char *out_char) { VOGL_VERIFY(!"peek not implemented for this class."); return 0; }
+        virtual uint32_t read(void *pBuf, uint32_t len) = 0;
+        inline virtual uint32_t peek(char *out_char) { VOGL_VERIFY(!"peek not implemented for this class."); return 0; }
         uint64_t read64(void *pBuf, uint64_t len);
 
         virtual uint64_t skip(uint64_t len);
 
-        virtual uint write(const void *pBuf, uint len) = 0;
+        virtual uint32_t write(const void *pBuf, uint32_t len) = 0;
         virtual bool flush() = 0;
 
         virtual bool is_size_known() const
@@ -133,12 +133,12 @@ namespace vogl
 
         inline int read_byte()
         {
-            uint8 c;
+            uint8_t c;
             if (read(&c, 1) != 1)
                 return -1;
             return c;
         }
-        inline bool write_byte(uint8 c)
+        inline bool write_byte(uint8_t c)
         {
             return write(&c, 1) == 1;
         }
@@ -156,12 +156,12 @@ namespace vogl
         bool puts(const dynamic_string &str);
         bool write_bom()
         {
-            uint16 bom = 0xFEFF;
+            uint16_t bom = 0xFEFF;
             return write(&bom, sizeof(bom)) == sizeof(bom);
         }
 
-        bool read_array(vector<uint8> &buf);
-        bool write_array(const vector<uint8> &buf);
+        bool read_array(vector<uint8_t> &buf);
+        bool write_array(const vector<uint8_t> &buf);
 
         void set_user_data(void *p)
         {

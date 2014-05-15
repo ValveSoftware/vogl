@@ -71,12 +71,12 @@ namespace vogl
             m_bounds[1].clear();
         }
 
-        inline const T &operator[](uint i) const
+        inline const T &operator[](uint32_t i) const
         {
             VOGL_ASSERT(i < 2);
             return m_bounds[i];
         }
-        inline T &operator[](uint i)
+        inline T &operator[](uint32_t i)
         {
             VOGL_ASSERT(i < 2);
             return m_bounds[i];
@@ -86,7 +86,7 @@ namespace vogl
         {
             return m_bounds[1] - m_bounds[0];
         }
-        inline scalar_type get_dimension(uint axis) const
+        inline scalar_type get_dimension(uint32_t axis) const
         {
             return m_bounds[1][axis] - m_bounds[0][axis];
         }
@@ -105,7 +105,7 @@ namespace vogl
 
         inline bool is_null() const
         {
-            for (uint i = 0; i < N; i++)
+            for (uint32_t i = 0; i < N; i++)
                 if (m_bounds[0][i] > m_bounds[1][i])
                     return true;
             return false;
@@ -154,12 +154,12 @@ namespace vogl
             m_bounds[1] = 0;
         }
 
-        inline const T operator[](uint i) const
+        inline const T operator[](uint32_t i) const
         {
             VOGL_ASSERT(i < 2);
             return m_bounds[i];
         }
-        inline T &operator[](uint i)
+        inline T &operator[](uint32_t i)
         {
             VOGL_ASSERT(i < 2);
             return m_bounds[i];

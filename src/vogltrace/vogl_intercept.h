@@ -61,7 +61,7 @@ typedef void (*vogl_capture_status_callback_func_ptr)(const char *pFilename, voi
 // If not NULL, pStatus_callback will be asynchronously called when the capture succeeds or fails.
 // There is *no guarantee* that this status func will actually be called - it depends on the client's GL/GLX usage. But the tracer will try pretty hard to close the trace at exit, so there's a high probability it'll be called.
 // Returns true if the capture was successfully queued up, false if it's not possible to queue up a capture.
-bool vogl_capture_on_next_swap(uint total_frames, const char *pPath, const char *pBase_filename, vogl_capture_status_callback_func_ptr pStatus_callback, void *pStatus_callback_opaque);
+bool vogl_capture_on_next_swap(uint32_t total_frames, const char *pPath, const char *pBase_filename, vogl_capture_status_callback_func_ptr pStatus_callback, void *pStatus_callback_opaque);
 
 // Causes the trace to close as soon as the app calls SwapBuffers(), or false if tracing is not active.
 // Note the status callbackwill version always overrides any status callback set via vogl_capture_on_next_swap().

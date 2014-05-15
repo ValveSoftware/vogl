@@ -41,7 +41,7 @@
 namespace vogl
 {
 #ifdef VOGL_USE_WIN32_API
-    bool find_files::find(const char *pBasepath, const char *pFilespec, uint flags)
+    bool find_files::find(const char *pBasepath, const char *pFilespec, uint32_t flags)
     {
         m_last_error = S_OK;
         m_files.resize(0);
@@ -49,7 +49,7 @@ namespace vogl
         return find_internal(pBasepath, "", pFilespec, flags, 0);
     }
 
-    bool find_files::find(const char *pSpec, uint flags)
+    bool find_files::find(const char *pSpec, uint32_t flags)
     {
         dynamic_string find_name(pSpec);
 
@@ -63,7 +63,7 @@ namespace vogl
         return find(find_pathname.get_ptr(), find_filename.get_ptr(), flags);
     }
 
-    bool find_files::find_internal(const char *pBasepath, const char *pRelpath, const char *pFilespec, uint flags, int level)
+    bool find_files::find_internal(const char *pBasepath, const char *pRelpath, const char *pFilespec, uint32_t flags, int level)
     {
         WIN32_FIND_DATAA find_data;
 
@@ -192,7 +192,7 @@ namespace vogl
             }
         }
 
-        for (uint i = 0; i < child_paths.size(); i++)
+        for (uint32_t i = 0; i < child_paths.size(); i++)
         {
             dynamic_string child_path;
             if (strlen(pRelpath))
@@ -207,13 +207,13 @@ namespace vogl
         return true;
     }
 #elif defined(COMPILER_GCCLIKE)
-    bool find_files::find(const char *pBasepath, const char *pFilespec, uint flags)
+    bool find_files::find(const char *pBasepath, const char *pFilespec, uint32_t flags)
     {
         m_files.resize(0);
         return find_internal(pBasepath, "", pFilespec, flags, 0);
     }
 
-    bool find_files::find(const char *pSpec, uint flags)
+    bool find_files::find(const char *pSpec, uint32_t flags)
     {
         dynamic_string find_name(pSpec);
 
@@ -227,7 +227,7 @@ namespace vogl
         return find(find_pathname.get_ptr(), find_filename.get_ptr(), flags);
     }
 
-    bool find_files::find_internal(const char *pBasepath, const char *pRelpath, const char *pFilespec, uint flags, int level)
+    bool find_files::find_internal(const char *pBasepath, const char *pRelpath, const char *pFilespec, uint32_t flags, int level)
     {
         dynamic_string pathname;
         if (strlen(pRelpath))
@@ -290,7 +290,7 @@ namespace vogl
 
         if (flags & cFlagRecursive)
         {
-            for (uint i = 0; i < paths.size(); i++)
+            for (uint32_t i = 0; i < paths.size(); i++)
             {
                 dynamic_string childpath;
                 if (strlen(pRelpath))

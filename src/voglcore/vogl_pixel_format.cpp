@@ -56,12 +56,12 @@ namespace vogl
                 PIXEL_FMT_A8R8G8B8
             };
 
-        uint get_num_formats()
+        uint32_t get_num_formats()
         {
             return sizeof(g_all_pixel_formats) / sizeof(g_all_pixel_formats[0]);
         }
 
-        pixel_format get_pixel_format_by_index(uint index)
+        pixel_format get_pixel_format_by_index(uint32_t index)
         {
             VOGL_ASSERT(index < get_num_formats());
             return g_all_pixel_formats[index];
@@ -155,7 +155,7 @@ namespace vogl
         {
             // These flags are for *uncooked* pixels, i.e. after after adding Z to DXN maps, or converting YCC maps to RGB, etc.
 
-            uint flags = cCompFlagRValid | cCompFlagGValid | cCompFlagBValid | cCompFlagAValid | cCompFlagGrayscale;
+            uint32_t flags = cCompFlagRValid | cCompFlagGValid | cCompFlagBValid | cCompFlagAValid | cCompFlagGrayscale;
             switch (fmt)
             {
                 case PIXEL_FMT_DXT1:

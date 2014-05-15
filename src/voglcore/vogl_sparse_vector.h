@@ -34,11 +34,11 @@
 
 namespace vogl
 {
-    template <typename T, uint Log2N>
+    template <typename T, uint32_t Log2N>
     class sparse_vector_traits
     {
     public:
-        static inline void *alloc_space(uint size)
+        static inline void *alloc_space(uint32_t size)
         {
             return vogl_malloc(size);
         }
@@ -70,12 +70,12 @@ namespace vogl
 
         static inline void copy_group(T *pDst, const T *pSrc)
         {
-            for (uint j = 0; j < (1U << Log2N); j++)
+            for (uint32_t j = 0; j < (1U << Log2N); j++)
                 pDst[j] = pSrc[j];
         }
     };
 
-    template <typename T, uint Log2N, template <typename, uint> class Traits = sparse_vector_traits>
+    template <typename T, uint32_t Log2N, template <typename, uint32_t> class Traits = sparse_vector_traits>
     class sparse_vector : public Traits<T, Log2N>
     {
     public:
@@ -93,7 +93,7 @@ namespace vogl
             init_default();
         }
 
-        inline sparse_vector(uint size)
+        inline sparse_vector(uint32_t size)
             : m_size(0), m_num_active_groups(0)
         {
             init_default();
@@ -109,7 +109,7 @@ namespace vogl
             *this = other;
         }
 
-        template <uint OtherLogN, template <typename, uint> class OtherTraits>
+        template <uint32_t OtherLogN, template <typename, uint32_t> class OtherTraits>
         inline sparse_vector(const sparse_vector<T, OtherLogN, OtherTraits> &other)
             : m_size(0), m_num_active_groups(0)
         {
@@ -130,7 +130,7 @@ namespace vogl
 
         inline ~sparse_vector()
         {
-            for (uint i = 0; (i < m_groups.size()) && m_num_active_groups; i++)
+            for (uint32_t i = 0; (i < m_groups.size()) && m_num_active_groups; i++)
                 free_group(m_groups[i]);
 
             deinit_default();
@@ -154,7 +154,7 @@ namespace vogl
             if (!try_resize(other.size()))
                 return false;
 
-            for (uint i = 0; i < other.m_groups.size(); i++)
+            for (uint32_t i = 0; i < other.m_groups.size(); i++)
             {
                 const T *p = other.m_groups[i];
 
@@ -193,7 +193,7 @@ namespace vogl
             return *this;
         }
 
-        template <uint OtherLogN, template <typename, uint> class OtherTraits>
+        template <uint32_t OtherLogN, template <typename, uint32_t> class OtherTraits>
         inline bool assign(const sparse_vector<T, OtherLogN, OtherTraits> &other)
         {
             if ((void *)this == (void *)&other)
@@ -202,14 +202,14 @@ namespace vogl
             if (!try_resize(other.size()))
                 return true;
 
-            for (uint i = 0; i < other.size(); ++i)
+            for (uint32_t i = 0; i < other.size(); ++i)
                 if (other.is_present(i))
                     set(i, *other.get_ptr(i));
 
             return true;
         }
 
-        template <uint OtherLogN, template <typename, uint> class OtherTraits>
+        template <uint32_t OtherLogN, template <typename, uint32_t> class OtherTraits>
         inline sparse_vector &operator=(const sparse_vector<T, OtherLogN, OtherTraits> &other)
         {
             if (!assign(other))
@@ -230,13 +230,13 @@ namespace vogl
                 allocate_all_groups();
 
                 const T *pSrc = other.get_ptr();
-                const uint n = other.size();
-                for (uint i = 0; i < n; ++i)
+                const uint32_t n = other.size();
+                for (uint32_t i = 0; i < n; ++i)
                     m_groups[i >> Log2N][i & (N - 1)] = *pSrc++;
             }
             else
             {
-                for (uint i = 0; i < other.size(); ++i)
+                for (uint32_t i = 0; i < other.size(); ++i)
                     if (other[i] != default_element())
                         set(i, other[i]);
             }
@@ -261,7 +261,7 @@ namespace vogl
             if (m_size != other.m_size)
                 return false;
 
-            for (uint i = 0; i < m_size; i++)
+            for (uint32_t i = 0; i < m_size; i++)
                 if (!((*this)[i] == other[i]))
                     return false;
 
@@ -275,9 +275,9 @@ namespace vogl
 
         bool operator<(const sparse_vector &rhs) const
         {
-            const uint min_size = math::minimum(m_size, rhs.m_size);
+            const uint32_t min_size = math::minimum(m_size, rhs.m_size);
 
-            uint i;
+            uint32_t i;
             for (i = 0; i < min_size; i++)
                 if (!((*this)[i] == rhs[i]))
                     break;
@@ -292,7 +292,7 @@ namespace vogl
         {
             if (m_groups.size())
             {
-                for (uint i = 0; (i < m_groups.size()) && m_num_active_groups; i++)
+                for (uint32_t i = 0; (i < m_groups.size()) && m_num_active_groups; i++)
                     free_group(m_groups[i]);
 
                 m_groups.clear();
@@ -309,30 +309,30 @@ namespace vogl
                 return false;
 
             const T *const *ppGroups = m_groups.get_ptr();
-            const uint num_groups = m_groups.size();
-            for (uint group_iter = 0; group_iter < num_groups; ++group_iter)
+            const uint32_t num_groups = m_groups.size();
+            for (uint32_t group_iter = 0; group_iter < num_groups; ++group_iter)
             {
                 const T *pGroup = ppGroups[group_iter];
                 if (!pGroup)
                     continue;
 
-                const uint n = get_num_valid_elements_in_group(group_iter);
+                const uint32_t n = get_num_valid_elements_in_group(group_iter);
                 T *pDst = &dst[group_iter << Log2N];
 
-                for (uint i = 0; i < n; ++i)
+                for (uint32_t i = 0; i < n; ++i)
                     *pDst++ = *pGroup++;
             }
 
             return true;
         }
 
-        bool try_resize(uint new_size)
+        bool try_resize(uint32_t new_size)
         {
             if (m_size == new_size)
                 return true;
 
-            uint new_last_group_index = 0;
-            uint prev_num_valid_elements_in_new_last_group = 0;
+            uint32_t new_last_group_index = 0;
+            uint32_t prev_num_valid_elements_in_new_last_group = 0;
             bool shrinking = ((new_size) && (new_size < m_size));
             if (shrinking)
             {
@@ -341,10 +341,10 @@ namespace vogl
                 VOGL_ASSERT(prev_num_valid_elements_in_new_last_group);
             }
 
-            const uint new_num_groups = (new_size + N - 1) >> Log2N;
+            const uint32_t new_num_groups = (new_size + N - 1) >> Log2N;
             if (new_num_groups != m_groups.size())
             {
-                for (uint i = new_num_groups; i < m_groups.size(); i++)
+                for (uint32_t i = new_num_groups; i < m_groups.size(); i++)
                     free_group(m_groups[i]);
 
                 if (!m_groups.try_resize(new_num_groups))
@@ -358,12 +358,12 @@ namespace vogl
                 T *pLast_group = m_groups[new_last_group_index];
                 if (pLast_group)
                 {
-                    uint cur_num_valid_elements_in_new_last_group = get_num_valid_elements_in_group(new_last_group_index);
+                    uint32_t cur_num_valid_elements_in_new_last_group = get_num_valid_elements_in_group(new_last_group_index);
                     VOGL_ASSERT(cur_num_valid_elements_in_new_last_group);
 
                     if (cur_num_valid_elements_in_new_last_group < prev_num_valid_elements_in_new_last_group)
                     {
-                        for (uint i = cur_num_valid_elements_in_new_last_group; i < prev_num_valid_elements_in_new_last_group; i++)
+                        for (uint32_t i = cur_num_valid_elements_in_new_last_group; i < prev_num_valid_elements_in_new_last_group; i++)
                             pLast_group[i] = default_element();
                     }
                 }
@@ -372,7 +372,7 @@ namespace vogl
             return true;
         }
 
-        void resize(uint size)
+        void resize(uint32_t size)
         {
             if (!try_resize(size))
             {
@@ -380,7 +380,7 @@ namespace vogl
             }
         }
 
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_size;
         }
@@ -389,18 +389,18 @@ namespace vogl
             return 0 == m_size;
         }
 
-        inline uint capacity() const
+        inline uint32_t capacity() const
         {
             return m_groups.size() << Log2N;
         }
-        inline uint actual_capacity() const
+        inline uint32_t actual_capacity() const
         {
             return m_num_active_groups << Log2N;
         }
 
         // Returns the default object if the element does not yet exist.
         // at() will not force elements to be allocated if they don't exist, preventing accidents.
-        inline const T &at(uint i) const
+        inline const T &at(uint32_t i) const
         {
             VOGL_ASSERT(i < m_size);
             const T *p = m_groups[i >> Log2N];
@@ -409,7 +409,7 @@ namespace vogl
 
         // Returns the default object if the element does not yet exist.
         // operator [] is read only, i.e. will not force elements to be allocated if they don't exist, preventing accidents.
-        inline const T &operator[](uint i) const
+        inline const T &operator[](uint32_t i) const
         {
             return at(i);
         }
@@ -417,10 +417,10 @@ namespace vogl
         class sparse_vector_object_accessor
         {
             sparse_vector &m_array;
-            uint m_index;
+            uint32_t m_index;
 
         public:
-            inline sparse_vector_object_accessor(sparse_vector &array, uint index)
+            inline sparse_vector_object_accessor(sparse_vector &array, uint32_t index)
                 : m_array(array), m_index(index)
             {
             }
@@ -458,14 +458,14 @@ namespace vogl
         // Yes this is ugly, but it works around the fact that we can't overload operator "." in C++.
         // So operator[] and at() are read-only (and never force elements to be allocated, preventing silly accidents), and operator () is read/write (it will write on operator =).
         // I'm torn about this guy, it's probably too confusing vs. just calling get_or_create_element(), get_ptr(), etc.
-        inline const sparse_vector_object_accessor operator()(uint i)
+        inline const sparse_vector_object_accessor operator()(uint32_t i)
         {
             VOGL_ASSERT(i < m_size);
             return sparse_vector_object_accessor(*this, i);
         }
 
         //	Returns a ref to the element (allocating it if necessary).
-        inline T &get_or_create_element(uint i)
+        inline T &get_or_create_element(uint32_t i)
         {
             VOGL_ASSERT(i < m_size);
 
@@ -477,7 +477,7 @@ namespace vogl
         }
 
         // Returns NULL if element does not yet exist.
-        inline const T *get_ptr(uint i) const
+        inline const T *get_ptr(uint32_t i) const
         {
             VOGL_ASSERT(i < m_size);
             const T *p = m_groups[i >> Log2N];
@@ -485,7 +485,7 @@ namespace vogl
         }
 
         // Returns NULL if element does not yet exist.
-        inline T *get_ptr(uint i)
+        inline T *get_ptr(uint32_t i)
         {
             VOGL_ASSERT(i < m_size);
             T *p = m_groups[i >> Log2N];
@@ -493,16 +493,16 @@ namespace vogl
         }
 
         // Returns true if the element exists.
-        inline bool is_present(uint i) const
+        inline bool is_present(uint32_t i) const
         {
             VOGL_ASSERT(i < m_size);
             return m_groups[i >> Log2N] != NULL;
         }
 
         // Ensures element is allocated/present (enlarging the entire array if needed).
-        inline T *ensure_present(uint index)
+        inline T *ensure_present(uint32_t index)
         {
-            const uint group_index = index >> Log2N;
+            const uint32_t group_index = index >> Log2N;
             if (group_index >= m_groups.size())
             {
                 if (!try_resize(index + 1))
@@ -524,7 +524,7 @@ namespace vogl
             return p + (index & (N - 1));
         }
 
-        inline bool set(uint index, const T &obj)
+        inline bool set(uint32_t index, const T &obj)
         {
             T *p = ensure_present(index);
             if (!p)
@@ -548,10 +548,10 @@ namespace vogl
             return set(m_size, obj);
         }
 
-        inline T *enlarge(uint n)
+        inline T *enlarge(uint32_t n)
         {
-            uint orig_size = m_size;
-            for (uint i = 0; i < n; i++)
+            uint32_t orig_size = m_size;
+            for (uint32_t i = 0; i < n; i++)
             {
                 if (!ensure_present(m_size))
                 {
@@ -569,7 +569,7 @@ namespace vogl
         }
 
         // Sets range [start, start + num) to the default object, freeing any groups that it can
-        inline void invalidate_range(uint start, uint num)
+        inline void invalidate_range(uint32_t start, uint32_t num)
         {
             if (!num)
                 return;
@@ -580,9 +580,9 @@ namespace vogl
                 return;
             }
 
-            const uint num_to_skip = math::minimum(math::get_align_up_value_delta(start, N), num);
+            const uint32_t num_to_skip = math::minimum(math::get_align_up_value_delta(start, N), num);
 
-            for (uint i = 0; i < num_to_skip; i++)
+            for (uint32_t i = 0; i < num_to_skip; i++)
             {
                 if (is_present(start + i))
                     set(start + i, default_element());
@@ -591,16 +591,16 @@ namespace vogl
             start += num_to_skip;
             num -= num_to_skip;
 
-            const uint first_group_to_free = start >> Log2N;
-            const uint num_groups_to_free = num >> Log2N;
+            const uint32_t first_group_to_free = start >> Log2N;
+            const uint32_t num_groups_to_free = num >> Log2N;
 
             free_groups(first_group_to_free, num_groups_to_free);
 
-            const uint total_elements_freed = num_groups_to_free << Log2N;
+            const uint32_t total_elements_freed = num_groups_to_free << Log2N;
             start += total_elements_freed;
             num -= total_elements_freed;
 
-            for (uint i = 0; i < num; i++)
+            for (uint32_t i = 0; i < num; i++)
             {
                 if (is_present(start + i))
                     set(start + i, default_element());
@@ -609,7 +609,7 @@ namespace vogl
 
         inline void invalidate_all()
         {
-            for (uint i = 0; i < m_groups.size(); i++)
+            for (uint32_t i = 0; i < m_groups.size(); i++)
             {
                 T *p = m_groups[i];
                 if (p)
@@ -634,7 +634,7 @@ namespace vogl
 
             const bool is_default = (val == default_element());
 
-            for (uint group_iter = 0; group_iter < m_groups.size(); ++group_iter)
+            for (uint32_t group_iter = 0; group_iter < m_groups.size(); ++group_iter)
             {
                 const T *pGroup = m_groups[group_iter];
                 if (!pGroup)
@@ -649,8 +649,8 @@ namespace vogl
                     m_groups[group_iter] = pGroup;
                 }
 
-                const uint n = get_num_valid_elements_in_group(group_iter);
-                for (uint i = 0; i < n; i++)
+                const uint32_t n = get_num_valid_elements_in_group(group_iter);
+                for (uint32_t i = 0; i < n; i++)
                     pGroup[i] = val;
             }
 
@@ -664,7 +664,7 @@ namespace vogl
 
             const bool is_default = (key == default_element());
 
-            for (uint group_iter = 0; group_iter < m_groups.size(); ++group_iter)
+            for (uint32_t group_iter = 0; group_iter < m_groups.size(); ++group_iter)
             {
                 const T *pGroup = m_groups[group_iter];
                 if (!pGroup)
@@ -674,8 +674,8 @@ namespace vogl
                     continue;
                 }
 
-                const uint n = get_num_valid_elements_in_group(group_iter);
-                for (uint i = 0; i < n; i++)
+                const uint32_t n = get_num_valid_elements_in_group(group_iter);
+                for (uint32_t i = 0; i < n; i++)
                     if (pGroup[i] == key)
                         return (group_iter << Log2N) + i;
             }
@@ -683,14 +683,14 @@ namespace vogl
             return cInvalidIndex;
         }
 
-        inline uint allocate_all_groups()
+        inline uint32_t allocate_all_groups()
         {
             if (m_num_active_groups == m_groups.size())
                 return 0;
 
-            uint num_groups_allocated = 0;
+            uint32_t num_groups_allocated = 0;
 
-            for (uint group_iter = 0; group_iter < m_groups.size(); ++group_iter)
+            for (uint32_t group_iter = 0; group_iter < m_groups.size(); ++group_iter)
             {
                 T *pGroup = m_groups[group_iter];
                 if (pGroup)
@@ -703,22 +703,22 @@ namespace vogl
             return num_groups_allocated;
         }
 
-        inline uint optimize_groups()
+        inline uint32_t optimize_groups()
         {
             if (!m_num_active_groups)
                 return 0;
 
-            uint num_groups_freed = 0;
+            uint32_t num_groups_freed = 0;
 
-            for (uint group_iter = 0; group_iter < m_groups.size(); ++group_iter)
+            for (uint32_t group_iter = 0; group_iter < m_groups.size(); ++group_iter)
             {
                 T *pGroup = m_groups[group_iter];
                 if (!pGroup)
                     continue;
 
-                const uint n = get_num_valid_elements_in_group(group_iter);
+                const uint32_t n = get_num_valid_elements_in_group(group_iter);
 
-                uint i;
+                uint32_t i;
                 for (i = 0; i < n; i++)
                     if (!(pGroup[i] == default_element()))
                         break;
@@ -741,8 +741,8 @@ namespace vogl
                 return false;
 
             vogl::vector<T *> group_ptrs;
-            uint total_active_groups = 0;
-            for (uint group_iter = 0; group_iter < m_groups.size(); ++group_iter)
+            uint32_t total_active_groups = 0;
+            for (uint32_t group_iter = 0; group_iter < m_groups.size(); ++group_iter)
             {
                 T *pGroup = m_groups[group_iter];
                 if (reinterpret_cast<intptr_t>(pGroup) & (VOGL_MIN_ALLOC_ALIGNMENT - 1))
@@ -765,16 +765,16 @@ namespace vogl
 
             if (m_groups.size())
             {
-                uint t = 0;
-                for (uint i = 0; i < (m_groups.size() - 1); i++)
+                uint32_t t = 0;
+                for (uint32_t i = 0; i < (m_groups.size() - 1); i++)
                 {
-                    uint n = get_num_valid_elements_in_group(i);
+                    uint32_t n = get_num_valid_elements_in_group(i);
                     if (n != N)
                         return false;
                     t += n;
                 }
 
-                uint num_valid_in_last_group = get_num_valid_elements_in_group(m_groups.size() - 1);
+                uint32_t num_valid_in_last_group = get_num_valid_elements_in_group(m_groups.size() - 1);
                 t += num_valid_in_last_group;
                 if (t != m_size)
                     return false;
@@ -787,7 +787,7 @@ namespace vogl
                 const T *pLast_group = m_groups.back();
                 if (pLast_group)
                 {
-                    for (uint i = num_valid_in_last_group; i < N; i++)
+                    for (uint32_t i = num_valid_in_last_group; i < N; i++)
                     {
                         if (!(pLast_group[i] == default_element()))
                             return false;
@@ -798,7 +798,7 @@ namespace vogl
             return true;
         }
 
-        inline void copy_element(uint dst_index, uint src_index)
+        inline void copy_element(uint32_t dst_index, uint32_t src_index)
         {
             if (!is_present(src_index))
             {
@@ -811,7 +811,7 @@ namespace vogl
             }
         }
 
-        inline void erase(uint start, uint n)
+        inline void erase(uint32_t start, uint32_t n)
         {
             VOGL_ASSERT((start + n) <= m_size);
             if ((start + n) > m_size)
@@ -820,11 +820,11 @@ namespace vogl
             if (!n)
                 return;
 
-            const uint orig_num_groups = m_groups.size();
+            const uint32_t orig_num_groups = m_groups.size();
 
-            uint num_to_move = m_size - (start + n);
-            uint dst_index = start;
-            uint src_index = start + n;
+            uint32_t num_to_move = m_size - (start + n);
+            uint32_t dst_index = start;
+            uint32_t src_index = start + n;
 
             while ((num_to_move) && ((dst_index & (N - 1)) != 0))
             {
@@ -840,17 +840,17 @@ namespace vogl
                 // dst_index must be aligned to the beginning of a group here.
                 VOGL_ASSERT((dst_index & (N - 1)) == 0);
 
-                const uint move_gap_size = src_index - dst_index;
+                const uint32_t move_gap_size = src_index - dst_index;
 
                 // If the move gap is >= the group size, then we can just free all the groups in the middle of the move gap that are overridden (and bulk erase the group ptrs array).
                 if (move_gap_size >= N)
                 {
-                    uint first_full_group, num_full_groups;
+                    uint32_t first_full_group, num_full_groups;
                     get_full_group_range(dst_index, math::minimum(num_to_move, move_gap_size), first_full_group, num_full_groups);
 
                     if (num_full_groups)
                     {
-                        const uint total_elements_to_free = num_full_groups << Log2N;
+                        const uint32_t total_elements_to_free = num_full_groups << Log2N;
 
                         VOGL_ASSERT(total_elements_to_free <= num_to_move);
                         VOGL_ASSERT(dst_index <= (first_full_group << Log2N));
@@ -873,7 +873,7 @@ namespace vogl
                     {
                         if ((src_index & (N - 1)) == 0)
                         {
-                            uint num_not_present = math::minimum<uint>(num_to_move, N);
+                            uint32_t num_not_present = math::minimum<uint32_t>(num_to_move, N);
 
                             // We know up to the next N src elements are not present, so there's no need to check them.
                             VOGL_ASSERT(!is_present(src_index + num_not_present - 1));
@@ -909,19 +909,19 @@ namespace vogl
             resize(m_size - n);
         }
 
-        inline void insert(uint index, const T *p, uint n, bool check_for_default_elements_while_copying = true)
+        inline void insert(uint32_t index, const T *p, uint32_t n, bool check_for_default_elements_while_copying = true)
         {
             VOGL_ASSERT(index <= m_size);
             if (!n)
                 return;
 
-            const uint orig_size = m_size;
+            const uint32_t orig_size = m_size;
             resize(m_size + n);
 
-            uint num_to_copy = orig_size - index;
+            uint32_t num_to_copy = orig_size - index;
 
-            uint src_index = orig_size - 1;
-            uint dst_index = src_index + n;
+            uint32_t src_index = orig_size - 1;
+            uint32_t dst_index = src_index + n;
 
             while (num_to_copy)
             {
@@ -956,7 +956,7 @@ namespace vogl
             }
         }
 
-        inline void insert(uint index, const T &obj)
+        inline void insert(uint32_t index, const T &obj)
         {
             insert(index, &obj, 1);
         }
@@ -975,45 +975,45 @@ namespace vogl
             return *this;
         }
 
-        sparse_vector &append(const T *p, uint n)
+        sparse_vector &append(const T *p, uint32_t n)
         {
             insert(m_size, p, n);
             return *this;
         }
 
         // low-level element group access
-        inline uint get_num_groups() const
+        inline uint32_t get_num_groups() const
         {
             return m_groups.size();
         }
-        inline uint get_num_active_groups() const
+        inline uint32_t get_num_active_groups() const
         {
             return m_num_active_groups;
         }
-        inline uint get_group_size() const
+        inline uint32_t get_group_size() const
         {
             return N;
         }
 
-        inline bool is_last_group(uint group_index) const
+        inline bool is_last_group(uint32_t group_index) const
         {
             return (static_cast<int>(group_index) == (static_cast<int>(m_groups.size()) - 1));
         }
 
-        inline uint get_group_index(uint element_index)
+        inline uint32_t get_group_index(uint32_t element_index)
         {
             return element_index >> Log2N;
         }
-        inline uint get_group_offset(uint element_index)
+        inline uint32_t get_group_offset(uint32_t element_index)
         {
             return element_index & (N - 1);
         }
 
-        inline const T *get_group_ptr(uint group_index) const
+        inline const T *get_group_ptr(uint32_t group_index) const
         {
             return m_groups[group_index];
         }
-        inline T *get_group_ptr(uint group_index)
+        inline T *get_group_ptr(uint32_t group_index)
         {
             return m_groups[group_index];
         }
@@ -1027,28 +1027,28 @@ namespace vogl
             return m_groups;
         }
 
-        inline bool is_group_present(uint group_index) const
+        inline bool is_group_present(uint32_t group_index) const
         {
             return get_group_ptr(group_index) != NULL;
         }
 
-        inline uint get_num_valid_elements_in_group(uint group_index) const
+        inline uint32_t get_num_valid_elements_in_group(uint32_t group_index) const
         {
             VOGL_ASSERT(group_index < m_groups.size());
 
             if (!m_groups.size())
                 return 0;
 
-            uint n = 0;
+            uint32_t n = 0;
             if (static_cast<int>(group_index) == (static_cast<int>(m_groups.size()) - 1))
                 n = m_size & (N - 1);
 
-            return n ? n : static_cast<uint>(N);
+            return n ? n : static_cast<uint32_t>(N);
         }
 
     private:
-        uint m_size;
-        uint m_num_active_groups;
+        uint32_t m_size;
+        uint32_t m_num_active_groups;
 
         group_ptr_vec m_groups;
 
@@ -1086,9 +1086,9 @@ namespace vogl
             }
         }
 
-        inline void free_groups(uint first_group_to_free, uint num_groups_to_free)
+        inline void free_groups(uint32_t first_group_to_free, uint32_t num_groups_to_free)
         {
-            for (uint i = 0; i < num_groups_to_free; i++)
+            for (uint32_t i = 0; i < num_groups_to_free; i++)
             {
                 T *p = m_groups[first_group_to_free + i];
                 if (p)
@@ -1100,9 +1100,9 @@ namespace vogl
         }
 
         // assumes [start, start + num) is a valid group range
-        inline void get_full_group_range(uint start, uint num, uint &first_full_group, uint &num_full_groups)
+        inline void get_full_group_range(uint32_t start, uint32_t num, uint32_t &first_full_group, uint32_t &num_full_groups)
         {
-            const uint num_to_skip = math::minimum(math::get_align_up_value_delta(start, N), num);
+            const uint32_t num_to_skip = math::minimum(math::get_align_up_value_delta(start, N), num);
 
             start += num_to_skip;
             num -= num_to_skip;
@@ -1122,9 +1122,9 @@ namespace vogl
         }
     };
 
-    extern uint g_sparse_vector_test_counters[2];
+    extern uint32_t g_sparse_vector_test_counters[2];
 
-    template <uint counter>
+    template <uint32_t counter>
     class sparse_vector_test_obj
     {
     public:
@@ -1150,9 +1150,9 @@ namespace vogl
         }
     };
 
-    inline bool sparse_vector_test(uint seed = 15)
+    inline bool sparse_vector_test(uint32_t seed = 15)
     {
-        uint num_failures = 0;
+        uint32_t num_failures = 0;
         random r;
         r.seed(seed);
 
@@ -1167,7 +1167,7 @@ namespace vogl
     } while (0)
 
         printf("\n");
-        for (uint t = 0; t < 10; t++)
+        for (uint32_t t = 0; t < 10; t++)
         {
             {
                 printf("std::vector: ");
@@ -1175,7 +1175,7 @@ namespace vogl
                 {
                     std::vector<dynamic_string> t1;
                     //t1.reserve(100000);
-                    for (uint i = 0; i < 100000; i++)
+                    for (uint32_t i = 0; i < 100000; i++)
                     {
                         char buf[256];
                         vogl_sprintf_s(buf, sizeof(buf), "%u", i);
@@ -1190,7 +1190,7 @@ namespace vogl
                 {
                     std::vector<dynamic_string> t1;
                     t1.reserve(100000);
-                    for (uint i = 0; i < 100000; i++)
+                    for (uint32_t i = 0; i < 100000; i++)
                     {
                         char buf[256];
                         vogl_sprintf_s(buf, sizeof(buf), "%u", i);
@@ -1205,7 +1205,7 @@ namespace vogl
                 {
                     vogl::vector<dynamic_string> t1;
                     //t1.reserve(100000);
-                    for (uint i = 0; i < 100000; i++)
+                    for (uint32_t i = 0; i < 100000; i++)
                     {
                         char buf[256];
                         vogl_sprintf_s(buf, sizeof(buf), "%u", i);
@@ -1220,7 +1220,7 @@ namespace vogl
                 {
                     vogl::vector<dynamic_string> t1;
                     t1.reserve(100000);
-                    for (uint i = 0; i < 100000; i++)
+                    for (uint32_t i = 0; i < 100000; i++)
                     {
                         char buf[256];
                         vogl_sprintf_s(buf, sizeof(buf), "%u", i);
@@ -1231,11 +1231,11 @@ namespace vogl
 
 #define SPARSE_VECTOR_PUSH_BACK_TEST(x)                                                                         \
     {                                                                                                           \
-        printf("vogl::sparse_vector %u, group size %u bytes: ", x, (1U << x) * (uint)sizeof(dynamic_string)); \
+        printf("vogl::sparse_vector %u, group size %u bytes: ", x, (1U << x) * (uint32_t)sizeof(dynamic_string)); \
         timed_scope stopwatch;                                                                                  \
         {                                                                                                       \
             sparse_vector<dynamic_string, x> t2;                                                                \
-            for (uint i = 0; i < 100000; i++)                                                                   \
+            for (uint32_t i = 0; i < 100000; i++)                                                                   \
             {                                                                                                   \
                 char buf[256];                                                                                  \
                 vogl_sprintf_s(buf, sizeof(buf), "%u", i);                                                       \
@@ -1263,23 +1263,23 @@ namespace vogl
         }
 
         {
-            sparse_vector<uint, 2> a1;
+            sparse_vector<uint32_t, 2> a1;
 
             VOGL_SPARSE_VECTOR_CHECK(a1.check());
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 a1.push_back(i);
 
-            const uint *q = &a1[0];
+            const uint32_t *q = &a1[0];
             VOGL_NOTE_UNUSED(q);
-            uint *p = &a1(0);
+            uint32_t *p = &a1(0);
             VOGL_NOTE_UNUSED(p);
-            const uint &x1 = a1[0];
+            const uint32_t &x1 = a1[0];
             VOGL_NOTE_UNUSED(x1);
-            uint &x2 = a1.get_or_create_element(0);
+            uint32_t &x2 = a1.get_or_create_element(0);
             VOGL_NOTE_UNUSED(x2);
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 a1(i) = i;
 
             VOGL_SPARSE_VECTOR_CHECK(a1.check());
@@ -1287,20 +1287,20 @@ namespace vogl
             VOGL_SPARSE_VECTOR_CHECK(a1.size() == 16);
             VOGL_SPARSE_VECTOR_CHECK(a1.get_num_active_groups() == 4);
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 VOGL_SPARSE_VECTOR_CHECK(a1[i] == i);
 
-            const sparse_vector<uint, 2> a1_const(a1);
-            for (uint i = 0; i < 16; i++)
+            const sparse_vector<uint32_t, 2> a1_const(a1);
+            for (uint32_t i = 0; i < 16; i++)
                 VOGL_SPARSE_VECTOR_CHECK(a1_const[i] == i);
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 VOGL_SPARSE_VECTOR_CHECK(a1_const.at(i) == i);
 
             a1.invalidate_range(1, 9);
             VOGL_SPARSE_VECTOR_CHECK(a1.get_num_active_groups() == 3);
             VOGL_SPARSE_VECTOR_CHECK(a1.check());
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
             {
                 if ((i >= 1) && (i <= 9))
                     VOGL_SPARSE_VECTOR_CHECK(a1[i] == a1.default_element());
@@ -1312,28 +1312,28 @@ namespace vogl
             VOGL_SPARSE_VECTOR_CHECK(a1.get_num_active_groups() == 0);
             VOGL_SPARSE_VECTOR_CHECK(a1.check());
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 VOGL_SPARSE_VECTOR_CHECK(a1[i] == a1.default_element());
         }
 
         {
-            sparse_vector<uint, 0> a1;
+            sparse_vector<uint32_t, 0> a1;
 
             VOGL_SPARSE_VECTOR_CHECK(a1.check());
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 a1.push_back(i);
 
-            const uint *q = &a1[0];
+            const uint32_t *q = &a1[0];
             VOGL_NOTE_UNUSED(q);
-            uint *p = &a1(0);
+            uint32_t *p = &a1(0);
             VOGL_NOTE_UNUSED(p);
-            const uint &x1 = a1[0];
+            const uint32_t &x1 = a1[0];
             VOGL_NOTE_UNUSED(x1);
-            uint &x2 = a1.get_or_create_element(0);
+            uint32_t &x2 = a1.get_or_create_element(0);
             VOGL_NOTE_UNUSED(x2);
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 a1(i) = i;
 
             VOGL_SPARSE_VECTOR_CHECK(a1.check());
@@ -1341,20 +1341,20 @@ namespace vogl
             VOGL_SPARSE_VECTOR_CHECK(a1.size() == 16);
             VOGL_SPARSE_VECTOR_CHECK(a1.get_num_active_groups() == 16);
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 VOGL_SPARSE_VECTOR_CHECK(a1[i] == i);
 
-            const sparse_vector<uint, 0> a1_const(a1);
-            for (uint i = 0; i < 16; i++)
+            const sparse_vector<uint32_t, 0> a1_const(a1);
+            for (uint32_t i = 0; i < 16; i++)
                 VOGL_SPARSE_VECTOR_CHECK(a1_const[i] == i);
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 VOGL_SPARSE_VECTOR_CHECK(a1_const.at(i) == i);
 
             a1.invalidate_range(1, 9);
             VOGL_SPARSE_VECTOR_CHECK(a1.get_num_active_groups() == 7);
             VOGL_SPARSE_VECTOR_CHECK(a1.check());
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
             {
                 if ((i >= 1) && (i <= 9))
                     VOGL_SPARSE_VECTOR_CHECK(a1[i] == a1.default_element());
@@ -1366,7 +1366,7 @@ namespace vogl
             VOGL_SPARSE_VECTOR_CHECK(a1.get_num_active_groups() == 0);
             VOGL_SPARSE_VECTOR_CHECK(a1.check());
 
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 VOGL_SPARSE_VECTOR_CHECK(a1[i] == a1.default_element());
         }
 
@@ -1376,7 +1376,7 @@ namespace vogl
             VOGL_SPARSE_VECTOR_CHECK(g_sparse_vector_test_counters[0] == 1);
 
             blah.resize(16);
-            for (uint i = 0; i < 16; i++)
+            for (uint32_t i = 0; i < 16; i++)
                 blah.set(i, sparse_vector_test_obj<0>());
 
             VOGL_SPARSE_VECTOR_CHECK(g_sparse_vector_test_counters[0] == 17);
@@ -1385,7 +1385,7 @@ namespace vogl
 
             VOGL_SPARSE_VECTOR_CHECK(g_sparse_vector_test_counters[0] == 13);
 
-            for (uint i = 4; i < 8; i++)
+            for (uint32_t i = 4; i < 8; i++)
                 blah.set(i, blah.default_element());
             blah.optimize_groups();
             VOGL_SPARSE_VECTOR_CHECK(g_sparse_vector_test_counters[0] == 13);
@@ -1407,20 +1407,20 @@ namespace vogl
             VOGL_SPARSE_VECTOR_CHECK(g_sparse_vector_test_counters[0] == 1);
         }
 
-        for (uint iter = 0; iter < 10000; iter++)
+        for (uint32_t iter = 0; iter < 10000; iter++)
         {
-            uint n = r.irand_inclusive(0, 100000);
-            uint j = r.irand_inclusive(0, math::clamp<uint>(n / 30, 1, n));
+            uint32_t n = r.irand_inclusive(0, 100000);
+            uint32_t j = r.irand_inclusive(0, math::clamp<uint32_t>(n / 30, 1, n));
 
-            vogl::vector<uint> a1(n);
-            sparse_vector<uint, 6> a2;
-            sparse_vector<uint, 6> a4;
+            vogl::vector<uint32_t> a1(n);
+            sparse_vector<uint32_t, 6> a2;
+            sparse_vector<uint32_t, 6> a4;
 
             VOGL_SPARSE_VECTOR_CHECK(a2.check());
 
-            for (uint m = 0; m < j; m++)
+            for (uint32_t m = 0; m < j; m++)
             {
-                uint pos = r.irand(0, n);
+                uint32_t pos = r.irand(0, n);
                 a1[pos] = m;
                 a2.set(pos, m);
             }
@@ -1445,26 +1445,26 @@ namespace vogl
 
             a4 = a2;
 
-            vector<uint> k4;
+            vector<uint32_t> k4;
             a2.get_vector(k4);
-            sparse_vector<uint, 8> k5(k4);
+            sparse_vector<uint32_t, 8> k5(k4);
             VOGL_SPARSE_VECTOR_CHECK(k5 == a4);
             k5.clear();
             k5.assign(k4, true);
             VOGL_SPARSE_VECTOR_CHECK(k5 == a4);
 
-            sparse_vector<uint, 6> a3(a2);
+            sparse_vector<uint32_t, 6> a3(a2);
 
             VOGL_SPARSE_VECTOR_CHECK(a2 == a3);
             VOGL_SPARSE_VECTOR_CHECK(!(a2 < a3));
             VOGL_SPARSE_VECTOR_CHECK(!(a3 < a2));
 
-            for (uint m = 0; m < n; m++)
+            for (uint32_t m = 0; m < n; m++)
             {
                 VOGL_SPARSE_VECTOR_CHECK(a1[m] == a2[m]);
             }
 
-            for (uint m = 0; m < n; m++)
+            for (uint32_t m = 0; m < n; m++)
             {
                 VOGL_SPARSE_VECTOR_CHECK(a1[a1.size() - 1] == a2[a2.size() - 1]);
                 a1.pop_back();
@@ -1492,23 +1492,23 @@ namespace vogl
             VOGL_SPARSE_VECTOR_CHECK(a2.check());
 
             {
-                vogl::vector<uint> shadow(a4.size());
-                for (uint i = 0; i < a4.size(); i++)
+                vogl::vector<uint32_t> shadow(a4.size());
+                for (uint32_t i = 0; i < a4.size(); i++)
                     shadow[i] = a4[i];
 
-                for (uint m = 0; m < a4.size(); m++)
+                for (uint32_t m = 0; m < a4.size(); m++)
                 {
                     VOGL_SPARSE_VECTOR_CHECK(a4[m] == shadow[m]);
                 }
 
-                vogl::vector<uint> vals;
+                vogl::vector<uint32_t> vals;
                 vals.reserve(n);
 
-                uint k = r.irand(0, math::clamp<uint>(n / 4, 1, 16));
+                uint32_t k = r.irand(0, math::clamp<uint32_t>(n / 4, 1, 16));
                 while ((k) && (a4.size()))
                 {
-                    uint s = r.irand(0, a4.size());
-                    uint l = r.irand_inclusive(1, a4.size() - s);
+                    uint32_t s = r.irand(0, a4.size());
+                    uint32_t l = r.irand_inclusive(1, a4.size() - s);
 
                     if (r.get_bit())
                     {
@@ -1518,7 +1518,7 @@ namespace vogl
                     else
                     {
                         vals.resize(l);
-                        for (uint i = 0; i < l; i++)
+                        for (uint32_t i = 0; i < l; i++)
                             vals[i] = r.urand32();
 
                         shadow.insert(s, vals.get_ptr(), l);
@@ -1528,7 +1528,7 @@ namespace vogl
                     VOGL_SPARSE_VECTOR_CHECK(a4.check());
                     VOGL_SPARSE_VECTOR_CHECK(shadow.size() == a4.size());
 
-                    for (uint m = 0; m < a4.size(); m++)
+                    for (uint32_t m = 0; m < a4.size(); m++)
                     {
                         VOGL_SPARSE_VECTOR_CHECK(a4[m] == shadow[m]);
                     }
@@ -1538,26 +1538,26 @@ namespace vogl
             }
 
             {
-                sparse_vector<uint, 0> a5(a4.size());
+                sparse_vector<uint32_t, 0> a5(a4.size());
                 a5 = a4;
 
-                vogl::vector<uint> shadow(a5.size());
-                for (uint i = 0; i < a5.size(); i++)
+                vogl::vector<uint32_t> shadow(a5.size());
+                for (uint32_t i = 0; i < a5.size(); i++)
                     shadow[i] = a5[i];
 
-                for (uint m = 0; m < a5.size(); m++)
+                for (uint32_t m = 0; m < a5.size(); m++)
                 {
                     VOGL_SPARSE_VECTOR_CHECK(a5[m] == shadow[m]);
                 }
 
-                vogl::vector<uint> vals;
+                vogl::vector<uint32_t> vals;
                 vals.reserve(n);
 
-                uint k = r.irand(0, math::clamp<uint>(n / 4, 1, 16));
+                uint32_t k = r.irand(0, math::clamp<uint32_t>(n / 4, 1, 16));
                 while ((k) && (a5.size()))
                 {
-                    uint s = r.irand(0, a5.size());
-                    uint l = r.irand_inclusive(1, a5.size() - s);
+                    uint32_t s = r.irand(0, a5.size());
+                    uint32_t l = r.irand_inclusive(1, a5.size() - s);
 
                     if (r.get_bit())
                     {
@@ -1567,7 +1567,7 @@ namespace vogl
                     else
                     {
                         vals.resize(l);
-                        for (uint i = 0; i < l; i++)
+                        for (uint32_t i = 0; i < l; i++)
                             vals[i] = r.urand32();
 
                         shadow.insert(s, vals.get_ptr(), l);
@@ -1577,7 +1577,7 @@ namespace vogl
                     VOGL_SPARSE_VECTOR_CHECK(a5.check());
                     VOGL_SPARSE_VECTOR_CHECK(shadow.size() == a5.size());
 
-                    for (uint m = 0; m < a5.size(); m++)
+                    for (uint32_t m = 0; m < a5.size(); m++)
                     {
                         VOGL_SPARSE_VECTOR_CHECK(a5[m] == shadow[m]);
                     }
@@ -1586,15 +1586,15 @@ namespace vogl
                 }
             }
 
-            uint k = 2;
-            sparse_vector<uint *, 2> z1;
+            uint32_t k = 2;
+            sparse_vector<uint32_t *, 2> z1;
             z1.push_back(&k);
             *z1[0] = 5;
             z1(0) = &k;
             VOGL_SPARSE_VECTOR_CHECK(*z1[0] == 5);
 
-            sparse_vector<uint *, 4> z2(z1);
-            sparse_vector<uint *, 4> z3;
+            sparse_vector<uint32_t *, 4> z2(z1);
+            sparse_vector<uint32_t *, 4> z3;
             z3 = z1;
             z3 = z2;
 

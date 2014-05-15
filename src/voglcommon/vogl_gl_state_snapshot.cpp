@@ -44,7 +44,7 @@ void vogl_context_snapshot::destroy_objects()
 {
     VOGL_FUNC_TRACER
 
-    for (uint i = 0; i < m_object_ptrs.size(); i++)
+    for (uint32_t i = 0; i < m_object_ptrs.size(); i++)
         vogl_delete(m_object_ptrs[i]);
     m_object_ptrs.clear();
 }
@@ -122,7 +122,7 @@ bool vogl_context_snapshot::capture(const vogl_context_desc &desc, const vogl_co
         const vogl_gl_object_state_type s_object_type_capture_order[] = { cGLSTTexture, cGLSTBuffer, cGLSTSampler, cGLSTQuery, cGLSTRenderbuffer, cGLSTFramebuffer, cGLSTVertexArray, cGLSTShader, cGLSTProgram, cGLSTSync, cGLSTARBProgram };
         VOGL_ASSUME(VOGL_ARRAY_SIZE(s_object_type_capture_order) == cGLSTTotalTypes - 1);
 
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(s_object_type_capture_order); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_object_type_capture_order); i++)
             if (!capture_objects(s_object_type_capture_order[i], capture_params, remapper))
                 goto handle_error;
     }
@@ -159,7 +159,7 @@ bool vogl_context_snapshot::remap_handles(vogl_handle_remapper &remapper)
             return false;
     }
 
-    for (uint i = 0; i < m_object_ptrs.size(); i++)
+    for (uint32_t i = 0; i < m_object_ptrs.size(); i++)
     {
         uint64_t orig_handle = m_object_ptrs[i]->get_snapshot_handle();
 
@@ -188,7 +188,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
 
     vogl_printf("Capturing %ss\n", get_gl_object_state_type_str(state_type));
 
-    uint total = 0;
+    uint32_t total = 0;
 
     if ((state_type == cGLSTVertexArray) && (m_context_info.is_compatibility_profile()))
     {
@@ -257,7 +257,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
             }
             case cGLSTTexture:
             {
-                for (uint i = 0; i < capture_params.m_textures.size(); i++)
+                for (uint32_t i = 0; i < capture_params.m_textures.size(); i++)
                 {
                     const vogl_handle_tracker::handle_def &def = capture_params.m_textures[i];
                     if (def.is_valid())
@@ -267,7 +267,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
             }
             case cGLSTRenderbuffer:
             {
-                for (uint i = 0; i < capture_params.m_rbos.size(); i++)
+                for (uint32_t i = 0; i < capture_params.m_rbos.size(); i++)
                 {
                     const vogl_handle_tracker::handle_def &def = capture_params.m_rbos[i];
                     if (def.is_valid())
@@ -291,7 +291,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
             }
             case cGLSTShader:
             {
-                for (uint i = 0; i < capture_params.m_objs.size(); i++)
+                for (uint32_t i = 0; i < capture_params.m_objs.size(); i++)
                 {
                     const vogl_handle_tracker::handle_def &def = capture_params.m_objs[i];
                     if ((def.is_valid()) && (def.get_target() == VOGL_SHADER_OBJECT))
@@ -302,7 +302,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
             }
             case cGLSTProgram:
             {
-                for (uint i = 0; i < capture_params.m_objs.size(); i++)
+                for (uint32_t i = 0; i < capture_params.m_objs.size(); i++)
                 {
                     const vogl_handle_tracker::handle_def &def = capture_params.m_objs[i];
                     if ((def.is_valid()) && (def.get_target() == VOGL_PROGRAM_OBJECT))
@@ -344,7 +344,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
 
         m_object_ptrs.reserve(m_object_ptrs.size() + handles_to_capture.size());
 
-        for (uint i = 0; i < handles_to_capture.size(); ++i)
+        for (uint32_t i = 0; i < handles_to_capture.size(); ++i)
         {
             GLuint handle = handles_to_capture[i].first;
             GLenum target = handles_to_capture[i].second;
@@ -378,7 +378,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
             else if (state_type == cGLSTBuffer)
             {
                 // Determine if this buffer has been mapped. I don't expect this array to be very big (typically empty) so a simple search is fine.
-                uint j;
+                uint32_t j;
                 for (j = 0; j < capture_params.m_mapped_buffers.size(); j++)
                     if (capture_params.m_mapped_buffers[j].m_buffer == handle)
                         break;
@@ -416,7 +416,7 @@ void vogl_context_snapshot::get_all_objects_of_category(vogl_gl_object_state_typ
 
     obj_ptr_vec.resize(0);
 
-    for (uint i = 0; i < m_object_ptrs.size(); i++)
+    for (uint32_t i = 0; i < m_object_ptrs.size(); i++)
         if (m_object_ptrs[i]->get_type() == state_type)
             obj_ptr_vec.push_back(m_object_ptrs[i]);
 
@@ -477,7 +477,7 @@ bool vogl_context_snapshot::serialize(json_node &node, vogl_blob_manager &blob_m
 
             json_node &array_node = objects_node.add_array(get_gl_object_state_type_str(state_type));
 
-            for (uint i = 0; i < obj_ptrs.size(); i++)
+            for (uint32_t i = 0; i < obj_ptrs.size(); i++)
             {
                 json_node &new_obj = array_node.add_object();
                 if (!obj_ptrs[i]->serialize(new_obj, blob_manager))
@@ -559,7 +559,7 @@ bool vogl_context_snapshot::deserialize(const json_node &node, const vogl_blob_m
     const json_node *pObjects_node = node.find_child_object("state_objects");
     if (pObjects_node)
     {
-        for (uint obj_iter = 0; obj_iter < pObjects_node->size(); obj_iter++)
+        for (uint32_t obj_iter = 0; obj_iter < pObjects_node->size(); obj_iter++)
         {
             const dynamic_string &obj_type_str = pObjects_node->get_key(obj_iter);
 
@@ -579,7 +579,7 @@ bool vogl_context_snapshot::deserialize(const json_node &node, const vogl_blob_m
 
             m_object_ptrs.reserve(m_object_ptrs.size() + pArray_node->size());
 
-            for (uint i = 0; i < pArray_node->size(); i++)
+            for (uint32_t i = 0; i < pArray_node->size(); i++)
             {
                 const json_node *pObj_node = pArray_node->get_value_as_object(i);
                 if (!pObj_node)
@@ -662,7 +662,7 @@ void vogl_gl_state_snapshot::clear()
 }
 
 // frame_index indicates the beginning of frame X, at a swap boundary
-bool vogl_gl_state_snapshot::begin_capture(uint window_width, uint window_height, vogl_trace_ptr_value cur_context, uint frame_index, int64_t gl_call_counter, bool at_frame_boundary)
+bool vogl_gl_state_snapshot::begin_capture(uint32_t window_width, uint32_t window_height, vogl_trace_ptr_value cur_context, uint32_t frame_index, int64_t gl_call_counter, bool at_frame_boundary)
 {
     VOGL_FUNC_TRACER
 

@@ -42,7 +42,7 @@ static const GLenum g_def_framebuffer_enums[] =
     0
 };
 
-bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attribs, uint screen)
+bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attribs, uint32_t screen)
 {
     #if (VOGL_PLATFORM_HAS_GLX)
         GLXDrawable pDrawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
@@ -150,7 +150,7 @@ bool vogl_default_framebuffer_state::snapshot(const vogl_context_info &context_i
     // TODO: Test multisampled default framebuffers
     const GLenum tex_target = (fb_attribs.m_samples > 1) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
 
-    for (uint i = 0; i < cDefFramebufferTotal; i++)
+    for (uint32_t i = 0; i < cDefFramebufferTotal; i++)
     {
         GLenum internal_fmt, pixel_fmt, pixel_type;
 
@@ -314,7 +314,7 @@ bool vogl_default_framebuffer_state::restore(const vogl_context_info &context_in
     GL_ENTRYPOINT(glBindFramebuffer)(GL_DRAW_FRAMEBUFFER, 0);
     VOGL_CHECK_GL_ERROR;
 
-    for (uint i = 0; i < cDefFramebufferTotal; i++)
+    for (uint32_t i = 0; i < cDefFramebufferTotal; i++)
     {
         if ((!restore_front_buffer) && ((i == cDefFramebufferFrontLeft) || (i == cDefFramebufferFrontRight)))
             continue;
@@ -399,7 +399,7 @@ void vogl_default_framebuffer_state::clear()
 {
     m_fb_attribs.clear();
 
-    for (uint i = 0; i < cDefFramebufferTotal; i++)
+    for (uint32_t i = 0; i < cDefFramebufferTotal; i++)
         m_textures[i].clear();
 
     m_valid = false;
@@ -414,7 +414,7 @@ bool vogl_default_framebuffer_state::serialize(json_node &node, vogl_blob_manage
         return false;
 
     json_node &framebuffers_array = node.add_array("framebuffers");
-    for (uint i = 0; i < cDefFramebufferTotal; i++)
+    for (uint32_t i = 0; i < cDefFramebufferTotal; i++)
     {
         json_node &object_node = framebuffers_array.add_object();
         if (m_textures[i].is_valid())
@@ -440,7 +440,7 @@ bool vogl_default_framebuffer_state::deserialize(const json_node &node, const vo
     const json_node *pFramebuffers_array = node.find_child_array("framebuffers");
     if (pFramebuffers_array)
     {
-        for (uint i = 0; i < math::minimum<uint>(cDefFramebufferTotal, pFramebuffers_array->size()); i++)
+        for (uint32_t i = 0; i < math::minimum<uint32_t>(cDefFramebufferTotal, pFramebuffers_array->size()); i++)
         {
             if ((pFramebuffers_array->is_child_object(i)) && (pFramebuffers_array->get_child(i)->size()))
             {

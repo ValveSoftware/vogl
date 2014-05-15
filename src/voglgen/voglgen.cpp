@@ -203,7 +203,7 @@ struct gl_function_def
 
         if (m_params.size())
         {
-            for (uint i = 0; i < m_params.size(); i++)
+            for (uint32_t i = 0; i < m_params.size(); i++)
             {
                 vogl_fprintf(pFile, "  ");
                 m_params[i].print(pFile);
@@ -215,7 +215,7 @@ struct gl_function_def
     dynamic_string get_param_proto() const
     {
         dynamic_string proto;
-        for (uint param_index = 0; param_index < m_params.size(); param_index++)
+        for (uint32_t param_index = 0; param_index < m_params.size(); param_index++)
         {
             const gl_function_param &param = m_params[param_index];
 
@@ -229,7 +229,7 @@ struct gl_function_def
     dynamic_string get_param_args() const
     {
         dynamic_string proto;
-        for (uint param_index = 0; param_index < m_params.size(); param_index++)
+        for (uint32_t param_index = 0; param_index < m_params.size(); param_index++)
         {
             proto.format_append("%s", m_params[param_index].m_name.get_ptr());
             if (param_index != m_params.size() - 1)
@@ -281,17 +281,17 @@ public:
         return *this;
     }
 
-    uint size() const
+    uint32_t size() const
     {
         return m_funcs.size();
     }
 
-    const gl_function_def &operator[](uint i) const
+    const gl_function_def &operator[](uint32_t i) const
     {
         return m_funcs[i];
     }
 
-    gl_function_def &operator[](uint i)
+    gl_function_def &operator[](uint32_t i)
     {
         return m_funcs[i];
     }
@@ -308,7 +308,7 @@ public:
 
     int find_index(const char *pName) const
     {
-        for (uint i = 0; i < m_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_funcs.size(); i++)
             if (m_funcs[i].m_name.compare(pName, true) == 0)
                 return i;
 
@@ -317,7 +317,7 @@ public:
 
     gl_function_def *find(const char *pName)
     {
-        for (uint i = 0; i < m_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_funcs.size(); i++)
             if (m_funcs[i].m_name.compare(pName, true) == 0)
                 return &m_funcs[i];
 
@@ -326,7 +326,7 @@ public:
 
     const gl_function_def *find(const char *pName) const
     {
-        for (uint i = 0; i < m_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_funcs.size(); i++)
             if (m_funcs[i].m_name.compare(pName, true) == 0)
                 return &m_funcs[i];
 
@@ -346,7 +346,7 @@ public:
             console::info("--- Dumping %u GL function specs to file \"%s\"\n", m_funcs.size(), pFilename);
 
             vogl_fprintf(pFile, "Functions:\n");
-            for (uint i = 0; i < m_funcs.size(); i++)
+            for (uint32_t i = 0; i < m_funcs.size(); i++)
             {
                 m_funcs[i].print(pFile);
             }
@@ -354,7 +354,7 @@ public:
             vogl_fprintf(pFile, "Categories:\n");
 
             gl_string_set categories;
-            for (uint i = 0; i < m_funcs.size(); i++)
+            for (uint32_t i = 0; i < m_funcs.size(); i++)
                 categories.insert(m_funcs[i].m_category);
 
             for (gl_string_set::const_iterator it = categories.begin(); it != categories.end(); ++it)
@@ -377,8 +377,8 @@ public:
         vogl::vector<dynamic_string> cur_function_param_names;
         gl_function_def *pCur_func_def = NULL;
 
-        uint max_num_params = 0;
-        uint total_functions = 0;
+        uint32_t max_num_params = 0;
+        uint32_t total_functions = 0;
 
         dynamic_string line_str;
         while (spec_file.get_remaining())
@@ -459,7 +459,7 @@ public:
 
 #if 0
 				printf("Function: \"%s\", Params %u:\n", cur_function_def.get_ptr(), cur_function_param_names.size());
-				for (uint i = 0; i < cur_function_param_names.size(); i++)
+				for (uint32_t i = 0; i < cur_function_param_names.size(); i++)
 				{
 					printf("  %s\n", cur_function_param_names[i].get_ptr());
 				}
@@ -627,7 +627,7 @@ public:
                             return false;
                         }
 
-                        for (vogl::uint i = 1; i < func_attribute_tokens.size(); ++i) 
+                        for (uint32_t i = 1; i < func_attribute_tokens.size(); ++i) 
                         {
                             if ((func_attribute_tokens[i] != "notlistable") 
                                 && (func_attribute_tokens[i] != "handcode") 
@@ -649,7 +649,7 @@ public:
             }
         }
 
-        for (uint i = 0; i < m_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_funcs.size(); i++)
         {
             m_funcs[i].m_full_name.format("%s%s", g_lib_api_prefixes[m_funcs[i].m_lib], m_funcs[i].m_name.get_ptr());
         }
@@ -835,7 +835,7 @@ static const struct
           { "GLuint", "Handle(\"fragmentShaderATI\", GLuint, \"range\")", VOGL_NAMESPACE_FRAGMENT_SHADER_ATI }
       };
 
-const uint APITRACE_RETURN_TYPE_ALIASES_ARRAY_SIZE = sizeof(g_apitrace_return_type_aliases) / sizeof(g_apitrace_return_type_aliases[0]);
+const uint32_t APITRACE_RETURN_TYPE_ALIASES_ARRAY_SIZE = sizeof(g_apitrace_return_type_aliases) / sizeof(g_apitrace_return_type_aliases[0]);
 
 //-----------------------------------------------------------------------------------------------------------------------
 // g_apitrace_param_type_aliases array
@@ -898,7 +898,7 @@ static const struct
           { "GLenum", "GLenum_mode" },
       };
 
-static const uint APITRACE_PARAM_TYPE_ALIASES_ARRAY_SIZE = sizeof(g_apitrace_param_type_aliases) / sizeof(g_apitrace_param_type_aliases[0]);
+static const uint32_t APITRACE_PARAM_TYPE_ALIASES_ARRAY_SIZE = sizeof(g_apitrace_param_type_aliases) / sizeof(g_apitrace_param_type_aliases[0]);
 
 //-----------------------------------------------------------------------------------------------------------------------
 // struct apitrace_gl_func_param_def
@@ -1003,17 +1003,17 @@ public:
         m_funcs.clear();
     }
 
-    uint size() const
+    uint32_t size() const
     {
         return m_funcs.size();
     }
 
-    const apitrace_gl_func_def &operator[](uint i) const
+    const apitrace_gl_func_def &operator[](uint32_t i) const
     {
         return m_funcs[i];
     }
 
-    apitrace_gl_func_def &operator[](uint i)
+    apitrace_gl_func_def &operator[](uint32_t i)
     {
         return m_funcs[i];
     }
@@ -1030,7 +1030,7 @@ public:
 
     int find_index(const char *pName) const
     {
-        for (uint i = 0; i < m_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_funcs.size(); i++)
             if (m_funcs[i].m_name.compare(pName, true) == 0)
                 return i;
 
@@ -1039,7 +1039,7 @@ public:
 
     const apitrace_gl_func_def *find(const char *pName) const
     {
-        for (uint i = 0; i < m_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_funcs.size(); i++)
             if (m_funcs[i].m_name.compare(pName, true) == 0)
                 return &m_funcs[i];
 
@@ -1065,7 +1065,7 @@ public:
         dynamic_string_array unique_types;
         dynamic_string_array unique_array_counts;
 
-        for (uint line_index = 0; line_index < param_info_file.size(); line_index++)
+        for (uint32_t line_index = 0; line_index < param_info_file.size(); line_index++)
         {
             const dynamic_string &orig_line(param_info_file[line_index]);
             dynamic_string line(orig_line);
@@ -1155,7 +1155,7 @@ public:
 
             func_def.m_return_gl_type = return_type;
 
-            uint a;
+            uint32_t a;
             for (a = 0; a < APITRACE_RETURN_TYPE_ALIASES_ARRAY_SIZE; a++)
             {
                 if (func_def.m_return_gl_type == g_apitrace_return_type_aliases[a].m_pApitrace_return_type)
@@ -1433,7 +1433,7 @@ public:
                     //console::warning("%s: Couldn't map namespace %s\n", VOGL_FUNCTION_INFO_CSTR, gl_param_type.get_ptr());
                 }
 
-                for (uint k = 0; k < APITRACE_PARAM_TYPE_ALIASES_ARRAY_SIZE; k++)
+                for (uint32_t k = 0; k < APITRACE_PARAM_TYPE_ALIASES_ARRAY_SIZE; k++)
                 {
                     if (gl_param_type == g_apitrace_param_type_aliases[k].m_pApitrace_type)
                     {
@@ -1480,14 +1480,14 @@ public:
 #ifdef APITRACE_FUNC_SPECS_DEBUG
         printf("Unique types:\n");
         unique_types.sort();
-        for (uint i = 0; i < unique_types.size(); i++)
+        for (uint32_t i = 0; i < unique_types.size(); i++)
             printf("%s\n", unique_types[i].get_ptr());
 
         printf("\n");
 
         printf("Unique array counts:\n");
         unique_array_counts.sort();
-        for (uint i = 0; i < unique_array_counts.size(); i++)
+        for (uint32_t i = 0; i < unique_array_counts.size(); i++)
             printf("%s\n", unique_array_counts[i].get_ptr());
 #endif
 
@@ -1497,20 +1497,20 @@ public:
 private:
     apitrace_gl_func_def_array m_funcs;
 
-    bool parse_apitrace_gl_param_info_error(const dynamic_string_array &param_info_file, uint line_index)
+    bool parse_apitrace_gl_param_info_error(const dynamic_string_array &param_info_file, uint32_t line_index)
     {
         console::error("Unrecognized line: %s\n", param_info_file[line_index].get_ptr());
         return false;
     }
 
-    static int find_matching_paren(const dynamic_string &str, uint ofs, uint open_char = '(', uint close_char = ')')
+    static int find_matching_paren(const dynamic_string &str, uint32_t ofs, uint32_t open_char = '(', uint32_t close_char = ')')
     {
         bool in_quoted_string = false;
-        uint param_count = 0;
+        uint32_t param_count = 0;
 
         while (ofs < str.get_len())
         {
-            uint c = str[ofs];
+            uint32_t c = str[ofs];
 
             if (in_quoted_string)
             {
@@ -1563,9 +1563,9 @@ public:
         return m_tm;
     }
 
-    uint size() const
+    uint32_t size() const
     {
-        return static_cast<uint>(m_tm.size());
+        return static_cast<uint32_t>(m_tm.size());
     }
 
     bool is_present(const dynamic_string &type_str) const
@@ -1619,7 +1619,7 @@ public:
                 return false;
             }
 
-            for (uint i = 0; i < tokens.size(); i++)
+            for (uint32_t i = 0; i < tokens.size(); i++)
                 tokens[i].trim();
 
             if ((tokens[0].is_empty()) || (tokens[1] != "*") || (tokens[2] != "*") ||
@@ -1648,7 +1648,7 @@ public:
         FILE *pFile = vogl_fopen(pFilename, "w");
         if (pFile)
         {
-            console::info("--- Dumping %u GL types to text file \"%s\"\n", static_cast<uint>(m_tm.size()), pFilename);
+            console::info("--- Dumping %u GL types to text file \"%s\"\n", static_cast<uint32_t>(m_tm.size()), pFilename);
 
             for (gl_string_map::const_iterator it = m_tm.begin(); it != m_tm.end(); ++it)
                 vogl_fprintf(pFile, "\"%s\" = \"%s\"\n", it->first.get_ptr(), it->second.get_ptr());
@@ -1736,7 +1736,7 @@ public:
 
                 is_define = (tokens.back() == "define:");
 
-                for (uint i = 0; i < (tokens.size() - 1); i++)
+                for (uint32_t i = 0; i < (tokens.size() - 1); i++)
                 {
                     gl_enum_def_vec_map::iterator cur_enum(m_enums.find(tokens[i]));
                     if (cur_enum == m_enums.end())
@@ -1777,7 +1777,7 @@ public:
                     def.m_alias_flag = false;
                     def.m_define_flag = is_define;
 
-                    for (uint i = 0; i < cur_enums.size(); i++)
+                    for (uint32_t i = 0; i < cur_enums.size(); i++)
                         cur_enums[i]->second.push_back(def);
                 }
                 else if (tokens[0] == "use")
@@ -1796,7 +1796,7 @@ public:
                     def.m_alias_flag = true;
                     def.m_define_flag = is_define;
 
-                    for (uint i = 0; i < cur_enums.size(); i++)
+                    for (uint32_t i = 0; i < cur_enums.size(); i++)
                         cur_enums[i]->second.push_back(def);
                 }
                 else
@@ -1819,8 +1819,8 @@ public:
             VOGL_ASSERT(alias_it != m_enums.end());
         }
 
-        uint num_unresolved_aliases;
-        uint pass_num = 0;
+        uint32_t num_unresolved_aliases;
+        uint32_t pass_num = 0;
         do
         {
             if (++pass_num == 100)
@@ -1834,7 +1834,7 @@ public:
             for (gl_enum_def_vec_map::iterator enum_it = m_enums.begin(); enum_it != m_enums.end(); ++enum_it)
             {
                 gl_enum_def_vec &def_vec = enum_it->second;
-                for (uint i = 0; i < def_vec.size(); i++)
+                for (uint32_t i = 0; i < def_vec.size(); i++)
                 {
                     if (!def_vec[i].m_alias_flag)
                         continue;
@@ -1848,7 +1848,7 @@ public:
 
                     const gl_enum_def_vec &alias_def_vec = alias_it->second;
 
-                    uint j;
+                    uint32_t j;
                     for (j = 0; j < alias_def_vec.size(); j++)
                     {
                         if (alias_def_vec[j].m_name == def_vec[i].m_name)
@@ -1882,12 +1882,12 @@ public:
         FILE *pFile = vogl_fopen(pFilename, "w");
         if (pFile)
         {
-            console::info("--- Dumping %u GL enums to file %s\n", static_cast<uint>(m_enums.size()), pFilename);
+            console::info("--- Dumping %u GL enums to file %s\n", static_cast<uint32_t>(m_enums.size()), pFilename);
 
             for (gl_enum_def_vec_map::const_iterator enum_it = m_enums.begin(); enum_it != m_enums.end(); ++enum_it)
             {
                 vogl_fprintf(pFile, "enum \"%s\"\n", enum_it->first.get_ptr());
-                for (uint i = 0; i < enum_it->second.size(); i++)
+                for (uint32_t i = 0; i < enum_it->second.size(); i++)
                     vogl_fprintf(pFile, "  \"%s\" = \"%s\"\n", enum_it->second[i].m_name.get_ptr(), enum_it->second[i].m_def.get_ptr());
             }
 
@@ -1904,7 +1904,7 @@ public:
         gl_string_map unique_enums;
         for (gl_enum_def_vec_map::const_iterator enum_it = m_enums.begin(); enum_it != m_enums.end(); ++enum_it)
         {
-            for (uint i = 0; i < enum_it->second.size(); i++)
+            for (uint32_t i = 0; i < enum_it->second.size(); i++)
                 unique_enums.insert(std::make_pair(enum_it->second[i].m_name, enum_it->second[i].m_def));
         }
 
@@ -1938,7 +1938,7 @@ public:
         {
             vogl_fprintf(pFile, "DEFINE_GL_ENUM_CATEGORY_BEGIN(%s)\n", enum_it->first.get_ptr());
 
-            for (uint i = 0; i < enum_it->second.size(); i++)
+            for (uint32_t i = 0; i < enum_it->second.size(); i++)
             {
                 const dynamic_string *pGLType = NULL;
                 pGLType = gl_typemap.find(enum_it->first.get_ptr());
@@ -2031,7 +2031,7 @@ class vogl_gen
     dynamic_string_array funcs_with_return_param_array_size_macros;
 
     gl_string_set custom_array_size_macros;
-    vogl::vector<uint> custom_array_size_macro_indices;
+    vogl::vector<uint32_t> custom_array_size_macro_indices;
     dynamic_string_array custom_array_size_macro_names;
 
     dynamic_string_array gl_ext_func_deleted;
@@ -2046,8 +2046,8 @@ class vogl_gen
         }
 
         dynamic_string m_name;
-        uint m_min_vers;
-        uint m_max_vers;
+        uint32_t m_min_vers;
+        uint32_t m_max_vers;
 
         inline bool operator<(const gl_get &rhs) const
         {
@@ -2077,7 +2077,7 @@ public:
     {
         VOGL_ASSERT(spec_to_clean != NULL);
 
-        for (uint i = 0; i < override_funcs.size(); i++)
+        for (uint32_t i = 0; i < override_funcs.size(); i++)
         {
             int func_index = (*spec_to_clean).find_index(override_funcs[i].m_name.get_ptr());
             if (func_index < 0)
@@ -2194,7 +2194,7 @@ public:
         }
         
 
-        for (uint j = 0; j < m_glxext_funcs.size(); j++)
+        for (uint32_t j = 0; j < m_glxext_funcs.size(); j++)
         {
             if (m_glxext_funcs[j].m_name.ends_with("SGIX"))
             {
@@ -2205,7 +2205,7 @@ public:
             }
         }
 
-        for (uint j = 0; j < m_wglext_funcs.size(); j++)
+        for (uint32_t j = 0; j < m_wglext_funcs.size(); j++)
         {
             if (m_wglext_funcs[j].m_name.ends_with("SGIX"))
             {
@@ -2281,7 +2281,7 @@ public:
 
 
         // -- Determine the unique list of function API categories
-        for (uint i = 0; i < m_all_gl_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_all_gl_funcs.size(); i++)
         {
             if (m_unique_categories.find(m_all_gl_funcs[i].m_category) < 0)
                 m_unique_categories.push_back(m_all_gl_funcs[i].m_category);
@@ -2310,19 +2310,19 @@ public:
         process_func_protos(m_wglext_funcs, m_all_gl_ctypes, m_all_gl_categories, m_all_array_sizes);
 
         // -- Create the m_unique_ctype_enums table
-        for (uint i = 0; i < m_all_gl_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_all_gl_funcs.size(); i++)
         {
             const gl_function_def &func = m_all_gl_funcs[i];
 
             m_unique_ctype_enums.insert(std::make_pair(func.m_return_ctype_enum, func.m_return_ctype));
-            for (uint p = 0; p < func.m_params.size(); p++)
+            for (uint32_t p = 0; p < func.m_params.size(); p++)
                 m_unique_ctype_enums.insert(std::make_pair(func.m_params[p].m_ctype_enum, func.m_params[p].m_ctype));
         }
 
 // -- Create the m_pointee_types table
 #if 0
 		printf("---\n");
-		for (uint i = 0; i < whitelisted_funcs.size(); i++)
+		for (uint32_t i = 0; i < whitelisted_funcs.size(); i++)
 		{
 			int j = simple_replay_funcs.find(whitelisted_funcs[i]);
 			if (j < 0)
@@ -2418,7 +2418,7 @@ public:
         process_func_defs("wgl", m_wglext_funcs, m_gl_so_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
 
 
-        uint cur_func_id = 0;
+        uint32_t cur_func_id = 0;
         create_array_size_macros("gl", m_gl_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("glX", m_glx_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("glX", m_glxext_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
@@ -2432,7 +2432,7 @@ public:
             if (gl_ext_func_deleted.size())
             {
                 console::message("\nDeleted glxext/wglext funcs: ");
-                for (uint i = 0; i < gl_ext_func_deleted.size(); i++)
+                for (uint32_t i = 0; i < gl_ext_func_deleted.size(); i++)
                     console::message("%s ", gl_ext_func_deleted[i].get_ptr());
                 console::message("\n");
             }
@@ -2441,7 +2441,7 @@ public:
             if (new_ctype_from_ptr.size())
             {
                 printf("\nNew ctype from ptr to pointee: ");
-                for (uint i = 0; i < new_ctype_from_ptr.size(); i++)
+                for (uint32_t i = 0; i < new_ctype_from_ptr.size(); i++)
                     printf("%s ", new_ctype_from_ptr[i].get_ptr());
                 printf("\n");
             }
@@ -2450,7 +2450,7 @@ public:
             if (simple_gl_replay_func.size())
             {
                 console::printf("\nAdded simple GL replay func to func whitelist: ");
-                for (uint i = 0; i < simple_gl_replay_func.size(); i++)
+                for (uint32_t i = 0; i < simple_gl_replay_func.size(); i++)
                     console::printf("%s ", simple_gl_replay_func[i].get_ptr());
                 console::printf("\n");
             }
@@ -2482,8 +2482,8 @@ public:
             return false;
         }
 
-        uint t = 0;
-        for (uint func_index = 0; func_index < m_all_gl_funcs.size(); func_index++)
+        uint32_t t = 0;
+        for (uint32_t func_index = 0; func_index < m_all_gl_funcs.size(); func_index++)
         {
             if (r.full_match(m_all_gl_funcs[func_index].m_full_name.get_ptr()))
             {
@@ -2491,7 +2491,7 @@ public:
 
                 printf("%s ", func.m_return_ctype.get_ptr());
                 printf("%s(", func.m_full_name.get_ptr());
-                for (uint j = 0; j < func.m_params.size(); j++)
+                for (uint32_t j = 0; j < func.m_params.size(); j++)
                 {
                     printf("%s %s", func.m_params[j].m_ctype.get_ptr(), func.m_params[j].m_name.get_ptr());
                     if (j != func.m_params.size() - 1)
@@ -2515,12 +2515,12 @@ public:
             return false;
         }
 
-        uint t = 0;
-        for (uint func_index = 0; func_index < m_all_gl_funcs.size(); func_index++)
+        uint32_t t = 0;
+        for (uint32_t func_index = 0; func_index < m_all_gl_funcs.size(); func_index++)
         {
             const gl_function_def &func_def = m_all_gl_funcs[func_index];
 
-            for (uint param_index = 0; param_index < func_def.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func_def.m_params.size(); param_index++)
             {
                 if (r.full_match(func_def.m_params[param_index].m_name.get_ptr()))
                 {
@@ -2543,8 +2543,8 @@ public:
             return false;
         }
 
-        uint t = 0;
-        for (uint func_index = 0; func_index < m_all_gl_funcs.size(); func_index++)
+        uint32_t t = 0;
+        for (uint32_t func_index = 0; func_index < m_all_gl_funcs.size(); func_index++)
         {
             const gl_function_def &func_def = m_all_gl_funcs[func_index];
 
@@ -2568,8 +2568,8 @@ public:
             return false;
         }
 
-        uint t = 0;
-        for (uint func_index = 0; func_index < m_all_gl_funcs.size(); func_index++)
+        uint32_t t = 0;
+        for (uint32_t func_index = 0; func_index < m_all_gl_funcs.size(); func_index++)
         {
             const gl_function_def &func_def = m_all_gl_funcs[func_index];
 
@@ -2579,7 +2579,7 @@ public:
                 t++;
             }
 
-            for (uint param_index = 0; param_index < func_def.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func_def.m_params.size(); param_index++)
             {
                 if (r.full_match(func_def.m_params[param_index].m_ctype.get_ptr()))
                 {
@@ -2602,8 +2602,8 @@ public:
             return false;
         }
 
-        uint t = 0;
-        for (uint func_index = 0; func_index < m_apitrace_gl_func_specs.size(); func_index++)
+        uint32_t t = 0;
+        for (uint32_t func_index = 0; func_index < m_apitrace_gl_func_specs.size(); func_index++)
         {
             const apitrace_gl_func_def &func_def = m_apitrace_gl_func_specs[func_index];
 
@@ -2613,7 +2613,7 @@ public:
                 t++;
             }
 
-            for (uint param_index = 0; param_index < func_def.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func_def.m_params.size(); param_index++)
             {
                 const apitrace_gl_func_param_def &param = func_def.m_params[param_index];
 
@@ -2662,7 +2662,7 @@ public:
         //GL_FUNC(OpenGL,true,GLenum,glGetError,(void),())
         //GL_FUNC_VOID(OpenGL,true,glActiveTexture,(GLenum a),(a))
         pFile = fopen_and_log_generic(out_debug_dir, "dbg_gl_glx_wgl_simple_func_macros.txt", "w");
-        for (uint i = 0; i < m_all_gl_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_all_gl_funcs.size(); i++)
         {
             const gl_function_def &def = m_all_gl_funcs[i];
             if (def.m_return == "void")
@@ -2684,12 +2684,12 @@ public:
 
         printf("\n");
         printf("--- Functions with custom array size macros:\n");
-        for (uint i = 0; i < funcs_with_custom_array_size_macros.size(); i++)
+        for (uint32_t i = 0; i < funcs_with_custom_array_size_macros.size(); i++)
             printf("%s\n", funcs_with_custom_array_size_macros[i].get_ptr());
         printf("---\n");
 
         printf("--- Whitelisted functions with custom array size macros:\n");
-        for (uint i = 0; i < funcs_with_custom_array_size_macros.size(); i++)
+        for (uint32_t i = 0; i < funcs_with_custom_array_size_macros.size(); i++)
         {
             if (scan_dynamic_string_array_for_string(m_whitelisted_funcs, funcs_with_custom_array_size_macros[i].get_ptr(), true) < 0)
                 continue;
@@ -2698,7 +2698,7 @@ public:
         printf("---\n");
 
         printf("--- All categories:\n");
-        for (uint i = 0; i < m_unique_categories.size(); i++)
+        for (uint32_t i = 0; i < m_unique_categories.size(); i++)
             printf("%s\n", m_unique_categories[i].get_ptr());
         printf("---\n");
 
@@ -2707,12 +2707,12 @@ public:
 
         VOGL_ASSERT(m_whitelisted_funcs.is_sorted());
 
-        for (uint i = 0; i < m_unique_categories.size(); i++)
+        for (uint32_t i = 0; i < m_unique_categories.size(); i++)
         {
             dynamic_string_array missing_funcs;
 
             bool are_any_whitelisted = false;
-            for (uint j = 0; j < m_all_gl_funcs.size(); j++)
+            for (uint32_t j = 0; j < m_all_gl_funcs.size(); j++)
             {
                 const gl_function_def &func = m_all_gl_funcs[j];
                 if (func.m_category != m_unique_categories[i])
@@ -2729,7 +2729,7 @@ public:
             if (missing_funcs.size())
             {
                 printf("--- Non-whitelisted funcs for %s category %s:\n", are_any_whitelisted ? "partially supported" : "unsupported", m_unique_categories[i].get_ptr());
-                for (uint j = 0; j < missing_funcs.size(); j++)
+                for (uint32_t j = 0; j < missing_funcs.size(); j++)
                     printf("%s\n", missing_funcs[j].get_ptr());
                 printf("---\n");
             }
@@ -2837,7 +2837,7 @@ public:
         if (!pFile)
             return false;
 
-        for (uint i = 0; i < custom_return_param_array_size_macros.size(); i++)
+        for (uint32_t i = 0; i < custom_return_param_array_size_macros.size(); i++)
         {
             dynamic_string macro_name(custom_return_param_array_size_macros[i]);
             int left_paren_pos = macro_name.find_left('(');
@@ -2906,11 +2906,11 @@ public:
         if (!pFile)
             return false;
 
-        for (uint i = 0; i < custom_array_size_macro_indices.size(); i++)
+        for (uint32_t i = 0; i < custom_array_size_macro_indices.size(); i++)
         {
-            uint j = custom_array_size_macro_indices[i];
-            uint func_index = j >> 16;
-            uint param_index = j & 0xFFFF;
+            uint32_t j = custom_array_size_macro_indices[i];
+            uint32_t func_index = j >> 16;
+            uint32_t param_index = j & 0xFFFF;
             VOGL_NOTE_UNUSED(param_index);
 
             const dynamic_string &macro_name = custom_array_size_macro_names[i];
@@ -2930,7 +2930,7 @@ public:
         if (!pFile)
             return false;
 
-        for (uint i = 0; i < custom_return_param_array_size_macros.size(); i++)
+        for (uint32_t i = 0; i < custom_return_param_array_size_macros.size(); i++)
         {
             dynamic_string macro_name(custom_return_param_array_size_macros[i]);
             int n = macro_name.find_left('(');
@@ -2950,7 +2950,7 @@ public:
         if (!pFile)
             return false;
 
-        for (uint i = 0; i < m_all_gl_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_all_gl_funcs.size(); i++)
         {
             vogl_fprintf(pFile, "#ifdef DEF_FUNCTION_CUSTOM_HANDLER_%s%s\n", g_lib_api_prefixes[m_all_gl_funcs[i].m_lib], m_all_gl_funcs[i].m_name.get_ptr());
             vogl_fprintf(pFile, "   CUSTOM_FUNC_HANDLER_DEFINED(%u)\n", i);
@@ -2965,7 +2965,7 @@ public:
         if (!pFile)
             return false;
 
-        for (uint i = 0; i < custom_array_size_macro_indices.size(); i++)
+        for (uint32_t i = 0; i < custom_array_size_macro_indices.size(); i++)
         {
             if (i)
                 vogl_fprintf(pFile, ",");
@@ -2994,7 +2994,7 @@ private:
         static const struct gl_get_files
         {
             const char *m_pFilename;
-            uint m_vers;
+            uint32_t m_vers;
         } s_gl_get_files[] =
               {
                   { "gl10_gets.txt", 0x10 },
@@ -3007,7 +3007,7 @@ private:
                   { "gl43_gets.txt", 0x43 }
               };
 
-        for (uint file_iter = 0; file_iter < sizeof(s_gl_get_files) / sizeof(s_gl_get_files[0]); file_iter++)
+        for (uint32_t file_iter = 0; file_iter < sizeof(s_gl_get_files) / sizeof(s_gl_get_files[0]); file_iter++)
         {
             const char *pFilename = s_gl_get_files[file_iter].m_pFilename;
 
@@ -3019,7 +3019,7 @@ private:
             if (!file_utils::read_text_file(pFilename, get_names, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintErrorMessages))
                 return false;
 
-            for (uint i = 0; i < get_names.size(); i++)
+            for (uint32_t i = 0; i < get_names.size(); i++)
             {
                 if ((get_names[i].toupper().compare(get_names[i], true) != 0) || (get_names[i].contains(' ')))
                 {
@@ -3069,10 +3069,10 @@ local:
         fputs("{\n", pFile);
         fputs("  global:\n", pFile);
 
-        for (uint i = 0; i < m_gl_so_dll_function_exports.size(); i++)
+        for (uint32_t i = 0; i < m_gl_so_dll_function_exports.size(); i++)
             fprintf(pFile, "    %s;\n", m_gl_so_dll_function_exports[i].get_ptr());
 
-        for (uint i = 0; i < nongenerated_exports.size(); i++)
+        for (uint32_t i = 0; i < nongenerated_exports.size(); i++)
             fprintf(pFile, "    %s;\n", nongenerated_exports[i].get_ptr());
 
         fputs("  local:\n", pFile);
@@ -3100,7 +3100,7 @@ local:
 
         int prev_min_vers = -1;
         int prev_max_vers = -1;
-        for (uint i = 0; i < sorted_gets.size(); i++)
+        for (uint32_t i = 0; i < sorted_gets.size(); i++)
         {
             if ((prev_min_vers != static_cast<int>(sorted_gets[i].m_min_vers)) || (prev_max_vers != static_cast<int>(sorted_gets[i].m_max_vers)))
             {
@@ -3228,7 +3228,7 @@ local:
     {
         ctype.trim().toupper().replace("_", "");
 
-        uint num_found;
+        uint32_t num_found;
         do
         {
             ctype.replace(" *", "*", true, &num_found);
@@ -3262,7 +3262,7 @@ local:
         VOGL_ASSERT(num_alts == 0 || alt_typemaps != NULL);
         for (int i = 0; i < num_alts; ++i) { VOGL_ASSERT(alt_typemaps[i] != NULL); }
 
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             gl_function_def &func = gl_funcs[func_index];
 
@@ -3294,7 +3294,7 @@ local:
             }
             func.m_return_ctype_enum = translate_ctype_to_ctype_enum(func.m_return_ctype);
 
-            for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
             {
                 gl_function_param &param = func.m_params[param_index];
 
@@ -3361,7 +3361,7 @@ local:
         proto.format_append("%s, ", full_func_name.get_ptr());
 
         proto.format_append("(");
-        for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+        for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
         {
             const gl_function_param &param = func.m_params[param_index];
 
@@ -3373,7 +3373,7 @@ local:
         proto.format_append("), ");
 
         proto.format_append("(");
-        for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+        for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
         {
             proto.format_append("%s", func.m_params[param_index].m_name.get_ptr());
             if (param_index != func.m_params.size() - 1)
@@ -3391,12 +3391,12 @@ local:
     bool process_func_protos(const gl_function_specs &gl_funcs, gl_string_set &all_gl_ctypes, gl_string_set &all_gl_categories, gl_string_set &array_sizes)
     {
 
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
 
             all_gl_categories.insert(func.m_category);
-            for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
             {
                 const gl_function_param &param = func.m_params[param_index];
 
@@ -3413,7 +3413,7 @@ local:
     //-----------------------------------------------------------------------------------------------------------------------
     bool dump_func_proto_macros(FILE *pFile, const char *pFunc_prefix, const gl_function_specs &gl_funcs, const dynamic_string_array &sorted_gl_so_function_exports) const
     {
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
 
@@ -3438,7 +3438,7 @@ local:
             dynamic_string array_size_param(param.m_array_size);
             array_size_param.mid(1, array_size_param.get_len() - 2);
 
-            for (uint i = 0; i < func.m_params.size(); i++)
+            for (uint32_t i = 0; i < func.m_params.size(); i++)
                 if ((func.m_params[i].m_name == array_size_param) ||
                     ((func.m_params[i].m_name + "*1") == array_size_param) ||
                     ((func.m_params[i].m_name + "*2") == array_size_param) ||
@@ -3488,7 +3488,7 @@ local:
                     return dynamic_string(cVarArg, "DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_GL_ENUM(%s)", comp_size_param.get_ptr());
 
                 // these might be wrong
-                for (uint i = 0; i < func.m_params.size(); i++)
+                for (uint32_t i = 0; i < func.m_params.size(); i++)
                     if (((func.m_params[i].m_name + "*2") == comp_size_param) ||
                         ((func.m_params[i].m_name + "*3") == comp_size_param) ||
                         ((func.m_params[i].m_name + "*4") == comp_size_param))
@@ -3510,15 +3510,15 @@ local:
     // TODO: use funcs_with_custom_array_size_macros[] vs. scanning for DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_
     //-----------------------------------------------------------------------------------------------------------------------
     void create_array_size_macros(const char *pFunc_prefix, const gl_function_specs &gl_funcs, const dynamic_string_array &sorted_gl_so_function_exports,
-                                  gl_string_set &_custom_array_size_macros, vogl::vector<uint> &_custom_array_size_macro_indices, dynamic_string_array &_custom_array_size_macro_names, uint &cur_func_id) const
+                                  gl_string_set &_custom_array_size_macros, vogl::vector<uint32_t> &_custom_array_size_macro_indices, dynamic_string_array &_custom_array_size_macro_names, uint32_t &cur_func_id) const
     {
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
 
             dynamic_string func_proto(get_func_proto_macro(pFunc_prefix, func, sorted_gl_so_function_exports));
 
-            for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
             {
                 const gl_function_param &param = func.m_params[param_index];
 
@@ -3554,7 +3554,7 @@ local:
                            dynamic_string_array &_custom_return_param_array_size_macros,
                            dynamic_string_array &_funcs_with_return_param_array_size_macros)
     {
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
 
@@ -3562,7 +3562,7 @@ local:
 
             bool is_in_whitelist = false;
             VOGL_NOTE_UNUSED(is_in_whitelist);
-            for (uint i = 0; i < whitelisted_funcs.size(); i++)
+            for (uint32_t i = 0; i < whitelisted_funcs.size(); i++)
             {
                 if (whitelisted_funcs[i] == full_func_name)
                 {
@@ -3578,7 +3578,7 @@ local:
 
             dynamic_string func_params;
 
-            for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
             {
                 const gl_function_param &param = func.m_params[param_index];
 
@@ -3610,7 +3610,7 @@ local:
     bool dump_func_def_macros(FILE *pFile, const char *pFunc_prefix, const gl_function_specs &gl_funcs, const dynamic_string_array &sorted_gl_so_function_exports,
                               const dynamic_string_array &whitelisted_funcs) const
     {
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
 
@@ -3618,7 +3618,7 @@ local:
 
             bool is_in_whitelist = false;
             VOGL_NOTE_UNUSED(is_in_whitelist);
-            for (uint i = 0; i < whitelisted_funcs.size(); i++)
+            for (uint32_t i = 0; i < whitelisted_funcs.size(); i++)
             {
                 if (whitelisted_funcs[i] == full_func_name)
                 {
@@ -3651,7 +3651,7 @@ local:
 
             dynamic_string func_params;
 
-            for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
             {
                 const gl_function_param &param = func.m_params[param_index];
 
@@ -3697,7 +3697,7 @@ local:
 
             vogl_fprintf(pFile, "   #endif\n");
 
-            for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
             {
                 const gl_function_param &param = func.m_params[param_index];
                 if (param.m_direction != "out")
@@ -3748,7 +3748,7 @@ local:
         const gl_function_specs &gl_funcs, const apitrace_func_specs &apitrace_gl_func_specs, 
         const dynamic_string_array &sorted_gl_so_function_exports, const dynamic_string_array &whitelisted_funcs, const dynamic_string_array &nullable_funcs, const dynamic_string_array &whitelisted_displaylists_funcs) const
     {
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
 
@@ -3761,7 +3761,7 @@ local:
             bool is_nullable = nullable_funcs.find(full_func_name) != cInvalidIndex;
 
             bool is_whitelisted_for_displaylists = false;
-            for (uint i = 0; i < whitelisted_displaylists_funcs.size(); i++)
+            for (uint32_t i = 0; i < whitelisted_displaylists_funcs.size(); i++)
             {
                 if (regexp_full_match(func.m_full_name.get_ptr(), whitelisted_displaylists_funcs[i].get_ptr()))
                 {
@@ -3794,7 +3794,7 @@ local:
             if (func.m_params.size())
             {
                 vogl_fprintf(pFile, "   DEF_FUNCTION_BEGIN_PARAMS\n");
-                for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+                for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
                 {
                     const gl_function_param &param = func.m_params[param_index];
 
@@ -3944,7 +3944,7 @@ local:
                 { "GLcharARB*", "char *" },
                 { "const GLcharARB *", "const char *" },
                 { "const GLcharARB*", "const char *" },
-                { "uint *", "unsigned int *" },
+                { "uint32_t *", "unsigned int *" },
                 { "ulong", "unsigned long" },
                 { "ulong *", "unsigned long *" },
                 { "GLuint64", "unsigned int64_t" },
@@ -4005,7 +4005,7 @@ local:
             };
 
         // See if the ctype can be aliased to a simpler, hopefully equivalent ctype.
-        for (uint i = 0; i < VOGL_ARRAY_SIZE(g_gl_type_comparison_exception_table); i++)
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(g_gl_type_comparison_exception_table); i++)
         {
             if (str == g_gl_type_comparison_exception_table[i].m_pName)
             {
@@ -4058,12 +4058,12 @@ local:
     {
         dynamic_string_array missing_funcs;
 
-        uint total_skipped = 0;
-        uint total_validated = 0;
-        uint total_failures = 0;
-        uint total_not_found = 0;
+        uint32_t total_skipped = 0;
+        uint32_t total_validated = 0;
+        uint32_t total_failures = 0;
+        uint32_t total_not_found = 0;
 
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
 
@@ -4106,7 +4106,7 @@ local:
 
             dynamic_string_array func_param_ctypes;
 
-            for (uint param_index = 0; param_index < func.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func.m_params.size(); param_index++)
             {
                 const gl_function_param &param = func.m_params[param_index];
 
@@ -4154,7 +4154,7 @@ local:
                 }
                 else
                 {
-                    for (uint i = 0; i < func_param_ctypes.size(); i++)
+                    for (uint32_t i = 0; i < func_param_ctypes.size(); i++)
                     {
                         const apitrace_gl_func_param_def &param_def = pApitrace_func_def->m_params[i];
 
@@ -4166,7 +4166,7 @@ local:
                         bool type_mismatch = purified_spec_ctype.size() != purified_apitrace_ctype.size();
                         if (!type_mismatch)
                         {
-                            for (uint j = 0; j < purified_spec_ctype.size(); j++)
+                            for (uint32_t j = 0; j < purified_spec_ctype.size(); j++)
                             {
                                 if (purified_spec_ctype[j] != purified_apitrace_ctype[j])
                                 {
@@ -4191,7 +4191,7 @@ local:
                 //printf("Func not found in apitrace specs: %s\n", func.m_full_name.get_ptr());
             }
 
-            uint gl_xml_func_index;
+            uint32_t gl_xml_func_index;
             for (gl_xml_func_index = 0; gl_xml_func_index < gl_xml_funcs.size(); gl_xml_func_index++)
             {
                 if (gl_xml_funcs[gl_xml_func_index].m_lib != func.m_lib)
@@ -4261,7 +4261,7 @@ local:
             }
             else
             {
-                for (uint i = 0; i < purified_func_return.size(); i++)
+                for (uint32_t i = 0; i < purified_func_return.size(); i++)
                 {
                     if (purified_func_return[i] != purified_xml_func_return[i])
                     {
@@ -4271,7 +4271,7 @@ local:
                 }
             }
 
-            uint param_index;
+            uint32_t param_index;
             for (param_index = 0; param_index < func.m_params.size(); param_index++)
             {
                 dynamic_string param_type(func_param_ctypes[param_index]);
@@ -4309,7 +4309,7 @@ local:
                 }
                 else
                 {
-                    for (uint j = 0; j < purified_param_type.size(); j++)
+                    for (uint32_t j = 0; j < purified_param_type.size(); j++)
                     {
                         if (purified_param_type[j] != purified_xml_param_type[j])
                         {
@@ -4337,15 +4337,15 @@ local:
         if (g_command_line_params().get_value_as_bool("verbose"))
         {
             printf("\nMissing function list:\n");
-            for (uint i = 0; i < missing_funcs.size(); i++)
+            for (uint32_t i = 0; i < missing_funcs.size(); i++)
                 printf("%s\n", missing_funcs[i].get_ptr());
 
             printf("\nMissing function list excluding OES and vendor suffixes:\n");
-            for (uint i = 0; i < missing_funcs.size(); i++)
+            for (uint32_t i = 0; i < missing_funcs.size(); i++)
             {
                 const dynamic_string &func = missing_funcs[i];
 
-                uint j;
+                uint32_t j;
                 for (j = 0; j < VOGL_ARRAY_SIZE(g_gl_vendor_suffixes); j++)
                     if (func.ends_with(g_gl_vendor_suffixes[j], true))
                         break;
@@ -4372,12 +4372,12 @@ local:
 
         vogl::vector<bool> used_flags(m_simple_replay_funcs.size());
 
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func_def = gl_funcs[func_index];
             dynamic_string full_func_name(func_def.m_full_name); //cVarArg, "%s%s", g_lib_api_prefixes[gl_funcs[func_index].m_lib], gl_funcs[func_index].m_name.get_ptr());
 
-            uint i;
+            uint32_t i;
             for (i = 0; i < m_simple_replay_funcs.size(); i++)
             {
                 if (m_simple_replay_funcs[i].ends_with("*"))
@@ -4411,7 +4411,7 @@ local:
             }
         }
 
-        for (uint i = 0; i < m_simple_replay_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_simple_replay_funcs.size(); i++)
         {
             if (!used_flags[i])
                 console::warning("Simple replay func %s was not found/used\n", m_simple_replay_funcs[i].get_ptr());
@@ -4435,12 +4435,12 @@ local:
 
         vogl::vector<bool> used_flags(m_simple_replay_funcs.size());
 
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func_def = gl_funcs[func_index];
             dynamic_string full_func_name(func_def.m_full_name); //cVarArg, "%s%s", g_lib_api_prefixes[gl_funcs[func_index].m_lib], gl_funcs[func_index].m_name.get_ptr());
 
-            uint i;
+            uint32_t i;
             for (i = 0; i < m_simple_replay_funcs.size(); i++)
             {
                 if (m_simple_replay_funcs[i].ends_with("*"))
@@ -4465,7 +4465,7 @@ local:
 
             vogl_fprintf(pFile, "VOGL_SIMPLE_REPLAY_FUNC_BEGIN(%s, func_def.m_params.size())\n", full_func_name.get_ptr());
 
-            for (uint param_index = 0; param_index < func_def.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func_def.m_params.size(); param_index++)
             {
                 const bool last_param = (param_index == (func_def.m_params.size() - 1));
 
@@ -4523,14 +4523,14 @@ local:
 
         dump_inc_file_header(pFile);
 
-        for (uint func_index = 0; func_index < gl_funcs.size(); func_index++)
+        for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func_def = gl_funcs[func_index];
             dynamic_string full_func_name(func_def.m_full_name); //cVarArg, "%s%s", g_lib_api_prefixes[gl_funcs[func_index].m_lib], gl_funcs[func_index].m_name.get_ptr());
 
             vogl_fprintf(pFile, "#define VOGL_REPLAY_LOAD_PARAMS_HELPER_%s %c\n", full_func_name.get_ptr(), func_def.m_params.size() ? '\\' : ' ');
 
-            for (uint param_index = 0; param_index < func_def.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func_def.m_params.size(); param_index++)
             {
                 const bool last_param = (param_index == (func_def.m_params.size() - 1));
 
@@ -4575,7 +4575,7 @@ local:
 
             vogl_fprintf(pFile, "#define VOGL_REPLAY_CALL_GL_HELPER_%s GL_ENTRYPOINT(%s)(", full_func_name.get_ptr(), full_func_name.get_ptr());
 
-            for (uint param_index = 0; param_index < func_def.m_params.size(); param_index++)
+            for (uint32_t param_index = 0; param_index < func_def.m_params.size(); param_index++)
             {
                 const bool last_param = (param_index == (func_def.m_params.size() - 1));
 
@@ -4617,9 +4617,9 @@ local:
 
         vogl::vector<bool> used_flags(regex_func_patterns.size());
 
-        for (uint i = 0; i < m_all_gl_funcs.size(); i++)
+        for (uint32_t i = 0; i < m_all_gl_funcs.size(); i++)
         {
-            uint j;
+            uint32_t j;
             for (j = 0; j < regex_func_patterns.size(); j++)
                 if (regexp_full_match(m_all_gl_funcs[i].m_full_name.get_ptr(), regex_func_patterns[j].get_ptr()))
                     break;
@@ -4631,7 +4631,7 @@ local:
             }
         }
 
-        for (uint i = 0; i < used_flags.size(); i++)
+        for (uint32_t i = 0; i < used_flags.size(); i++)
             if (!used_flags[i])
                 console::warning("%s: Regex pattern \"%s\" from file \"%s\" did not match any function names!\n", VOGL_FUNCTION_INFO_CSTR, regex_func_patterns[i].get_ptr(), pFilename);
 

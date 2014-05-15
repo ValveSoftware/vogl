@@ -56,7 +56,7 @@ vogl_framebuffer_capturer::~vogl_framebuffer_capturer()
     }
 }
 
-bool vogl_framebuffer_capturer::init(uint num_buffers, vogl_write_image_callback_func_ptr pWrite_func, void *pWrite_opaque, GLenum pixel_format, GLenum pixel_type)
+bool vogl_framebuffer_capturer::init(uint32_t num_buffers, vogl_write_image_callback_func_ptr pWrite_func, void *pWrite_opaque, GLenum pixel_format, GLenum pixel_type)
 {
     VOGL_FUNC_TRACER
 
@@ -106,7 +106,7 @@ void vogl_framebuffer_capturer::deinit(bool ok_to_make_gl_calls)
     m_pbo_head = 0;
     m_pbo_tail = 0;
     m_num_busy_pbos = 0;
-    for (uint i = 0; i < cMaxBufs; i++)
+    for (uint32_t i = 0; i < cMaxBufs; i++)
         m_pbos[i].clear();
 
     m_cur_width = 0;
@@ -188,7 +188,7 @@ void vogl_framebuffer_capturer::delete_all_bufs()
 
     VOGL_CHECK_GL_ERROR;
 
-    for (uint i = 0; i < m_num_pbos; i++)
+    for (uint32_t i = 0; i < m_num_pbos; i++)
     {
         pbo &buf = m_pbos[i];
         if (!buf.m_buffer)
@@ -203,7 +203,7 @@ void vogl_framebuffer_capturer::delete_all_bufs()
     VOGL_CHECK_GL_ERROR;
 }
 
-bool vogl_framebuffer_capturer::recreate_buffers(uint new_width, uint new_height)
+bool vogl_framebuffer_capturer::recreate_buffers(uint32_t new_width, uint32_t new_height)
 {
     VOGL_FUNC_TRACER
 
@@ -231,12 +231,12 @@ bool vogl_framebuffer_capturer::recreate_buffers(uint new_width, uint new_height
     if (vogl_check_gl_error())
         return false;
 
-    for (uint i = 0; i < m_num_pbos; i++)
+    for (uint32_t i = 0; i < m_num_pbos; i++)
     {
         pbo &buf = m_pbos[i];
         buf.m_width = m_cur_width;
         buf.m_height = m_cur_height;
-        buf.m_pitch = (uint)pitch;
+        buf.m_pitch = (uint32_t)pitch;
         buf.m_size = total_size;
         buf.m_busy = false;
 
@@ -256,7 +256,7 @@ bool vogl_framebuffer_capturer::recreate_buffers(uint new_width, uint new_height
     return true;
 }
 
-bool vogl_framebuffer_capturer::capture(uint width, uint height, GLuint framebuffer, GLuint read_buffer, uint64_t frame_index)
+bool vogl_framebuffer_capturer::capture(uint32_t width, uint32_t height, GLuint framebuffer, GLuint read_buffer, uint64_t frame_index)
 {
     VOGL_FUNC_TRACER
 
@@ -321,7 +321,7 @@ vogl::vector<GLuint> vogl_framebuffer_capturer::get_buffer_handles() const
 
     if (m_initialized)
     {
-        for (uint i = 0; i < cMaxBufs; i++)
+        for (uint32_t i = 0; i < cMaxBufs; i++)
         {
             if (m_pbos[i].m_buffer)
                 res.push_back(m_pbos[i].m_buffer);

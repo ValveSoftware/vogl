@@ -41,7 +41,7 @@ namespace vogl
         return s_random;
     }
 
-    static uint8 *read_rand_data(data_stream &rand_stream, uint64_t file_size)
+    static uint8_t *read_rand_data(data_stream &rand_stream, uint64_t file_size)
     {
         const uint64_t rand_stream_size = rand_stream.get_size();
 
@@ -57,7 +57,7 @@ namespace vogl
         if (file_size != static_cast<size_t>(file_size))
             return NULL;
 
-        uint8 *p = static_cast<uint8 *>(vogl_malloc(static_cast<size_t>(file_size)));
+        uint8_t *p = static_cast<uint8_t *>(vogl_malloc(static_cast<size_t>(file_size)));
         if (!p)
             return NULL;
 
@@ -74,9 +74,9 @@ namespace vogl
     {
         dynamic_string m_name;
         uint64_t m_size;
-        uint32 m_crc;
+        uint32_t m_crc;
 
-        zip_file_desc(const dynamic_string &name, uint64_t size, uint32 crc)
+        zip_file_desc(const dynamic_string &name, uint64_t size, uint32_t crc)
             : m_name(name), m_size(size), m_crc(crc)
         {
         }
@@ -85,10 +85,10 @@ namespace vogl
 
     typedef vogl::vector<uint64_t> uint64_vec;
 
-    static void create_rand_file_sizes(uint64_vec &file_sizes, uint num_files, uint64_t min_file_size = 0, uint64_t max_file_size = cUINT64_MAX)
+    static void create_rand_file_sizes(uint64_vec &file_sizes, uint32_t num_files, uint64_t min_file_size = 0, uint64_t max_file_size = cUINT64_MAX)
     {
         file_sizes.resize(num_files);
-        for (uint i = 0; i < num_files; i++)
+        for (uint32_t i = 0; i < num_files; i++)
             file_sizes[i] = get_random().urand64_inclusive(min_file_size, max_file_size);
     }
 
@@ -100,9 +100,9 @@ namespace vogl
         return false;                             \
     } while (0)
 
-    static bool mz_zip_create_random_file_archive(data_stream &rand_stream, const char *pZip_filename, bool zip64, uint64_t min_file_size, uint64_t max_file_size, uint min_files, uint max_files, zip_file_desc_vec &files, mz_zip_archive *pSrc_zip)
+    static bool mz_zip_create_random_file_archive(data_stream &rand_stream, const char *pZip_filename, bool zip64, uint64_t min_file_size, uint64_t max_file_size, uint32_t min_files, uint32_t max_files, zip_file_desc_vec &files, mz_zip_archive *pSrc_zip)
     {
-        const uint total_files = get_random().urand_inclusive(min_files, max_files);
+        const uint32_t total_files = get_random().urand_inclusive(min_files, max_files);
 
         uint64_vec file_sizes;
         create_rand_file_sizes(file_sizes, total_files, min_file_size, math::minimum<uint64_t>(rand_stream.get_size(), max_file_size));
@@ -110,7 +110,7 @@ namespace vogl
         mz_zip_archive zip;
         mz_zip_zero_struct(&zip);
 
-        uint proceeding_size = get_random().urand(0, 1000000);
+        uint32_t proceeding_size = get_random().urand(0, 1000000);
 
         printf("Creating archive %s, total files %u\n", pZip_filename, total_files);
 
@@ -118,7 +118,7 @@ namespace vogl
             FAIL;
 
         dynamic_string_array filenames;
-        for (uint i = 0; i < total_files; i++)
+        for (uint32_t i = 0; i < total_files; i++)
             filenames.push_back(dynamic_string(cVarArg, "xxxxfile_%u", i));
 
         switch (get_random().irand_inclusive(0, 2))
@@ -134,19 +134,19 @@ namespace vogl
 
         dynamic_string temp_filename(cVarArg, "temp_%u.bin", get_random().urand32());
 
-        for (uint i = 0; i < total_files; i++)
+        for (uint32_t i = 0; i < total_files; i++)
         {
             const dynamic_string &name = filenames[i];
 
-            //uint level = get_random().irand_inclusive(0, 10);
-            uint level = get_random().irand_inclusive(0, 1);
+            //uint32_t level = get_random().irand_inclusive(0, 10);
+            uint32_t level = get_random().irand_inclusive(0, 1);
 
             // HACK HACK
             //level = 0;
 
             uint64_t actual_size = file_sizes[i];
 
-            uint8 *p = read_rand_data(rand_stream, actual_size);
+            uint8_t *p = read_rand_data(rand_stream, actual_size);
             if (!p)
                 FAIL;
 
@@ -166,13 +166,13 @@ namespace vogl
 
             printf("Adding file %s, size %s, add from mem: %u\n", name.get_ptr(), uint64_to_string_with_commas(actual_size).get_ptr(), add_from_mem);
 
-            files.push_back(zip_file_desc(name, actual_size, (uint32)mz_crc32(MZ_CRC32_INIT, p, static_cast<size_t>(actual_size))));
+            files.push_back(zip_file_desc(name, actual_size, (uint32_t)mz_crc32(MZ_CRC32_INIT, p, static_cast<size_t>(actual_size))));
 
             dynamic_string comment_str;
             comment_str.reserve(512);
-            uint l = get_random().urand_inclusive(0, 300);
+            uint32_t l = get_random().urand_inclusive(0, 300);
 
-            for (uint i2 = 0; i2 < l; i2++)
+            for (uint32_t i2 = 0; i2 < l; i2++)
                 comment_str.append_char((char)get_random().urand_inclusive(32, 127));
 
             if (add_from_mem)
@@ -203,15 +203,15 @@ namespace vogl
 
         if (pSrc_zip)
         {
-            uint n = get_random().urand_inclusive(0, VOGL_MIN(100, pSrc_zip->m_total_files));
+            uint32_t n = get_random().urand_inclusive(0, VOGL_MIN(100, pSrc_zip->m_total_files));
 
             printf("Copying %u files from source archive\n", n);
 
-            vogl::vector<uint> used_files;
+            vogl::vector<uint32_t> used_files;
 
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
-                uint src_file_index;
+                uint32_t src_file_index;
                 for (;;)
                 {
                     src_file_index = get_random().urand(0, pSrc_zip->m_total_files);
@@ -282,12 +282,12 @@ namespace vogl
             FAIL;
         }
 
-        vogl::vector<uint> file_order(src_zip.m_total_files);
-        for (uint i = 0; i < src_zip.m_total_files; i++)
+        vogl::vector<uint32_t> file_order(src_zip.m_total_files);
+        for (uint32_t i = 0; i < src_zip.m_total_files; i++)
             file_order[i] = i;
         file_order.shuffle(get_random());
 
-        for (uint i = 0; i < src_zip.m_total_files; i++)
+        for (uint32_t i = 0; i < src_zip.m_total_files; i++)
         {
             printf("Copying file %u, %3.2f%%\n", file_order[i], (i * 100.0f) / src_zip.m_total_files);
             if (!mz_zip_writer_add_from_other_zip(&dst_zip, &src_zip, file_order[i]))
@@ -307,16 +307,16 @@ namespace vogl
             if (index != i)
             {
                 dynamic_string_array filenames;
-                for (uint j = 0; j < dst_zip.m_total_files; j++)
+                for (uint32_t j = 0; j < dst_zip.m_total_files; j++)
                 {
                     mz_zip_archive_file_stat file_stat;
                     mz_zip_file_stat(&dst_zip, j, &file_stat);
                     filenames.push_back(dynamic_string(file_stat.m_filename));
                 }
                 filenames.sort();
-                uint prev_num = filenames.size();
+                uint32_t prev_num = filenames.size();
                 filenames.unique();
-                uint cur_num = filenames.size();
+                uint32_t cur_num = filenames.size();
 
                 CHECK(prev_num != cur_num);
             }
@@ -344,14 +344,14 @@ namespace vogl
         if (!finder.find(pDir, find_files::cFlagRecursive | find_files::cFlagAllowFiles))
             return true;
 
-        uint num_failures = 0;
-        uint num_good = 0;
+        uint32_t num_failures = 0;
+        uint32_t num_good = 0;
 
         dynamic_string_array failures;
 
         dynamic_string temp_filename(vogl::file_utils::generate_temp_filename("voglminiz"));
 
-        for (uint file_index = 0; file_index < finder.get_files().size(); file_index++)
+        for (uint32_t file_index = 0; file_index < finder.get_files().size(); file_index++)
         {
             dynamic_string filename(finder.get_files()[file_index].m_fullname);
 
@@ -410,7 +410,7 @@ namespace vogl
         }
 
         printf("Total failures: %u, total good: %u\n", num_failures, num_good);
-        for (uint i = 0; i < failures.size(); i++)
+        for (uint32_t i = 0; i < failures.size(); i++)
             printf("%s\n", failures[i].get_ptr());
         return true;
     }
@@ -494,9 +494,9 @@ namespace vogl
 
         dynamic_string temp_filename(cVarArg, "temp_%u.bin", rm.urand32());
 
-        for (uint t = 0; t < 10000; t++)
+        for (uint32_t t = 0; t < 10000; t++)
         {
-            uint32 seed = t + start_seed;
+            uint32_t seed = t + start_seed;
             printf("******* Pass %u, seed %u\n", t, seed);
 
             rm.seed(seed);
@@ -510,11 +510,11 @@ namespace vogl
 
             bool test_big_files = rm.get_bit() != 0;
 
-            uint max_files;
+            uint32_t max_files;
             if (test_big_files)
-                max_files = (uint)rm.urand64_inclusive(0, 10);
+                max_files = (uint32_t)rm.urand64_inclusive(0, 10);
             else
-                max_files = (uint)rm.urand64_inclusive(0, zip64 ? 200000 : 65535);
+                max_files = (uint32_t)rm.urand64_inclusive(0, zip64 ? 200000 : 65535);
 
             printf("Max files: %u, zip64: %u\n", max_files, zip64);
 
@@ -531,7 +531,7 @@ namespace vogl
             success = mz_zip_create_random_file_archive(rand_stream, zip_filename.get_ptr(), zip64, min_file_size, max_file_size, 0, max_files, file_descs, zip64 ? (rm.get_bit() ? &src_zip64 : &src_zip32) : &src_zip32);
             CHECK(success);
 
-            uint num_actual_files = file_descs.size();
+            uint32_t num_actual_files = file_descs.size();
 
             printf("******* Validating archive %s using miniz_zip\n", full_zip_filename.get_ptr());
 

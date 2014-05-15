@@ -74,18 +74,18 @@ public:
 
     virtual vogl_blob_manager_type_t get_type() const = 0;
 
-    vogl::dynamic_string compute_unique_id(const void *pData, uint size, const vogl::dynamic_string &prefix = "", const dynamic_string &ext = "", const uint64_t *pCRC64 = NULL) const;
+    vogl::dynamic_string compute_unique_id(const void *pData, uint32_t size, const vogl::dynamic_string &prefix = "", const dynamic_string &ext = "", const uint64_t *pCRC64 = NULL) const;
     vogl::dynamic_string get_prefix(const vogl::dynamic_string &id) const;
     vogl::dynamic_string get_extension(const vogl::dynamic_string &id) const;
 
     virtual bool get(const dynamic_string &id, vogl::uint8_vec &data) const;
 
-    virtual vogl::dynamic_string add_buf_compute_unique_id(const void *pData, uint size, const vogl::dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64 = NULL);
+    virtual vogl::dynamic_string add_buf_compute_unique_id(const void *pData, uint32_t size, const vogl::dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64 = NULL);
     virtual vogl::dynamic_string add_stream_compute_unique_id(vogl::data_stream &stream, const vogl::dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64 = NULL);
 
     virtual vogl::dynamic_string add_stream_using_id(vogl::data_stream &stream, const vogl::dynamic_string &id);
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id) = 0;
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id) = 0;
 
     virtual vogl::data_stream *open(const vogl::dynamic_string &id) const = 0;
     virtual void close(data_stream *pStream) const = 0;
@@ -99,7 +99,7 @@ public:
     virtual vogl::dynamic_string copy_file(vogl_blob_manager &src_blob_manager, const vogl::dynamic_string &src_id, const vogl::dynamic_string &dst_id);
 
 protected:
-    uint32 m_flags;
+    uint32_t m_flags;
 
     bool is_readable() const
     {
@@ -118,7 +118,7 @@ protected:
         return (m_flags & cBMFReadWrite) == cBMFWritable;
     }
 
-    bool init(uint32 flags)
+    bool init(uint32_t flags)
     {
         if ((flags & cBMFReadWrite) == 0)
             return false;
@@ -144,7 +144,7 @@ public:
     {
     }
 
-    bool init(uint32 flags)
+    bool init(uint32_t flags)
     {
         vogl_blob_manager::init(flags);
         m_initialized = true;
@@ -161,7 +161,7 @@ public:
         return cBMTNull;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id)
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id)
     {
         VOGL_NOTE_UNUSED(pData);
         VOGL_NOTE_UNUSED(size);
@@ -206,7 +206,7 @@ public:
     vogl_memory_blob_manager();
     virtual ~vogl_memory_blob_manager();
 
-    bool init(uint32 flags);
+    bool init(uint32_t flags);
 
     virtual bool deinit();
 
@@ -215,7 +215,7 @@ public:
         return cBMTMemory;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id);
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id);
 
     virtual vogl::data_stream *open(const dynamic_string &id) const;
     virtual void close(vogl::data_stream *pStream) const;
@@ -249,8 +249,8 @@ public:
     vogl_loose_file_blob_manager();
     virtual ~vogl_loose_file_blob_manager();
 
-    bool init(uint32 flags);
-    bool init(uint32 flags, const char *pPath);
+    bool init(uint32_t flags);
+    bool init(uint32_t flags, const char *pPath);
 
     void set_path(const vogl::dynamic_string &path)
     {
@@ -268,7 +268,7 @@ public:
         return cBMTFile;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id);
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id);
 
     virtual vogl::data_stream *open(const vogl::dynamic_string &id) const;
     virtual void close(vogl::data_stream *pStream) const;
@@ -294,17 +294,17 @@ public:
     vogl_archive_blob_manager();
     virtual ~vogl_archive_blob_manager();
 
-    bool init_memory(uint32 flags, const void *pZip_data, size_t size);
+    bool init_memory(uint32_t flags, const void *pZip_data, size_t size);
 
-    bool init_heap(uint32 flags);
+    bool init_heap(uint32_t flags);
     void *deinit_heap(size_t &size);
 
-    bool init_file(uint32 flags, const char *pFilename, uint64_t file_start_ofs = 0, uint64_t actual_archive_size = 0);
+    bool init_file(uint32_t flags, const char *pFilename, uint64_t file_start_ofs = 0, uint64_t actual_archive_size = 0);
 
     // Same as init_file(), but creates a temporary archive. It's up to you to delete the archive.
-    bool init_file_temp(uint32 flags);
+    bool init_file_temp(uint32_t flags);
 
-    bool init_cfile(uint32 flags, FILE *pFile, uint64_t cur_size);
+    bool init_cfile(uint32_t flags, FILE *pFile, uint64_t cur_size);
 
     const dynamic_string &get_archive_filename() const
     {
@@ -323,7 +323,7 @@ public:
         return cBMTArchive;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id);
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id);
 
     virtual vogl::data_stream *open(const vogl::dynamic_string &id) const;
     virtual void close(vogl::data_stream *pStream) const;
@@ -341,13 +341,13 @@ private:
     struct blob
     {
         vogl::dynamic_string m_id;
-        uint m_file_index;
+        uint32_t m_file_index;
         uint64_t m_size;
 
         blob()
         {
         }
-        blob(const dynamic_string &id, uint file_index, uint64_t size)
+        blob(const dynamic_string &id, uint32_t file_index, uint64_t size)
             : m_id(id), m_file_index(file_index), m_size(size)
         {
         }
@@ -370,7 +370,7 @@ public:
 
     virtual ~vogl_multi_blob_manager();
 
-    bool init(uint32 flags);
+    bool init(uint32_t flags);
 
     void add_blob_manager(vogl_blob_manager *pBlob_manager);
 
@@ -394,7 +394,7 @@ public:
         return cBMTMulti;
     }
 
-    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id);
+    virtual vogl::dynamic_string add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id);
 
     virtual vogl::data_stream *open(const dynamic_string &id) const;
 

@@ -77,12 +77,12 @@ public:
     {
         return m_pFB_configs;
     }
-    uint get_num_fb_configs() const
+    uint32_t get_num_fb_configs() const
     {
         return m_num_fb_configs;
     }
 
-    bool get_actual_dimensions(uint &width, uint &height) const;
+    bool get_actual_dimensions(uint32_t &width, uint32_t &height) const;
 
 private:
     Display *m_dpy;

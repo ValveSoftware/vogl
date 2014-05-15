@@ -51,14 +51,14 @@ vogl_blob_manager::~vogl_blob_manager()
     deinit();
 }
 
-dynamic_string vogl_blob_manager::compute_unique_id(const void *pData, uint size, const dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64) const
+dynamic_string vogl_blob_manager::compute_unique_id(const void *pData, uint32_t size, const dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64) const
 {
     VOGL_FUNC_TRACER
 
     VOGL_ASSERT(!prefix.contains('['));
     VOGL_ASSERT(!prefix.contains(']'));
 
-    uint64_t crc64 = pCRC64 ? *pCRC64 : calc_crc64(CRC64_INIT, static_cast<const uint8 *>(pData), size);
+    uint64_t crc64 = pCRC64 ? *pCRC64 : calc_crc64(CRC64_INIT, static_cast<const uint8_t *>(pData), size);
 
     dynamic_string actual_ext(ext);
     if ((actual_ext.get_len() > 1) && (actual_ext[0] == '.'))
@@ -122,7 +122,7 @@ bool vogl_blob_manager::get(const dynamic_string &id, uint8_vec &data) const
         return false;
     }
 
-    uint32 size = static_cast<uint32>(pStream->get_size());
+    uint32_t size = static_cast<uint32_t>(pStream->get_size());
 
     if (!data.try_resize(size))
     {
@@ -162,7 +162,7 @@ bool vogl_blob_manager::populate(const vogl_blob_manager &other)
     dynamic_string_array ids(other.enumerate());
 
     bool success = true;
-    for (uint i = 0; i < ids.size(); i++)
+    for (uint32_t i = 0; i < ids.size(); i++)
     {
         const dynamic_string &id = ids[i];
 
@@ -183,7 +183,7 @@ bool vogl_blob_manager::populate(const vogl_blob_manager &other)
     return success;
 }
 
-dynamic_string vogl_blob_manager::add_buf_compute_unique_id(const void *pData, uint size, const vogl::dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64)
+dynamic_string vogl_blob_manager::add_buf_compute_unique_id(const void *pData, uint32_t size, const vogl::dynamic_string &prefix, const dynamic_string &ext, const uint64_t *pCRC64)
 {
     VOGL_FUNC_TRACER
 
@@ -221,7 +221,7 @@ dynamic_string vogl_blob_manager::add_stream_compute_unique_id(data_stream &stre
         return "";
     }
 
-    uint size = static_cast<uint>(size64);
+    uint32_t size = static_cast<uint32_t>(size64);
 
     void *pData = vogl_malloc(static_cast<size_t>(size));
     if (!pData)
@@ -266,7 +266,7 @@ dynamic_string vogl_blob_manager::add_stream_using_id(data_stream &stream, const
         return "";
     }
 
-    uint size = static_cast<uint>(size64);
+    uint32_t size = static_cast<uint32_t>(size64);
 
     void *pData = vogl_malloc(static_cast<size_t>(size));
     if (!pData)
@@ -318,7 +318,7 @@ vogl_memory_blob_manager::~vogl_memory_blob_manager()
     deinit();
 }
 
-bool vogl_memory_blob_manager::init(uint32 flags)
+bool vogl_memory_blob_manager::init(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 
@@ -339,7 +339,7 @@ bool vogl_memory_blob_manager::deinit()
     return vogl_blob_manager::deinit();
 }
 
-dynamic_string vogl_memory_blob_manager::add_buf_using_id(const void *pData, uint size, const dynamic_string &id)
+dynamic_string vogl_memory_blob_manager::add_buf_using_id(const void *pData, uint32_t size, const dynamic_string &id)
 {
     VOGL_FUNC_TRACER
 
@@ -359,7 +359,7 @@ dynamic_string vogl_memory_blob_manager::add_buf_using_id(const void *pData, uin
 
     blob &new_blob = (insert_res.first)->second;
     new_blob.m_id = actual_id;
-    new_blob.m_blob.append(static_cast<const uint8 *>(pData), static_cast<uint32>(size));
+    new_blob.m_blob.append(static_cast<const uint8_t *>(pData), static_cast<uint32_t>(size));
 
     return actual_id;
 }
@@ -434,7 +434,7 @@ vogl_loose_file_blob_manager::~vogl_loose_file_blob_manager()
     deinit();
 }
 
-bool vogl_loose_file_blob_manager::init(uint32 flags)
+bool vogl_loose_file_blob_manager::init(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 
@@ -446,7 +446,7 @@ bool vogl_loose_file_blob_manager::init(uint32 flags)
     return true;
 }
 
-bool vogl_loose_file_blob_manager::init(uint32 flags, const char *pPath)
+bool vogl_loose_file_blob_manager::init(uint32_t flags, const char *pPath)
 {
     VOGL_FUNC_TRACER
 
@@ -466,7 +466,7 @@ bool vogl_loose_file_blob_manager::deinit()
     return vogl_blob_manager::deinit();
 }
 
-dynamic_string vogl_loose_file_blob_manager::add_buf_using_id(const void *pData, uint size, const dynamic_string &id)
+dynamic_string vogl_loose_file_blob_manager::add_buf_using_id(const void *pData, uint32_t size, const dynamic_string &id)
 {
     VOGL_FUNC_TRACER
 
@@ -574,7 +574,7 @@ uint64_t vogl_loose_file_blob_manager::get_size(const dynamic_string &id) const
         return false;
     }
 
-    uint32 file_size;
+    uint32_t file_size;
     file_utils::get_file_size(get_filename(id).get_ptr(), file_size);
     return file_size;
 }
@@ -615,7 +615,7 @@ dynamic_string_array vogl_loose_file_blob_manager::enumerate() const
     {
         const find_files::file_desc_vec &found_files = finder.get_files();
 
-        for (uint i = 0; i < found_files.size(); i++)
+        for (uint32_t i = 0; i < found_files.size(); i++)
             files.push_back(found_files[i].m_name);
     }
 
@@ -640,7 +640,7 @@ vogl_archive_blob_manager::~vogl_archive_blob_manager()
     deinit();
 }
 
-bool vogl_archive_blob_manager::init_memory(uint32 flags, const void *pZip_data, size_t size)
+bool vogl_archive_blob_manager::init_memory(uint32_t flags, const void *pZip_data, size_t size)
 {
     VOGL_FUNC_TRACER
 
@@ -671,7 +671,7 @@ bool vogl_archive_blob_manager::init_memory(uint32 flags, const void *pZip_data,
     return true;
 }
 
-bool vogl_archive_blob_manager::init_heap(uint32 flags)
+bool vogl_archive_blob_manager::init_heap(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 
@@ -723,7 +723,7 @@ void *vogl_archive_blob_manager::deinit_heap(size_t &size)
     return pBuf;
 }
 
-bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, uint64_t file_start_ofs, uint64_t actual_archive_size)
+bool vogl_archive_blob_manager::init_file(uint32_t flags, const char *pFilename, uint64_t file_start_ofs, uint64_t actual_archive_size)
 {
     VOGL_FUNC_TRACER
 
@@ -827,7 +827,7 @@ bool vogl_archive_blob_manager::init_file(uint32 flags, const char *pFilename, u
     return true;
 }
 
-bool vogl_archive_blob_manager::init_file_temp(uint32 flags)
+bool vogl_archive_blob_manager::init_file_temp(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 
@@ -835,7 +835,7 @@ bool vogl_archive_blob_manager::init_file_temp(uint32 flags)
     return init_file(flags, temp_filename.get_ptr());
 }
 
-bool vogl_archive_blob_manager::init_cfile(uint32 flags, FILE *pFile, uint64_t cur_size)
+bool vogl_archive_blob_manager::init_cfile(uint32_t flags, FILE *pFile, uint64_t cur_size)
 {
     VOGL_FUNC_TRACER
 
@@ -928,7 +928,7 @@ bool vogl_archive_blob_manager::populate_blob_map()
 
     m_blobs.clear();
 
-    for (uint file_index = 0; file_index < mz_zip_get_num_files(&m_zip); file_index++)
+    for (uint32_t file_index = 0; file_index < mz_zip_get_num_files(&m_zip); file_index++)
     {
         mz_zip_archive_file_stat stat;
         if (!mz_zip_file_stat(&m_zip, file_index, &stat))
@@ -986,7 +986,7 @@ bool vogl_archive_blob_manager::deinit()
     return vogl_blob_manager::deinit();
 }
 
-vogl::dynamic_string vogl_archive_blob_manager::add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id)
+vogl::dynamic_string vogl_archive_blob_manager::add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id)
 {
     VOGL_FUNC_TRACER
 
@@ -1011,7 +1011,7 @@ vogl::dynamic_string vogl_archive_blob_manager::add_buf_using_id(const void *pDa
         return actual_id;
     }
 
-    uint file_index = mz_zip_get_num_files(&m_zip);
+    uint32_t file_index = mz_zip_get_num_files(&m_zip);
 
     // TODO: Allow caller to control whether files are compressed
     if (!mz_zip_writer_add_mem(&m_zip, actual_id.get_ptr(), pData, size, MZ_BEST_SPEED))
@@ -1119,7 +1119,7 @@ vogl::dynamic_string_array vogl_archive_blob_manager::enumerate() const
 
     vogl::dynamic_string_array result(m_blobs.size());
 
-    uint index = 0;
+    uint32_t index = 0;
     for (blob_map::const_iterator it = m_blobs.begin(); it != m_blobs.end(); ++it)
         result[index++] = it->first;
 
@@ -1160,7 +1160,7 @@ bool vogl_archive_blob_manager::write_archive_to_stream(vogl::data_stream &strea
             return false;
         }
 
-        if (stream.write(buf.get_ptr(), static_cast<uint>(n)) != n)
+        if (stream.write(buf.get_ptr(), static_cast<uint32_t>(n)) != n)
             return false;
 
         src_file_ofs += n;
@@ -1183,7 +1183,7 @@ vogl_multi_blob_manager::~vogl_multi_blob_manager()
     VOGL_FUNC_TRACER
 }
 
-bool vogl_multi_blob_manager::init(uint32 flags)
+bool vogl_multi_blob_manager::init(uint32_t flags)
 {
     VOGL_FUNC_TRACER
 
@@ -1237,7 +1237,7 @@ bool vogl_multi_blob_manager::deinit()
     return vogl_blob_manager::deinit();
 }
 
-vogl::dynamic_string vogl_multi_blob_manager::add_buf_using_id(const void *pData, uint size, const vogl::dynamic_string &id)
+vogl::dynamic_string vogl_multi_blob_manager::add_buf_using_id(const void *pData, uint32_t size, const vogl::dynamic_string &id)
 {
     VOGL_FUNC_TRACER
 
@@ -1258,7 +1258,7 @@ vogl::data_stream *vogl_multi_blob_manager::open(const dynamic_string &id) const
         return NULL;
     }
 
-    for (uint i = 0; i < m_blob_managers.size(); i++)
+    for (uint32_t i = 0; i < m_blob_managers.size(); i++)
     {
         if (!m_blob_managers[i]->is_initialized())
             continue;
@@ -1296,7 +1296,7 @@ bool vogl_multi_blob_manager::does_exist(const vogl::dynamic_string &id) const
 {
     VOGL_FUNC_TRACER
 
-    for (uint i = 0; i < m_blob_managers.size(); i++)
+    for (uint32_t i = 0; i < m_blob_managers.size(); i++)
     {
         if (!m_blob_managers[i]->is_initialized())
             continue;
@@ -1311,7 +1311,7 @@ uint64_t vogl_multi_blob_manager::get_size(const vogl::dynamic_string &id) const
 {
     VOGL_FUNC_TRACER
 
-    for (uint i = 0; i < m_blob_managers.size(); i++)
+    for (uint32_t i = 0; i < m_blob_managers.size(); i++)
     {
         if (!m_blob_managers[i]->is_initialized())
             continue;
@@ -1328,7 +1328,7 @@ vogl::dynamic_string_array vogl_multi_blob_manager::enumerate() const
 
     vogl::dynamic_string_array all_files;
 
-    for (uint i = 0; i < m_blob_managers.size(); i++)
+    for (uint32_t i = 0; i < m_blob_managers.size(); i++)
     {
         if (!m_blob_managers[i]->is_initialized())
             continue;

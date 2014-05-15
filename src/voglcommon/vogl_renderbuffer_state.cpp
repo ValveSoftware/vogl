@@ -183,7 +183,7 @@ bool vogl_renderbuffer_desc::operator==(const vogl_renderbuffer_desc &rhs) const
     return true;
 }
 
-bool vogl_renderbuffer_desc::get_int(GLenum enum_val, int *pVals, uint n) const
+bool vogl_renderbuffer_desc::get_int(GLenum enum_val, int *pVals, uint32_t n) const
 {
     VOGL_FUNC_TRACER
 
@@ -562,13 +562,13 @@ bool vogl_renderbuffer_state::restore(const vogl_context_info &context_info, vog
                     // HACK HACK HACK
                     if (m_texture.get_num_samples() > 1)
                     {
-                        uint base_level = m_texture.get_params().get_value<GLenum>(GL_TEXTURE_BASE_LEVEL);
+                        uint32_t base_level = m_texture.get_params().get_value<GLenum>(GL_TEXTURE_BASE_LEVEL);
 
                         if (base_level < m_texture.get_num_levels())
                         {
                             const vogl_state_vector &state_vec = m_texture.get_level_params(0, base_level);
 
-                            uint clear_mask = 0;
+                            uint32_t clear_mask = 0;
                             if (state_vec.get_value<GLenum>(GL_TEXTURE_DEPTH_SIZE))
                             {
                                 clear_mask |= GL_DEPTH_BUFFER_BIT;

@@ -44,7 +44,7 @@ namespace vogl
         static bool does_file_exist(const char *pFilename);
         static bool does_dir_exist(const char *pDir);
         static bool get_file_size(const char *pFilename, uint64_t &file_size);
-        static bool get_file_size(const char *pFilename, uint32 &file_size);
+        static bool get_file_size(const char *pFilename, uint32_t &file_size);
         static void delete_file(const char *pFilename);
 
         static bool is_path_separator(char c);
@@ -110,7 +110,7 @@ namespace vogl
         };
 
         // TODO: This only works on files with valid file sizes (i.e. it won't work on /proc/self/status).
-        static bool read_text_file(const char *pPath, dynamic_string_array &lines, uint flags = 0);
+        static bool read_text_file(const char *pPath, dynamic_string_array &lines, uint32_t flags = 0);
 
         static bool read_text_file_crt(const char *pPath, dynamic_string_array &lines);
 

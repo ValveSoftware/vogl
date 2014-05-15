@@ -59,7 +59,7 @@ void vogl_handle_tracker::get_handles(uint_vec &handles)
     handles.resize(0);
     handles.reserve(m_inv_handles.size());
 
-    for (uint handle = 0; handle < m_handles.size(); handle++)
+    for (uint32_t handle = 0; handle < m_handles.size(); handle++)
     {
         const handle_def &def = m_handles[handle];
         if (def.is_valid())
@@ -74,7 +74,7 @@ void vogl_handle_tracker::get_inv_handles(uint_vec &inv_handles)
     inv_handles.resize(0);
     inv_handles.reserve(m_inv_handles.size());
 
-    for (uint handle = 0; handle < m_handles.size(); handle++)
+    for (uint32_t handle = 0; handle < m_handles.size(); handle++)
     {
         const handle_def &def = m_handles[handle];
         if (def.is_valid())
@@ -243,7 +243,7 @@ bool vogl_handle_tracker::erase(handle_t handle)
 
     VOGL_ASSERT(m_handles[handle].get_handle() == handle);
 
-    uint inv_handle = m_handles[handle].get_inv_handle();
+    uint32_t inv_handle = m_handles[handle].get_inv_handle();
 
     VOGL_ASSERT(m_inv_handles.value(inv_handle) == handle);
 
@@ -265,7 +265,7 @@ bool vogl_handle_tracker::erase_inv(handle_t inv_handle)
     if (it == m_inv_handles.end())
         return false;
 
-    uint handle = it->second;
+    uint32_t handle = it->second;
     if (!is_valid_handle(handle))
     {
         VOGL_ASSERT_ALWAYS;
@@ -288,7 +288,7 @@ bool vogl_handle_tracker::invert(vogl_handle_tracker &inverted_map) const
 
     inverted_map.clear();
 
-    for (uint handle = 0; handle < m_handles.size(); handle++)
+    for (uint32_t handle = 0; handle < m_handles.size(); handle++)
     {
         const handle_def &def = m_handles[handle];
         if (!def.is_valid())
@@ -311,8 +311,8 @@ bool vogl_handle_tracker::check() const
         if (!forward_to_inverse_map.insert(it->second, it->first).second)
             return false;
 
-    uint total_found = 0;
-    for (uint handle = 0; handle < m_handles.size(); handle++)
+    uint32_t total_found = 0;
+    for (uint32_t handle = 0; handle < m_handles.size(); handle++)
     {
         if (!m_handles.is_present(handle))
         {
@@ -329,11 +329,11 @@ bool vogl_handle_tracker::check() const
             continue;
         }
 
-        const uint *pInv_handle = forward_to_inverse_map.find_value(handle);
+        const uint32_t *pInv_handle = forward_to_inverse_map.find_value(handle);
         if (!pInv_handle)
             return false;
 
-        uint inv_handle = *pInv_handle;
+        uint32_t inv_handle = *pInv_handle;
 
         if (m_inv_handles.value(inv_handle) != handle)
             return false;
@@ -371,7 +371,7 @@ bool vogl_handle_tracker::serialize(json_node &node) const
 
     node.init_array();
 
-    for (uint i = 0; i < m_handles.size(); i++)
+    for (uint32_t i = 0; i < m_handles.size(); i++)
     {
         if (!is_valid_handle(i))
             continue;
@@ -391,13 +391,13 @@ bool vogl_handle_tracker::deserialize(const json_node &node)
 
     clear();
 
-    for (uint i = 0; i < node.size(); i++)
+    for (uint32_t i = 0; i < node.size(); i++)
     {
         const json_node *pObj = node.get_child(i);
         if ((!pObj) || (!pObj->is_object()))
             return false;
 
-        uint handle, inv_handle;
+        uint32_t handle, inv_handle;
         GLenum target;
         if (!pObj->get_value_as_uint32("handle", handle) || !pObj->get_value_as_uint32("inv_handle", inv_handle) || !pObj->get_value_as_uint32("target", target))
             return false;

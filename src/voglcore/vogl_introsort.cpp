@@ -35,8 +35,8 @@ namespace vogl
 {
     struct sort_test_struct
     {
-        uint i;
-        uint j;
+        uint32_t i;
+        uint32_t j;
         bool operator<(const sort_test_struct &rhs) const
         {
             return i < rhs.i;
@@ -62,14 +62,14 @@ namespace vogl
         double string_introsort_total_time = 0;
         double string_mergesort_total_time = 0;
 
-        for (uint t = 0; t < 1000; t++)
+        for (uint32_t t = 0; t < 1000; t++)
         {
-            uint n = rnd.irand_inclusive(0, 100000);
+            uint32_t n = rnd.irand_inclusive(0, 100000);
 
             x.resize(n);
 
-            uint k = static_cast<uint>((1ULL << rnd.irand_inclusive(0, 31)) - 1UL);
-            for (uint i = 0; i < n; i++)
+            uint32_t k = static_cast<uint32_t>((1ULL << rnd.irand_inclusive(0, 31)) - 1UL);
+            for (uint32_t i = 0; i < n; i++)
                 x[i] = rnd.irand_inclusive(0, k);
 
             if (rnd.irand(0, 30) == 0)
@@ -134,7 +134,7 @@ namespace vogl
                 vogl::vector<int> z(n);
                 int *pSorted = radix_sort(n, y.get_ptr(), z.get_ptr(), 0, sizeof(int));
 
-                for (uint i = 1; i < n; i++)
+                for (uint32_t i = 1; i < n; i++)
                     if (pSorted[i] < pSorted[i - 1])
                         return false;
 
@@ -146,7 +146,7 @@ namespace vogl
             // mergesort stability test
             // TODO: This doesn't below here
             vogl::vector<sort_test_struct> xx(n);
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
             {
                 xx[i].i = x[i] & 0xFFFF;
                 xx[i].j = i;
@@ -154,7 +154,7 @@ namespace vogl
 
             vogl::mergesort(xx);
 
-            for (uint i = 1; i < n; i++)
+            for (uint32_t i = 1; i < n; i++)
             {
                 if (xx[i - 1].i > xx[i].i)
                     return false;
@@ -167,7 +167,7 @@ namespace vogl
 
             // string test
             dynamic_string_array sx(n);
-            for (uint i = 0; i < n; i++)
+            for (uint32_t i = 0; i < n; i++)
                 sx[i].format("%u", x[i]);
 
             dynamic_string_array sy;

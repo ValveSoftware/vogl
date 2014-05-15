@@ -62,7 +62,7 @@ namespace vogl
         }
 
         // pitch is in PIXELS, not bytes.
-        image(uint width, uint height, uint pitch = UINT_MAX, const color_type &background = color_type::make_black(), uint flags = pixel_format_helpers::cDefaultCompFlags)
+        image(uint32_t width, uint32_t height, uint32_t pitch = UINT_MAX, const color_type &background = color_type::make_black(), uint32_t flags = pixel_format_helpers::cDefaultCompFlags)
             : m_comp_flags(flags)
         {
             VOGL_ASSERT((width > 0) && (height > 0));
@@ -82,7 +82,7 @@ namespace vogl
         }
 
         // pitch is in PIXELS, not bytes.
-        image(color_type *pPixels, uint width, uint height, uint pitch = UINT_MAX, uint flags = pixel_format_helpers::cDefaultCompFlags)
+        image(color_type *pPixels, uint32_t width, uint32_t height, uint32_t pitch = UINT_MAX, uint32_t flags = pixel_format_helpers::cDefaultCompFlags)
         {
             alias(pPixels, width, height, pitch, flags);
         }
@@ -98,7 +98,7 @@ namespace vogl
                 //m_pixel_buf.clear();
                 //m_pPixels = other.m_pPixels;
 
-                const uint total_pixels = other.m_pitch * other.m_height;
+                const uint32_t total_pixels = other.m_pitch * other.m_height;
                 if ((total_pixels) && (other.m_pPixels))
                 {
                     m_pixel_buf.resize(total_pixels);
@@ -133,7 +133,7 @@ namespace vogl
         }
 
         // pitch is in PIXELS, not bytes.
-        void alias(color_type *pPixels, uint width, uint height, uint pitch = UINT_MAX, uint flags = pixel_format_helpers::cDefaultCompFlags)
+        void alias(color_type *pPixels, uint32_t width, uint32_t height, uint32_t pitch = UINT_MAX, uint32_t flags = pixel_format_helpers::cDefaultCompFlags)
         {
             m_pixel_buf.clear();
 
@@ -147,7 +147,7 @@ namespace vogl
         }
 
         // pitch is in PIXELS, not bytes.
-        bool grant_ownership(color_type *pPixels, uint width, uint height, uint pitch = UINT_MAX, uint flags = pixel_format_helpers::cDefaultCompFlags)
+        bool grant_ownership(color_type *pPixels, uint32_t width, uint32_t height, uint32_t pitch = UINT_MAX, uint32_t flags = pixel_format_helpers::cDefaultCompFlags)
         {
             if (pitch == UINT_MAX)
                 pitch = width;
@@ -209,12 +209,12 @@ namespace vogl
             m_comp_flags = pixel_format_helpers::cDefaultCompFlags;
         }
 
-        inline bool is_component_valid(uint index) const
+        inline bool is_component_valid(uint32_t index) const
         {
             VOGL_ASSERT(index < 4U);
             return utils::is_flag_set(m_comp_flags, index);
         }
-        inline void set_component_valid(uint index, bool state)
+        inline void set_component_valid(uint32_t index, bool state)
         {
             VOGL_ASSERT(index < 4U);
             utils::set_flag(m_comp_flags, index, state);
@@ -244,16 +244,16 @@ namespace vogl
 
         void set_all(const color_type &c)
         {
-            for (uint i = 0; i < m_total; i++)
+            for (uint32_t i = 0; i < m_total; i++)
                 m_pPixels[i] = c;
         }
 
         void flip_x()
         {
-            const uint half_width = m_width / 2;
-            for (uint y = 0; y < m_height; y++)
+            const uint32_t half_width = m_width / 2;
+            for (uint32_t y = 0; y < m_height; y++)
             {
-                for (uint x = 0; x < half_width; x++)
+                for (uint32_t x = 0; x < half_width; x++)
                 {
                     color_type c((*this)(x, y));
                     (*this)(x, y) = (*this)(m_width - 1 - x, y);
@@ -264,10 +264,10 @@ namespace vogl
 
         void flip_y()
         {
-            const uint half_height = m_height / 2;
-            for (uint y = 0; y < half_height; y++)
+            const uint32_t half_height = m_height / 2;
+            for (uint32_t y = 0; y < half_height; y++)
             {
-                for (uint x = 0; x < m_width; x++)
+                for (uint32_t x = 0; x < m_width; x++)
                 {
                     color_type c((*this)(x, y));
                     (*this)(x, y) = (*this)(x, m_height - 1 - y);
@@ -278,8 +278,8 @@ namespace vogl
 
         void convert_to_grayscale()
         {
-            for (uint y = 0; y < m_height; y++)
-                for (uint x = 0; x < m_width; x++)
+            for (uint32_t y = 0; y < m_height; y++)
+                for (uint32_t x = 0; x < m_width; x++)
                 {
                     color_type c((*this)(x, y));
                     typename color_type::component_t l = static_cast<typename color_type::component_t>(c.get_luma());
@@ -292,10 +292,10 @@ namespace vogl
             set_grayscale(true);
         }
 
-        void swizzle(uint r, uint g, uint b, uint a)
+        void swizzle(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
         {
-            for (uint y = 0; y < m_height; y++)
-                for (uint x = 0; x < m_width; x++)
+            for (uint32_t y = 0; y < m_height; y++)
+                for (uint32_t x = 0; x < m_width; x++)
                 {
                     const color_type &c = (*this)(x, y);
 
@@ -305,8 +305,8 @@ namespace vogl
 
         void set_alpha_to_luma()
         {
-            for (uint y = 0; y < m_height; y++)
-                for (uint x = 0; x < m_width; x++)
+            for (uint32_t y = 0; y < m_height; y++)
+                for (uint32_t x = 0; x < m_width; x++)
                 {
                     color_type c((*this)(x, y));
                     typename color_type::component_t l = static_cast<typename color_type::component_t>(c.get_luma());
@@ -317,7 +317,7 @@ namespace vogl
             set_component_valid(3, true);
         }
 
-        bool extract_block_clamped(color_type *pDst, uint x, uint y, uint w, uint h, bool flip_xy = false) const
+        bool extract_block_clamped(color_type *pDst, uint32_t x, uint32_t y, uint32_t w, uint32_t h, bool flip_xy = false) const
         {
             if ((x >= m_width) || (y >= m_height))
             {
@@ -327,21 +327,21 @@ namespace vogl
 
             if (flip_xy)
             {
-                for (uint y_ofs = 0; y_ofs < h; y_ofs++)
-                    for (uint x_ofs = 0; x_ofs < w; x_ofs++)
+                for (uint32_t y_ofs = 0; y_ofs < h; y_ofs++)
+                    for (uint32_t x_ofs = 0; x_ofs < w; x_ofs++)
                         pDst[x_ofs * h + y_ofs] = get_clamped(x_ofs + x, y_ofs + y); // 5/4/12 - this was incorrectly x_ofs * 4
             }
             else if (((x + w) > m_width) || ((y + h) > m_height))
             {
-                for (uint y_ofs = 0; y_ofs < h; y_ofs++)
-                    for (uint x_ofs = 0; x_ofs < w; x_ofs++)
+                for (uint32_t y_ofs = 0; y_ofs < h; y_ofs++)
+                    for (uint32_t x_ofs = 0; x_ofs < w; x_ofs++)
                         *pDst++ = get_clamped(x_ofs + x, y_ofs + y);
             }
             else
             {
                 const color_type *pSrc = get_scanline(y) + x;
 
-                for (uint i = h; i; i--)
+                for (uint32_t i = h; i; i--)
                 {
                     memcpy(pDst, pSrc, w * sizeof(color_type));
                     pDst += w;
@@ -353,18 +353,18 @@ namespace vogl
             return true;
         }
 
-        bool extract_block_wrapped(color_type *pDst, int x, int y, uint w, uint h, bool flip_xy = false) const
+        bool extract_block_wrapped(color_type *pDst, int x, int y, uint32_t w, uint32_t h, bool flip_xy = false) const
         {
             if (flip_xy)
             {
-                for (uint y_ofs = 0; y_ofs < h; y_ofs++)
-                    for (uint x_ofs = 0; x_ofs < w; x_ofs++)
+                for (uint32_t y_ofs = 0; y_ofs < h; y_ofs++)
+                    for (uint32_t x_ofs = 0; x_ofs < w; x_ofs++)
                         pDst[x_ofs * h + y_ofs] = get_wrapped(x_ofs + x, y_ofs + y);
             }
             else
             {
-                for (uint y_ofs = 0; y_ofs < h; y_ofs++)
-                    for (uint x_ofs = 0; x_ofs < w; x_ofs++)
+                for (uint32_t y_ofs = 0; y_ofs < h; y_ofs++)
+                    for (uint32_t x_ofs = 0; x_ofs < w; x_ofs++)
                         *pDst++ = get_wrapped(x_ofs + x, y_ofs + y);
             }
 
@@ -372,7 +372,7 @@ namespace vogl
         }
 
         // No clipping!
-        void unclipped_fill_box(uint x, uint y, uint w, uint h, const color_type &c)
+        void unclipped_fill_box(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const color_type &c)
         {
             if (((x + w) > m_width) || ((y + h) > m_height))
             {
@@ -382,16 +382,16 @@ namespace vogl
 
             color_type *p = get_scanline(y) + x;
 
-            for (uint i = h; i; i--)
+            for (uint32_t i = h; i; i--)
             {
                 color_type *q = p;
-                for (uint j = w; j; j--)
+                for (uint32_t j = w; j; j--)
                     *q++ = c;
                 p += m_pitch;
             }
         }
 
-        void draw_rect(int x, int y, uint width, uint height, const color_type &c)
+        void draw_rect(int x, int y, uint32_t width, uint32_t height, const color_type &c)
         {
             draw_line(x, y, x + width - 1, y, c);
             draw_line(x, y, x, y + height - 1, c);
@@ -400,7 +400,7 @@ namespace vogl
         }
 
         // No clipping!
-        bool unclipped_blit(uint src_x, uint src_y, uint src_w, uint src_h, uint dst_x, uint dst_y, const image &src, uint blit_flags = 0)
+        bool unclipped_blit(uint32_t src_x, uint32_t src_y, uint32_t src_w, uint32_t src_h, uint32_t dst_x, uint32_t dst_y, const image &src, uint32_t blit_flags = 0)
         {
             if ((!is_valid()) || (!src.is_valid()))
             {
@@ -423,35 +423,35 @@ namespace vogl
             const color_type *VOGL_RESTRICT pS = &src(src_x, src_y);
             color_type *VOGL_RESTRICT pD = &(*this)(dst_x, dst_y);
 
-            const uint bytes_to_copy_per_scanline = src_w * sizeof(color_type);
-            const uint src_pitch_minus_src_w = src.get_pitch() - src_w;
-            const uint dst_pitch_minus_src_w = get_pitch() - src_w;
+            const uint32_t bytes_to_copy_per_scanline = src_w * sizeof(color_type);
+            const uint32_t src_pitch_minus_src_w = src.get_pitch() - src_w;
+            const uint32_t dst_pitch_minus_src_w = get_pitch() - src_w;
 
             if (blit_flags & BLIT_FLAG_UNPREMULTIPLY_BY_ALPHA)
             {
-                if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8)))
+                if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8_t)))
                 {
-                    VOGL_ASSERT(sizeof(color_t) == sizeof(uint32));
-                    for (uint i = src_h; i; i--)
+                    VOGL_ASSERT(sizeof(color_t) == sizeof(uint32_t));
+                    for (uint32_t i = src_h; i; i--)
                     {
                         color_quad_u8 *pD_end = pD + src_w;
                         if (blit_flags & BLIT_FLAG_SWAP_RGB)
                         {
                             do
                             {
-                                uint32 s = *reinterpret_cast<const uint32 *>(pS);
+                                uint32_t s = *reinterpret_cast<const uint32_t *>(pS);
                                 pS++;
 
-                                uint a = s >> 24, b = s & 0xFF, g = (s & 0xFF00) >> 8, r = (s & 0xFF0000) >> 16;
+                                uint32_t a = s >> 24, b = s & 0xFF, g = (s & 0xFF00) >> 8, r = (s & 0xFF0000) >> 16;
                                 if ((a != 255) && (a))
                                 {
-                                    uint round = a / 2;
+                                    uint32_t round = a / 2;
                                     r = math::clamp255((r * 255 + round) / a);
                                     g = math::clamp255((g * 255 + round) / a);
                                     b = math::clamp255((b * 255 + round) / a);
                                 }
 
-                                *reinterpret_cast<uint32 *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
+                                *reinterpret_cast<uint32_t *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
                                 pD++;
 
                             } while (pD != pD_end);
@@ -460,22 +460,22 @@ namespace vogl
                         {
                             do
                             {
-                                uint32 s = *reinterpret_cast<const uint32 *>(pS);
+                                uint32_t s = *reinterpret_cast<const uint32_t *>(pS);
                                 pS++;
 
-                                uint a = s >> 24;
+                                uint32_t a = s >> 24;
                                 if ((a != 255) && (a))
                                 {
-                                    uint r = s & 0xFF, g = (s & 0xFF00) >> 8, b = (s & 0xFF0000) >> 16;
-                                    uint round = a / 2;
+                                    uint32_t r = s & 0xFF, g = (s & 0xFF00) >> 8, b = (s & 0xFF0000) >> 16;
+                                    uint32_t round = a / 2;
                                     r = math::clamp255((r * 255 + round) / a);
                                     g = math::clamp255((g * 255 + round) / a);
                                     b = math::clamp255((b * 255 + round) / a);
-                                    *reinterpret_cast<uint32 *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
+                                    *reinterpret_cast<uint32_t *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
                                 }
                                 else
                                 {
-                                    *reinterpret_cast<uint32 *>(pD) = s;
+                                    *reinterpret_cast<uint32_t *>(pD) = s;
                                 }
 
                                 pD++;
@@ -489,7 +489,7 @@ namespace vogl
                 }
                 else
                 {
-                    for (uint i = src_h; i; i--)
+                    for (uint32_t i = src_h; i; i--)
                     {
                         color_quad_u8 *pD_end = pD + src_w;
                         do
@@ -519,23 +519,23 @@ namespace vogl
             }
             else if (blit_flags & BLIT_FLAG_MULTIPLY_BY_ALPHA)
             {
-                if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8)))
+                if (vogl_is_little_endian() && (!color_t::component_traits::cSigned) && (sizeof(component_t) == sizeof(uint8_t)))
                 {
-                    VOGL_ASSERT(sizeof(color_t) == sizeof(uint32));
-                    for (uint i = src_h; i; i--)
+                    VOGL_ASSERT(sizeof(color_t) == sizeof(uint32_t));
+                    for (uint32_t i = src_h; i; i--)
                     {
                         color_quad_u8 *pD_end = pD + src_w;
                         if (blit_flags & BLIT_FLAG_SWAP_RGB)
                         {
                             do
                             {
-                                uint a = pS->a;
-                                uint b = math::mul255(pS->r, a);
-                                uint g = math::mul255(pS->g, a);
-                                uint r = math::mul255(pS->b, a);
+                                uint32_t a = pS->a;
+                                uint32_t b = math::mul255(pS->r, a);
+                                uint32_t g = math::mul255(pS->g, a);
+                                uint32_t r = math::mul255(pS->b, a);
                                 pS++;
 
-                                *reinterpret_cast<uint32 *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
+                                *reinterpret_cast<uint32_t *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
                                 pD++;
                             } while (pD != pD_end);
                         }
@@ -543,13 +543,13 @@ namespace vogl
                         {
                             do
                             {
-                                uint a = pS->a;
-                                uint r = math::mul255(pS->r, a);
-                                uint g = math::mul255(pS->g, a);
-                                uint b = math::mul255(pS->b, a);
+                                uint32_t a = pS->a;
+                                uint32_t r = math::mul255(pS->r, a);
+                                uint32_t g = math::mul255(pS->g, a);
+                                uint32_t b = math::mul255(pS->b, a);
                                 pS++;
 
-                                *reinterpret_cast<uint32 *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
+                                *reinterpret_cast<uint32_t *>(pD) = ((a << 24) | (b << 16) | (g << 8) | r);
                                 pD++;
                             } while (pD != pD_end);
                         }
@@ -560,7 +560,7 @@ namespace vogl
                 }
                 else
                 {
-                    for (uint i = src_h; i; i--)
+                    for (uint32_t i = src_h; i; i--)
                     {
                         color_quad_u8 *pD_end = pD + src_w;
                         do
@@ -582,20 +582,20 @@ namespace vogl
             }
             else if (blit_flags & BLIT_FLAG_SWAP_RGB)
             {
-                for (uint i = src_h; i; i--)
+                for (uint32_t i = src_h; i; i--)
                 {
                     color_quad_u8 *pD_end = pD + src_w;
-                    if (vogl_is_little_endian() && (sizeof(component_t) == sizeof(uint8)))
+                    if (vogl_is_little_endian() && (sizeof(component_t) == sizeof(uint8_t)))
                     {
-                        VOGL_ASSERT(sizeof(color_t) == sizeof(uint32));
+                        VOGL_ASSERT(sizeof(color_t) == sizeof(uint32_t));
                         do
                         {
-                            uint32 c = *reinterpret_cast<const uint32 *>(pS);
+                            uint32_t c = *reinterpret_cast<const uint32_t *>(pS);
                             pS++;
 
                             c = (c & 0xFF00FF00) | ((c & 0xFF) << 16) | ((c & 0xFF0000) >> 16);
 
-                            *reinterpret_cast<uint32 *>(pD) = c;
+                            *reinterpret_cast<uint32_t *>(pD) = c;
                             pD++;
                         } while (pD != pD_end);
                     }
@@ -621,7 +621,7 @@ namespace vogl
                 }
                 else
                 {
-                    for (uint i = src_h; i; i--)
+                    for (uint32_t i = src_h; i; i--)
                     {
                         memcpy(pD, pS, bytes_to_copy_per_scanline);
 
@@ -635,7 +635,7 @@ namespace vogl
         }
 
         // With clipping.
-        bool blit(int dst_x, int dst_y, const image &src, uint blit_flags = 0)
+        bool blit(int dst_x, int dst_y, const image &src, uint32_t blit_flags = 0)
         {
             if ((!is_valid()) || (!src.is_valid()))
             {
@@ -665,8 +665,8 @@ namespace vogl
             if ((dst_x >= (int)m_width) || (dst_y >= (int)m_height))
                 return false;
 
-            uint width = math::minimum(m_width - dst_x, src.get_width() - src_x);
-            uint height = math::minimum(m_height - dst_y, src.get_height() - src_y);
+            uint32_t width = math::minimum(m_width - dst_x, src.get_width() - src_x);
+            uint32_t height = math::minimum(m_height - dst_y, src.get_height() - src_y);
 
             bool success = unclipped_blit(src_x, src_y, width, height, dst_x, dst_y, src, blit_flags);
             (void)success;
@@ -676,7 +676,7 @@ namespace vogl
         }
 
         // With clipping.
-        bool blit(int src_x, int src_y, int src_w, int src_h, int dst_x, int dst_y, const image &src, uint blit_flags = 0)
+        bool blit(int src_x, int src_y, int src_w, int src_h, int dst_x, int dst_y, const image &src, uint32_t blit_flags = 0)
         {
             if ((!is_valid()) || (!src.is_valid()))
             {
@@ -714,7 +714,7 @@ namespace vogl
         }
 
         // In-place resize of image dimensions (cropping).
-        bool crop(uint new_width, uint new_height, uint new_pitch = UINT_MAX, const color_type background = color_type::make_black())
+        bool crop(uint32_t new_width, uint32_t new_height, uint32_t new_pitch = UINT_MAX, const color_type background = color_type::make_black())
         {
             if (new_pitch == UINT_MAX)
                 new_pitch = new_width;
@@ -737,9 +737,9 @@ namespace vogl
                 return false;
             }
 
-            for (uint y = 0; y < new_height; y++)
+            for (uint32_t y = 0; y < new_height; y++)
             {
-                for (uint x = 0; x < new_width; x++)
+                for (uint32_t x = 0; x < new_width; x++)
                 {
                     if ((x < m_width) && (y < m_height))
                         m_pixel_buf[x + y * new_pitch] = existing_pixels[x + y * m_pitch];
@@ -758,20 +758,20 @@ namespace vogl
         }
 
         // In-place resize of image dimensions (same as cropping).
-        bool resize(uint new_width, uint new_height, uint new_pitch = UINT_MAX, const color_type background = color_type::make_black())
+        bool resize(uint32_t new_width, uint32_t new_height, uint32_t new_pitch = UINT_MAX, const color_type background = color_type::make_black())
         {
             return crop(new_width, new_height, new_pitch, background);
         }
 
-        inline uint get_width() const
+        inline uint32_t get_width() const
         {
             return m_width;
         }
-        inline uint get_height() const
+        inline uint32_t get_height() const
         {
             return m_height;
         }
-        inline uint get_total_pixels() const
+        inline uint32_t get_total_pixels() const
         {
             return m_width * m_height;
         }
@@ -781,35 +781,35 @@ namespace vogl
             return rect(0, 0, m_width, m_height);
         }
 
-        inline uint get_pitch() const
+        inline uint32_t get_pitch() const
         {
             return m_pitch;
         }
-        inline uint get_pitch_in_bytes() const
+        inline uint32_t get_pitch_in_bytes() const
         {
             return m_pitch * sizeof(color_type);
         }
 
         // Returns pitch * height, NOT width * height!
-        inline uint get_total() const
+        inline uint32_t get_total() const
         {
             return m_total;
         }
 
-        inline uint get_block_width(uint block_size) const
+        inline uint32_t get_block_width(uint32_t block_size) const
         {
             return (m_width + block_size - 1) / block_size;
         }
-        inline uint get_block_height(uint block_size) const
+        inline uint32_t get_block_height(uint32_t block_size) const
         {
             return (m_height + block_size - 1) / block_size;
         }
-        inline uint get_total_blocks(uint block_size) const
+        inline uint32_t get_total_blocks(uint32_t block_size) const
         {
             return get_block_width(block_size) * get_block_height(block_size);
         }
 
-        inline uint get_size_in_bytes() const
+        inline uint32_t get_size_in_bytes() const
         {
             return sizeof(color_type) * m_total;
         }
@@ -823,25 +823,25 @@ namespace vogl
             return m_pPixels;
         }
 
-        inline const color_type &operator()(uint x, uint y) const
+        inline const color_type &operator()(uint32_t x, uint32_t y) const
         {
             VOGL_ASSERT((x < m_width) && (y < m_height));
             return m_pPixels[x + y * m_pitch];
         }
 
-        inline color_type &operator()(uint x, uint y)
+        inline color_type &operator()(uint32_t x, uint32_t y)
         {
             VOGL_ASSERT((x < m_width) && (y < m_height));
             return m_pPixels[x + y * m_pitch];
         }
 
-        inline const color_type &get_unclamped(uint x, uint y) const
+        inline const color_type &get_unclamped(uint32_t x, uint32_t y) const
         {
             VOGL_ASSERT((x < m_width) && (y < m_height));
             return m_pPixels[x + y * m_pitch];
         }
 
-        inline color_type &get_unclamped(uint x, uint y)
+        inline color_type &get_unclamped(uint32_t x, uint32_t y)
         {
             VOGL_ASSERT((x < m_width) && (y < m_height));
             return m_pPixels[x + y * m_pitch];
@@ -863,18 +863,18 @@ namespace vogl
 
         inline const color_type &get_wrapped(int x, int y) const
         {
-            if (static_cast<uint>(x) >= m_width)
+            if (static_cast<uint32_t>(x) >= m_width)
                 x = math::posmod(x, m_width);
-            if (static_cast<uint>(y) >= m_height)
+            if (static_cast<uint32_t>(y) >= m_height)
                 y = math::posmod(y, m_height);
             return m_pPixels[x + y * m_pitch];
         }
 
         inline color_type &get_wrapped(int x, int y)
         {
-            if (static_cast<uint>(x) >= m_width)
+            if (static_cast<uint32_t>(x) >= m_width)
                 x = math::posmod(x, m_width);
-            if (static_cast<uint>(y) >= m_height)
+            if (static_cast<uint32_t>(y) >= m_height)
                 y = math::posmod(y, m_height);
             return m_pPixels[x + y * m_pitch];
         }
@@ -910,7 +910,7 @@ namespace vogl
             color_type c(get_clamped(ix, iy + 1));
             color_type d(get_clamped(ix + 1, iy + 1));
 
-            for (uint i = 0; i < 4; i++)
+            for (uint32_t i = 0; i < 4; i++)
             {
                 double top = math::lerp<double>(a[i], b[i], wx);
                 double bot = math::lerp<double>(c[i], d[i], wx);
@@ -938,7 +938,7 @@ namespace vogl
             color_type c(get_clamped_or_wrapped(ix, iy + 1, wrap_u, wrap_v));
             color_type d(get_clamped_or_wrapped(ix + 1, iy + 1, wrap_u, wrap_v));
 
-            for (uint i = 0; i < 4; i++)
+            for (uint32_t i = 0; i < 4; i++)
             {
                 float top = math::lerp<float>(a[i], b[i], wx);
                 float bot = math::lerp<float>(c[i], d[i], wx);
@@ -960,7 +960,7 @@ namespace vogl
             result.set(static_cast<float>(c[0]), static_cast<float>(c[1]), static_cast<float>(c[2]), static_cast<float>(c[3]));
         }
 
-        inline void set_pixel_unclipped(uint x, uint y, const color_type &c)
+        inline void set_pixel_unclipped(uint32_t x, uint32_t y, const color_type &c)
         {
             VOGL_ASSERT((x < m_width) && (y < m_height));
             m_pPixels[x + y * m_pitch] = c;
@@ -968,19 +968,19 @@ namespace vogl
 
         inline void set_pixel_clipped(int x, int y, const color_type &c)
         {
-            if ((static_cast<uint>(x) >= m_width) || (static_cast<uint>(y) >= m_height))
+            if ((static_cast<uint32_t>(x) >= m_width) || (static_cast<uint32_t>(y) >= m_height))
                 return;
 
             m_pPixels[x + y * m_pitch] = c;
         }
 
-        inline const color_type *get_scanline(uint y) const
+        inline const color_type *get_scanline(uint32_t y) const
         {
             VOGL_ASSERT(y < m_height);
             return &m_pPixels[y * m_pitch];
         }
 
-        inline color_type *get_scanline(uint y)
+        inline color_type *get_scanline(uint32_t y)
         {
             VOGL_ASSERT(y < m_height);
             return &m_pPixels[y * m_pitch];
@@ -1067,11 +1067,11 @@ namespace vogl
         }
 
     private:
-        uint m_width;
-        uint m_height;
-        uint m_pitch;
-        uint m_total;
-        uint m_comp_flags;
+        uint32_t m_width;
+        uint32_t m_height;
+        uint32_t m_pitch;
+        uint32_t m_total;
+        uint32_t m_comp_flags;
 
         color_type *m_pPixels;
 

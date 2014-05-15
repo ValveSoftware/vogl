@@ -113,7 +113,7 @@ public:
 
     void set_snapshot_handle(GLuint64 handle)
     {
-        m_snapshot_handle = static_cast<uint>(handle);
+        m_snapshot_handle = static_cast<uint32_t>(handle);
         VOGL_ASSERT(handle == m_snapshot_handle);
     }
 

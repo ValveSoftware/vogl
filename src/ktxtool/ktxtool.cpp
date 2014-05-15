@@ -140,20 +140,20 @@ int main(int argc, char **argv)
     }
 
     // TODO: This is a total work in progress!
-    for (uint array_index = 0; array_index < tex.get_array_size(); array_index++)
+    for (uint32_t array_index = 0; array_index < tex.get_array_size(); array_index++)
     {
-        for (uint face_index = 0; face_index < tex.get_num_faces(); face_index++)
+        for (uint32_t face_index = 0; face_index < tex.get_num_faces(); face_index++)
         {
-            for (uint mip_level = 0; mip_level < tex.get_num_mips(); mip_level++)
+            for (uint32_t mip_level = 0; mip_level < tex.get_num_mips(); mip_level++)
             {
-                uint mip_depth = math::maximum<uint>(1U, tex.get_depth() >> mip_level);
+                uint32_t mip_depth = math::maximum<uint32_t>(1U, tex.get_depth() >> mip_level);
 
-                for (uint zslice_index = 0; zslice_index < mip_depth; zslice_index++)
+                for (uint32_t zslice_index = 0; zslice_index < mip_depth; zslice_index++)
                 {
-                    uint mip_width = math::maximum<uint>(1U, tex.get_width() >> mip_level);
-                    uint mip_height = math::maximum<uint>(1U, tex.get_height() >> mip_level);
+                    uint32_t mip_width = math::maximum<uint32_t>(1U, tex.get_width() >> mip_level);
+                    uint32_t mip_height = math::maximum<uint32_t>(1U, tex.get_height() >> mip_level);
 
-                    uint image_index = tex.get_image_index(mip_level, array_index, face_index, zslice_index);
+                    uint32_t image_index = tex.get_image_index(mip_level, array_index, face_index, zslice_index);
                     if (image_index >= tex.get_num_images())
                         continue;
 
@@ -161,14 +161,42 @@ int main(int argc, char **argv)
                     if (level_data.is_empty())
                         continue;
 
-                    uint temp_size = mip_width * sizeof(uint32) * mip_height;
+                    // Get information about the source:
+                    bool has_red;
+                    bool has_green;
+                    bool has_blue;
+                    bool has_alpha;
+                    bool has_depth;
+                    bool has_stencil;
+                    bool has_large_components;
+                    bool is_floating_point;
+                    bool is_integer;
+                    bool is_compressed;
+                    unsigned int bytes_per_pixel;
+                    unsigned int bytes_per_compressed_block;
+                    unsigned int block_size;
+                    query_pxfmt_sized_format(src_pxfmt, &has_red, &has_green, &has_blue, &has_alpha,
+                                             &has_depth, &has_stencil, &has_large_components, &is_floating_point,
+                                             &is_integer, &is_compressed, &bytes_per_pixel,
+                                             &bytes_per_compressed_block, &block_size);
+                    size_t src_size = bytes_per_pixel * mip_width * mip_height;
 
+                    uint32_t temp_size = mip_width * sizeof(uint32_t) * mip_height;
                     uint8_vec temp_buf(temp_size);
                     temp_buf.push_back(0xAB);
                     temp_buf.push_back(0xCD);
 
                     pxfmt_sized_format temp_pxfmt = PXFMT_RGBA8_UNORM;
-                    pxfmt_convert_pixels(temp_buf.get_ptr(), level_data.get_ptr(), mip_width, mip_height, src_pxfmt, temp_pxfmt);
+
+                    pxfmt_conversion_status status;
+                    status = pxfmt_convert_pixels(temp_buf.get_ptr(), level_data.get_ptr(), mip_width, mip_height,
+                                                  temp_pxfmt, src_pxfmt, temp_size, src_size);
+
+                    if (status != PXFMT_CONVERSION_SUCCESS)
+                    {
+                        console::error("pxfmt_convert_pixels() returned a non-success status of %d!\n", status);
+                        return EXIT_FAILURE;
+                    }
 
                     if ((temp_buf[temp_buf.size() - 2] != 0xAB) || (temp_buf[temp_buf.size() - 1] != 0xCD))
                     {
@@ -179,11 +207,11 @@ int main(int argc, char **argv)
                     image_u8 rgb_img(mip_width, mip_height);
                     image_u8 alpha_img(mip_width, mip_height);
 
-                    for (uint y = 0; y < mip_height; y++)
+                    for (uint32_t y = 0; y < mip_height; y++)
                     {
-                        const color_quad_u8 *pPixel = reinterpret_cast<color_quad_u8 *>(temp_buf.get_ptr() + y * mip_width * sizeof(uint32));
+                        const color_quad_u8 *pPixel = reinterpret_cast<color_quad_u8 *>(temp_buf.get_ptr() + y * mip_width * sizeof(uint32_t));
 
-                        for (uint x = 0; x < mip_width; x++)
+                        for (uint32_t x = 0; x < mip_width; x++)
                         {
                             rgb_img.set_pixel_unclipped(x, y, *pPixel);
                             alpha_img.set_pixel_unclipped(x, y, color_quad_u8((*pPixel)[3]));

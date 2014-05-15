@@ -28,7 +28,7 @@
 #include "vogl_console.h"
 #include "vogl_file_utils.h"
 
-vogl_trace_file_reader::trace_file_reader_status_t vogl_trace_file_reader::read_frame_packets(uint frame_index, uint num_frames, vogl_trace_packet_array &packets, uint &actual_frames_read)
+vogl_trace_file_reader::trace_file_reader_status_t vogl_trace_file_reader::read_frame_packets(uint32_t frame_index, uint32_t num_frames, vogl_trace_packet_array &packets, uint32_t &actual_frames_read)
 {
     VOGL_FUNC_TRACER
 
@@ -57,7 +57,7 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_trace_file_reader::read_
         return cFailed;
     }
 
-    uint total_frames_read = 0;
+    uint32_t total_frames_read = 0;
 
     packets.reserve(packets.size() + num_frames * 1000);
 
@@ -96,7 +96,7 @@ void vogl_trace_file_reader::create_eof_packet()
     eof_packet.init(cTSPTEOF, sizeof(vogl_trace_stream_packet_base));
     eof_packet.finalize();
     m_packet_buf.resize(0);
-    m_packet_buf.append(reinterpret_cast<uint8 *>(&eof_packet), sizeof(eof_packet));
+    m_packet_buf.append(reinterpret_cast<uint8_t *>(&eof_packet), sizeof(eof_packet));
 }
 
 bool vogl_trace_file_reader::init_loose_file_blob_manager(const char *pTrace_filename, const char *pLoose_file_path)
@@ -166,7 +166,7 @@ bool vogl_binary_trace_file_reader::read_frame_file_offsets()
         return false;
     }
 
-    uint total_offsets = frame_offsets_data.size() / sizeof(uint64_t);
+    uint32_t total_offsets = frame_offsets_data.size() / sizeof(uint64_t);
 
     m_frame_file_offsets.resize(total_offsets);
     memcpy(m_frame_file_offsets.get_ptr(), frame_offsets_data.get_ptr(), m_frame_file_offsets.size_in_bytes());
@@ -209,12 +209,12 @@ bool vogl_binary_trace_file_reader::open(const char *pFilename, const char *pLoo
         return false;
     }
 
-    if (m_sof_packet.m_version < static_cast<uint16>(VOGL_TRACE_FILE_MINIMUM_COMPATIBLE_VERSION))
+    if (m_sof_packet.m_version < static_cast<uint16_t>(VOGL_TRACE_FILE_MINIMUM_COMPATIBLE_VERSION))
     {
         vogl_error_printf("%s: Trace file version is not supported, found version 0x%04X, expected at least version 0x%04X!\n", VOGL_FUNCTION_INFO_CSTR, m_sof_packet.m_version, VOGL_TRACE_FILE_MINIMUM_COMPATIBLE_VERSION);
         return false;
     }
-    else if (m_sof_packet.m_version > static_cast<uint16>(VOGL_TRACE_FILE_VERSION))
+    else if (m_sof_packet.m_version > static_cast<uint16_t>(VOGL_TRACE_FILE_VERSION))
     {
         // TODO: Make this an error? Backwards compat?
         vogl_warning_printf("%s: Trace file version is 0x%04X, expected version 0x%04X, this may not work at all!\n", VOGL_FUNCTION_INFO_CSTR, m_sof_packet.m_version, VOGL_TRACE_FILE_VERSION);
@@ -281,7 +281,7 @@ bool vogl_binary_trace_file_reader::is_at_eof()
     return (m_trace_stream.get_remaining() < sizeof(vogl_trace_stream_packet_base));
 }
 
-bool vogl_binary_trace_file_reader::seek_to_frame(uint frame_index)
+bool vogl_binary_trace_file_reader::seek_to_frame(uint32_t frame_index)
 {
     VOGL_FUNC_TRACER
 
@@ -295,7 +295,7 @@ bool vogl_binary_trace_file_reader::seek_to_frame(uint frame_index)
     {
         if ((m_max_frame_index >= 0) && (frame_index > m_max_frame_index))
         {
-            vogl_warning_printf("%s: Can't seek to frame %u, max valid frame index is %u\n", VOGL_FUNCTION_INFO_CSTR, frame_index, static_cast<uint>(m_max_frame_index));
+            vogl_warning_printf("%s: Can't seek to frame %u, max valid frame index is %u\n", VOGL_FUNCTION_INFO_CSTR, frame_index, static_cast<uint32_t>(m_max_frame_index));
             return false;
         }
 
@@ -361,7 +361,7 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_binary_trace_file_reader
 
     {
         vogl_trace_stream_packet_base &packet_base = *reinterpret_cast<vogl_trace_stream_packet_base *>(m_packet_buf.get_ptr());
-        uint bytes_actually_read = m_trace_stream.read(&packet_base, sizeof(packet_base));
+        uint32_t bytes_actually_read = m_trace_stream.read(&packet_base, sizeof(packet_base));
         if (bytes_actually_read != sizeof(packet_base))
         {
             // Jam in a fake EOF packet in case the caller doesn't get the message that something is wrong
@@ -393,10 +393,10 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_binary_trace_file_reader
 
     vogl_trace_stream_packet_base &packet_base = *reinterpret_cast<vogl_trace_stream_packet_base *>(m_packet_buf.get_ptr());
 
-    uint num_bytes_remaining = packet_base.m_size - sizeof(vogl_trace_stream_packet_base);
+    uint32_t num_bytes_remaining = packet_base.m_size - sizeof(vogl_trace_stream_packet_base);
     if (num_bytes_remaining)
     {
-        uint actual_bytes_read = m_trace_stream.read(m_packet_buf.get_ptr() + sizeof(vogl_trace_stream_packet_base), num_bytes_remaining);
+        uint32_t actual_bytes_read = m_trace_stream.read(m_packet_buf.get_ptr() + sizeof(vogl_trace_stream_packet_base), num_bytes_remaining);
         if (actual_bytes_read != num_bytes_remaining)
         {
             console::error("%s: Failed reading variable size trace packet data (wanted %u bytes, got %u bytes), trace file is probably corrupted/invalid\n", VOGL_FUNCTION_INFO_CSTR, num_bytes_remaining, actual_bytes_read);
@@ -530,7 +530,7 @@ bool vogl_json_trace_file_reader::open(const char *pFilename, const char *pLoose
     }
     else
     {
-        uint i;
+        uint32_t i;
         for (i = 0; i < 99999999; i++)
         {
             dynamic_string trial_base_name(m_fname);
@@ -609,7 +609,7 @@ bool vogl_json_trace_file_reader::open_first_document()
     }
 
     int meta_pointer_sizes = pSOF_node->value_as_int32("pointer_sizes", -1);
-    if ((meta_pointer_sizes != sizeof(uint32)) && (meta_pointer_sizes != sizeof(uint64_t)))
+    if ((meta_pointer_sizes != sizeof(uint32_t)) && (meta_pointer_sizes != sizeof(uint64_t)))
     {
         vogl_error_printf("%s: Invalid meta pointer sizes field in JSON file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
         return false;
@@ -648,7 +648,7 @@ bool vogl_json_trace_file_reader::open_first_document()
     const json_node *pUUID_array = pSOF_node->find_child_array("uuid");
     if (pUUID_array)
     {
-        for (uint i = 0; i < math::minimum<uint>(pUUID_array->size(), vogl_trace_stream_start_of_file_packet::cUUIDSize); i++)
+        for (uint32_t i = 0; i < math::minimum<uint32_t>(pUUID_array->size(), vogl_trace_stream_start_of_file_packet::cUUIDSize); i++)
             m_sof_packet.m_uuid[i] = pUUID_array->value_as_uint32(i);
     }
 
@@ -675,8 +675,8 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
     bool deserialize_status = false;
 
     // HACK HACK: to work around another app writing to the file as we try to read it in -endless mode
-    const uint cMaxRetries = 5;
-    for (uint tries = 0; tries < cMaxRetries; tries++)
+    const uint32_t cMaxRetries = 5;
+    for (uint32_t tries = 0; tries < cMaxRetries; tries++)
     {
         if (!m_trace_stream.open(m_cur_frame_filename.get_ptr(), cDataStreamReadable, true))
         {
@@ -745,10 +745,10 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
     const json_node *pUUID_array = pMeta_node->find_child_array("uuid");
     if (pUUID_array)
     {
-        uint32 uuid[vogl_trace_stream_start_of_file_packet::cUUIDSize];
+        uint32_t uuid[vogl_trace_stream_start_of_file_packet::cUUIDSize];
         utils::zero_object(uuid);
 
-        for (uint i = 0; i < math::minimum<uint>(pUUID_array->size(), vogl_trace_stream_start_of_file_packet::cUUIDSize); i++)
+        for (uint32_t i = 0; i < math::minimum<uint32_t>(pUUID_array->size(), vogl_trace_stream_start_of_file_packet::cUUIDSize); i++)
             uuid[i] = pUUID_array->value_as_uint32(i);
 
         if (memcmp(uuid, m_sof_packet.m_uuid, sizeof(uuid)) != 0)
@@ -831,7 +831,7 @@ dynamic_string vogl_json_trace_file_reader::compose_frame_filename()
     return trial_filename;
 }
 
-bool vogl_json_trace_file_reader::seek_to_frame(uint frame_index)
+bool vogl_json_trace_file_reader::seek_to_frame(uint32_t frame_index)
 {
     VOGL_FUNC_TRACER
 

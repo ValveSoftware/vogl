@@ -42,7 +42,7 @@ namespace vogl
         typedef T *pointer;
         typedef const T *const_pointer;
 
-        inline vector2D(uint width = 0, uint height = 0, const T &def = T())
+        inline vector2D(uint32_t width = 0, uint32_t height = 0, const T &def = T())
             : m_width(width),
               m_height(height),
               m_vec(width * height),
@@ -70,7 +70,7 @@ namespace vogl
             return *this;
         }
 
-        bool try_resize(uint width, uint height, bool preserve = true)
+        bool try_resize(uint32_t width, uint32_t height, bool preserve = true)
         {
             if ((width == m_width) && (height == m_height))
                 return true;
@@ -81,10 +81,10 @@ namespace vogl
 
             if (preserve)
             {
-                const uint nx = math::minimum(width, m_width);
-                const uint ny = math::minimum(height, m_height);
+                const uint32_t nx = math::minimum(width, m_width);
+                const uint32_t ny = math::minimum(height, m_height);
 
-                for (uint y = 0; y < ny; y++)
+                for (uint32_t y = 0; y < ny; y++)
                 {
                     const T *pSrc = &m_vec[y * m_width];
                     T *pDst = &new_vec[y * width];
@@ -92,7 +92,7 @@ namespace vogl
                         memcpy(pDst, pSrc, nx * sizeof(T));
                     else
                     {
-                        for (uint x = 0; x < nx; x++)
+                        for (uint32_t x = 0; x < nx; x++)
                             *pDst++ = *pSrc++;
                     }
                 }
@@ -105,7 +105,7 @@ namespace vogl
             return true;
         }
 
-        void resize(uint width, uint height, bool preserve = true)
+        void resize(uint32_t width, uint32_t height, bool preserve = true)
         {
             if (!try_resize(width, height, preserve))
             {
@@ -120,20 +120,20 @@ namespace vogl
             m_height = 0;
         }
 
-        inline uint width() const
+        inline uint32_t width() const
         {
             return m_width;
         }
-        inline uint height() const
+        inline uint32_t height() const
         {
             return m_height;
         }
-        inline uint size() const
+        inline uint32_t size() const
         {
             return m_vec.size();
         }
 
-        inline uint size_in_bytes() const
+        inline uint32_t size_in_bytes() const
         {
             return m_vec.size() * sizeof(T);
         }
@@ -156,35 +156,35 @@ namespace vogl
             return m_vec.get_ptr();
         }
 
-        inline const T &operator[](uint i) const
+        inline const T &operator[](uint32_t i) const
         {
             return m_vec[i];
         }
-        inline T &operator[](uint i)
+        inline T &operator[](uint32_t i)
         {
             return m_vec[i];
         }
 
-        inline const T &operator()(uint x, uint y) const
+        inline const T &operator()(uint32_t x, uint32_t y) const
         {
             VOGL_ASSERT((x < m_width) && (y < m_height));
             return m_vec[x + y * m_width];
         }
 
-        inline T &operator()(uint x, uint y)
+        inline T &operator()(uint32_t x, uint32_t y)
         {
             VOGL_ASSERT((x < m_width) && (y < m_height));
             return m_vec[x + y * m_width];
         }
 
-        inline const T &at(uint x, uint y) const
+        inline const T &at(uint32_t x, uint32_t y) const
         {
             if ((x >= m_width) || (y >= m_height))
                 return m_def;
             return m_vec[x + y * m_width];
         }
 
-        inline T &at(uint x, uint y)
+        inline T &at(uint32_t x, uint32_t y)
         {
             if ((x >= m_width) || (y >= m_height))
                 return m_def;
@@ -232,17 +232,17 @@ namespace vogl
             m_vec.set_all(x);
         }
 
-        inline void extract_block_clamped(vector2D &dst, uint dst_x, uint dst_y, int src_x, int src_y, uint w, uint h) const
+        inline void extract_block_clamped(vector2D &dst, uint32_t dst_x, uint32_t dst_y, int src_x, int src_y, uint32_t w, uint32_t h) const
         {
-            for (uint y = 0; y < h; y++)
-                for (uint x = 0; x < w; x++)
+            for (uint32_t y = 0; y < h; y++)
+                for (uint32_t x = 0; x < w; x++)
                     dst.at(dst_x + x, dst_y + y) = at_clamped(src_x + x, src_y + y);
         }
 
-        inline void extract_block_wrapped(vector2D &dst, uint dst_x, uint dst_y, int src_x, int src_y, uint w, uint h) const
+        inline void extract_block_wrapped(vector2D &dst, uint32_t dst_x, uint32_t dst_y, int src_x, int src_y, uint32_t w, uint32_t h) const
         {
-            for (uint y = 0; y < h; y++)
-                for (uint x = 0; x < w; x++)
+            for (uint32_t y = 0; y < h; y++)
+                for (uint32_t x = 0; x < w; x++)
                     dst.at(dst_x + x, dst_y + y) = at_wrapped(src_x + x, src_y + y);
         }
 
@@ -258,8 +258,8 @@ namespace vogl
         }
 
     private:
-        uint m_width;
-        uint m_height;
+        uint32_t m_width;
+        uint32_t m_height;
         vector_type m_vec;
         T m_def;
     };

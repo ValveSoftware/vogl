@@ -172,7 +172,7 @@ private:
    vogleditor_traceReplayer m_traceReplayer;
    vogl_trace_file_reader* m_pTraceReader;
    vogl::json_document m_backtraceDoc;
-   vogl::hash_map<vogl::uint32, vogl::json_node*> m_backtraceToJsonMap;
+   vogl::hash_map<uint32_t, vogl::json_node*> m_backtraceToJsonMap;
 
    vogleditor_apiCallTimelineModel* m_pTimelineModel;
    vogleditor_QApiCallTreeModel* m_pApiCallTreeModel;

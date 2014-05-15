@@ -43,7 +43,7 @@ VOGL_NAMESPACE_BEGIN(vogl)
 
 // A really basic STB heap that uses mmap() for sys allocs. Uses its own locking for max safety until I can be 100% sure that stb's locking is robust.
 // Note, this class is not actually used for anything right now (vogl_mem.cpp just calls stb_malloc directory).
-template <uint initialize_size, bool locking, bool destroy>
+template <uint32_t initialize_size, bool locking, bool destroy>
 class stb_heap
 {
     VOGL_NO_COPY_OR_ASSIGNMENT_OP(stb_heap);
