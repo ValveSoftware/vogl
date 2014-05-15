@@ -40,13 +40,33 @@ Q_DECLARE_METATYPE(vogl_vao_state*);
 
 vogleditor_QVertexArrayExplorer::vogleditor_QVertexArrayExplorer(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::vogleditor_QVertexArrayExplorer)
+    ui(new Ui::vogleditor_QVertexArrayExplorer),
+    m_pVaoState(NULL),
+    m_numUiUpdatesInProgress(0),
+    m_pVaoElementArray(NULL),
+    m_bUserSetOptions(false),
+    m_currentCallElementCount(0),
+    m_currentCallElementTypeIndex(0),
+    m_currentCallElementByteOffset(0),
+    m_currentCallElementBaseVertex(0),
+    m_currentCallElementIndices(NULL)
 {
     ui->setupUi(this);
 
-    ui->indexTypeComboBox->addItem("GL_UNSIGNED_BYTE");
-    ui->indexTypeComboBox->addItem("GL_UNSIGNED_SHORT");
-    ui->indexTypeComboBox->addItem("GL_UNSIGNED_INT");
+    beginUpdate();
+    ui->elementTypeComboBox->addItem("GL_UNSIGNED_BYTE");
+    ui->elementTypeComboBox->addItem("GL_UNSIGNED_SHORT");
+    ui->elementTypeComboBox->addItem("GL_UNSIGNED_INT");
+    endUpdate();
+
+    ui->baseVertexSpinBox->setMaximum(INT_MAX);
+    ui->baseVertexSpinBox->setMinimum(INT_MIN);
+
+    ui->countSpinBox->setMinimum(0);
+    ui->countSpinBox->setMaximum(INT_MAX);
+
+    ui->byteOffsetSpinBox->setMinimum(0);
+    ui->byteOffsetSpinBox->setMaximum(INT_MAX);
 }
 
 vogleditor_QVertexArrayExplorer::~vogleditor_QVertexArrayExplorer()
@@ -57,20 +77,39 @@ vogleditor_QVertexArrayExplorer::~vogleditor_QVertexArrayExplorer()
 void vogleditor_QVertexArrayExplorer::clear()
 {
     m_sharing_contexts.clear();
+    m_attrib_buffers.clear();
+    m_pVaoState = NULL;
+    m_pVaoElementArray = NULL;
+
+    m_bUserSetOptions = false;
+    m_currentCallElementCount = 0;
+    m_currentCallElementTypeIndex = 0;
+    m_currentCallElementByteOffset = 0;
+    m_currentCallElementBaseVertex = 0;
+    m_currentCallElementIndices = NULL;
+
     ui->vertexArrayComboBox->clear();
     ui->vertexTableWidget->clear();
 }
 
 uint vogleditor_QVertexArrayExplorer::set_vertexarray_objects(vogl_context_snapshot* pContext, vogl::vector<vogl_context_snapshot*> sharingContexts)
 {
-    clear();
+    m_sharing_contexts.clear();
+    m_attrib_buffers.clear();
+    m_pVaoState = NULL;
+    m_pVaoElementArray = NULL;
+
+    ui->vertexArrayComboBox->clear();
+    ui->vertexTableWidget->clear();
 
     m_sharing_contexts = sharingContexts;
 
-    uint vaoCount = 0;
+    uint32_t vaoCount = 0;
     vogl_gl_object_state_ptr_vec vaoObjects;
     pContext->get_all_objects_of_category(cGLSTVertexArray, vaoObjects);
     vaoCount = vaoObjects.size();
+
+    GLuint64 vertexArrayBinding = pContext->get_general_state().get_value<GLuint64>(GL_VERTEX_ARRAY_BINDING);
 
     for (vogl_gl_object_state_ptr_vec::iterator iter = vaoObjects.begin(); iter != vaoObjects.end(); iter++)
     {
@@ -80,7 +119,24 @@ uint vogleditor_QVertexArrayExplorer::set_vertexarray_objects(vogl_context_snaps
 
             QString valueStr;
 
-            valueStr = valueStr.sprintf("VertexArray %" PRIu64 " - %u attributes", pState->get_snapshot_handle(), pState->get_vertex_attrib_count());
+            uint numAttribs = 0;
+
+            for (uint i = 0; i < pState->get_vertex_attrib_count(); i++)
+            {
+                if (pState->get_vertex_attrib_desc(i).m_array_binding != 0 && pState->get_vertex_attrib_desc(i).m_enabled == true)
+                {
+                    numAttribs++;
+                }
+            }
+
+            if (vertexArrayBinding == pState->get_snapshot_handle())
+            {
+                valueStr = valueStr.sprintf("VertexArray %" PRIu64 " (current) - %u active attributes", pState->get_snapshot_handle(), numAttribs);
+            }
+            else
+            {
+                valueStr = valueStr.sprintf("VertexArray %" PRIu64 " - %u active attributes", pState->get_snapshot_handle(), numAttribs);
+            }
 
             ui->vertexArrayComboBox->addItem(valueStr, QVariant::fromValue(pState));
         }
@@ -108,7 +164,75 @@ bool vogleditor_QVertexArrayExplorer::set_active_vertexarray(unsigned long long 
     return false;
 }
 
-QString formatBufferDataAsString(uint32_t index, const vogl_buffer_state& bufferState, const vogl_vertex_attrib_desc& attribDesc)
+void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, uint32_t baseVertex, vogl::uint8_vec* pClientSideElements)
+{
+    // determine type index in combo box, or use whatever the current setting is if a known type is supplied
+    uint32_t typeIndex = ui->elementTypeComboBox->currentIndex();
+    if (type == GL_UNSIGNED_BYTE)
+    {
+        typeIndex = 0;
+    }
+    else if (type == GL_UNSIGNED_SHORT)
+    {
+        typeIndex = 1;
+    }
+    else if (type == GL_UNSIGNED_INT)
+    {
+        typeIndex = 2;
+    }
+
+    m_currentCallElementTypeIndex = typeIndex;
+    m_currentCallElementCount = count;
+    m_currentCallElementBaseVertex = baseVertex;
+    m_currentCallElementIndices = pClientSideElements;
+    m_currentCallElementByteOffset = byteOffset;
+
+    beginUpdate();
+    ui->countSpinBox->setValue(m_currentCallElementCount);
+    ui->elementTypeComboBox->setCurrentIndex(m_currentCallElementTypeIndex);
+    ui->byteOffsetSpinBox->setValue(m_currentCallElementByteOffset);
+    ui->baseVertexSpinBox->setValue(m_currentCallElementBaseVertex);
+    endUpdate(true);
+
+    m_bUserSetOptions = true;
+}
+
+void vogleditor_QVertexArrayExplorer::auto_update_element_count()
+{
+    // default to the element array attached to the selected VAO.
+    const uint8_vec* pElementArray = (m_pVaoElementArray != NULL) ? m_pVaoElementArray : m_currentCallElementIndices;
+
+    // Determine how many indices and vertices to display
+    if (pElementArray != NULL)
+    {
+        int maxIndexCount = 0;
+        if (ui->elementTypeComboBox->currentIndex() == 0)
+        {
+            // GL_UNSIGNED_BYTE
+            maxIndexCount = pElementArray->size();
+        }
+        else if (ui->elementTypeComboBox->currentIndex() == 1)
+        {
+            // GL_UNSIGNED_SHORT
+            maxIndexCount = pElementArray->size() / 2;
+        }
+        else if (ui->elementTypeComboBox->currentIndex() == 2)
+        {
+            // GL_UNSIGNED_INT
+            maxIndexCount = pElementArray->size() / 4;
+        }
+        else
+        {
+            // invalid option, so bail
+            VOGL_ASSERT(!"Invalid index from elementTypeComboBox in the QVertexArrayExplorer");
+            return;
+        }
+
+        ui->countSpinBox->setValue(maxIndexCount);
+    }
+}
+
+QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t index, const vogl_buffer_state& bufferState, const vogl_vertex_attrib_desc& attribDesc)
 {
 /*
     attribDesc.m_size; // number of components
@@ -268,40 +392,139 @@ void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged
         return;
     }
 
+    m_pVaoState = ui->vertexArrayComboBox->itemData(index).value<vogl_vao_state*>();
+
+    update_vertex_array_table_headers();
+
+    if (m_bUserSetOptions)
+    {
+        beginUpdate();
+        ui->countSpinBox->setValue(m_currentCallElementCount);
+        ui->elementTypeComboBox->setCurrentIndex(m_currentCallElementTypeIndex);
+        ui->baseVertexSpinBox->setValue(m_currentCallElementBaseVertex);
+
+        int byteOffset = (m_pVaoElementArray != NULL) ? m_currentCallElementByteOffset : 0;
+        ui->byteOffsetSpinBox->setValue(byteOffset);
+        endUpdate();
+    }
+    else
+    {
+        // leave all options as they are, but set the count
+        auto_update_element_count();
+    }
+
+    if (!is_ui_update_in_progress())
+    {
+        update_vertex_array_table();
+    }
+}
+
+bool vogleditor_QVertexArrayExplorer::calculate_element_and_format_as_string(const uint8_vec* pElementArray, uint32_t index, int typeIndex, int byteOffset, int baseVertex, uint32_t& elementValue, QString& elementString)
+{
+    if (pElementArray != NULL)
+    {
+        if (typeIndex == 0)
+        {
+            // GL_UNSIGNED_BYTE
+            if (byteOffset + sizeof(uint8_t)*(index+1) > pElementArray->size_in_bytes())
+            {
+                elementString = "Out of bounds";
+                return false;
+            }
+            else
+            {
+                elementValue = ((uint8_t*)(pElementArray->get_ptr() + byteOffset))[index];
+            }
+        }
+        else if (typeIndex == 1)
+        {
+            // GL_UNSIGNED_SHORT
+            if (byteOffset + sizeof(uint16_t)*(index+1) > pElementArray->size_in_bytes())
+            {
+                elementString = "Out of bounds";
+                return false;
+            }
+            else
+            {
+                elementValue = ((uint16_t*)(pElementArray->get_ptr() + byteOffset))[index];
+            }
+        }
+        else if (typeIndex == 2)
+        {
+            // GL_UNSIGNED_INT
+            if (byteOffset + sizeof(uint32_t)*(index+1) > pElementArray->size_in_bytes())
+            {
+                elementString = "Out of bounds";
+                return false;
+            }
+            else
+            {
+                elementValue = ((uint32_t*)(pElementArray->get_ptr() + byteOffset))[index];
+            }
+        }
+        else
+        {
+            VOGL_ASSERT(!"Invalid type index supplied to calculate_element_and_format_as_string");
+            // invalid option, so bail out
+            return false;
+        }
+    }
+    else
+    {
+        elementValue = index;
+    }
+
+    // add baseVertex to the vertexIndex
+    elementValue += baseVertex;
+
+    elementString = QString::number(elementValue);
+    return true;
+}
+
+void vogleditor_QVertexArrayExplorer::update_vertex_array_table_headers()
+{
     // get all the accessible buffers
-    vogl_gl_object_state_ptr_vec bufferVec;
+    vogl_gl_object_state_ptr_vec allBuffers;
     for (uint i = 0; i < m_sharing_contexts.size(); i++)
     {
         vogl_gl_object_state_ptr_vec tmpBufferVec;
         m_sharing_contexts[i]->get_all_objects_of_category(cGLSTBuffer, tmpBufferVec);
-        bufferVec.append(tmpBufferVec);
+        allBuffers.append(tmpBufferVec);
     }
 
-    vogl_vao_state* pState = ui->vertexArrayComboBox->itemData(index).value<vogl_vao_state*>();
-
-    // need a column for each attrib + 1 for the index buffer
-    uint maxAttribCount = pState->get_vertex_attrib_count();
-    uint attribCount = 0;
-
-    vogl::vector<vogl_buffer_state*> buffers;
-    buffers.resize(maxAttribCount);
+    uint maxAttribCount = m_pVaoState->get_vertex_attrib_count();
+    m_attrib_buffers.resize(maxAttribCount);
 
     // count the attribs that have a buffer binding and look up those buffers
     for (uint i = 0; i < maxAttribCount; i++)
     {
-        buffers[i] = NULL;
+        m_attrib_buffers[i] = NULL;
 
-        GLuint array_binding = pState->get_vertex_attrib_desc(i).m_array_binding;
-        if (array_binding != 0 && pState->get_vertex_attrib_desc(i).m_enabled)
+        GLuint array_binding = m_pVaoState->get_vertex_attrib_desc(i).m_array_binding;
+        if (array_binding != 0 && m_pVaoState->get_vertex_attrib_desc(i).m_enabled)
         {
-            for (uint b = 0; b < bufferVec.size(); b++)
+            for (uint b = 0; b < allBuffers.size(); b++)
             {
-                if (bufferVec[b]->get_snapshot_handle() == array_binding)
+                if (allBuffers[b]->get_snapshot_handle() == array_binding)
                 {
-                    attribCount++;
-                    buffers[i] = static_cast<vogl_buffer_state*>(bufferVec[b]);
+                    m_attrib_buffers[i] = static_cast<vogl_buffer_state*>(allBuffers[b]);
                     break;
                 }
+            }
+        }
+    }
+
+    // identify if there is an index buffer
+    m_pVaoElementArray = NULL;
+    uint elementArrayBufferHandle = m_pVaoState->get_element_array_binding();
+    if (elementArrayBufferHandle != 0)
+    {
+        for (uint b = 0; b < allBuffers.size(); b++)
+        {
+            if (allBuffers[b]->get_snapshot_handle() == elementArrayBufferHandle)
+            {
+                m_pVaoElementArray = &(static_cast<vogl_buffer_state*>(allBuffers[b])->get_buffer_data());
+                break;
             }
         }
     }
@@ -309,114 +532,84 @@ void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged
     // this will store the column labels
     QStringList headers;
 
-    // identify if there is an index buffer
-    uint indexBufferHandle = pState->get_element_array_binding();
-    vogl_buffer_state* pIndexBufferState = NULL;
-    if (indexBufferHandle != 0)
+    if (m_pVaoElementArray != NULL)
     {
-        for (uint b = 0; b < bufferVec.size(); b++)
-        {
-            if (bufferVec[b]->get_snapshot_handle() == indexBufferHandle)
-            {
-                pIndexBufferState = static_cast<vogl_buffer_state*>(bufferVec[b]);
-                break;
-            }
-        }
-
-        headers << QString("Element Buffer %1").arg(indexBufferHandle);
+        headers << QString("Element Buffer %1").arg(elementArrayBufferHandle);
+    }
+    else if (m_currentCallElementIndices != NULL)
+    {
+        headers << QString("Indices (Client Array)");
+    }
+    else
+    {
+        headers << QString("Implied Indices");
     }
 
-    for (uint b = 0; b < buffers.size(); b++)
+    for (uint b = 0; b < m_attrib_buffers.size(); b++)
     {
-        if (buffers[b] != NULL)
+        if (m_attrib_buffers[b] != NULL)
         {
-            headers << QString("Attrib %1 (Buffer %2)").arg(b).arg(buffers[b]->get_snapshot_handle());
+            headers << QString("Attrib %1 (Buffer %2)").arg(b).arg(m_attrib_buffers[b]->get_snapshot_handle());
         }
     }
 
     // set column headers
     ui->vertexTableWidget->setColumnCount(headers.size());
     ui->vertexTableWidget->setHorizontalHeaderLabels(headers);
+}
 
-    uint indexCount = 0;
+void vogleditor_QVertexArrayExplorer::update_vertex_array_table()
+{
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
-    // Determine how many vertices (ie, indices) to display
-    if (pIndexBufferState == NULL)
+    // Identify the correct element array to reference
+    const uint8_vec* pElementArray = m_pVaoElementArray;
+    if (pElementArray == NULL)
     {
-        // No index buffer, so assume 10 items
-        indexCount = 10;
-    }
-    else
-    {
-        if (ui->indexTypeComboBox->currentIndex() == 0)
+        if (m_currentCallElementIndices != NULL)
         {
-            // GL_UNSIGNED_BYTE
-            indexCount = pIndexBufferState->get_buffer_data().size();
-        }
-        else if (ui->indexTypeComboBox->currentIndex() == 1)
-        {
-            // GL_UNSIGNED_SHORT
-            indexCount = pIndexBufferState->get_buffer_data().size() / 2;
-        }
-        else if (ui->indexTypeComboBox->currentIndex() == 2)
-        {
-            // GL_UNSIGNED_INT
-            indexCount = pIndexBufferState->get_buffer_data().size() / 4;
+            pElementArray = m_currentCallElementIndices;
         }
         else
         {
-            // invalid option, so bail out
-            return;
+            // no element array means there will be implied indices (ie, in the case of glDrawArrays)
+            pElementArray = NULL;
         }
     }
 
     // Populate each row of the table
+    int32_t indexCount = ui->countSpinBox->value();
     ui->vertexTableWidget->setRowCount(indexCount);
-    for (uint i = 0; i < indexCount; i++)
+    for (int i = 0; i < indexCount; i++)
     {
-        uint32_t vertexIndex = i;
-        if (pIndexBufferState == NULL)
-        {
-            ui->vertexTableWidget->setItem(i, 0, new QTableWidgetItem(QString::number(i)));
-        }
-        else
-        {
-            if (ui->indexTypeComboBox->currentIndex() == 0)
-            {
-                // GL_UNSIGNED_BYTE
-                vertexIndex = ((uint8_t*)pIndexBufferState->get_buffer_data().get_ptr())[i];
-            }
-            else if (ui->indexTypeComboBox->currentIndex() == 1)
-            {
-                // GL_UNSIGNED_SHORT
-                vertexIndex = ((uint16_t*)pIndexBufferState->get_buffer_data().get_ptr())[i];
-            }
-            else if (ui->indexTypeComboBox->currentIndex() == 2)
-            {
-                // GL_UNSIGNED_INT
-                vertexIndex = ((uint32_t*)pIndexBufferState->get_buffer_data().get_ptr())[i];
-            }
-            else
-            {
-                // invalid option, so bail out
-                return;
-            }
+        uint32_t elementIndex = i;
 
-            ui->vertexTableWidget->setItem(i, 0, new QTableWidgetItem(QString::number(vertexIndex)));
-        }
+        int byteOffset = ui->byteOffsetSpinBox->value();
+        int baseVertex = ui->baseVertexSpinBox->value();
+
+        QString elementString;
+
+        bool bValidElement = calculate_element_and_format_as_string(pElementArray, elementIndex, ui->elementTypeComboBox->currentIndex(), byteOffset, baseVertex, elementIndex, elementString);
+
+        // populated element index value
+        ui->vertexTableWidget->setItem(i, 0, new QTableWidgetItem(elementString));
 
         // populate attrib values
-        if (attribCount > 0)
+        // column 0 contains element indices, so start at appropriate column
+        uint column = 1;
+        for (uint b = 0; b < m_attrib_buffers.size(); b++)
         {
-            // column 0 is indices, so start at column 1
-            uint column = 1;
-            for (uint b = 0; b < buffers.size(); b++)
+            if (m_attrib_buffers[b] != NULL)
             {
-                if (buffers[b] != NULL)
+                if (bValidElement)
                 {
-                    ui->vertexTableWidget->setItem(i, column, new QTableWidgetItem(formatBufferDataAsString(vertexIndex, *(buffers[b]), pState->get_vertex_attrib_desc(b))));
-                    column++;
+                    ui->vertexTableWidget->setItem(i, column, new QTableWidgetItem(format_buffer_data_as_string(elementIndex, *(m_attrib_buffers[b]), m_pVaoState->get_vertex_attrib_desc(b))));
                 }
+                else
+                {
+                    ui->vertexTableWidget->setItem(i, column, new QTableWidgetItem("Out of bounds"));
+                }
+                column++;
             }
         }
     }
@@ -429,10 +622,55 @@ void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged
         ui->vertexTableWidget->horizontalHeader()->setResizeMode(i, QHeaderView::Interactive);
         ui->vertexTableWidget->horizontalHeader()->resizeSection(i, tmpWidth);
     }
+
+    QApplication::restoreOverrideCursor();
 }
 
-void vogleditor_QVertexArrayExplorer::on_indexTypeComboBox_currentIndexChanged(int index)
+void vogleditor_QVertexArrayExplorer::on_elementTypeComboBox_currentIndexChanged(int index)
 {
     VOGL_NOTE_UNUSED(index);
-    on_vertexArrayComboBox_currentIndexChanged(ui->vertexArrayComboBox->currentIndex());
+
+    if (!m_bUserSetOptions)
+    {
+        // since the type will affect the amount of memory read, update the element count
+        // if the user has not specifically indicated one.
+        beginUpdate();
+        auto_update_element_count();
+        endUpdate();
+    }
+
+    if (!is_ui_update_in_progress())
+    {
+        update_vertex_array_table();
+    }
+}
+
+void vogleditor_QVertexArrayExplorer::on_countSpinBox_valueChanged(int arg1)
+{
+    VOGL_NOTE_UNUSED(arg1);
+
+    if (!is_ui_update_in_progress())
+    {
+        update_vertex_array_table();
+    }
+}
+
+void vogleditor_QVertexArrayExplorer::on_byteOffsetSpinBox_valueChanged(int arg1)
+{
+    VOGL_NOTE_UNUSED(arg1);
+
+    if (!is_ui_update_in_progress())
+    {
+        update_vertex_array_table();
+    }
+}
+
+void vogleditor_QVertexArrayExplorer::on_baseVertexSpinBox_valueChanged(int arg1)
+{
+    VOGL_NOTE_UNUSED(arg1);
+
+    if (!is_ui_update_in_progress())
+    {
+        update_vertex_array_table();
+    }
 }
