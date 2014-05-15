@@ -909,7 +909,6 @@ inline
 void from_int_comp_norm_unpacked(Tdst *dst, const Tint *src, const uint32 c)
 {
     uint32 index = pxfmt_per_fmt_info<F>::m_index[c];
-    uint32 raw = (uint32) src[index];
     uint32 max = pxfmt_per_fmt_info<F>::m_max[c];
 
     dst[c] = (Tdst) ((double) src[index] * (double) max);
