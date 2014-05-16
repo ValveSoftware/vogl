@@ -1367,7 +1367,7 @@ void vogl_state_saver::save(vogl_generic_state_type type)
                 };
 
             for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums); i++)
-				SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
+                SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
 
             break;
         }

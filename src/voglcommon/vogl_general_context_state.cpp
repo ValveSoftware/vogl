@@ -415,7 +415,7 @@ bool vogl_general_context_state::can_snapshot_state(const vogl_context_info &con
         return false;
     else if ((context_info.is_core_profile()) && (max_vers < VOGL_GET_DEF_MAX_VERSION))
     {
-		if (uint32_t(context_info.get_version()) > max_vers)
+        if (uint32_t(context_info.get_version()) > max_vers)
             return false;
     }
 

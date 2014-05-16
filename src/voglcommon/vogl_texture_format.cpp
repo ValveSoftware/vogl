@@ -291,7 +291,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
         GET_INT(f.m_comp_types[cTCLuminance], GL_TEXTURE_LUMINANCE_TYPE);
 
         GET_INT(f.m_shared_size, GL_TEXTURE_SHARED_SIZE);
-		GET_BOOL(f.m_compressed, GL_TEXTURE_COMPRESSED);
+        GET_BOOL(f.m_compressed, GL_TEXTURE_COMPRESSED);
 
         printf("base_internal_fmt: %s get_fmt: %s get_type: %s, actual_internal_fmt: %s compressed: %u\n",
                get_gl_enums().find_gl_name(base_internal_fmt), get_gl_enums().find_gl_name(get_fmt), get_gl_enums().find_gl_name(get_type),
@@ -460,7 +460,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             GET_INT(f.m_comp_types[cTCLuminance], GL_TEXTURE_LUMINANCE_TYPE);
 
             GET_INT(f.m_shared_size, GL_TEXTURE_SHARED_SIZE);
-			GET_BOOL(f.m_compressed, GL_TEXTURE_COMPRESSED);
+            GET_BOOL(f.m_compressed, GL_TEXTURE_COMPRESSED);
 #undef GET_INT
 #undef GET_BOOL
 
