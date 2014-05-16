@@ -1753,10 +1753,112 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
     uint bufferCount = m_pBufferExplorer->set_buffer_objects(sharingContexts);
     if (bufferCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->bufferTab); }
 
-    // buffers
+    // vertex arrays
     m_pVertexArrayExplorer->clear();
+    m_pVertexArrayExplorer->beginUpdate();
+    update_vertex_array_explorer_for_apicall(m_pCurrentCallTreeItem);
     uint vaoCount = m_pVertexArrayExplorer->set_vertexarray_objects(pContext, sharingContexts);
-    if (vaoCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->vertexArrayTab); }
+    if (vaoCount > 0)
+    {
+        GLuint64 vertexArrayHandle = pContext->get_general_state().get_value<GLuint64>(GL_VERTEX_ARRAY_BINDING);
+        m_pVertexArrayExplorer->set_active_vertexarray(vertexArrayHandle);
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->vertexArrayTab);
+    }
+    m_pVertexArrayExplorer->endUpdate(true);
+}
+
+void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTreeItem* pApiCall)
+{
+    if (pApiCall == NULL || pApiCall->apiCallItem() == NULL)
+    {
+        return;
+    }
+
+    gl_entrypoint_id_t callId = (gl_entrypoint_id_t)pApiCall->apiCallItem()->getGLPacket()->m_entrypoint_id;
+    vogl_trace_packet& trace_packet = *(pApiCall->apiCallItem()->getTracePacket());
+
+    if (callId == VOGL_ENTRYPOINT_glDrawElements)
+    {
+        GLsizei count = trace_packet.get_param_value<GLsizei>(1);
+        GLenum type = trace_packet.get_param_value<GLenum>(2);
+        vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+    }
+    else if ( callId == VOGL_ENTRYPOINT_glDrawRangeElements ||
+         callId == VOGL_ENTRYPOINT_glDrawRangeElementsEXT )
+    {
+        GLsizei count = trace_packet.get_param_value<GLsizei>(3);
+        GLenum type = trace_packet.get_param_value<GLenum>(4);
+        vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(5);
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+    }
+    else if (callId == VOGL_ENTRYPOINT_glDrawElementsInstancedBaseVertex)
+    {
+        GLsizei count = trace_packet.get_param_value<GLsizei>(1);
+        GLenum type = trace_packet.get_param_value<GLenum>(2);
+        vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
+//TODO        GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
+        GLint basevertex = trace_packet.get_param_value<GLint>(5);
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+    }
+    else if (callId == VOGL_ENTRYPOINT_glDrawRangeElementsBaseVertex)
+    {
+        GLsizei count = trace_packet.get_param_value<GLsizei>(3);
+        GLenum type = trace_packet.get_param_value<GLenum>(4);
+        vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(5);
+        GLint basevertex = trace_packet.get_param_value<GLint>(6);
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+    }
+    else if (callId == VOGL_ENTRYPOINT_glDrawElementsBaseVertex)
+    {
+        GLsizei count = trace_packet.get_param_value<GLsizei>(1);
+        GLenum type = trace_packet.get_param_value<GLenum>(2);
+        vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
+        GLint basevertex = trace_packet.get_param_value<GLint>(4);
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+    }
+    else if (callId == VOGL_ENTRYPOINT_glDrawArraysInstanced ||
+             callId == VOGL_ENTRYPOINT_glDrawArraysInstancedEXT)
+    {
+        GLint first = trace_packet.get_param_value<GLsizei>(1);
+        GLsizei count = trace_packet.get_param_value<GLsizei>(2);
+//TODO        GLsizei primcount = trace_packet.get_param_value<GLsizei>(3);
+        m_pVertexArrayExplorer->set_element_array_options(count, GL_NONE, 0, first, NULL);
+    }
+    else if (callId == VOGL_ENTRYPOINT_glDrawArrays ||
+             callId == VOGL_ENTRYPOINT_glDrawArraysEXT)
+    {
+        GLint first = trace_packet.get_param_value<GLsizei>(1);
+        GLsizei count = trace_packet.get_param_value<GLsizei>(2);
+        m_pVertexArrayExplorer->set_element_array_options(count, GL_NONE, 0, first, NULL);
+    }
+    else if (callId == VOGL_ENTRYPOINT_glDrawElementsInstanced ||
+             callId == VOGL_ENTRYPOINT_glDrawElementsInstancedARB ||
+             callId == VOGL_ENTRYPOINT_glDrawElementsInstancedEXT)
+    {
+        GLsizei count = trace_packet.get_param_value<GLsizei>(1);
+        GLenum type = trace_packet.get_param_value<GLenum>(2);
+        vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
+//TODO        GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+    }
+//TODO
+//    else if (callId == VOGL_ENTRYPOINT_glMultiDrawArrays ||
+//             callId == VOGL_ENTRYPOINT_glMultiDrawArraysEXT)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glMultiDrawElements ||
+//             callId == VOGL_ENTRYPOINT_glMultiDrawElementsEXT)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glMultiDrawElementsBaseVertex)
+//    {
+//    }
+    else
+    {
+        // it is an api call which doesn't specify anything about the vertex attribs,
+        // so let the window decide what to do on its own
+    }
 }
 
 void VoglEditor::on_stateTreeView_clicked(const QModelIndex &index)
@@ -1965,8 +2067,7 @@ void VoglEditor::onApiCallSelected(const QModelIndex &index, bool bAllowStateSna
         }
     }
 
-    update_ui_for_snapshot(pCallTreeItem->get_snapshot());
-
+    // update call stack information
     if (pApiCallItem != NULL && m_pCurrentCallTreeItem != pCallTreeItem)
     {
         if (m_backtraceToJsonMap.size() > 0)
@@ -1993,6 +2094,10 @@ void VoglEditor::onApiCallSelected(const QModelIndex &index, bool bAllowStateSna
         }
     }
 
+    m_pCurrentCallTreeItem = pCallTreeItem;
+
+    update_ui_for_snapshot(m_pCurrentCallTreeItem->get_snapshot());
+
     if (pApiCallItem != NULL)
     {
         m_timeline->setCurrentApiCall(pApiCallItem->globalCallIndex());
@@ -2004,8 +2109,6 @@ void VoglEditor::onApiCallSelected(const QModelIndex &index, bool bAllowStateSna
     }
 
     m_timeline->repaint();
-
-    m_pCurrentCallTreeItem = pCallTreeItem;
 }
 
 void VoglEditor::selectApicallModelIndex(QModelIndex index, bool scrollTo, bool select)

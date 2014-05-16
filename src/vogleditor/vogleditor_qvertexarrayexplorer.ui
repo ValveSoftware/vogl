@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>439</width>
     <height>300</height>
    </rect>
   </property>
@@ -15,9 +15,29 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QComboBox" name="vertexArrayComboBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>2</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QComboBox" name="vertexArrayComboBox">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Count:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="countSpinBox"/>
+     </item>
+     <item>
+      <widget class="QComboBox" name="elementTypeComboBox">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
          <horstretch>3</horstretch>
@@ -27,14 +47,34 @@
       </widget>
      </item>
      <item>
-      <widget class="QComboBox" name="indexTypeComboBox">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>2</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Offset:</string>
        </property>
       </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="byteOffsetSpinBox">
+       <property name="suffix">
+        <string> bytes</string>
+       </property>
+       <property name="prefix">
+        <string/>
+       </property>
+       <property name="value">
+        <number>0</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Base Vertex:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="baseVertexSpinBox"/>
      </item>
     </layout>
    </item>
