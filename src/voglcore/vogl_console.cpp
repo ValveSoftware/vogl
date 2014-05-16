@@ -127,7 +127,7 @@ namespace vogl
         static char buf[cConsoleBufSize];
 
         char *pDst = buf;
-        uint32_t buf_left = sizeof(buf);
+        size_t buf_left = sizeof(buf);
 
         if ((m_prefixes) && (m_at_beginning_of_line))
         {

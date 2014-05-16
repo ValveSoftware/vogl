@@ -31,7 +31,3 @@
 #include "vogl_winhdr.h"
 #endif
 
-namespace vogl
-{
-
-} // namespace vogl

@@ -339,7 +339,7 @@ void vogl_state_data::get_bool(bool *pVals) const
         case cSTGLboolean:
         {
             for (uint32_t i = 0; i < m_num_elements; i++)
-                pVals[i] = get_element<GLboolean>(i);
+                pVals[i] = get_element<GLboolean>(i) != GL_FALSE;
             break;
         }
         case cSTGLenum:

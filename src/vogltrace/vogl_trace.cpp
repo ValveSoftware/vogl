@@ -40,6 +40,11 @@
     #include <linux/unistd.h>
 #endif
 
+#if defined(COMPILER_MSVC)
+	// As long as we include windows.h, we will get different dll linkage for this. However, we will "win" in here
+	// so we get the results we are looking for. 
+	#pragma warning( disable : 4273 )
+#endif
 
 
 //----------------------------------------------------------------------------------------------------------------------

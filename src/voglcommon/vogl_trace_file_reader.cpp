@@ -638,7 +638,7 @@ bool vogl_json_trace_file_reader::open_first_document()
 
     m_sof_packet.init();
     m_sof_packet.m_pointer_sizes = meta_pointer_sizes;
-    m_sof_packet.m_version = trace_version;
+    m_sof_packet.m_version = safe_int_cast<uint16_t>(trace_version);
 
     if (m_archive_blob_manager.is_initialized())
     {

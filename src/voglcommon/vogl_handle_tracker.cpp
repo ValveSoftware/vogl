@@ -194,7 +194,7 @@ bool vogl_handle_tracker::map_inv_handle_to_handle(handle_t inv_handle, handle_t
 
     VOGL_ASSERT(contains(handle));
 
-    return handle;
+    return handle != 0;
 }
 
 bool vogl_handle_tracker::map_handle_to_inv_handle(handle_t handle, handle_t &inv_handle) const

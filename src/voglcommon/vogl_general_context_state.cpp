@@ -411,11 +411,11 @@ bool vogl_general_context_state::can_snapshot_state(const vogl_context_info &con
     VOGL_ASSERT(max_vers >= VOGL_CREATE_GL_VERSION(1, 0, 0));
     VOGL_ASSERT(max_vers <= VOGL_CREATE_GL_VERSION(9, 9, 0));
 
-    if (context_info.get_version() < min_vers)
+    if (uint32_t(context_info.get_version()) < min_vers)
         return false;
     else if ((context_info.is_core_profile()) && (max_vers < VOGL_GET_DEF_MAX_VERSION))
     {
-        if (context_info.get_version() > max_vers)
+		if (uint32_t(context_info.get_version()) > max_vers)
             return false;
     }
 
