@@ -26,7 +26,10 @@ message("CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_definitions("-DVOGL_USE_LINUX_API=1")
 add_definitions("-DSDL_VIDEO_DRIVER_X11=1")
-add_definitions("-DSDL_VIDEO_DRIVER_X11_DYNAMIC")
+add_definitions("-DSDL_VIDEO_DRIVER_X11_DYNAMIC=1")
+add_definitions("-DVOGL_PLATFORM_HAS_X11=1")
+add_definitions("-DVOGL_PLATFORM_HAS_GLX=1")
+add_definitions("-DPLATFORM_POSIX=1")
 
 # Create list of vogl directories plus extensions.
 set(GLOBSPEC)
