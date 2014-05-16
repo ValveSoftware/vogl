@@ -26,32 +26,7 @@
 // File: voglbench.cpp
 #include "vogl_common.h"
 #include "vogl_gl_replayer.h"
-#include "vogl_texture_format.h"
-#include "vogl_trace_file_writer.h"
-
 #include "vogl_colorized_console.h"
-#include "vogl_command_line_params.h"
-#include "vogl_cfile_stream.h"
-#include "vogl_value.h"
-#include "vogl_dynamic_stream.h"
-#include "vogl_file_utils.h"
-#include "vogl_mergesort.h"
-#include "vogl_unique_ptr.h"
-#include "vogl_find_files.h"
-#include "vogl_bigint128.h"
-#include "vogl_regex.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#include "vogl_json.h"
-#include "vogl_blob_manager.h"
-
-#include "libtelemetry.h"
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xmd.h>
 
 //$ TODO: investigate using SDL for windows and any keyboard controls.
 //$ Run clang-format on everything.
@@ -67,27 +42,27 @@ static cfile_stream *g_vogl_pLog_stream;
 // command line params
 //----------------------------------------------------------------------------------------------------------------------
 static command_line_param_desc g_command_line_param_descs[] =
-    {
-        { "width", 1, false, "Replay: Set initial window width (default is 1024)" },
-        { "height", 1, false, "Replay: Set initial window height (default is 768)" },
-        { "msaa", 1, false, "Replay: Set initial window multisamples (default is 0)" },
-        { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
-        { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
-        { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
+{
+    { "width", 1, false, "Replay: Set initial window width (default is 1024)" },
+    { "height", 1, false, "Replay: Set initial window height (default is 768)" },
+    { "msaa", 1, false, "Replay: Set initial window multisamples (default is 0)" },
+    { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
+    { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
+    { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
 #ifdef USE_TELEMETRY
-        { "telemetry_level", 1, false, "Set Telemetry level." },
+    { "telemetry_level", 1, false, "Set Telemetry level." },
 #endif
-        { "loop_frame", 1, false, "Replay: loop mode's start frame" },
-        { "loop_len", 1, false, "Replay: loop mode's loop length" },
-        { "loop_count", 1, false, "Replay: loop mode's loop count" },
-        { "logfile", 1, false, "Create logfile" },
-        { "logfile_append", 1, false, "Append output to logfile" },
-        { "help", 0, false, "Display this help" },
-        { "?", 0, false, "Display this help" },
-        { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
-        { "verbose", 0, false, "Verbose debug output" },
-        { "quiet", 0, false, "Disable all console output" },
-    };
+    { "loop_frame", 1, false, "Replay: loop mode's start frame" },
+    { "loop_len", 1, false, "Replay: loop mode's loop length" },
+    { "loop_count", 1, false, "Replay: loop mode's loop count" },
+    { "logfile", 1, false, "Create logfile" },
+    { "logfile_append", 1, false, "Append output to logfile" },
+    { "help", 0, false, "Display this help" },
+    { "?", 0, false, "Display this help" },
+    { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
+    { "verbose", 0, false, "Verbose debug output" },
+    { "quiet", 0, false, "Disable all console output" },
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // init_logfile
@@ -310,9 +285,7 @@ static int X11_Pending(Display *display)
     /* Flush the display connection and look to see if events are queued */
     XFlush(display);
     if (XEventsQueued(display, QueuedAlready))
-    {
-        return (1);
-    }
+        return 1;
 
     /* More drastic measures are required -- see if X is ready to talk */
     {
@@ -330,7 +303,7 @@ static int X11_Pending(Display *display)
     }
 
     /* Oh well, nothing is ready .. */
-    return (0);
+    return 0;
 }
 
 //----------------------------------------------------------------------------------------------------------------------

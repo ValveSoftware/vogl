@@ -390,7 +390,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_next_packet(vogl_trace_file
 
     if (status < 0)
     {
-        vogl_error_printf("%s: %s failure processing GL entrypoint packet\n", VOGL_FUNCTION_INFO_CSTR, (status == cStatusHardFailure) ? "Hard" : "Soft");
+        vogl_error_printf("%s: %s failure processing GL entrypoint packet\n", VOGL_FUNCTION_INFO_CSTR,
+                          (status == cStatusHardFailure) ? "Hard" : "Soft");
     }
 
     return status;
