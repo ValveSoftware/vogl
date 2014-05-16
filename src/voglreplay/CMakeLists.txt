@@ -22,6 +22,13 @@ include_directories(
 set(SRC_LIST
     ${SRC_LIST}
     vogl_replay_tool.cpp
+    replay_tool_dump.cpp
+    replay_tool_parse.cpp
+    replay_tool_info.cpp
+    replay_tool_json.cpp
+    replay_tool_find.cpp
+    replay_tool_compare_hash.cpp
+    replay_tool_replay.cpp
 #    vogl_remote.cpp
 #    ../common/channel.cpp
 )
