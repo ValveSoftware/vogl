@@ -259,7 +259,7 @@ bool vogl_trace_file_writer::write_eof_packet()
     vogl_trace_stream_packet_base eof_packet;
     eof_packet.init(cTSPTEOF, sizeof(vogl_trace_stream_packet_base));
     eof_packet.finalize();
-    return m_stream.write(&eof_packet, sizeof(eof_packet));
+    return m_stream.write(&eof_packet, sizeof(eof_packet)) != 0;
 }
 
 bool vogl_trace_file_writer::write_frame_file_offsets_to_archive()

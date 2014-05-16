@@ -78,6 +78,12 @@ struct parse
 
 #include "regcomp.ih"
 
+#if defined(COMPILER_MSVC)
+	// These are possibly legit, but would be a pita to fix atm. 
+	#pragma warning(disable : 4244)
+	#pragma warning(disable : 4267)
+#endif
+
 static char vogl_nuls[10]; /* place to point scanner in event of error */
 
 /*

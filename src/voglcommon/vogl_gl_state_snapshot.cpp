@@ -807,7 +807,7 @@ bool vogl_gl_state_snapshot::deserialize(const json_node &node, const vogl_blob_
     m_cur_trace_context = static_cast<vogl_trace_ptr_value>(node.value_as_uint64("cur_trace_context"));
     m_frame_index = node.value_as_uint32("frame_index");
     m_gl_call_counter = node.value_as_int64("gl_call_counter");
-    m_at_frame_boundary = node.value_as_int64("at_frame_boundary");
+    m_at_frame_boundary = node.value_as_bool("at_frame_boundary");
     m_is_restorable = node.value_as_bool("is_restorable", true);
 
     if (!vogl_json_deserialize_vec(node, blob_manager, "client_side_vertex_attrib_ptrs", m_client_side_vertex_attrib_ptrs))

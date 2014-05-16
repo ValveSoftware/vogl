@@ -254,6 +254,17 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
         GL_ENTRYPOINT(glGetTexLevelParameteriv)(target, 0, (gl_enum), values); \
         (dst) = values[0];                                                     \
     } while (0)
+
+#define GET_BOOL(dst, gl_enum)                                                 \
+    do                                                                         \
+    {                                                                          \
+        int values[4];                                                         \
+        utils::zero_object(values);                                            \
+        GL_ENTRYPOINT(glGetTexLevelParameteriv)(target, 0, (gl_enum), values); \
+        (dst) = values[0] != 0;                                                \
+    } while (0)
+
+
         GLenum actual_internal_fmt;
         GET_INT(actual_internal_fmt, GL_TEXTURE_INTERNAL_FORMAT);
 
@@ -280,13 +291,14 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
         GET_INT(f.m_comp_types[cTCLuminance], GL_TEXTURE_LUMINANCE_TYPE);
 
         GET_INT(f.m_shared_size, GL_TEXTURE_SHARED_SIZE);
-        GET_INT(f.m_compressed, GL_TEXTURE_COMPRESSED);
+        GET_BOOL(f.m_compressed, GL_TEXTURE_COMPRESSED);
 
         printf("base_internal_fmt: %s get_fmt: %s get_type: %s, actual_internal_fmt: %s compressed: %u\n",
                get_gl_enums().find_gl_name(base_internal_fmt), get_gl_enums().find_gl_name(get_fmt), get_gl_enums().find_gl_name(get_type),
                get_gl_enums().find_gl_name(actual_internal_fmt),
                f.m_compressed);
 #undef GET_INT
+#undef GET_BOOL
 
         //VOGL_ASSERT(!any_gl_errors);
 
@@ -418,6 +430,15 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
         (dst) = values[0];                                                     \
     } while (0)
 
+#define GET_BOOL(dst, gl_enum)                                                 \
+    do                                                                         \
+    {                                                                          \
+        int values[4];                                                         \
+        utils::zero_object(values);                                            \
+        GL_ENTRYPOINT(glGetTexLevelParameteriv)(target, 0, (gl_enum), values); \
+        (dst) = values[0] != 0;                                                \
+    } while (0)
+
             GLenum internal_fmt;
             GET_INT(internal_fmt, GL_TEXTURE_INTERNAL_FORMAT);
             VOGL_ASSERT(internal_fmt == fmt);
@@ -439,8 +460,9 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             GET_INT(f.m_comp_types[cTCLuminance], GL_TEXTURE_LUMINANCE_TYPE);
 
             GET_INT(f.m_shared_size, GL_TEXTURE_SHARED_SIZE);
-            GET_INT(f.m_compressed, GL_TEXTURE_COMPRESSED);
+            GET_BOOL(f.m_compressed, GL_TEXTURE_COMPRESSED);
 #undef GET_INT
+#undef GET_BOOL
 
             VOGL_ASSERT(!any_gl_errors);
 

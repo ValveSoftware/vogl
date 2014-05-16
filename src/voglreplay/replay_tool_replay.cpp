@@ -33,11 +33,11 @@
 
 #if (!VOGL_PLATFORM_HAS_X11)
 
-static bool tool_replay_mode()
-{
-    VOGL_VERIFY(!"impl tool_replay_mode");
-    return false;
-}
+    bool tool_replay_mode()
+    {
+        VOGL_VERIFY(!"impl tool_replay_mode");
+        return false;
+    }
 
 #else
 

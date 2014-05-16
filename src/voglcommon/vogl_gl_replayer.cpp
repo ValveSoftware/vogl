@@ -2222,7 +2222,7 @@ void vogl_gl_replayer::handle_use_program(GLuint trace_handle, gl_entrypoint_id_
 
     if ((prev_replay_program) && (replay_handle != prev_replay_program))
     {
-        prev_is_program = GL_ENTRYPOINT(glIsProgram)(prev_replay_program);
+        prev_is_program = GL_ENTRYPOINT(glIsProgram)(prev_replay_program) != GL_FALSE;
         check_gl_error_quietly();
 
         if (prev_is_program)
@@ -2265,7 +2265,7 @@ void vogl_gl_replayer::handle_use_program(GLuint trace_handle, gl_entrypoint_id_
 
     if ((prev_replay_program) && (prev_replay_program != replay_handle))
     {
-        bool is_prev_still_program = GL_ENTRYPOINT(glIsProgram)(prev_replay_program);
+        bool is_prev_still_program = GL_ENTRYPOINT(glIsProgram)(prev_replay_program) != GL_FALSE;
         if (!is_prev_still_program)
         {
             VOGL_ASSERT(prev_is_program);
@@ -2288,7 +2288,7 @@ void vogl_gl_replayer::handle_use_program(GLuint trace_handle, gl_entrypoint_id_
             {
                 GLuint replay_shader_handle = prev_attached_replay_shaders[i];
 
-                bool is_still_shader = GL_ENTRYPOINT(glIsShader)(replay_shader_handle);
+                bool is_still_shader = GL_ENTRYPOINT(glIsShader)(replay_shader_handle) != GL_FALSE;
                 check_gl_error_quietly();
 
                 if (is_still_shader)
@@ -2474,7 +2474,7 @@ void vogl_gl_replayer::handle_delete_shader(GLuint trace_handle)
     if (!replay_handle)
         return;
 
-    bool is_still_shader = GL_ENTRYPOINT(glIsShader)(replay_handle);
+    bool is_still_shader = GL_ENTRYPOINT(glIsShader)(replay_handle) != GL_FALSE;
     check_gl_error_quietly();
 
     if (!is_still_shader)
@@ -9685,7 +9685,7 @@ bool vogl_gl_replayer::replay_to_trace_handle_remapper::is_valid_handle(vogl_nam
         case VOGL_NAMESPACE_BUFFERS:
         {
             VOGL_ASSERT(replay_handle32 == replay_handle);
-            return m_replayer.get_shared_state()->m_buffers.search_table_for_value_get_count(replay_handle32);
+            return m_replayer.get_shared_state()->m_buffers.search_table_for_value_get_count(replay_handle32) != 0;
         }
         case VOGL_NAMESPACE_SYNCS:
         {

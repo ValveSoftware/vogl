@@ -346,7 +346,7 @@ public:
                         if (pNode == (pEnd_node - 1))
                         {
                             free_nodes_in_block[m] = (uint32_t)n;
-                            i += (n - 1);
+                            i += safe_int_cast<uint32_t>(n - 1);
                         }
                     }
 

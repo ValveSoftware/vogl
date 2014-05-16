@@ -661,7 +661,7 @@ bool vogl_msaa_texture_splitter::split(GLenum src_target, GLuint src_texture, vo
                 {
                     quad_tri_verts[i].m_uv0[0] *= mip_width;
                     quad_tri_verts[i].m_uv0[1] *= mip_height;
-                    quad_tri_verts[i].m_uv0[2] = layer;
+                    quad_tri_verts[i].m_uv0[2] = 1.0f * layer;
                 }
 
                 GL_ENTRYPOINT(glBufferData)(GL_ARRAY_BUFFER, sizeof(quad_tri_verts), quad_tri_verts, GL_STATIC_DRAW);
@@ -863,7 +863,7 @@ bool vogl_msaa_texture_splitter::combine(GLuint src_texture, uint32_t dest_sampl
             {
                 quad_tri_verts[i].m_uv0[0] *= mip_width;
                 quad_tri_verts[i].m_uv0[1] *= mip_height;
-                quad_tri_verts[i].m_uv0[2] = layer;
+                quad_tri_verts[i].m_uv0[2] = 1.0f * layer;
             }
 
             GL_ENTRYPOINT(glBufferData)(GL_ARRAY_BUFFER, sizeof(quad_tri_verts), quad_tri_verts, GL_STATIC_DRAW);
@@ -1083,7 +1083,7 @@ bool vogl_msaa_texture_splitter::copy_stencil_samples_to_color(GLenum target, GL
             {
                 quad_tri_verts[i].m_uv0[0] *= width;
                 quad_tri_verts[i].m_uv0[1] *= height;
-                quad_tri_verts[i].m_uv0[2] = layer;
+                quad_tri_verts[i].m_uv0[2] = 1.0f * layer;
             }
 
             GL_ENTRYPOINT(glBufferData)(GL_ARRAY_BUFFER, sizeof(quad_tri_verts), quad_tri_verts, GL_STATIC_DRAW);
@@ -1261,7 +1261,7 @@ bool vogl_msaa_texture_splitter::copy_color_sample_to_stencil(
             {
                 quad_tri_verts[i].m_uv0[0] *= width;
                 quad_tri_verts[i].m_uv0[1] *= height;
-                quad_tri_verts[i].m_uv0[2] = layer;
+                quad_tri_verts[i].m_uv0[2] = 1.0f * layer;
             }
 
             GL_ENTRYPOINT(glBufferData)(GL_ARRAY_BUFFER, sizeof(quad_tri_verts), quad_tri_verts, GL_STATIC_DRAW);

@@ -1357,7 +1357,7 @@ void vogl_state_saver::save(vogl_generic_state_type type)
             for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_int_enums); i++)
                 SAVE_INT_STATE(cGSTPixelTransfer, s_pixel_transfer_int_enums[i]);
 
-            static const GLfloat s_pixel_transfer_float_enums[] =
+            static const GLenum s_pixel_transfer_float_enums[] =
                 {
                     GL_INDEX_OFFSET, GL_RED_SCALE, GL_GREEN_SCALE, GL_BLUE_SCALE, GL_ALPHA_SCALE, GL_DEPTH_SCALE, GL_RED_BIAS, GL_GREEN_BIAS,
                     GL_BLUE_BIAS, GL_ALPHA_BIAS, GL_DEPTH_BIAS, GL_POST_COLOR_MATRIX_RED_SCALE, GL_POST_COLOR_MATRIX_GREEN_SCALE, GL_POST_COLOR_MATRIX_BLUE_SCALE,

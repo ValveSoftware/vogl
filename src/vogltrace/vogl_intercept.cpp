@@ -89,6 +89,12 @@ class vogl_entrypoint_serializer;
     #error "Need to define CONTEXT_TYPE for this platform"
 #endif
 
+#if defined(COMPILER_MSVC)
+	// As long as we include windows.h, we will get different dll linkage for this. However, we will "win" in here
+	// so we get the results we are looking for. 
+	#pragma warning( disable : 4273 )
+#endif
+
 typedef vogl::hash_map<CONTEXT_TYPE, vogl_context *, bit_hasher<CONTEXT_TYPE> > context_map;
 bool get_dimensions_from_dc(unsigned int* out_width, unsigned int* out_height, HDC hdc);
 
@@ -2125,7 +2131,7 @@ public:
 
         if ((prev_program) && (program != prev_program))
         {
-            prev_is_program = GL_ENTRYPOINT(glIsProgram)(prev_program);
+            prev_is_program = GL_ENTRYPOINT(glIsProgram)(prev_program) != GL_FALSE;
             peek_and_drop_gl_error();
 
             if (prev_is_program)
@@ -2171,7 +2177,7 @@ public:
 
         if ((prev_program) && (prev_program != program))
         {
-            bool is_prev_still_program = GL_ENTRYPOINT(glIsProgram)(prev_program);
+            bool is_prev_still_program = GL_ENTRYPOINT(glIsProgram)(prev_program) != GL_FALSE;
             if (!is_prev_still_program)
             {
                 VOGL_ASSERT(prev_is_program);
@@ -2188,7 +2194,7 @@ public:
                 {
                     GLuint shader_handle = prev_attached_replay_shaders[i];
 
-                    bool is_still_shader = GL_ENTRYPOINT(glIsShader)(shader_handle);
+                    bool is_still_shader = GL_ENTRYPOINT(glIsShader)(shader_handle) != GL_FALSE;
                     peek_and_drop_gl_error();
 
                     if (is_still_shader)
@@ -2242,7 +2248,7 @@ public:
         if (!obj)
             return;
 
-        bool is_still_shader = GL_ENTRYPOINT(glIsShader)(obj);
+        bool is_still_shader = GL_ENTRYPOINT(glIsShader)(obj) != GL_FALSE;
         peek_and_drop_gl_error();
 
         if (!is_still_shader)

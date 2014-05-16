@@ -38,6 +38,15 @@ private:                               \
     static void *operator new(size_t); \
     static void *operator new[](size_t);
 
+template <typename DestType, typename SrcType>
+VOGL_FORCE_INLINE DestType safe_int_cast(SrcType src_val)
+{
+	DestType ret_val = DestType(src_val);
+	VOGL_ASSERT(ret_val == src_val);
+
+	return ret_val;
+}
+
 namespace vogl
 {
     namespace helpers
