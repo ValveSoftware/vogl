@@ -57,7 +57,7 @@ add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES)
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS)
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS_LIST "/DEBUG /W3 /D_CRT_SECURE_NO_WARNINGS=1 /DWIN32 /D_WIN32")
+    set(CMAKE_CXX_FLAGS_LIST "/W3 /D_CRT_SECURE_NO_WARNINGS=1 /DWIN32 /D_WIN32")
     set(CMAKE_CXX_FLAGS_RELEASE_LIST "/O2 /DNDEBUG")
     set(CMAKE_CXX_FLAGS_DEBUG_LIST "/Od /D_DEBUG")
 else()
@@ -401,6 +401,18 @@ elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 else()
     message("Compiler is ${CMAKE_C_COMPILER_ID}")
     message(FATAL_ERROR "Compiler unset, build will fail--stopping at CMake time.")
+endif()
+
+# Platform specific libary defines.
+if (WIN32)
+    set( LIBRT "" )
+    set( LIBDL "" )
+
+elseif (UNIX)
+    set( LIBRT rt )
+    set( LIBDL dl )
+else()
+    message(FATAL_ERROR "Need to determine what the library name for 'rt' is for non-windows, non-unix platforms (or if it's even needed).")
 endif()
 
 # What OS will we be running on?

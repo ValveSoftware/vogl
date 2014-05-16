@@ -102,18 +102,6 @@ else()
     message(FATAL_ERROR "Need to add a vogl_port_PLATFORM.cpp file for this platform.")
 endif()
 
-# Platform specific libary defines.
-if (WIN32)
-    set( LIBRT "" )
-    set( LIBDL "" )
-
-elseif (UNIX)
-    set( LIBRT rt )
-    set( LIBDL dl )
-else()
-    message(FATAL_ERROR "Need to determine what the library name for 'rt' is for non-windows, non-unix platforms (or if it's even needed).")
-endif()
-
 if (VOGL_ENABLE_ASSERTS)
     message("Forcing assertions to be enabled (VOGL_ENABLE_ASSERTS=TRUE)")
     add_compiler_flag("-DVOGL_ENABLE_ASSERTIONS_IN_ALL_BUILDS=1")

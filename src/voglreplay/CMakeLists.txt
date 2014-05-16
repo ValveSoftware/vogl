@@ -45,7 +45,7 @@ target_link_libraries(${PROJECT_NAME}
     ${X11_X11_LIB}
     ${CMAKE_THREAD_LIBS_INIT}
     voglcore
-    )
+)
 
 build_options_finalize()
 
