@@ -6954,7 +6954,7 @@ static void vogl_serialize_shader_source(vogl_entrypoint_serializer &trace_seria
         {
             const char *pStr = (const char *)string[i];
             int str_len = 0;
-            if (length)
+            if (length && length[i] >= 0)
                 str_len = length[i];
             else
                 str_len = pStr ? (vogl_strlen(pStr) + 1) : 0;
