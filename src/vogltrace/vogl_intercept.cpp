@@ -4438,6 +4438,16 @@ static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
 	return state->trapped_error_code;
     }
 
+    static bool vogl_query_glx_drawable_size(const Display *dpy, GLXDrawable drawable, unsigned int *width, unsigned int *height)
+    {
+	vogl_xlib_trap_state_t state;
+
+	vogl_xlib_trap_errors (&state);
+	GL_ENTRYPOINT(glXQueryDrawable(const_cast<Display *>(dpy), drawable, GLX_WIDTH, width));
+	GL_ENTRYPOINT(glXQueryDrawable(const_cast<Display *>(dpy), drawable, GLX_HEIGHT, height));
+	return vogl_xlib_untrap_errors (&state) == 0;
+    }
+
     static void vogl_add_make_current_key_value_fields(const Display *dpy, GLXDrawable drawable, Bool result, vogl_context *pVOGL_context, vogl_entrypoint_serializer &serializer)
     {
         if ((result) && (pVOGL_context))
@@ -4462,12 +4472,7 @@ static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
 
             if ((dpy) && (drawable) && (result))
             {
-		vogl_xlib_trap_state_t state;
-
-		vogl_xlib_trap_errors (&state);
-		GL_ENTRYPOINT(glXQueryDrawable(const_cast<Display *>(dpy), drawable, GLX_WIDTH, &width));
-		GL_ENTRYPOINT(glXQueryDrawable(const_cast<Display *>(dpy), drawable, GLX_HEIGHT, &height));
-		valid_dims = vogl_xlib_untrap_errors (&state) == 0;
+		valid_dims = vogl_query_glx_drawable_size (dpy, drawable, &width, &height);
             }
 
             if (valid_dims)
@@ -5593,12 +5598,9 @@ static void vogl_check_for_capture_trigger_file()
             GL_ENTRYPOINT(glXMakeCurrent)(pVOGL_context->get_display(), pVOGL_context->get_drawable(), pVOGL_context->get_context_handle());
         }
 
-        Window root = 0;
-        int x = 0, y = 0;
         unsigned int width = 0, height = 0;
         bool dims_valid = false;
-        unsigned int border_width = 0, depth = 0;
-        dims_valid = (dpy) && (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False);
+	dims_valid = vogl_query_glx_drawable_size(dpy, drawable, &width, &height);
 
         if (dims_valid)
         {
