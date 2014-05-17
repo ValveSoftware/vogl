@@ -381,6 +381,10 @@ bool vogl_context_info::init(const vogl_context_desc &desc)
                 }
             }
         }
+        else if (m_version == VOGL_GL_VERSION_3_1 && m_forward_compatible)
+        {
+            m_core_profile = true;
+        }
     }
 
     determine_core_extensions();
