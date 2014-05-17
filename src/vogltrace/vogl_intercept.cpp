@@ -4724,9 +4724,9 @@ static void vogl_glTexStorage2D(	GLenum target,
         Bool result = GL_ENTRYPOINT(glXMakeContextCurrent)(dpy, draw, read, context);
         uint64_t gl_end_rdtsc = utils::RDTSC();
 
-        if ((result) && (pCur_context != pNew_context))
+        if (result)
         {
-            if (pCur_context)
+            if ((pCur_context != pNew_context) && pCur_context)
                 context_manager.release_current();
 
             if (context)
