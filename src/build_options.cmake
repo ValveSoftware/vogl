@@ -376,6 +376,21 @@ function(require_libjpegturbo)
     endif()
 endfunction()
 
+function(require_sdl2)
+    # TODO for linux
+    # find_package(SDL2)
+    if (MSVC)
+        set(SDL2Root "${CMAKE_EXTERNAL_PATH}/SDL")
+
+        INCLUDE_EXTERNAL_MSPROJECT(SDL "${SDL2Root}/VisualC/SDL/SDL_VS2013.vcxproj")
+        set(SDL2_INCLUDE "${SDL2Root}/include" PARENT_SCOPE)
+        set(SDL2_LIBRARY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/SDL2.lib" PARENT_SCOPE)
+    else()
+        message(FATAL_ERROR "Need to deal with SDL on non-Windows platforms")
+    endif()
+endfunction()
+
+
 function(request_backtrace)
     if (NOT MSVC)
         set( LibBackTrace_INCLUDE "${SRC_DIR}/libbacktrace" PARENT_SCOPE )

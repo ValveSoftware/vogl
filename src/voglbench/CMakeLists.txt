@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
 
+require_sdl2()
 require_pthreads()
 request_backtrace()
 
@@ -16,6 +17,7 @@ include_directories(
     ${SRC_DIR}/voglcommon
     ${SRC_DIR}/libtelemetry
     ${SRC_DIR}/extlib/loki/include/loki
+    ${SDL2_INCLUDE}
 )
 
 set(SRC_LIST
@@ -23,7 +25,7 @@ set(SRC_LIST
 )
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
-add_dependencies(${PROJECT_NAME} voglgen_make_inc)
+add_dependencies(${PROJECT_NAME} voglgen_make_inc SDL)
 
 target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
@@ -33,6 +35,7 @@ target_link_libraries(${PROJECT_NAME}
     ${X11_X11_LIB}
     voglcore
     ${LIBRT}
+    ${SDL2_LIBRARY}
 )
 
 build_options_finalize()

@@ -4,9 +4,11 @@ cmake_minimum_required(VERSION 2.8)
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SRC_DIR}/cmake/Modules/")
+set(CMAKE_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/../external")
 
 if (WIN32)
-    set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../external/windows")
+    # TODO: s/CMAKE_PREFIX_PATH/CMAKE_EXTERNAL_WINDOWS_PATH/g
+    set(CMAKE_PREFIX_PATH "${CMAKE_EXTERNAL_PATH}/windows")
     set(WIN32_PTHREADS_PATH "${CMAKE_PREFIX_PATH}/pthreads.2")
     set(WIN32_PTHREADS_INCLUDE_PATH "${WIN32_PTHREADS_PATH}/include")
 endif()
