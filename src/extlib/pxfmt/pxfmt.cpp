@@ -673,7 +673,8 @@ void to_int_comp_copy(Tint *dst, const Tsrc *src, const uint32 c)
 #define RGB9E5_B 15
 #define RGB9E5_B1 (15 + 1)
 #define RGB9E5_ADJUST (-(RGB9E5_B) -(RGB9E5_N))
-#define POW2(x) (double) pow(2.0, (double) (x));
+// Use the following function (instead of macro) to reduce code size (below):
+double POW2(double x) {return pow(2.0, (double) x); }
 
 
 // This special function converts all components of a source pixel to an
