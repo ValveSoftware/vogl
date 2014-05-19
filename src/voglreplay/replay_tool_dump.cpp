@@ -66,7 +66,9 @@ bool tool_dump_mode()
     file_utils::create_directories(output_trace_path, false);
 
     dynamic_string actual_input_trace_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_trace_filename, actual_input_trace_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
+    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(
+            vogl_open_trace_file(input_trace_filename, actual_input_trace_filename,
+            g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
         vogl_error_printf("%s: Failed opening input trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, input_trace_filename.get_ptr());

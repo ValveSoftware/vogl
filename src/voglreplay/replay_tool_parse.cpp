@@ -45,7 +45,9 @@ bool tool_parse_mode()
     }
 
     dynamic_string actual_input_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_base_filename, actual_input_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
+    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(
+                vogl_open_trace_file(input_base_filename, actual_input_filename,
+                g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
         return false;
 

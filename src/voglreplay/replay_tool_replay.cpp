@@ -1633,4 +1633,9 @@ bool tool_replay_mode()
     return (ret != -1);
 }
 
+bool tool_play_mode()
+{
+    return tool_replay_mode();
+}
+
 #endif  // VOGL_PLATFORM_HAS_X11

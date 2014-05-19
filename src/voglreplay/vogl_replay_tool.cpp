@@ -37,6 +37,7 @@ bool tool_pack_json_mode();
 bool tool_find_mode();
 bool tool_compare_hash_files_mode();
 bool tool_replay_mode();
+bool tool_play_mode();
 
 //----------------------------------------------------------------------------------------------------------------------
 // globals
@@ -47,22 +48,30 @@ static cfile_stream *g_vogl_pLog_stream;
 //----------------------------------------------------------------------------------------------------------------------
 // command line params
 //----------------------------------------------------------------------------------------------------------------------
-static command_line_param_desc g_command_line_param_descs[] =
+static command_line_param_desc g_command_line_param_descs_play[] =
 {
-    { "replay", 0, false, "Replay mode (the default), must specify .BIN or .JSON trace file to replay" },
-    { "dump", 0, false, "Dump mode: Dumps binary trace file to a JSON trace file, must specify input and output filenames" },
-    { "parse", 0, false, "Parse mode: Parse JSON trace file to a binary trace file, must specify input and output filenames" },
-    { "info", 0, false, "Info mode: Output statistics about a trace file" },
-    { "unpack_json", 0, false, "Unpack UBJ to JSON mode: Unpack UBJ (Universal Binary JSON) to textual JSON, must specify input and output filenames" },
-    { "pack_json", 0, false, "Pack JSON to UBJ mode: Pack textual JSON to UBJ, must specify input and output filenames" },
-    { "find", 0, false, "Find all calls with parameters containing a specific value, combine with -find_param, -find_func, find_namespace, etc. params" },
-    { "compare_hash_files", 0, false, "Compare two files containing CRC's or per-component sums (presumably written using dump_backbuffer_hashes)" },
-
-    // replay specific
+    // play specific
     { "width", 1, false, "Replay: Set replay window's initial width (default is 1024)" },
     { "height", 1, false, "Replay: Set replay window's initial height (default is 768)" },
     { "msaa", 1, false, "Replay: Set replay window's multisamples (default is 0)." },
     { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
+    { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
+    { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
+    { "loop_frame", 1, false, "Replay: loop mode's start frame" },
+    { "loop_len", 1, false, "Replay: loop mode's loop length" },
+    { "loop_count", 1, false, "Replay: loop mode's loop count" },
+    { "benchmark", 0, false, "Disable glGetError()'s, divergence checks, during replaying (set by default)" },
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+// command line params
+//----------------------------------------------------------------------------------------------------------------------
+static command_line_param_desc g_command_line_param_descs_replay[] =
+{
+    // replay specific
+    { "width", 1, false, "Replay: Set replay window's initial width (default is 1024)" },
+    { "height", 1, false, "Replay: Set replay window's initial height (default is 768)" },
+    { "msaa", 1, false, "Replay: Set replay window's multisamples (default is 0)." },
     { "trim_file", 1, false, "Replay: Create a trimmed trace file during replay, must also specify -trim_frame" },
     { "trim_frame", 1, false, "Replay: Frame index to begin trim, 0=beginning of trace, 1=first API call after first swap, etc." },
     { "trim_len", 1, false, "Replay: Length of trim file, default=1 frame" },
@@ -74,41 +83,48 @@ static command_line_param_desc g_command_line_param_descs[] =
     { "write_snapshot_file", 1, false, "Replay: Write JSON snapshot to specified filename, must also specify --write_snapshot_call" },
     { "write_snapshot_blobs", 0, false, "Replay: Write JSON snapshot blob files, must also specify --write_snapshot_call" },
     { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
+    { "swap_sleep", 1, false, "Replay: Sleep for X milliseconds after every swap" },
+    { "pause_on_exit", 0, false, "Replay: Wait for a keypress on exit" },
+    { "debug_test_snapshot_serialization", 0, false, "Interactive Replay Mode: Immediately serialize/deserialize state snapshots after taking them" },
+    { "pause_on_frame", 1, false, "Replay interactive mode: Pause on specified frame" },
+    { "interactive", 0, false, "Replay mode: Enable keyboard keys" },
+    { "disable_snapshot_caching", 0, false, "Replay mode: Disable caching of all state snapshot files, so they can be manually modified during replay" },
+    { "keyframe_base_filename", 1, false, "Replay: Set base filename of trimmed replay keyframes, used for fast seeking" },
+    { "loop_frame", 1, false, "Replay: loop mode's start frame" },
+    { "loop_len", 1, false, "Replay: loop mode's loop length" },
+    { "loop_count", 1, false, "Replay: loop mode's loop count" },
+    { "draw_kill_max_thresh", 1, false, "Replay: Enable draw kill mode during looping to visualize order of draws, sets the max # of draws before counter resets to 0" },
+
+    // replay flags
+    { "benchmark", 0, false, "Replay mode: Disable glGetError()'s, divergence checks, state teardown/restore, during replaying" },
+    { "allow_state_teardown", 0, false, "Benchmark: When in benchmark mode, enables state teardown/restore at frame loop boundaries" },
+    { "verbose", 0, false, "Verbose debug output" },
+    { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
+    { "dump_all_packets", 0, false, "Replay: Dump all GL trace packets as JSON to stdout" },
+    { "debug", 0, false, "Enable verbose debug information" },
+    { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
+    { "replay_debug", 0, false, "Enable various debug/verification code in the replayer" },
+    { "dump_packet_blob_files_on_error", 0, false, "Replay: Used with -dump_packets_on_error, also dumps all binary blob files associated with each packet" },
+    { "dump_shaders_on_draw", 0, false, "Replay: Dump shader source on draw calls" },
+    { "dump_packets_on_error", 0, false, "Replay: Dump GL trace packets as JSON to stdout on replay errors" },
+    { "dump_screenshots", 0, false, "Replay: Dump backbuffer screenshot before every swap to numbered PNG files" },
+    { "dump_screenshots_prefix", 1, false, "Replay: Set PNG screenshot file prefix" },
     { "hash_backbuffer", 0, false, "Replay: Hash and output backbuffer CRC before every swap" },
     { "dump_backbuffer_hashes", 1, false, "Replay: Dump backbuffer hashes to a text file" },
     { "sum_hashing", 0, false, "Replay: Use per-component sums, instead of CRC hashing (useful for multisampling)" },
-    { "dump_screenshots", 0, false, "Replay: Dump backbuffer screenshot before every swap to numbered PNG files" },
-    { "dump_screenshots_prefix", 1, false, "Replay: Set PNG screenshot file prefix" },
-    { "swap_sleep", 1, false, "Replay: Sleep for X milliseconds after every swap" },
-    { "dump_packets_on_error", 0, false, "Replay: Dump GL trace packets as JSON to stdout on replay errors" },
-    { "dump_packet_blob_files_on_error", 0, false, "Replay: Used with -dump_packets_on_error, also dumps all binary blob files associated with each packet" },
-    { "dump_all_packets", 0, false, "Replay: Dump all GL trace packets as JSON to stdout" },
-    { "dump_shaders_on_draw", 0, false, "Replay: Dump shader source on draw calls" },
     { "dump_framebuffer_on_draw", 0, false, "Replay: Dump framebuffer to PNG files after each draw/glEnd/glCallList" },
     { "dump_framebuffer_on_draw_prefix", 1, false, "Replay: Base path/filename to use for --dump_framebuffer_on_draw" },
     { "dump_framebuffer_on_draw_frame", 1, false, "Replay: Limit dumping framebuffer PNG files" },
     { "dump_framebuffer_on_draw_first_gl_call", 1, false, "Replay: Limit dumping framebuffer PNG files" },
     { "dump_framebuffer_on_draw_last_gl_call", 1, false, "Replay: Limit dumping framebuffer PNG files" },
     { "clear_uninitialized_bufs", 0, false, "glBufferData(): Ensure buffers are unitialized to all-zeros when data param is NULL" },
-    { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
-    { "pause_on_exit", 0, false, "Replay: Wait for a keypress on exit" },
-    { "debug_test_snapshot_serialization", 0, false, "Interactive Replay Mode: Immediately serialize/deserialize state snapshots after taking them" },
-    { "pause_on_frame", 1, false, "Replay interactive mode: Pause on specified frame" },
-    { "interactive", 0, false, "Replay mode: Enable keyboard keys" },
-    { "disable_snapshot_caching", 0, false, "Replay mode: Disable caching of all state snapshot files, so they can be manually modified during replay" },
-    { "benchmark", 0, false, "Replay mode: Disable glGetError()'s, divergence checks, state teardown/restore, during replaying" },
-    { "allow_state_teardown", 0, false, "Benchmark: When in benchmark mode, enables state teardown/restore at frame loop boundaries" },
-    { "keyframe_base_filename", 1, false, "Replay: Set base filename of trimmed replay keyframes, used for fast seeking" },
-#ifdef USE_TELEMETRY
-    { "telemetry_level", 1, false, "Set Telemetry level." },
-#endif
-    { "loop_frame", 1, false, "Replay: loop mode's start frame" },
-    { "loop_len", 1, false, "Replay: loop mode's loop length" },
-    { "loop_count", 1, false, "Replay: loop mode's loop count" },
-    { "draw_kill_max_thresh", 1, false, "Replay: Enable draw kill mode during looping to visualize order of draws, sets the max # of draws before counter resets to 0" },
     { "disable_frontbuffer_restore", 0, false, "Replay: Do not restore the front buffer's contents when restoring a state snapshot" },
+};
 
+static command_line_param_desc g_command_line_param_descs_find[] =
+{
     // find specific
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
     { "find_func", 1, false, "Find: Limit the find to only the specified function name POSIX regex pattern" },
     { "find_param", 1, false, "Find: The parameter value to find, hex, decimal integers, or GL enum strings OK" },
     { "find_namespace", 1, false, "Find: Limits --find_param to only parameters using the specified handle namespace: invalid, GLhandleARB, GLframebuffer, GLtexture, GLrenderbuffer, GLquery, GLsampler, GLprogramARB, GLprogram, GLarray, GLlist, GLlocation, GLlocationARB, GLfence, GLsync, GLpipeline, GLshader, GLbuffer, GLfeedback, GLarrayAPPLE, GLfragmentShaderATI" },
@@ -117,34 +133,67 @@ static command_line_param_desc g_command_line_param_descs[] =
     { "find_frame_high", 1, false, "Find: Limit the find to frames up to and including the specified frame index" },
     { "find_call_low", 1, false, "Find: Limit the find to GL calls beginning at the specified call index" },
     { "find_call_high", 1, false, "Find: Limit the find to GL calls up to and including the specified call index" },
+};
 
+static command_line_param_desc g_command_line_param_descs_compare_hash_files[] =
+{
     // compare_hash_files specific
     { "sum_compare_threshold", 1, false, "compare_hash_files: Only report mismatches greater than the specified threshold, use with --sum_hashing" },
+    { "sum_hashing", 0, false, "Replay: Use per-component sums, instead of CRC hashing (useful for multisampling)" },
     { "compare_ignore_frames", 1, false, "compare_hash_files: Ignore first X frames" },
     { "compare_expected_frames", 1, false, "compare_hash_files: Fail if the # of frames is not X" },
     { "compare_first_frame", 1, false, "compare_hash_files: First frame to compare to in second hash file" },
     { "ignore_line_count_differences", 0, false, "compare_hash_files: Don't stop if the # of lines differs between the two files" },
+};
 
+static command_line_param_desc g_command_line_param_descs_parse[] =
+{
+    // parse specific
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
+};
+
+static command_line_param_desc g_command_line_param_descs_info[] =
+{
+    // info specific
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
+};
+
+static command_line_param_desc g_command_line_param_descs_unpack_json[] =
+{
+    // unpack_json specific
+};
+
+static command_line_param_desc g_command_line_param_descs_pack_json[] =
+{
+    // pack_json specific
+};
+
+static command_line_param_desc g_command_line_param_descs_dump[] =
+{
     // dump specific
     { "verify", 0, false, "Dump: Fully round-trip verify all JSON objects vs. the original packet's" },
-    { "no_blobs", 0, false, "Dump: Don't write binary blob files" },
     { "write_debug_info", 0, false, "Dump: Write extra debug info to output JSON trace files" },
     { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
     { "debug", 0, false, "Enable verbose debug information" },
+};
+
+static command_line_param_desc g_command_line_param_descs_common[] =
+{
+    // common command options
     { "logfile", 1, false, "Create logfile" },
     { "logfile_append", 1, false, "Append output to logfile" },
-    { "help", 0, false, "Display this help" },
-    { "?", 0, false, "Display this help" },
-    { "replay_debug", 0, false, "Enable various debug/verification code in the replayer" },
     { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
-    { "verbose", 0, false, "Verbose debug output" },
     { "quiet", 0, false, "Disable all console output" },
     { "gl_debug_log", 0, false, "Dump GL prolog/epilog messages to stdout (very slow - helpful to narrow down driver crashes)" },
     { "vogl_func_tracing", 0, false, NULL },
+#ifdef USE_TELEMETRY
+    { "telemetry_level", 1, false, "Set Telemetry level." },
+#endif
 };
 
 static command_line_param_desc g_command_line_interactive_descs[] =
 {
+    // replay interactive specific commands
     { "s", 0, false, "slow mode" },
     { "<space>", 0, false, "pause" },
     { "r", 0, false, "rewind to beginning" },
@@ -154,6 +203,38 @@ static command_line_param_desc g_command_line_interactive_descs[] =
     { "<left>", 0, false, "step left" },
     { "<right>", 0, false, "step right" },
 };
+
+struct command_t
+{
+    const char *name;
+    const char *desc;
+    bool (*func)(void);
+    command_line_param_desc *cmdline_desc;
+    size_t cmdline_desc_count;
+    const char *filename_args;
+};
+
+static const command_t g_options[] =
+{
+#define XDEF(_x, _desc, _args) { #_x, _desc, tool_ ## _x ## _mode, \
+        g_command_line_param_descs_ ## _x, \
+        sizeof(g_command_line_param_descs_ ## _x) / sizeof(g_command_line_param_descs_ ## _x[0]), \
+        _args }
+
+    // voglreplay subcommands
+    XDEF(play, "Play mode, must specify .BIN or .JSON trace file to play", "<input JSON/blob trace filename>"),
+    XDEF(replay, "Replay mode, must specify .BIN or .JSON trace file to replay", "<input JSON/blob trace filename>"),
+    XDEF(dump, "Dump mode: Dumps binary trace file to a JSON trace file, must specify input and output filenames", "<input binary trace filename> <output JSON/blob base filename>"),
+    XDEF(parse, "Parse mode: Parse JSON trace file to a binary trace file, must specify input and output filenames", "<input JSON/blob trace filename>"),
+    XDEF(info, "Info mode: Output statistics about a trace file", "<input JSON/blob trace filename>"),
+    XDEF(unpack_json, "Unpack UBJ to JSON mode: Unpack UBJ (Universal Binary JSON) to textual JSON, must specify input and output filenames", "<input UBJ filename> <output text filename>"),
+    XDEF(pack_json, "Pack JSON to UBJ mode: Pack textual JSON to UBJ, must specify input and output filenames", "<input text filename> <output UBJ filename>"),
+    XDEF(find, "Find all calls with parameters containing a specific value, combine with -find_param, -find_func, find_namespace, etc. params", "<input JSON/blob trace filename>"),
+    XDEF(compare_hash_files, "Comparing hash/sum files", "<input hash filename1> <input hash filename2>"),
+
+#undef XDEF
+};
+static const size_t g_options_count = sizeof(g_options) / sizeof(g_options[0]);
 
 //----------------------------------------------------------------------------------------------------------------------
 // init_logfile
@@ -215,50 +296,140 @@ static void tool_print_title()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// tool_print_help
+// vogl_replay_deinit
 //----------------------------------------------------------------------------------------------------------------------
-static void tool_print_help()
+static void vogl_replay_deinit()
 {
     VOGL_FUNC_TRACER
 
-    console::printf("Usage: voglreplay [ -option ... ] input_file optional_output_file [ -option ... ]\n");
-    console::printf("Command line options may begin with single minus \"-\" or double minus \"--\"\n");
+    colorized_console::deinit();
+}
 
-    console::printf("\nCommand line options:\n");
+//----------------------------------------------------------------------------------------------------------------------
+// tool_print_help
+//----------------------------------------------------------------------------------------------------------------------
+VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_line_param_desc *descs, size_t descs_count)
+{
+    VOGL_FUNC_TRACER
 
-    dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, "--");
+    if (cmd == NULL)
+    {
+        console::printf("\nUsage: voglreplay [--help] <command> [<args>]\n\n");
 
-    console::printf("\nInteractive replay mode keys:\n");
-    dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_interactive_descs), g_command_line_interactive_descs, " ");
+        printf("The voglreplay commands are:\n");
+        for (size_t i = 0; i < g_options_count; i++)
+        {
+            console::message("  %s:", g_options[i].name);
+            printf(" %s.\n", g_options[i].desc);
+        }
+        printf("\n");
+    }
+    else
+    {
+        console::printf("\nUsage: ");
+        console::message("voglreplay %s %s", cmd->name, cmd->filename_args);
+        console::printf(" [<args>]\n\n");
+
+        if (descs_count)
+        {
+            dump_command_line_info(descs_count, descs, "--");
+            printf("\n");
+        }
+
+        printf("Common options:\n");
+        dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_param_descs_common), g_command_line_param_descs_common, "--");
+
+        if (!vogl_strcmp(cmd->name, "replay"))
+        {
+            console::printf("\nInteractive replay mode keys:\n");
+            dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_interactive_descs), g_command_line_interactive_descs, " ");
+        }
+    }
+
+    vogl_replay_deinit();
+    exit(EXIT_FAILURE);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 // init_command_line_params
 //----------------------------------------------------------------------------------------------------------------------
-static bool init_command_line_params(int argc, char *argv[])
+static const command_t *init_command_line_params(int argc, char *argv[])
 {
     VOGL_FUNC_TRACER
 
+    dynamic_string_array args = get_command_line_params(argc, argv);
+    if (args.size() <= 1)
+        tool_print_help(NULL, NULL, 0);
+
+    if ((args[1] == "help") || (args[1] == "--help") || (args[1] == "-h") || (args[1] == "-?"))
+    {
+        if (args.size() > 2)
+        {
+            // Transform "voglreplay --help command" to "voglreplay command --help".
+            args[1] = args[2];
+            args[2] = "--help";
+        }
+        else
+        {
+            // Spew command help and exit.
+            tool_print_help(NULL, NULL, 0);
+        }
+    }
+
+    // Search for this specific command.
+    const command_t *cmd = NULL;
+    for (size_t i = 0; i < g_options_count; i++)
+    {
+        if (args[1] == g_options[i].name)
+        {
+            cmd = &g_options[i];
+            break;
+        }
+    }
+
+    if (!cmd)
+    {
+        // Command not found: spew command help and exit.
+        vogl_error_printf("Unknown voglreplay command '%s'.\n", args[1].c_str());
+        tool_print_help(NULL, NULL, 0);
+    }
+
+    vogl::vector<command_line_param_desc> cmdline_desc;
+
+    cmdline_desc.append(cmd->cmdline_desc, cmd->cmdline_desc_count);
+
+    // Check if they want help for this command.
+    for (size_t i = 0; i < args.size(); i++)
+    {
+        if ((args[i] == "help") || (args[i] == "--help") || (args[i] == "-h") || (args[i] == "-?"))
+            tool_print_help(cmd, cmdline_desc.size() ? &cmdline_desc[0] : NULL, cmdline_desc.size());
+    }
+
+    // If we're doing a playback, add the --benchmark flag by default.
+    if (args[1] == "play")
+        args.push_back("--benchmark");
+
+    // Erase the subcommand so it doesn't show up as a filename.
+    args.erase(1, 1);
+
+    // Add the common options to the list and parse em all.
+    cmdline_desc.append(g_command_line_param_descs_common, VOGL_ARRAY_SIZE(g_command_line_param_descs_common));
+
+    // Parse the command line options for this command.
     command_line_params::parse_config parse_cfg;
     parse_cfg.m_single_minus_params = true;
     parse_cfg.m_double_minus_params = true;
 
-    if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
+    if (!g_command_line_params().parse(args, cmdline_desc.size(), &cmdline_desc[0], parse_cfg))
     {
         vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
-        return false;
+        return NULL;
     }
 
     if (!init_logfile())
-        return false;
+        return NULL;
 
-    if (g_command_line_params().get_value_as_bool("help") || g_command_line_params().get_value_as_bool("?"))
-    {
-        tool_print_help();
-        return false;
-    }
-
-    return true;
+    return cmd;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -360,7 +531,7 @@ static void vogl_direct_gl_func_epilog(gl_entrypoint_id_t entrypoint_id, void *p
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_replay_init
 //----------------------------------------------------------------------------------------------------------------------
-static bool vogl_replay_init(int argc, char *argv[])
+static const command_t *vogl_replay_init(int argc, char *argv[])
 {
     VOGL_FUNC_TRACER
 
@@ -370,55 +541,39 @@ static bool vogl_replay_init(int argc, char *argv[])
 
     tool_print_title();
 
-    if (!init_command_line_params(argc, argv))
-        return false;
-
+    const command_t *cmd = init_command_line_params(argc, argv);
+    if (cmd)
+    {
 #ifdef USE_TELEMETRY
-    int telemetry_level = g_command_line_params().get_value_as_int("telemetry_level", 0,
-                                                                 TELEMETRY_LEVEL_MIN + 1, TELEMETRY_LEVEL_MIN, TELEMETRY_LEVEL_MAX);
-    telemetry_set_level(telemetry_level);
-    telemetry_tick();
+        int telemetry_level = g_command_line_params().get_value_as_int("telemetry_level", 0,
+                                                                       TELEMETRY_LEVEL_MIN + 1, TELEMETRY_LEVEL_MIN, TELEMETRY_LEVEL_MAX);
+        telemetry_set_level(telemetry_level);
+        telemetry_tick();
 #endif
 
-    vogl_common_lib_early_init();
-    vogl_common_lib_global_init();
+        vogl_common_lib_early_init();
+        vogl_common_lib_global_init();
 
-    if (g_command_line_params().get_value_as_bool("quiet"))
-        console::disable_output();
+        if (g_command_line_params().get_value_as_bool("quiet"))
+            console::disable_output();
 
-    if (g_command_line_params().get_value_as_bool("gl_debug_log"))
-    {
-        vogl_set_direct_gl_func_prolog(vogl_direct_gl_func_prolog, NULL);
-        vogl_set_direct_gl_func_epilog(vogl_direct_gl_func_epilog, NULL);
+        if (g_command_line_params().get_value_as_bool("gl_debug_log"))
+        {
+            vogl_set_direct_gl_func_prolog(vogl_direct_gl_func_prolog, NULL);
+            vogl_set_direct_gl_func_epilog(vogl_direct_gl_func_epilog, NULL);
+        }
+
+        if (!load_gl())
+            return NULL;
+
+        bool wrap_all_gl_calls = true;
+        if (g_command_line_params().get_value_as_bool("benchmark"))
+            wrap_all_gl_calls = false;
+
+        vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper, wrap_all_gl_calls);
     }
 
-    if (!load_gl())
-        return false;
-
-    bool wrap_all_gl_calls = true;
-
-    if (g_command_line_params().get_value_as_bool("benchmark"))
-        wrap_all_gl_calls = false;
-
-    vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper, wrap_all_gl_calls);
-
-#if 0
-	// HACK HACK - for testing
-	vogl_set_direct_gl_func_prolog(vogl_direct_gl_func_prolog, NULL);
-	vogl_set_direct_gl_func_epilog(vogl_direct_gl_func_epilog, NULL);
-#endif
-
-    return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_replay_deinit
-//----------------------------------------------------------------------------------------------------------------------
-static void vogl_replay_deinit()
-{
-    VOGL_FUNC_TRACER
-
-    colorized_console::deinit();
+    return cmd;
 }
 
 
@@ -455,11 +610,12 @@ int main(int argc, char *argv[])
     // Initialize vogl_core.
     vogl_core_init();
 
-    #if (VOGL_PLATFORM_HAS_X11)
-        XSetErrorHandler(xerror_handler);
-    #endif
+#if (VOGL_PLATFORM_HAS_X11)
+    XSetErrorHandler(xerror_handler);
+#endif
 
-    if (!vogl_replay_init(argc, argv))
+    const command_t *cmd = vogl_replay_init(argc, argv);
+    if (!cmd)
     {
         vogl_replay_deinit();
         return EXIT_FAILURE;
@@ -469,16 +625,6 @@ int main(int argc, char *argv[])
     vogl_init_listener();
 #endif // VOGL_REMOTING
 
-    if (g_command_line_params().get_count("") < 2)
-    {
-        vogl_error_printf("Must specify at least one trace (or input) files!\n");
-
-        tool_print_help();
-
-        vogl_replay_deinit();
-        return EXIT_FAILURE;
-    }
-
     if (g_command_line_params().get_value_as_bool("pause"))
     {
         vogl_message_printf("Press key to continue\n");
@@ -486,38 +632,12 @@ int main(int argc, char *argv[])
         getchar();
     }
 
-    static const struct
-    {
-        const char *name;
-        const char *desc;
-        bool (*func)(void);
-    } s_options[] =
-    {
-    #define XDEF(_x, _desc) { #_x, _desc, tool_ ## _x ## _mode }
-        XDEF(dump, "Dump from binary to JSON mode"),
-        XDEF(parse, "Parse from JSON to binary mode"),
-        XDEF(info, "Dumping trace information"),
-        XDEF(unpack_json, "Unpacking UBJ to text"),
-        XDEF(pack_json, "Packing textual JSON to UBJ"),
-        XDEF(find, "Find mode"),
-        XDEF(compare_hash_files, "Comparing hash/sum files"),
-        XDEF(replay, "Replay mode"),
-    #undef XDEF
-    };
-    static const size_t s_options_count = sizeof(s_options) / sizeof(s_options[0]);
-
     bool success = false;
-    for (size_t i = 0; i < s_options_count; i++)
     {
-        // Check if the the command is specified. Execute last command by default if none found.
-        if (g_command_line_params().get_value_as_bool(s_options[i].name) || (i == s_options_count - 1))
-        {
-            tmZone(TELEMETRY_LEVEL0, TMZF_NONE, s_options[i].name);
-            vogl_message_printf("%s.\n", s_options[i].desc);
+        tmZone(TELEMETRY_LEVEL0, TMZF_NONE, cmd->name);
+        vogl_message_printf("%s.\n", cmd->desc);
 
-            success = s_options[i].func();
-            break;
-        }
+        success = cmd->func();
     }
 
     console::printf("%u warning(s), %u error(s)\n", 
