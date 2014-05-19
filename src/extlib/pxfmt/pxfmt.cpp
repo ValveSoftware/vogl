@@ -666,6 +666,16 @@ void to_int_comp_copy(Tint *dst, const Tsrc *src, const uint32 c)
 }
 
 
+// The following macros are used for conversion to/from a pixel with a format
+// of GL_RGB and a type of GL_UNSIGNED_INT_5_9_9_9_REV, where N is 9, B is 15,
+// and E is 31:
+#define RGB9E5_N 9
+#define RGB9E5_B 15
+#define RGB9E5_B1 (15 + 1)
+#define RGB9E5_ADJUST (-(RGB9E5_B) -(RGB9E5_N))
+#define POW2(x) (double) pow(2.0, (double) (x));
+
+
 // This special function converts all components of a source pixel to an
 // intermediate format for a format of GL_RGB and a type of
 // GL_UNSIGNED_INT_5_9_9_9_REV:
@@ -679,8 +689,8 @@ void to_int_5999(Tint *dst, const Tsrc *src)
     uint32 mask = pxfmt_per_fmt_info<F>::m_mask[3];
     uint32 shift = pxfmt_per_fmt_info<F>::m_shift[3];
 // FIXME: USE MACROS FOR THE FOLLOWING CONSTANTS
-    int32 exp = ((raw & mask) >> shift) - 15 - 9;
-    double multiplier = pow(2.0, (double) exp);
+    int32 exp = ((raw & mask) >> shift) + RGB9E5_ADJUST;
+    double multiplier = POW2(exp);
 
     // Read and calculate the RGB values:
     for (uint32 c = 0 ; c < pxfmt_per_fmt_info<F>::m_num_components; c++)
@@ -1079,9 +1089,8 @@ void from_int_5999(Tdst *dst, const Tint *src)
 {
     // Note: the following is the result of calculating the following (per the
     // OpenGL specification), where N is 9, B is 15, and E is 31:
-    //     (((pow(2, N) - 1) / pow(2, N)) * pow(2, E - B))
+    //     (((POW2(N) - 1) / POW2(N)) * POW2(E - B))
     double max_val = 65408.0;
-
     // Per the OpenGL spec, clamp the starting red, green and blue values:
     double redc =
         (double) std::max<double>(0, std::min<double>(src[0], max_val));
@@ -1097,29 +1106,19 @@ void from_int_5999(Tdst *dst, const Tint *src)
 
     // Calculate a preliminary shared exponent:
     int32 log2_largest = (largest.i.u[1] >> 20) - 1023;
-    int32 prelim_exp = std::max<int32>((-15 -1), log2_largest) + 1 + 15;
+    int32 prelim_exp = std::max<int32>((-RGB9E5_B1), log2_largest) + RGB9E5_B1;
 
     // Calculate a refined shared exponent:
-    uint32 maxs =
-        (uint32) floor((largest.d /
-                        ((double) pow(2.0, (double) (prelim_exp - 15 - 9)))) +
-                       0.5);
-    int32 shared_exp = (maxs == (1 << 9)) ? prelim_exp + 1 : prelim_exp;
+    double divisor = POW2(prelim_exp + RGB9E5_ADJUST) + 0.5;
+    uint32 maxs = (uint32) floor(largest.d / divisor);
+    int32 shared_exp = (maxs == (1 << RGB9E5_N)) ? prelim_exp + 1 : prelim_exp;
 
     // Calculate integer values for red, green, and blue, using the shared
     // exponent:
-    uint32 red =
-        (uint32) floor((redc /
-                        ((double) pow(2.0, (double) (shared_exp - 15 - 9)))) +
-                       0.5);
-    uint32 green =
-        (uint32) floor((greenc /
-                        ((double) pow(2.0, (double) (shared_exp - 15 - 9)))) +
-                       0.5);
-    uint32 blue =
-        (uint32) floor((bluec /
-                        ((double) pow(2.0, (double) (shared_exp - 15 - 9)))) +
-                       0.5);
+    divisor = POW2(shared_exp + RGB9E5_ADJUST) + 0.5;
+    uint32 red   = (uint32) floor(redc   / divisor);
+    uint32 green = (uint32) floor(greenc / divisor);
+    uint32 blue  = (uint32) floor(bluec  / divisor);
 
     *dst = (Tdst) ((((uint32) red << pxfmt_per_fmt_info<F>::m_shift[0]) &
                     pxfmt_per_fmt_info<F>::m_mask[0]) |
