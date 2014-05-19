@@ -123,6 +123,7 @@ vogl_gl_replayer::vogl_gl_replayer()
       m_dump_framebuffer_on_draw_frame_index(-1),
       m_dump_framebuffer_on_draw_first_gl_call_index(-1),
       m_dump_framebuffer_on_draw_last_gl_call_index(-1),
+      m_allow_snapshot_restoring(true),
       m_ctypes_packet(&m_trace_gl_ctypes),
       m_trace_pointer_size_in_bytes(0),
       m_trace_pointer_size_in_uints(0),
@@ -2022,6 +2023,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(cons
             dynamic_string cmd_type(kvm.get_string("command_type"));
             if (cmd_type == "state_snapshot")
             {
+                if (!m_allow_snapshot_restoring)
+                {
+                    break;
+                }
+
                 dynamic_string text_id(kvm.get_string("id"));
                 dynamic_string binary_id(kvm.get_string("binary_id"));
                 if (text_id.is_empty() && binary_id.is_empty())

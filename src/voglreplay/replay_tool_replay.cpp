@@ -112,6 +112,8 @@ struct replay_data_t
     int loop_count;
     int draw_kill_max_thresh;
     bool endless_mode;
+    bool benchmark_mode;
+    bool benchmark_mode_allow_state_teardown;
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -224,7 +226,7 @@ static vogl_gl_state_snapshot *read_state_snapshot_from_trace(dynamic_string fil
                     dynamic_string id(kvm.get_string("binary_id"));
                     if (id.is_empty())
                     {
-                        vogl_error_printf("%s: Missing binary_id field in glInternalTraceCommandRAD key_valye_map command type: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, cmd_type.get_ptr());
+                        vogl_error_printf("%s: Missing binary_id field in glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, cmd_type.get_ptr());
                         return NULL;
                     }
 
@@ -1230,9 +1232,20 @@ static int do_non_interactive_mode(replay_data_t &rdata)
                 return 1;
             }
 
-            vogl_printf("Resetting state and rewinding back to frame 0\n");
+            if (!rdata.benchmark_mode ||
+                (rdata.benchmark_mode && rdata.benchmark_mode_allow_state_teardown))
+            {
+                vogl_printf("Resetting state and rewinding back to frame 0\n");
 
-            replayer.reset_state();
+                replayer.reset_state();
+            }
+
+            if (rdata.benchmark_mode && !rdata.benchmark_mode_allow_state_teardown)
+            {
+                // the user is in the benchmark mode, but does not want to allow state teardown / restore,
+                // so now that the first frame is complete, tell the replayer to not allow state restoring
+                replayer.set_allow_snapshot_restoring(false);
+            }
 
             if (!rdata.pTrace_reader->seek_to_frame(0))
             {
@@ -1361,6 +1374,8 @@ bool tool_replay_mode()
     rdata.loop_count = math::maximum<int>(g_command_line_params().get_value_as_int("loop_count", 0, cINT32_MAX), 1);
     rdata.draw_kill_max_thresh = g_command_line_params().get_value_as_int("draw_kill_max_thresh", 0, -1);
     rdata.endless_mode = g_command_line_params().get_value_as_bool("endless");
+    rdata.benchmark_mode = g_command_line_params().get_value_as_bool("benchmark");
+    rdata.benchmark_mode_allow_state_teardown = g_command_line_params().get_value_as_bool("allow_state_teardown");
 
     rdata.multitrim_mode = g_command_line_params().get_value_as_bool("multitrim");
     rdata.multitrim_interval = g_command_line_params().get_value_as_int("multitrim_interval", 0, 1, 1);

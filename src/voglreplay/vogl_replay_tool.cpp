@@ -96,7 +96,8 @@ static command_line_param_desc g_command_line_param_descs[] =
     { "pause_on_frame", 1, false, "Replay interactive mode: Pause on specified frame" },
     { "interactive", 0, false, "Replay mode: Enable keyboard keys" },
     { "disable_snapshot_caching", 0, false, "Replay mode: Disable caching of all state snapshot files, so they can be manually modified during replay" },
-    { "benchmark", 0, false, "Replay mode: Disable glGetError()'s, divergence checks, during replaying" },
+    { "benchmark", 0, false, "Replay mode: Disable glGetError()'s, divergence checks, state teardown/restore, during replaying" },
+    { "allow_state_teardown", 0, false, "Benchmark: When in benchmark mode, enables state teardown/restore at frame loop boundaries" },
     { "keyframe_base_filename", 1, false, "Replay: Set base filename of trimmed replay keyframes, used for fast seeking" },
 #ifdef USE_TELEMETRY
     { "telemetry_level", 1, false, "Set Telemetry level." },

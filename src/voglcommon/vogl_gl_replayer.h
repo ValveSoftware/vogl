@@ -162,10 +162,16 @@ public:
         return m_dump_framebuffer_on_draw_last_gl_call_index;
     }
 
+    void set_allow_snapshot_restoring(bool bAllowed)
+    {
+        m_allow_snapshot_restoring = bAllowed;
+    }
+
     bool is_valid() const
     {
         return m_is_valid;
     }
+
     vogl_replay_window *get_window()
     {
         return m_pWindow;
@@ -306,6 +312,8 @@ private:
     int64_t m_dump_framebuffer_on_draw_frame_index;
     int64_t m_dump_framebuffer_on_draw_first_gl_call_index;
     int64_t m_dump_framebuffer_on_draw_last_gl_call_index;
+
+    bool m_allow_snapshot_restoring;
 
     dynamic_string m_dump_frontbuffer_filename;
 
