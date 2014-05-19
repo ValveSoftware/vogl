@@ -4440,7 +4440,23 @@ static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
 
     static bool vogl_query_glx_drawable_size(const Display *dpy, GLXDrawable drawable, unsigned int *width, unsigned int *height)
     {
+	Window root = 0;
+	int x = 0, y = 0;
+	unsigned int border_width = 0, depth = 0;
 	vogl_xlib_trap_state_t state;
+
+	// It turns out that there is some inconsistency between drivers over
+	// whether it's ok to pass a vanilla X drawable to glXQueryDrawable or pass
+	// a GLXDrawable from glXCreateWindow to XGetGeometry. glXQueryDrawable has
+	// been also been seen to be inconsistent with mesa and an indirect context
+	// where it may return a size of 0 with no error.
+	//
+	// See: https://bugs.freedesktop.org/show_bug.cgi?id=54080
+
+	vogl_xlib_trap_errors (&state);
+	XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, width, height, &border_width, &depth);
+	if (vogl_xlib_untrap_errors (&state) == 0)
+	    return true;
 
 	vogl_xlib_trap_errors (&state);
 	GL_ENTRYPOINT(glXQueryDrawable(const_cast<Display *>(dpy), drawable, GLX_WIDTH, width));
