@@ -1,5 +1,6 @@
 wglChoosePixelFormat
 wglCreateContext
+wglCreateContextAttribsARB
 wglDescribePixelFormat
 wglGetPixelFormat
 wglGetProcAddress
