@@ -10,7 +10,7 @@ message("VOGLTEST_LOAD_LIBGLITRACE: ${VOGLTEST_LOAD_LIBVOGLTRACE}")
 
 if (NOT VOGLTEST_LOAD_LIBVOGLTRACE)
     # Link with libGL.so
-    set(VOGLTEST_OPENGL_LIBRARY "GL")
+    set(VOGLTEST_OPENGL_LIBRARY "${OPENGL_gl_LIBRARY}")
 else()
     # Don't link with gl library, and define DLOAD_LIBVOGLTRACE=1...
     set(VOGLTEST_OPENGL_LIBRARY "")
