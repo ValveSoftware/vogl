@@ -29,153 +29,21 @@
 #include "vogl_colorized_console.h"
 #include "libtelemetry.h"
 
-bool tool_dump_mode();
-bool tool_parse_mode();
-bool tool_info_mode();
-bool tool_unpack_json_mode();
-bool tool_pack_json_mode();
-bool tool_find_mode();
-bool tool_compare_hash_files_mode();
-bool tool_replay_mode();
-bool tool_play_mode();
+bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_parse_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_info_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_unpack_json_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_pack_json_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_find_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_compare_hash_files_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_play_mode(vogl::vector<command_line_param_desc> *desc);
 
 //----------------------------------------------------------------------------------------------------------------------
 // globals
 //----------------------------------------------------------------------------------------------------------------------
 static void *g_actual_libgl_module_handle;
 static cfile_stream *g_vogl_pLog_stream;
-
-//----------------------------------------------------------------------------------------------------------------------
-// command line params
-//----------------------------------------------------------------------------------------------------------------------
-static command_line_param_desc g_command_line_param_descs_play[] =
-{
-    // play specific
-    { "width", 1, false, "Replay: Set replay window's initial width (default is 1024)" },
-    { "height", 1, false, "Replay: Set replay window's initial height (default is 768)" },
-    { "msaa", 1, false, "Replay: Set replay window's multisamples (default is 0)." },
-    { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
-    { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
-    { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
-    { "loop_frame", 1, false, "Replay: loop mode's start frame" },
-    { "loop_len", 1, false, "Replay: loop mode's loop length" },
-    { "loop_count", 1, false, "Replay: loop mode's loop count" },
-    { "benchmark", 0, false, NULL }, // Always set hidden option.
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// command line params
-//----------------------------------------------------------------------------------------------------------------------
-static command_line_param_desc g_command_line_param_descs_replay[] =
-{
-    // replay specific
-    { "width", 1, false, "Replay: Set replay window's initial width (default is 1024)" },
-    { "height", 1, false, "Replay: Set replay window's initial height (default is 768)" },
-    { "msaa", 1, false, "Replay: Set replay window's multisamples (default is 0)." },
-    { "trim_file", 1, false, "Replay: Create a trimmed trace file during replay, must also specify -trim_frame" },
-    { "trim_frame", 1, false, "Replay: Frame index to begin trim, 0=beginning of trace, 1=first API call after first swap, etc." },
-    { "trim_len", 1, false, "Replay: Length of trim file, default=1 frame" },
-    { "multitrim", 0, false, "Replay trimming: Trim each frame to a different file" },
-    { "multitrim_interval", 1, false, "Replay trimming: Set the # of frames between each multitrimmed frame (default is 1)" },
-    { "no_trim_optimization", 0, false, "Replay trimming: If specified, do not remove unused programs, shaders, etc. from trim file" },
-    { "trim_call", 1, false, "Replay: Call counter index to begin trim" },
-    { "write_snapshot_call", 1, false, "Replay: Write JSON snapshot at the specified call counter index" },
-    { "write_snapshot_file", 1, false, "Replay: Write JSON snapshot to specified filename, must also specify --write_snapshot_call" },
-    { "write_snapshot_blobs", 0, false, "Replay: Write JSON snapshot blob files, must also specify --write_snapshot_call" },
-    { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
-    { "swap_sleep", 1, false, "Replay: Sleep for X milliseconds after every swap" },
-    { "pause_on_exit", 0, false, "Replay: Wait for a keypress on exit" },
-    { "debug_test_snapshot_serialization", 0, false, "Interactive Replay Mode: Immediately serialize/deserialize state snapshots after taking them" },
-    { "pause_on_frame", 1, false, "Replay interactive mode: Pause on specified frame" },
-    { "interactive", 0, false, "Replay mode: Enable keyboard keys" },
-    { "disable_snapshot_caching", 0, false, "Replay mode: Disable caching of all state snapshot files, so they can be manually modified during replay" },
-    { "keyframe_base_filename", 1, false, "Replay: Set base filename of trimmed replay keyframes, used for fast seeking" },
-    { "loop_frame", 1, false, "Replay: loop mode's start frame" },
-    { "loop_len", 1, false, "Replay: loop mode's loop length" },
-    { "loop_count", 1, false, "Replay: loop mode's loop count" },
-    { "draw_kill_max_thresh", 1, false, "Replay: Enable draw kill mode during looping to visualize order of draws, sets the max # of draws before counter resets to 0" },
-
-    // replay flags
-    { "benchmark", 0, false, "Replay mode: Disable glGetError()'s, divergence checks, state teardown/restore, during replaying" },
-    { "allow_state_teardown", 0, false, "Benchmark: When in benchmark mode, enables state teardown/restore at frame loop boundaries" },
-    { "verbose", 0, false, "Verbose debug output" },
-    { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
-    { "dump_all_packets", 0, false, "Replay: Dump all GL trace packets as JSON to stdout" },
-    { "debug", 0, false, "Enable verbose debug information" },
-    { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
-    { "replay_debug", 0, false, "Enable various debug/verification code in the replayer" },
-    { "dump_packet_blob_files_on_error", 0, false, "Replay: Used with -dump_packets_on_error, also dumps all binary blob files associated with each packet" },
-    { "dump_shaders_on_draw", 0, false, "Replay: Dump shader source on draw calls" },
-    { "dump_packets_on_error", 0, false, "Replay: Dump GL trace packets as JSON to stdout on replay errors" },
-    { "dump_screenshots", 0, false, "Replay: Dump backbuffer screenshot before every swap to numbered PNG files" },
-    { "dump_screenshots_prefix", 1, false, "Replay: Set PNG screenshot file prefix" },
-    { "hash_backbuffer", 0, false, "Replay: Hash and output backbuffer CRC before every swap" },
-    { "dump_backbuffer_hashes", 1, false, "Replay: Dump backbuffer hashes to a text file" },
-    { "sum_hashing", 0, false, "Replay: Use per-component sums, instead of CRC hashing (useful for multisampling)" },
-    { "dump_framebuffer_on_draw", 0, false, "Replay: Dump framebuffer to PNG files after each draw/glEnd/glCallList" },
-    { "dump_framebuffer_on_draw_prefix", 1, false, "Replay: Base path/filename to use for --dump_framebuffer_on_draw" },
-    { "dump_framebuffer_on_draw_frame", 1, false, "Replay: Limit dumping framebuffer PNG files" },
-    { "dump_framebuffer_on_draw_first_gl_call", 1, false, "Replay: Limit dumping framebuffer PNG files" },
-    { "dump_framebuffer_on_draw_last_gl_call", 1, false, "Replay: Limit dumping framebuffer PNG files" },
-    { "clear_uninitialized_bufs", 0, false, "glBufferData(): Ensure buffers are unitialized to all-zeros when data param is NULL" },
-    { "disable_frontbuffer_restore", 0, false, "Replay: Do not restore the front buffer's contents when restoring a state snapshot" },
-};
-
-static command_line_param_desc g_command_line_param_descs_find[] =
-{
-    // find specific
-    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
-    { "find_func", 1, false, "Find: Limit the find to only the specified function name POSIX regex pattern" },
-    { "find_param", 1, false, "Find: The parameter value to find, hex, decimal integers, or GL enum strings OK" },
-    { "find_namespace", 1, false, "Find: Limits --find_param to only parameters using the specified handle namespace: invalid, GLhandleARB, GLframebuffer, GLtexture, GLrenderbuffer, GLquery, GLsampler, GLprogramARB, GLprogram, GLarray, GLlist, GLlocation, GLlocationARB, GLfence, GLsync, GLpipeline, GLshader, GLbuffer, GLfeedback, GLarrayAPPLE, GLfragmentShaderATI" },
-    { "find_param_name", 1, false, "Find: Limits the find to only params with the specified name (specify \"return\" to limit search to only return values)" },
-    { "find_frame_low", 1, false, "Find: Limit the find to frames beginning at the specified frame index" },
-    { "find_frame_high", 1, false, "Find: Limit the find to frames up to and including the specified frame index" },
-    { "find_call_low", 1, false, "Find: Limit the find to GL calls beginning at the specified call index" },
-    { "find_call_high", 1, false, "Find: Limit the find to GL calls up to and including the specified call index" },
-};
-
-static command_line_param_desc g_command_line_param_descs_compare_hash_files[] =
-{
-    // compare_hash_files specific
-    { "sum_compare_threshold", 1, false, "compare_hash_files: Only report mismatches greater than the specified threshold, use with --sum_hashing" },
-    { "sum_hashing", 0, false, "Replay: Use per-component sums, instead of CRC hashing (useful for multisampling)" },
-    { "compare_ignore_frames", 1, false, "compare_hash_files: Ignore first X frames" },
-    { "compare_expected_frames", 1, false, "compare_hash_files: Fail if the # of frames is not X" },
-    { "compare_first_frame", 1, false, "compare_hash_files: First frame to compare to in second hash file" },
-    { "ignore_line_count_differences", 0, false, "compare_hash_files: Don't stop if the # of lines differs between the two files" },
-};
-
-static command_line_param_desc g_command_line_param_descs_parse[] =
-{
-    // parse specific
-    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
-};
-
-static command_line_param_desc g_command_line_param_descs_info[] =
-{
-    // info specific
-    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
-};
-
-static command_line_param_desc g_command_line_param_descs_unpack_json[] =
-{
-    // unpack_json specific
-};
-
-static command_line_param_desc g_command_line_param_descs_pack_json[] =
-{
-    // pack_json specific
-};
-
-static command_line_param_desc g_command_line_param_descs_dump[] =
-{
-    // dump specific
-    { "verify", 0, false, "Dump: Fully round-trip verify all JSON objects vs. the original packet's" },
-    { "write_debug_info", 0, false, "Dump: Write extra debug info to output JSON trace files" },
-    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
-    { "debug", 0, false, "Enable verbose debug information" },
-};
 
 static command_line_param_desc g_command_line_param_descs_common[] =
 {
@@ -210,20 +78,14 @@ struct command_t
 {
     const char *name;
     const char *desc;
-    bool (*func)(void);
-    command_line_param_desc *cmdline_desc;
-    size_t cmdline_desc_count;
+    bool (*func)(vogl::vector<command_line_param_desc> *desc);
     const char *filename_args;
 };
 
 static const command_t g_options[] =
 {
-#define XDEF(_x, _desc, _args) { #_x, _desc, tool_ ## _x ## _mode, \
-        g_command_line_param_descs_ ## _x, \
-        sizeof(g_command_line_param_descs_ ## _x) / sizeof(g_command_line_param_descs_ ## _x[0]), \
-        _args }
-
     // voglreplay subcommands
+#define XDEF(_x, _desc, _args) { #_x, _desc, tool_ ## _x ## _mode, _args }
     XDEF(play, "Play mode, must specify .BIN or .JSON trace file to play", "<input JSON/blob trace filename>"),
     XDEF(replay, "Replay mode, must specify .BIN or .JSON trace file to replay", "<input JSON/blob trace filename>"),
     XDEF(dump, "Dump mode: Dumps binary trace file to a JSON trace file, must specify input and output filenames", "<input binary trace filename> <output JSON/blob base filename>"),
@@ -233,7 +95,6 @@ static const command_t g_options[] =
     XDEF(pack_json, "Pack JSON to UBJ mode: Pack textual JSON to UBJ, must specify input and output filenames", "<input text filename> <output UBJ filename>"),
     XDEF(find, "Find all calls with parameters containing a specific value, combine with -find_param, -find_func, find_namespace, etc. params", "<input JSON/blob trace filename>"),
     XDEF(compare_hash_files, "Comparing hash/sum files", "<input hash filename1> <input hash filename2>"),
-
 #undef XDEF
 };
 static const size_t g_options_count = sizeof(g_options) / sizeof(g_options[0]);
@@ -398,7 +259,7 @@ static const command_t *init_command_line_params(int argc, char *argv[])
 
     vogl::vector<command_line_param_desc> cmdline_desc;
 
-    cmdline_desc.append(cmd->cmdline_desc, cmd->cmdline_desc_count);
+    cmd->func(&cmdline_desc);
 
     // Check if they want help for this command.
     for (size_t i = 0; i < args.size(); i++)
@@ -566,7 +427,7 @@ static const command_t *vogl_replay_init(int argc, char *argv[])
 }
 
 
-#if (VOGL_PLATFORM_HAS_X11)
+#if VOGL_PLATFORM_HAS_X11
 
 //----------------------------------------------------------------------------------------------------------------------
 // xerror_handler
@@ -599,7 +460,7 @@ int main(int argc, char *argv[])
     // Initialize vogl_core.
     vogl_core_init();
 
-#if (VOGL_PLATFORM_HAS_X11)
+#if VOGL_PLATFORM_HAS_X11
     XSetErrorHandler(xerror_handler);
 #endif
 
@@ -626,7 +487,7 @@ int main(int argc, char *argv[])
         tmZone(TELEMETRY_LEVEL0, TMZF_NONE, cmd->name);
 
         vogl_message_printf("%s.\n", cmd->desc);
-        success = cmd->func();
+        success = cmd->func(NULL);
     }
 
     console::printf("%u warning(s), %u error(s)\n", 

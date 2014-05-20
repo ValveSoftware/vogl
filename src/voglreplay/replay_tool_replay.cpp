@@ -31,13 +31,114 @@
 
 #include "libtelemetry.h"
 
+//----------------------------------------------------------------------------------------------------------------------
+// command line params
+//----------------------------------------------------------------------------------------------------------------------
+static command_line_param_desc g_command_line_param_descs_play[] =
+{
+    // play specific
+    { "width", 1, false, "Replay: Set replay window's initial width (default is 1024)" },
+    { "height", 1, false, "Replay: Set replay window's initial height (default is 768)" },
+    { "msaa", 1, false, "Replay: Set replay window's multisamples (default is 0)." },
+    { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
+    { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
+    { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
+    { "loop_frame", 1, false, "Replay: loop mode's start frame" },
+    { "loop_len", 1, false, "Replay: loop mode's loop length" },
+    { "loop_count", 1, false, "Replay: loop mode's loop count" },
+    { "benchmark", 0, false, NULL }, // Always set hidden option.
+    { "allow_state_teardown", 0, false, "Benchmark: When in benchmark mode, enables state teardown/restore at frame loop boundaries" },
+};
+
+//----------------------------------------------------------------------------------------------------------------------
+// command line params
+//----------------------------------------------------------------------------------------------------------------------
+static command_line_param_desc g_command_line_param_descs_replay[] =
+{
+    // replay specific
+    { "width", 1, false, "Replay: Set replay window's initial width (default is 1024)" },
+    { "height", 1, false, "Replay: Set replay window's initial height (default is 768)" },
+    { "msaa", 1, false, "Replay: Set replay window's multisamples (default is 0)." },
+    { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
+    { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
+    { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
+    { "loop_frame", 1, false, "Replay: loop mode's start frame" },
+    { "loop_len", 1, false, "Replay: loop mode's loop length" },
+    { "loop_count", 1, false, "Replay: loop mode's loop count" },
+    { "benchmark", 0, false, "Replay mode: Disable glGetError()'s, divergence checks, state teardown/restore, during replaying" },
+    { "allow_state_teardown", 0, false, "Benchmark: When in benchmark mode, enables state teardown/restore at frame loop boundaries" },
+
+    { "interactive", 0, false, "Replay mode: Enable keyboard keys" },
+    { "trim_file", 1, false, "Replay: Create a trimmed trace file during replay, must also specify -trim_frame" },
+    { "trim_frame", 1, false, "Replay: Frame index to begin trim, 0=beginning of trace, 1=first API call after first swap, etc." },
+    { "trim_len", 1, false, "Replay: Length of trim file, default=1 frame" },
+    { "multitrim", 0, false, "Replay trimming: Trim each frame to a different file" },
+    { "multitrim_interval", 1, false, "Replay trimming: Set the # of frames between each multitrimmed frame (default is 1)" },
+    { "no_trim_optimization", 0, false, "Replay trimming: If specified, do not remove unused programs, shaders, etc. from trim file" },
+    { "trim_call", 1, false, "Replay: Call counter index to begin trim" },
+    { "write_snapshot_call", 1, false, "Replay: Write JSON snapshot at the specified call counter index" },
+    { "write_snapshot_file", 1, false, "Replay: Write JSON snapshot to specified filename, must also specify --write_snapshot_call" },
+    { "write_snapshot_blobs", 0, false, "Replay: Write JSON snapshot blob files, must also specify --write_snapshot_call" },
+    { "debug_test_snapshot_serialization", 0, false, "Interactive Replay Mode: Immediately serialize/deserialize state snapshots after taking them" },
+    { "pause_on_frame", 1, false, "Replay interactive mode: Pause on specified frame" },
+    { "disable_snapshot_caching", 0, false, "Replay mode: Disable caching of all state snapshot files, so they can be manually modified during replay" },
+    { "keyframe_base_filename", 1, false, "Replay: Set base filename of trimmed replay keyframes, used for fast seeking" },
+    { "draw_kill_max_thresh", 1, false, "Replay: Enable draw kill mode during looping to visualize order of draws, sets the max # of draws before counter resets to 0" },
+    { "dump_all_packets", 0, false, "Replay: Dump all GL trace packets as JSON to stdout" },
+    { "debug", 0, false, "Enable verbose debug information" },
+    { "replay_debug", 0, false, "Enable various debug/verification code in the replayer" },
+    { "dump_packet_blob_files_on_error", 0, false, "Replay: Used with -dump_packets_on_error, also dumps all binary blob files associated with each packet" },
+    { "dump_shaders_on_draw", 0, false, "Replay: Dump shader source on draw calls" },
+    { "dump_packets_on_error", 0, false, "Replay: Dump GL trace packets as JSON to stdout on replay errors" },
+    { "dump_screenshots", 0, false, "Replay: Dump backbuffer screenshot before every swap to numbered PNG files" },
+    { "dump_screenshots_prefix", 1, false, "Replay: Set PNG screenshot file prefix" },
+    { "hash_backbuffer", 0, false, "Replay: Hash and output backbuffer CRC before every swap" },
+    { "dump_backbuffer_hashes", 1, false, "Replay: Dump backbuffer hashes to a text file" },
+    { "sum_hashing", 0, false, "Replay: Use per-component sums, instead of CRC hashing (useful for multisampling)" },
+    { "dump_framebuffer_on_draw", 0, false, "Replay: Dump framebuffer to PNG files after each draw/glEnd/glCallList" },
+    { "dump_framebuffer_on_draw_prefix", 1, false, "Replay: Base path/filename to use for --dump_framebuffer_on_draw" },
+    { "dump_framebuffer_on_draw_frame", 1, false, "Replay: Limit dumping framebuffer PNG files" },
+    { "dump_framebuffer_on_draw_first_gl_call", 1, false, "Replay: Limit dumping framebuffer PNG files" },
+    { "dump_framebuffer_on_draw_last_gl_call", 1, false, "Replay: Limit dumping framebuffer PNG files" },
+    { "clear_uninitialized_bufs", 0, false, "glBufferData(): Ensure buffers are unitialized to all-zeros when data param is NULL" },
+    { "disable_frontbuffer_restore", 0, false, "Replay: Do not restore the front buffer's contents when restoring a state snapshot" },
+    { "verbose", 0, false, "Verbose debug output" },
+    { "pause_on_exit", 0, false, "Replay: Wait for a keypress on exit" },
+    { "swap_sleep", 1, false, "Replay: Sleep for X milliseconds after every swap" },
+};
+
+static const struct
+{
+    const char *m_pCommand;
+    uint32_t m_flag;
+} g_replayer_command_line_params[] =
+{
+    { "benchmark", cGLReplayerBenchmarkMode },
+    { "verbose", cGLReplayerVerboseMode },
+    { "force_debug_context", cGLReplayerForceDebugContexts },
+    { "dump_all_packets", cGLReplayerDumpAllPackets },
+    { "debug", cGLReplayerDebugMode },
+    { "lock_window_dimensions", cGLReplayerLockWindowDimensions },
+    { "replay_debug", cGLReplayerLowLevelDebugMode },
+    { "dump_packet_blob_files_on_error", cGLReplayerDumpPacketBlobFilesOnError },
+    { "dump_shaders_on_draw", cGLReplayerDumpShadersOnDraw },
+    { "dump_packets_on_error", cGLReplayerDumpPacketsOnError },
+    { "dump_screenshots", cGLReplayerDumpScreenshots },
+    { "hash_backbuffer", cGLReplayerHashBackbuffer },
+    { "dump_backbuffer_hashes", cGLReplayerDumpBackbufferHashes },
+    { "sum_hashing", cGLReplayerSumHashing },
+    { "dump_framebuffer_on_draw", cGLReplayerDumpFramebufferOnDraws },
+    { "clear_uninitialized_bufs", cGLReplayerClearUnintializedBuffers },
+    { "disable_frontbuffer_restore", cGLReplayerDisableRestoreFrontBuffer },
+};
+
 #if (!VOGL_PLATFORM_HAS_X11)
 
-    bool tool_replay_mode()
-    {
-        VOGL_VERIFY(!"impl tool_replay_mode");
-        return false;
-    }
+bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
+{
+    VOGL_VERIFY(!"impl tool_replay_mode");
+    return false;
+}
 
 #else
 
@@ -281,34 +382,9 @@ static uint32_t get_replayer_flags_from_command_line_params(bool interactive_mod
 {
     uint32_t replayer_flags = 0;
 
-    static struct
-    {
-        const char *m_pCommand;
-        uint32_t m_flag;
-    } s_replayer_command_line_params[] =
-    {
-        { "benchmark", cGLReplayerBenchmarkMode },
-        { "verbose", cGLReplayerVerboseMode },
-        { "force_debug_context", cGLReplayerForceDebugContexts },
-        { "dump_all_packets", cGLReplayerDumpAllPackets },
-        { "debug", cGLReplayerDebugMode },
-        { "lock_window_dimensions", cGLReplayerLockWindowDimensions },
-        { "replay_debug", cGLReplayerLowLevelDebugMode },
-        { "dump_packet_blob_files_on_error", cGLReplayerDumpPacketBlobFilesOnError },
-        { "dump_shaders_on_draw", cGLReplayerDumpShadersOnDraw },
-        { "dump_packets_on_error", cGLReplayerDumpPacketsOnError },
-        { "dump_screenshots", cGLReplayerDumpScreenshots },
-        { "hash_backbuffer", cGLReplayerHashBackbuffer },
-        { "dump_backbuffer_hashes", cGLReplayerDumpBackbufferHashes },
-        { "sum_hashing", cGLReplayerSumHashing },
-        { "dump_framebuffer_on_draw", cGLReplayerDumpFramebufferOnDraws },
-        { "clear_uninitialized_bufs", cGLReplayerClearUnintializedBuffers },
-        { "disable_frontbuffer_restore", cGLReplayerDisableRestoreFrontBuffer },
-    };
-
-    for (uint32_t i = 0; i < sizeof(s_replayer_command_line_params) / sizeof(s_replayer_command_line_params[0]); i++)
-        if (g_command_line_params().get_value_as_bool(s_replayer_command_line_params[i].m_pCommand))
-            replayer_flags |= s_replayer_command_line_params[i].m_flag;
+    for (uint32_t i = 0; i < sizeof(g_replayer_command_line_params) / sizeof(g_replayer_command_line_params[0]); i++)
+        if (g_command_line_params().get_value_as_bool(g_replayer_command_line_params[i].m_pCommand))
+            replayer_flags |= g_replayer_command_line_params[i].m_flag;
 
     if (interactive_mode && !g_command_line_params().get_value_as_bool("disable_snapshot_caching"))
         replayer_flags |= cGLReplayerSnapshotCaching;
@@ -1261,9 +1337,15 @@ static int do_non_interactive_mode(replay_data_t &rdata)
 //----------------------------------------------------------------------------------------------------------------------
 // tool_replay_mode
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_replay_mode()
+bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs_replay, VOGL_ARRAY_SIZE(g_command_line_param_descs_replay));
+        return true;
+    }
 
     replay_data_t rdata;
 
@@ -1633,9 +1715,16 @@ bool tool_replay_mode()
     return (ret != -1);
 }
 
-bool tool_play_mode()
+bool tool_play_mode(vogl::vector<command_line_param_desc> *desc)
 {
-    return tool_replay_mode();
+    VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs_play, VOGL_ARRAY_SIZE(g_command_line_param_descs_play));
+        return true;
+    }
+    return tool_replay_mode(desc);
 }
 
 #endif  // VOGL_PLATFORM_HAS_X11

@@ -36,12 +36,27 @@
 
 #include "libtelemetry.h"
 
+static command_line_param_desc g_command_line_param_descs_dump[] =
+{
+    // dump specific
+    { "verify", 0, false, "Dump: Fully round-trip verify all JSON objects vs. the original packet's" },
+    { "write_debug_info", 0, false, "Dump: Write extra debug info to output JSON trace files" },
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
+    { "debug", 0, false, "Enable verbose debug information" },
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // tool_dump_mode
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_dump_mode()
+bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs_dump, VOGL_ARRAY_SIZE(g_command_line_param_descs_dump));
+        return true;
+    }
 
     dynamic_string input_trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_trace_filename.is_empty())

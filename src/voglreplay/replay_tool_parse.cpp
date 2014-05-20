@@ -30,12 +30,24 @@
 
 #include "vogl_file_utils.h"
 
+static command_line_param_desc g_command_line_param_descs_parse[] =
+{
+    // parse specific
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // tool_parse_mode
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_parse_mode()
+bool tool_parse_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs_parse, VOGL_ARRAY_SIZE(g_command_line_param_descs_parse));
+        return true;
+    }
 
     dynamic_string input_base_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_base_filename.is_empty())
