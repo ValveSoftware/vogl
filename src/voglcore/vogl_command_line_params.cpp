@@ -236,12 +236,15 @@ namespace vogl
         return true;
     }
 
-    void dump_command_line_info(uint32_t n, const command_line_param_desc *pDesc, const char *prefix)
+    void dump_command_line_info(uint32_t n, const command_line_param_desc *pDesc, const char *prefix, bool hide_null_descs)
     {
         if (!prefix)
             prefix = "";
         for (uint32_t i = 0; i < n; i++)
         {
+            if (hide_null_descs && !pDesc[i].m_pDesc)
+                continue;
+
             console::message("%s%s", prefix, pDesc[i].m_pName);
             for (uint32_t j = 0; j < pDesc[i].m_num_values; j++)
                 console::message(" [value]");

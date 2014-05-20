@@ -60,7 +60,7 @@ static command_line_param_desc g_command_line_param_descs_play[] =
     { "loop_frame", 1, false, "Replay: loop mode's start frame" },
     { "loop_len", 1, false, "Replay: loop mode's loop length" },
     { "loop_count", 1, false, "Replay: loop mode's loop count" },
-    { "benchmark", 0, false, "Disable glGetError()'s, divergence checks, during replaying (set by default)" },
+    { "benchmark", 0, false, NULL }, // Always set hidden option.
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -185,7 +185,9 @@ static command_line_param_desc g_command_line_param_descs_common[] =
     { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
     { "quiet", 0, false, "Disable all console output" },
     { "gl_debug_log", 0, false, "Dump GL prolog/epilog messages to stdout (very slow - helpful to narrow down driver crashes)" },
-    { "vogl_func_tracing", 0, false, NULL },
+#if VOGL_FUNCTION_TRACING
+    { "vogl_func_tracing", 0, false, "Enable vogl function tracing (must build with VOGL_FUNCTION_TRACING)" },
+#endif
 #ifdef USE_TELEMETRY
     { "telemetry_level", 1, false, "Set Telemetry level." },
 #endif
@@ -332,17 +334,17 @@ VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_li
 
         if (descs_count)
         {
-            dump_command_line_info(descs_count, descs, "--");
+            dump_command_line_info(descs_count, descs, "--", true);
             printf("\n");
         }
 
         printf("Common options:\n");
-        dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_param_descs_common), g_command_line_param_descs_common, "--");
+        dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_param_descs_common), g_command_line_param_descs_common, "--", true);
 
         if (!vogl_strcmp(cmd->name, "replay"))
         {
             console::printf("\nInteractive replay mode keys:\n");
-            dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_interactive_descs), g_command_line_interactive_descs, " ");
+            dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_interactive_descs), g_command_line_interactive_descs, " ", true);
         }
     }
 
