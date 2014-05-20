@@ -31,7 +31,7 @@
     #include "../libbacktrace/btrace.h"
 #endif
 
-#if !defined(VOGL_PLATFORM_SUPPORTS_BTRACE)
+#if !VOGL_PLATFORM_SUPPORTS_BTRACE
 
 bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
 {
