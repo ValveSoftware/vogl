@@ -175,10 +175,10 @@ btrace_module_search (const void *vkey, const void *ventry)
     return 0;
 }
 
-const char *
+const char * __attribute__ ((noinline))
 btrace_get_current_module()
 {
-    void *paddr = __builtin_return_address(0);
+    const void *paddr = (void *)&btrace_get_current_module;
     uintptr_t addr = (uintptr_t)paddr;
     vogl::scoped_mutex lock(get_dlopen_mutex());
 

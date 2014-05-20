@@ -71,8 +71,8 @@ const char *btrace_get_debug_filename(const char *filename);
  * Walk up the stack until we find a module that isn't the same as the one we're in.
  *  Return the full path string to that module. Will return NULL if nothing is found.
  */
-const char *btrace_get_calling_module();
-const char *btrace_get_current_module();
+const char * __attribute__ ((noinline)) btrace_get_calling_module();
+const char * __attribute__ ((noinline)) btrace_get_current_module();
 
 /*
  * Called when a new module is dlopen'd.
