@@ -140,6 +140,12 @@ bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
     return false;
 }
 
+bool tool_play_mode(vogl::vector<command_line_param_desc> *desc)
+{
+    VOGL_VERIFY(!"impl tool_replay_mode");
+    return false;
+}
+
 #else
 
 struct replay_data_t
