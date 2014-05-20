@@ -38,6 +38,7 @@ bool tool_find_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_compare_hash_files_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_play_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc);
 
 //----------------------------------------------------------------------------------------------------------------------
 // globals
@@ -84,17 +85,17 @@ struct command_t
 
 static const command_t g_options[] =
 {
-    // voglreplay subcommands
 #define XDEF(_x, _desc, _args) { #_x, _desc, tool_ ## _x ## _mode, _args }
-    XDEF(play, "Play mode, must specify .BIN or .JSON trace file to play", "<input JSON/blob trace filename>"),
-    XDEF(replay, "Replay mode, must specify .BIN or .JSON trace file to replay", "<input JSON/blob trace filename>"),
-    XDEF(dump, "Dump mode: Dumps binary trace file to a JSON trace file, must specify input and output filenames", "<input binary trace filename> <output JSON/blob base filename>"),
-    XDEF(parse, "Parse mode: Parse JSON trace file to a binary trace file, must specify input and output filenames", "<input JSON/blob trace filename>"),
-    XDEF(info, "Info mode: Output statistics about a trace file", "<input JSON/blob trace filename>"),
-    XDEF(unpack_json, "Unpack UBJ to JSON mode: Unpack UBJ (Universal Binary JSON) to textual JSON, must specify input and output filenames", "<input UBJ filename> <output text filename>"),
-    XDEF(pack_json, "Pack JSON to UBJ mode: Pack textual JSON to UBJ, must specify input and output filenames", "<input text filename> <output UBJ filename>"),
-    XDEF(find, "Find all calls with parameters containing a specific value, combine with -find_param, -find_func, find_namespace, etc. params", "<input JSON/blob trace filename>"),
+    XDEF(play, "Play trace file", "<input JSON/blob trace filename>"),
+    XDEF(replay, "Replay trace file with extended options for trimming, validation, interactive mode, and snapshots", "<input JSON/blob trace filename>"),
+    XDEF(info, "Output statistics about a trace file", "<input JSON/blob trace filename>"),
+    XDEF(find, "Find all calls with parameters containing a specific value", "<input JSON/blob trace filename>"),
     XDEF(compare_hash_files, "Comparing hash/sum files", "<input hash filename1> <input hash filename2>"),
+    XDEF(symbols, "Output trace file symbol information", "<input JSON/blob trace filename>"),
+    XDEF(dump, "Dumps binary trace file to a JSON trace file", "<input binary trace filename> <output JSON/blob base filename>"),
+    XDEF(parse, "Parse JSON trace file to a binary trace file", "<input JSON/blob trace filename>"),
+    XDEF(unpack_json, "Unpack UBJ (Universal Binary JSON) to textual JSON", "<input UBJ filename> <output text filename>"),
+    XDEF(pack_json, "Pack textual JSON to UBJ", "<input text filename> <output UBJ filename>"),
 #undef XDEF
 };
 static const size_t g_options_count = sizeof(g_options) / sizeof(g_options[0]);

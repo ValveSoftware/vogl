@@ -1730,6 +1730,7 @@ bool tool_play_mode(vogl::vector<command_line_param_desc> *desc)
         desc->append(g_command_line_param_descs_play, VOGL_ARRAY_SIZE(g_command_line_param_descs_play));
         return true;
     }
+
     return tool_replay_mode(desc);
 }
 

@@ -44,7 +44,6 @@ add_subdirectory(src/ktxtool) # 12
 
 if (NOT WIN32)
     add_subdirectory(src/voglbench) # 5
-    add_subdirectory(src/voglsyms) # 6
 
     add_subdirectory(src/glxspheres) # 7 -- Probably linux only.
     add_subdirectory(src/vogleditor) # 8

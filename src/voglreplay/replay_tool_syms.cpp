@@ -23,13 +23,25 @@
  *
  **************************************************************************/
 
+// File: replay_tool_syms.cpp
 #include "vogl_trace_file_reader.h"
-
-#include "vogl_colorized_console.h"
-#include "vogl_command_line_params.h"
 #include "vogl_unique_ptr.h"
 
-#include "btrace.h"
+#if VOGL_PLATFORM_SUPPORTS_BTRACE
+    #include "../libbacktrace/btrace.h"
+#endif
+
+#if !defined(VOGL_PLATFORM_SUPPORTS_BTRACE)
+
+bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
+{
+    VOGL_FUNC_TRACER
+
+    VOGL_VERIFY(!"impl tool_symbols_mode");
+    return false;
+}
+
+#else
 
 //$ TODO: Need to run voglsyms32 to resolve 32-bit symbols and voglsyms64 for 64-bit symbols.
 //        This is going to be a decent bit of work modifying elf.c in libbacktrace though...
@@ -39,7 +51,6 @@
 //----------------------------------------------------------------------------------------------------------------------
 // globals
 //----------------------------------------------------------------------------------------------------------------------
-static cfile_stream *g_vogl_pLog_stream;
 
 struct addr_data_t
 {
@@ -52,147 +63,10 @@ struct addr_data_t
 // command line params
 //----------------------------------------------------------------------------------------------------------------------
 static command_line_param_desc g_command_line_param_descs[] =
-    {
-      { "resolve_symbols", 0, false, "Resolve symbols and write backtrace_map_syms.json in trace file" },
-      { "logfile", 1, false, "Create logfile" },
-      { "logfile_append", 1, false, "Append output to logfile" },
-      { "help", 0, false, "Display this help" },
-      { "?", 0, false, "Display this help" },
-      { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
-      { "verbose", 0, false, "Verbose debug output" },
-      { "quiet", 0, false, "Disable all console output" },
-    };
-
-//----------------------------------------------------------------------------------------------------------------------
-// init_logfile
-//----------------------------------------------------------------------------------------------------------------------
-static bool init_logfile()
 {
-    VOGL_FUNC_TRACER
-
-    dynamic_string log_file(g_command_line_params().get_value_as_string_or_empty("logfile"));
-    dynamic_string log_file_append(g_command_line_params().get_value_as_string_or_empty("logfile_append"));
-    if (log_file.is_empty() && log_file_append.is_empty())
-        return true;
-
-    dynamic_string filename(log_file_append.is_empty() ? log_file : log_file_append);
-
-    // This purposely leaks, don't care
-    g_vogl_pLog_stream = vogl_new(cfile_stream);
-
-    if (!g_vogl_pLog_stream->open(filename.get_ptr(), cDataStreamWritable, !log_file_append.is_empty()))
-    {
-        vogl_error_printf("%s: Failed opening log file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr());
-        return false;
-    }
-    else
-    {
-        vogl_message_printf("Opened log file \"%s\"\n", filename.get_ptr());
-        console::set_log_stream(g_vogl_pLog_stream);
-    }
-
-    return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// tool_print_title
-//----------------------------------------------------------------------------------------------------------------------
-static void tool_print_title()
-{
-    VOGL_FUNC_TRACER
-
-    vogl_printf("voglsyms ");
-    if (sizeof(void *) > 4)
-        vogl_printf("64-bit ");
-    else
-        vogl_printf("32-bit ");
-#ifdef VOGL_BUILD_DEBUG
-    vogl_printf("Debug ");
-#else
-    vogl_printf("Release ");
-#endif
-    vogl_printf("Built %s %s\n", __DATE__, __TIME__);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// tool_print_help
-//----------------------------------------------------------------------------------------------------------------------
-static void tool_print_help()
-{
-    VOGL_FUNC_TRACER
-
-    vogl_printf("Usage: voglsyms [ -option ... ] input_file optional_output_file [ -option ... ]\n");
-    vogl_printf("Command line options may begin with single minus \"-\" or double minus \"--\"\n");
-
-    vogl_printf("\nCommand line options:\n");
-
-    dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, "--");
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// init_command_line_params
-//----------------------------------------------------------------------------------------------------------------------
-static bool init_command_line_params(int argc, char *argv[])
-{
-    VOGL_FUNC_TRACER
-
-    command_line_params::parse_config parse_cfg;
-    parse_cfg.m_single_minus_params = true;
-    parse_cfg.m_double_minus_params = true;
-
-    if (!g_command_line_params().parse(get_command_line_params(argc, argv),
-                                     VOGL_ARRAY_SIZE(g_command_line_param_descs),
-                                     g_command_line_param_descs, parse_cfg))
-    {
-        vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
-        return false;
-    }
-
-    if (!init_logfile())
-        return false;
-
-    if (g_command_line_params().get_value_as_bool("help") || g_command_line_params().get_value_as_bool("?"))
-    {
-        tool_print_help();
-        return false;
-    }
-
-    return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// voglsyms_init
-//----------------------------------------------------------------------------------------------------------------------
-static bool voglsyms_init(int argc, char *argv[])
-{
-    VOGL_FUNC_TRACER
-
-    console::disable_prefixes();
-
-    colorized_console::init();
-    colorized_console::set_exception_callback();
-    //console::set_tool_prefix("(voglsyms) ");
-
-    tool_print_title();
-
-    if (!init_command_line_params(argc, argv))
-        return false;
-
-    if (g_command_line_params().get_value_as_bool("quiet"))
-        console::disable_output();
-
-    return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// voglsyms_deinit
-//----------------------------------------------------------------------------------------------------------------------
-static void voglsyms_deinit()
-{
-    VOGL_FUNC_TRACER
-
-    colorized_console::deinit();
-}
+    { "resolve_symbols", 0, false, "Resolve symbols and write backtrace_map_syms.json to trace file" },
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // dump_compiler_info
@@ -436,10 +310,15 @@ static bool dump_backtrace_map_syms(vogl_trace_file_reader *pTrace_reader)
 //----------------------------------------------------------------------------------------------------------------------
 // voglsym_main_loop
 //----------------------------------------------------------------------------------------------------------------------
-static bool
-voglsym_main_loop(char *argv[])
+bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs, VOGL_ARRAY_SIZE(g_command_line_param_descs));
+        return true;
+    }
 
     dynamic_string tracefile_arch;
     dynamic_string actual_trace_filename;
@@ -483,7 +362,7 @@ voglsym_main_loop(char *argv[])
             if (trace_file_arch_is_64bits != is_64bit)
             {
                 const char *arch_str = is_64bit ? "64-bit" : "32-bit";
-                vogl_error_printf("ERROR: %s is %s, tracefile is %s.\n", argv[0], arch_str, tracefile_arch.c_str());
+                vogl_error_printf("ERROR: voglreplay is %s, tracefile is %s.\n", arch_str, tracefile_arch.c_str());
                 vogl_error_printf("ERROR: Same architecture required to resolve symbols.\n");
                 return -1;
             }
@@ -632,49 +511,4 @@ voglsym_main_loop(char *argv[])
     return true;
 }
 
-//----------------------------------------------------------------------------------------------------------------------
-// main
-//----------------------------------------------------------------------------------------------------------------------
-int main(int argc, char *argv[])
-{
-#if VOGL_FUNCTION_TRACING
-    fflush(stdout);
-    fflush(stderr);
-    setvbuf(stdout, NULL, _IONBF, 0);
-    setvbuf(stderr, NULL, _IONBF, 0);
-#endif
-
-    VOGL_FUNC_TRACER
-
-    // Initialize vogl_core.
-    vogl_core_init();
-
-    if (!voglsyms_init(argc, argv))
-    {
-        voglsyms_deinit();
-        return EXIT_FAILURE;
-    }
-
-    if (g_command_line_params().get_count("") < 2)
-    {
-        vogl_error_printf("No trace file specified!\n");
-
-        tool_print_help();
-
-        voglsyms_deinit();
-        return EXIT_FAILURE;
-    }
-
-    if (g_command_line_params().get_value_as_bool("pause"))
-    {
-        vogl_message_printf("Press key to continue\n");
-        vogl_sleep(1000);
-        getchar();
-    }
-
-    bool success = voglsym_main_loop(argv);
-
-    voglsyms_deinit();
-
-    return success ? EXIT_SUCCESS : EXIT_FAILURE;
-}
+#endif // defined(VOGL_PLATFORM_SUPPORTS_BTRACE)
