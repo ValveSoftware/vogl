@@ -542,7 +542,6 @@ namespace vogl
 
         // Adds a new key/value to a node. pValueToParse must be JSON text.
         bool add_key_and_parsed_value(const char *pKey, const char *pValueToParse);
-        bool add_key_and_parsed_value(const dynamic_string &key, const char *pValueToParse);
 
         // Adds a new value to a node. pValueToParse must be JSON text.
         bool add_parsed_value(const char *pValueToParse);
