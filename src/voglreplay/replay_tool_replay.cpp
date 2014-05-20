@@ -1069,31 +1069,53 @@ static int do_non_interactive_mode(replay_data_t &rdata)
             }
         }
 
+        // This conditional will only be entered on the first play through the trace, because the replayer's frame index always increments
         if ((!rdata.pSnapshot) && (rdata.loop_frame != -1) && (static_cast<int64_t>(replayer.get_frame_index()) == rdata.loop_frame))
         {
-            vogl_debug_printf("%s: Capturing replayer state at start of frame %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
-
-            rdata.pSnapshot = replayer.snapshot_state();
-
-            if (rdata.pSnapshot)
+            if (rdata.benchmark_mode && !rdata.benchmark_mode_allow_state_teardown)
             {
-                vogl_printf("Snapshot succeeded\n");
-
-                rdata.snapshot_loop_start_frame = rdata.pTrace_reader->get_cur_frame();
-                rdata.snapshot_loop_end_frame = rdata.pTrace_reader->get_cur_frame() + rdata.loop_len;
-
-                if (rdata.draw_kill_max_thresh > 0)
+                // only print the warning and update variables on the first time reaching this frame
+                if (rdata.snapshot_loop_start_frame == -1 && rdata.snapshot_loop_end_frame == -1)
                 {
-                    replayer.set_frame_draw_counter_kill_threshold(0);
-                }
+                    vogl_debug_printf("%s: Capturing state at start of frame %u is disabled due to benchmark mode.\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
+                    // still need to setup the loop variables
+                    rdata.snapshot_loop_start_frame = rdata.pTrace_reader->get_cur_frame();
+                    rdata.snapshot_loop_end_frame = rdata.pTrace_reader->get_cur_frame() + rdata.loop_len;
 
-                vogl_debug_printf("%s: Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, rdata.snapshot_loop_start_frame, rdata.snapshot_loop_end_frame);
+                    if (rdata.draw_kill_max_thresh > 0)
+                    {
+                        replayer.set_frame_draw_counter_kill_threshold(0);
+                    }
+
+                    vogl_debug_printf("%s: Loop start: %" PRIi64 " Loop end: %" PRIi64 ", Loops remaining: %d\n", VOGL_FUNCTION_INFO_CSTR, rdata.snapshot_loop_start_frame, rdata.snapshot_loop_end_frame, rdata.loop_count);
+                }
             }
             else
             {
-                vogl_error_printf("Snapshot failed!\n");
+                vogl_debug_printf("%s: Capturing replayer state at start of frame %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
 
-                rdata.loop_frame = -1;
+                rdata.pSnapshot = replayer.snapshot_state();
+
+                if (rdata.pSnapshot)
+                {
+                    vogl_printf("Snapshot succeeded\n");
+
+                    rdata.snapshot_loop_start_frame = rdata.pTrace_reader->get_cur_frame();
+                    rdata.snapshot_loop_end_frame = rdata.pTrace_reader->get_cur_frame() + rdata.loop_len;
+
+                    if (rdata.draw_kill_max_thresh > 0)
+                    {
+                        replayer.set_frame_draw_counter_kill_threshold(0);
+                    }
+
+                    vogl_debug_printf("%s: Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, rdata.snapshot_loop_start_frame, rdata.snapshot_loop_end_frame);
+                }
+                else
+                {
+                    vogl_error_printf("Snapshot failed!\n");
+
+                    rdata.loop_frame = -1;
+                }
             }
         }
     }
@@ -1182,11 +1204,32 @@ static int do_non_interactive_mode(replay_data_t &rdata)
         vogl_message_printf("%s: At trace EOF, frame index %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
     }
 
-    if ((replayer.get_at_frame_boundary()) && (rdata.pSnapshot) && (rdata.loop_count > 0) && ((rdata.pTrace_reader->get_cur_frame() == rdata.snapshot_loop_end_frame) || (status == vogl_gl_replayer::cStatusAtEOF)))
+    bool print_progress = (status == vogl_gl_replayer::cStatusAtEOF) || ((replayer.get_at_frame_boundary()) && ((replayer.get_frame_index() % 100) == 0));
+    if (print_progress)
     {
-        status = replayer.begin_applying_snapshot(rdata.pSnapshot, false);
-        if ((status != vogl_gl_replayer::cStatusOK) && (status != vogl_gl_replayer::cStatusResizeWindow))
-            return -1;
+        if (rdata.pTrace_reader->get_type() == cBINARY_TRACE_FILE_READER)
+        {
+            vogl_binary_trace_file_reader &binary_trace_reader = *static_cast<vogl_binary_trace_file_reader *>(rdata.pTrace_reader.get());
+
+            vogl_printf("Replay now at frame index %d, trace file offet %" PRIu64 ", GL call counter %" PRIu64 ", %3.2f%% percent complete\n",
+                        replayer.get_frame_index(),
+                        binary_trace_reader.get_cur_file_ofs(),
+                        replayer.get_last_parsed_call_counter(),
+                        binary_trace_reader.get_trace_file_size() ? (binary_trace_reader.get_cur_file_ofs() * 100.0f) / binary_trace_reader.get_trace_file_size() : 0);
+        }
+    }
+
+    // Essentially, this loop is only entered if the code needs to perform more loops
+    if ((replayer.get_at_frame_boundary()) && (rdata.loop_count > 0) && ((rdata.pTrace_reader->get_cur_frame() == rdata.snapshot_loop_end_frame) || (status == vogl_gl_replayer::cStatusAtEOF && rdata.snapshot_loop_end_frame != -1)))
+    {
+        // apply the snapshot if one exists
+        if (rdata.pSnapshot)
+        {
+            vogl_debug_printf("%s: Set pending snapshot\n", VOGL_FUNCTION_INFO_CSTR);
+            status = replayer.begin_applying_snapshot(rdata.pSnapshot, false);
+            if ((status != vogl_gl_replayer::cStatusOK) && (status != vogl_gl_replayer::cStatusResizeWindow))
+                return -1;
+        }
 
         rdata.pTrace_reader->seek_to_frame(static_cast<uint32_t>(rdata.snapshot_loop_start_frame));
 
@@ -1198,30 +1241,24 @@ static int do_non_interactive_mode(replay_data_t &rdata)
                 thresh = 0;
             replayer.set_frame_draw_counter_kill_threshold(thresh);
 
-            vogl_debug_printf("%s: Applying snapshot and seeking back to frame %" PRIi64 " draw kill thresh %" PRIu64 "\n", VOGL_FUNCTION_INFO_CSTR, rdata.snapshot_loop_start_frame, thresh);
+            vogl_debug_printf("%s: Seeking back to frame %" PRIi64 ". Draw kill thresh %" PRIu64 "\n", VOGL_FUNCTION_INFO_CSTR, rdata.snapshot_loop_start_frame, thresh);
         }
         else
-            vogl_debug_printf("%s: Applying snapshot and seeking back to frame %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, rdata.snapshot_loop_start_frame);
+            vogl_debug_printf("%s: Seeking back to frame %" PRIi64 ". Loops remaining: %d\n", VOGL_FUNCTION_INFO_CSTR, rdata.snapshot_loop_start_frame, rdata.loop_count);
 
         rdata.loop_count--;
     }
     else
     {
-        bool print_progress = (status == vogl_gl_replayer::cStatusAtEOF) || ((replayer.get_at_frame_boundary()) && ((replayer.get_frame_index() % 100) == 0));
-        if (print_progress)
+        if (rdata.pTrace_reader->get_cur_frame() == rdata.snapshot_loop_end_frame)
         {
-            if (rdata.pTrace_reader->get_type() == cBINARY_TRACE_FILE_READER)
-            {
-                vogl_binary_trace_file_reader &binary_trace_reader = *static_cast<vogl_binary_trace_file_reader *>(rdata.pTrace_reader.get());
-
-                vogl_printf("Replay now at frame index %d, trace file offet %" PRIu64 ", GL call counter %" PRIu64 ", %3.2f%% percent complete\n",
-                            replayer.get_frame_index(),
-                            binary_trace_reader.get_cur_file_ofs(),
-                            replayer.get_last_parsed_call_counter(),
-                            binary_trace_reader.get_trace_file_size() ? (binary_trace_reader.get_cur_file_ofs() * 100.0f) / binary_trace_reader.get_trace_file_size() : 0);
-            }
+            // just finished looping
+            double time_since_start = rdata.tm.get_elapsed_secs();
+            vogl_printf("Looping complete. %u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+            return 1;
         }
 
+        // if at end of file
         if (status == vogl_gl_replayer::cStatusAtEOF)
         {
             if (!rdata.endless_mode)
@@ -1235,7 +1272,7 @@ static int do_non_interactive_mode(replay_data_t &rdata)
             if (!rdata.benchmark_mode ||
                 (rdata.benchmark_mode && rdata.benchmark_mode_allow_state_teardown))
             {
-                vogl_printf("Resetting state and rewinding back to frame 0\n");
+                vogl_printf("Resetting state\n");
 
                 replayer.reset_state();
             }
@@ -1247,6 +1284,7 @@ static int do_non_interactive_mode(replay_data_t &rdata)
                 replayer.set_allow_snapshot_restoring(false);
             }
 
+            vogl_printf("Rewinding back to frame 0\n");
             if (!rdata.pTrace_reader->seek_to_frame(0))
             {
                 vogl_error_printf("%s: Failed rewinding trace reader!\n", VOGL_FUNCTION_INFO_CSTR);

@@ -61,6 +61,7 @@ static command_line_param_desc g_command_line_param_descs_play[] =
     { "loop_len", 1, false, "Replay: loop mode's loop length" },
     { "loop_count", 1, false, "Replay: loop mode's loop count" },
     { "benchmark", 0, false, NULL }, // Always set hidden option.
+    { "allow_state_teardown", 0, false, "Replay: enables state teardown/restore at frame loop boundaries" },
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -225,7 +226,7 @@ static const command_t g_options[] =
 
     // voglreplay subcommands
     XDEF(play, "Play mode, must specify .BIN or .JSON trace file to play", "<input JSON/blob trace filename>"),
-    XDEF(replay, "Replay mode, must specify .BIN or .JSON trace file to replay", "<input JSON/blob trace filename>"),
+    XDEF(replay, "Extended replay mode, must specify .BIN or .JSON trace file to replay", "<input JSON/blob trace filename>"),
     XDEF(dump, "Dump mode: Dumps binary trace file to a JSON trace file, must specify input and output filenames", "<input binary trace filename> <output JSON/blob base filename>"),
     XDEF(parse, "Parse mode: Parse JSON trace file to a binary trace file, must specify input and output filenames", "<input JSON/blob trace filename>"),
     XDEF(info, "Info mode: Output statistics about a trace file", "<input JSON/blob trace filename>"),
