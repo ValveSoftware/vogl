@@ -402,7 +402,7 @@ static const command_t *init_command_line_params(int argc, char *argv[])
     for (size_t i = 0; i < args.size(); i++)
     {
         if ((args[i] == "help") || (args[i] == "--help") || (args[i] == "-h") || (args[i] == "-?"))
-            tool_print_help(cmd, cmdline_desc.size() ? &cmdline_desc[0] : NULL, cmdline_desc.size());
+            tool_print_help(cmd, cmdline_desc.get_ptr(), cmdline_desc.size());
     }
 
     // If we're doing a playback, add the --benchmark flag by default.
@@ -447,23 +447,23 @@ static bool load_gl()
         return false;
     }
 
-    #if (VOGL_PLATFORM_HAS_GLX)
-        GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
-        if (!GL_ENTRYPOINT(glXGetProcAddress))
-        {
-            vogl_error_printf("%s: Failed getting address of glXGetProcAddress() from %s!\n", VOGL_FUNCTION_INFO_CSTR, plat_get_system_gl_module_name());
-            return false;
-        }
-    #elif (VOGL_PLATFORM_HAS_WGL)
-        GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
-        if (!GL_ENTRYPOINT(wglGetProcAddress))
-        {
-            vogl_error_printf("%s: Failed getting address of wglGetProcAddress() from %s!\n", VOGL_FUNCTION_INFO_CSTR, plat_get_system_gl_module_name());
-            return false;
-        }
-    #else
-        #error "Implement load_gl for this platform."
-    #endif
+#if (VOGL_PLATFORM_HAS_GLX)
+    GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
+    if (!GL_ENTRYPOINT(glXGetProcAddress))
+    {
+        vogl_error_printf("%s: Failed getting address of glXGetProcAddress() from %s!\n", VOGL_FUNCTION_INFO_CSTR, plat_get_system_gl_module_name());
+        return false;
+    }
+#elif (VOGL_PLATFORM_HAS_WGL)
+    GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
+    if (!GL_ENTRYPOINT(wglGetProcAddress))
+    {
+        vogl_error_printf("%s: Failed getting address of wglGetProcAddress() from %s!\n", VOGL_FUNCTION_INFO_CSTR, plat_get_system_gl_module_name());
+        return false;
+    }
+#else
+    #error "Implement load_gl for this platform."
+#endif
 
     return true;
 }
@@ -477,32 +477,19 @@ static vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
 
     vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, pName)) : NULL;
 
-    #if (VOGL_PLATFORM_HAS_GLX)
-        if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
-            pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
-    #elif (VOGL_PLATFORM_HAS_WGL)
-        if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
-            pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
-    #else
-        #error "Implement vogl_get_proc_address_helper this platform."
-    #endif
+#if (VOGL_PLATFORM_HAS_GLX)
+    if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
+        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
+#elif (VOGL_PLATFORM_HAS_WGL)
+    if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
+        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
+#else
+    #error "Implement vogl_get_proc_address_helper this platform."
+#endif
 
 
     return pFunc;
 }
-
-#if 0
-// HACK HACK - for testing
-static void vogl_direct_gl_func_prolog(gl_entrypoint_id_t entrypoint_id, void *pUser_data, void **pStack_data)
-{
-	printf("*** PROLOG %u\n", entrypoint_id);
-}
-
-void vogl_direct_gl_func_epilog(gl_entrypoint_id_t entrypoint_id, void *pUser_data, void **pStack_data)
-{
-	printf("*** EPILOG %u\n", entrypoint_id);
-}
-#endif
 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_direct_gl_func_prolog - This function is called before EVERY single GL/GLX function call we make.
@@ -623,7 +610,7 @@ int main(int argc, char *argv[])
 
 #ifdef VOGL_REMOTING
     vogl_init_listener();
-#endif // VOGL_REMOTING
+#endif
 
     if (g_command_line_params().get_value_as_bool("pause"))
     {
@@ -635,8 +622,8 @@ int main(int argc, char *argv[])
     bool success = false;
     {
         tmZone(TELEMETRY_LEVEL0, TMZF_NONE, cmd->name);
-        vogl_message_printf("%s.\n", cmd->desc);
 
+        vogl_message_printf("%s.\n", cmd->desc);
         success = cmd->func();
     }
 
