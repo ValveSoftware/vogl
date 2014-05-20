@@ -31,9 +31,15 @@
 //----------------------------------------------------------------------------------------------------------------------
 // tool_unpack_json_mode
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_unpack_json_mode()
+bool tool_unpack_json_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        // desc->append(g_command_line_param_descs_unpack_json, VOGL_ARRAY_SIZE(g_command_line_param_descs_unpack_json));
+        return true;
+    }
 
     dynamic_string input_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_filename.is_empty())
@@ -74,9 +80,15 @@ bool tool_unpack_json_mode()
 //----------------------------------------------------------------------------------------------------------------------
 // tool_pack_json_mode
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_pack_json_mode()
+bool tool_pack_json_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        // desc->append(g_command_line_param_descs_pack_json, VOGL_ARRAY_SIZE(g_command_line_param_descs_pack_json));
+        return true;
+    }
 
     dynamic_string input_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_filename.is_empty())

@@ -29,6 +29,20 @@
 #include "vogl_bigint128.h"
 #include "vogl_regex.h"
 
+static command_line_param_desc g_command_line_param_descs_find[] =
+{
+    // find specific
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
+    { "find_func", 1, false, "Find: Limit the find to only the specified function name POSIX regex pattern" },
+    { "find_param", 1, false, "Find: The parameter value to find, hex, decimal integers, or GL enum strings OK" },
+    { "find_namespace", 1, false, "Find: Limits --find_param to only parameters using the specified handle namespace: invalid, GLhandleARB, GLframebuffer, GLtexture, GLrenderbuffer, GLquery, GLsampler, GLprogramARB, GLprogram, GLarray, GLlist, GLlocation, GLlocationARB, GLfence, GLsync, GLpipeline, GLshader, GLbuffer, GLfeedback, GLarrayAPPLE, GLfragmentShaderATI" },
+    { "find_param_name", 1, false, "Find: Limits the find to only params with the specified name (specify \"return\" to limit search to only return values)" },
+    { "find_frame_low", 1, false, "Find: Limit the find to frames beginning at the specified frame index" },
+    { "find_frame_high", 1, false, "Find: Limit the find to frames up to and including the specified frame index" },
+    { "find_call_low", 1, false, "Find: Limit the find to GL calls beginning at the specified call index" },
+    { "find_call_high", 1, false, "Find: Limit the find to GL calls up to and including the specified call index" },
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // param_value_matches
 //----------------------------------------------------------------------------------------------------------------------
@@ -133,9 +147,15 @@ static void print_match(const vogl_trace_packet &trace_packet, int param_index, 
 //----------------------------------------------------------------------------------------------------------------------
 // tool_find_mode
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_find_mode()
+bool tool_find_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs_find, VOGL_ARRAY_SIZE(g_command_line_param_descs_find));
+        return true;
+    }
 
     dynamic_string input_base_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_base_filename.is_empty())

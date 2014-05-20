@@ -97,6 +97,7 @@ class vogl_entrypoint_serializer;
 
 typedef vogl::hash_map<CONTEXT_TYPE, vogl_context *, bit_hasher<CONTEXT_TYPE> > context_map;
 bool get_dimensions_from_dc(unsigned int* out_width, unsigned int* out_height, HDC hdc);
+typedef struct _vogl_xlib_trap_state vogl_xlib_trap_state_t;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Globals
@@ -107,6 +108,7 @@ static pthread_key_t g_vogl_thread_local_data;
 static cfile_stream *g_vogl_pLog_stream;
 static vogl_exception_callback_t g_vogl_pPrev_exception_callback;
 static GLuint g_dummy_program;
+static vogl_xlib_trap_state_t *g_vogl_xlib_trap_state;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Forward declaration
@@ -4400,6 +4402,68 @@ static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
 //----------------------------------------------------------------------------------------------------------------------
 #if (VOGL_PLATFORM_HAS_GLX)
 
+    struct _vogl_xlib_trap_state
+    {
+	int (* old_error_handler) (Display *, XErrorEvent *);
+	int trapped_error_code;
+	vogl_xlib_trap_state_t *old_state;
+    };
+
+    static int vogl_xlib_error_handler (Display *xdpy, XErrorEvent *error)
+    {
+	VOGL_ASSERT(g_vogl_xlib_trap_state);
+
+	g_vogl_xlib_trap_state->trapped_error_code = error->error_code;
+
+	return 0;
+    }
+
+    static void vogl_xlib_trap_errors (vogl_xlib_trap_state_t *state)
+    {
+	state->trapped_error_code = 0;
+	state->old_error_handler = XSetErrorHandler(vogl_xlib_error_handler);
+
+	state->old_state = g_vogl_xlib_trap_state;
+	g_vogl_xlib_trap_state = state;
+    }
+
+    static int vogl_xlib_untrap_errors (vogl_xlib_trap_state_t *state)
+    {
+	VOGL_ASSERT(g_vogl_xlib_trap_state == state);
+
+	XSetErrorHandler(state->old_error_handler);
+
+	g_vogl_xlib_trap_state = state->old_state;
+
+	return state->trapped_error_code;
+    }
+
+    static bool vogl_query_glx_drawable_size(const Display *dpy, GLXDrawable drawable, unsigned int *width, unsigned int *height)
+    {
+	Window root = 0;
+	int x = 0, y = 0;
+	unsigned int border_width = 0, depth = 0;
+	vogl_xlib_trap_state_t state;
+
+	// It turns out that there is some inconsistency between drivers over
+	// whether it's ok to pass a vanilla X drawable to glXQueryDrawable or pass
+	// a GLXDrawable from glXCreateWindow to XGetGeometry. glXQueryDrawable has
+	// been also been seen to be inconsistent with mesa and an indirect context
+	// where it may return a size of 0 with no error.
+	//
+	// See: https://bugs.freedesktop.org/show_bug.cgi?id=54080
+
+	vogl_xlib_trap_errors (&state);
+	XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, width, height, &border_width, &depth);
+	if (vogl_xlib_untrap_errors (&state) == 0)
+	    return true;
+
+	vogl_xlib_trap_errors (&state);
+	GL_ENTRYPOINT(glXQueryDrawable(const_cast<Display *>(dpy), drawable, GLX_WIDTH, width));
+	GL_ENTRYPOINT(glXQueryDrawable(const_cast<Display *>(dpy), drawable, GLX_HEIGHT, height));
+	return vogl_xlib_untrap_errors (&state) == 0;
+    }
+
     static void vogl_add_make_current_key_value_fields(const Display *dpy, GLXDrawable drawable, Bool result, vogl_context *pVOGL_context, vogl_entrypoint_serializer &serializer)
     {
         if ((result) && (pVOGL_context))
@@ -4424,10 +4488,7 @@ static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
 
             if ((dpy) && (drawable) && (result))
             {
-                Window root;
-                int x, y;
-                unsigned int border_width, depth;
-                valid_dims = (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False);
+		valid_dims = vogl_query_glx_drawable_size (dpy, drawable, &width, &height);
             }
 
             if (valid_dims)
@@ -4684,9 +4745,9 @@ static void vogl_glTexStorage2D(	GLenum target,
         Bool result = GL_ENTRYPOINT(glXMakeContextCurrent)(dpy, draw, read, context);
         uint64_t gl_end_rdtsc = utils::RDTSC();
 
-        if ((result) && (pCur_context != pNew_context))
+        if (result)
         {
-            if (pCur_context)
+            if ((pCur_context != pNew_context) && pCur_context)
                 context_manager.release_current();
 
             if (context)
@@ -5553,12 +5614,9 @@ static void vogl_check_for_capture_trigger_file()
             GL_ENTRYPOINT(glXMakeCurrent)(pVOGL_context->get_display(), pVOGL_context->get_drawable(), pVOGL_context->get_context_handle());
         }
 
-        Window root = 0;
-        int x = 0, y = 0;
         unsigned int width = 0, height = 0;
         bool dims_valid = false;
-        unsigned int border_width = 0, depth = 0;
-        dims_valid = (dpy) && (XGetGeometry(const_cast<Display *>(dpy), drawable, &root, &x, &y, &width, &height, &border_width, &depth) != False);
+	dims_valid = vogl_query_glx_drawable_size(dpy, drawable, &width, &height);
 
         if (dims_valid)
         {
@@ -6914,7 +6972,7 @@ static void vogl_serialize_shader_source(vogl_entrypoint_serializer &trace_seria
         {
             const char *pStr = (const char *)string[i];
             int str_len = 0;
-            if (length)
+            if (length && length[i] >= 0)
                 str_len = length[i];
             else
                 str_len = pStr ? (vogl_strlen(pStr) + 1) : 0;

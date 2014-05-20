@@ -29,6 +29,12 @@
 #include "vogl_mergesort.h"
 #include "vogl_unique_ptr.h"
 
+static command_line_param_desc g_command_line_param_descs_info[] =
+{
+    // info specific
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // struct histo_entry
 //----------------------------------------------------------------------------------------------------------------------
@@ -79,9 +85,15 @@ static void dump_histogram(const char *pMsg, const dynamic_string_hash_map &map,
 //----------------------------------------------------------------------------------------------------------------------
 // tool_info_mode
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_info_mode()
+bool tool_info_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs_info, VOGL_ARRAY_SIZE(g_command_line_param_descs_info));
+        return true;
+    }
 
     dynamic_string input_base_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_base_filename.is_empty())

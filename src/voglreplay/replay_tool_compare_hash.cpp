@@ -28,11 +28,28 @@
 #include "vogl_gl_replayer.h"
 #include "vogl_file_utils.h"
 
+static command_line_param_desc g_command_line_param_descs_compare_hash_files[] =
+{
+    // compare_hash_files specific
+    { "sum_compare_threshold", 1, false, "compare_hash_files: Only report mismatches greater than the specified threshold, use with --sum_hashing" },
+    { "sum_hashing", 0, false, "Replay: Use per-component sums, instead of CRC hashing (useful for multisampling)" },
+    { "compare_ignore_frames", 1, false, "compare_hash_files: Ignore first X frames" },
+    { "compare_expected_frames", 1, false, "compare_hash_files: Fail if the # of frames is not X" },
+    { "compare_first_frame", 1, false, "compare_hash_files: First frame to compare to in second hash file" },
+    { "ignore_line_count_differences", 0, false, "compare_hash_files: Don't stop if the # of lines differs between the two files" },
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // tool_compare_hash_files
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_compare_hash_files_mode()
+bool tool_compare_hash_files_mode(vogl::vector<command_line_param_desc> *desc)
 {
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs_compare_hash_files, VOGL_ARRAY_SIZE(g_command_line_param_descs_compare_hash_files));
+        return true;
+    }
+
     dynamic_string src1_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     dynamic_string src2_filename(g_command_line_params().get_value_as_string_or_empty("", 2));
     if ((src1_filename.is_empty()) || (src2_filename.is_empty()))
