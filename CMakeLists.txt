@@ -42,12 +42,14 @@ add_subdirectory(src/voglreplay) # 4
 add_subdirectory(src/voglbench) # 5
 add_subdirectory(src/vogltrace) # 6
 
-add_subdirectory(src/extlib/pxfmt) # 11
-add_subdirectory(src/ktxtool) # 12
+add_subdirectory(src/extlib/pxfmt) # 13
+add_subdirectory(src/ktxtool) # 14
 
 if (NOT WIN32)
-    add_subdirectory(src/glxspheres) # 7 -- Probably linux only.
-    add_subdirectory(src/vogleditor) # 8
-    add_subdirectory(src/libbacktrace) # 9
-    add_subdirectory(src/libbacktrace_test) # 10
+    add_subdirectory(src/vogltest) # 7
+
+    add_subdirectory(src/glxspheres) # 8 -- Probably linux only.
+    add_subdirectory(src/vogleditor) # 9
+    add_subdirectory(src/libbacktrace) # 11
+    add_subdirectory(src/libbacktrace_test) # 12
 endif()

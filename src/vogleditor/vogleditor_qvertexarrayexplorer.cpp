@@ -49,7 +49,9 @@ vogleditor_QVertexArrayExplorer::vogleditor_QVertexArrayExplorer(QWidget *parent
     m_currentCallElementTypeIndex(0),
     m_currentCallElementByteOffset(0),
     m_currentCallElementBaseVertex(0),
-    m_currentCallElementIndices(NULL)
+    m_currentCallElementIndices(NULL),
+    m_currentCallInstanceCount(0),
+    m_currentCallBaseInstance(0)
 {
     ui->setupUi(this);
 
@@ -59,14 +61,20 @@ vogleditor_QVertexArrayExplorer::vogleditor_QVertexArrayExplorer(QWidget *parent
     ui->elementTypeComboBox->addItem("GL_UNSIGNED_INT");
     endUpdate();
 
-    ui->baseVertexSpinBox->setMaximum(INT_MAX);
     ui->baseVertexSpinBox->setMinimum(INT_MIN);
+    ui->baseVertexSpinBox->setMaximum(INT_MAX);
 
     ui->countSpinBox->setMinimum(0);
     ui->countSpinBox->setMaximum(INT_MAX);
 
     ui->byteOffsetSpinBox->setMinimum(0);
     ui->byteOffsetSpinBox->setMaximum(INT_MAX);
+
+    ui->instanceCountSpinBox->setMinimum(0);
+    ui->instanceCountSpinBox->setMaximum(INT_MAX);
+
+    ui->baseInstanceSpinBox->setMinimum(0);
+    ui->baseInstanceSpinBox->setMaximum(INT_MAX);
 }
 
 vogleditor_QVertexArrayExplorer::~vogleditor_QVertexArrayExplorer()
@@ -87,6 +95,8 @@ void vogleditor_QVertexArrayExplorer::clear()
     m_currentCallElementByteOffset = 0;
     m_currentCallElementBaseVertex = 0;
     m_currentCallElementIndices = NULL;
+    m_currentCallInstanceCount = 0;
+    m_currentCallBaseInstance = 0;
 
     ui->vertexArrayComboBox->clear();
     ui->vertexTableWidget->clear();
@@ -164,7 +174,7 @@ bool vogleditor_QVertexArrayExplorer::set_active_vertexarray(unsigned long long 
     return false;
 }
 
-void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, uint32_t baseVertex, vogl::uint8_vec* pClientSideElements)
+void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, int32_t baseVertex, vogl::uint8_vec* pClientSideElements, uint32_t instanceCount, uint32_t baseInstance)
 {
     // determine type index in combo box, or use whatever the current setting is if a known type is supplied
     uint32_t typeIndex = ui->elementTypeComboBox->currentIndex();
@@ -186,12 +196,16 @@ void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, 
     m_currentCallElementBaseVertex = baseVertex;
     m_currentCallElementIndices = pClientSideElements;
     m_currentCallElementByteOffset = byteOffset;
+    m_currentCallInstanceCount = instanceCount;
+    m_currentCallBaseInstance = baseInstance;
 
     beginUpdate();
     ui->countSpinBox->setValue(m_currentCallElementCount);
     ui->elementTypeComboBox->setCurrentIndex(m_currentCallElementTypeIndex);
     ui->byteOffsetSpinBox->setValue(m_currentCallElementByteOffset);
     ui->baseVertexSpinBox->setValue(m_currentCallElementBaseVertex);
+    ui->instanceCountSpinBox->setValue(m_currentCallInstanceCount);
+    ui->baseInstanceSpinBox->setValue(m_currentCallBaseInstance);
     endUpdate(true);
 
     m_bUserSetOptions = true;
@@ -253,7 +267,12 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
 
     uint32_t stride = (attribDesc.m_stride != 0) ? attribDesc.m_stride : bytesPerAttribute;
 
-    // TODO: need to account for divisor
+    // account for divisor
+    if (attribDesc.m_divisor != 0)
+    {
+        index /= attribDesc.m_divisor;
+    }
+
     uint32_t curAttributeDataIndex = stride*index;
 
     // make sure accessing this attribute's components will not read past the end of the buffer
@@ -266,8 +285,7 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
     }
 
     // index into the buffer
-    // TODO: need to account for divisor
-    const uint8_t* pCurAttributeData = &(bufferState.get_buffer_data()[stride*index]);
+    const uint8_t* pCurAttributeData = &(bufferState.get_buffer_data()[curAttributeDataIndex]);
 
     // print each component
     dynamic_string attributeValueString;
@@ -394,7 +412,7 @@ void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged
 
     m_pVaoState = ui->vertexArrayComboBox->itemData(index).value<vogl_vao_state*>();
 
-    update_vertex_array_table_headers();
+    update_array_table_headers();
 
     if (m_bUserSetOptions)
     {
@@ -416,6 +434,7 @@ void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged
     if (!is_ui_update_in_progress())
     {
         update_vertex_array_table();
+        update_instance_array_table();
     }
 }
 
@@ -474,14 +493,14 @@ bool vogleditor_QVertexArrayExplorer::calculate_element_and_format_as_string(con
         elementValue = index;
     }
 
-    // add baseVertex to the vertexIndex
+    // add baseVertex to the vertex index
     elementValue += baseVertex;
 
     elementString = QString::number(elementValue);
     return true;
 }
 
-void vogleditor_QVertexArrayExplorer::update_vertex_array_table_headers()
+void vogleditor_QVertexArrayExplorer::update_array_table_headers()
 {
     // get all the accessible buffers
     vogl_gl_object_state_ptr_vec allBuffers;
@@ -531,6 +550,7 @@ void vogleditor_QVertexArrayExplorer::update_vertex_array_table_headers()
 
     // this will store the column labels
     QStringList headers;
+    QStringList instancedHeaders;
 
     if (m_pVaoElementArray != NULL)
     {
@@ -545,17 +565,45 @@ void vogleditor_QVertexArrayExplorer::update_vertex_array_table_headers()
         headers << QString("Implied Indices");
     }
 
+    instancedHeaders << QString("InstanceId");
+    uint instancedCount = 0;
     for (uint b = 0; b < m_attrib_buffers.size(); b++)
     {
         if (m_attrib_buffers[b] != NULL)
         {
-            headers << QString("Attrib %1 (Buffer %2)").arg(b).arg(m_attrib_buffers[b]->get_snapshot_handle());
+            // determine whether this attrib is per-vertex or per-instance
+            if (m_pVaoState->get_vertex_attrib_desc(b).m_divisor == 0)
+            {
+                headers << QString("Attrib %1 (Buffer %2)").arg(b).arg(m_attrib_buffers[b]->get_snapshot_handle());
+            }
+            else
+            {
+                instancedHeaders << QString("Attrib %1 (Buffer %2)").arg(b).arg(m_attrib_buffers[b]->get_snapshot_handle());
+                instancedCount++;
+            }
         }
     }
 
     // set column headers
     ui->vertexTableWidget->setColumnCount(headers.size());
     ui->vertexTableWidget->setHorizontalHeaderLabels(headers);
+
+    ui->instancedVertexTableWidget->setColumnCount(instancedHeaders.size());
+    ui->instancedVertexTableWidget->setHorizontalHeaderLabels(instancedHeaders);
+
+    if (instancedCount == 0)
+    {
+        // no instanced vertex data, so collapse the view
+        QList<int> sizes;
+        sizes << 1 << 0;
+        ui->splitter->setSizes(sizes);
+    }
+    else
+    {
+        QList<int> sizes;
+        sizes << 1 << 1;
+        ui->splitter->setSizes(sizes);
+    }
 }
 
 void vogleditor_QVertexArrayExplorer::update_vertex_array_table()
@@ -599,7 +647,8 @@ void vogleditor_QVertexArrayExplorer::update_vertex_array_table()
         uint column = 1;
         for (uint b = 0; b < m_attrib_buffers.size(); b++)
         {
-            if (m_attrib_buffers[b] != NULL)
+            // make sure buffer is available and that divisor is 0 (which means it is NOT a per-instance attribute)
+            if (m_attrib_buffers[b] != NULL && m_pVaoState->get_vertex_attrib_desc(b).m_divisor == 0)
             {
                 if (bValidElement)
                 {
@@ -621,6 +670,50 @@ void vogleditor_QVertexArrayExplorer::update_vertex_array_table()
         uint tmpWidth = ui->vertexTableWidget->horizontalHeader()->sectionSize(i);
         ui->vertexTableWidget->horizontalHeader()->setResizeMode(i, QHeaderView::Interactive);
         ui->vertexTableWidget->horizontalHeader()->resizeSection(i, tmpWidth);
+    }
+
+    QApplication::restoreOverrideCursor();
+}
+
+void vogleditor_QVertexArrayExplorer::update_instance_array_table()
+{
+    QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+
+    // Populate each row of the table
+    uint32_t instanceCount = ui->instanceCountSpinBox->value();
+    ui->instancedVertexTableWidget->setRowCount(instanceCount);
+    for (uint32_t i = 0; i < instanceCount; i++)
+    {
+        int baseInstance = ui->baseInstanceSpinBox->value();
+
+        uint32_t instanceIndex = baseInstance + i;
+
+        QString instanceString = QString::number(instanceIndex);
+
+        // populated element index value
+        ui->instancedVertexTableWidget->setItem(i, 0, new QTableWidgetItem(instanceString));
+
+        // populate attrib values
+        // column 0 contains instance Ids, so start at appropriate column
+        uint column = 1;
+        for (uint b = 0; b < m_attrib_buffers.size(); b++)
+        {
+            // make sure buffer is available and that divisor is NON-ZERO (which means it IS a per-instance attribute)
+            if (m_attrib_buffers[b] != NULL && this->m_pVaoState->get_vertex_attrib_desc(b).m_divisor != 0)
+            {
+                ui->instancedVertexTableWidget->setItem(i, column, new QTableWidgetItem(format_buffer_data_as_string(instanceIndex, *(m_attrib_buffers[b]), m_pVaoState->get_vertex_attrib_desc(b))));
+                column++;
+            }
+        }
+    }
+
+    // resize columns to fit contents, but then reset back to interactive so the user can resize them manually
+    for (int i = 0; i < ui->instancedVertexTableWidget->columnCount(); i++)
+    {
+        ui->instancedVertexTableWidget->horizontalHeader()->setResizeMode(i, QHeaderView::ResizeToContents);
+        uint tmpWidth = ui->instancedVertexTableWidget->horizontalHeader()->sectionSize(i);
+        ui->instancedVertexTableWidget->horizontalHeader()->setResizeMode(i, QHeaderView::Interactive);
+        ui->instancedVertexTableWidget->horizontalHeader()->resizeSection(i, tmpWidth);
     }
 
     QApplication::restoreOverrideCursor();
@@ -672,5 +765,25 @@ void vogleditor_QVertexArrayExplorer::on_baseVertexSpinBox_valueChanged(int arg1
     if (!is_ui_update_in_progress())
     {
         update_vertex_array_table();
+    }
+}
+
+void vogleditor_QVertexArrayExplorer::on_instanceCountSpinBox_valueChanged(int arg1)
+{
+    VOGL_NOTE_UNUSED(arg1);
+
+    if (!is_ui_update_in_progress())
+    {
+        update_instance_array_table();
+    }
+}
+
+void vogleditor_QVertexArrayExplorer::on_baseInstanceSpinBox_valueChanged(int arg1)
+{
+    VOGL_NOTE_UNUSED(arg1);
+
+    if (!is_ui_update_in_progress())
+    {
+        update_instance_array_table();
     }
 }

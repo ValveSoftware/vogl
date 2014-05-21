@@ -173,9 +173,9 @@ vogl_gl_replayer::vogl_gl_replayer()
       m_pBlob_manager(NULL),
       m_pPending_snapshot(NULL),
       m_delete_pending_snapshot_after_applying(false),
-      m_replay_to_trace_remapper(*this),
       m_proc_address_helper_func(NULL),
-      m_wrap_all_gl_calls(false)
+      m_wrap_all_gl_calls(false),
+      m_replay_to_trace_remapper(*this)
 
 {
     VOGL_FUNC_TRACER
@@ -1880,11 +1880,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
     vogl_trace_packet &gl_packet = m_pending_make_current_packet;
 
     Bool trace_result = gl_packet.get_return_value<Bool>();
-
-    gl_entrypoint_id_t entrypoint_id = gl_packet.get_entrypoint_id();
-    VOGL_ASSERT(entrypoint_id == VOGL_ENTRYPOINT_glXMakeCurrent 
-             || entrypoint_id == VOGL_ENTRYPOINT_glXMakeContextCurrent
-             || entrypoint_id == VOGL_ENTRYPOINT_wglMakeCurrent);
 
     // pContext_state will be NULL if they are unmapping!
     vogl_trace_ptr_value trace_context = get_trace_context_from_packet(gl_packet);
@@ -11703,17 +11698,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
             return cStatusHardFailure;
         }
 
-        #if (VOGL_PLATFORM_HAS_GLX)
-            GLXDrawable drawable = m_pWindow->get_xwindow();
-            Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
-        #elif (VOGL_PLATFORM_HAS_WGL)
-            bool result = false;
-            VOGL_VERIFY(!"impl vogl_gl_replayer::restore_context on Windows");
-        #else
-            #error "impl vogl_gl_replayer::restore_context on this platform"
-        #endif
-            
-        if (!result)
+        if (!m_pWindow->make_current(replay_context))
         {
             vogl_error_printf("Failed making context current\n");
             return cStatusHardFailure;

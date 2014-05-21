@@ -319,7 +319,7 @@ GLReplayContextType vogl_replay_window::create_context(GLReplayContextType repla
 
     #elif (VOGL_PLATFORM_HAS_X11)
         XVisualInfo *pVisual_info = GL_ENTRYPOINT(glXGetVisualFromFBConfig)(m_dpy, m_pFB_configs[0]);
-        return GL_ENTRYPOINT(glXCreateContext)(dpy, pVisual_info, replay_share_context, direct);
+        return GL_ENTRYPOINT(glXCreateContext)(m_dpy, pVisual_info, replay_share_context, direct);
     #else
         #error "Need to implement vogl_replay_window::create_context for this platform"
         return NULL;
@@ -361,9 +361,10 @@ GLReplayContextType vogl_replay_window::create_context_attrib(GLReplayContextTyp
 
         return SDL_GL_CreateContext(get_sdlwindow());
     #elif (VOGL_PLATFORM_HAS_X11)
-        GL_ENTRYPOINT(glXCreateContextAttribsARB)(m_dpy, m_pFB_configs[0], replay_share_context, direct, pAttrib_list);
+        return GL_ENTRYPOINT(glXCreateContextAttribsARB)(m_dpy, m_pFB_configs[0], replay_share_context, direct, pAttrib_list);
     #else
         #error "Need to implement vogl_replay_window::create_context_attrib for this platform"
+        return NULL;
     #endif
 }
 
@@ -395,8 +396,8 @@ void vogl_replay_window::destroy_context(GLReplayContextType context)
 
 Bool vogl_replay_window::is_direct(GLReplayContextType replay_context)
 {
-    #if (VOGL_PLATFORM_HAS_SDL && VOGL_PLATFORM_HAS_GLX)
-        return GL_ENTRYPOINT(glXIsDirect)(dpy, replay_context);
+    #if (VOGL_PLATFORM_HAS_X11 && VOGL_PLATFORM_HAS_GLX)
+        return GL_ENTRYPOINT(glXIsDirect)(m_dpy, replay_context);
     #elif (VOGL_PLATFORM_HAS_SDL)
         // We don't have a good way to ask here, so just say yes.
         return true ? 1 : 0;
@@ -425,7 +426,7 @@ Bool vogl_replay_window::query_version(int *out_major, int *out_minor)
     VOGL_ASSERT(out_minor != NULL);
 
     #if (VOGL_PLATFORM_HAS_GLX)
-        return GL_ENTRYPOINT(glXQueryVersion)(out_major, out_minor);
+        return GL_ENTRYPOINT(glXQueryVersion)(m_dpy, out_major, out_minor);
     #else
         // Other platforms don't have this concept.
         (*out_major) = 0;

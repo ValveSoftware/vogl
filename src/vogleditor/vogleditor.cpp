@@ -414,7 +414,7 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
     }
 
     QStringList arguments;
-    arguments << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
+    arguments << "replay" << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
 
     QDir appDirectory(QCoreApplication::applicationDirPath());
 #ifdef __i386__
@@ -1782,7 +1782,7 @@ void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTree
         GLsizei count = trace_packet.get_param_value<GLsizei>(1);
         GLenum type = trace_packet.get_param_value<GLenum>(2);
         vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
-        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")), 0, 0);
     }
     else if ( callId == VOGL_ENTRYPOINT_glDrawRangeElements ||
          callId == VOGL_ENTRYPOINT_glDrawRangeElementsEXT )
@@ -1790,16 +1790,16 @@ void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTree
         GLsizei count = trace_packet.get_param_value<GLsizei>(3);
         GLenum type = trace_packet.get_param_value<GLenum>(4);
         vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(5);
-        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")), 0, 0);
     }
     else if (callId == VOGL_ENTRYPOINT_glDrawElementsInstancedBaseVertex)
     {
         GLsizei count = trace_packet.get_param_value<GLsizei>(1);
         GLenum type = trace_packet.get_param_value<GLenum>(2);
         vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
-//TODO        GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
+        GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
         GLint basevertex = trace_packet.get_param_value<GLint>(5);
-        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")), primcount, 0);
     }
     else if (callId == VOGL_ENTRYPOINT_glDrawRangeElementsBaseVertex)
     {
@@ -1807,7 +1807,7 @@ void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTree
         GLenum type = trace_packet.get_param_value<GLenum>(4);
         vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(5);
         GLint basevertex = trace_packet.get_param_value<GLint>(6);
-        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")), 0, 0);
     }
     else if (callId == VOGL_ENTRYPOINT_glDrawElementsBaseVertex)
     {
@@ -1815,22 +1815,23 @@ void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTree
         GLenum type = trace_packet.get_param_value<GLenum>(2);
         vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
         GLint basevertex = trace_packet.get_param_value<GLint>(4);
-        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")), 0, 0);
     }
     else if (callId == VOGL_ENTRYPOINT_glDrawArraysInstanced ||
-             callId == VOGL_ENTRYPOINT_glDrawArraysInstancedEXT)
+             callId == VOGL_ENTRYPOINT_glDrawArraysInstancedEXT ||
+             callId == VOGL_ENTRYPOINT_glDrawArraysInstancedARB)
     {
         GLint first = trace_packet.get_param_value<GLsizei>(1);
         GLsizei count = trace_packet.get_param_value<GLsizei>(2);
-//TODO        GLsizei primcount = trace_packet.get_param_value<GLsizei>(3);
-        m_pVertexArrayExplorer->set_element_array_options(count, GL_NONE, 0, first, NULL);
+        GLsizei primcount = trace_packet.get_param_value<GLsizei>(3);
+        m_pVertexArrayExplorer->set_element_array_options(count, GL_NONE, 0, first, NULL, primcount, 0);
     }
     else if (callId == VOGL_ENTRYPOINT_glDrawArrays ||
              callId == VOGL_ENTRYPOINT_glDrawArraysEXT)
     {
         GLint first = trace_packet.get_param_value<GLsizei>(1);
         GLsizei count = trace_packet.get_param_value<GLsizei>(2);
-        m_pVertexArrayExplorer->set_element_array_options(count, GL_NONE, 0, first, NULL);
+        m_pVertexArrayExplorer->set_element_array_options(count, GL_NONE, 0, first, NULL, 0, 0);
     }
     else if (callId == VOGL_ENTRYPOINT_glDrawElementsInstanced ||
              callId == VOGL_ENTRYPOINT_glDrawElementsInstancedARB ||
@@ -1839,12 +1840,47 @@ void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTree
         GLsizei count = trace_packet.get_param_value<GLsizei>(1);
         GLenum type = trace_packet.get_param_value<GLenum>(2);
         vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
-//TODO        GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
-        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")));
+        GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")), primcount, 0);
+    }
+    else if (callId == VOGL_ENTRYPOINT_glDrawElementsInstancedBaseVertexBaseInstance)
+    {
+        GLsizei count = trace_packet.get_param_value<GLsizei>(1);
+        GLenum type = trace_packet.get_param_value<GLenum>(2);
+        vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
+        GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
+        GLint basevertex = trace_packet.get_param_value<GLint>(5);
+        GLuint baseinstance = trace_packet.get_param_value<GLuint>(6);
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, basevertex, trace_packet.get_key_value_map().get_blob(string_hash("indices")), primcount, baseinstance);
+    }
+    else if (callId == VOGL_ENTRYPOINT_glDrawArraysInstancedBaseInstance)
+    {
+        GLint first = trace_packet.get_param_value<GLsizei>(1);
+        GLsizei count = trace_packet.get_param_value<GLsizei>(2);
+        GLsizei primcount = trace_packet.get_param_value<GLsizei>(3);
+        GLuint baseinstance = trace_packet.get_param_value<GLuint>(4);
+        m_pVertexArrayExplorer->set_element_array_options(count, GL_NONE, 0, first, NULL, primcount, baseinstance);
+    }
+    else if (callId == VOGL_ENTRYPOINT_glDrawElementsInstancedBaseInstance)
+    {
+        GLsizei count = trace_packet.get_param_value<GLsizei>(1);
+        GLenum type = trace_packet.get_param_value<GLenum>(2);
+        vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
+        GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
+        GLuint baseinstance = trace_packet.get_param_value<GLuint>(5);
+        m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")), primcount, baseinstance);
     }
 //TODO
 //    else if (callId == VOGL_ENTRYPOINT_glMultiDrawArrays ||
 //             callId == VOGL_ENTRYPOINT_glMultiDrawArraysEXT)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glMultiDrawArraysIndirect ||
+//             callId == VOGL_ENTRYPOINT_glMultiDrawArraysIndirectAMD)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glMultiDrawElementsIndirect ||
+//             callId == VOGL_ENTRYPOINT_glMultiDrawElementsIndirectAMD)
 //    {
 //    }
 //    else if (callId == VOGL_ENTRYPOINT_glMultiDrawElements ||
@@ -1852,6 +1888,27 @@ void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTree
 //    {
 //    }
 //    else if (callId == VOGL_ENTRYPOINT_glMultiDrawElementsBaseVertex)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glMultiDrawElementArrayAPPLE)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glMultiDrawRangeElementArrayAPPLE)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glDrawTransformFeedback)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glDrawTransformFeedbackInstanced)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glDrawTransformFeedbackNV)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glDrawTransformFeedbackStream)
+//    {
+//    }
+//    else if (callId == VOGL_ENTRYPOINT_glDrawTransformFeedbackStreamInstanced)
 //    {
 //    }
     else

@@ -4,8 +4,11 @@ cmake_minimum_required(VERSION 2.8)
 include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
-require_sdl2()
 request_backtrace()
+
+if (MSVC)
+    require_sdl2()
+endif()
 
 include_directories(
     ${SRC_DIR}/extlib/loki/include/loki
