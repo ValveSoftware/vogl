@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
+require_sdl2()
 request_backtrace()
 
 include_directories(
@@ -13,6 +14,7 @@ include_directories(
     ${SRC_DIR}/voglcore
     ${SRC_DIR}/libtelemetry
     ${LibBackTrace_INCLUDE}
+    ${SDL2_INCLUDE}
 )
 
 file( GLOB_RECURSE HDRS *.[h|inl] )
@@ -82,6 +84,7 @@ add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
 target_link_libraries(${PROJECT_NAME} 
     ${LibBackTrace_LIBRARY}
+    ${SDL2_LIBRARY}
 )
 
 build_options_finalize()

@@ -235,8 +235,15 @@ static vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
 
     vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, pName)) : NULL;
 
-    if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
-        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
+    #if (VOGL_PLATFORM_HAS_GLX)
+        if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
+            pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
+    #elif (VOGL_PLATFORM_HAS_WGL)
+        if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
+            pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
+    #else
+        #error "Implement vogl_get_proc_address_helper this platform."
+    #endif
 
     return pFunc;
 }
@@ -300,8 +307,10 @@ static bool voglbench_init(int argc, char *argv[])
         vogl_set_direct_gl_func_epilog(vogl_direct_gl_func_epilog, NULL);
     }
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) 
-        return false;
+    #if VOGL_PLATFORM_HAS_SDL
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+            return false;
+    #endif
 
     if (!load_gl())
         return false;
@@ -419,6 +428,11 @@ static uint get_replayer_flags_from_command_line_params()
         vogl_gl_replayer replayer;
         vogl_replay_window window;
 
+        #if defined(PLATFORM_WINDOWS)
+            // We need to get proc addresses for windows late.
+            replayer.set_proc_address_helper(vogl_get_proc_address_helper, false);
+        #endif
+
         uint replayer_flags = get_replayer_flags_from_command_line_params();
 
         // TODO: This will create a window with default attributes, which seems fine for the majority of traces.
@@ -439,19 +453,13 @@ static uint get_replayer_flags_from_command_line_params()
         // Disable all glGetError() calls in vogl_utils.cpp.
         vogl_disable_gl_get_error();
 
-        XSelectInput(window.get_display(), window.get_xwindow(),
-            EnterWindowMask | LeaveWindowMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask | FocusChangeMask | KeyPressMask | KeyReleaseMask | PropertyChangeMask | StructureNotifyMask | KeymapStateMask);
-
-        Atom wmDeleteMessage = XInternAtom(window.get_display(), "WM_DELETE_WINDOW", False);
-        XSetWMProtocols(window.get_display(), window.get_xwindow(), &wmDeleteMessage, 1);
-
         // Bool win_mapped = false;
 
         vogl_gl_state_snapshot *pSnapshot = NULL;
         int64_t snapshot_loop_start_frame = -1;
         int64_t snapshot_loop_end_frame = -1;
 
-        vogl::hash_map<uint64_t> keys_pressed, keys_down;
+        vogl::hash_map<SDL_Keycode> keys_pressed, keys_down;
 
         int loop_frame = g_command_line_params().get_value_as_int("loop_frame", 0, -1);
         int loop_len = math::maximum<int>(g_command_line_params().get_value_as_int("loop_len", 0, 1), 1);
@@ -465,96 +473,49 @@ static uint get_replayer_flags_from_command_line_params()
         {
             tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "Main Loop");
 
-            while (X11_Pending(window.get_display()))
+            SDL_Event wnd_event;
+            
+            while (SDL_PollEvent(&wnd_event))
             {
-                XEvent newEvent;
-
-                // Watch for new X eventsn
-                XNextEvent(window.get_display(), &newEvent);
-
-                switch (newEvent.type)
+                switch (wnd_event.type)
                 {
-                case KeyPress:
-                {
-                                 KeySym xsym = XLookupKeysym(&newEvent.xkey, 0);
+                    case SDL_KEYDOWN:
+                    {
+                        keys_down.insert(wnd_event.key.keysym.sym);
+                        keys_pressed.insert(wnd_event.key.keysym.sym);
+                        break;
+                    }
 
-                                 //printf("KeyPress 0%04llX %" PRIu64 "\n", (uint64_t)xsym, (uint64_t)xsym);
+                    case SDL_KEYUP:
+                    {
+                        keys_down.erase(wnd_event.key.keysym.sym);
 
-                                 keys_down.insert(xsym);
-                                 keys_pressed.insert(xsym);
+                        break;
+                    }
 
-                                 break;
-                }
-                case KeyRelease:
-                {
-                                   KeySym xsym = XLookupKeysym(&newEvent.xkey, 0);
+                    case SDL_WINDOWEVENT:
+                    {
+                        switch(wnd_event.window.event)
+                        {
+                            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                            case SDL_WINDOWEVENT_FOCUS_LOST:
+                                keys_down.reset();
+                                break;
 
-                                   //printf("KeyRelease 0x%04llX %" PRIu64 "\n", (uint64_t)xsym, (uint64_t)xsym);
+                            case SDL_WINDOWEVENT_CLOSE:
+                                vogl_message_printf("Window told to close, exiting.\n");
+                                goto normal_exit;
+                                break;
+                            default:
+                                break;
+                        };
+                        break;
+                    }
 
-                                   keys_down.erase(xsym);
-
-                                   break;
-                }
-                case FocusIn:
-                case FocusOut:
-                {
-                                 //printf("FocusIn/FocusOut\n");
-
-                                 keys_down.reset();
-
-                                 break;
-                }
-                case MappingNotify:
-                {
-                                      //XRefreshKeyboardMapping(&newEvent);
-                                      break;
-                }
-                case UnmapNotify:
-                {
-                                    // printf("UnmapNotify\n");
-                                    // win_mapped = false;
-
-                                    keys_down.reset();
-
-                                    break;
-                }
-                case MapNotify:
-                {
-                                  // printf("MapNotify\n");
-                                  // win_mapped = true;
-
-                                  keys_down.reset();
-
-                                  if (!replayer.update_window_dimensions())
-                                      goto error_exit;
-
-                                  break;
-                }
-                case ConfigureNotify:
-                {
-                                        if (!replayer.update_window_dimensions())
-                                            goto error_exit;
-
-                                        break;
-                }
-                case DestroyNotify:
-                {
-                                      vogl_message_printf("Exiting\n");
-                                      goto normal_exit;
-                }
-                case ClientMessage:
-                {
-                                      if (newEvent.xclient.data.l[0] == (int)wmDeleteMessage)
-                                      {
-                                          vogl_message_printf("Exiting\n");
-                                          goto normal_exit;
-                                      }
-
-                                      break;
-                }
-                default:
-                    break;
-                }
+                    default:
+                        // TODO: Handle these somehow?
+                        break;
+                };
             }
 
             if (replayer.get_at_frame_boundary())
@@ -669,18 +630,6 @@ static uint get_replayer_flags_from_command_line_params()
 
     error_exit:
         return false;
-    }
-
-    //----------------------------------------------------------------------------------------------------------------------
-    // xerror_handler
-    //----------------------------------------------------------------------------------------------------------------------
-    static int xerror_handler(Display *dsp, XErrorEvent *error)
-    {
-        char error_string[256];
-        XGetErrorText(dsp, error->error_code, error_string, sizeof(error_string));
-
-        fprintf(stderr, "voglbench: Fatal X Windows Error: %s\n", error_string);
-        abort();
     }
 
 #elif (VOGL_PLATFORM_HAS_X11)

@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
 
-require_sdl2()
 require_pthreads()
+require_sdl2()
 request_backtrace()
 
 find_package(X11 REQUIRED)
