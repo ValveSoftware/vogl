@@ -1912,8 +1912,16 @@ public:
         if (!pFile)
             return false;
 
-        for (gl_string_map::const_iterator it = unique_enums.begin(); it != unique_enums.end(); ++it)
-            vogl_fprintf(pFile, "#define %s_%s %s\n", pPrefix, it->first.get_ptr(), it->second.get_ptr());
+        if (pPrefix)
+        {
+            for (gl_string_map::const_iterator it = unique_enums.begin(); it != unique_enums.end(); ++it)
+                vogl_fprintf(pFile, "#define %s_%s %s\n", pPrefix, it->first.get_ptr(), it->second.get_ptr());
+        }
+        else
+        {
+            for (gl_string_map::const_iterator it = unique_enums.begin(); it != unique_enums.end(); ++it)
+                vogl_fprintf(pFile, "#define %s %s\n", it->first.get_ptr(), it->second.get_ptr());
+        }
 
         vogl_fclose(pFile);
         return true;
@@ -2752,9 +2760,9 @@ public:
             return false;
         if (!m_glx_ext_enumerations.dump_to_definition_macro_file(out_inc_dir, "glx_ext_enums.inc", "GLX"))
             return false;
-        if (!m_wgl_enumerations.dump_to_definition_macro_file(out_inc_dir, "wgl_enums.inc", "WGL"))
+        if (!m_wgl_enumerations.dump_to_definition_macro_file(out_inc_dir, "wgl_enums.inc", NULL))
             return false;
-        if (!m_wgl_ext_enumerations.dump_to_definition_macro_file(out_inc_dir, "wgl_ext_enums.inc", "WGL"))
+        if (!m_wgl_ext_enumerations.dump_to_definition_macro_file(out_inc_dir, "wgl_ext_enums.inc", NULL))
             return false;
 
         const gl_types* glx_wgl_typemaps[] = { &m_glx_typemap, &m_wgl_typemap };
