@@ -89,20 +89,22 @@ namespace vogl
 
 inline const char *vogl_function_info(const char *file, int line, const char *function)
 {
-    static __thread char s_buf[512];
 
     // Don't trim on windows; we want the full path to show up so that if/when the message appears in debugger output 
     // you can double-click the line to jump to that source line in the editor.
 #if (defined(COMPILER_MSVC))
+    static __declspec(thread) char s_buf[512];
     const char *fname = file;
+    _snprintf(s_buf, sizeof(s_buf), "%s(%d): %s():", fname, line, function);
 #else
+    static __thread char s_buf[512];
     const char *fname = strrchr(file, '/');
     if (!fname)
         fname = strrchr(file, '\\');
     fname = fname ? (fname + 1) : file;
+    snprintf(s_buf, sizeof(s_buf), "%s(%d): %s():", fname, line, function);
 #endif
 
-    snprintf(s_buf, sizeof(s_buf), "%s(%d): %s():", fname, line, function);
     s_buf[sizeof(s_buf) - 1] = 0;
     return s_buf;
 }

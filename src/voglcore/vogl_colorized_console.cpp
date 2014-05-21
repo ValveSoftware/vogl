@@ -79,7 +79,7 @@ namespace vogl
         SetConsoleTextAttribute(cons, (WORD)attr);
     }
 
-    bool colorized_console::console_output_func(eConsoleMessageType type, const char *pMsg, void *pData)
+    bool colorized_console::console_output_func(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData)
     {
         pData;
 
