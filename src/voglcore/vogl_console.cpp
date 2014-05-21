@@ -50,7 +50,9 @@ using namespace vogl;
 data_stream *console::m_pLog_stream;
 uint32_t console::m_num_output_funcs = 0;
 uint32_t console::m_num_messages[cMsgTotal];
-eConsoleMessageType console::m_output_level = cMsgWarning;
+//$ TODO: Default to verbose for now. Theoretically, this should be cMsgWarning but
+// tons of people are calling vogl_message_printf() and relying on that getting printed.
+eConsoleMessageType console::m_output_level = cMsgVerbose;
 bool console::m_at_beginning_of_line = true;
 bool console::m_prefixes = true;
 char console::m_tool_prefix[256];
@@ -166,14 +168,17 @@ void console::vprintf(const char *caller_info, eConsoleMessageType type, const c
         }
     }
 
-    // If we've got caller info, display it if this is an error message or
-    //  they've cranked the level up to verbose.
-    if (caller_info && ((m_output_level >= cMsgVerbose) || (type == cMsgError) || (type == cMsgWarning)))
+    if (m_at_beginning_of_line && caller_info)
     {
-        size_t l = strlen(caller_info);
-        memcpy(pDst, caller_info, l);
-        pDst += l;
-        buf_left -= l;
+        // If we've got caller info, display it if this is an error message or
+        //  they've cranked the level up to debug.
+        if ((m_output_level >= cMsgDebug) || (type == cMsgError) || (type == cMsgWarning))
+        {
+            size_t l = strlen(caller_info);
+            memcpy(pDst, caller_info, l);
+            pDst += l;
+            buf_left -= l;
+        }
     }
 
     vogl::vogl_vsprintf_s(pDst, buf_left, p, args);
