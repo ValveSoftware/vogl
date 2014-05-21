@@ -172,7 +172,7 @@ void console::vprintf(const char *caller_info, eConsoleMessageType type, const c
     {
         // If we've got caller info, display it if this is an error message or
         //  they've cranked the level up to debug.
-        if ((m_output_level >= cMsgDebug) || (type == cMsgError) || (type == cMsgWarning))
+        if ((m_output_level >= cMsgDebug) || (type == cMsgError))
         {
             size_t l = strlen(caller_info);
             memcpy(pDst, caller_info, l);
