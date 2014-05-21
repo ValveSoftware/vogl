@@ -1294,9 +1294,9 @@ private:
         func(stride, count, static_cast<const GLchar *>(pPtr));
     }
 
-    void process_entrypoint_print_summary_context(eConsoleMessageType msg_type);
-    void print_detailed_context(eConsoleMessageType msg_type);
-    void process_entrypoint_msg_print_detailed_context(eConsoleMessageType msg_type);
+    void process_entrypoint_print_summary_context(const char *caller_info, eConsoleMessageType msg_type);
+    void print_detailed_context(const char *caller_info, eConsoleMessageType msg_type);
+    void process_entrypoint_msg_print_detailed_context(const char *caller_info, eConsoleMessageType msg_type);
 
     void process_entrypoint_(const char *caller_info, eConsoleMessageType msgtype, const char *pFmt, ...) VOGL_ATTRIBUTE_PRINTF(4, 5);
 

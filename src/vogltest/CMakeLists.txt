@@ -5,11 +5,19 @@ include("${SRC_DIR}/build_options.cmake")
 find_package(X11 REQUIRED)
 
 option(VOGLTEST_LOAD_LIBVOGLTRACE "If enabled vogltest will load libvogltrace.so manually and not implictly link against libgl.so" FALSE)
-
 message("VOGLTEST_LOAD_LIBGLITRACE: ${VOGLTEST_LOAD_LIBVOGLTRACE}")
 
 if (NOT VOGLTEST_LOAD_LIBVOGLTRACE)
-    # Link with libGL.so
+    find_library(OPENGL_gl_LIBRARY
+        NAMES GL MesaGL libGL.so.1
+        PATHS /opt/graphics/OpenGL/lib
+        /usr/openwin/lib
+        /usr/shlib
+        /usr/X11R6/lib
+    )
+    if (NOT OPENGL_gl_LIBRARY)
+        message(FATAL_ERROR "Find_package failed to locate libGL.so.")
+    endif()
     set(VOGLTEST_OPENGL_LIBRARY "${OPENGL_gl_LIBRARY}")
 else()
     # Don't link with gl library, and define DLOAD_LIBVOGLTRACE=1...

@@ -46,7 +46,6 @@
 	#pragma warning( disable : 4273 )
 #endif
 
-
 //----------------------------------------------------------------------------------------------------------------------
 // Has exception hooks, dlopen() interception, super low-level global init.  Be super careful what you
 //  do in some of these funcs (particularly vogl_shared_object_constructor_func() or any of the funcs
@@ -65,6 +64,9 @@ bool g_vogl_initializing_flag = false;
 //----------------------------------------------------------------------------------------------------------------------
 #if defined(PLATFORM_LINUX)
 
+// Console initialization.
+void vogl_console_init();
+
 typedef void *(*dlopen_func_ptr_t)(const char *pFile, int mode);
 VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
 {
@@ -72,7 +74,10 @@ VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
     if (!s_pActual_dlopen)
         return NULL;
 
-    printf("(vogltrace) dlopen: %s %i\n", pFile ? pFile : "(nullptr)", mode);
+    // Make sure our console has been initialized (since we're calling vogl_printf routines).
+    vogl_console_init();
+
+    vogl_verbose_printf("(vogltrace) dlopen: %s %i\n", pFile ? pFile : "(nullptr)", mode);
 
     // Only redirect libGL.so when it comes from the app, NOT the driver or one of its associated helpers.
     // This is definitely fragile as all fuck.
@@ -86,14 +91,14 @@ VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
             if (should_redirect)
             {
                 pFile = btrace_get_current_module();
-                printf("(vogltrace) redirecting dlopen to %s\n", pFile);
+                vogl_verbose_printf("(vogltrace) redirecting dlopen to %s\n", pFile);
             }
             else
             {
-                printf("(vogltrace) NOT redirecting dlopen to %s, this dlopen() call appears to be coming from the driver\n", pFile);
+                vogl_verbose_printf("(vogltrace) NOT redirecting dlopen to %s, this dlopen() call appears to be coming from the driver\n", pFile);
             }
 
-            printf("------------\n");
+            vogl_verbose_printf("------------\n");
         }
     }
 
@@ -195,6 +200,7 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
 // Note: Be VERY careful what you do in here! It's called very early during init (long before main, during c++ init)
 //----------------------------------------------------------------------------------------------------------------------
 #if defined(PLATFORM_LINUX)
+
     VOGL_CONSTRUCTOR_FUNCTION(vogl_shared_object_constructor_func);
     static void vogl_shared_object_constructor_func()
     {
@@ -213,7 +219,9 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
             vogl_deinit();
         }
     }
+
 #elif defined(PLATFORM_WINDOWS)
+
     BOOL WINAPI DllMain(_In_  HINSTANCE hinstDLL, _In_  DWORD fdwReason, _In_  LPVOID lpvReserved)
     {
         switch (fdwReason)
@@ -248,6 +256,9 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
     VOGL_API_EXPORT DWORD VOGL_API_CALLCONV wglSwapMultipleBuffers(UINT, CONST WGLSWAP *) { return 0; }
     VOGL_API_EXPORT BOOL VOGL_API_CALLCONV wglUseFontOutlinesA(HDC hdc, DWORD first, DWORD count, DWORD listBase, FLOAT deviation, FLOAT extrusion, int format, LPGLYPHMETRICSFLOAT lpgmf) { return FALSE; }
     VOGL_API_EXPORT BOOL VOGL_API_CALLCONV wglUseFontOutlinesW(HDC hdc, DWORD first, DWORD count, DWORD listBase, FLOAT deviation, FLOAT extrusion, int format, LPGLYPHMETRICSFLOAT lpgmf) { return FALSE; }
+    
 #else
+
     #error "Need a way to call vogl_init and vogl_deinit for this platform."
+
 #endif

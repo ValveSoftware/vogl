@@ -470,14 +470,14 @@ static int check_events(replay_data_t &rdata)
         }
         case DestroyNotify:
         {
-            vogl_message_printf("Exiting\n");
+            vogl_verbose_printf("Exiting\n");
             return 1;
         }
         case ClientMessage:
         {
             if (newEvent.xclient.data.l[0] == (int)rdata.wmDeleteMessage)
             {
-                vogl_message_printf("Exiting\n");
+                vogl_verbose_printf("Exiting\n");
                 return 1;
             }
             break;
@@ -731,7 +731,7 @@ static int do_interactive_mode(replay_data_t &rdata)
 
     if (status == vogl_gl_replayer::cStatusAtEOF)
     {
-        vogl_message_printf("At trace EOF, frame index %u\n", replayer.get_frame_index());
+        vogl_verbose_printf("At trace EOF, frame index %u\n", replayer.get_frame_index());
 
         // Right after the last swap in the file, either rewind or pause back on the last frame
         if ((rdata.paused_mode) && (replayer.get_frame_index()))
@@ -741,7 +741,7 @@ static int do_interactive_mode(replay_data_t &rdata)
         }
         else
         {
-            vogl_printf("Resetting state and rewinding back to frame 0\n");
+            vogl_message_printf("Resetting state and rewinding back to frame 0\n");
 
             replayer.reset_state();
 
@@ -1290,7 +1290,7 @@ static int do_non_interactive_mode(replay_data_t &rdata)
 
     if (status == vogl_gl_replayer::cStatusAtEOF)
     {
-        vogl_message_printf("At trace EOF, frame index %u\n", replayer.get_frame_index());
+        vogl_verbose_printf("At trace EOF, frame index %u\n", replayer.get_frame_index());
     }
 
     bool print_progress = (status == vogl_gl_replayer::cStatusAtEOF) || ((replayer.get_at_frame_boundary()) && ((replayer.get_frame_index() % 100) == 0));
@@ -1300,11 +1300,9 @@ static int do_non_interactive_mode(replay_data_t &rdata)
         {
             vogl_binary_trace_file_reader &binary_trace_reader = *static_cast<vogl_binary_trace_file_reader *>(rdata.pTrace_reader.get());
 
-            vogl_printf("Replay now at frame index %d, trace file offet %" PRIu64 ", GL call counter %" PRIu64 ", %3.2f%% percent complete\n",
-                        replayer.get_frame_index(),
-                        binary_trace_reader.get_cur_file_ofs(),
-                        replayer.get_last_parsed_call_counter(),
-                        binary_trace_reader.get_trace_file_size() ? (binary_trace_reader.get_cur_file_ofs() * 100.0f) / binary_trace_reader.get_trace_file_size() : 0);
+            vogl_verbose_printf("Replay now at frame index %d, trace file offet %" PRIu64 ", GL call counter %" PRIu64 ", %3.2f%% percent complete\n",
+                                replayer.get_frame_index(), binary_trace_reader.get_cur_file_ofs(), replayer.get_last_parsed_call_counter(),
+                                binary_trace_reader.get_trace_file_size() ? (binary_trace_reader.get_cur_file_ofs() * 100.0f) / binary_trace_reader.get_trace_file_size() : 0);
         }
     }
 
@@ -1354,14 +1352,14 @@ static int do_non_interactive_mode(replay_data_t &rdata)
             {
                 double time_since_start = rdata.tm.get_elapsed_secs();
 
-                vogl_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+                vogl_verbose_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
                 return 1;
             }
 
             if (!rdata.benchmark_mode ||
                 (rdata.benchmark_mode && rdata.benchmark_mode_allow_state_teardown))
             {
-                vogl_printf("Resetting state\n");
+                vogl_verbose_printf("Resetting state\n");
 
                 replayer.reset_state();
             }
@@ -1373,7 +1371,7 @@ static int do_non_interactive_mode(replay_data_t &rdata)
                 replayer.set_allow_snapshot_restoring(false);
             }
 
-            vogl_printf("Rewinding back to frame 0\n");
+            vogl_message_printf("Rewinding back to frame 0\n");
             if (!rdata.pTrace_reader->seek_to_frame(0))
             {
                 vogl_error_printf("Failed rewinding trace reader!\n");
@@ -1416,7 +1414,7 @@ bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
         return false;
     }
 
-    vogl_printf("Reading trace file %s\n", actual_trace_filename.get_ptr());
+    vogl_message_printf("Reading trace file %s\n", actual_trace_filename.get_ptr());
 
     bool interactive_mode = g_command_line_params().get_value_as_bool("interactive");
     uint32_t replayer_flags = get_replayer_flags_from_command_line_params(interactive_mode);

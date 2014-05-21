@@ -79,7 +79,7 @@ bool vogl_context_snapshot::capture(const vogl_context_desc &desc, const vogl_co
 
     clear();
 
-    vogl_printf("Starting capture on trace context 0x%" PRIx64 ", has context info: %u\n", cast_val_to_uint64(desc.get_trace_context()), info.is_valid());
+    vogl_verbose_printf("Starting capture on trace context 0x%" PRIx64 ", has context info: %u\n", cast_val_to_uint64(desc.get_trace_context()), info.is_valid());
 
     m_context_desc = desc;
     m_context_info = info;
@@ -133,13 +133,13 @@ bool vogl_context_snapshot::capture(const vogl_context_desc &desc, const vogl_co
 
     VOGL_CHECK_GL_ERROR;
 
-    vogl_printf("Capture succeeded\n");
+    vogl_verbose_printf("Capture succeeded\n");
 
     return true;
 
 handle_error:
     VOGL_CHECK_GL_ERROR;
-    vogl_printf("Capture failed\n");
+    vogl_error_printf("Capture failed\n");
     return false;
 }
 
@@ -150,7 +150,7 @@ bool vogl_context_snapshot::remap_handles(vogl_handle_remapper &remapper)
     if (!m_is_valid)
         return false;
 
-    vogl_printf("Remapping object handles and program locations\n");
+    vogl_verbose_printf("Remapping object handles and program locations\n");
 
     if (!m_general_state.remap_handles(remapper))
         return false;
@@ -179,7 +179,7 @@ bool vogl_context_snapshot::remap_handles(vogl_handle_remapper &remapper)
         }
     }
 
-    vogl_printf("Remap complete\n");
+    vogl_verbose_printf("Remap complete\n");
 
     return true;
 }

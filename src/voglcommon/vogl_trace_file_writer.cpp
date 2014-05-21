@@ -68,7 +68,7 @@ bool vogl_trace_file_writer::open(const char *pFilename, vogl_archive_blob_manag
         return false;
     }
 
-    vogl_message_printf("Prepping trace file \"%s\"\n", pFilename);
+    vogl_verbose_printf("Prepping trace file \"%s\"\n", pFilename);
 
     m_sof_packet.init();
     m_sof_packet.m_pointer_sizes = pointer_sizes;
@@ -121,7 +121,7 @@ bool vogl_trace_file_writer::open(const char *pFilename, vogl_archive_blob_manag
         vogl_write_glInternalTraceCommandRAD(m_stream, m_pCTypes, cITCRDemarcation, 0, NULL);
     }
 
-    vogl_message_printf("Finished opening trace file \"%s\"\n", pFilename);
+    vogl_verbose_printf("Finished opening trace file \"%s\"\n", pFilename);
 
     return true;
 }
@@ -135,7 +135,7 @@ bool vogl_trace_file_writer::close()
     if (!m_stream.is_opened())
         return false;
 
-    vogl_message_printf("Flushing trace file %s (this could take some time), %u total frame file offsets\n", m_filename.get_ptr(), m_frame_file_offsets.size());
+    vogl_verbose_printf("Flushing trace file %s (this could take some time), %u total frame file offsets\n", m_filename.get_ptr(), m_frame_file_offsets.size());
 
     bool success = true;
 
@@ -166,7 +166,7 @@ bool vogl_trace_file_writer::close()
             {
                 m_sof_packet.m_archive_offset = m_stream.get_size();
 
-                vogl_message_printf("Copying %" PRIu64 " archive bytes into output trace file\n", m_sof_packet.m_archive_size);
+                vogl_verbose_printf("Copying %" PRIu64 " archive bytes into output trace file\n", m_sof_packet.m_archive_size);
 
                 if (!m_stream.write_file_data(trace_archive_filename.get_ptr()))
                 {

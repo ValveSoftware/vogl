@@ -151,41 +151,43 @@ public:
 // Command line params
 //----------------------------------------------------------------------------------------------------------------------
 static command_line_param_desc g_command_line_param_descs[] =
-    {
-        { "vogl_dump_gl_full", 0, false, NULL },
-        { "vogl_dump_gl_calls", 0, false, NULL },
-        { "vogl_dump_gl_buffers", 0, false, NULL },
-        { "vogl_dump_gl_shaders", 0, false, NULL },
-        { "vogl_sleep_at_startup", 1, false, NULL },
-        { "vogl_pause", 0, false, NULL },
-        { "vogl_long_pause", 0, false, NULL },
-        { "vogl_dump_stats", 0, false, NULL },
-        { "vogl_debug", 0, false, NULL },
-        { "vogl_flush_files_after_each_call", 0, false, NULL },
-        { "vogl_flush_files_after_each_swap", 0, false, NULL },
-        { "vogl_disable_signal_interception", 0, false, NULL },
-        { "vogl_logfile", 1, false, NULL },
-        { "vogl_logfile_append", 1, false, NULL },
-        { "vogl_tracefile", 1, false, NULL },
-        { "vogl_tracepath", 1, false, NULL },
-        { "vogl_dump_png_screenshots", 0, false, NULL },
-        { "vogl_dump_jpeg_screenshots", 0, false, NULL },
-        { "vogl_jpeg_quality", 0, false, NULL },
-        { "vogl_screenshot_prefix", 1, false, NULL },
-        { "vogl_hash_backbuffer", 0, false, NULL },
-        { "vogl_dump_backbuffer_hashes", 1, false, NULL },
-        { "vogl_sum_hashing", 0, false, NULL },
-        { "vogl_disable_atexit_context_flushing", 0, false, NULL },
-        { "vogl_null_mode", 0, false, NULL },
-        { "vogl_force_debug_context", 0, false, NULL },
-        { "vogl_disable_client_side_array_tracing", 0, false, NULL },
-        { "vogl_disable_gl_program_binary", 0, false, NULL },
-        { "vogl_func_tracing", 0, false, NULL },
-        { "vogl_backtrace_all_calls", 0, false, NULL },
-        { "vogl_backtrace_no_calls", 0, false, NULL },
-        { "vogl_exit_after_x_frames", 1, false, NULL },
-        { "vogl_traceport", 1, false, NULL },
-    };
+{
+    { "vogl_dump_gl_full", 0, false, NULL },
+    { "vogl_dump_gl_calls", 0, false, NULL },
+    { "vogl_dump_gl_buffers", 0, false, NULL },
+    { "vogl_dump_gl_shaders", 0, false, NULL },
+    { "vogl_sleep_at_startup", 1, false, NULL },
+    { "vogl_pause", 0, false, NULL },
+    { "vogl_long_pause", 0, false, NULL },
+    { "vogl_dump_stats", 0, false, NULL },
+    { "vogl_quiet", 0, false, NULL },
+    { "vogl_debug", 0, false, NULL },
+    { "vogl_verbose", 0, false, NULL },
+    { "vogl_flush_files_after_each_call", 0, false, NULL },
+    { "vogl_flush_files_after_each_swap", 0, false, NULL },
+    { "vogl_disable_signal_interception", 0, false, NULL },
+    { "vogl_logfile", 1, false, NULL },
+    { "vogl_logfile_append", 1, false, NULL },
+    { "vogl_tracefile", 1, false, NULL },
+    { "vogl_tracepath", 1, false, NULL },
+    { "vogl_dump_png_screenshots", 0, false, NULL },
+    { "vogl_dump_jpeg_screenshots", 0, false, NULL },
+    { "vogl_jpeg_quality", 0, false, NULL },
+    { "vogl_screenshot_prefix", 1, false, NULL },
+    { "vogl_hash_backbuffer", 0, false, NULL },
+    { "vogl_dump_backbuffer_hashes", 1, false, NULL },
+    { "vogl_sum_hashing", 0, false, NULL },
+    { "vogl_disable_atexit_context_flushing", 0, false, NULL },
+    { "vogl_null_mode", 0, false, NULL },
+    { "vogl_force_debug_context", 0, false, NULL },
+    { "vogl_disable_client_side_array_tracing", 0, false, NULL },
+    { "vogl_disable_gl_program_binary", 0, false, NULL },
+    { "vogl_func_tracing", 0, false, NULL },
+    { "vogl_backtrace_all_calls", 0, false, NULL },
+    { "vogl_backtrace_no_calls", 0, false, NULL },
+    { "vogl_exit_after_x_frames", 1, false, NULL },
+    { "vogl_traceport", 1, false, NULL },
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Globals
@@ -631,6 +633,51 @@ static void vogl_dump_statistics()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
+// is_command_line_param_set
+//----------------------------------------------------------------------------------------------------------------------
+static bool is_command_line_param_set(const char *param)
+{
+    if (vogl::check_for_command_line_param(param))
+        return true;
+
+    char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
+    if (pEnv_cmd_line && (strstr(pEnv_cmd_line, param)))
+        return true;
+    return false;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_console_init
+//----------------------------------------------------------------------------------------------------------------------
+void vogl_console_init()
+{
+    static bool s_inited = false;
+
+    if (!s_inited)
+    {
+        s_inited = true;
+
+        // Initialize vogl_core.
+        vogl_core_init();
+
+        colorized_console::init();
+        console::set_tool_prefix("(vogltrace) ");
+
+        if (is_command_line_param_set("-vogl_quiet"))
+            console::set_output_level(cMsgError);
+        else if (is_command_line_param_set("-vogl_debug"))
+            console::set_output_level(cMsgDebug);
+        else if (is_command_line_param_set("-vogl_verbose"))
+            console::set_output_level(cMsgVerbose);
+
+#if 0
+        // Enable to see file and line information in console output.
+        console::set_caller_info_always(true);
+#endif
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------
 // Initialization
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_init()
@@ -638,20 +685,16 @@ void vogl_init()
     // Cannot telemetry this function, too early.
     g_vogl_initializing_flag = true;
 
-    // Initialize vogl_core.
-    vogl_core_init();
+    // Init vogl console.
+    vogl_console_init();
 
-    // can't call vogl::colorized_console::init() because its global arrays will be cleared after this func returns
-    vogl::console::set_tool_prefix("(vogltrace) ");
-
-    #if VOGL_PLATFORM_SUPPORTS_BTRACE
-        vogl_message_printf("%s built %s %s, begin initialization in %s\n", btrace_get_current_module(), __DATE__, __TIME__, getenv("_"));
-    #endif
+#if VOGL_PLATFORM_SUPPORTS_BTRACE
+    vogl_message_printf("%s built %s %s, begin initialization in %s\n", btrace_get_current_module(), __DATE__, __TIME__, getenv("_"));
+#endif
 
     // We can't use the regular cmd line parser here because this func is called before global objects are constructed.
-    char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
-    bool pause = vogl::check_for_command_line_param("-vogl_pause") || ((pEnv_cmd_line) && (strstr(pEnv_cmd_line, "-vogl_pause") != NULL));
-    bool long_pause = vogl::check_for_command_line_param("-vogl_long_pause") || ((pEnv_cmd_line) && (strstr(pEnv_cmd_line, "-vogl_long_pause") != NULL));
+    bool pause = is_command_line_param_set("-vogl_pause");
+    bool long_pause = is_command_line_param_set("-vogl_long_pause");
     if (pause || long_pause)
     {
         int count = 60000;
@@ -716,7 +759,7 @@ void vogl_init()
 
     vogl_early_init();
 
-    vogl_message_printf("end initialization\n");
+    vogl_verbose_printf("end initialization\n");
 
     g_vogl_initializing_flag = false;
 }
@@ -784,7 +827,7 @@ static void vogl_init_command_line_params()
     char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
     if (pEnv_cmd_line)
     {
-        vogl_message_printf("Reading command line params from env var\n");
+        vogl_verbose_printf("Reading command line params from env var\n");
 
         dynamic_string cmd_line(pEnv_cmd_line);
         cmd_line.unquote();
@@ -895,17 +938,13 @@ static void vogl_global_init()
 
     VOGL_FUNC_TRACER
 
-    colorized_console::init();
-
-    console::set_tool_prefix("(vogltrace) ");
-
     vogl_message_printf("Command line params: \"%s\"\n", get_command_line().get_ptr());
 
     bool reliable_rdtsc = vogl::utils::init_rdtsc();
     if (reliable_rdtsc)
-        vogl_message_printf("Reliable tsc clocksource found. Using rdtsc.\n");
+        vogl_verbose_printf("Reliable tsc clocksource found. Using rdtsc.\n");
     else
-        vogl_message_printf("Unreliable tsc clocksource found. Not using rdtsc.\n");
+        vogl_warning_printf("Unreliable tsc clocksource found. Not using rdtsc.\n");
 
     vogl_init_command_line_params();
 
@@ -927,7 +966,7 @@ static void vogl_global_init()
 
     if (!g_command_line_params().get_value_as_bool("vogl_disable_signal_interception"))
     {
-        vogl_message_printf("Installing exception/signal callbacks\n");
+        vogl_verbose_printf("Installing exception/signal callbacks\n");
 
         colorized_console::set_exception_callback();
 
@@ -950,7 +989,7 @@ static void vogl_global_init()
 	//  put atexit at the end of vogl_global_init() and another at the end of glXMakeCurrent.
     atexit(vogl_atexit);
 
-    vogl_message_printf("vogl_global_init finished\n");
+    vogl_verbose_printf("vogl_global_init finished\n");
 
     g_vogl_has_been_initialized = true;
 }
@@ -3092,7 +3131,7 @@ static void vogl_atexit()
         uint32_t backtrace_hashmap_size = backtrace_hashmap.size();
         if (backtrace_hashmap_size)
         {
-            vogl_message_printf("Writing backtrace %u addrs\n", backtrace_hashmap_size);
+            vogl_verbose_printf("Writing backtrace %u addrs\n", backtrace_hashmap_size);
 
             json_node *pRoot = doc.get_root();
             pRoot->init_array();
@@ -3125,7 +3164,7 @@ static void vogl_atexit()
             if (get_vogl_trace_writer().get_trace_archive()->add_buf_using_id(data.get_ptr(), data.size(), VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME).is_empty())
                 vogl_error_printf("Failed adding serialized backtrace addrs to trace archive\n");
             else
-                vogl_message_printf("Done writing backtrace addrs\n");
+                vogl_verbose_printf("Done writing backtrace addrs\n");
         }
 
         return true;
@@ -3144,7 +3183,7 @@ static bool vogl_flush_compilerinfo_to_trace_file()
 
     json_document doc;
 
-    vogl_message_printf("Begin resolving compilerinfo to symbols\n");
+    vogl_verbose_printf("Begin resolving compilerinfo to symbols\n");
 
     json_node *pRoot = doc.get_root();
 
@@ -3166,7 +3205,7 @@ static bool vogl_flush_compilerinfo_to_trace_file()
     if (get_vogl_trace_writer().get_trace_archive()->add_buf_using_id(data.get_ptr(), data.size(), VOGL_TRACE_ARCHIVE_COMPILER_INFO_FILENAME).is_empty())
         vogl_error_printf("Failed adding serialized compilerinfo to trace archive\n");
     else
-        vogl_message_printf("Done resolving compilerinfo to symbols\n");
+        vogl_verbose_printf("Done resolving compilerinfo to symbols\n");
 
     return true;
 }
@@ -3183,7 +3222,7 @@ static bool vogl_flush_machineinfo_to_trace_file()
 
     json_document doc;
 
-    vogl_message_printf("Begin resolving machineinfo to symbols\n");
+    vogl_verbose_printf("Begin resolving machineinfo to symbols\n");
 
     json_node *pRoot = doc.get_root();
 
@@ -3197,7 +3236,7 @@ static bool vogl_flush_machineinfo_to_trace_file()
     if (get_vogl_trace_writer().get_trace_archive()->add_buf_using_id(data.get_ptr(), data.size(), VOGL_TRACE_ARCHIVE_MACHINE_INFO_FILENAME).is_empty())
         vogl_error_printf("Failed adding serialized machineinfo to trace archive\n");
     else
-        vogl_message_printf("Done resolving machineinfo to symbols\n");
+        vogl_verbose_printf("Done resolving machineinfo to symbols\n");
 
     return true;
 }

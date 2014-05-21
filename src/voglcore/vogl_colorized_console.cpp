@@ -193,7 +193,7 @@ namespace vogl
             g_colors[cMsgWarning] = ANSI_BOLDYELLOW;   // warnings
             g_colors[cMsgVerbose] = "";                // verbose messages
             g_colors[cMsgDebug] = ANSI_BOLDBLUE;       // debugging messages
-            g_colors[cMsgTotal] = "\033[44m\033[1m";  // header (dark blue background)
+            g_colors[cMsgTotal] = "\033[44m\033[1m";   // header (dark blue background)
 
             // Use just like LS_COLORS. Example: VOGL_COLORS='warning=1;34:message=31'
             // Tokens are info, message, error, etc. (see above).

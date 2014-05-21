@@ -40,6 +40,10 @@
 #define vogl_verbose_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgVerbose, __VA_ARGS__)
 #define vogl_debug_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgDebug, __VA_ARGS__)
 
+// OpenGL debug validation functions.
+#define vogl_glwarning_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgFlagOpenGL | cMsgWarning, __VA_ARGS__)
+#define vogl_glerror_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgFlagOpenGL | cMsgError, __VA_ARGS__)
+
 #define vogl_warning_printf_once(...)         \
     {                                         \
         static bool __printed_msg##__LINE__;  \
@@ -68,8 +72,9 @@ enum eConsoleMessageType
     cMsgMask    = 0xff,
 
     // Message flags
-    cMsgFlagNoLog    = 0x100, // Don't write to log file (progress messages, etc.)
-    cMsgFlagHeader   = 0x200, // Use header color
+    cMsgFlagNoLog  = 0x100, // Don't write to log file (progress messages, etc.)
+    cMsgFlagHeader = 0x200, // Use header color
+    cMsgFlagOpenGL = 0x300,
 };
 
 typedef bool (*console_output_func)(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData);
@@ -111,6 +116,15 @@ public:
         return m_output_level;
     }
     
+    static void set_caller_info_always(bool val)
+    {
+        m_caller_info_always = val;
+    }
+    static bool get_caller_info_always()
+    {
+        return m_caller_info_always;
+    }
+    
     static void set_log_stream(data_stream *pStream)
     {
         m_pLog_stream = pStream;
@@ -134,6 +148,7 @@ private:
     static uint32_t m_num_messages[cMsgTotal];
     static bool m_at_beginning_of_line;
     static char m_tool_prefix[256];
+    static bool m_caller_info_always;
 };
 
 int vogl_getch();

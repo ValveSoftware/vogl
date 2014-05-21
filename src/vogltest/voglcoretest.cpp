@@ -80,8 +80,12 @@ static const struct test_data_t g_tests[] =
 //----------------------------------------------------------------------------------------------------------------------
 static command_line_param_desc g_command_line_param_descs[] =
 {
-    { "test", 0, false, "Run named list of tests." },
-    { "all", 0, false, "Run all tests." },
+    { "test", 0, false, "Run named list of tests" },
+    { "all", 0, false, "Run all tests" },
+
+    { "quiet", 0, false, "Disable warning, verbose, and debug output" },
+    { "verbose", 0, false, "Enable verbose output" },
+    { "debug", 0, false, "Enable verbose debug information" },
 
     { "help", 0, false, "Display this help" },
     { "?", 0, false, "Display this help" },
@@ -92,16 +96,16 @@ static command_line_param_desc g_command_line_param_descs[] =
 //----------------------------------------------------------------------------------------------------------------------
 static void tool_print_help()
 {
-    console::printf("Usage: vogltest [ --all ] [--test testname1 testname2 ...]\n");
-    console::printf("\nCommand line options:\n");
+    vogl_printf("Usage: vogltest [ --all ] [--test testname1 testname2 ...]\n");
+    vogl_printf("\nCommand line options:\n");
 
     dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, "--");
     
-    printf("\nVoglcore tests:\n");
+    vogl_printf("\nVoglcore tests:\n");
 
     for (size_t i = 0; i < VOGL_ARRAY_SIZE(g_tests); i++)
     {
-        printf("  % 2d: %s\n", (int)i, g_tests[i].name);
+        vogl_printf("  % 2d: %s\n", (int)i, g_tests[i].name);
     }
 }
 
@@ -119,6 +123,18 @@ static bool init_command_line_params(int argc, char *argv[])
         vogl_error_printf("Failed parsing command line parameters!\n");
         return false;
     }
+
+    if (g_command_line_params().get_value_as_bool("quiet"))
+        console::set_output_level(cMsgError);
+    else if (g_command_line_params().get_value_as_bool("debug"))
+        console::set_output_level(cMsgDebug);
+    else if (g_command_line_params().get_value_as_bool("verbose"))
+        console::set_output_level(cMsgVerbose);
+
+#if 0
+        // Enable to see file and line information in console output.
+        console::set_caller_info_always(true);
+#endif
 
     if (g_command_line_params().get_value_as_bool("help") || g_command_line_params().get_value_as_bool("?"))
     {
@@ -157,24 +173,26 @@ int run_voglcore_tests(int argc, char *argv[])
 
         if (run_test)
         {
-            printf("\n%zu: %s...\n", i, g_tests[i].name);
+            vogl_printf("\n%zu: %s...\n", i, g_tests[i].name);
 
             timer tm;
             tm.start();
             int ret = g_tests[i].pfunc1 ? g_tests[i].pfunc1() : g_tests[i].pfunc2(15);
             double time = tm.get_elapsed_secs();
 
-            printf("%zu: %s: %s (%.3f secs)\n", i, g_tests[i].name,
-                   ret ? "Success" : "Failed", time);
+            if (ret)
+                vogl_printf("%zu: %s: Success (%.3f secs)\n", i, g_tests[i].name, time);
+            else
+                vogl_error_printf("%zu: %s: Failed (%.3f secs)\n", i, g_tests[i].name, time);
 
             num_failures += !ret;
         }
     }
 
     if (num_failures == 0)
-        printf("All tests succeeded\n");
+        vogl_printf("All tests succeeded\n");
     else
-        fprintf(stderr, "**** %u test(s) failed!\n", num_failures);
+        vogl_error_printf("**** %u test(s) failed!\n", num_failures);
 
     return num_failures ? EXIT_FAILURE : EXIT_SUCCESS;
 }

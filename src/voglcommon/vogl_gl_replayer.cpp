@@ -405,7 +405,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_next_packet(vogl_trace_file
         }
         case cTSPTEOF:
         {
-            vogl_message_printf("Encountered EOF packet in trace file\n");
+            vogl_verbose_printf("Encountered EOF packet in trace file\n");
             status = cStatusAtEOF;
             break;
         }
@@ -554,8 +554,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::trigger_pending_window_resize(uint3
 
     m_pWindow->resize(win_width, win_height);
 
-    if (m_flags & cGLReplayerVerboseMode)
-        vogl_debug_printf("Waiting for window to resize to %ux%u\n", win_width, win_height);
+    vogl_verbose_printf("Waiting for window to resize to %ux%u\n", win_width, win_height);
 
     return cStatusResizeWindow;
 }
@@ -1381,14 +1380,14 @@ GLint vogl_gl_replayer::determine_uniform_replay_location(GLuint trace_program, 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_replayer::process_entrypoint_print_summary_context
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_gl_replayer::process_entrypoint_print_summary_context(eConsoleMessageType msg_type)
+void vogl_gl_replayer::process_entrypoint_print_summary_context(const char *caller_info, eConsoleMessageType msg_type)
 {
     VOGL_FUNC_TRACER
 
     if (!m_pCur_gl_packet)
         return;
 
-    console::printf(VOGL_FUNCTION_INFO_CSTR, msg_type,
+    console::printf(caller_info, msg_type | cMsgFlagOpenGL,
                     "While processing GL entrypoint packet func %s, frame %u, swaps %u, GL call counter %" PRIu64
                         ", packet start trace context 0x%" PRIX64 ", cur trace context 0x%" PRIX64 ", trace thread 0x%" PRIX64 ":\n",
                     g_vogl_entrypoint_descs[m_pCur_gl_packet->get_entrypoint_id()].m_pName,
@@ -1412,7 +1411,7 @@ void vogl_gl_replayer::process_entrypoint_print_summary_context(eConsoleMessageT
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_replayer::print_detailed_context
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_gl_replayer::print_detailed_context(eConsoleMessageType msg_type)
+void vogl_gl_replayer::print_detailed_context(const char *caller_info, eConsoleMessageType msg_type)
 {
     VOGL_FUNC_TRACER
 
@@ -1430,14 +1429,14 @@ void vogl_gl_replayer::print_detailed_context(eConsoleMessageType msg_type)
 
     dynamic_string node_str;
     node.serialize(node_str, true, 0);
-    console::printf(VOGL_FUNCTION_INFO_CSTR, msg_type, "Packet at call counter %" PRIu64 " as JSON:\n%s\n",
+    console::printf(caller_info, msg_type | cMsgFlagOpenGL, "Packet at call counter %" PRIu64 " as JSON:\n%s\n",
                     m_pCur_gl_packet->get_entrypoint_packet().m_call_counter, node_str.get_ptr());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_replayer::process_entrypoint_msg_print_detailed_context
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_gl_replayer::process_entrypoint_msg_print_detailed_context(eConsoleMessageType msg_type)
+void vogl_gl_replayer::process_entrypoint_msg_print_detailed_context(const char *caller_info, eConsoleMessageType msg_type)
 {
     VOGL_FUNC_TRACER
 
@@ -1449,7 +1448,7 @@ void vogl_gl_replayer::process_entrypoint_msg_print_detailed_context(eConsoleMes
     if (!(m_flags & cGLReplayerDumpPacketsOnError))
         return;
 
-    print_detailed_context(msg_type);
+    print_detailed_context(caller_info, msg_type);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1463,14 +1462,14 @@ void vogl_gl_replayer::process_entrypoint_(const char *caller_info, eConsoleMess
 {
     VOGL_FUNC_TRACER
 
-    process_entrypoint_print_summary_context(msgtype);
+    process_entrypoint_print_summary_context(caller_info, msgtype);
 
     va_list args;
     va_start(args, pFmt);
-    console::vprintf(caller_info, msgtype, pFmt, args);
+    console::vprintf(caller_info, msgtype | cMsgFlagOpenGL, pFmt, args);
     va_end(args);
 
-    process_entrypoint_msg_print_detailed_context(cMsgPrint);
+    process_entrypoint_msg_print_detailed_context(caller_info, cMsgPrint);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1658,13 +1657,10 @@ bool vogl_gl_replayer::handle_context_made_current()
         check_gl_error();
     }
 
-    if (m_flags & cGLReplayerVerboseMode)
-    {
-        vogl_debug_printf("Trace context: 0x%" PRIX64 ", replay context 0x%" PRIX64 ", GL_VERSION: %s\n",
-                         (uint64_t)m_cur_trace_context,
-                         (uint64_t)m_cur_replay_context,
-                         m_pCur_context_state->m_context_info.get_version_str().get_ptr());
-    }
+    vogl_verbose_printf("Trace context: 0x%" PRIX64 ", replay context 0x%" PRIX64 ", GL_VERSION: %s\n",
+                        (uint64_t)m_cur_trace_context,
+                        (uint64_t)m_cur_replay_context,
+                        m_pCur_context_state->m_context_info.get_version_str().get_ptr());
 
     return true;
 }
@@ -1935,10 +1931,10 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
 
             if (!m_pCur_context_state->m_has_been_made_current)
             {
-                vogl_printf("MakeCurrent(): Trace Viewport: [%u,%u,%u,%u], Window: [%u %u]\n",
-                           viewport_x, viewport_y,
-                           viewport_width, viewport_height,
-                           win_width, win_height);
+                vogl_verbose_printf("MakeCurrent(): Trace Viewport: [%u,%u,%u,%u], Window: [%u %u]\n",
+                                    viewport_x, viewport_y,
+                                    viewport_width, viewport_height,
+                                    win_width, win_height);
             }
 
             GLint cur_viewport[4];
@@ -1949,10 +1945,10 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
 
             if (!m_pCur_context_state->m_has_been_made_current)
             {
-                vogl_printf("MakeCurrent(): Replay Viewport: [%u,%u,%u,%u], Window: [%u %u]\n",
-                           cur_viewport[0], cur_viewport[1],
-                           cur_viewport[2], cur_viewport[3],
-                           cur_win_width, cur_win_height);
+                vogl_verbose_printf("MakeCurrent(): Replay Viewport: [%u,%u,%u,%u], Window: [%u %u]\n",
+                                    cur_viewport[0], cur_viewport[1],
+                                    cur_viewport[2], cur_viewport[3],
+                                    cur_win_width, cur_win_height);
             }
 
             if ((cur_viewport[0] != viewport_x) || (cur_viewport[1] != viewport_y) || (cur_viewport[2] != viewport_width) || (cur_viewport[3] != viewport_height))
@@ -3133,7 +3129,7 @@ bool vogl_gl_replayer::dump_framebuffer(
     }
     else
     {
-        vogl_printf("Wrote framebuffer screenshot to file \"%s\"\n", screenshot_filename.get_ptr());
+        vogl_message_printf("Wrote framebuffer screenshot to file \"%s\"\n", screenshot_filename.get_ptr());
     }
 
     mz_free(pPNG_data);
@@ -3696,7 +3692,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         dump_packet_as_func_call(trace_packet);
 
     if (m_flags & cGLReplayerDumpAllPackets)
-        print_detailed_context(cMsgDebug);
+        print_detailed_context(VOGL_FUNCTION_INFO_CSTR, cMsgDebug);
 
     if (entrypoint_id == VOGL_ENTRYPOINT_glInternalTraceCommandRAD)
         return process_internal_trace_command(gl_entrypoint_packet);
@@ -3878,7 +3874,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                             status = trigger_pending_window_resize(win_width, win_height);
 
-                            vogl_printf("Deferring glXMakeCurrent() until window resizes to %ux%u\n", win_width, win_height);
+                            vogl_verbose_printf("Deferring glXMakeCurrent() until window resizes to %ux%u\n", win_width, win_height);
                         }
                     }
                 }
@@ -4259,7 +4255,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                         //m_pWindow->resize(win_width, win_height);
                         trigger_pending_window_resize(win_width, win_height);
 
-                        vogl_printf("Resizing window after swap to %ux%u\n", win_width, win_height);
+                        vogl_verbose_printf("Resizing window after swap to %ux%u\n", win_width, win_height);
                     }
                 }
             }
@@ -5955,7 +5951,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     {
                         process_entrypoint_warning("Replay's returned GLint data differed from trace's, pname %s\n", get_gl_enums().find_gl_name(pname));
                         for (int i = 0; i < n; i++)
-                            vogl_printf("GLint %u: Trace: %i, Replay: %i\n", i, pTrace_params[i], params[i]);
+                            vogl_verbose_printf("GLint %u: Trace: %i, Replay: %i\n", i, pTrace_params[i], params[i]);
                     }
                 }
             }
@@ -9819,7 +9815,7 @@ void vogl_gl_replayer::snapshot_backbuffer()
             backbuffer_crc64 = calc_crc64(CRC64_INIT, m_screenshot_buffer.get_ptr(), m_screenshot_buffer.size());
         }
 
-        vogl_printf("Frame %u hash: 0x%016" PRIX64 "\n", m_frame_index, backbuffer_crc64);
+        vogl_verbose_printf("Frame %u hash: 0x%016" PRIX64 "\n", m_frame_index, backbuffer_crc64);
 
         if (m_backbuffer_hash_filename.has_content())
         {
@@ -10243,7 +10239,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 
     pSnapshot->add_client_side_array_ptrs(client_side_vertex_attrib_ptrs, client_side_array_ptrs, client_side_texcoord_ptrs);
 
-    vogl_printf("Capturing %u context(s)\n", m_contexts.size());
+    vogl_verbose_printf("Capturing %u context(s)\n", m_contexts.size());
 
     context_hash_map::iterator it;
     for (it = m_contexts.begin(); it != m_contexts.end(); ++it)
@@ -10434,11 +10430,11 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 
     if ((it == m_contexts.end()) && (pSnapshot->end_capture()))
     {
-        vogl_printf("Capture succeeded\n");
+        vogl_message_printf("Capture succeeded\n");
     }
     else
     {
-        vogl_printf("Capture failed\n");
+        vogl_error_printf("Capture failed\n");
 
         vogl_delete(pSnapshot);
         pSnapshot = NULL;
@@ -11004,8 +11000,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
 
     VOGL_NOTE_UNUSED(snapshot);
 
-    if (m_flags & cGLReplayerVerboseMode)
-        vogl_printf("Restoring %s objects\n", get_gl_object_state_type_str(state_type));
+    vogl_verbose_printf("Restoring %s objects\n", get_gl_object_state_type_str(state_type));
 
     vogl::timer tm;
     if (m_flags & cGLReplayerVerboseMode)
@@ -11065,12 +11060,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
                     }
                 }
 
-                if (m_flags & cGLReplayerVerboseMode)
-                {
-                    if ((n & 255) == 255)
-                        vogl_printf("Restored %u programs\n", n);
-                }
-
+                if ((n & 255) == 255)
+                    vogl_verbose_printf("Restored %u programs\n", n);
                 break;
             }
             case cGLSTBuffer:
@@ -11122,9 +11113,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
     if (m_flags & cGLReplayerVerboseMode)
     {
         tm.stop();
-        vogl_printf("Restore took %f secs\n", tm.get_elapsed_secs());
-
-        vogl_printf("Finished restoring %u %s objects\n", n, get_gl_object_state_type_str(state_type));
+        vogl_verbose_printf("Restore took %f secs\n", tm.get_elapsed_secs());
+        vogl_verbose_printf("Finished restoring %u %s objects\n", n, get_gl_object_state_type_str(state_type));
     }
 
     return cStatusOK;
@@ -11210,10 +11200,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
     if (!disp_lists.size())
         return cStatusOK;
 
-    if (m_flags & cGLReplayerVerboseMode)
-    {
-        vogl_message_printf("Recreating %u display lists\n", disp_lists.get_display_list_map().size());
-    }
+    vogl_verbose_printf("Recreating %u display lists\n", disp_lists.get_display_list_map().size());
 
     #if VOGL_PLATFORM_HAS_X11
         vogl_xfont_cache xfont_cache(m_pWindow->get_display());
@@ -11337,10 +11324,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
 
     check_gl_error();
 
-    if (m_flags & cGLReplayerVerboseMode)
-    {
-        vogl_message_printf("Done recreating display lists\n");
-    }
+    vogl_verbose_printf("Done recreating display lists\n");
 
     return cStatusOK;
 
@@ -11557,10 +11541,7 @@ void vogl_gl_replayer::handle_marked_for_deleted_objects(vogl_const_gl_object_st
 {
     VOGL_FUNC_TRACER
 
-    if (m_flags & cGLReplayerVerboseMode)
-    {
-        vogl_debug_printf("%u program/shader objects where marked as deleted\n", objects_to_delete.size());
-    }
+    vogl_verbose_printf("%u program/shader objects where marked as deleted\n", objects_to_delete.size());
 
     for (uint32_t i = 0; i < objects_to_delete.size(); i++)
     {
@@ -11569,12 +11550,9 @@ void vogl_gl_replayer::handle_marked_for_deleted_objects(vogl_const_gl_object_st
         GLuint64 trace_handle = pState_obj->get_snapshot_handle();
         GLuint64 restore_handle = trace_to_replay_remapper.remap_handle(pState_obj->get_handle_namespace(), pState_obj->get_snapshot_handle());
 
-        if (m_flags & cGLReplayerVerboseMode)
-        {
             // This should be a rare/exception case so let's try to be a little paranoid.
-            vogl_debug_printf("Snapshot object type %s trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 ", was marked as deleted, deleting object after restoring (object should still be referenced by state in the GL context)\n",
-                             get_gl_object_state_type_str(pState_obj->get_type()), (uint64_t)trace_handle, (uint64_t)restore_handle);
-        }
+        vogl_verbose_printf("Snapshot object type %s trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 ", was marked as deleted, deleting object after restoring (object should still be referenced by state in the GL context)\n",
+                            get_gl_object_state_type_str(pState_obj->get_type()), (uint64_t)trace_handle, (uint64_t)restore_handle);
 
         GLboolean object_is_still_a_name = true;
 
@@ -11725,7 +11703,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
     if (!m_pPending_snapshot)
         return cStatusOK;
 
-    timed_scope ts(VOGL_FUNCTION_INFO_CSTR, !!(m_flags & cGLReplayerVerboseMode));
+    timed_scope ts(VOGL_FUNCTION_INFO_CSTR);
 
     const vogl_gl_state_snapshot &snapshot = *m_pPending_snapshot;
 

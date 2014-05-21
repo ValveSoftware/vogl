@@ -52,10 +52,13 @@ static command_line_param_desc g_command_line_param_descs_common[] =
     { "logfile", 1, false, "Create logfile" },
     { "logfile_append", 1, false, "Append output to logfile" },
     { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
+
     { "quiet", 0, false, "Disable warning, verbose, and debug output" },
     { "verbose", 0, false, "Enable verbose output" },
     { "debug", 0, false, "Enable verbose debug information" },
+
     { "gl_debug_log", 0, false, "Dump GL prolog/epilog messages to stdout (very slow - helpful to narrow down driver crashes)" },
+
 #if VOGL_FUNCTION_TRACING
     { "vogl_func_tracing", 0, false, "Enable vogl function tracing (must build with VOGL_FUNCTION_TRACING)" },
 #endif
@@ -392,7 +395,6 @@ static const command_t *vogl_replay_init(int argc, char *argv[])
 
     colorized_console::init();
     colorized_console::set_exception_callback();
-    //console::set_tool_prefix("(voglreplay) ");
 
     tool_print_title();
 
@@ -415,6 +417,11 @@ static const command_t *vogl_replay_init(int argc, char *argv[])
             console::set_output_level(cMsgDebug);
         else if (g_command_line_params().get_value_as_bool("verbose"))
             console::set_output_level(cMsgVerbose);
+
+#if 0
+        // Enable to see file and line information in console output.
+        console::set_caller_info_always(true);
+#endif
 
         if (g_command_line_params().get_value_as_bool("gl_debug_log"))
         {
@@ -446,7 +453,7 @@ static int xerror_handler(Display *dsp, XErrorEvent *error)
     char error_string[256];
     XGetErrorText(dsp, error->error_code, error_string, sizeof(error_string));
 
-    fprintf(stderr, "voglreplay: Fatal X Windows Error: %s\n", error_string);
+    vogl_error_printf("voglreplay: Fatal X Windows Error: %s\n", error_string);
     abort();
 }
 

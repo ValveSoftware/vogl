@@ -53,6 +53,7 @@ uint32_t console::m_num_messages[cMsgTotal];
 eConsoleMessageType console::m_output_level = cMsgWarning;
 bool console::m_at_beginning_of_line = true;
 bool console::m_prefixes = true;
+bool console::m_caller_info_always = false;
 char console::m_tool_prefix[256];
 const uint32_t cConsoleBufSize = 256 * 1024;
 const uint32_t cMaxOutputFuncs = 16;
@@ -107,13 +108,22 @@ void console::vprintf(const char *caller_info, uint32_t msgtype, const char *p, 
     {
         if (m_tool_prefix[0])
         {
-            size_t l = strlen(m_tool_prefix);
-            memcpy(pDst, m_tool_prefix, l);
-            pDst += l;
-            buf_left -= l;
+            size_t len = strlen(m_tool_prefix);
+            memcpy(pDst, m_tool_prefix, len);
+            pDst += len;
+            buf_left -= len;
         }
 
         const char *pPrefix = NULL;
+        if (msgtype & cMsgFlagOpenGL)
+        {
+            static const char opengl_prefix[] = "OGL ";
+            size_t len = strlen(opengl_prefix);
+            memcpy(pDst, opengl_prefix, len);
+            pDst += len;
+            buf_left -= len;
+        }
+
         switch (type)
         {
             case cMsgDebug:
@@ -134,10 +144,10 @@ void console::vprintf(const char *caller_info, uint32_t msgtype, const char *p, 
 
         if (pPrefix)
         {
-            size_t l = strlen(pPrefix);
-            memcpy(pDst, pPrefix, l);
-            pDst += l;
-            buf_left -= l;
+            size_t len = strlen(pPrefix);
+            memcpy(pDst, pPrefix, len);
+            pDst += len;
+            buf_left -= len;
         }
     }
 
@@ -145,14 +155,15 @@ void console::vprintf(const char *caller_info, uint32_t msgtype, const char *p, 
     {
         // If we've got caller info, display it if this is an error message or
         //  they've cranked the level up to debug.
-        if ((m_output_level >= cMsgDebug) ||
+        if (m_caller_info_always ||
+            (m_output_level >= cMsgDebug) ||
             (type == cMsgError) ||
             ((m_output_level == cMsgVerbose) && (type == cMsgWarning)))
         {
-            size_t l = strlen(caller_info);
-            memcpy(pDst, caller_info, l);
-            pDst += l;
-            buf_left -= l;
+            size_t len = strlen(caller_info);
+            memcpy(pDst, caller_info, len);
+            pDst += len;
+            buf_left -= len;
         }
     }
 
@@ -289,14 +300,14 @@ int vogl::vogl_kbhit()
 int vogl::vogl_getch()
 {
     VOGL_ASSERT_ALWAYS;
-    printf("Unimplemented!\n");
+    vogl_error_printf("Unimplemented!\n");
     return 0;
 }
 
 int vogl::vogl_kbhit()
 {
     VOGL_ASSERT_ALWAYS;
-    printf("Unimplemented!\n");
+    vogl_error_printf("Unimplemented!\n");
     return 0;
 }
 

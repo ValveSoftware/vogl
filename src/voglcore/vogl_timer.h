@@ -91,11 +91,10 @@ namespace vogl
     {
         timer m_tm;
         fixed_string256 m_name;
-        bool m_spewtime;
 
     public:
-        inline timed_scope(const char *pName = "timed_scope", bool spewtime = true)
-            : m_name(pName), m_spewtime(spewtime)
+        inline timed_scope(const char *pName = "timed_scope")
+            : m_name(pName)
         {
             m_tm.start();
         }
@@ -120,11 +119,8 @@ namespace vogl
 
         inline ~timed_scope()
         {
-            if (m_spewtime)
-            {
-                double secs = m_tm.get_elapsed_secs();
-                vogl_printf("%s: %f secs, %f ms\n", m_name.get_ptr(), secs, secs * 1000.0f);
-            }
+            double secs = m_tm.get_elapsed_secs();
+            vogl_verbose_printf("%s: %f secs, %f ms\n", m_name.get_ptr(), secs, secs * 1000.0f);
         }
     };
 
