@@ -95,7 +95,7 @@ class vogl_entrypoint_serializer;
 	#pragma warning( disable : 4273 )
 #endif
 
-#define vogl_log_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgVerbose, __VA_ARGS__)
+#define vogl_log_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgMessage, __VA_ARGS__)
 
 typedef vogl::hash_map<CONTEXT_TYPE, vogl_context *, bit_hasher<CONTEXT_TYPE> > context_map;
 bool get_dimensions_from_dc(unsigned int* out_width, unsigned int* out_height, HDC hdc);

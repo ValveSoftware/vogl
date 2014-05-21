@@ -50,25 +50,12 @@ using namespace vogl;
 data_stream *console::m_pLog_stream;
 uint32_t console::m_num_output_funcs = 0;
 uint32_t console::m_num_messages[cMsgTotal];
-//$ TODO: Default to verbose for now. Theoretically, this should be cMsgWarning but
-// tons of people are calling vogl_message_printf() and relying on that getting printed.
-eConsoleMessageType console::m_output_level = cMsgVerbose;
+eConsoleMessageType console::m_output_level = cMsgWarning;
 bool console::m_at_beginning_of_line = true;
 bool console::m_prefixes = true;
 char console::m_tool_prefix[256];
 const uint32_t cConsoleBufSize = 256 * 1024;
 const uint32_t cMaxOutputFuncs = 16;
-
-static const char *s_msgnames[cMsgTotal] =
-{
-    "Info",
-    "Progress",
-    "Header",
-    "Error",
-    "Warning",
-    "Verbose",
-    "Debug",
-};
 
 struct console_func
 {
@@ -103,28 +90,11 @@ static inline console_func *get_output_funcs()
     return s_output_funcs;
 }
 
-const char *console::get_message_type_str(eConsoleMessageType type)
-{
-    if (type >= 0 && (type < VOGL_ARRAY_SIZE(s_msgnames)))
-        return s_msgnames[type];
-    return "??";
-}
-
-eConsoleMessageType console::get_message_type_from_str(const char *str)
-{
-    dynamic_string msgname = str;
-
-    for (uint32_t type = 0; type < VOGL_ARRAY_SIZE(s_msgnames); type++)
-    {
-        if (msgname.compare(s_msgnames[type], false) == 0)
-            return (eConsoleMessageType)type;
-    }
-    return (eConsoleMessageType)-1;
-}
-
-void console::vprintf(const char *caller_info, eConsoleMessageType type, const char *p, va_list args)
+void console::vprintf(const char *caller_info, uint32_t msgtype, const char *p, va_list args)
 {
     get_mutex().lock();
+    
+    eConsoleMessageType type = (eConsoleMessageType)(msgtype & cMsgMask);
 
     m_num_messages[type]++;
 
@@ -149,6 +119,9 @@ void console::vprintf(const char *caller_info, eConsoleMessageType type, const c
             case cMsgDebug:
                 pPrefix = "Debug: ";
                 break;
+            case cMsgVerbose:
+                pPrefix = "Verbose: ";
+                break;
             case cMsgWarning:
                 pPrefix = "Warning: ";
                 break;
@@ -172,7 +145,9 @@ void console::vprintf(const char *caller_info, eConsoleMessageType type, const c
     {
         // If we've got caller info, display it if this is an error message or
         //  they've cranked the level up to debug.
-        if ((m_output_level >= cMsgDebug) || (type == cMsgError))
+        if ((m_output_level >= cMsgDebug) ||
+            (type == cMsgError) ||
+            ((m_output_level == cMsgVerbose) && (type == cMsgWarning)))
         {
             size_t l = strlen(caller_info);
             memcpy(pDst, caller_info, l);
@@ -191,7 +166,7 @@ void console::vprintf(const char *caller_info, eConsoleMessageType type, const c
 
         for (uint32_t i = 0; i < m_num_output_funcs; i++)
         {
-            if (funcs[i].m_func(type, buf, funcs[i].m_pData))
+            if (funcs[i].m_func(type, (msgtype & ~cMsgMask), buf, funcs[i].m_pData))
                 handled = true;
         }
     }
@@ -206,7 +181,7 @@ void console::vprintf(const char *caller_info, eConsoleMessageType type, const c
     uint32_t n = static_cast<uint32_t>(strlen(buf));
     m_at_beginning_of_line = n && (buf[n - 1] == '\n');
 
-    if ((type != cMsgProgress) && m_pLog_stream)
+    if (!(msgtype & cMsgFlagNoLog) && m_pLog_stream)
     {
         // Yes this is bad.
         dynamic_string tmp_buf(buf);
@@ -220,7 +195,7 @@ void console::vprintf(const char *caller_info, eConsoleMessageType type, const c
     get_mutex().unlock();
 }
 
-void console::printf(const char *caller_info, eConsoleMessageType type, const char *p, ...)
+void console::printf(const char *caller_info, uint32_t type, const char *p, ...)
 {
     va_list args;
     va_start(args, p);

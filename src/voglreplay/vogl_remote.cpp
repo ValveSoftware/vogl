@@ -647,7 +647,7 @@ LOGTYPE crnMsgTypeToLogType(vogl::eConsoleMessageType type)
         {
             return LT_DEFAULT;
         }
-        case vogl::cMsgVerbose:
+        case vogl::cMsgMessage:
         {
             return LT_MESSAGE;
         }

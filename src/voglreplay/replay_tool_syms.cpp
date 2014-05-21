@@ -43,6 +43,8 @@ bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
 
 #else
 
+#define vogl_header_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgPrint | cMsgFlagHeader, __VA_ARGS__)
+
 //$ TODO: Need to run voglsyms32 to resolve 32-bit symbols and voglsyms64 for 64-bit symbols.
 //        This is going to be a decent bit of work modifying elf.c in libbacktrace though...
 

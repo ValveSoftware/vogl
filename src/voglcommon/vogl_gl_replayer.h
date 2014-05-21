@@ -79,7 +79,7 @@ class vogl_gl_replayer
     typedef vogl_trace_ptr_value vogl_trace_context_ptr_value;
     typedef vogl_trace_ptr_value vogl_sync_ptr_value;
 
-#define process_entrypoint_message(...) process_entrypoint_(VOGL_FUNCTION_INFO_CSTR, cMsgVerbose, __VA_ARGS__)
+#define process_entrypoint_message(...) process_entrypoint_(VOGL_FUNCTION_INFO_CSTR, cMsgMessage, __VA_ARGS__)
 #define process_entrypoint_warning(...) process_entrypoint_(VOGL_FUNCTION_INFO_CSTR, cMsgWarning, __VA_ARGS__)
 #define process_entrypoint_error(...) process_entrypoint_(VOGL_FUNCTION_INFO_CSTR, cMsgError, __VA_ARGS__)
 

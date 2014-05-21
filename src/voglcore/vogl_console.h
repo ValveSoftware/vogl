@@ -28,18 +28,16 @@
 #pragma once
 
 #include "vogl_core.h"
-#include "vogl_dynamic_string.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Console output
 //----------------------------------------------------------------------------------------------------------------------
-#define vogl_printf(...)  vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgPrint, __VA_ARGS__)
-#define vogl_progress_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgProgress, __VA_ARGS__)
-#define vogl_header_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgHeader, __VA_ARGS__)
+#define vogl_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgPrint, __VA_ARGS__)
+#define vogl_message_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgMessage, __VA_ARGS__)
 
 #define vogl_error_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgError, __VA_ARGS__)
 #define vogl_warning_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgWarning, __VA_ARGS__)
-#define vogl_message_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgVerbose, __VA_ARGS__)
+#define vogl_verbose_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgVerbose, __VA_ARGS__)
 #define vogl_debug_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgDebug, __VA_ARGS__)
 
 #define vogl_warning_printf_once(...)         \
@@ -59,19 +57,24 @@ class data_stream;
 
 enum eConsoleMessageType
 {
-    cMsgPrint,    // ordinary printf messages
-    cMsgProgress, // progress messages (not logged).
-    cMsgHeader,   // header message
+    // Messages
+    cMsgPrint   = 0, // ordinary printf messages
+    cMsgMessage = 1, // ordinary printf message w/ color
+    cMsgError   = 2, // high priority errors messages
+    cMsgWarning = 3, // warning messages
+    cMsgVerbose = 4, // verbose messages
+    cMsgDebug   = 5, // debugging messages
+    cMsgTotal,
+    cMsgMask    = 0xff,
 
-    cMsgError,    // high priority errors messages
-    cMsgWarning,  // warning messages
-    cMsgVerbose,  // verbose messages
-    cMsgDebug,    // debugging messages
-
-    cMsgTotal
+    // Message flags
+    cMsgFlagNoLog    = 0x100, // Don't write to log file (progress messages, etc.)
+    cMsgFlagProgress = 0x200, // Use progress color
+    cMsgFlagHeader   = 0x400, // Use header color
+    
 };
 
-typedef bool (*console_output_func)(eConsoleMessageType type, const char *pMsg, void *pData);
+typedef bool (*console_output_func)(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData);
 
 class console
 {
@@ -79,23 +82,16 @@ public:
     static void init();
     static void deinit();
 
-    static const char *get_message_type_str(eConsoleMessageType type);
-    static eConsoleMessageType get_message_type_from_str(const char *str);
-
     static void add_console_output_func(console_output_func pFunc, void *pData);
     static void remove_console_output_func(console_output_func pFunc);
 
-    static void printf(const char *caller_info, eConsoleMessageType type, const char *p, ...) VOGL_ATTRIBUTE_PRINTF(3, 4);
-    static void vprintf(const char *caller_info, eConsoleMessageType type, const char *p, va_list args);
+    static void printf(const char *caller_info, uint32_t msgtype, const char *p, ...) VOGL_ATTRIBUTE_PRINTF(3, 4);
+    static void vprintf(const char *caller_info, uint32_t msgtype, const char *p, va_list args);
 
     static void set_tool_prefix(const char *pPrefix)
     {
         strncpy(m_tool_prefix, pPrefix, VOGL_ARRAY_SIZE(m_tool_prefix));
         m_tool_prefix[VOGL_ARRAY_SIZE(m_tool_prefix) - 1] = 0;
-    }
-    static const char *get_tool_prefix()
-    {
-        return m_tool_prefix;
     }
 
     // Set max message level: cMsgError, cMsgWarning, CMsgVerbose, cMsgDebug. Normally:

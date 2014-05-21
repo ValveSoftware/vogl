@@ -67,10 +67,6 @@ namespace vogl
         console::deinit();
     }
 
-    void colorized_console::tick()
-    {
-    }
-
 #ifdef VOGL_USE_WIN32_API
 
     void colorized_console::set_default_color()
@@ -87,7 +83,7 @@ namespace vogl
     {
         pData;
 
-        if (console::get_output_disabled())
+        if (type > console::get_output_level())
             return true;
 
         HANDLE cons = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -98,7 +94,7 @@ namespace vogl
             case cMsgDebug:
                 attr = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
                 break;
-            case cMsgVerbose:
+            case cMsgMessage:
                 attr = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
                 break;
             case cMsgWarning:
@@ -155,12 +151,34 @@ namespace vogl
         }
     }
 
-    bool colorized_console::console_output_func(eConsoleMessageType type, const char *pMsg, void *pData)
+    static uint32_t get_message_type_from_str(const char *str)
+    {
+        static const char *s_msgnames[cMsgTotal + 1] =
+        {
+            "Info",     // cMsgPrint
+            "Message",  // cMsgMessage
+            "Error",    // cMsgError
+            "Warning",  // cMsgWarning
+            "Verbose",  // cMsgVerbose
+            "Debug",    // cMsgDebug
+            "Header",   // cMsgTotal
+        };
+        dynamic_string msgname = str;
+
+        for (uint32_t type = 0; type < VOGL_ARRAY_SIZE(s_msgnames); type++)
+        {
+            if (msgname.compare(s_msgnames[type], false) == 0)
+                return type;
+        }
+        return (uint32_t)-1;
+    }
+
+    bool colorized_console::console_output_func(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData)
     {
         (void)pData;
 
         static bool g_colors_inited = false;
-        static dynamic_string g_colors[cMsgTotal];
+        static dynamic_string g_colors[cMsgTotal + 1];
 
         if (type > console::get_output_level())
             return true;
@@ -170,15 +188,15 @@ namespace vogl
             g_colors_inited = true;
 
             g_colors[cMsgPrint] = "";                  // ordinary printf messages
-            g_colors[cMsgProgress] = "";               // progress messages
-            g_colors[cMsgHeader] = "\033[44m\033[1m";  // header (dark blue background)
+            g_colors[cMsgMessage] = ANSI_BOLDCYAN;     // ordinary printf messages w/ color
             g_colors[cMsgError] = ANSI_BOLDRED;        // errors
             g_colors[cMsgWarning] = ANSI_BOLDYELLOW;   // warnings
-            g_colors[cMsgVerbose] = ANSI_BOLDCYAN;     // verbose messages
+            g_colors[cMsgVerbose] = "";                // verbose messages
             g_colors[cMsgDebug] = ANSI_BOLDBLUE;       // debugging messages
+            g_colors[cMsgTotal] = "\033[44m\033[1m";  // header (dark blue background)
 
             // Use just like LS_COLORS. Example: VOGL_COLORS='warning=1;34:message=31'
-            // Tokens are info, progress, header, error, warning, verbose, debug.
+            // Tokens are info, message, error, etc. (see above).
             const char *vogl_colors = getenv("VOGL_COLORS");
             if (vogl_colors)
             {
@@ -194,8 +212,8 @@ namespace vogl
                     str.tokenize("=;", color_tokens, true);
                     if (color_tokens.size() >= 2)
                     {
-                        eConsoleMessageType color_type = console::get_message_type_from_str(color_tokens[0].c_str());
-                        if (color_type >= 0)
+                        uint32_t color_type = get_message_type_from_str(color_tokens[0].c_str());
+                        if (color_type != (uint32_t)-1)
                         {
                             for (uint32_t j = 1; j < color_tokens.size(); j++)
                             {
@@ -210,7 +228,9 @@ namespace vogl
             }
         }
 
-        const char *pANSIColor = g_colors[type].c_str();
+        const char *pANSIColor = (flags & cMsgFlagHeader) ?
+                    g_colors[cMsgTotal].c_str() : g_colors[type].c_str();
+
         FILE *pFile = (type == cMsgError) ? stderr : stdout;
         bool is_redirected = !isatty(fileno(pFile)) && pANSIColor[0];
 
