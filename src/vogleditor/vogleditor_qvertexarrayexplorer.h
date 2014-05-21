@@ -32,14 +32,17 @@ public:
     // This is intended to only by called by an external object to set the UI.
     // Since these values are (ideally) set based on the current API call, we should not automatically update the UI after these are set.
     // However, the user may manually change the settings in the UI; that's fine.
-    void set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, uint32_t baseVertex, vogl::uint8_vec* pClientSideElements);
+    void set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, int32_t baseVertex, vogl::uint8_vec* pClientSideElements, uint32_t instanceCount, uint32_t baseInstance);
 
     void beginUpdate() { m_numUiUpdatesInProgress++; }
     void endUpdate(bool bAllowUpdate = false)
     {
         m_numUiUpdatesInProgress--;
         if (is_ui_update_in_progress() == false && bAllowUpdate)
+        {
             update_vertex_array_table();
+            update_instance_array_table();
+        }
     }
 
 private slots:
@@ -52,6 +55,10 @@ private slots:
     void on_byteOffsetSpinBox_valueChanged(int arg1);
 
     void on_baseVertexSpinBox_valueChanged(int arg1);
+
+    void on_instanceCountSpinBox_valueChanged(int arg1);
+
+    void on_baseInstanceSpinBox_valueChanged(int arg1);
 
 private:
     Ui::vogleditor_QVertexArrayExplorer *ui;
@@ -66,15 +73,18 @@ private:
     uint32_t m_currentCallElementCount;
     int m_currentCallElementTypeIndex;
     uint32_t m_currentCallElementByteOffset;
-    uint32_t m_currentCallElementBaseVertex;
+    int32_t m_currentCallElementBaseVertex;
     const vogl::uint8_vec* m_currentCallElementIndices;
+    uint32_t m_currentCallInstanceCount;
+    uint32_t m_currentCallBaseInstance;
 
     void auto_update_element_count();
 
     bool is_ui_update_in_progress() { return m_numUiUpdatesInProgress > 0; }
 
-    void update_vertex_array_table_headers();
+    void update_array_table_headers();
     void update_vertex_array_table();
+    void update_instance_array_table();
 
     bool calculate_element_and_format_as_string(const vogl::uint8_vec* pElementArray, uint32_t index, int typeIndex, int byteOffset, int baseVertex, uint32_t& elementValue, QString& elementString);
     QString format_buffer_data_as_string(uint32_t index, const vogl_buffer_state& bufferState, const vogl_vertex_attrib_desc& attribDesc);
