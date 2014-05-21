@@ -3759,7 +3759,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((trace_context) && (!replay_context))
             {
-                process_entrypoint_error("%s, Failed remapping GL context\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Failed remapping GL context\n");
                 return cStatusHardFailure;
             }
 
@@ -3806,12 +3806,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (trace_result)
                     {
-                        process_entrypoint_error("%s: Failed making context current, but in the trace this call succeeded!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_error("Failed making context current, but in the trace this call succeeded!\n");
                         return cStatusHardFailure;
                     }
                     else
                     {
-                        process_entrypoint_warning("%s: Failed making context current, in the trace this call also failed\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Failed making context current, in the trace this call also failed\n");
                     }
                 }
                 else
@@ -3822,7 +3822,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (!trace_result)
                     {
-                        process_entrypoint_warning("%s: Context was successfuly made current, but this operation failed in the trace\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Context was successfuly made current, but this operation failed in the trace\n");
                     }
 
                     #if 0
