@@ -103,6 +103,7 @@ inline const char *vogl_function_info(const char *file, int line, const char *fu
 #endif
 
     snprintf(s_buf, sizeof(s_buf), "%s(%d): %s():", fname, line, function);
+    s_buf[sizeof(s_buf) - 1] = 0;
     return s_buf;
 }
 
