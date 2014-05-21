@@ -414,7 +414,7 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
     }
 
     QStringList arguments;
-    arguments << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
+    arguments << "replay" << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
 
     QDir appDirectory(QCoreApplication::applicationDirPath());
 #ifdef __i386__
