@@ -98,14 +98,14 @@ static bool load_gl()
    g_actual_libgl_module_handle = dlopen("libGL.so.1", RTLD_LAZY);
    if (!g_actual_libgl_module_handle)
    {
-      vogl_error_printf("%s: Failed loading libGL.so.1!\n", VOGL_FUNCTION_INFO_CSTR);
+      vogl_error_printf("Failed loading libGL.so.1!\n");
       return false;
    }
 
    GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
    if (!GL_ENTRYPOINT(glXGetProcAddress))
    {
-      vogl_error_printf("%s: Failed getting address of glXGetProcAddress() from libGL.so.1!\n", VOGL_FUNCTION_INFO_CSTR);
+      vogl_error_printf("Failed getting address of glXGetProcAddress() from libGL.so.1!\n");
       return false;
    }
 
@@ -1004,13 +1004,13 @@ vogl_gl_state_snapshot* VoglEditor::read_state_snapshot_from_trace(vogl_trace_fi
 
       if ((read_status != vogl_trace_file_reader::cOK) && (read_status != vogl_trace_file_reader::cEOF))
       {
-         vogl_error_printf("%s: Failed reading from keyframe trace file!\n", VOGL_FUNCTION_INFO_CSTR);
+         vogl_error_printf("Failed reading from keyframe trace file!\n");
          return NULL;
       }
 
       if ((read_status == vogl_trace_file_reader::cEOF) || (pTrace_reader->get_packet_type() == cTSPTEOF))
       {
-         vogl_error_printf("%s: Failed finding state snapshot in keyframe file!\n", VOGL_FUNCTION_INFO_CSTR);
+         vogl_error_printf("Failed finding state snapshot in keyframe file!\n");
          return NULL;
       }
 
@@ -1019,7 +1019,7 @@ vogl_gl_state_snapshot* VoglEditor::read_state_snapshot_from_trace(vogl_trace_fi
 
       if (!keyframe_trace_packet.deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
       {
-         vogl_error_printf("%s: Failed parsing GL entrypoint packet in keyframe file\n", VOGL_FUNCTION_INFO_CSTR);
+         vogl_error_printf("Failed parsing GL entrypoint packet in keyframe file\n");
          return NULL;
       }
 
@@ -1049,7 +1049,7 @@ vogl_gl_state_snapshot* VoglEditor::read_state_snapshot_from_trace(vogl_trace_fi
                   dynamic_string id(kvm.get_string("binary_id"));
                   if (id.is_empty())
                   {
-                     vogl_error_printf("%s: Missing binary_id field in glInternalTraceCommandRAD key_valye_map command type: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, cmd_type.get_ptr());
+                     vogl_error_printf("Missing binary_id field in glInternalTraceCommandRAD key_valye_map command type: \"%s\"\n", cmd_type.get_ptr());
                      return NULL;
                   }
 
@@ -1058,19 +1058,19 @@ vogl_gl_state_snapshot* VoglEditor::read_state_snapshot_from_trace(vogl_trace_fi
                      timed_scope ts("get_multi_blob_manager().get");
                      if (!pTrace_reader->get_multi_blob_manager().get(id, snapshot_data) || (snapshot_data.is_empty()))
                      {
-                        vogl_error_printf("%s: Failed reading snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
+                        vogl_error_printf("Failed reading snapshot blob data \"%s\"!\n", id.get_ptr());
                         return NULL;
                      }
                   }
 
-                  vogl_message_printf("%s: Deserializing state snapshot \"%s\", %u bytes\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr(), snapshot_data.size());
+                  vogl_message_printf("Deserializing state snapshot \"%s\", %u bytes\n", id.get_ptr(), snapshot_data.size());
 
                   json_document doc;
                   {
                      timed_scope ts("doc.binary_deserialize");
                      if (!doc.binary_deserialize(snapshot_data) || (!doc.get_root()))
                      {
-                        vogl_error_printf("%s: Failed deserializing JSON snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
+                        vogl_error_printf("Failed deserializing JSON snapshot blob data \"%s\"!\n", id.get_ptr());
                         return NULL;
                      }
                   }
@@ -1083,7 +1083,7 @@ vogl_gl_state_snapshot* VoglEditor::read_state_snapshot_from_trace(vogl_trace_fi
                      vogl_delete(pSnapshot);
                      pSnapshot = NULL;
 
-                     vogl_error_printf("%s: Failed deserializing snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id.get_ptr());
+                     vogl_error_printf("Failed deserializing snapshot blob data \"%s\"!\n", id.get_ptr());
                      return NULL;
                   }
 

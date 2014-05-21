@@ -493,7 +493,7 @@ namespace vogl
         }
 
         if (!all_blocks_valid)
-            console::error("dxt_image::unpack: One or more invalid blocks encountered!\n");
+            vogl_error_printf("dxt_image::unpack: One or more invalid blocks encountered!\n");
 
         img.reset_comp_flags();
         img.set_component_valid(0, false);

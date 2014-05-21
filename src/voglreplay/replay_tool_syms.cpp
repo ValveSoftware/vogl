@@ -75,9 +75,9 @@ static bool dump_compiler_info(vogl_trace_file_reader *pTrace_reader, dynamic_st
 {
     if (pTrace_reader->get_archive_blob_manager().does_exist(VOGL_TRACE_ARCHIVE_COMPILER_INFO_FILENAME))
     {
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
-        vogl_header1_printf("%s\n", VOGL_TRACE_ARCHIVE_COMPILER_INFO_FILENAME);
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", VOGL_TRACE_ARCHIVE_COMPILER_INFO_FILENAME);
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
 
         uint8_vec machine_info_data;
         if (pTrace_reader->get_archive_blob_manager().get(VOGL_TRACE_ARCHIVE_COMPILER_INFO_FILENAME, machine_info_data))
@@ -125,9 +125,9 @@ static bool dump_machine_info(vogl_trace_file_reader *pTrace_reader, vector<btra
 {
     if (pTrace_reader->get_archive_blob_manager().does_exist(VOGL_TRACE_ARCHIVE_MACHINE_INFO_FILENAME))
     {
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
-        vogl_header1_printf("%s\n", VOGL_TRACE_ARCHIVE_MACHINE_INFO_FILENAME);
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", VOGL_TRACE_ARCHIVE_MACHINE_INFO_FILENAME);
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
 
         uint8_vec machine_info_data;
         if (pTrace_reader->get_archive_blob_manager().get(VOGL_TRACE_ARCHIVE_MACHINE_INFO_FILENAME, machine_info_data))
@@ -294,9 +294,9 @@ static bool dump_backtrace_map_syms(vogl_trace_file_reader *pTrace_reader)
 
             if (doc.deserialize((const char *)backtrace_data.get_ptr(), backtrace_data.size()) && pRoot->size())
             {
-                vogl_header1_printf("%s\n", std::string(78, '*').c_str());
-                vogl_header1_printf("%s\n", VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_SYMS_FILENAME);
-                vogl_header1_printf("%s\n", std::string(78, '*').c_str());
+                vogl_header_printf("%s\n", std::string(78, '*').c_str());
+                vogl_header_printf("%s\n", VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_SYMS_FILENAME);
+                vogl_header_printf("%s\n", std::string(78, '*').c_str());
 
                 doc.print(true, 0, 0);
                 return true;
@@ -328,7 +328,7 @@ bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
     dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (trace_filename.is_empty())
     {
-        vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("No trace file specified!\n");
         return false;
     }
 
@@ -338,7 +338,7 @@ bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
         g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
-        vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, trace_filename.get_ptr());
+        vogl_error_printf("File not found, or unable to determine file type of trace file \"%s\"\n", trace_filename.get_ptr());
         return false;
     }
 
@@ -387,9 +387,9 @@ bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
     // Spew our module information
     if (module_infos.size())
     {
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
-        vogl_header1_printf("%s\n", "Modules");
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", "Modules");
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
 
         for (uint i = 0; i < module_infos.size(); i++)
         {
@@ -425,9 +425,9 @@ bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
     // Spew our backtrace addresses
     if (addr_data_arr.size())
     {
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
-        vogl_header1_printf("%s\n", VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME);
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME);
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
 
         vogl_printf("index (count): addr0, addr1, ...\n");
         for (uint i = 0; i < addr_data_arr.size(); i++)
@@ -454,9 +454,9 @@ bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
 
         pRoot->init_array();
 
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
-        vogl_header1_printf("%s\n", "Resolving symbols...");
-        vogl_header1_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
+        vogl_header_printf("%s\n", "Resolving symbols...");
+        vogl_header_printf("%s\n", std::string(78, '*').c_str());
 
         for (uint i = 0; i < addr_data_arr.size(); i++)
         {

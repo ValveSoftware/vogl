@@ -267,7 +267,7 @@ bool tool_find_mode(vogl::vector<command_line_param_desc> *desc)
 
         if (!trace_packet.deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
         {
-            console::error("%s: Failed parsing GL entrypoint packet\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed parsing GL entrypoint packet\n");
             goto done;
         }
 

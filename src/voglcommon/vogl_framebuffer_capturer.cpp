@@ -52,7 +52,7 @@ vogl_framebuffer_capturer::~vogl_framebuffer_capturer()
 
     if (m_initialized)
     {
-        vogl_warning_printf("%s: vogl_framebuffer_capturer being destroyed while still initialized\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_warning_printf("vogl_framebuffer_capturer being destroyed while still initialized\n");
     }
 }
 
@@ -142,7 +142,7 @@ bool vogl_framebuffer_capturer::flush_pbo(pbo &buf)
 
     if (!pData)
     {
-        vogl_error_printf("%s: Unable to map pixel pack buffer %u\n", VOGL_FUNCTION_INFO_CSTR, buf.m_buffer);
+        vogl_error_printf("Unable to map pixel pack buffer %u\n", buf.m_buffer);
     }
     else
     {

@@ -197,7 +197,6 @@ bool tool_info_mode(vogl::vector<command_line_param_desc> *desc)
         if ((read_status != vogl_trace_file_reader::cOK) && (read_status != vogl_trace_file_reader::cEOF))
         {
             vogl_error_printf("Failed reading from trace file!\n");
-
             goto done;
         }
 
@@ -227,7 +226,7 @@ bool tool_info_mode(vogl::vector<command_line_param_desc> *desc)
         {
             if (!trace_packet.deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
             {
-                console::error("%s: Failed parsing GL entrypoint packet\n", VOGL_FUNCTION_INFO_CSTR);
+                vogl_error_printf("Failed parsing GL entrypoint packet\n");
                 goto done;
             }
 
@@ -263,7 +262,7 @@ bool tool_info_mode(vogl::vector<command_line_param_desc> *desc)
             {
                 total_swaps++;
                 if ((total_swaps & 255) == 255)
-                    console::progress("Frame %" PRIu64 "\n", total_swaps);
+                    vogl_progress_printf("Frame %" PRIu64 "\n", total_swaps);
 
                 min_packets_per_frame = math::minimum(min_packets_per_frame, cur_frame_packet_count);
                 max_packets_per_frame = math::maximum(max_packets_per_frame, cur_frame_packet_count);

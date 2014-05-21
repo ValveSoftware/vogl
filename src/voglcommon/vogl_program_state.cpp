@@ -334,7 +334,7 @@ bool vogl_program_state::snapshot_attached_shaders(const vogl_context_info &cont
             if (remapper.is_valid_handle(VOGL_NAMESPACE_SHADERS, m_attached_shaders[i]))
                 actual_attached_shaders.push_back(m_attached_shaders[i]);
             else if (!linked_using_binary)
-                vogl_warning_printf("%s: GL shader %u attached to GL program %u cannot be found in our object shadow\n", VOGL_FUNCTION_INFO_CSTR, m_attached_shaders[i], m_snapshot_handle);
+                vogl_warning_printf("GL shader %u attached to GL program %u cannot be found in our object shadow\n", m_attached_shaders[i], m_snapshot_handle);
         }
 
         m_attached_shaders.swap(actual_attached_shaders);
@@ -412,7 +412,7 @@ bool vogl_program_state::snapshot_program_binary(const vogl_context_info &contex
 				}
 				else
 				{
-					vogl_error_printf("%s: Failed retrieving program binary for GL program %u!\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+					vogl_error_printf("Failed retrieving program binary for GL program %u!\n", m_snapshot_handle);
 
 					m_program_binary.clear();
 					m_program_binary_format = GL_NONE;
@@ -681,7 +681,7 @@ bool vogl_program_state::link_snapshot(const vogl_context_info &context_info, vo
 
     if ((m_link_status) && (!m_attached_shaders.size()) && (!linked_using_binary) && (type == GL_NONE))
     {
-        vogl_error_printf("%s: Program %u was successfully linked, but there are no attached shaders!\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+        vogl_error_printf("Program %u was successfully linked, but there are no attached shaders!\n", m_snapshot_handle);
     }
 
     // We don't care about the attached shader handles, we've now snapshotted and copied the ACTUAL shaders.
@@ -760,7 +760,7 @@ bool vogl_program_state::restore_uniforms(uint32_t handle32, const vogl_context_
 
         if (restore_uniform_index == uniforms_to_restore.size())
         {
-            vogl_warning_printf("%s: Failed finding trace uniform \"%s\", trace program %u GL program %u\n", VOGL_FUNCTION_INFO_CSTR,
+            vogl_warning_printf("Failed finding trace uniform \"%s\", trace program %u GL program %u\n",
                                trace_uniform.m_name.get_ptr(), m_snapshot_handle, handle32);
             any_restore_warnings = true;
             continue;
@@ -770,7 +770,7 @@ bool vogl_program_state::restore_uniforms(uint32_t handle32, const vogl_context_
 
         if (restore_uniform.m_base_location < 0)
         {
-            vogl_warning_printf("%s: Trace uniform \"%s\"'s type %s was found in the restored program but the restore handle is invalid, trace program %u GL program %u.\n", VOGL_FUNCTION_INFO_CSTR,
+            vogl_warning_printf("Trace uniform \"%s\"'s type %s was found in the restored program but the restore handle is invalid, trace program %u GL program %u.\n",
                                trace_uniform.m_name.get_ptr(), get_gl_enums().find_gl_name(trace_uniform.m_type), m_snapshot_handle, handle32);
             any_restore_warnings = true;
             continue;
@@ -778,7 +778,7 @@ bool vogl_program_state::restore_uniforms(uint32_t handle32, const vogl_context_
 
         if (restore_uniform.m_type != trace_uniform.m_type)
         {
-            vogl_warning_printf("%s: Trace uniform \"%s\"'s type (%s) is different from restored trace program type (%s), trace program %u GL program %u. Uniform type conversion is not yet supported, skipping uniform!\n", VOGL_FUNCTION_INFO_CSTR,
+            vogl_warning_printf("Trace uniform \"%s\"'s type (%s) is different from restored trace program type (%s), trace program %u GL program %u. Uniform type conversion is not yet supported, skipping uniform!\n",
                                trace_uniform.m_name.get_ptr(), get_gl_enums().find_gl_name(trace_uniform.m_type), get_gl_enums().find_gl_name(restore_uniform.m_type),
                                m_snapshot_handle, handle32);
             any_restore_warnings = true;
@@ -787,7 +787,7 @@ bool vogl_program_state::restore_uniforms(uint32_t handle32, const vogl_context_
 
         if (restore_uniform.m_size != trace_uniform.m_size)
         {
-            vogl_warning_printf("%s: Trace uniform \"%s\" type %s array size (%u) is different from restored program's array size (%u), trace program %u GL program %u. Will set as many array entries as possible and hope for the best.\n", VOGL_FUNCTION_INFO_CSTR,
+            vogl_warning_printf("Trace uniform \"%s\" type %s array size (%u) is different from restored program's array size (%u), trace program %u GL program %u. Will set as many array entries as possible and hope for the best.\n",
                                trace_uniform.m_name.get_ptr(), get_gl_enums().find_gl_name(trace_uniform.m_type), trace_uniform.m_size, restore_uniform.m_size,
                                m_snapshot_handle, handle32);
             any_restore_warnings = true;
@@ -1056,7 +1056,7 @@ bool vogl_program_state::restore_uniforms(uint32_t handle32, const vogl_context_
                 default:
                 {
                     VOGL_ASSERT_ALWAYS;
-                    vogl_warning_printf("%s: Unknown uniform type 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, restore_uniform.m_type);
+                    vogl_warning_printf("Unknown uniform type 0x%04X\n", restore_uniform.m_type);
                     any_restore_warnings = true;
                     continue;
                 }
@@ -1066,7 +1066,7 @@ bool vogl_program_state::restore_uniforms(uint32_t handle32, const vogl_context_
             {
                 any_gl_errors = true;
 
-                vogl_warning_printf("%s: A GL error occurred while attempting to restore trace uniform \"%s\" type %s, trace program %u GL program %u.\n", VOGL_FUNCTION_INFO_CSTR,
+                vogl_warning_printf("A GL error occurred while attempting to restore trace uniform \"%s\" type %s, trace program %u GL program %u.\n",
                                    trace_uniform.m_name.get_ptr(), get_gl_enums().find_gl_name(trace_uniform.m_type), m_snapshot_handle, handle32);
             }
         }
@@ -1094,7 +1094,7 @@ bool vogl_program_state::restore_uniform_blocks(uint32_t handle32, const vogl_co
 
             if (state.m_name.is_empty())
             {
-                vogl_error_printf("%s: Trace program %u GL program %u: Invalid uniform block name!\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+                vogl_error_printf("Trace program %u GL program %u: Invalid uniform block name!\n", m_snapshot_handle, handle32);
                 any_restore_warnings = true;
                 continue;
             }
@@ -1106,15 +1106,15 @@ bool vogl_program_state::restore_uniform_blocks(uint32_t handle32, const vogl_co
 
             if ((gl_err) || (restore_block_index == GL_INVALID_INDEX))
             {
-                vogl_error_printf("%s: Trace program %u GL program %u: Failed finding uniform block \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32, state.m_name.get_ptr());
+                vogl_error_printf("Trace program %u GL program %u: Failed finding uniform block \"%s\"\n", m_snapshot_handle, handle32, state.m_name.get_ptr());
                 any_restore_warnings = true;
                 continue;
             }
 
             if (restore_block_index != state.m_uniform_block_index)
             {
-                vogl_error_printf("%s: Trace program %u GL program %u: Uniform block \"%s\"'s restore block index (%u) differs from it's trace index (%u)! Uniform block indices are not currently remapped while replaying GL calls, so this trace may not be replayable!\n",
-                                 VOGL_FUNCTION_INFO_CSTR, (uint32_t)m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_index, restore_block_index);
+                vogl_error_printf("Trace program %u GL program %u: Uniform block \"%s\"'s restore block index (%u) differs from it's trace index (%u)! Uniform block indices are not currently remapped while replaying GL calls, so this trace may not be replayable!\n",
+                                  (uint32_t)m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_index, restore_block_index);
                 any_restore_warnings = true;
             }
 
@@ -1123,7 +1123,7 @@ bool vogl_program_state::restore_uniform_blocks(uint32_t handle32, const vogl_co
             {
                 any_gl_errors = true;
 
-                vogl_error_printf("%s: Trace program %u GL program %u: Failed restoring uniform block \"%s\"'s binding point %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_binding_point);
+                vogl_error_printf("Trace program %u GL program %u: Failed restoring uniform block \"%s\"'s binding point %u\n", m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_binding_point);
                 any_restore_warnings = true;
                 continue;
             }
@@ -1135,7 +1135,7 @@ bool vogl_program_state::restore_uniform_blocks(uint32_t handle32, const vogl_co
 
             if (state.m_uniform_block_data_size != restore_block_data_size)
             {
-                vogl_warning_printf("%s: Trace program %u GL program %u: Uniform block \"%s\"'s data size (%u) differs from trace's (%u)\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_data_size, restore_block_data_size);
+                vogl_warning_printf("Trace program %u GL program %u: Uniform block \"%s\"'s data size (%u) differs from trace's (%u)\n", m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_data_size, restore_block_data_size);
                 any_restore_warnings = true;
             }
 
@@ -1146,15 +1146,15 @@ bool vogl_program_state::restore_uniform_blocks(uint32_t handle32, const vogl_co
 
             if (state.m_uniform_block_active_uniforms != restore_block_active_uniforms)
             {
-                vogl_warning_printf("%s: Trace program %u GL program %u: Uniform block \"%s\"'s number of active block uniforms (%u) differs from trace's (%i)\n",
-                                   VOGL_FUNCTION_INFO_CSTR, (uint32_t)m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_active_uniforms, restore_block_active_uniforms);
+                vogl_warning_printf("Trace program %u GL program %u: Uniform block \"%s\"'s number of active block uniforms (%u) differs from trace's (%i)\n",
+                                    (uint32_t)m_snapshot_handle, handle32, state.m_name.get_ptr(), state.m_uniform_block_active_uniforms, restore_block_active_uniforms);
                 any_restore_warnings = true;
             }
         }
     }
     else if (m_num_active_uniform_blocks)
     {
-        vogl_error_printf("%s: Trace program %u GL program %u has %u active uniform blocks, but the current context does not support uniform blocks!\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32, m_num_active_uniform_blocks);
+        vogl_error_printf("Trace program %u GL program %u has %u active uniform blocks, but the current context does not support uniform blocks!\n", m_snapshot_handle, handle32, m_num_active_uniform_blocks);
         any_restore_warnings = true;
     }
 
@@ -1182,7 +1182,7 @@ bool vogl_program_state::restore_active_attribs(uint32_t handle32, const vogl_co
         {
             any_gl_errors = true;
 
-            vogl_warning_printf("%s: GL error while binding attrib location %i name %s of trace program %u GL program %u\n", VOGL_FUNCTION_INFO_CSTR, attrib.m_bound_location, attrib.m_name.get_ptr(), m_snapshot_handle, handle32);
+            vogl_warning_printf("GL error while binding attrib location %i name %s of trace program %u GL program %u\n", attrib.m_bound_location, attrib.m_name.get_ptr(), m_snapshot_handle, handle32);
         }
     }
 
@@ -1215,7 +1215,7 @@ bool vogl_program_state::restore_outputs(uint32_t handle32, const vogl_context_i
                 // TODO: This is not a warning, but we'll try to soldier on anyway.
                 any_restore_warnings = true;
 
-                vogl_error_printf("%s: GL_ARB_blend_func_extended is not supported, but GL program %u uses a non-zero location index\n", VOGL_FUNCTION_INFO_CSTR, handle32);
+                vogl_error_printf("GL_ARB_blend_func_extended is not supported, but GL program %u uses a non-zero location index\n", handle32);
             }
 
             GL_ENTRYPOINT(glBindFragDataLocation)(handle32, location, reinterpret_cast<const GLchar *>(output.m_name.get_ptr()));
@@ -1225,7 +1225,7 @@ bool vogl_program_state::restore_outputs(uint32_t handle32, const vogl_context_i
         {
             any_gl_errors = true;
 
-            vogl_error_printf("%s: GL error while binding fragdata location %i location index %i name %s GL program %u\n", VOGL_FUNCTION_INFO_CSTR, output.m_location, output.m_location_index, output.m_name.get_ptr(), handle32);
+            vogl_error_printf("GL error while binding fragdata location %i location index %i name %s GL program %u\n", output.m_location, output.m_location_index, output.m_name.get_ptr(), handle32);
         }
     }
 
@@ -1265,7 +1265,7 @@ bool vogl_program_state::restore_transform_feedback(uint32_t handle32, const vog
     {
         any_gl_errors = true;
 
-        vogl_error_printf("%s: GL error while setting transform feedback varyings, GL program %u\n", VOGL_FUNCTION_INFO_CSTR, handle32);
+        vogl_error_printf("GL error while setting transform feedback varyings, GL program %u\n", handle32);
     }
 
     return true;
@@ -1296,7 +1296,7 @@ bool vogl_program_state::restore_link_snapshot(uint32_t handle32, const vogl_con
         GL_ENTRYPOINT(glProgramBinary)(handle32, m_program_binary_format, m_program_binary.get_ptr(), m_program_binary.size());
         if (vogl_check_gl_error())
         {
-            vogl_warning_printf("%s: GL error while setting link-time snapshot program binary on trace program %u GL program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+            vogl_warning_printf("GL error while setting link-time snapshot program binary on trace program %u GL program %u\n", m_snapshot_handle, handle32);
             any_gl_errors = true;
         }
         else if (get_program_bool(handle32, GL_LINK_STATUS))
@@ -1319,7 +1319,7 @@ bool vogl_program_state::restore_link_snapshot(uint32_t handle32, const vogl_con
 
             if (!m_shaders[i].get_restore_compile_status())
             {
-                vogl_warning_printf("%s: Failed compiling shadowed link-time shader while restoring program, trace program %u GL program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+                vogl_warning_printf("Failed compiling shadowed link-time shader while restoring program, trace program %u GL program %u\n", m_snapshot_handle, handle32);
                 any_restore_warnings = true;
             }
         }
@@ -1341,7 +1341,7 @@ bool vogl_program_state::restore_link_snapshot(uint32_t handle32, const vogl_con
 
         if (vogl_check_gl_error())
         {
-            vogl_warning_printf("%s: GL error while linking link-time snapshot program on trace program %u GL program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+            vogl_warning_printf("GL error while linking link-time snapshot program on trace program %u GL program %u\n", m_snapshot_handle, handle32);
             any_gl_errors = true;
         }
         else if (get_program_bool(handle32, GL_LINK_STATUS))
@@ -1411,7 +1411,7 @@ bool vogl_program_state::link_program(uint32_t handle32, const vogl_context_info
                 GL_ENTRYPOINT(glAttachShader)(handle32, replay_handle);
                 if (vogl_check_gl_error())
                 {
-                    vogl_error_printf("%s: GL error while attaching shader %u to trace program %u GL program %u\n", VOGL_FUNCTION_INFO_CSTR, replay_handle, m_snapshot_handle, handle32);
+                    vogl_error_printf("GL error while attaching shader %u to trace program %u GL program %u\n", replay_handle, m_snapshot_handle, handle32);
                     return false;
                 }
             }
@@ -1485,17 +1485,17 @@ bool vogl_program_state::restore(const vogl_context_info &context_info, vogl_han
         {
             if (m_pLink_time_snapshot->m_link_status)
             {
-                vogl_error_printf("%s: Failed linking trace program %u GL program %u, but this program was recorded as successfully linked in the trace\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+                vogl_error_printf("Failed linking trace program %u GL program %u, but this program was recorded as successfully linked in the trace\n", m_snapshot_handle, handle32);
                 goto handle_error;
             }
             else
             {
-                vogl_debug_printf("%s: Failed linking trace program %u GL program %u, but this program was also recorded as not successfully linked in the trace\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+                vogl_debug_printf("Failed linking trace program %u GL program %u, but this program was also recorded as not successfully linked in the trace\n", m_snapshot_handle, handle32);
             }
         }
         else if (!m_pLink_time_snapshot->m_link_status)
         {
-            vogl_warning_printf("%s: Succeeded linking trace program %u GL program %u, which is odd because this program was recorded as not successfully linked in the trace\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+            vogl_warning_printf("Succeeded linking trace program %u GL program %u, which is odd because this program was recorded as not successfully linked in the trace\n", m_snapshot_handle, handle32);
             any_restore_warnings = true;
         }
     }
@@ -1519,18 +1519,18 @@ bool vogl_program_state::restore(const vogl_context_info &context_info, vogl_han
 
     if (any_gl_errors)
     {
-        vogl_warning_printf("%s: One or more GL errors occurred while attempting to restore trace program %u GL program %u. This program has been restored as much as possible, but the replay may diverge.\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+        vogl_warning_printf("One or more GL errors occurred while attempting to restore trace program %u GL program %u. This program has been restored as much as possible, but the replay may diverge.\n", m_snapshot_handle, handle32);
     }
 
     if (any_restore_warnings)
     {
-        vogl_warning_printf("%s: One or more restore warnings occurred while attempting to restore trace program %u GL program %u. This program has been restored as much as possible, but the replay may diverge.\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+        vogl_warning_printf("One or more restore warnings occurred while attempting to restore trace program %u GL program %u. This program has been restored as much as possible, but the replay may diverge.\n", m_snapshot_handle, handle32);
     }
 
     return true;
 
 handle_error:
-    vogl_error_printf("%s: Failed restoring trace program %u GL program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, handle32);
+    vogl_error_printf("Failed restoring trace program %u GL program %u\n", m_snapshot_handle, handle32);
 
     if ((handle) && (created_handle))
     {
@@ -1892,7 +1892,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     {
         if (!blob_manager.get(node.value_as_string("program_binary"), m_program_binary))
         {
-            vogl_warning_printf("%s: Failed retreiving program_binary data blob from trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+            vogl_warning_printf("Failed retreiving program_binary data blob from trace program %u\n", m_snapshot_handle);
         }
     }
 
@@ -1908,7 +1908,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     if (pShader_objects_array)
     {
         if (!pShader_objects_array->are_all_children_objects())
-            vogl_warning_printf("%s: shader_objects node must contain all objects, trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+            vogl_warning_printf("shader_objects node must contain all objects, trace program %u\n", m_snapshot_handle);
         else
         {
             m_shaders.resize(pShader_objects_array->size());
@@ -1928,7 +1928,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
             const json_node *pAttrib_node = pActive_attribs_array->get_value_as_object(i);
             if (!pAttrib_node)
             {
-                vogl_warning_printf("%s: Missing attrib object in active_attribs array, trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+                vogl_warning_printf("Missing attrib object in active_attribs array, trace program %u\n", m_snapshot_handle);
             }
             else
             {
@@ -1952,7 +1952,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
             const json_node *pUniform_node = pActive_uniforms_array->get_value_as_object(i);
             if (!pUniform_node)
             {
-                vogl_warning_printf("%s: Missing uniform object in active_uniforms array, trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+                vogl_warning_printf("Missing uniform object in active_uniforms array, trace program %u\n", m_snapshot_handle);
                 continue;
             }
 
@@ -1965,7 +1965,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
             const json_node *pUniform_data = pUniform_node->find_child_array("uniform_data");
             if (!pUniform_data)
             {
-                vogl_warning_printf("%s: Missing uniform_data child array in active_uniforms array, trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+                vogl_warning_printf("Missing uniform_data child array in active_uniforms array, trace program %u\n", m_snapshot_handle);
                 continue;
             }
 
@@ -1981,13 +1981,13 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
 
             if ((!type_size_in_GLints) || (!type_size))
             {
-                vogl_warning_printf("%s: Uniform type error while processing active_uniforms array, trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+                vogl_warning_printf("Uniform type error while processing active_uniforms array, trace program %u\n", m_snapshot_handle);
                 continue;
             }
 
             if (pUniform_data->size() != uniform.m_size * type_size_in_GLints)
             {
-                vogl_warning_printf("%s: uniform_data array's size is invalid, trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+                vogl_warning_printf("uniform_data array's size is invalid, trace program %u\n", m_snapshot_handle);
                 continue;
             }
 
@@ -2018,7 +2018,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
                         bool success = is_negative ? string_ptr_to_int64(pBuf, reinterpret_cast<int64_t &>(val64)) : string_ptr_to_uint64(pBuf, val64);
 
                         if (!success)
-                            vogl_warning_printf("%s: Failed converting uniform array element \"%s\" to integer, trace program %u\n", VOGL_FUNCTION_INFO_CSTR, str.get_ptr(), m_snapshot_handle);
+                            vogl_warning_printf("Failed converting uniform array element \"%s\" to integer, trace program %u\n", str.get_ptr(), m_snapshot_handle);
                         else if (base_type == GL_FLOAT)
                         {
                             if (is_hex)
@@ -2057,7 +2057,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     {
         if (!pActive_uniforms_blocks_array->are_all_children_objects())
         {
-            vogl_warning_printf("%s: active_uniform_blocks child array does not contain all child objects in trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+            vogl_warning_printf("active_uniform_blocks child array does not contain all child objects in trace program %u\n", m_snapshot_handle);
         }
         else
         {
@@ -2083,7 +2083,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     {
         if (!pOutputs_array->are_all_children_objects())
         {
-            vogl_warning_printf("%s: outputs child array does not contain all child objects in trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+            vogl_warning_printf("outputs child array does not contain all child objects in trace program %u\n", m_snapshot_handle);
         }
         else
         {
@@ -2115,7 +2115,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
 
         if (!m_pLink_time_snapshot->is_valid())
         {
-            vogl_warning_printf("%s: Deserialized link-time snapshot, but it wasn't valid! Trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle);
+            vogl_warning_printf("Deserialized link-time snapshot, but it wasn't valid! Trace program %u\n", m_snapshot_handle);
 
             m_pLink_time_snapshot.reset();
         }
@@ -2147,7 +2147,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
         }
         else
         {
-            vogl_warning_printf("%s: transform_feedback_num_varyings is %u, but the transform_feedback_varyings array wasn't found! Trace program %u\n", VOGL_FUNCTION_INFO_CSTR, m_transform_feedback_num_varyings, m_snapshot_handle);
+            vogl_warning_printf("transform_feedback_num_varyings is %u, but the transform_feedback_varyings array wasn't found! Trace program %u\n", m_transform_feedback_num_varyings, m_snapshot_handle);
 
             m_varyings.clear();
 

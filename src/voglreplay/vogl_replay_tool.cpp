@@ -52,7 +52,9 @@ static command_line_param_desc g_command_line_param_descs_common[] =
     { "logfile", 1, false, "Create logfile" },
     { "logfile_append", 1, false, "Append output to logfile" },
     { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
-    { "quiet", 0, false, "Disable all console output" },
+    { "quiet", 0, false, "Disable warning, verbose, and debug output" },
+    { "verbose", 0, false, "Enable verbose output" },
+    { "debug", 0, false, "Enable verbose debug information" },
     { "gl_debug_log", 0, false, "Dump GL prolog/epilog messages to stdout (very slow - helpful to narrow down driver crashes)" },
 #if VOGL_FUNCTION_TRACING
     { "vogl_func_tracing", 0, false, "Enable vogl function tracing (must build with VOGL_FUNCTION_TRACING)" },
@@ -73,6 +75,9 @@ static command_line_param_desc g_command_line_interactive_descs[] =
     { "j", 0, false, "trim and play json" },
     { "<left>", 0, false, "step left" },
     { "<right>", 0, false, "step right" },
+    { "c", 0, false, "framebuffer screenshot" }
+    // TODO: ctrl+r
+    // TODO: when paused, 0-9: 
 };
 
 struct command_t
@@ -126,7 +131,7 @@ static bool init_logfile()
 
     if (!g_vogl_pLog_stream->open(filename.get_ptr(), cDataStreamWritable, !log_file_append.is_empty()))
     {
-        vogl_error_printf("%s: Failed opening log file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr());
+        vogl_error_printf("Failed opening log file \"%s\"\n", filename.get_ptr());
         return false;
     }
     else
@@ -148,15 +153,15 @@ static void tool_print_title()
 
     printf("voglreplay ");
     if (sizeof(void *) > 4)
-        console::printf("64-bit ");
+        vogl_printf("64-bit ");
     else
-        console::printf("32-bit ");
+        vogl_printf("32-bit ");
 #ifdef VOGL_BUILD_DEBUG
-    console::printf("Debug ");
+    vogl_printf("Debug ");
 #else
-    console::printf("Release ");
+    vogl_printf("Release ");
 #endif
-    console::printf("Built %s %s\n", __DATE__, __TIME__);
+    vogl_printf("Built %s %s\n", __DATE__, __TIME__);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -178,21 +183,21 @@ VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_li
 
     if (cmd == NULL)
     {
-        console::printf("\nUsage: voglreplay [--help] <command> [<args>]\n\n");
+        vogl_printf("\nUsage: voglreplay [--help] <command> [<args>]\n\n");
 
         printf("The voglreplay commands are:\n");
         for (size_t i = 0; i < g_options_count; i++)
         {
-            console::message("  %s:", g_options[i].name);
+            vogl_message_printf("  %s:", g_options[i].name);
             printf(" %s.\n", g_options[i].desc);
         }
         printf("\n");
     }
     else
     {
-        console::printf("\nUsage: ");
-        console::message("voglreplay %s %s", cmd->name, cmd->filename_args);
-        console::printf(" [<args>]\n\n");
+        vogl_printf("\nUsage: ");
+        vogl_message_printf("voglreplay %s %s", cmd->name, cmd->filename_args);
+        vogl_printf(" [<args>]\n\n");
 
         if (descs_count)
         {
@@ -205,7 +210,7 @@ VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_li
 
         if (!vogl_strcmp(cmd->name, "replay"))
         {
-            console::printf("\nInteractive replay mode keys:\n");
+            vogl_printf("\nInteractive replay mode keys:\n");
             dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_interactive_descs), g_command_line_interactive_descs, " ", true);
         }
     }
@@ -286,7 +291,7 @@ static const command_t *init_command_line_params(int argc, char *argv[])
 
     if (!g_command_line_params().parse(args, cmdline_desc.size(), &cmdline_desc[0], parse_cfg))
     {
-        vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed parsing command line parameters!\n");
         return NULL;
     }
 
@@ -307,7 +312,7 @@ static bool load_gl()
     
     if (!g_actual_libgl_module_handle)
     {
-        vogl_error_printf("%s: Failed loading %s!\n", VOGL_FUNCTION_INFO_CSTR, plat_get_system_gl_module_name());
+        vogl_error_printf("Failed loading %s!\n", plat_get_system_gl_module_name());
         return false;
     }
 
@@ -315,14 +320,14 @@ static bool load_gl()
     GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
     if (!GL_ENTRYPOINT(glXGetProcAddress))
     {
-        vogl_error_printf("%s: Failed getting address of glXGetProcAddress() from %s!\n", VOGL_FUNCTION_INFO_CSTR, plat_get_system_gl_module_name());
+        vogl_error_printf("Failed getting address of glXGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
         return false;
     }
 #elif (VOGL_PLATFORM_HAS_WGL)
     GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
     if (!GL_ENTRYPOINT(wglGetProcAddress))
     {
-        vogl_error_printf("%s: Failed getting address of wglGetProcAddress() from %s!\n", VOGL_FUNCTION_INFO_CSTR, plat_get_system_gl_module_name());
+        vogl_error_printf("Failed getting address of wglGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
         return false;
     }
 #else
@@ -350,7 +355,6 @@ static vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
 #else
     #error "Implement vogl_get_proc_address_helper this platform."
 #endif
-
 
     return pFunc;
 }
@@ -406,7 +410,11 @@ static const command_t *vogl_replay_init(int argc, char *argv[])
         vogl_common_lib_global_init();
 
         if (g_command_line_params().get_value_as_bool("quiet"))
-            console::disable_output();
+            console::set_output_level(cMsgError);
+        else if (g_command_line_params().get_value_as_bool("debug"))
+            console::set_output_level(cMsgDebug);
+        else if (g_command_line_params().get_value_as_bool("verbose"))
+            console::set_output_level(cMsgVerbose);
 
         if (g_command_line_params().get_value_as_bool("gl_debug_log"))
         {
@@ -442,7 +450,7 @@ static int xerror_handler(Display *dsp, XErrorEvent *error)
     abort();
 }
 
-#endif
+#endif // VOGL_PLATFORM_HAS_X11
 
 //----------------------------------------------------------------------------------------------------------------------
 // main
@@ -491,9 +499,9 @@ int main(int argc, char *argv[])
         success = cmd->func(NULL);
     }
 
-    console::printf("%u warning(s), %u error(s)\n", 
-                    console::get_total_messages(cWarningConsoleMessage),
-                    console::get_total_messages(cErrorConsoleMessage));
+    vogl_printf("%u warning(s), %u error(s)\n", 
+                    console::get_total_messages(cMsgWarning),
+                    console::get_total_messages(cMsgError));
 
     vogl_replay_deinit();
 

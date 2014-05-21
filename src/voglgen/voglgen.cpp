@@ -65,21 +65,21 @@ const char* gDebugFunctionName = NULL;
 // Command line options
 //-------------------------------------------------------------------------------------------------------------------------------
 static command_line_param_desc g_command_line_param_descs[] =
-    {
-        { "debug", 0, false, NULL },
-        { "verbose", 0, false, NULL },
-        { "find", 0, false, NULL },
-        { "func_regex", 1, false, NULL },
-        { "param_regex", 1, false, NULL },
-        { "category_regex", 1, false, NULL },
-        { "ctype_regex", 1, false, NULL },
-        { "namespace_regex", 1, false, NULL },
-        { "srcdir", 1, false, NULL },
-        { "specdir", 1, false, NULL },
-        { "outinc", 1, false, NULL },
-        { "outlinker", 1, false, NULL },
-
-    };
+{
+    { "quiet", 0, false, "Disable warning, verbose, and debug output" },
+    { "verbose", 0, false, "Enable verbose output" },
+    { "debug", 0, false, "Enable verbose debug information" },
+    { "find", 0, false, NULL },
+    { "func_regex", 1, false, NULL },
+    { "param_regex", 1, false, NULL },
+    { "category_regex", 1, false, NULL },
+    { "ctype_regex", 1, false, NULL },
+    { "namespace_regex", 1, false, NULL },
+    { "srcdir", 1, false, NULL },
+    { "specdir", 1, false, NULL },
+    { "outinc", 1, false, NULL },
+    { "outlinker", 1, false, NULL },
+};
 
 //-----------------------------------------------------------------------------------------------------------------------
 // Function prefixes
@@ -343,7 +343,7 @@ public:
         FILE *pFile = vogl_fopen(pFilename, "w");
         if (pFile)
         {
-            console::info("--- Dumping %u GL function specs to file \"%s\"\n", m_funcs.size(), pFilename);
+            vogl_printf("--- Dumping %u GL function specs to file \"%s\"\n", m_funcs.size(), pFilename);
 
             vogl_fprintf(pFile, "Functions:\n");
             for (uint32_t i = 0; i < m_funcs.size(); i++)
@@ -369,7 +369,7 @@ public:
         cfile_stream spec_file(pSpec_filename, cDataStreamReadable);
         if (!spec_file.is_opened())
         {
-            console::error("Unable to open file \"%s\"!\n", pSpec_filename);
+            vogl_error_printf("Unable to open file \"%s\"!\n", pSpec_filename);
             return false;
         }
 
@@ -420,7 +420,7 @@ public:
                 cur_function_def.set(line_str).left(paren_start).trim();
                 if (cur_function_def.is_empty())
                 {
-                    console::error("Skipping unrecognized line: %s\n", line_str.get_ptr());
+                    vogl_error_printf("Skipping unrecognized line: %s\n", line_str.get_ptr());
                     continue;
                 }
                 cur_function_def = cur_function_def;
@@ -453,7 +453,7 @@ public:
                     }
                     else
                     {
-                        console::error("Empty parameter name: %s\n", line_str.get_ptr());
+                        vogl_error_printf("Empty parameter name: %s\n", line_str.get_ptr());
                     }
                 }
 
@@ -481,7 +481,7 @@ public:
 
                 if (func_attribute_tokens.is_empty())
                 {
-                    console::error("Skipping unrecognized line: %s\n", line_str.get_ptr());
+                    vogl_error_printf("Skipping unrecognized line: %s\n", line_str.get_ptr());
                 }
                 else
                 {
@@ -489,7 +489,7 @@ public:
                     {
                         if (func_attribute_tokens.size() != 2)
                         {
-                            console::error("Expected return type on line: %s\n", line_str.get_ptr());
+                            vogl_error_printf("Expected return type on line: %s\n", line_str.get_ptr());
                             return false;
                         }
                         pCur_func_def->m_return = func_attribute_tokens[1];
@@ -498,13 +498,13 @@ public:
                     {
                         if ((func_attribute_tokens.size() < 5) || (func_attribute_tokens.size() > 7))
                         {
-                            console::error("Unexpected number of param tokens on line: %s\n", line_str.get_ptr());
+                            vogl_error_printf("Unexpected number of param tokens on line: %s\n", line_str.get_ptr());
                             return false;
                         }
 
                         if ((func_attribute_tokens[3] != "in") && (func_attribute_tokens[3] != "out"))
                         {
-                            console::error("Unexpected param direction on line: %s\n", line_str.get_ptr());
+                            vogl_error_printf("Unexpected param direction on line: %s\n", line_str.get_ptr());
                             return false;
                         }
 
@@ -523,7 +523,7 @@ public:
 
                         if ((func_attribute_tokens[4] != "value") && (func_attribute_tokens[4] != "array") && (func_attribute_tokens[4] != "reference"))
                         {
-                            console::error("Unexpected param semantic on line: %s\n", line_str.get_ptr());
+                            vogl_error_printf("Unexpected param semantic on line: %s\n", line_str.get_ptr());
                             return false;
                         }
 
@@ -547,7 +547,7 @@ public:
                             {
                                 if ((func_attribute_tokens[5][0] != '[') || (func_attribute_tokens[5].back() != ']'))
                                 {
-                                    console::error("Unexpected array size on line: %s\n", line_str.get_ptr());
+                                    vogl_error_printf("Unexpected array size on line: %s\n", line_str.get_ptr());
                                     return false;
                                 }
 
@@ -568,7 +568,7 @@ public:
                         }
                         else if (func_attribute_tokens.size() != 5)
                         {
-                            console::error("Unexpected number of tokens on line: %s\n", line_str.get_ptr());
+                            vogl_error_printf("Unexpected number of tokens on line: %s\n", line_str.get_ptr());
                             return false;
                         }
                     }
@@ -593,7 +593,7 @@ public:
                     {
                         if (func_attribute_tokens.size() != 2)
                         {
-                            console::error("Invalid version param on line: %s\n", line_str.get_ptr());
+                            vogl_error_printf("Invalid version param on line: %s\n", line_str.get_ptr());
                             return false;
                         }
 
@@ -603,7 +603,7 @@ public:
                     {
                         if (func_attribute_tokens.size() != 2)
                         {
-                            console::error("Invalid profile param on line: %s\n", line_str.get_ptr());
+                            vogl_error_printf("Invalid profile param on line: %s\n", line_str.get_ptr());
                             return false;
                         }
 
@@ -613,7 +613,7 @@ public:
                     {
                         if (func_attribute_tokens.size() != 2)
                         {
-                            console::error("Invalid deprecated param on line: %s\n", line_str.get_ptr());
+                            vogl_error_printf("Invalid deprecated param on line: %s\n", line_str.get_ptr());
                             return false;
                         }
 
@@ -623,7 +623,7 @@ public:
                     {
                         if (func_attribute_tokens.size() < 2)
                         {
-                            console::error("Empty dlflags on line: %s. What?\n", line_str.get_ptr());
+                            vogl_error_printf("Empty dlflags on line: %s. What?\n", line_str.get_ptr());
                             return false;
                         }
 
@@ -634,7 +634,7 @@ public:
                                 && (func_attribute_tokens[i] != "prepad")
                                 && (func_attribute_tokens[i] != "nop"))
                             {
-                                console::error("Unrecognized dlflags (%s) on line: %s\n", func_attribute_tokens[i].get_ptr(), line_str.get_ptr());
+                                vogl_error_printf("Unrecognized dlflags (%s) on line: %s\n", func_attribute_tokens[i].get_ptr(), line_str.get_ptr());
                                 return false;
                             }
 
@@ -645,7 +645,7 @@ public:
             }
             else
             {
-                console::error("Skipping unrecognized line: %s\n", line_str.get_ptr());
+                vogl_error_printf("Skipping unrecognized line: %s\n", line_str.get_ptr());
             }
         }
 
@@ -662,7 +662,7 @@ public:
         TiXmlDocument gl_xml;
         if (!gl_xml.LoadFile(pFilename))
         {
-            console::error("Failed loading %s!\n", pFilename);
+            vogl_error_printf("Failed loading %s!\n", pFilename);
             return false;
         }
 
@@ -670,7 +670,7 @@ public:
         const char *pName = pRoot->Attribute("name");
         if ((!pName) || (strcmp(pName, "gl")))
         {
-            console::error("Invalid root element in %s!\n", pFilename);
+            vogl_error_printf("Invalid root element in %s!\n", pFilename);
             return false;
         }
 
@@ -678,7 +678,7 @@ public:
         const TiXmlElement *pExtensions = pRoot->FirstChildElement("extensions");
         if ((!pLibraries) || (!pExtensions))
         {
-            console::error("Couldn't find libraries and/or extensions elements in %s!\n", pFilename);
+            vogl_error_printf("Couldn't find libraries and/or extensions elements in %s!\n", pFilename);
             return false;
         }
 
@@ -701,7 +701,7 @@ public:
             const char *pExt_name = pCur_extension->Attribute("name");
             if (!pExt_name)
             {
-                console::error("Couldn't find extension name attribute in %s!\n", pFilename);
+                vogl_error_printf("Couldn't find extension name attribute in %s!\n", pFilename);
                 return false;
             }
 
@@ -732,7 +732,7 @@ protected:
                         const char *pName = pFunction->Attribute("name");
                         if ((!pType) || (!pName))
                         {
-                            console::error("Expected function name and type in file %s\n", pFilename);
+                            vogl_error_printf("Expected function name and type in file %s\n", pFilename);
                             return false;
                         }
 
@@ -764,7 +764,7 @@ protected:
                         }
                         else
                         {
-                            //console::warning("Unknown function prefix from XML, assuming \"gl\": %s\n", gl_func.m_name.get_ptr());
+                            // vogl_warning_printf("Unknown function prefix from XML, assuming \"gl\": %s\n", gl_func.m_name.get_ptr());
                             gl_func.m_lib = cGL;
                             gl_func.m_full_name.format("%s%s", "gl", pName);
                         }
@@ -781,7 +781,7 @@ protected:
                                 const char *pParam_name = pParams->Attribute("name");
                                 if ((!pParam_type) || (!pParam_name))
                                 {
-                                    console::error("Expected parameter type and name in file %s\n", pFilename);
+                                    vogl_error_printf("Expected parameter type and name in file %s\n", pFilename);
                                     return false;
                                 }
 
@@ -1222,7 +1222,7 @@ public:
 					GLDEBUGPROC
 #endif
 
-                    //console::warning("%s: Couldn't map namespace %s\n", VOGL_FUNCTION_INFO_CSTR, func_def.m_return_gl_type.get_ptr());
+                    // vogl_warning_printf("Couldn't map namespace %s\n", func_def.m_return_gl_type.get_ptr());
                 }
             }
 
@@ -1430,7 +1430,7 @@ public:
                 param_def.m_namespace = vogl_find_namespace_from_gl_type(gl_param_type.get_ptr());
                 if (param_def.m_namespace == VOGL_NAMESPACE_INVALID)
                 {
-                    //console::warning("%s: Couldn't map namespace %s\n", VOGL_FUNCTION_INFO_CSTR, gl_param_type.get_ptr());
+                    // vogl_warning_printf("Couldn't map namespace %s\n", gl_param_type.get_ptr());
                 }
 
                 for (uint32_t k = 0; k < APITRACE_PARAM_TYPE_ALIASES_ARRAY_SIZE; k++)
@@ -1499,7 +1499,7 @@ private:
 
     bool parse_apitrace_gl_param_info_error(const dynamic_string_array &param_info_file, uint32_t line_index)
     {
-        console::error("Unrecognized line: %s\n", param_info_file[line_index].get_ptr());
+        vogl_error_printf("Unrecognized line: %s\n", param_info_file[line_index].get_ptr());
         return false;
     }
 
@@ -1587,7 +1587,7 @@ public:
         cfile_stream tm_file(pFilename, cDataStreamReadable);
         if (!tm_file.is_opened())
         {
-            console::error("Unable to open file \"%s\"!\n", pFilename);
+            vogl_error_printf("Unable to open file \"%s\"!\n", pFilename);
             return false;
         }
 
@@ -1615,7 +1615,7 @@ public:
             line_str.tokenize(",", tokens);
             if (tokens.size() != 6)
             {
-                console::error("Unexpected number of tokens on line: %s\n", line_str.get_ptr());
+                vogl_error_printf("Unexpected number of tokens on line: %s\n", line_str.get_ptr());
                 return false;
             }
 
@@ -1625,13 +1625,13 @@ public:
             if ((tokens[0].is_empty()) || (tokens[1] != "*") || (tokens[2] != "*") ||
                 (tokens[3].is_empty()) || (tokens[4] != "*") || (tokens[5] != "*"))
             {
-                console::error("Unexpected token on line: %s\n", line_str.get_ptr());
+                vogl_error_printf("Unexpected token on line: %s\n", line_str.get_ptr());
                 return false;
             }
 
             if (m_tm.find(tokens[0]) != m_tm.end())
             {
-                console::error("Duplicate spec type on line: %s\n", line_str.get_ptr());
+                vogl_error_printf("Duplicate spec type on line: %s\n", line_str.get_ptr());
                 return false;
             }
 
@@ -1648,7 +1648,7 @@ public:
         FILE *pFile = vogl_fopen(pFilename, "w");
         if (pFile)
         {
-            console::info("--- Dumping %u GL types to text file \"%s\"\n", static_cast<uint32_t>(m_tm.size()), pFilename);
+            vogl_printf("--- Dumping %u GL types to text file \"%s\"\n", static_cast<uint32_t>(m_tm.size()), pFilename);
 
             for (gl_string_map::const_iterator it = m_tm.begin(); it != m_tm.end(); ++it)
                 vogl_fprintf(pFile, "\"%s\" = \"%s\"\n", it->first.get_ptr(), it->second.get_ptr());
@@ -1657,7 +1657,7 @@ public:
         }
         else
         {
-            console::error("Failed writing GL types to file \"%s\"!\n", pFilename);
+            vogl_error_printf("Failed writing GL types to file \"%s\"!\n", pFilename);
         }
     }
 
@@ -1692,7 +1692,7 @@ public:
         cfile_stream enum_file(pFilename, cDataStreamReadable);
         if (!enum_file.is_opened())
         {
-            console::error("Unable to open file \"%s\"!\n", pFilename);
+            vogl_error_printf("Unable to open file \"%s\"!\n", pFilename);
             return false;
         }
 
@@ -1755,19 +1755,19 @@ public:
 
                     if ((tokens.size() != 3) || (tokens[1] != "="))
                     {
-                        console::error("Unrecognized line: %s\n", line_str.get_ptr());
+                        vogl_error_printf("Unrecognized line: %s\n", line_str.get_ptr());
                         return false;
                     }
 
                     if ((tokens[0].is_empty()) || (tokens[1].is_empty()))
                     {
-                        console::error("Unrecognized line: %s\n", line_str.get_ptr());
+                        vogl_error_printf("Unrecognized line: %s\n", line_str.get_ptr());
                         return false;
                     }
 
                     if (!cur_enums.size())
                     {
-                        console::error("Enum defined outside of enum block: %s\n", line_str.get_ptr());
+                        vogl_error_printf("Enum defined outside of enum block: %s\n", line_str.get_ptr());
                         return false;
                     }
 
@@ -1786,7 +1786,7 @@ public:
 
                     if (!cur_enums.size())
                     {
-                        console::error("Enum defined outside of enum block: %s\n", line_str.get_ptr());
+                        vogl_error_printf("Enum defined outside of enum block: %s\n", line_str.get_ptr());
                         return false;
                     }
 
@@ -1801,13 +1801,13 @@ public:
                 }
                 else
                 {
-                    console::error("Unrecognized line: %s\n", line_str.get_ptr());
+                    vogl_error_printf("Unrecognized line: %s\n", line_str.get_ptr());
                     return false;
                 }
             }
             else
             {
-                console::error("Unrecognized line: %s\n", line_str.get_ptr());
+                vogl_error_printf("Unrecognized line: %s\n", line_str.get_ptr());
                 return false;
             }
         }
@@ -1825,7 +1825,7 @@ public:
         {
             if (++pass_num == 100)
             {
-                console::error("Typemap alias depth is too deep, or there are circular aliases\n");
+                vogl_error_printf("Typemap alias depth is too deep, or there are circular aliases\n");
                 return false;
             }
 
@@ -1842,7 +1842,7 @@ public:
                     gl_enum_def_vec_map::const_iterator alias_it(m_enums.find(def_vec[i].m_def));
                     if (alias_it == m_enums.end())
                     {
-                        console::error("Bad alias enum: %s %s\n", def_vec[i].m_def.get_ptr(), def_vec[i].m_name.get_ptr());
+                        vogl_error_printf("Bad alias enum: %s %s\n", def_vec[i].m_def.get_ptr(), def_vec[i].m_name.get_ptr());
                         return false;
                     }
 
@@ -1857,7 +1857,7 @@ public:
 
                     if (j == alias_def_vec.size())
                     {
-                        console::error("Bad alias enum: %s %s\n", def_vec[i].m_def.get_ptr(), def_vec[i].m_name.get_ptr());
+                        vogl_error_printf("Bad alias enum: %s %s\n", def_vec[i].m_def.get_ptr(), def_vec[i].m_name.get_ptr());
                         return false;
                     }
                     if (alias_def_vec[j].m_alias_flag)
@@ -1882,7 +1882,7 @@ public:
         FILE *pFile = vogl_fopen(pFilename, "w");
         if (pFile)
         {
-            console::info("--- Dumping %u GL enums to file %s\n", static_cast<uint32_t>(m_enums.size()), pFilename);
+            vogl_printf("--- Dumping %u GL enums to file %s\n", static_cast<uint32_t>(m_enums.size()), pFilename);
 
             for (gl_enum_def_vec_map::const_iterator enum_it = m_enums.begin(); enum_it != m_enums.end(); ++enum_it)
             {
@@ -1895,7 +1895,7 @@ public:
         }
         else
         {
-            console::error("Failed writing GL enums to file %s\n", pFilename);
+            vogl_error_printf("Failed writing GL enums to file %s\n", pFilename);
         }
     }
 
@@ -2083,7 +2083,7 @@ public:
             if (func_index < 0)
                 continue;
 
-            console::warning("Extension func %s overriding %s definition\n", override_funcs[i].m_name.get_ptr(), func_class);
+            vogl_warning_printf("Extension func %s overriding %s definition\n", override_funcs[i].m_name.get_ptr(), func_class);
             (*spec_to_clean).get_funcs_vec().erase_unordered(func_index);
         }
     }
@@ -2096,32 +2096,32 @@ public:
         if (g_command_line_params().get_value_as_string(specdir, "specdir"))
         {
             file_utils::change_directory(specdir.c_str());
-            console::warning("Changing current directory to %s\n", specdir.c_str());
+            vogl_warning_printf("Changing current directory to %s\n", specdir.c_str());
         }
         else if (!file_utils::does_file_exist("gl.spec"))
         {
             if (file_utils::does_file_exist("glspec/gl.spec"))
             {
                 file_utils::change_directory("glspec");
-                console::warning("Changing current directory to glspec\n");
+                vogl_warning_printf("Changing current directory to glspec\n");
             }
             else if (file_utils::does_file_exist("../bin/glspec/gl.spec"))
             {
                 file_utils::change_directory("../bin/glspec");
-                console::warning("Changing current directory to ../bin/glspec\n");
+                vogl_warning_printf("Changing current directory to ../bin/glspec\n");
             }
         }
 
         if (!file_utils::does_file_exist("gl.spec"))
         {
-            console::error("Can't find find gl.spec, which must be in the current directory!\n");
+            vogl_error_printf("Can't find find gl.spec, which must be in the current directory!\n");
             return false;
         }
 
         // -- Load apitrace's GL function defintions, which was auto generated then hand-edited by the apitrace team - we ONLY use this for parameter namespace info and cross referencing (verification)
         if (!m_apitrace_gl_func_specs.parse())
         {
-            console::error("Failed parsing apitrace param info file!\n");
+            vogl_error_printf("Failed parsing apitrace param info file!\n");
             return false;
         }
 
@@ -2140,31 +2140,31 @@ public:
         bool success = m_gl_funcs.parse_spec_file("gl.spec", cGL);
         if (!success)
         {
-            console::error("Failed parsing gl.spec!\n");
+            vogl_error_printf("Failed parsing gl.spec!\n");
             return false;
         }
         success = m_glx_funcs.parse_spec_file("glx.spec", cGLX);
         if (!success)
         {
-            console::error("Failed parsing glx.spec!\n");
+            vogl_error_printf("Failed parsing glx.spec!\n");
             return false;
         }
         success = m_glxext_funcs.parse_spec_file("glxext.spec", cGLX);
         if (!success)
         {
-            console::error("Failed parsing glxext.spec!\n");
+            vogl_error_printf("Failed parsing glxext.spec!\n");
             return false;
         }
         success = m_wgl_funcs.parse_spec_file("wgl.spec", cWGL);
         if (!success)
         {
-            console::error("Failed parsing wgl.spec!\n");
+            vogl_error_printf("Failed parsing wgl.spec!\n");
             return false;
         }
         success = m_wglext_funcs.parse_spec_file("wglext.spec", cWGL);
         if (!success)
         {
-            console::error("Failed parsing wglext.spec!\n");
+            vogl_error_printf("Failed parsing wglext.spec!\n");
             return false;
         }
 
@@ -2220,21 +2220,21 @@ public:
         success = m_gl_typemap.parse_file("gl.tm");
         if (!success)
         {
-            console::error("Failed parsing gl.tm!\n");
+            vogl_error_printf("Failed parsing gl.tm!\n");
             return false;
         }
 
         success = m_glx_typemap.parse_file("glx.tm");
         if (!success)
         {
-            console::error("Failed parsing glx.tm!\n");
+            vogl_error_printf("Failed parsing glx.tm!\n");
             return false;
         }
 
         success = m_wgl_typemap.parse_file("wgl.tm");
         if (!success)
         {
-            console::error("Failed parsing wgl.tm!\n");
+            vogl_error_printf("Failed parsing wgl.tm!\n");
             return false;
         }
 
@@ -2243,31 +2243,31 @@ public:
         // -- Determine the ctypes used by all the GL/GLX/WGL functions
         if (!determine_ctypes("gl", m_gl_funcs, m_gl_typemap, VOGL_ARRAY_SIZE(glx_wgl_typemaps), glx_wgl_typemaps))
         {
-            console::error("Failed determined gl c types!\n");
+            vogl_error_printf("Failed determined gl c types!\n");
             return false;
         }
 
         if (!determine_ctypes("glX", m_glx_funcs, m_glx_typemap, m_gl_typemap))
         {
-            console::error("Failed determined glX c types!\n");
+            vogl_error_printf("Failed determined glX c types!\n");
             return false;
         }
 
         if (!determine_ctypes("glX", m_glxext_funcs, m_glx_typemap, m_gl_typemap))
         {
-            console::error("Failed determined glX c types!\n");
+            vogl_error_printf("Failed determined glX c types!\n");
             return false;
         }
 
         if (!determine_ctypes("wgl", m_wgl_funcs, m_wgl_typemap, m_gl_typemap))
         {
-            console::error("Failed determined wgl c types!\n");
+            vogl_error_printf("Failed determined wgl c types!\n");
             return false;
         }
 
         if (!determine_ctypes("wgl", m_wglext_funcs, m_wgl_typemap, m_gl_typemap))
         {
-            console::error("Failed determined wgl c types!\n");
+            vogl_error_printf("Failed determined wgl c types!\n");
             return false;
         }
 
@@ -2292,14 +2292,14 @@ public:
         // -- Load the GL/GLX function export table, generated by dumping the headers of various drivers
         if (!load_gl_so_function_export_list("gl_glx_so_export_list.txt", m_gl_so_dll_function_exports))
         {
-            console::error("Failed parsing gl_glx_so_export_list.txt!\n");
+            vogl_error_printf("Failed parsing gl_glx_so_export_list.txt!\n");
             return false;
         }
 
         // Concatenate the set of functions we will export from the DLL to the same list. 
         if (!load_gl_so_function_export_list("gl_wgl_dll_export_list.txt", m_gl_so_dll_function_exports))
         {
-            console::error("Failed parsing gl_wgl_dll_export_list.txt!\n");
+            vogl_error_printf("Failed parsing gl_wgl_dll_export_list.txt!\n");
             return false;
         }
 
@@ -2425,37 +2425,34 @@ public:
         create_array_size_macros("wgl", m_wgl_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("wgl", m_wglext_funcs, m_gl_so_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
 
-
-        //$ TODO: Why are some of these console::messages, printf, and console::printf?
         if (g_command_line_params().get_value_as_bool("verbose"))
         {
             if (gl_ext_func_deleted.size())
             {
-                console::message("\nDeleted glxext/wglext funcs: ");
+                vogl_debug_printf("\nDeleted glxext/wglext funcs: ");
                 for (uint32_t i = 0; i < gl_ext_func_deleted.size(); i++)
-                    console::message("%s ", gl_ext_func_deleted[i].get_ptr());
-                console::message("\n");
+                    vogl_debug_printf("%s ", gl_ext_func_deleted[i].get_ptr());
+                vogl_debug_printf("\n");
             }
             
             // printf("Introducing new ctype from ptr to pointee: %s %s\n", ctype_without_const.get_ptr(), ctype_without_const_definition.get_ptr());
             if (new_ctype_from_ptr.size())
             {
-                printf("\nNew ctype from ptr to pointee: ");
+                vogl_debug_printf("\nNew ctype from ptr to pointee: ");
                 for (uint32_t i = 0; i < new_ctype_from_ptr.size(); i++)
-                    printf("%s ", new_ctype_from_ptr[i].get_ptr());
-                printf("\n");
+                    vogl_debug_printf("%s ", new_ctype_from_ptr[i].get_ptr());
+                vogl_debug_printf("\n");
             }
             
-            // console::printf("Adding simple GL replay func %s to func whitelist\n", full_func_name.get_ptr());
+            // vogl_printf("Adding simple GL replay func %s to func whitelist\n", full_func_name.get_ptr());
             if (simple_gl_replay_func.size())
             {
-                console::printf("\nAdded simple GL replay func to func whitelist: ");
+                vogl_debug_printf("\nAdded simple GL replay func to func whitelist: ");
                 for (uint32_t i = 0; i < simple_gl_replay_func.size(); i++)
-                    console::printf("%s ", simple_gl_replay_func[i].get_ptr());
-                console::printf("\n");
+                    vogl_debug_printf("%s ", simple_gl_replay_func[i].get_ptr());
+                vogl_debug_printf("\n");
             }
         }
-
 
         gl_types os_specific_typemap = m_glx_typemap;
         os_specific_typemap.get_type_map().insert(m_wgl_typemap.get_type_map().begin(), m_wgl_typemap.get_type_map().end());
@@ -2463,7 +2460,7 @@ public:
         // -- Cross reference the GL spec vs. XML files, for validation
         if (!validate_functions(m_gl_xml_functions, m_all_gl_funcs, m_apitrace_gl_func_specs, m_gl_typemap, os_specific_typemap))
         {
-            console::error("Failed validating functions!\n");
+            vogl_error_printf("Failed validating functions!\n");
             return false;
         }
 
@@ -2478,7 +2475,7 @@ public:
         regexp r;
         if (!r.init(pPattern))
         {
-            console::error("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
+            vogl_error_printf("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
             return false;
         }
 
@@ -2511,7 +2508,7 @@ public:
         regexp r;
         if (!r.init(pPattern))
         {
-            console::error("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
+            vogl_error_printf("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
             return false;
         }
 
@@ -2539,7 +2536,7 @@ public:
         regexp r;
         if (!r.init(pPattern))
         {
-            console::error("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
+            vogl_error_printf("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
             return false;
         }
 
@@ -2564,7 +2561,7 @@ public:
         regexp r;
         if (!r.init(pPattern))
         {
-            console::error("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
+            vogl_error_printf("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
             return false;
         }
 
@@ -2598,7 +2595,7 @@ public:
         regexp r;
         if (!r.init(pPattern))
         {
-            console::error("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
+            vogl_error_printf("Bad regular expression: \"%s\", reason: \"%s\"\n", pPattern, r.get_error().get_ptr());
             return false;
         }
 
@@ -2631,7 +2628,7 @@ public:
 
     bool dump_debug_files() const
     {
-        console::message("TODO: Where would be the best place to dump debug files? For now they still go to cwd.");
+        vogl_warning_printf("TODO: Where would be the best place to dump debug files? For now they still go to cwd.");
         dynamic_string out_debug_dir = ".";
 
         m_gl_enumerations.dump_to_text_file("dbg_enums.txt");
@@ -3023,7 +3020,7 @@ private:
             {
                 if ((get_names[i].toupper().compare(get_names[i], true) != 0) || (get_names[i].contains(' ')))
                 {
-                    console::error("In file %s, enum name is invalid: \"%s\"\n", pFilename, get_names[i].get_ptr());
+                    vogl_error_printf("In file %s, enum name is invalid: \"%s\"\n", pFilename, get_names[i].get_ptr());
                     return false;
                 }
 
@@ -3156,7 +3153,7 @@ local:
 
             if (!pSpecs)
             {
-                console::warning("Unrecognized SO export: %s\n", line_str.get_ptr());
+                vogl_warning_printf("Unrecognized SO export: %s\n", line_str.get_ptr());
                 continue;
             }
 
@@ -3179,11 +3176,11 @@ local:
                     func.ends_with("SGI") || func.ends_with("EXT") || func.ends_with("X") || func.ends_with("xv") || func.ends_with("Autodesk") ||
                     func.ends_with("WIN"))
                 {
-                    //console::warning("Skipping missing SO export: %s\n", line_str.get_ptr());
+                    //vogl_warning_printf("Skipping missing SO export: %s\n", line_str.get_ptr());
                     continue;
                 }
 
-                console::warning("Can't find SO export in spec files: %s\n", line_str.get_ptr());
+                vogl_warning_printf("Can't find SO export in spec files: %s\n", line_str.get_ptr());
                 continue;
             }
 
@@ -3286,7 +3283,7 @@ local:
                 }
                 if (!pCType)
                 {
-                    console::warning("Unable to map spec type %s\n", func.m_return.get_ptr());
+                    vogl_warning_printf("Unable to map spec type %s\n", func.m_return.get_ptr());
                     return false;
                 }
 
@@ -3311,7 +3308,7 @@ local:
 
                 if (!pCType)
                 {
-                    console::warning("Unable to map spec type %s\n", param.m_type.get_ptr());
+                    vogl_warning_printf("Unable to map spec type %s\n", param.m_type.get_ptr());
                     return false;
                 }
 
@@ -3774,7 +3771,7 @@ local:
             {
                 if (func.m_notlistable)
                 {
-                    console::error("%s: Func's %s m_notlistable and is_whitelisted_for_displaylists flags are not compatible!\n", VOGL_FUNCTION_INFO_CSTR, full_func_name.get_ptr());
+                    vogl_error_printf("Func's %s m_notlistable and is_whitelisted_for_displaylists flags are not compatible!\n", full_func_name.get_ptr());
                 }
             }
 
@@ -4097,7 +4094,7 @@ local:
                     pCType = pAlt_typemap->find(func.m_return);
                 if (!pCType)
                 {
-                    console::warning("Unable to map spec type %s\n", func.m_return.get_ptr());
+                    vogl_warning_printf("Unable to map spec type %s\n", func.m_return.get_ptr());
                     return false;
                 }
 
@@ -4115,7 +4112,7 @@ local:
                     pCType = pAlt_typemap->find(param.m_type);
                 if (!pCType)
                 {
-                    console::warning("Unable to map spec type %s\n", param.m_type.get_ptr());
+                    vogl_warning_printf("Unable to map spec type %s\n", param.m_type.get_ptr());
                     return false;
                 }
 
@@ -4143,13 +4140,13 @@ local:
             {
                 if (pApitrace_func_def->m_return_gl_type != return_type)
                 {
-                    console::warning("Function %s return type mismatch vs. apitrace specs: spec: %s, apitrace: %s\n", func.m_full_name.get_ptr(), return_type.get_ptr(), pApitrace_func_def->m_return_gl_type.get_ptr());
+                    vogl_warning_printf("Function %s return type mismatch vs. apitrace specs: spec: %s, apitrace: %s\n", func.m_full_name.get_ptr(), return_type.get_ptr(), pApitrace_func_def->m_return_gl_type.get_ptr());
                     total_failures++;
                 }
 
                 if (pApitrace_func_def->m_params.size() != func_param_ctypes.size())
                 {
-                    console::warning("Function %s has a different number of params vs. apitrace specs: spec: %u, apitrace: %u\n", func.m_full_name.get_ptr(), func_param_ctypes.size(), pApitrace_func_def->m_params.size());
+                    vogl_warning_printf("Function %s has a different number of params vs. apitrace specs: spec: %u, apitrace: %u\n", func.m_full_name.get_ptr(), func_param_ctypes.size(), pApitrace_func_def->m_params.size());
                     total_failures++;
                 }
                 else
@@ -4178,7 +4175,7 @@ local:
 
                         if (type_mismatch)
                         {
-                            console::warning("Function %s param %u, spec vs. apitrace type difference: spec: %s apitrace: %s\n", func.m_full_name.get_ptr(), i, func_param_ctypes[i].get_ptr(), apitrace_param_type.get_ptr());
+                            vogl_warning_printf("Function %s param %u, spec vs. apitrace type difference: spec: %s apitrace: %s\n", func.m_full_name.get_ptr(), i, func_param_ctypes[i].get_ptr(), apitrace_param_type.get_ptr());
                             total_failures++;
 
                             //printf("   { \"%s\", \"%s\" },\n", func_param_ctypes[i].get_ptr(), apitrace_param_type.get_ptr());
@@ -4237,7 +4234,7 @@ local:
             const gl_function_def &xml_func = gl_xml_funcs[gl_xml_func_index];
             if (xml_func.m_params.size() != func.m_params.size())
             {
-                console::error("Function %s param number mismatch\n", func.m_name.get_ptr());
+                vogl_error_printf("Function %s param number mismatch\n", func.m_name.get_ptr());
                 total_failures++;
                 continue;
             }
@@ -4256,7 +4253,7 @@ local:
 
             if (purified_func_return.size() != purified_xml_func_return.size())
             {
-                console::warning("Function %s return type mismatch: \"%s\" != \"%s\"\n", func.m_name.get_ptr(), return_type.get_ptr(), xml_func_return.get_ptr());
+                vogl_warning_printf("Function %s return type mismatch: \"%s\" != \"%s\"\n", func.m_name.get_ptr(), return_type.get_ptr(), xml_func_return.get_ptr());
                 total_failures++;
             }
             else
@@ -4265,7 +4262,7 @@ local:
                 {
                     if (purified_func_return[i] != purified_xml_func_return[i])
                     {
-                        console::warning("Function %s return type mismatch: \"%s\" != \"%s\", param \"%s\" != \"%s\"\n", func.m_name.get_ptr(), return_type.get_ptr(), xml_func_return.get_ptr(), purified_func_return[i].get_ptr(), purified_xml_func_return[i].get_ptr());
+                        vogl_warning_printf("Function %s return type mismatch: \"%s\" != \"%s\", param \"%s\" != \"%s\"\n", func.m_name.get_ptr(), return_type.get_ptr(), xml_func_return.get_ptr(), purified_func_return[i].get_ptr(), purified_xml_func_return[i].get_ptr());
                         total_failures++;
                     }
                 }
@@ -4304,7 +4301,7 @@ local:
 
                 if (purified_param_type.size() != purified_xml_param_type.size())
                 {
-                    console::warning("Function %s param type mismatch: \"%s\" != \"%s\"\n", func.m_name.get_ptr(), param_type.get_ptr(), xml_param_type.get_ptr());
+                    vogl_warning_printf("Function %s param type mismatch: \"%s\" != \"%s\"\n", func.m_name.get_ptr(), param_type.get_ptr(), xml_param_type.get_ptr());
                     total_failures++;
                 }
                 else
@@ -4313,7 +4310,7 @@ local:
                     {
                         if (purified_param_type[j] != purified_xml_param_type[j])
                         {
-                            console::warning("Function %s param type mismatch: \"%s\" != \"%s\", param \"%s\" != \"%s\"\n", func.m_name.get_ptr(),
+                            vogl_warning_printf("Function %s param type mismatch: \"%s\" != \"%s\", param \"%s\" != \"%s\"\n", func.m_name.get_ptr(),
                                              param_type.get_ptr(),
                                              xml_param_type.get_ptr(),
                                              purified_param_type[j].get_ptr(),
@@ -4336,11 +4333,11 @@ local:
 
         if (g_command_line_params().get_value_as_bool("verbose"))
         {
-            printf("\nMissing function list:\n");
+            vogl_debug_printf("\nMissing function list:\n");
             for (uint32_t i = 0; i < missing_funcs.size(); i++)
-                printf("%s\n", missing_funcs[i].get_ptr());
+                vogl_debug_printf("%s\n", missing_funcs[i].get_ptr());
 
-            printf("\nMissing function list excluding OES and vendor suffixes:\n");
+            vogl_debug_printf("\nMissing function list excluding OES and vendor suffixes:\n");
             for (uint32_t i = 0; i < missing_funcs.size(); i++)
             {
                 const dynamic_string &func = missing_funcs[i];
@@ -4353,7 +4350,7 @@ local:
                 if (j < VOGL_ARRAY_SIZE(g_gl_vendor_suffixes))
                     continue;
 
-                printf("%s\n", func.get_ptr());
+                vogl_debug_printf("%s\n", func.get_ptr());
             }
         }
 
@@ -4407,14 +4404,14 @@ local:
             }
             else
             {
-                console::warning("Simple GL replay func %s was already in the func whitelist\n", full_func_name.get_ptr());
+                vogl_warning_printf("Simple GL replay func %s was already in the func whitelist\n", full_func_name.get_ptr());
             }
         }
 
         for (uint32_t i = 0; i < m_simple_replay_funcs.size(); i++)
         {
             if (!used_flags[i])
-                console::warning("Simple replay func %s was not found/used\n", m_simple_replay_funcs[i].get_ptr());
+                vogl_warning_printf("Simple replay func %s was not found/used\n", m_simple_replay_funcs[i].get_ptr());
         }
 
         return true;
@@ -4474,7 +4471,7 @@ local:
                     gl_string_map::const_iterator it = pointee_types.find(func_def.m_params[param_index].m_ctype_enum);
                     if (it == pointee_types.end())
                     {
-                        console::error("Failed finding pointee ctype for ctype %s\n", func_def.m_params[param_index].m_ctype.get_ptr());
+                        vogl_error_printf("Failed finding pointee ctype for ctype %s\n", func_def.m_params[param_index].m_ctype.get_ptr());
                         vogl_fclose(pFile);
                         return false;
                     }
@@ -4482,7 +4479,7 @@ local:
                     it = unique_ctype_enums.find(it->second);
                     if (it == unique_ctype_enums.end())
                     {
-                        console::error("Failed finding pointee ctype for ctype %s\n", func_def.m_params[param_index].m_ctype.get_ptr());
+                        vogl_error_printf("Failed finding pointee ctype for ctype %s\n", func_def.m_params[param_index].m_ctype.get_ptr());
                         vogl_fclose(pFile);
                         return false;
                     }
@@ -4540,7 +4537,7 @@ local:
 					gl_string_map::const_iterator it = pointee_types.find(func_def.m_params[param_index].m_ctype_enum);
 					if (it == pointee_types.end())
 					{
-						console::error("Failed finding pointee ctype for ctype %s\n", func_def.m_params[param_index].m_ctype.get_ptr());
+						vogl_error_printf("Failed finding pointee ctype for ctype %s\n", func_def.m_params[param_index].m_ctype.get_ptr());
 						vogl_fclose(pFile);
 						return false;
 					}
@@ -4548,7 +4545,7 @@ local:
 					it = unique_ctype_enums.find(it->second);
 					if (it == unique_ctype_enums.end())
 					{
-						console::error("Failed finding pointee ctype for ctype %s\n", func_def.m_params[param_index].m_ctype.get_ptr());
+						vogl_error_printf("Failed finding pointee ctype for ctype %s\n", func_def.m_params[param_index].m_ctype.get_ptr());
 						vogl_fclose(pFile);
 						return false;
 					}
@@ -4633,7 +4630,7 @@ local:
 
         for (uint32_t i = 0; i < used_flags.size(); i++)
             if (!used_flags[i])
-                console::warning("%s: Regex pattern \"%s\" from file \"%s\" did not match any function names!\n", VOGL_FUNCTION_INFO_CSTR, regex_func_patterns[i].get_ptr(), pFilename);
+                vogl_warning_printf("Regex pattern \"%s\" from file \"%s\" did not match any function names!\n", regex_func_patterns[i].get_ptr(), pFilename);
 
         return true;
     }
@@ -4650,7 +4647,7 @@ static bool init_command_line_params(int argc, char *argv[])
 
     if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
-        console::error("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed parsing command line parameters!\n");
         return false;
     }
 
@@ -4678,13 +4675,13 @@ static bool check_for_option(int argc, char *argv[], const char *pOption)
 //-----------------------------------------------------------------------------------------------------------------------
 static void print_title()
 {
-    console::printf("voglgen");
-    console::printf(" %s Built %s, %s", vogl_is_x64() ? "x64" : "x86", __DATE__, __TIME__);
+    vogl_printf("voglgen");
+    vogl_printf(" %s Built %s, %s", vogl_is_x64() ? "x64" : "x86", __DATE__, __TIME__);
 #ifdef VOGL_BUILD_DEBUG
-    console::printf(" DEBUG build");
+    vogl_printf(" DEBUG build");
 #endif
-    console::printf("\n");
-    console::printf("Debugger present: %u\n", vogl_is_debugger_present());
+    vogl_printf("\n");
+    vogl_printf("Debugger present: %u\n", vogl_is_debugger_present());
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -4701,7 +4698,11 @@ static int main_internal(int argc, char *argv[])
     colorized_console::set_exception_callback();
 
     if (check_for_option(argc, argv, "quiet"))
-        console::disable_output();
+        console::set_output_level(cMsgError);
+    else if (check_for_option(argc, argv, "debug"))
+        console::set_output_level(cMsgDebug);
+    else if (check_for_option(argc, argv, "verbose"))
+        console::set_output_level(cMsgVerbose);
 
     print_title();
 
@@ -4726,9 +4727,9 @@ static int main_internal(int argc, char *argv[])
 
         vogl_gen generator;
 
-        console::printf("---------------- Begin Generator Init\n");
+        vogl_printf("---------------- Begin Generator Init\n");
         status = generator.init();
-        console::printf("---------------- End Generator Init\n");
+        vogl_printf("---------------- End Generator Init\n");
 
         if (status)
         {
@@ -4745,33 +4746,33 @@ static int main_internal(int argc, char *argv[])
                 generator.ctype_regex(regex_pattern.get_ptr());
             else
             {
-                console::printf("---------------- Begin Generate\n");
+                vogl_printf("---------------- Begin Generate\n");
                 status = generator.generate();
-                console::printf("---------------- End Generate\n");
+                vogl_printf("---------------- End Generate\n");
 
                 if (status && g_command_line_params().get_value_as_bool("debug"))
                 {
-                    console::printf("---------------- Begin Debug Dump\n");
+                    vogl_printf("---------------- Begin Debug Dump\n");
                     generator.dump_debug_files();
-                    console::printf("---------------- End Debug Dump\n");
+                    vogl_printf("---------------- End Debug Dump\n");
                 }
             }
         }
 
         // If we generated any errors, report a non-zero exit code.
-        status = status && console::get_total_messages(cErrorConsoleMessage) == 0;
+        status = status && console::get_total_messages(cMsgError) == 0;
     }
 
     if (!status)
-        console::error("voglgen FAILED!\n");
+        vogl_error_printf("voglgen FAILED!\n");
     else
-        console::printf("voglgen succeeded\n  (to %s)\n", cwd);
+        vogl_printf("voglgen succeeded\n  (to %s)\n", cwd);
 
     int exit_status = status ? EXIT_SUCCESS : EXIT_FAILURE;
 
-    console::printf("%u warning(s), %u error(s)\n", console::get_total_messages(cWarningConsoleMessage), console::get_total_messages(cErrorConsoleMessage));
+    vogl_printf("%u warning(s), %u error(s)\n", console::get_total_messages(cMsgWarning), console::get_total_messages(cMsgError));
 
-    console::printf("Exit status: %i\n", exit_status);
+    vogl_printf("Exit status: %i\n", exit_status);
 
     colorized_console::deinit();
 
@@ -4785,9 +4786,7 @@ static int main_internal(int argc, char *argv[])
 //-----------------------------------------------------------------------------------------------------------------------
 static void pause_and_wait(void)
 {
-    console::enable_output();
-
-    console::message("\nPress a key to continue.\n");
+    vogl_printf("\nPress a key to continue.\n");
 
     for (;;)
     {
@@ -4806,9 +4805,9 @@ FILE *fopen_and_log_generic(const dynamic_string& outDirectory, const char* file
 
     FILE* retfile = vogl_fopen(final_path.c_str(), mode);
     if (retfile)
-        console::info("--- Generating \"%s\":\n", final_path.c_str());
+        vogl_printf("--- Generating \"%s\":\n", final_path.c_str());
     else
-        console::error("Failed opening file \"%s\" for mode \"%s\"!", final_path.c_str(), mode);
+        vogl_error_printf("Failed opening file \"%s\" for mode \"%s\"!", final_path.c_str(), mode);
 
     return retfile;
 }
@@ -4836,7 +4835,7 @@ int main(int argc, char *argv[])
         }
         __except(EXCEPTION_EXECUTE_HANDLER)
         {
-            console::error("Uncaught exception! voglgen command line tool failed!\n");
+            vogl_error_printf("Uncaught exception! voglgen command line tool failed!\n");
         }
 #else
         status = main_internal(argc, argv);
@@ -4845,7 +4844,7 @@ int main(int argc, char *argv[])
 
     if (check_for_option(argc, argv, "pause"))
     {
-        if ((status == EXIT_FAILURE) || (console::get_total_messages(cErrorConsoleMessage)))
+        if ((status == EXIT_FAILURE) || (console::get_total_messages(cMsgError)))
             pause_and_wait();
     }
 

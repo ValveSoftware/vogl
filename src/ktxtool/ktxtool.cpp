@@ -32,17 +32,17 @@ static command_line_param_desc g_command_line_param_descs[] =
 //----------------------------------------------------------------------------------------------------------------------
 static void tool_print_title()
 {
-    console::printf("ktxtool ");
+    vogl_printf("ktxtool ");
     if (sizeof(void *) > 4)
-        console::printf("64-bit ");
+        vogl_printf("64-bit ");
     else
-        console::printf("32-bit ");
+        vogl_printf("32-bit ");
 #ifdef VOGL_BUILD_DEBUG
-    console::printf("Debug ");
+    vogl_printf("Debug ");
 #else
-    console::printf("Release ");
+    vogl_printf("Release ");
 #endif
-    console::printf("Built %s %s\n", __DATE__, __TIME__);
+    vogl_printf("Built %s %s\n", __DATE__, __TIME__);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -50,10 +50,10 @@ static void tool_print_title()
 //----------------------------------------------------------------------------------------------------------------------
 static void tool_print_help()
 {
-    console::printf("Usage: ktxtool [ -option ... ] input_file.ktx output_prefix [ -option ... ]\n");
-    console::printf("Command line options may begin with single minus \"-\" or double minus \"--\"\n");
+    vogl_printf("Usage: ktxtool [ -option ... ] input_file.ktx output_prefix [ -option ... ]\n");
+    vogl_printf("Command line options may begin with single minus \"-\" or double minus \"--\"\n");
 
-    console::printf("\nCommand line options:\n");
+    vogl_printf("\nCommand line options:\n");
 
     dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, "--");
 }
@@ -69,7 +69,7 @@ static bool init_command_line_params(int argc, char *argv[])
 
     if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
-        console::error("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed parsing command line parameters!\n");
         return false;
     }
 
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 
     if (g_command_line_params().get_count("") != 3)
     {
-        console::error("2 parameters required\n");
+        vogl_error_printf("2 parameters required\n");
         return EXIT_FAILURE;
     }
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
     cfile_stream in_stream;
     if (!in_stream.open(in_file.get_ptr()))
     {
-        console::error("Failed opening input file \"%s\"!\n", in_file.get_ptr());
+        vogl_error_printf("Failed opening input file \"%s\"!\n", in_file.get_ptr());
         return EXIT_FAILURE;
     }
 
@@ -121,21 +121,21 @@ int main(int argc, char **argv)
     data_stream_serializer in_stream_serializer(in_stream);
     if (!tex.read_from_stream(in_stream_serializer))
     {
-        console::error("Failed parsing input KTX file \"%s\"!\n", in_file.get_ptr());
+        vogl_error_printf("Failed parsing input KTX file \"%s\"!\n", in_file.get_ptr());
         return EXIT_FAILURE;
     }
 
     if (tex.is_compressed())
     {
         //get_ogl_internal_fmt()
-        console::error("Compressed KTX files are not supported because the pxfmt lib doesn't support compressed formats yet.\n");
+        vogl_error_printf("Compressed KTX files are not supported because the pxfmt lib doesn't support compressed formats yet.\n");
         return EXIT_FAILURE;
     }
 
     pxfmt_sized_format src_pxfmt = validate_format_type_combo(tex.get_ogl_fmt(), tex.get_ogl_type());
     if (src_pxfmt == PXFMT_INVALID)
     {
-        console::error("Unsupported KTX format/type: 0x%X 0x%X\n", tex.get_ogl_fmt(), tex.get_ogl_type());
+        vogl_error_printf("Unsupported KTX format/type: 0x%X 0x%X\n", tex.get_ogl_fmt(), tex.get_ogl_type());
         return EXIT_FAILURE;
     }
 
@@ -194,13 +194,13 @@ int main(int argc, char **argv)
 
                     if (status != PXFMT_CONVERSION_SUCCESS)
                     {
-                        console::error("pxfmt_convert_pixels() returned a non-success status of %d!\n", status);
+                        vogl_error_printf("pxfmt_convert_pixels() returned a non-success status of %d!\n", status);
                         return EXIT_FAILURE;
                     }
 
                     if ((temp_buf[temp_buf.size() - 2] != 0xAB) || (temp_buf[temp_buf.size() - 1] != 0xCD))
                     {
-                        console::error("pxfmt_convert_pixels() overwrote its output buffer!\n");
+                        vogl_error_printf("pxfmt_convert_pixels() overwrote its output buffer!\n");
                         return EXIT_FAILURE;
                     }
 
@@ -223,11 +223,11 @@ int main(int argc, char **argv)
                     dynamic_string rgb_output_filename(cVarArg, "%s_array_%u_face_%u_mip_%u_zslice_%u_rgb.png",
                         out_prefix.get_ptr(), array_index, face_index, mip_level, zslice_index);
 
-                    console::info("Writing RGB output file %s\n", rgb_output_filename.get_ptr());
+                    vogl_message_printf("Writing RGB output file %s\n", rgb_output_filename.get_ptr());
 
                     if (!image_utils::write_to_file(rgb_output_filename.get_ptr(), rgb_img, image_utils::cWriteFlagIgnoreAlpha))
                     {
-                        console::error("Failed writing to output file %s\n", rgb_output_filename.get_ptr());
+                        vogl_error_printf("Failed writing to output file %s\n", rgb_output_filename.get_ptr());
                         return EXIT_FAILURE;
                     }
 
@@ -235,11 +235,11 @@ int main(int argc, char **argv)
                     dynamic_string alpha_output_filename(cVarArg, "%s_array_%u_face_%u_mip_%u_zslice_%u_alpha.png",
                         out_prefix.get_ptr(), array_index, face_index, mip_level, zslice_index);
 
-                    console::info("Writing alpha output file %s\n", alpha_output_filename.get_ptr());
+                    vogl_message_printf("Writing alpha output file %s\n", alpha_output_filename.get_ptr());
 
                     if (!image_utils::write_to_file(alpha_output_filename.get_ptr(), alpha_img, image_utils::cWriteFlagIgnoreAlpha | image_utils::cWriteFlagGrayscale, 0))
                     {
-                        console::error("Failed writing to output file %s\n", rgb_output_filename.get_ptr());
+                        vogl_error_printf("Failed writing to output file %s\n", rgb_output_filename.get_ptr());
                         return EXIT_FAILURE;
                     }
 

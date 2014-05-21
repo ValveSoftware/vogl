@@ -227,7 +227,7 @@ namespace vogl
 
         if (within_quote)
         {
-            console::error("Unmatched quote in command line \"%s\"\n", p);
+            vogl_error_printf("Unmatched quote in command line \"%s\"\n", p);
             return false;
         }
 
@@ -245,14 +245,14 @@ namespace vogl
             if (hide_null_descs && !pDesc[i].m_pDesc)
                 continue;
 
-            console::message("%s%s", prefix, pDesc[i].m_pName);
+            vogl_message_printf("%s%s", prefix, pDesc[i].m_pName);
             for (uint32_t j = 0; j < pDesc[i].m_num_values; j++)
-                console::message(" [value]");
+                vogl_message_printf(" [value]");
 
             if (pDesc[i].m_pDesc)
-                console::printf(": %s", pDesc[i].m_pDesc);
+                vogl_printf(": %s", pDesc[i].m_pDesc);
 
-            console::printf("\n");
+            vogl_printf("\n");
         }
     }
 
@@ -272,7 +272,7 @@ namespace vogl
         cfile_stream in_stream;
         if (!in_stream.open(pFilename, cDataStreamReadable | cDataStreamSeekable))
         {
-            console::error("Unable to open file \"%s\" for reading!\n", pFilename);
+            vogl_error_printf("Unable to open file \"%s\" for reading!\n", pFilename);
             return false;
         }
 
@@ -334,7 +334,7 @@ namespace vogl
                         if (config.m_ignore_unrecognized_params)
                             continue;
 
-                        console::error("Unrecognized command line parameter: \"%s\"\n", src_param.get_ptr());
+                        vogl_error_printf("Unrecognized command line parameter: \"%s\"\n", src_param.get_ptr());
                         return false;
                     }
                 }
@@ -344,7 +344,7 @@ namespace vogl
             {
                 if (src_param.get_len() < (param_prefix_chars + 1))
                 {
-                    console::warning("Skipping invalid command line parameter: \"%s\"\n", src_param.get_ptr());
+                    vogl_warning_printf("Skipping invalid command line parameter: \"%s\"\n", src_param.get_ptr());
                     continue;
                 }
 
@@ -386,7 +386,7 @@ namespace vogl
                         if (config.m_ignore_unrecognized_params)
                             continue;
 
-                        console::error("Unrecognized command line parameter: \"%s\"\n", src_param.get_ptr());
+                        vogl_error_printf("Unrecognized command line parameter: \"%s\"\n", src_param.get_ptr());
                         return false;
                     }
 
@@ -402,7 +402,7 @@ namespace vogl
 
                     if ((arg_index + desc.m_num_values) > params.size())
                     {
-                        console::error("Expected %u value(s) after command line parameter: \"%s\"\n", desc.m_num_values, src_param.get_ptr());
+                        vogl_error_printf("Expected %u value(s) after command line parameter: \"%s\"\n", desc.m_num_values, src_param.get_ptr());
                         return false;
                     }
 
@@ -422,7 +422,7 @@ namespace vogl
 
                     if (!load_string_file(filename.get_ptr(), strings))
                     {
-                        console::error("Failed loading listing file \"%s\"!\n", filename.get_ptr());
+                        vogl_error_printf("Failed loading listing file \"%s\"!\n", filename.get_ptr());
                         return false;
                     }
                 }
@@ -445,7 +445,7 @@ namespace vogl
             {
                 if ((config.m_fail_on_non_params) && (cur_arg_index))
                 {
-                    console::error("Unrecognized command line argument: \"%s\"!\n", src_param.get_ptr());
+                    vogl_error_printf("Unrecognized command line argument: \"%s\"!\n", src_param.get_ptr());
                     return false;
                 }
 
@@ -575,7 +575,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
+            vogl_debug_printf("Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -584,20 +584,20 @@ namespace vogl
         if (!string_ptr_to_int(p, val))
         {
             if (!pKey[0])
-                vogl::console::warning("Non-integer value specified for parameter at index %u, using default value of %i\n", key_index, def);
+                vogl_warning_printf("Non-integer value specified for parameter at index %u, using default value of %i\n", key_index, def);
             else
-                vogl::console::warning("Non-integer value specified for parameter \"%s\" at index %u, using default value of %i\n", pKey, key_index, def);
+                vogl_warning_printf("Non-integer value specified for parameter \"%s\" at index %u, using default value of %i\n", pKey, key_index, def);
             return def;
         }
 
         if (val < l)
         {
-            vogl::console::warning("Value %i for parameter \"%s\" at index %u is out of range, clamping to %i\n", val, pKey, key_index, l);
+            vogl_warning_printf("Value %i for parameter \"%s\" at index %u is out of range, clamping to %i\n", val, pKey, key_index, l);
             val = l;
         }
         else if (val > h)
         {
-            vogl::console::warning("Value %i for parameter \"%s\" at index %u is out of range, clamping to %i\n", val, pKey, key_index, h);
+            vogl_warning_printf("Value %i for parameter \"%s\" at index %u is out of range, clamping to %i\n", val, pKey, key_index, h);
             val = h;
         }
 
@@ -617,7 +617,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
+            vogl_debug_printf("Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -626,20 +626,20 @@ namespace vogl
         if (!string_ptr_to_int64(p, val))
         {
             if (!pKey[0])
-                vogl::console::warning("Non-integer value specified for parameter at index %u, using default value of %" PRIi64 "\n", key_index, def);
+                vogl_warning_printf("Non-integer value specified for parameter at index %u, using default value of %" PRIi64 "\n", key_index, def);
             else
-                vogl::console::warning("Non-integer value specified for parameter \"%s\" at index %u, using default value of %" PRIi64 "\n", pKey, key_index, def);
+                vogl_warning_printf("Non-integer value specified for parameter \"%s\" at index %u, using default value of %" PRIi64 "\n", pKey, key_index, def);
             return def;
         }
 
         if (val < l)
         {
-            vogl::console::warning("Value %" PRIi64 " for parameter \"%s\" at index %u is out of range, clamping to %" PRIi64 "\n", val, pKey, key_index, l);
+            vogl_warning_printf("Value %" PRIi64 " for parameter \"%s\" at index %u is out of range, clamping to %" PRIi64 "\n", val, pKey, key_index, l);
             val = l;
         }
         else if (val > h)
         {
-            vogl::console::warning("Value %" PRIi64 " for parameter \"%s\" at index %u is out of range, clamping to %" PRIi64 "\n", val, pKey, key_index, h);
+            vogl_warning_printf("Value %" PRIi64 " for parameter \"%s\" at index %u is out of range, clamping to %" PRIi64 "\n", val, pKey, key_index, h);
             val = h;
         }
 
@@ -659,7 +659,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
+            vogl_debug_printf("Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -668,20 +668,20 @@ namespace vogl
         if (!string_ptr_to_uint(p, val))
         {
             if (!pKey[0])
-                vogl::console::warning("Non-integer value specified for parameter at index %u, using default value of %u\n", key_index, def);
+                vogl_warning_printf("Non-integer value specified for parameter at index %u, using default value of %u\n", key_index, def);
             else
-                vogl::console::warning("Non-integer value specified for parameter \"%s\" at index %u, using default value of %u\n", pKey, key_index, def);
+                vogl_warning_printf("Non-integer value specified for parameter \"%s\" at index %u, using default value of %u\n", pKey, key_index, def);
             return def;
         }
 
         if (val < l)
         {
-            vogl::console::warning("Value %u for parameter \"%s\" at index %u is out of range, clamping to %u\n", val, pKey, key_index, l);
+            vogl_warning_printf("Value %u for parameter \"%s\" at index %u is out of range, clamping to %u\n", val, pKey, key_index, l);
             val = l;
         }
         else if (val > h)
         {
-            vogl::console::warning("Value %u for parameter \"%s\" at index %u is out of range, clamping to %u\n", val, pKey, key_index, h);
+            vogl_warning_printf("Value %u for parameter \"%s\" at index %u is out of range, clamping to %u\n", val, pKey, key_index, h);
             val = h;
         }
 
@@ -701,7 +701,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
+            vogl_debug_printf("Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -710,20 +710,20 @@ namespace vogl
         if (!string_ptr_to_uint64(p, val))
         {
             if (!pKey[0])
-                vogl::console::warning("Non-integer value specified for parameter at index %u, using default value of %" PRIu64 "\n", key_index, def);
+                vogl_warning_printf("Non-integer value specified for parameter at index %u, using default value of %" PRIu64 "\n", key_index, def);
             else
-                vogl::console::warning("Non-integer value specified for parameter \"%s\" at index %u, using default value of %" PRIu64 "\n", pKey, key_index, def);
+                vogl_warning_printf("Non-integer value specified for parameter \"%s\" at index %u, using default value of %" PRIu64 "\n", pKey, key_index, def);
             return def;
         }
 
         if (val < l)
         {
-            vogl::console::warning("Value %" PRIu64 " for parameter \"%s\" at index %u is out of range, clamping to %" PRIu64 "\n", val, pKey, key_index, l);
+            vogl_warning_printf("Value %" PRIu64 " for parameter \"%s\" at index %u is out of range, clamping to %" PRIu64 "\n", val, pKey, key_index, l);
             val = l;
         }
         else if (val > h)
         {
-            vogl::console::warning("Value %" PRIu64 " for parameter \"%s\" at index %u is out of range, clamping to %" PRIu64 "\n", val, pKey, key_index, h);
+            vogl_warning_printf("Value %" PRIu64 " for parameter \"%s\" at index %u is out of range, clamping to %" PRIu64 "\n", val, pKey, key_index, h);
             val = h;
         }
 
@@ -743,7 +743,7 @@ namespace vogl
             return def;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
+            vogl_debug_printf("Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", value_index, pKey, it->second.m_values.size());
             return def;
         }
 
@@ -751,19 +751,19 @@ namespace vogl
         const char *p = it->second.m_values[value_index].get_ptr();
         if (!string_ptr_to_float(p, val))
         {
-            vogl::console::warning("Invalid value specified for float parameter \"%s\", using default value of %f\n", pKey, def);
+            vogl_warning_printf("Invalid value specified for float parameter \"%s\", using default value of %f\n", pKey, def);
             return def;
         }
 
         // Let's assume +-cNearlyInfinite implies no clamping.
         if ((l != -math::cNearlyInfinite) && (val < l))
         {
-            vogl::console::warning("Value %f for parameter \"%s\" is out of range, clamping to %f\n", val, pKey, l);
+            vogl_warning_printf("Value %f for parameter \"%s\" is out of range, clamping to %f\n", val, pKey, l);
             val = l;
         }
         else if ((h != math::cNearlyInfinite) && (val > h))
         {
-            vogl::console::warning("Value %f for parameter \"%s\" is out of range, clamping to %f\n", val, pKey, h);
+            vogl_warning_printf("Value %f for parameter \"%s\" is out of range, clamping to %f\n", val, pKey, h);
             val = h;
         }
 
@@ -780,7 +780,7 @@ namespace vogl
             return false;
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
+            vogl_debug_printf("Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", value_index, pKey, it->second.m_values.size());
             value.set(pDef);
             return false;
         }
@@ -796,7 +796,7 @@ namespace vogl
             return dynamic_string(pDef);
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
+            vogl_debug_printf("Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", value_index, pKey, it->second.m_values.size());
             return dynamic_string(pDef);
         }
 
@@ -811,7 +811,7 @@ namespace vogl
 
         if (value_index >= it->second.m_values.size())
         {
-            vogl::console::debug("%s: Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", VOGL_FUNCTION_INFO_CSTR, value_index, pKey, it->second.m_values.size());
+            vogl_debug_printf("Trying to retrieve value %u of command line parameter %s, but this parameter only has %u values\n", value_index, pKey, it->second.m_values.size());
             return get_empty_dynamic_string();
         }
 

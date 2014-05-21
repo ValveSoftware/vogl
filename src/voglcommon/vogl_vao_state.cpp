@@ -189,7 +189,7 @@ bool vogl_vao_state::restore(const vogl_context_info &context_info, vogl_handle_
 
         if (m_vertex_attribs.size() > context_info.get_max_vertex_attribs())
         {
-            vogl_warning_printf("%s: Saved VAO state has %u attribs, but context only allows %u attribs\n", VOGL_FUNCTION_INFO_CSTR, m_vertex_attribs.size(), context_info.get_max_vertex_attribs());
+            vogl_warning_printf("Saved VAO state has %u attribs, but context only allows %u attribs\n", m_vertex_attribs.size(), context_info.get_max_vertex_attribs());
         }
 
         for (uint32_t i = 0; i < math::minimum<uint32_t>(context_info.get_max_vertex_attribs(), m_vertex_attribs.size()); i++)
@@ -215,8 +215,8 @@ bool vogl_vao_state::restore(const vogl_context_info &context_info, vogl_handle_
                 // Sanity checks.
                 if ((pRestore_ptr != NULL) || (desc.m_stride) || (desc.m_enabled))
                 {
-                    vogl_warning_printf("%s: Can't bind client side vertex array data on a non-default VAO, trace handle %u GL handle %u, restore ptr %p, size %i stride %i enabled %u\n",
-                                       VOGL_FUNCTION_INFO_CSTR, m_snapshot_handle, static_cast<uint32_t>(handle), pRestore_ptr, desc.m_size, desc.m_stride, desc.m_enabled);
+                    vogl_warning_printf("Can't bind client side vertex array data on a non-default VAO, trace handle %u GL handle %u, restore ptr %p, size %i stride %i enabled %u\n",
+                                        m_snapshot_handle, static_cast<uint32_t>(handle), pRestore_ptr, desc.m_size, desc.m_stride, desc.m_enabled);
                 }
             }
             else

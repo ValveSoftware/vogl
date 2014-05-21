@@ -36,7 +36,7 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_trace_file_reader::read_
 
     if (!is_opened())
     {
-        vogl_error_printf("%s: Trace file is not open\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Trace file is not open\n");
 
         VOGL_ASSERT_ALWAYS;
 
@@ -53,7 +53,7 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_trace_file_reader::read_
 
     if (!seek_to_frame(frame_index))
     {
-        vogl_error_printf("%s: Failed seeking to frame %u\n", VOGL_FUNCTION_INFO_CSTR, frame_index);
+        vogl_error_printf("Failed seeking to frame %u\n", frame_index);
         return cFailed;
     }
 
@@ -67,7 +67,7 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_trace_file_reader::read_
         status = read_next_packet();
         if (status == cFailed)
         {
-            vogl_error_printf("%s: Failed reading from trace file\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed reading from trace file\n");
             break;
         }
 
@@ -112,7 +112,7 @@ bool vogl_trace_file_reader::init_loose_file_blob_manager(const char *pTrace_fil
         dynamic_string fname;
         if (!file_utils::split_path(pTrace_filename, loose_file_path, fname))
         {
-            console::error("%s: Failed splitting trace filename \"%s\", assuming \".\" as the loose file path\n", VOGL_FUNCTION_INFO_CSTR, pTrace_filename);
+            vogl_error_printf("Failed splitting trace filename \"%s\", assuming \".\" as the loose file path\n", pTrace_filename);
             loose_file_path = ".";
         }
     }
@@ -156,13 +156,13 @@ bool vogl_binary_trace_file_reader::read_frame_file_offsets()
     uint8_vec frame_offsets_data;
     if (!m_archive_blob_manager.is_initialized() || !m_archive_blob_manager.get(VOGL_TRACE_ARCHIVE_FRAME_FILE_OFFSETS_FILENAME, frame_offsets_data))
     {
-        vogl_debug_printf("%s: Couldn't find trace frame file offset file in trace archive, seeking will be slow in this trace file\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_debug_printf("Couldn't find trace frame file offset file in trace archive, seeking will be slow in this trace file\n");
         return false;
     }
 
     if (frame_offsets_data.size() & (sizeof(uint64_t) - 1))
     {
-        vogl_error_printf("%s: Trace frame file offset file in trace archive is invalid, seeking will be slow in this trace file\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Trace frame file offset file in trace archive is invalid, seeking will be slow in this trace file\n");
         return false;
     }
 
@@ -171,7 +171,7 @@ bool vogl_binary_trace_file_reader::read_frame_file_offsets()
     m_frame_file_offsets.resize(total_offsets);
     memcpy(m_frame_file_offsets.get_ptr(), frame_offsets_data.get_ptr(), m_frame_file_offsets.size_in_bytes());
 
-    vogl_debug_printf("%s: Frame file offsets packet is OK, found %u total frame offsets\n", VOGL_FUNCTION_INFO_CSTR, m_frame_file_offsets.size());
+    vogl_debug_printf("Frame file offsets packet is OK, found %u total frame offsets\n", m_frame_file_offsets.size());
 
     m_max_frame_index = m_frame_file_offsets.size() - 1;
 
@@ -204,27 +204,27 @@ bool vogl_binary_trace_file_reader::open(const char *pFilename, const char *pLoo
 
     if (!m_sof_packet.full_validation(sizeof(m_sof_packet)))
     {
-        vogl_error_printf("%s: Trace file failed validation!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Trace file failed validation!\n");
         close();
         return false;
     }
 
     if (m_sof_packet.m_version < static_cast<uint16_t>(VOGL_TRACE_FILE_MINIMUM_COMPATIBLE_VERSION))
     {
-        vogl_error_printf("%s: Trace file version is not supported, found version 0x%04X, expected at least version 0x%04X!\n", VOGL_FUNCTION_INFO_CSTR, m_sof_packet.m_version, VOGL_TRACE_FILE_MINIMUM_COMPATIBLE_VERSION);
+        vogl_error_printf("Trace file version is not supported, found version 0x%04X, expected at least version 0x%04X!\n", m_sof_packet.m_version, VOGL_TRACE_FILE_MINIMUM_COMPATIBLE_VERSION);
         return false;
     }
     else if (m_sof_packet.m_version > static_cast<uint16_t>(VOGL_TRACE_FILE_VERSION))
     {
         // TODO: Make this an error? Backwards compat?
-        vogl_warning_printf("%s: Trace file version is 0x%04X, expected version 0x%04X, this may not work at all!\n", VOGL_FUNCTION_INFO_CSTR, m_sof_packet.m_version, VOGL_TRACE_FILE_VERSION);
+        vogl_warning_printf("Trace file version is 0x%04X, expected version 0x%04X, this may not work at all!\n", m_sof_packet.m_version, VOGL_TRACE_FILE_VERSION);
     }
 
     if (m_sof_packet.m_archive_size)
     {
         if (!m_archive_blob_manager.init_file(cBMFReadable | cBMFOpenExisting, pFilename, m_sof_packet.m_archive_offset, m_sof_packet.m_archive_size))
         {
-            vogl_error_printf("%s: Failed reading in-trace archive!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed reading in-trace archive!\n");
             return false;
         }
     }
@@ -295,11 +295,11 @@ bool vogl_binary_trace_file_reader::seek_to_frame(uint32_t frame_index)
     {
         if ((m_max_frame_index >= 0) && (frame_index > m_max_frame_index))
         {
-            vogl_warning_printf("%s: Can't seek to frame %u, max valid frame index is %u\n", VOGL_FUNCTION_INFO_CSTR, frame_index, static_cast<uint32_t>(m_max_frame_index));
+            vogl_warning_printf("Can't seek to frame %u, max valid frame index is %u\n", frame_index, static_cast<uint32_t>(m_max_frame_index));
             return false;
         }
 
-        vogl_warning_printf("%s: Seeking forward in binary trace from frame %u to frame %u, this could take a while to build the index\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_index, frame_index);
+        vogl_warning_printf("Seeking forward in binary trace from frame %u to frame %u, this could take a while to build the index\n", m_cur_frame_index, frame_index);
 
         if (m_frame_file_offsets.size())
         {
@@ -312,7 +312,7 @@ bool vogl_binary_trace_file_reader::seek_to_frame(uint32_t frame_index)
             trace_file_reader_status_t status = read_next_packet();
             if (status == cFailed)
             {
-                vogl_error_printf("%s: Failed reading next packet\n", VOGL_FUNCTION_INFO_CSTR);
+                vogl_error_printf("Failed reading next packet\n");
                 return false;
             }
 
@@ -324,7 +324,7 @@ bool vogl_binary_trace_file_reader::seek_to_frame(uint32_t frame_index)
         if (frame_index >= m_frame_file_offsets.size())
         {
             if (g_command_line_params().get_value_as_bool("verbose"))
-                vogl_debug_printf("%s: Failed seeking forward in binary trace to frame %u, cur frame is now %u\n", VOGL_FUNCTION_INFO_CSTR, frame_index, m_cur_frame_index);
+                vogl_debug_printf("Failed seeking forward in binary trace to frame %u, cur frame is now %u\n", frame_index, m_cur_frame_index);
             return false;
         }
     }
@@ -381,7 +381,7 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_binary_trace_file_reader
 
         if ((!packet_base.basic_validation()) || (packet_base.m_size >= 0x7FFFFFFFULL))
         {
-            console::error("%s: Bad trace file - packet failed basic validation tests!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Bad trace file - packet failed basic validation tests!\n");
 
             create_eof_packet();
 
@@ -399,14 +399,14 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_binary_trace_file_reader
         uint32_t actual_bytes_read = m_trace_stream.read(m_packet_buf.get_ptr() + sizeof(vogl_trace_stream_packet_base), num_bytes_remaining);
         if (actual_bytes_read != num_bytes_remaining)
         {
-            console::error("%s: Failed reading variable size trace packet data (wanted %u bytes, got %u bytes), trace file is probably corrupted/invalid\n", VOGL_FUNCTION_INFO_CSTR, num_bytes_remaining, actual_bytes_read);
+            vogl_error_printf("Failed reading variable size trace packet data (wanted %u bytes, got %u bytes), trace file is probably corrupted/invalid\n", num_bytes_remaining, actual_bytes_read);
             return cFailed;
         }
     }
 
     if (!packet_base.check_crc(packet_base.m_size))
     {
-        console::error("%s: Bad trace file - packet CRC32 is bad!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Bad trace file - packet CRC32 is bad!\n");
 
         create_eof_packet();
 
@@ -508,7 +508,7 @@ bool vogl_json_trace_file_reader::open(const char *pFilename, const char *pLoose
 
     if (!file_utils::split_path(pFilename, &m_drive, &m_dir, &m_fname, &m_ext))
     {
-        console::error("%s: Failed splitting input filename: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pFilename);
+        vogl_error_printf("Failed splitting input filename: \"%s\"\n", pFilename);
         close();
         return false;
     }
@@ -516,7 +516,7 @@ bool vogl_json_trace_file_reader::open(const char *pFilename, const char *pLoose
     m_filename_exists = file_utils::does_file_exist(pFilename);
     if ((!m_filename_exists) && (m_filename_is_in_multiframe_form))
     {
-        console::error("%s: Could not open JSON trace file: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pFilename);
+        vogl_error_printf("Could not open JSON trace file: \"%s\"\n", pFilename);
         close();
         return false;
     }
@@ -554,7 +554,7 @@ bool vogl_json_trace_file_reader::open(const char *pFilename, const char *pLoose
 
         if (!i)
         {
-            console::error("%s: Could not open JSON trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pFilename);
+            vogl_error_printf("Could not open JSON trace file \"%s\"\n", pFilename);
             close();
             return false;
         }
@@ -568,7 +568,7 @@ bool vogl_json_trace_file_reader::open(const char *pFilename, const char *pLoose
         return false;
     }
 
-    console::info("Opened JSON trace file \"%s\", frame range [%u - %u]\n", m_cur_frame_filename.get_ptr(), m_cur_frame_index, m_max_frame_index);
+    vogl_message_printf("Opened JSON trace file \"%s\", frame range [%u - %u]\n", m_cur_frame_filename.get_ptr(), m_cur_frame_index, m_max_frame_index);
 
     return true;
 }
@@ -597,21 +597,21 @@ bool vogl_json_trace_file_reader::open_first_document()
     const json_node *pRoot_node = m_cur_doc.get_root();
     if (!pRoot_node)
     {
-        vogl_error_printf("%s: JSON file must be an object: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+        vogl_error_printf("JSON file must be an object: \"%s\"\n", m_cur_frame_filename.get_ptr());
         return false;
     }
 
     const json_node *pSOF_node = pRoot_node->find_child_object("sof");
     if (!pSOF_node)
     {
-        vogl_error_printf("%s: Failed finding SOF (start of file) packet in JSON file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+        vogl_error_printf("Failed finding SOF (start of file) packet in JSON file \"%s\"\n", m_cur_frame_filename.get_ptr());
         return false;
     }
 
     int meta_pointer_sizes = pSOF_node->value_as_int32("pointer_sizes", -1);
     if ((meta_pointer_sizes != sizeof(uint32_t)) && (meta_pointer_sizes != sizeof(uint64_t)))
     {
-        vogl_error_printf("%s: Invalid meta pointer sizes field in JSON file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+        vogl_error_printf("Invalid meta pointer sizes field in JSON file \"%s\"\n", m_cur_frame_filename.get_ptr());
         return false;
     }
 
@@ -628,7 +628,7 @@ bool vogl_json_trace_file_reader::open_first_document()
 
         if (!m_archive_blob_manager.init_file(cBMFReadable | cBMFOpenExisting, full_archive_filename.get_ptr()))
         {
-            vogl_error_printf("%s: JSON trace relies on archive \"%s\", which cannot be opened! Will try to read anyway, but later operations may fail if loose files cannot be found.\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
+            vogl_error_printf("JSON trace relies on archive \"%s\", which cannot be opened! Will try to read anyway, but later operations may fail if loose files cannot be found.\n", archive_filename.get_ptr());
             // Don't immediately exit in case they have manually deleted the archive and want everything to read from loose files.
             //return false;
         }
@@ -680,7 +680,7 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
     {
         if (!m_trace_stream.open(m_cur_frame_filename.get_ptr(), cDataStreamReadable, true))
         {
-            console::error("%s: Could not open JSON trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+            vogl_error_printf("Could not open JSON trace file \"%s\"\n", m_cur_frame_filename.get_ptr());
             return false;
         }
 
@@ -698,9 +698,9 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
     if (!deserialize_status)
     {
         if (m_cur_doc.get_error_msg().has_content())
-            vogl_error_printf("%s: Failed deserializing JSON file \"%s\"!\nError: %s Line: %u\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr(), m_cur_doc.get_error_msg().get_ptr(), m_cur_doc.get_error_line());
+            vogl_error_printf("Failed deserializing JSON file \"%s\"!\nError: %s Line: %u\n", m_cur_frame_filename.get_ptr(), m_cur_doc.get_error_msg().get_ptr(), m_cur_doc.get_error_line());
         else
-            vogl_error_printf("%s: Failed deserializing JSON file \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+            vogl_error_printf("Failed deserializing JSON file \"%s\"!\n", m_cur_frame_filename.get_ptr());
 
         m_cur_doc.clear();
         return false;
@@ -711,7 +711,7 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
     const json_node *pRoot_node = m_cur_doc.get_root();
     if (!pRoot_node)
     {
-        vogl_error_printf("%s: Couldn't find root node in JSON file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+        vogl_error_printf("Couldn't find root node in JSON file \"%s\"\n", m_cur_frame_filename.get_ptr());
         m_cur_doc.clear();
         return false;
     }
@@ -719,7 +719,7 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
     const json_node *pMeta_node = pRoot_node->find_child("meta");
     if (!pMeta_node)
     {
-        vogl_error_printf("%s: Couldn't find meta node in JSON file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+        vogl_error_printf("Couldn't find meta node in JSON file \"%s\"\n", m_cur_frame_filename.get_ptr());
         m_cur_doc.clear();
         return false;
     }
@@ -727,7 +727,7 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
     int64_t meta_frame_index = pMeta_node->value_as_int64("cur_frame", -1);
     if (meta_frame_index != m_cur_frame_index)
     {
-        vogl_error_printf("%s: Invalid meta frame index in JSON file \"%s\" (expected %lli, got %lli)\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr(), static_cast<long long int>(m_cur_frame_index), static_cast<long long int>(meta_frame_index));
+        vogl_error_printf("Invalid meta frame index in JSON file \"%s\" (expected %lli, got %lli)\n", m_cur_frame_filename.get_ptr(), static_cast<long long int>(m_cur_frame_index), static_cast<long long int>(meta_frame_index));
         m_cur_doc.clear();
         return false;
     }
@@ -737,7 +737,7 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
     m_pPackets_array = pRoot_node->find_child_array("packets");
     if (!m_pPackets_array)
     {
-        vogl_error_printf("%s: Couldn't find packets node in JSON file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+        vogl_error_printf("Couldn't find packets node in JSON file \"%s\"\n", m_cur_frame_filename.get_ptr());
         m_cur_doc.clear();
         return false;
     }
@@ -754,7 +754,7 @@ bool vogl_json_trace_file_reader::read_document(const dynamic_string &filename)
         if (memcmp(uuid, m_sof_packet.m_uuid, sizeof(uuid)) != 0)
         {
             // Print the UUID's the way they would appear in the json for easier searching
-            vogl_warning_printf("%s: Document UUID (%u %u %u %u) in file %s differs from the UUID in the first frame's SOF packet (%u %u %u %u)\n", VOGL_FUNCTION_INFO_CSTR,
+            vogl_warning_printf("Document UUID (%u %u %u %u) in file %s differs from the UUID in the first frame's SOF packet (%u %u %u %u)\n",
                                uuid[0], uuid[1], uuid[2], uuid[3],
                                filename.get_ptr(),
                                m_sof_packet.m_uuid[0], m_sof_packet.m_uuid[1], m_sof_packet.m_uuid[2], m_sof_packet.m_uuid[3]);
@@ -897,7 +897,7 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_json_trace_file_reader::
 
             if (m_cur_frame_index > m_max_frame_index)
             {
-                vogl_warning_printf("%s: Last JSON document %u did not have a non-zero eof meta key, forcing EOF\n", VOGL_FUNCTION_INFO_CSTR, m_max_frame_index);
+                vogl_warning_printf("Last JSON document %u did not have a non-zero eof meta key, forcing EOF\n", m_max_frame_index);
 
                 create_eof_packet();
                 m_at_eof = true;
@@ -911,7 +911,7 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_json_trace_file_reader::
         const json_node *pGL_node = m_pPackets_array->get_value_as_object(m_cur_packet_node_index);
         if (!pGL_node)
         {
-            vogl_warning_printf("%s: Ignoring invalid JSON key %s, file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_pPackets_array->get_path_to_item(m_cur_packet_node_index).get_ptr(), m_cur_frame_filename.get_ptr());
+            vogl_warning_printf("Ignoring invalid JSON key %s, file \"%s\"\n", m_pPackets_array->get_path_to_item(m_cur_packet_node_index).get_ptr(), m_cur_frame_filename.get_ptr());
             m_cur_packet_node_index++;
             continue;
         }
@@ -920,9 +920,9 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_json_trace_file_reader::
         if (!success)
         {
             if (m_cur_doc.get_error_msg().has_content())
-                vogl_error_printf("%s: Failed deserializing JSON file \"%s\"!\nError: %s Line: %u\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr(), m_cur_doc.get_error_msg().get_ptr(), m_cur_doc.get_error_line());
+                vogl_error_printf("Failed deserializing JSON file \"%s\"!\nError: %s Line: %u\n", m_cur_frame_filename.get_ptr(), m_cur_doc.get_error_msg().get_ptr(), m_cur_doc.get_error_line());
             else
-                vogl_error_printf("%s: Failed deserializing JSON file \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+                vogl_error_printf("Failed deserializing JSON file \"%s\"!\n", m_cur_frame_filename.get_ptr());
             return cFailed;
         }
 
@@ -931,7 +931,7 @@ vogl_trace_file_reader::trace_file_reader_status_t vogl_json_trace_file_reader::
 
         if (!m_trace_packet.serialize(m_dyn_stream))
         {
-            vogl_error_printf("%s: Failed serializing binary trace packet data while processing JSON file \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, m_cur_frame_filename.get_ptr());
+            vogl_error_printf("Failed serializing binary trace packet data while processing JSON file \"%s\"!\n", m_cur_frame_filename.get_ptr());
             return cFailed;
         }
 
@@ -1127,20 +1127,20 @@ vogl_trace_file_reader *vogl_open_trace_file(dynamic_string &orig_filename, dyna
     vogl_trace_file_reader_type_t trace_type = vogl_determine_trace_file_type(orig_filename, actual_filename);
     if (trace_type == cINVALID_TRACE_FILE_READER)
     {
-        vogl_error_printf("%s: Unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, orig_filename.get_ptr());
+        vogl_error_printf("Unable to determine file type of trace file \"%s\"\n", orig_filename.get_ptr());
         return NULL;
     }
 
     vogl_trace_file_reader *pTrace_reader = vogl_create_trace_file_reader(trace_type);
     if (!pTrace_reader)
     {
-        vogl_error_printf("%s: Unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, orig_filename.get_ptr());
+        vogl_error_printf("Unable to determine file type of trace file \"%s\"\n", orig_filename.get_ptr());
         return NULL;
     }
 
     if (!pTrace_reader->open(actual_filename.get_ptr(), pLoose_file_path))
     {
-        vogl_error_printf("%s: Failed opening trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, orig_filename.get_ptr());
+        vogl_error_printf("Failed opening trace file \"%s\"\n", orig_filename.get_ptr());
         vogl_delete(pTrace_reader);
         return NULL;
     }

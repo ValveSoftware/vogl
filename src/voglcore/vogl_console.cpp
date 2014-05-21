@@ -45,309 +45,279 @@
     #include <sys/ioctl.h>
 #endif
 
-namespace vogl
+using namespace vogl;
+
+data_stream *console::m_pLog_stream;
+uint32_t console::m_num_output_funcs = 0;
+uint32_t console::m_num_messages[cMsgTotal];
+eConsoleMessageType console::m_output_level = cMsgWarning;
+bool console::m_at_beginning_of_line = true;
+bool console::m_prefixes = true;
+char console::m_tool_prefix[256];
+const uint32_t cConsoleBufSize = 256 * 1024;
+const uint32_t cMaxOutputFuncs = 16;
+
+static const char *s_msgnames[cMsgTotal] =
 {
-    static const char *s_msgnames[cCMTTotal] =
-        {
-          "Debug",
-          "Progress",
-          "Info",
-          "Default",
-          "Message",
-          "Warning",
-          "Error",
-          "Header1",
-        };
+    "Info",
+    "Progress",
+    "Header",
+    "Error",
+    "Warning",
+    "Verbose",
+    "Debug",
+};
 
-    eConsoleMessageType console::m_default_category = cInfoConsoleMessage;
-    uint32_t console::m_num_output_funcs = 0;
-    bool console::m_prefixes = true;
-    bool console::m_output_disabled;
-    data_stream *console::m_pLog_stream;
-    mutex *console::m_pMutex;
-    uint32_t console::m_num_messages[cCMTTotal];
-    bool console::m_at_beginning_of_line = true;
-    char console::m_tool_prefix[256];
-
-    const uint32_t cConsoleBufSize = 256 * 1024;
-
-    void console::init()
+struct console_func
+{
+    console_func(console_output_func func = NULL, void *pData = NULL)
+        : m_func(func), m_pData(pData)
     {
-        if (!m_pMutex)
+    }
+
+    console_output_func m_func;
+    void *m_pData;
+};
+
+static inline mutex &get_mutex()
+{
+    static mutex s_mutex;
+    return s_mutex;
+}
+
+void console::init()
+{
+}
+
+void console::deinit()
+{
+    m_num_output_funcs = 0;
+    m_at_beginning_of_line = false;
+}
+
+static inline console_func *get_output_funcs()
+{
+    static console_func s_output_funcs[cMaxOutputFuncs];
+    return s_output_funcs;
+}
+
+const char *console::get_message_type_str(eConsoleMessageType type)
+{
+    if (type >= 0 && (type < VOGL_ARRAY_SIZE(s_msgnames)))
+        return s_msgnames[type];
+    return "??";
+}
+
+eConsoleMessageType console::get_message_type_from_str(const char *str)
+{
+    dynamic_string msgname = str;
+
+    for (uint32_t type = 0; type < VOGL_ARRAY_SIZE(s_msgnames); type++)
+    {
+        if (msgname.compare(s_msgnames[type], false) == 0)
+            return (eConsoleMessageType)type;
+    }
+    return (eConsoleMessageType)-1;
+}
+
+void console::vprintf(const char *caller_info, eConsoleMessageType type, const char *p, va_list args)
+{
+    get_mutex().lock();
+
+    m_num_messages[type]++;
+
+    static char buf[cConsoleBufSize];
+
+    char *pDst = buf;
+    size_t buf_left = sizeof(buf);
+
+    if (m_prefixes && m_at_beginning_of_line)
+    {
+        if (m_tool_prefix[0])
         {
-            m_pMutex = vogl_new(mutex);
+            size_t l = strlen(m_tool_prefix);
+            memcpy(pDst, m_tool_prefix, l);
+            pDst += l;
+            buf_left -= l;
+        }
+
+        const char *pPrefix = NULL;
+        switch (type)
+        {
+            case cMsgDebug:
+                pPrefix = "Debug: ";
+                break;
+            case cMsgWarning:
+                pPrefix = "Warning: ";
+                break;
+            case cMsgError:
+                pPrefix = "Error: ";
+                break;
+            default:
+                break;
+        }
+
+        if (pPrefix)
+        {
+            size_t l = strlen(pPrefix);
+            memcpy(pDst, pPrefix, l);
+            pDst += l;
+            buf_left -= l;
         }
     }
 
-    void console::deinit()
+    // If we've got caller info, display it if this is an error message or
+    //  they've cranked the level up to verbose.
+    if (caller_info && ((m_output_level >= cMsgVerbose) || (type == cMsgError) || (type == cMsgWarning)))
     {
-        if (m_pMutex)
-        {
-            vogl_delete(m_pMutex);
-            m_pMutex = NULL;
-        }
-
-        m_num_output_funcs = 0;
+        size_t l = strlen(caller_info);
+        memcpy(pDst, caller_info, l);
+        pDst += l;
+        buf_left -= l;
     }
 
-    console::console_func *console::get_output_funcs()
+    vogl::vogl_vsprintf_s(pDst, buf_left, p, args);
+
+    bool handled = false;
+
+    if (m_num_output_funcs)
     {
-        static console::console_func s_output_funcs[cMaxOutputFuncs];
-        return s_output_funcs;
-    }
-
-    const char *console::get_message_type_str(eConsoleMessageType type)
-    {
-        if (type >= 0 && (type < VOGL_ARRAY_SIZE(s_msgnames)))
-            return s_msgnames[type];
-        return "??";
-    }
-
-    eConsoleMessageType console::get_message_type_from_str(const char *str)
-    {
-        dynamic_string msgname = str;
-
-        for (uint32_t type = 0; type < VOGL_ARRAY_SIZE(s_msgnames); type++)
-        {
-            if (msgname.compare(s_msgnames[type], false) == 0)
-                return (eConsoleMessageType)type;
-        }
-        return (eConsoleMessageType)-1;
-    }
-
-    void console::vprintf(eConsoleMessageType type, const char *p, va_list args)
-    {
-        init();
-
-        if (m_pMutex)
-            m_pMutex->lock();
-
-        m_num_messages[type]++;
-
-        static char buf[cConsoleBufSize];
-
-        char *pDst = buf;
-        size_t buf_left = sizeof(buf);
-
-        if ((m_prefixes) && (m_at_beginning_of_line))
-        {
-            if (m_tool_prefix[0])
-            {
-                size_t l = strlen(m_tool_prefix);
-                memcpy(pDst, m_tool_prefix, l);
-                pDst += l;
-                buf_left -= l;
-            }
-
-            const char *pPrefix = NULL;
-            switch (type)
-            {
-                case cDebugConsoleMessage:
-                    pPrefix = "Debug: ";
-                    break;
-                case cWarningConsoleMessage:
-                    pPrefix = "Warning: ";
-                    break;
-                case cErrorConsoleMessage:
-                    pPrefix = "Error: ";
-                    break;
-                default:
-                    break;
-            }
-
-            if (pPrefix)
-            {
-                size_t l = strlen(pPrefix);
-                memcpy(pDst, pPrefix, l);
-                pDst += l;
-                buf_left -= l;
-            }
-        }
-
-        vogl::vogl_vsprintf_s(pDst, buf_left, p, args);
-
-        bool handled = false;
-
-        if (m_num_output_funcs)
-        {
-            console_func *funcs = get_output_funcs();
-
-            for (uint32_t i = 0; i < m_num_output_funcs; i++)
-                if (funcs[i].m_func(type, buf, funcs[i].m_pData))
-                    handled = true;
-        }
-
-        if ((!m_output_disabled) && (!handled))
-        {
-            FILE *pFile = (type == cErrorConsoleMessage) ? stderr : stdout;
-
-            fputs(buf, pFile);
-        }
-
-        uint32_t n = static_cast<uint32_t>(strlen(buf));
-        m_at_beginning_of_line = (n) && (buf[n - 1] == '\n');
-
-        if ((type != cProgressConsoleMessage) && (m_pLog_stream))
-        {
-            // Yes this is bad.
-            dynamic_string tmp_buf(buf);
-
-            tmp_buf.translate_lf_to_crlf();
-
-            m_pLog_stream->printf("%s", tmp_buf.get_ptr());
-            m_pLog_stream->flush();
-        }
-
-        if (m_pMutex)
-            m_pMutex->unlock();
-    }
-
-    void console::printf(eConsoleMessageType type, const char *p, ...)
-    {
-        va_list args;
-        va_start(args, p);
-        vprintf(type, p, args);
-        va_end(args);
-    }
-
-    void console::printf(const char *p, ...)
-    {
-        va_list args;
-        va_start(args, p);
-        vprintf(m_default_category, p, args);
-        va_end(args);
-    }
-
-    void console::set_default_category(eConsoleMessageType category)
-    {
-        init();
-
-        m_default_category = category;
-    }
-
-    eConsoleMessageType console::get_default_category()
-    {
-        init();
-
-        return m_default_category;
-    }
-
-    void console::add_console_output_func(console_output_func pFunc, void *pData)
-    {
-        init();
-
-        if (m_pMutex)
-            m_pMutex->lock();
-
-        VOGL_ASSERT(m_num_output_funcs < cMaxOutputFuncs);
-
-        if (m_num_output_funcs < cMaxOutputFuncs)
-        {
-            console_func *funcs = get_output_funcs();
-            funcs[m_num_output_funcs++] = console_func(pFunc, pData);
-        }
-
-        if (m_pMutex)
-            m_pMutex->unlock();
-    }
-
-    void console::remove_console_output_func(console_output_func pFunc)
-    {
-        init();
-
-        if (m_pMutex)
-            m_pMutex->lock();
-
         console_func *funcs = get_output_funcs();
-        for (int i = m_num_output_funcs - 1; i >= 0; i--)
-        {
-            if (funcs[i].m_func == pFunc)
-            {
-                funcs[i] = funcs[m_num_output_funcs - 1];
-                m_num_output_funcs--;
-            }
-        }
 
-        if (m_pMutex)
-            m_pMutex->unlock();
+        for (uint32_t i = 0; i < m_num_output_funcs; i++)
+        {
+            if (funcs[i].m_func(type, buf, funcs[i].m_pData))
+                handled = true;
+        }
     }
 
-#define MESSAGE_VPRINTF_IMPL(_msgtype) \
-        va_list args; \
-        va_start(args, p); \
-        vprintf(_msgtype, p, args); \
-        va_end(args)
+    if (!handled && (type <= m_output_level))
+    {
+        FILE *pFile = (type == cMsgError) ? stderr : stdout;
 
-    void console::progress(const char *p, ...) { MESSAGE_VPRINTF_IMPL(cProgressConsoleMessage); }
-    void console::info(const char *p, ...) { MESSAGE_VPRINTF_IMPL(cInfoConsoleMessage); }
-    void console::message(const char *p, ...) { MESSAGE_VPRINTF_IMPL(cMessageConsoleMessage); }
-    void console::cons(const char *p, ...) { MESSAGE_VPRINTF_IMPL(cConsoleConsoleMessage); }
-    void console::debug(const char *p, ...) { MESSAGE_VPRINTF_IMPL(cDebugConsoleMessage); }
-    void console::warning(const char *p, ...) { MESSAGE_VPRINTF_IMPL(cWarningConsoleMessage); }
-    void console::error(const char *p, ...) { MESSAGE_VPRINTF_IMPL(cErrorConsoleMessage); }
-    void console::header1(const char *p, ...) { MESSAGE_VPRINTF_IMPL(cHeader1ConsoleMessage); }
+        fputs(buf, pFile);
+    }
 
-#undef MESSAGE_VPRINTF_IMPL
-    
+    uint32_t n = static_cast<uint32_t>(strlen(buf));
+    m_at_beginning_of_line = n && (buf[n - 1] == '\n');
+
+    if ((type != cMsgProgress) && m_pLog_stream)
+    {
+        // Yes this is bad.
+        dynamic_string tmp_buf(buf);
+
+        tmp_buf.translate_lf_to_crlf();
+
+        m_pLog_stream->printf("%s", tmp_buf.get_ptr());
+        m_pLog_stream->flush();
+    }
+
+    get_mutex().unlock();
+}
+
+void console::printf(const char *caller_info, eConsoleMessageType type, const char *p, ...)
+{
+    va_list args;
+    va_start(args, p);
+    vprintf(caller_info, type, p, args);
+    va_end(args);
+}
+
+void console::add_console_output_func(console_output_func pFunc, void *pData)
+{
+    get_mutex().lock();
+
+    VOGL_ASSERT(m_num_output_funcs < cMaxOutputFuncs);
+
+    if (m_num_output_funcs < cMaxOutputFuncs)
+    {
+        console_func *funcs = get_output_funcs();
+        funcs[m_num_output_funcs++] = console_func(pFunc, pData);
+    }
+
+    get_mutex().unlock();
+}
+
+void console::remove_console_output_func(console_output_func pFunc)
+{
+    get_mutex().lock();
+
+    console_func *funcs = get_output_funcs();
+    for (int i = m_num_output_funcs - 1; i >= 0; i--)
+    {
+        if (funcs[i].m_func == pFunc)
+        {
+            funcs[i] = funcs[m_num_output_funcs - 1];
+            m_num_output_funcs--;
+        }
+    }
+
+    get_mutex().unlock();
+}
+
 #if defined(VOGL_USE_WIN32_API)
-    int vogl_getch()
-    {
-        return _getch();
-    }
 
-    int vogl_kbhit()
-    {
-        return _kbhit();
-    }
+int vogl::vogl_getch()
+{
+    return _getch();
+}
+
+int vogl::vogl_kbhit()
+{
+    return _kbhit();
+}
+
 #elif defined(VOGL_USE_LINUX_API)
-    int vogl_getch()
+
+int vogl::vogl_getch()
+{
+    struct termios oldt, newt;
+    int ch;
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    ch = getchar();
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    return ch;
+}
+
+// See http://www.flipcode.com/archives/_kbhit_for_Linux.shtml
+int vogl::vogl_kbhit()
+{
+    static const int STDIN = 0;
+    static bool initialized = false;
+
+    if (!initialized)
     {
-        struct termios oldt, newt;
-        int ch;
-        tcgetattr(STDIN_FILENO, &oldt);
-        newt = oldt;
-        newt.c_lflag &= ~(ICANON | ECHO);
-        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-        ch = getchar();
-        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-        return ch;
+        // Use termios to turn off line buffering
+        termios term;
+        tcgetattr(STDIN, &term);
+        term.c_lflag &= ~ICANON;
+        tcsetattr(STDIN, TCSANOW, &term);
+        setbuf(stdin, NULL);
+        initialized = true;
     }
 
-    // See http://www.flipcode.com/archives/_kbhit_for_Linux.shtml
-    int vogl_kbhit()
-    {
-        static const int STDIN = 0;
-        static bool initialized = false;
+    int bytesWaiting;
+    ioctl(STDIN, FIONREAD, &bytesWaiting);
+    return bytesWaiting;
+}
 
-        if (!initialized)
-        {
-            // Use termios to turn off line buffering
-            termios term;
-            tcgetattr(STDIN, &term);
-            term.c_lflag &= ~ICANON;
-            tcsetattr(STDIN, TCSANOW, &term);
-            setbuf(stdin, NULL);
-            initialized = true;
-        }
-
-        int bytesWaiting;
-        ioctl(STDIN, FIONREAD, &bytesWaiting);
-        return bytesWaiting;
-    }
 #else
-    int vogl_getch()
-    {
-        VOGL_ASSERT_ALWAYS;
-        printf("Unimplemented!\n");
-        return 0;
-    }
 
-    int vogl_kbhit()
-    {
-        VOGL_ASSERT_ALWAYS;
-        printf("Unimplemented!\n");
-        return 0;
-    }
+int vogl::vogl_getch()
+{
+    VOGL_ASSERT_ALWAYS;
+    printf("Unimplemented!\n");
+    return 0;
+}
+
+int vogl::vogl_kbhit()
+{
+    VOGL_ASSERT_ALWAYS;
+    printf("Unimplemented!\n");
+    return 0;
+}
+
 #endif
-
-} // namespace vogl

@@ -253,7 +253,7 @@ bool vogl_msaa_texture_splitter::init()
     m_work_context = vogl_create_context(m_cur_display, m_cur_fb_config, m_orig_context, 3, 2, eCHCDebugContextFlag | cCHCCoreProfileFlag, &context_desc);
     if (!m_work_context)
     {
-        vogl_error_printf("%s: Failed creating temporary context!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed creating temporary context!\n");
         return false;
     }
 

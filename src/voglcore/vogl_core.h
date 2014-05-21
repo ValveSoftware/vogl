@@ -34,7 +34,7 @@
 // Will return a string with the function, filename, line number. Like this:
 //   main():voglbench.cpp:675
 // Usually used in error printf functions, etc.
-#define VOGL_FUNCTION_INFO_CSTR vogl::vogl_function_info(__FILE__, __LINE__, __FUNCTION__).c_str()
+#define VOGL_FUNCTION_INFO_CSTR vogl::vogl_function_info(__FILE__, __LINE__, __FUNCTION__)
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -66,11 +66,6 @@
 #define VOGL_TRUE (1)
 #define VOGL_MAX_PATH (260)
 
-#define VOGL_NAMESPACE_BEGIN(x) \
-    namespace x                   \
-    {
-#define VOGL_NAMESPACE_END(x) }
-
 #if defined(_DEBUG) || defined(DEBUG)
     #define VOGL_BUILD_DEBUG
 
@@ -88,6 +83,30 @@
         #error DEBUG and _DEBUG cannot be defined in VOGL_BUILD_RELEASE
     #endif
 #endif
+
+namespace vogl
+{
+
+inline const char *vogl_function_info(const char *file, int line, const char *function)
+{
+    static __thread char s_buf[512];
+
+    // Don't trim on windows; we want the full path to show up so that if/when the message appears in debugger output 
+    // you can double-click the line to jump to that source line in the editor.
+#if (defined(COMPILER_MSVC))
+    const char *fname = file;
+#else
+    const char *fname = strrchr(file, '/');
+    if (!fname)
+        fname = strrchr(file, '\\');
+    fname = fname ? (fname + 1) : file;
+#endif
+
+    snprintf(s_buf, sizeof(s_buf), "%s(%d): %s():", fname, line, function);
+    return s_buf;
+}
+
+}
 
 #include "vogl_warnings.h"
 #include "vogl_types.h"

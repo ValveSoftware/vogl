@@ -285,13 +285,13 @@ size_t vogl_get_tex_target_image_size(GLenum target, GLint level, GLenum format,
 
     if (!vogl_has_active_context())
     {
-        vogl_error_printf("%s: vogl_get_tex_target_image_size() called without an active context!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("vogl_get_tex_target_image_size() called without an active context!\n");
         return 0;
     }
 
     if (!GL_ENTRYPOINT(glGetTexLevelParameteriv))
     {
-        vogl_error_printf("%s: vogl_get_tex_target_image_size() called but the glGetTexLevelParameteriv function ptr is NULL!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("vogl_get_tex_target_image_size() called but the glGetTexLevelParameteriv function ptr is NULL!\n");
         return 0;
     }
 
@@ -372,7 +372,7 @@ gl_enums::gl_enums()
         {
             if (m_gl_enum_to_pname_def_index[g_gl_pname_defs[i].m_gl_enum] != 0xFFFF)
             {
-                vogl_debug_printf("%s: duplicate GL enum in g_gl_pname_defs table: 0x%04X %s\n", VOGL_FUNCTION_INFO_CSTR, i, g_gl_pname_defs[i].m_pName);
+                vogl_debug_printf("duplicate GL enum in g_gl_pname_defs table: 0x%04X %s\n", i, g_gl_pname_defs[i].m_pName);
                 continue;
             }
 
@@ -490,7 +490,7 @@ const char *gl_enums::find_name(uint64_t gl_enum, const char *pPreferred_prefix)
 
     if (g_command_line_params().get_value_as_bool("debug"))
     {
-        vogl_debug_printf("%s: Failed finding GL enum 0x%08" PRIX64 ", API prefix \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, gl_enum, pPreferred_prefix ? pPreferred_prefix : "");
+        vogl_debug_printf("Failed finding GL enum 0x%08" PRIX64 ", API prefix \"%s\"\n", gl_enum, pPreferred_prefix ? pPreferred_prefix : "");
     }
 
     return NULL;
@@ -539,8 +539,8 @@ const char *gl_enums::find_name(const char *pSpec_type, uint64_t gl_enum, const 
         {
             if (g_command_line_params().get_value_as_bool("debug"))
             {
-                vogl_debug_printf("%s: Failed finding GL enum with spec type %s, enum 0x%08" PRIX64 ", API prefix \"%s\", falling back to non-spec type search\n",
-                                 VOGL_FUNCTION_INFO_CSTR, pSpec_type, gl_enum, pPreferred_prefix ? pPreferred_prefix : "");
+                vogl_debug_printf("Failed finding GL enum with spec type %s, enum 0x%08" PRIX64 ", API prefix \"%s\", falling back to non-spec type search\n",
+                                  pSpec_type, gl_enum, pPreferred_prefix ? pPreferred_prefix : "");
             }
         }
     }
@@ -610,7 +610,7 @@ int gl_enums::get_pname_count(uint64_t gl_enum) const
     if (pname_index >= 0)
         return g_gl_pname_defs[pname_index].m_count;
 
-    vogl_warning_printf("%s: Unknown GL enum: 0x%08" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, gl_enum);
+    vogl_warning_printf("Unknown GL enum: 0x%08" PRIX64 "\n", gl_enum);
     return -1;
 }
 
@@ -624,7 +624,7 @@ int gl_enums::get_pname_type(uint64_t gl_enum) const
     if (pname_index >= 0)
         return g_gl_pname_defs[pname_index].m_type;
 
-    vogl_warning_printf("%s: Unknown GL enum: 0x%08" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, gl_enum);
+    vogl_warning_printf("Unknown GL enum: 0x%08" PRIX64 "\n", gl_enum);
     return cSTInt32;
 }
 
@@ -709,7 +709,7 @@ GLuint vogl_get_bound_gl_buffer(GLenum target)
             break;
         default:
         {
-            console::warning("%s: Unknown buffer GL enum 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, target);
+            vogl_warning_printf("Unknown buffer GL enum 0x%08X\n", target);
             return 0;
         }
     }
@@ -841,7 +841,7 @@ bool vogl_copy_buffer_to_image(void *pDst, uint32_t dst_size, uint32_t width, ui
 
     if (err)
     {
-        console::warning("%s: GL error 0x%X while calling glReadPixels()!\n", VOGL_FUNCTION_INFO_CSTR, err);
+        vogl_warning_printf("GL error 0x%X while calling glReadPixels()!\n", err);
     }
 
     // Optionally flip the image
@@ -903,15 +903,15 @@ bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile
 
         if (!suppress_error_message)
         {
-            console::error("%s: GL error: 0x%08X (%u): %s (Called From File: %s, line: %u, func: %s)\n", VOGL_FUNCTION_INFO_CSTR, gl_err, gl_err, get_gl_enums().find_name("ErrorCode", gl_err), pFile ? pFile : "?", line, pFunc ? pFunc : "?");
+            vogl_error_printf("GL error: 0x%08X (%u): %s (Called From File: %s, line: %u, func: %s)\n", gl_err, gl_err, get_gl_enums().find_name("ErrorCode", gl_err), pFile ? pFile : "?", line, pFunc ? pFunc : "?");
 
 #if 0
 			dynamic_string_array backtrace;
 			if (get_printable_backtrace(backtrace))
 			{
-				console::error("Backtrace:\n");
+				vogl_error_printf("Backtrace:\n");
 				for (uint32_t i = 0; i < backtrace.size(); i++)
-					console::error("%s\n", backtrace[i].get_ptr());
+					vogl_error_printf("%s\n", backtrace[i].get_ptr());
 			}
 #endif
         }
@@ -1096,7 +1096,7 @@ GLenum vogl_get_binding_from_target(GLenum target)
 
         default:
         {
-            console::warning("%s: Unknown target GL enum 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, target);
+            vogl_warning_printf("Unknown target GL enum 0x%08X\n", target);
             return GL_NONE;
         }
     }
@@ -1119,7 +1119,7 @@ GLenum vogl_get_object_category_from_binding(GLenum binding)
 
         default:
         {
-            console::warning("%s: Unknown binding GL enum 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, binding);
+            vogl_warning_printf("Unknown binding GL enum 0x%08X\n", binding);
             return GL_NONE;
         }
     }
@@ -1142,7 +1142,7 @@ GLenum vogl_get_object_category_from_target(GLenum target)
 
         default:
         {
-            console::warning("%s: Unknown target GL enum 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, target);
+            vogl_warning_printf("Unknown target GL enum 0x%08X\n", target);
             return GL_NONE;
         }
     }
@@ -1165,7 +1165,7 @@ GLenum vogl_get_target_from_binding(GLenum binding)
 
         default:
         {
-            console::warning("%s: Unknown binding GL enum 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, binding);
+            vogl_warning_printf("Unknown binding GL enum 0x%08X\n", binding);
             return GL_NONE;
         }
     }
@@ -1708,7 +1708,7 @@ int vogl_gl_get_uniform_size_in_GLints(GLenum type)
         default:
         {
             VOGL_ASSERT_ALWAYS;
-            vogl_warning_printf("%s: Unknown uniform type 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, type);
+            vogl_warning_printf("Unknown uniform type 0x%04X\n", type);
             return 0;
         }
     }
@@ -1859,7 +1859,7 @@ int vogl_gl_get_uniform_base_type(GLenum type)
         default:
         {
             VOGL_ASSERT_ALWAYS;
-            vogl_warning_printf("%s: Unknown uniform type 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, type);
+            vogl_warning_printf("Unknown uniform type 0x%04X\n", type);
             return GL_NONE;
         }
     }
@@ -1965,7 +1965,7 @@ void vogl_generic_arb_debug_callback(GLenum source, GLenum type, GLuint id, GLen
 
     vogl_format_debug_output_arb(final_message, sizeof(final_message), source, type, id, severity, reinterpret_cast<const char *>(message));
 
-    vogl_warning_printf("%s: %s\n", VOGL_FUNCTION_INFO_CSTR, final_message);
+    vogl_warning_printf("%s\n", final_message);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2300,7 +2300,7 @@ uint32_t vogl_get_gl_type_size(uint32_t ogl_type)
         case GL_DOUBLE:
             return 8;
         default:
-            vogl_warning_printf("%s: unknown GL type: 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, ogl_type);
+            vogl_warning_printf("unknown GL type: 0x%04X\n", ogl_type);
             break;
     }
     return 0;
@@ -2367,7 +2367,7 @@ uint32_t vogl_get_image_format_channels(GLenum format)
             // requires UNSIGNED_INT_10_10_10_2, so this value will be ignored
             return 0;
         default:
-            vogl_warning_printf("%s: unknown format 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, format);
+            vogl_warning_printf("unknown format 0x%04X\n", format);
             break;
     }
     return 0;
@@ -2433,7 +2433,7 @@ void vogl_get_image_format_info(GLenum format, GLenum type, uint32_t &num_channe
             bits_per_pixel = bits_per_element = 64;
             break;
         default:
-            vogl_warning_printf("%s: unknown type 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, type);
+            vogl_warning_printf("unknown type 0x%04X\n", type);
             bits_per_pixel = bits_per_element = 0;
             break;
     }
@@ -2448,7 +2448,7 @@ size_t vogl_get_image_size(GLenum format, GLenum type, GLsizei width, GLsizei he
 
     if (!vogl_has_active_context())
     {
-        vogl_error_printf("%s: vogl_get_image_size() called without an active context!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("vogl_get_image_size() called without an active context!\n");
         return 0;
     }
 
@@ -2532,7 +2532,7 @@ size_t vogl_determine_glMap1_size(GLenum target, GLint stride, GLint order)
             channels = 4;
             break;
         default:
-            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
+            vogl_warning_printf("unknown GLenum 0x%04X\n", target);
             return 0;
     }
 
@@ -2573,7 +2573,7 @@ size_t vogl_determine_glMap2_size(GLenum target, GLint ustride, GLint uorder, GL
             channels = 4;
             break;
         default:
-            vogl_warning_printf("%s: unknown GLenum 0x%04X\n", VOGL_FUNCTION_INFO_CSTR, target);
+            vogl_warning_printf("unknown GLenum 0x%04X\n", target);
             return 0;
     }
 

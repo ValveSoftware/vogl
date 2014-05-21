@@ -70,7 +70,7 @@ bool vogl_current_vertex_attrib_state::restore(const vogl_context_info &context_
 
     if (m_current_vertex_attribs.size() > context_info.get_max_vertex_attribs())
     {
-        vogl_error_printf("%s: Unable to restore all current vertex attribs, object has %u attribs, context only supports %u attribs\n", VOGL_FUNCTION_INFO_CSTR, m_current_vertex_attribs.size(), context_info.get_max_vertex_attribs());
+        vogl_error_printf("Unable to restore all current vertex attribs, object has %u attribs, context only supports %u attribs\n", m_current_vertex_attribs.size(), context_info.get_max_vertex_attribs());
     }
 
     uint32_t max_vertex_attribs_to_restore = math::minimum<uint32_t>(m_current_vertex_attribs.size(), context_info.get_max_vertex_attribs());

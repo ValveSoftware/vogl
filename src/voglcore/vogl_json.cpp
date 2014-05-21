@@ -2618,7 +2618,7 @@ namespace vogl
                 {
                     status = true;
 
-                    console::debug("%s: Key appears %u times in node: %s\n", VOGL_FUNCTION_INFO_CSTR, count, get_path_to_item(i).get_ptr());
+                    vogl_debug_printf("Key appears %u times in node: %s\n", count, get_path_to_item(i).get_ptr());
                 }
             }
         }

@@ -10,7 +10,7 @@ set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS )
 set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS )
 
 # Build a shared library for testing stacks going through those.
-add_library( mainlib SHARED mainlib.cpp )
+add_library( backtrace_testlib SHARED mainlib.cpp )
 
 # Build our backtrace test app
 include_directories(
@@ -25,7 +25,7 @@ target_link_libraries(${PROJECT_NAME}
     backtracevogl
     ${CMAKE_THREAD_LIBS_INIT}
     voglcore
-    mainlib
+    backtrace_testlib
     ${CMAKE_DL_LIBS}
     )
 

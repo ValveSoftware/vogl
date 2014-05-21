@@ -72,6 +72,7 @@ namespace vogl
     }
 
 #ifdef VOGL_USE_WIN32_API
+
     void colorized_console::set_default_color()
     {
 		HANDLE cons = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -94,16 +95,16 @@ namespace vogl
         DWORD attr = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
         switch (type)
         {
-            case cDebugConsoleMessage:
+            case cMsgDebug:
                 attr = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
                 break;
-            case cMessageConsoleMessage:
+            case cMsgVerbose:
                 attr = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
                 break;
-            case cWarningConsoleMessage:
+            case cMsgWarning:
                 attr = FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
                 break;
-            case cErrorConsoleMessage:
+            case cMsgError:
                 attr = FOREGROUND_RED | FOREGROUND_INTENSITY;
                 break;
             default:
@@ -120,7 +121,9 @@ namespace vogl
 
         return true;
     }
+
 #elif VOGL_USE_LINUX_API
+
 #define ANSI_RESET "\033[0m"
 #define ANSI_BLACK "\033[30m"              /* Black */
 #define ANSI_RED "\033[31m"                /* Red */
@@ -157,26 +160,25 @@ namespace vogl
         (void)pData;
 
         static bool g_colors_inited = false;
-        static dynamic_string g_colors[cCMTTotal];
+        static dynamic_string g_colors[cMsgTotal];
 
-        if (console::get_output_disabled())
+        if (type > console::get_output_level())
             return true;
 
         if (!g_colors_inited)
         {
             g_colors_inited = true;
 
-            g_colors[cDebugConsoleMessage] = ANSI_BOLDBLUE;       // debugging messages
-            g_colors[cProgressConsoleMessage] = "";               // progress messages
-            g_colors[cInfoConsoleMessage] = "";                   // ordinary messages
-            g_colors[cConsoleConsoleMessage] = "";                // user console output
-            g_colors[cMessageConsoleMessage] = ANSI_BOLDCYAN;     // high importance messages
-            g_colors[cWarningConsoleMessage] = ANSI_BOLDYELLOW;   // warnings
-            g_colors[cErrorConsoleMessage] = ANSI_BOLDRED;        // errors
-            g_colors[cHeader1ConsoleMessage] = "\033[44m\033[1m"; // header (dark blue background)
+            g_colors[cMsgPrint] = "";                  // ordinary printf messages
+            g_colors[cMsgProgress] = "";               // progress messages
+            g_colors[cMsgHeader] = "\033[44m\033[1m";  // header (dark blue background)
+            g_colors[cMsgError] = ANSI_BOLDRED;        // errors
+            g_colors[cMsgWarning] = ANSI_BOLDYELLOW;   // warnings
+            g_colors[cMsgVerbose] = ANSI_BOLDCYAN;     // verbose messages
+            g_colors[cMsgDebug] = ANSI_BOLDBLUE;       // debugging messages
 
             // Use just like LS_COLORS. Example: VOGL_COLORS='warning=1;34:message=31'
-            // Tokens are debug, progress, info, default, message, warning, error.
+            // Tokens are info, progress, header, error, warning, verbose, debug.
             const char *vogl_colors = getenv("VOGL_COLORS");
             if (vogl_colors)
             {
@@ -209,7 +211,7 @@ namespace vogl
         }
 
         const char *pANSIColor = g_colors[type].c_str();
-        FILE *pFile = (type == cErrorConsoleMessage) ? stderr : stdout;
+        FILE *pFile = (type == cMsgError) ? stderr : stdout;
         bool is_redirected = !isatty(fileno(pFile)) && pANSIColor[0];
 
         if (!is_redirected)
@@ -224,6 +226,7 @@ namespace vogl
     }
 
 #else
+
     void colorized_console::set_default_color()
     {
     }
@@ -234,12 +237,13 @@ namespace vogl
         if (console::get_output_disabled())
             return true;
 
-        FILE *pFile = (type == cErrorConsoleMessage) ? stderr : stdout;
+        FILE *pFile = (type == cMsgError) ? stderr : stdout;
 
         fputs(pMsg, pFile);
 
         return true;
     }
+
 #endif
 
 } // namespace vogl

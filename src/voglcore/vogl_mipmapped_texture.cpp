@@ -789,7 +789,7 @@ namespace vogl
             // MS's DDS docs say the pitch must be DWORD aligned - but this isn't always the case.
             // ATI Compressonator writes images with non-DWORD aligned pitches, and the DDSWithoutD3DX sample from MS doesn't compute the proper DWORD aligned pitch when reading DDS
             // files, so the docs must be wrong/outdated.
-            console::warning("DDS file's pitch is not divisible by 4 - trying to load anyway.\n");
+            vogl_warning_printf("DDS file's pitch is not divisible by 4 - trying to load anyway.\n");
         }
 #endif
         // Check for obviously wacky source pitches (probably a corrupted/invalid file).
@@ -1220,7 +1220,7 @@ namespace vogl
         const bool can_unflip_packed_texture = can_unflip_without_unpacking();
         if ((is_packed()) && (is_flipped()) && (!can_unflip_without_unpacking()))
         {
-            console::warning("mipmapped_texture::write_dds: One or more faces/miplevels cannot be unflipped without unpacking. Writing flipped .DDS texture.\n");
+            vogl_warning_printf("mipmapped_texture::write_dds: One or more faces/miplevels cannot be unflipped without unpacking. Writing flipped .DDS texture.\n");
         }
 
         for (uint32_t face = 0; face < get_num_faces(); face++)
@@ -1245,13 +1245,13 @@ namespace vogl
                         if (pLevel->get_orientation_flags() & cOrientationFlagXFlipped)
                         {
                             if (!tmp.flip_x())
-                                console::warning("mipmapped_texture::write_dds: Unable to unflip compressed texture on X axis\n");
+                                vogl_warning_printf("mipmapped_texture::write_dds: Unable to unflip compressed texture on X axis\n");
                         }
 
                         if (pLevel->get_orientation_flags() & cOrientationFlagYFlipped)
                         {
                             if (!tmp.flip_y())
-                                console::warning("mipmapped_texture::write_dds: Unable to unflip compressed texture on Y axis\n");
+                                vogl_warning_printf("mipmapped_texture::write_dds: Unable to unflip compressed texture on Y axis\n");
                         }
                         p = &tmp;
                     }
@@ -1564,7 +1564,7 @@ namespace vogl
                     else
                         unpacker.init("A8B8G8R8", type_size);
 
-                    console::debug("%s: Hacked pixel format decoding for OGL type 0x%X fmt 0x%X internal fmt 0x%X base internal fmt 0x%X\n", VOGL_FUNCTION_INFO_CSTR,
+                    vogl_debug_printf("Hacked pixel format decoding for OGL type 0x%X fmt 0x%X internal fmt 0x%X base internal fmt 0x%X\n",
                                    ktx.get_ogl_type(),
                                    ktx.get_ogl_fmt(),
                                    ktx.get_ogl_internal_fmt(),
@@ -2784,7 +2784,7 @@ namespace vogl
         {
             if (pComp_params)
             {
-                console::warning("mipmapped_texture::write_to_file: Ignoring CRN compression parameters (currently unsupported for this file type).\n");
+                vogl_warning_printf("mipmapped_texture::write_to_file: Ignoring CRN compression parameters (currently unsupported for this file type).\n");
             }
 
             cfile_stream write_stream;

@@ -27,7 +27,8 @@
 // File: vogl_object_pool.cpp
 #include "vogl_object_pool.h"
 
-VOGL_NAMESPACE_BEGIN(vogl)
+namespace vogl
+{
 
 #define CHECK(x) \
     if (!(x))    \
@@ -178,4 +179,4 @@ bool object_pool_test()
     return true;
 }
 
-VOGL_NAMESPACE_END(vogl)
+} // namespace vogl
