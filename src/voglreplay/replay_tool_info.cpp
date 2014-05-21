@@ -29,7 +29,7 @@
 #include "vogl_mergesort.h"
 #include "vogl_unique_ptr.h"
 
-#define vogl_progress_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgPrint | cMsgFlagProgress, __VA_ARGS__)
+#define vogl_progress_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgPrint | cMsgFlagNoLog, __VA_ARGS__)
 
 static command_line_param_desc g_command_line_param_descs_info[] =
 {

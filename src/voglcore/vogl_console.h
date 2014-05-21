@@ -69,9 +69,7 @@ enum eConsoleMessageType
 
     // Message flags
     cMsgFlagNoLog    = 0x100, // Don't write to log file (progress messages, etc.)
-    cMsgFlagProgress = 0x200, // Use progress color
-    cMsgFlagHeader   = 0x400, // Use header color
-    
+    cMsgFlagHeader   = 0x200, // Use header color
 };
 
 typedef bool (*console_output_func)(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData);
