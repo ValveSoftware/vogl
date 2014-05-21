@@ -224,7 +224,7 @@
     #define VOGL_PLATFORM_HAS_SDL 0
 
 #elif defined(PLATFORM_OSX)
-    #error "TODO -- I don't know if OSX has a proc filesystem or not."
+    #define VOGL_HAS_PROC_FILESYSTEM 0
     #define VOGL_PLATFORM_HAS_GLX 0
     #define VOGL_PLATFORM_HAS_WGL 0
     #define VOGL_PLATFORM_HAS_AGL 1
