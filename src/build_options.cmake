@@ -382,9 +382,24 @@ function(require_sdl2)
     if (MSVC)
         set(SDL2Root "${CMAKE_EXTERNAL_PATH}/SDL")
 
-        INCLUDE_EXTERNAL_MSPROJECT(SDL "${SDL2Root}/VisualC/SDL/SDL_VS2013.vcxproj")
         set(SDL2_INCLUDE "${SDL2Root}/include" PARENT_SCOPE)
         set(SDL2_LIBRARY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/SDL2.lib" PARENT_SCOPE)
+
+        # Only want to include this once.
+        # This has to go into properties because it needs to persist across the entire cmake run.
+        get_property(SDL_PROJECT_ALREADY_INCLUDED 
+            GLOBAL 
+            PROPERTY SDL_PROJECT_INCLUDED
+        )
+
+        if (NOT SDL_PROJECT_ALREADY_INCLUDED)
+            INCLUDE_EXTERNAL_MSPROJECT(SDL "${SDL2Root}/VisualC/SDL/SDL_VS2013.vcxproj")
+            set_property(GLOBAL
+                PROPERTY SDL_PROJECT_INCLUDED "TRUE"
+            )
+            message("Including SDL_VS2013.vcxproj for you!")
+        endif()
+
     else()
         message(FATAL_ERROR "Need to deal with SDL on non-Windows platforms")
     endif()
