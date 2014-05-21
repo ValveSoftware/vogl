@@ -3328,6 +3328,8 @@ static inline bool vogl_func_is_nulled(gl_entrypoint_id_t id)
 
 // KHR_debug
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glDebugMessageInsert_buf(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (buf ? strlen((const char *)buf) : 0 ) : length)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glDebugMessageInsertAMD_buf(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (buf ? strlen((const char *)buf) : 0 ) : length)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glDebugMessageInsertARB_buf(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (buf ? strlen((const char *)buf) : 0 ) : length)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glPushDebugGroup_message(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (message ? strlen((const char *)message) : 0 ) : length)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glObjectLabel_label(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (label ? strlen((const char *)label) : 0 ) : length)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glObjectPtrLabel_label(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (label ? strlen((const char *)label) : 0 ) : length)
