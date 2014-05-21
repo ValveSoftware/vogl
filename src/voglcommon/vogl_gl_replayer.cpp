@@ -3760,7 +3760,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_wglDeleteContext:
         case VOGL_ENTRYPOINT_glXDestroyContext:
         {
-            vogl_trace_context_ptr_value trace_context = trace_packet.get_param_ptr_value(1);
+            vogl_trace_context_ptr_value trace_context = trace_packet.get_param_ptr_value(entrypoint_id == VOGL_ENTRYPOINT_wglDeleteContext ? 0 : 1);
             GLReplayContextType replay_context = remap_context(trace_context);
 
             if ((trace_context) && (!replay_context))
@@ -4004,6 +4004,26 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             // TODO
             break;
         }
+        case VOGL_ENTRYPOINT_wglDescribePixelFormat:
+        {
+            // TODO
+            break;
+        }
+        case VOGL_ENTRYPOINT_wglSetPixelFormat:
+        {
+            // TODO
+            break;
+        }
+        case VOGL_ENTRYPOINT_wglGetPixelFormatAttribivARB:
+        {
+            // TODO
+            break;
+        }
+        case VOGL_ENTRYPOINT_wglGetExtensionsStringEXT:
+        {
+            // TODO
+            break;
+        }
         case VOGL_ENTRYPOINT_wglGetProcAddress:
         case VOGL_ENTRYPOINT_glXGetProcAddress:
         case VOGL_ENTRYPOINT_glXGetProcAddressARB:
@@ -4186,6 +4206,26 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             break;
         }
         case VOGL_ENTRYPOINT_wglCreateContextAttribsARB:
+        {
+            vogl_trace_ptr_value trace_share_context = trace_packet.get_param_ptr_value(1);
+            GLReplayContextType replay_share_context = remap_context(trace_share_context);
+
+            if ((trace_share_context) && (!replay_share_context))
+            {
+                process_entrypoint_warning("%s: Failed remapping trace sharelist context 0x%" PRIx64 "!\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(trace_share_context));
+            }
+
+            const int *pTrace_attrib_list = static_cast<const int *>(trace_packet.get_param_client_memory_ptr(2));
+            const uint32_t trace_attrib_list_size = trace_packet.get_param_client_memory_data_size(2) / sizeof(int);
+
+            vogl_trace_ptr_value trace_context = trace_packet.get_return_ptr_value();
+
+            status = create_context_attribs(trace_context, trace_share_context, replay_share_context, true, pTrace_attrib_list, trace_attrib_list_size, true);
+            if (status != cStatusOK)
+                return status;
+
+            break;
+        }
         case VOGL_ENTRYPOINT_glXCreateContextAttribsARB:
         {
             vogl_trace_ptr_value trace_share_context = trace_packet.get_param_ptr_value(2);

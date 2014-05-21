@@ -6732,7 +6732,7 @@ static void vogl_check_for_capture_trigger_file()
             if (attribList)
             {
                 uint32_t n = vogl_determine_attrib_list_array_size(attribList);
-                serializer.add_array_client_memory(3, VOGL_INT, n, attribList, sizeof(int) * n);
+                serializer.add_array_client_memory(2, VOGL_INT, n, attribList, sizeof(int) * n);
             }
             serializer.add_return_param(VOGL_HGLRC, &result, sizeof(result));
             serializer.end();
