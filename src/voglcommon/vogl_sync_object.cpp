@@ -80,7 +80,7 @@ bool vogl_sync_state::snapshot(const vogl_context_info &context_info, vogl_handl
     {
         clear();
 
-        vogl_error_printf("%s: GL error while enumerating sync %" PRIu64 "'s' params\n", VOGL_FUNCTION_INFO_CSTR, (uint64_t)handle);
+        vogl_error_printf("GL error while enumerating sync %" PRIu64 "'s' params\n", (uint64_t)handle);
         return false;
     }
 

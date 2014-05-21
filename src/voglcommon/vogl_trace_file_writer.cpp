@@ -64,11 +64,11 @@ bool vogl_trace_file_writer::open(const char *pFilename, vogl_archive_blob_manag
     m_filename = pFilename;
     if (!m_stream.open(pFilename, cDataStreamWritable | cDataStreamSeekable, false))
     {
-        vogl_error_printf("%s: Failed opening trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pFilename);
+        vogl_error_printf("Failed opening trace file \"%s\"\n", pFilename);
         return false;
     }
 
-    vogl_message_printf("%s: Prepping trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pFilename);
+    vogl_message_printf("Prepping trace file \"%s\"\n", pFilename);
 
     m_sof_packet.init();
     m_sof_packet.m_pointer_sizes = pointer_sizes;
@@ -83,7 +83,7 @@ bool vogl_trace_file_writer::open(const char *pFilename, vogl_archive_blob_manag
 
     if (m_stream.write(&m_sof_packet, sizeof(m_sof_packet)) != sizeof(m_sof_packet))
     {
-        vogl_error_printf("%s: Failed writing to trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pFilename);
+        vogl_error_printf("Failed writing to trace file \"%s\"\n", pFilename);
         return false;
     }
 
@@ -99,7 +99,7 @@ bool vogl_trace_file_writer::open(const char *pFilename, vogl_archive_blob_manag
 
         if (!m_pTrace_archive->init_file_temp(cBMFReadWrite))
         {
-            vogl_error_printf("%s: Failed opening temp archive!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed opening temp archive!\n");
 
             m_pTrace_archive.reset();
 
@@ -121,7 +121,7 @@ bool vogl_trace_file_writer::open(const char *pFilename, vogl_archive_blob_manag
         vogl_write_glInternalTraceCommandRAD(m_stream, m_pCTypes, cITCRDemarcation, 0, NULL);
     }
 
-    vogl_message_printf("%s: Finished opening trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pFilename);
+    vogl_message_printf("Finished opening trace file \"%s\"\n", pFilename);
 
     return true;
 }
@@ -130,12 +130,12 @@ bool vogl_trace_file_writer::close()
 {
     VOGL_FUNC_TRACER
 
-    vogl_debug_printf("%s\n", VOGL_FUNCTION_INFO_CSTR);
+    vogl_debug_printf("vogl_trace_file_writer close\n");
 
     if (!m_stream.is_opened())
         return false;
 
-    vogl_message_printf("%s: Flushing trace file %s (this could take some time), %u total frame file offsets\n", VOGL_FUNCTION_INFO_CSTR, m_filename.get_ptr(), m_frame_file_offsets.size());
+    vogl_message_printf("Flushing trace file %s (this could take some time), %u total frame file offsets\n", m_filename.get_ptr(), m_frame_file_offsets.size());
 
     bool success = true;
 
@@ -143,7 +143,7 @@ bool vogl_trace_file_writer::close()
 
     if (!write_eof_packet())
     {
-        vogl_error_printf("%s: Failed writing to trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_filename.get_ptr());
+        vogl_error_printf("Failed writing to trace file \"%s\"\n", m_filename.get_ptr());
         success = false;
     }
     else if (m_pTrace_archive.get())
@@ -152,14 +152,14 @@ bool vogl_trace_file_writer::close()
 
         if ((!write_frame_file_offsets_to_archive()) || !m_pTrace_archive->deinit())
         {
-            vogl_error_printf("%s: Failed closing trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, trace_archive_filename.get_ptr());
+            vogl_error_printf("Failed closing trace archive \"%s\"!\n", trace_archive_filename.get_ptr());
             success = false;
         }
         else
         {
             if (!file_utils::get_file_size(trace_archive_filename.get_ptr(), m_sof_packet.m_archive_size))
             {
-                vogl_error_printf("%s: Failed determining file size of archive file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, trace_archive_filename.get_ptr());
+                vogl_error_printf("Failed determining file size of archive file \"%s\"\n", trace_archive_filename.get_ptr());
                 success = false;
             }
             else if (m_sof_packet.m_archive_size)
@@ -170,7 +170,7 @@ bool vogl_trace_file_writer::close()
 
                 if (!m_stream.write_file_data(trace_archive_filename.get_ptr()))
                 {
-                    vogl_error_printf("%s: Failed copying source archive \"%s\" into trace file!\n", VOGL_FUNCTION_INFO_CSTR, trace_archive_filename.get_ptr());
+                    vogl_error_printf("Failed copying source archive \"%s\" into trace file!\n", trace_archive_filename.get_ptr());
                     success = false;
                 }
 
@@ -185,7 +185,7 @@ bool vogl_trace_file_writer::close()
 
             if (!m_stream.seek(0, false) || (m_stream.write(&m_sof_packet, sizeof(m_sof_packet)) != sizeof(m_sof_packet)))
             {
-                vogl_error_printf("%s: Failed writing to trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, m_filename.get_ptr());
+                vogl_error_printf("Failed writing to trace file \"%s\"\n", m_filename.get_ptr());
                 success = false;
             }
         }
@@ -205,9 +205,9 @@ bool vogl_trace_file_writer::close()
     file_utils::full_path(full_trace_filename);
 
     if (success)
-        vogl_message_printf("%s: Successfully closed trace file %s, total file size: %s\n", VOGL_FUNCTION_INFO_CSTR, full_trace_filename.get_ptr(), uint64_to_string_with_commas(total_trace_file_size).get_ptr());
+        vogl_message_printf("Successfully closed trace file %s, total file size: %s\n", full_trace_filename.get_ptr(), uint64_to_string_with_commas(total_trace_file_size).get_ptr());
     else
-        vogl_error_printf("%s: Failed closing trace file %s! (Trace will probably not be valid.)\n", VOGL_FUNCTION_INFO_CSTR, full_trace_filename.get_ptr());
+        vogl_error_printf("Failed closing trace file %s! (Trace will probably not be valid.)\n", full_trace_filename.get_ptr());
 
     return success;
 }

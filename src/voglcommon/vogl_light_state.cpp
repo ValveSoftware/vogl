@@ -76,7 +76,7 @@ bool vogl_light_state::snapshot(const vogl_context_info &context_info)
     {
         clear();
 
-        vogl_error_printf("%s: GL error while enumerating light params\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("GL error while enumerating light params\n");
 
         return false;
     }
@@ -140,7 +140,7 @@ bool vogl_light_state::restore(const vogl_context_info &context_info) const
     const uint32_t num_lights = math::minimum<uint32_t>(m_lights.size(), context_info.get_max_lights());
     if (m_lights.size() > context_info.get_max_lights())
     {
-        vogl_warning_printf("%s: Object has %u lights, but the context only supports %u lights!\n", VOGL_FUNCTION_INFO_CSTR, m_lights.size(), context_info.get_max_lights());
+        vogl_warning_printf("Object has %u lights, but the context only supports %u lights!\n", m_lights.size(), context_info.get_max_lights());
     }
 
     for (uint32_t light = 0; light < num_lights; light++)

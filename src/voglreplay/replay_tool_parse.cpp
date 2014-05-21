@@ -101,13 +101,13 @@ bool tool_parse_mode(vogl::vector<command_line_param_desc> *desc)
             {
                 if (trace_writer.get_trace_archive()->add_buf_using_id(blob_data.get_ptr(), blob_data.size(), blob_files[i]).is_empty())
                 {
-                    vogl_error_printf("%s: Failed writing blob data %s to output trace archive!\n", VOGL_FUNCTION_INFO_CSTR, blob_files[i].get_ptr());
+                    vogl_error_printf("Failed writing blob data %s to output trace archive!\n", blob_files[i].get_ptr());
                     return false;
                 }
             }
             else
             {
-                vogl_error_printf("%s: Failed reading blob data %s from trace archive!\n", VOGL_FUNCTION_INFO_CSTR, blob_files[i].get_ptr());
+                vogl_error_printf("Failed reading blob data %s from trace archive!\n", blob_files[i].get_ptr());
                 return false;
             }
         }

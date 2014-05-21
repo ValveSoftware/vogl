@@ -38,10 +38,9 @@ namespace vogl
         static void init();
         static void set_exception_callback();
         static void deinit();
-        static void tick();
 
     private:
-        static bool console_output_func(eConsoleMessageType type, const char *pMsg, void *pData);
+        static bool console_output_func(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData);
         static void set_default_color();
         static void atexit_func();
         static void exception_callback();

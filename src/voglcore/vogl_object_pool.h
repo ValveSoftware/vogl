@@ -41,7 +41,8 @@
 //   #pragma message("vogl_object_pool.h: Object pool debugging enabled")
 #endif
 
-VOGL_NAMESPACE_BEGIN(vogl)
+namespace vogl
+{
 
 #define CHECK_FAILURE check_failure(__LINE__);
 
@@ -842,7 +843,7 @@ private:
 
     void check_failure(uint32_t line) const
     {
-        console::debug("%s: check_failure() obj %p on line %u\n", VOGL_FUNCTION_INFO_CSTR, this, line);
+        vogl_error_printf("check_failure() obj %p on line %u\n", this, line);
         VOGL_ASSERT_ALWAYS;
     }
 
@@ -982,4 +983,4 @@ private:
 
 bool object_pool_test();
 
-VOGL_NAMESPACE_END(vogl)
+} // namespace vogl

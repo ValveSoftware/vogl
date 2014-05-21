@@ -67,11 +67,8 @@ namespace vogl
         console::deinit();
     }
 
-    void colorized_console::tick()
-    {
-    }
-
 #ifdef VOGL_USE_WIN32_API
+
     void colorized_console::set_default_color()
     {
 		HANDLE cons = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -82,11 +79,11 @@ namespace vogl
         SetConsoleTextAttribute(cons, (WORD)attr);
     }
 
-    bool colorized_console::console_output_func(eConsoleMessageType type, const char *pMsg, void *pData)
+    bool colorized_console::console_output_func(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData)
     {
         pData;
 
-        if (console::get_output_disabled())
+        if (type > console::get_output_level())
             return true;
 
         HANDLE cons = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -94,16 +91,16 @@ namespace vogl
         DWORD attr = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
         switch (type)
         {
-            case cDebugConsoleMessage:
+            case cMsgDebug:
                 attr = FOREGROUND_BLUE | FOREGROUND_INTENSITY;
                 break;
-            case cMessageConsoleMessage:
+            case cMsgMessage:
                 attr = FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;
                 break;
-            case cWarningConsoleMessage:
+            case cMsgWarning:
                 attr = FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY;
                 break;
-            case cErrorConsoleMessage:
+            case cMsgError:
                 attr = FOREGROUND_RED | FOREGROUND_INTENSITY;
                 break;
             default:
@@ -120,7 +117,9 @@ namespace vogl
 
         return true;
     }
+
 #elif VOGL_USE_LINUX_API
+
 #define ANSI_RESET "\033[0m"
 #define ANSI_BLACK "\033[30m"              /* Black */
 #define ANSI_RED "\033[31m"                /* Red */
@@ -152,31 +151,52 @@ namespace vogl
         }
     }
 
-    bool colorized_console::console_output_func(eConsoleMessageType type, const char *pMsg, void *pData)
+    static uint32_t get_message_type_from_str(const char *str)
+    {
+        static const char *s_msgnames[cMsgTotal + 1] =
+        {
+            "Info",     // cMsgPrint
+            "Message",  // cMsgMessage
+            "Error",    // cMsgError
+            "Warning",  // cMsgWarning
+            "Verbose",  // cMsgVerbose
+            "Debug",    // cMsgDebug
+            "Header",   // cMsgTotal
+        };
+        dynamic_string msgname = str;
+
+        for (uint32_t type = 0; type < VOGL_ARRAY_SIZE(s_msgnames); type++)
+        {
+            if (msgname.compare(s_msgnames[type], false) == 0)
+                return type;
+        }
+        return (uint32_t)-1;
+    }
+
+    bool colorized_console::console_output_func(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData)
     {
         (void)pData;
 
         static bool g_colors_inited = false;
-        static dynamic_string g_colors[cCMTTotal];
+        static dynamic_string g_colors[cMsgTotal + 1];
 
-        if (console::get_output_disabled())
+        if (type > console::get_output_level())
             return true;
 
         if (!g_colors_inited)
         {
             g_colors_inited = true;
 
-            g_colors[cDebugConsoleMessage] = ANSI_BOLDBLUE;       // debugging messages
-            g_colors[cProgressConsoleMessage] = "";               // progress messages
-            g_colors[cInfoConsoleMessage] = "";                   // ordinary messages
-            g_colors[cConsoleConsoleMessage] = "";                // user console output
-            g_colors[cMessageConsoleMessage] = ANSI_BOLDCYAN;     // high importance messages
-            g_colors[cWarningConsoleMessage] = ANSI_BOLDYELLOW;   // warnings
-            g_colors[cErrorConsoleMessage] = ANSI_BOLDRED;        // errors
-            g_colors[cHeader1ConsoleMessage] = "\033[44m\033[1m"; // header (dark blue background)
+            g_colors[cMsgPrint] = "";                  // ordinary printf messages
+            g_colors[cMsgMessage] = ANSI_BOLDCYAN;     // ordinary printf messages w/ color
+            g_colors[cMsgError] = ANSI_BOLDRED;        // errors
+            g_colors[cMsgWarning] = ANSI_BOLDYELLOW;   // warnings
+            g_colors[cMsgVerbose] = "";                // verbose messages
+            g_colors[cMsgDebug] = ANSI_BOLDBLUE;       // debugging messages
+            g_colors[cMsgTotal] = "\033[44m\033[1m";  // header (dark blue background)
 
             // Use just like LS_COLORS. Example: VOGL_COLORS='warning=1;34:message=31'
-            // Tokens are debug, progress, info, default, message, warning, error.
+            // Tokens are info, message, error, etc. (see above).
             const char *vogl_colors = getenv("VOGL_COLORS");
             if (vogl_colors)
             {
@@ -192,8 +212,8 @@ namespace vogl
                     str.tokenize("=;", color_tokens, true);
                     if (color_tokens.size() >= 2)
                     {
-                        eConsoleMessageType color_type = console::get_message_type_from_str(color_tokens[0].c_str());
-                        if (color_type >= 0)
+                        uint32_t color_type = get_message_type_from_str(color_tokens[0].c_str());
+                        if (color_type != (uint32_t)-1)
                         {
                             for (uint32_t j = 1; j < color_tokens.size(); j++)
                             {
@@ -208,8 +228,10 @@ namespace vogl
             }
         }
 
-        const char *pANSIColor = g_colors[type].c_str();
-        FILE *pFile = (type == cErrorConsoleMessage) ? stderr : stdout;
+        const char *pANSIColor = (flags & cMsgFlagHeader) ?
+                    g_colors[cMsgTotal].c_str() : g_colors[type].c_str();
+
+        FILE *pFile = (type == cMsgError) ? stderr : stdout;
         bool is_redirected = !isatty(fileno(pFile)) && pANSIColor[0];
 
         if (!is_redirected)
@@ -224,6 +246,7 @@ namespace vogl
     }
 
 #else
+
     void colorized_console::set_default_color()
     {
     }
@@ -234,12 +257,13 @@ namespace vogl
         if (console::get_output_disabled())
             return true;
 
-        FILE *pFile = (type == cErrorConsoleMessage) ? stderr : stdout;
+        FILE *pFile = (type == cMsgError) ? stderr : stdout;
 
         fputs(pMsg, pFile);
 
         return true;
     }
+
 #endif
 
 } // namespace vogl

@@ -79,7 +79,7 @@ bool vogl_context_snapshot::capture(const vogl_context_desc &desc, const vogl_co
 
     clear();
 
-    vogl_printf("%s: Starting capture on trace context 0x%" PRIx64 ", has context info: %u\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(desc.get_trace_context()), info.is_valid());
+    vogl_printf("Starting capture on trace context 0x%" PRIx64 ", has context info: %u\n", cast_val_to_uint64(desc.get_trace_context()), info.is_valid());
 
     m_context_desc = desc;
     m_context_info = info;
@@ -123,21 +123,23 @@ bool vogl_context_snapshot::capture(const vogl_context_desc &desc, const vogl_co
         VOGL_ASSUME(VOGL_ARRAY_SIZE(s_object_type_capture_order) == cGLSTTotalTypes - 1);
 
         for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_object_type_capture_order); i++)
+        {
             if (!capture_objects(s_object_type_capture_order[i], capture_params, remapper))
                 goto handle_error;
+        }
     }
 
     m_is_valid = true;
 
     VOGL_CHECK_GL_ERROR;
 
-    vogl_printf("%s: Capture succeeded\n", VOGL_FUNCTION_INFO_CSTR);
+    vogl_printf("Capture succeeded\n");
 
     return true;
 
 handle_error:
     VOGL_CHECK_GL_ERROR;
-    vogl_printf("%s: Capture failed\n", VOGL_FUNCTION_INFO_CSTR);
+    vogl_printf("Capture failed\n");
     return false;
 }
 
@@ -148,7 +150,7 @@ bool vogl_context_snapshot::remap_handles(vogl_handle_remapper &remapper)
     if (!m_is_valid)
         return false;
 
-    vogl_printf("%s: Remapping object handles and program locations\n", VOGL_FUNCTION_INFO_CSTR);
+    vogl_printf("Remapping object handles and program locations\n");
 
     if (!m_general_state.remap_handles(remapper))
         return false;
@@ -177,7 +179,7 @@ bool vogl_context_snapshot::remap_handles(vogl_handle_remapper &remapper)
         }
     }
 
-    vogl_printf("%s: Remap complete\n", VOGL_FUNCTION_INFO_CSTR);
+    vogl_printf("Remap complete\n");
 
     return true;
 }
@@ -186,7 +188,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
 {
     VOGL_FUNC_TRACER
 
-    vogl_printf("Capturing %ss\n", get_gl_object_state_type_str(state_type));
+    vogl_debug_printf("Capturing %ss\n", get_gl_object_state_type_str(state_type));
 
     uint32_t total = 0;
 
@@ -372,7 +374,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
                 }
                 else if (pProg->get_link_status())
                 {
-                    vogl_error_printf("%s: GL program %u was snapshotted with a successful link status, but the link snapshot shadow doesn't contain this program!\n", VOGL_FUNCTION_INFO_CSTR, handle);
+                    vogl_error_printf("GL program %u was snapshotted with a successful link status, but the link snapshot shadow doesn't contain this program!\n", handle);
                 }
             }
             else if (state_type == cGLSTBuffer)
@@ -400,7 +402,7 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
 
     VOGL_CHECK_GL_ERROR;
 
-    vogl_printf("Found %u %ss\n", total, get_gl_object_state_type_str(state_type));
+    vogl_debug_printf("Found %u %ss\n", total, get_gl_object_state_type_str(state_type));
 
     return true;
 }
@@ -566,7 +568,7 @@ bool vogl_context_snapshot::deserialize(const json_node &node, const vogl_blob_m
             vogl_gl_object_state_type state_type = determine_gl_object_state_type_from_str(obj_type_str.get_ptr());
             if (state_type == cGLSTInvalid)
             {
-                vogl_warning_printf("%s: Unknown object state type \"%s\", skipping node\n", VOGL_FUNCTION_INFO_CSTR, obj_type_str.get_ptr());
+                vogl_warning_printf("Unknown object state type \"%s\", skipping node\n", obj_type_str.get_ptr());
                 continue;
             }
 
@@ -716,7 +718,7 @@ bool vogl_gl_state_snapshot::capture_context(
 
         if (!status)
         {
-            vogl_error_printf("%s: Failed snapshotting default framebuffer!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed snapshotting default framebuffer!\n");
         }
 
         m_captured_default_framebuffer = true;

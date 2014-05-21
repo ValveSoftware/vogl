@@ -202,7 +202,7 @@ namespace vogl
 
                 if ((ext != "png") && (ext != "bmp") && (ext != "tga") && (!is_jpeg))
                 {
-                    console::error("vogl::image_utils::write_to_file: Can only write .BMP, .TGA, .PNG, or .JPG files!\n");
+                    vogl_error_printf("vogl::image_utils::write_to_file: Can only write .BMP, .TGA, .PNG, or .JPG files!\n");
                     return false;
                 }
             }
@@ -1017,24 +1017,24 @@ namespace vogl
         void print_ssim(const image_u8 &src_img, const image_u8 &dst_img)
         {
             double y_ssim = compute_ssim(src_img, dst_img, -1);
-            console::printf("Luma MSSIM: %f, Scaled [.8,1]: %f", y_ssim, (y_ssim - .8f) / .2f);
+            vogl_printf("Luma MSSIM: %f, Scaled [.8,1]: %f", y_ssim, (y_ssim - .8f) / .2f);
 
             double r_ssim = compute_ssim(src_img, dst_img, 0);
-            console::printf("   R MSSIM: %f", r_ssim);
+            vogl_printf("   R MSSIM: %f", r_ssim);
 
             double g_ssim = compute_ssim(src_img, dst_img, 1);
-            console::printf("   G MSSIM: %f", g_ssim);
+            vogl_printf("   G MSSIM: %f", g_ssim);
 
             double b_ssim = compute_ssim(src_img, dst_img, 2);
-            console::printf("   B MSSIM: %f", b_ssim);
+            vogl_printf("   B MSSIM: %f", b_ssim);
         }
 
         void error_metrics::print(const char *pName) const
         {
             if (mPeakSNR >= cInfinitePSNR)
-                console::printf("%s Error: Max: %3u, Mean: %3.3f, MSE: %3.3f, RMSE: %3.3f, PSNR: Infinite", pName, mMax, mMean, mMeanSquared, mRootMeanSquared);
+                vogl_printf("%s Error: Max: %3u, Mean: %3.3f, MSE: %3.3f, RMSE: %3.3f, PSNR: Infinite", pName, mMax, mMean, mMeanSquared, mRootMeanSquared);
             else
-                console::printf("%s Error: Max: %3u, Mean: %3.3f, MSE: %3.3f, RMSE: %3.3f, PSNR: %3.3f, SSIM: %1.6f", pName, mMax, mMean, mMeanSquared, mRootMeanSquared, mPeakSNR, mSSIM);
+                vogl_printf("%s Error: Max: %3u, Mean: %3.3f, MSE: %3.3f, RMSE: %3.3f, PSNR: %3.3f, SSIM: %1.6f", pName, mMax, mMean, mMeanSquared, mRootMeanSquared, mPeakSNR, mSSIM);
         }
 
         bool error_metrics::compute(const image_u8 &a, const image_u8 &b, uint32_t first_channel, uint32_t num_channels, bool average_component_error)
@@ -1110,7 +1110,7 @@ namespace vogl
         void print_image_metrics(const image_u8 &src_img, const image_u8 &dst_img)
         {
             if ((!src_img.get_width()) || (!dst_img.get_height()) || (src_img.get_width() != dst_img.get_width()) || (src_img.get_height() != dst_img.get_height()))
-                console::printf("print_image_metrics: Image resolutions don't match exactly (%ux%u) vs. (%ux%u)", src_img.get_width(), src_img.get_height(), dst_img.get_width(), dst_img.get_height());
+                vogl_printf("print_image_metrics: Image resolutions don't match exactly (%ux%u) vs. (%ux%u)", src_img.get_width(), src_img.get_height(), dst_img.get_width(), dst_img.get_height());
 
             image_utils::error_metrics error_metrics;
 

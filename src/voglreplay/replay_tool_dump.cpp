@@ -75,7 +75,7 @@ bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc)
     vogl_loose_file_blob_manager output_file_blob_manager;
 
     dynamic_string output_trace_path(file_utils::get_pathname(output_base_filename.get_ptr()));
-    vogl_debug_printf("%s: Output trace path: %s\n", VOGL_FUNCTION_INFO_CSTR, output_trace_path.get_ptr());
+    vogl_debug_printf("Output trace path: %s\n", output_trace_path.get_ptr());
     output_file_blob_manager.init(cBMFReadWrite, output_trace_path.get_ptr());
 
     file_utils::create_directories(output_trace_path, false);
@@ -86,7 +86,7 @@ bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc)
             g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
-        vogl_error_printf("%s: Failed opening input trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, input_trace_filename.get_ptr());
+        vogl_error_printf("Failed opening input trace file \"%s\"\n", input_trace_filename.get_ptr());
         return false;
     }
 
@@ -108,19 +108,19 @@ bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc)
         cfile_stream archive_stream;
         if (!archive_stream.open(archive_filename.get_ptr(), cDataStreamWritable | cDataStreamSeekable))
         {
-            vogl_error_printf("%s: Failed opening output trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
+            vogl_error_printf("Failed opening output trace archive \"%s\"!\n", archive_filename.get_ptr());
             return false;
         }
 
         if (!pTrace_reader->get_archive_blob_manager().write_archive_to_stream(archive_stream))
         {
-            vogl_error_printf("%s: Failed writing to output trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
+            vogl_error_printf("Failed writing to output trace archive \"%s\"!\n", archive_filename.get_ptr());
             return false;
         }
 
         if (!archive_stream.close())
         {
-            vogl_error_printf("%s: Failed writing to output trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
+            vogl_error_printf("Failed writing to output trace archive \"%s\"!\n", archive_filename.get_ptr());
             return false;
         }
     }
@@ -200,14 +200,14 @@ bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc)
 
             if (!cur_doc.serialize_to_file(output_filename.get_ptr(), true))
             {
-                vogl_error_printf("%s: Failed serializing JSON document to file %s\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
+                vogl_error_printf("Failed serializing JSON document to file %s\n", output_filename.get_ptr());
 
                 status = false;
                 break;
             }
 
             if (cur_doc.get_root()->check_for_duplicate_keys())
-                vogl_warning_printf("%s: JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
+                vogl_warning_printf("JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", output_filename.get_ptr());
 
             cur_file_index++;
 
@@ -407,13 +407,13 @@ bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc)
 
         if (!cur_doc.serialize_to_file(output_filename.get_ptr(), true))
         {
-            vogl_error_printf("%s: Failed serializing JSON document to file %s\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
+            vogl_error_printf("Failed serializing JSON document to file %s\n", output_filename.get_ptr());
 
             status = false;
         }
 
         if (cur_doc.get_root()->check_for_duplicate_keys())
-            vogl_warning_printf("%s: JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
+            vogl_warning_printf("JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", output_filename.get_ptr());
 
         cur_file_index++;
     }
