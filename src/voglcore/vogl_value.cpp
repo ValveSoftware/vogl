@@ -93,6 +93,12 @@ namespace vogl
             for (uint32_t i = 0; i < cDTTotal; i++)
                 if (!vogl_stricmp(pStr, value_type_strings[vts][i]))
                     return static_cast<value_data_type>(i);
+
+        // McJohn: I made a mistake when I was excising uint everywhere in favor of uint32_t, 
+        // but it was checked in for "awhile" so in case we get all the way here, let's go ahead
+        // and check and make sure that we don't have a trace with just 'uint'.
+        if (!vogl_stricmp(pStr, "uint"))
+            return cDTUInt;
         return cDTInvalid;
     }
 

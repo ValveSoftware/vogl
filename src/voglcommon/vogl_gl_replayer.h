@@ -192,6 +192,12 @@ public:
         cStatusAtEOF
     };
 
+    void set_proc_address_helper(vogl_gl_get_proc_address_helper_func_ptr_t pGet_proc_address_helper_func, bool wrap_all_gl_calls)
+    {
+        m_proc_address_helper_func = pGet_proc_address_helper_func;
+        m_wrap_all_gl_calls = wrap_all_gl_calls;
+    }
+
     // Call at the beginning of every frame to do internal housekeeping related to window resizing, which requires delaying all GL calls until the window system finishes resizing the window.
     status_t process_pending_window_resize(bool *pApplied_snapshot = NULL);
 
@@ -419,7 +425,7 @@ private:
         bool m_inside_gl_begin;
 
         vogl_trace_context_ptr_value m_trace_context;
-        GLXContext m_replay_context;
+        GLReplayContextType m_replay_context;
 
         // maps trace to replay handles
         gl_handle_hash_map m_framebuffers;
@@ -458,7 +464,7 @@ private:
     context_hash_map m_contexts;
 
     vogl_trace_context_ptr_value m_cur_trace_context;
-    GLXContext m_cur_replay_context;
+    GLReplayContextType m_cur_replay_context;
     context_state *m_pCur_context_state;
 
     context_state *get_context_state()
@@ -494,6 +500,9 @@ private:
 
     const vogl_gl_state_snapshot *m_pPending_snapshot;
     bool m_delete_pending_snapshot_after_applying;
+
+    vogl_gl_get_proc_address_helper_func_ptr_t m_proc_address_helper_func;
+    bool m_wrap_all_gl_calls;
 
     // TODO: Make a 1st class snapshot cache class
     struct snapshot_cache_entry
@@ -914,9 +923,9 @@ private:
         return (it == m_contexts.end()) ? NULL : it->second;
     }
 
-    context_state *define_new_context(vogl_trace_context_ptr_value trace_context, GLXContext replay_context, vogl_trace_context_ptr_value trace_share_context, GLboolean direct, gl_entrypoint_id_t creation_func, const int *pAttrib_list, uint32_t attrib_list_size);
+    context_state *define_new_context(vogl_trace_context_ptr_value trace_context, GLReplayContextType replay_context, vogl_trace_context_ptr_value trace_share_context, GLboolean direct, gl_entrypoint_id_t creation_func, const int *pAttrib_list, uint32_t attrib_list_size);
 
-    GLXContext remap_context(vogl_trace_context_ptr_value trace_context);
+    GLReplayContextType remap_context(vogl_trace_context_ptr_value trace_context);
 
     bool destroy_context(vogl_trace_context_ptr_value trace_context);
 
@@ -1306,7 +1315,7 @@ private:
     int find_attrib_key(const vogl::vector<int> &attrib_list, int key_to_find);
 
     status_t create_context_attribs(
-        vogl_trace_context_ptr_value trace_context, Display *dpy, GLXFBConfig config, vogl_trace_context_ptr_value trace_share_context, GLXContext replay_share_context, Bool direct,
+        vogl_trace_context_ptr_value trace_context, vogl_trace_context_ptr_value trace_share_context, GLReplayContextType replay_share_context, Bool direct,
         const int *pTrace_attrib_list, int trace_attrib_list_size, bool expecting_attribs);
 
     status_t process_pending_make_current();

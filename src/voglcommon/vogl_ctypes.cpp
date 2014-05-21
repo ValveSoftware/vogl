@@ -122,7 +122,7 @@ void vogl_ctypes::change_pointer_sizes(uint32_t trace_ptr_size)
     }
 
 // Mark up long and XID types, which are unsigned longs
-#define DEF_LONG_TYPE(x) m_vogl_ctype_descs[x].m_size = trace_ptr_size;
+#define DEF_LONG_TYPE(x) m_vogl_ctype_descs[x].m_size = sizeof(unsigned long);
     DEF_LONG_TYPE(VOGL_LONG);
     DEF_LONG_TYPE(VOGL_UNSIGNED_LONG);
     DEF_LONG_TYPE(VOGL_GLXPIXMAP);
@@ -247,6 +247,18 @@ static void vogl_define_special_ctypes()
     DEF_OPAQUE_TYPE(VOGL_XVISUALINFO)
     DEF_OPAQUE_TYPE(VOGL_COLORMAP) // rg - added 11/14/13
 
+    // Consider adding all non-this-platform types as opaque types for the other platforms?
+    #if (!VOGL_PLATFORM_HAS_GLX)
+        DEF_OPAQUE_TYPE(VOGL_FONT)
+        DEF_OPAQUE_TYPE(VOGL_GLXCONTEXTID);
+        DEF_OPAQUE_TYPE(VOGL_GLXDRAWABLE);
+        DEF_OPAQUE_TYPE(VOGL_GLXPBUFFER);
+        DEF_OPAQUE_TYPE(VOGL_GLXPIXMAP);
+        DEF_OPAQUE_TYPE(VOGL_GLXVIDEOCAPTUREDEVICENV);
+        DEF_OPAQUE_TYPE(VOGL_GLXWINDOW);
+        DEF_OPAQUE_TYPE(VOGL_PIXMAP);
+
+    #endif
 
 
 #undef DEF_OPAQUE_PTR_TYPE

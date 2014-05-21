@@ -4,9 +4,11 @@ cmake_minimum_required(VERSION 2.8)
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SRC_DIR}/cmake/Modules/")
+set(CMAKE_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/../external")
 
 if (WIN32)
-    set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../external/windows")
+    # TODO: s/CMAKE_PREFIX_PATH/CMAKE_EXTERNAL_WINDOWS_PATH/g
+    set(CMAKE_PREFIX_PATH "${CMAKE_EXTERNAL_PATH}/windows")
     set(WIN32_PTHREADS_PATH "${CMAKE_PREFIX_PATH}/pthreads.2")
     set(WIN32_PTHREADS_INCLUDE_PATH "${WIN32_PTHREADS_PATH}/include")
 endif()
@@ -37,17 +39,17 @@ add_subdirectory(src/voglcore) # 1
 add_subdirectory(src/voglgen) # 2
 add_subdirectory(src/voglcommon) # 3
 add_subdirectory(src/voglreplay) # 4
-add_subdirectory(src/vogltrace) # 7
+add_subdirectory(src/voglbench) # 5
+add_subdirectory(src/vogltrace) # 6
 
-add_subdirectory(src/extlib/pxfmt) # 11
-add_subdirectory(src/ktxtool) # 12
+add_subdirectory(src/extlib/pxfmt) # 13
+add_subdirectory(src/ktxtool) # 14
 
 if (NOT WIN32)
-    add_subdirectory(src/voglbench) # 5
-    add_subdirectory(src/vogltest) # 6
+    add_subdirectory(src/vogltest) # 7
 
-    add_subdirectory(src/glxspheres) # 7 -- Probably linux only.
-    add_subdirectory(src/vogleditor) # 8
-    add_subdirectory(src/libbacktrace) # 9
-    add_subdirectory(src/libbacktrace_test) # 10
+    add_subdirectory(src/glxspheres) # 8 -- Probably linux only.
+    add_subdirectory(src/vogleditor) # 9
+    add_subdirectory(src/libbacktrace) # 11
+    add_subdirectory(src/libbacktrace_test) # 12
 endif()

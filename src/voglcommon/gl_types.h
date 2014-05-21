@@ -194,5 +194,12 @@ typedef struct VOGL_WIN_GPU_DEVICE
 
 #include "gl_enums.inc"
 
+// TODO: Should WGL builds include GLX enums and vice-versa?
+// I suspect not, but removing the GLX enums from the WGL build breaks
+// a bunch of stuff right now, and there may be legitimate reasons
+// for including both - translation from one to another, for example.
 #include "glx_enums.inc"
 #include "glx_ext_enums.inc"
+
+#include "wgl_enums.inc"
+#include "wgl_ext_enums.inc"

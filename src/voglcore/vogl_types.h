@@ -29,6 +29,11 @@
 
 #include "vogl_core.h"
 
+#if (!VOGL_PLATFORM_HAS_UINT)
+    // Provide uint for other platforms for portability. 
+    typedef unsigned int uint;
+#endif
+
 namespace vogl
 {
     const uint8_t cUINT8_MIN = 0;

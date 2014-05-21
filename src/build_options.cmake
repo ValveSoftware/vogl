@@ -57,7 +57,7 @@ add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES)
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_CONSTANT_MACROS)
 
 if(MSVC)
-    set(CMAKE_CXX_FLAGS_LIST "/DEBUG /W3 /D_CRT_SECURE_NO_WARNINGS=1 /DWIN32 /D_WIN32")
+    set(CMAKE_CXX_FLAGS_LIST "/W3 /D_CRT_SECURE_NO_WARNINGS=1 /DWIN32 /D_WIN32")
     set(CMAKE_CXX_FLAGS_RELEASE_LIST "/O2 /DNDEBUG")
     set(CMAKE_CXX_FLAGS_DEBUG_LIST "/Od /D_DEBUG")
 else()
@@ -376,6 +376,36 @@ function(require_libjpegturbo)
     endif()
 endfunction()
 
+function(require_sdl2)
+    # TODO for linux
+    # find_package(SDL2)
+    if (MSVC)
+        set(SDL2Root "${CMAKE_EXTERNAL_PATH}/SDL")
+
+        set(SDL2_INCLUDE "${SDL2Root}/include" PARENT_SCOPE)
+        set(SDL2_LIBRARY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/SDL2.lib" PARENT_SCOPE)
+
+        # Only want to include this once.
+        # This has to go into properties because it needs to persist across the entire cmake run.
+        get_property(SDL_PROJECT_ALREADY_INCLUDED 
+            GLOBAL 
+            PROPERTY SDL_PROJECT_INCLUDED
+        )
+
+        if (NOT SDL_PROJECT_ALREADY_INCLUDED)
+            INCLUDE_EXTERNAL_MSPROJECT(SDL "${SDL2Root}/VisualC/SDL/SDL_VS2013.vcxproj")
+            set_property(GLOBAL
+                PROPERTY SDL_PROJECT_INCLUDED "TRUE"
+            )
+            message("Including SDL_VS2013.vcxproj for you!")
+        endif()
+
+    else()
+        message(FATAL_ERROR "Need to deal with SDL on non-Windows platforms")
+    endif()
+endfunction()
+
+
 function(request_backtrace)
     if (NOT MSVC)
         set( LibBackTrace_INCLUDE "${SRC_DIR}/libbacktrace" PARENT_SCOPE )
@@ -401,6 +431,18 @@ elseif ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 else()
     message("Compiler is ${CMAKE_C_COMPILER_ID}")
     message(FATAL_ERROR "Compiler unset, build will fail--stopping at CMake time.")
+endif()
+
+# Platform specific libary defines.
+if (WIN32)
+    set( LIBRT "" )
+    set( LIBDL "" )
+
+elseif (UNIX)
+    set( LIBRT rt )
+    set( LIBDL dl )
+else()
+    message(FATAL_ERROR "Need to determine what the library name for 'rt' is for non-windows, non-unix platforms (or if it's even needed).")
 endif()
 
 # What OS will we be running on?

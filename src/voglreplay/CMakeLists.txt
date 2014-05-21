@@ -5,6 +5,10 @@ include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
 
+if (MSVC)
+    require_sdl2()
+endif()
+
 find_package(X11 REQUIRED)
 
 include_directories(
@@ -17,6 +21,8 @@ include_directories(
     ${SRC_DIR}/voglcommon
 	${SRC_DIR}/libtelemetry
 	${SRC_DIR}/extlib/loki/include/loki
+	${SDL2_INCLUDE}
+
 )
 
 set(SRC_LIST
@@ -47,7 +53,8 @@ target_link_libraries(${PROJECT_NAME}
     ${X11_X11_LIB}
     ${CMAKE_THREAD_LIBS_INIT}
     voglcore
-    )
+    ${SDL2_LIBRARY}
+)
 
 build_options_finalize()
 

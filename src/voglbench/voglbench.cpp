@@ -27,6 +27,35 @@
 #include "vogl_common.h"
 #include "vogl_gl_replayer.h"
 #include "vogl_colorized_console.h"
+#include "vogl_command_line_params.h"
+#include "vogl_cfile_stream.h"
+#include "vogl_value.h"
+#include "vogl_dynamic_stream.h"
+#include "vogl_file_utils.h"
+#include "vogl_mergesort.h"
+#include "vogl_unique_ptr.h"
+#include "vogl_find_files.h"
+#include "vogl_bigint128.h"
+#include "vogl_regex.h"
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include "vogl_json.h"
+#include "vogl_blob_manager.h"
+
+#include "libtelemetry.h"
+
+#if (VOGL_PLATFORM_HAS_SDL)
+    #define SDL_MAIN_HANDLED 1
+    #include "SDL.h"
+#endif
+
+#if defined(PLATFORM_POSIX)
+    #include <X11/Xlib.h>
+    #include <X11/Xutil.h>
+    #include <X11/Xmd.h>
+#endif
 
 //$ TODO: investigate using SDL for windows and any keyboard controls.
 //$ Run clang-format on everything.
@@ -167,19 +196,30 @@ static bool load_gl()
 {
     VOGL_FUNC_TRACER
 
-    g_actual_libgl_module_handle = dlopen("libGL.so.1", RTLD_LAZY);
+    g_actual_libgl_module_handle = plat_load_system_gl(PLAT_RTLD_LAZY);
     if (!g_actual_libgl_module_handle)
     {
-        vogl_error_printf("Failed loading libGL.so.1!\n");
+        vogl_error_printf("Failed loading %s!\n", plat_get_system_gl_module_name());
         return false;
     }
 
-    GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
-    if (!GL_ENTRYPOINT(glXGetProcAddress))
-    {
-        vogl_error_printf("Failed getting address of glXGetProcAddress() from libGL.so.1!\n");
-        return false;
-    }
+    #if VOGL_PLATFORM_HAS_GLX
+        GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
+        if (!GL_ENTRYPOINT(glXGetProcAddress))
+        {
+            vogl_error_printf("Failed getting address of glXGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
+            return false;
+        }
+    #elif VOGL_PLATFORM_HAS_WGL
+        GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
+        if (!GL_ENTRYPOINT(wglGetProcAddress))
+        {
+            vogl_error_printf("Failed getting address of wglGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
+            return false;
+        }
+    #else
+        #error "Need to implement load_gl for this platform."
+    #endif
 
     return true;
 }
@@ -191,10 +231,17 @@ static vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
 {
     VOGL_FUNC_TRACER
 
-    vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(dlsym(g_actual_libgl_module_handle, pName)) : NULL;
+    vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, pName)) : NULL;
 
-    if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
-        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
+    #if (VOGL_PLATFORM_HAS_GLX)
+        if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
+            pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
+    #elif (VOGL_PLATFORM_HAS_WGL)
+        if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
+            pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
+    #else
+        #error "Implement vogl_get_proc_address_helper this platform."
+    #endif
 
     return pFunc;
 }
@@ -262,6 +309,11 @@ static bool voglbench_init(int argc, char *argv[])
         vogl_set_direct_gl_func_epilog(vogl_direct_gl_func_epilog, NULL);
     }
 
+    #if VOGL_PLATFORM_HAS_SDL
+        if (SDL_Init(SDL_INIT_VIDEO) < 0) 
+            return false;
+    #endif
+
     if (!load_gl())
         return false;
 
@@ -280,36 +332,40 @@ static void voglbench_deinit()
     colorized_console::deinit();
 }
 
-//----------------------------------------------------------------------------------------------------------------------
-// X11_Pending - from SDL
-//----------------------------------------------------------------------------------------------------------------------
-static int X11_Pending(Display *display)
-{
-    VOGL_FUNC_TRACER
-
-    /* Flush the display connection and look to see if events are queued */
-    XFlush(display);
-    if (XEventsQueued(display, QueuedAlready))
-        return 1;
-
-    /* More drastic measures are required -- see if X is ready to talk */
+#if VOGL_PLATFORM_HAS_X11
+    //----------------------------------------------------------------------------------------------------------------------
+    // X11_Pending - from SDL
+    //----------------------------------------------------------------------------------------------------------------------
+    static int X11_Pending(Display *display)
     {
-        static struct timeval zero_time; /* static == 0 */
-        int x11_fd;
-        fd_set fdset;
+        VOGL_FUNC_TRACER
 
-        x11_fd = ConnectionNumber(display);
-        FD_ZERO(&fdset);
-        FD_SET(x11_fd, &fdset);
-        if (select(x11_fd + 1, &fdset, NULL, NULL, &zero_time) == 1)
+        /* Flush the display connection and look to see if events are queued */
+        XFlush(display);
+        if (XEventsQueued(display, QueuedAlready))
         {
-            return (XPending(display));
+            return 1;
         }
-    }
 
-    /* Oh well, nothing is ready .. */
-    return 0;
-}
+        /* More drastic measures are required -- see if X is ready to talk */
+        {
+            static struct timeval zero_time; /* static == 0 */
+            int x11_fd;
+            fd_set fdset;
+
+            x11_fd = ConnectionNumber(display);
+            FD_ZERO(&fdset);
+            FD_SET(x11_fd, &fdset);
+            if (select(x11_fd + 1, &fdset, NULL, NULL, &zero_time) == 1)
+            {
+                return (XPending(display));
+            }
+        }
+
+        /* Oh well, nothing is ready .. */
+        return 0;
+    }
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------
 // get_replayer_flags_from_command_line_params
@@ -339,299 +395,543 @@ static uint get_replayer_flags_from_command_line_params()
     return replayer_flags;
 }
 
-//----------------------------------------------------------------------------------------------------------------------
-// tool_replay_mode
-//----------------------------------------------------------------------------------------------------------------------
-static bool tool_replay_mode()
-{
-    VOGL_FUNC_TRACER
-
-    dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
-    if (trace_filename.is_empty())
+#if (VOGL_PLATFORM_HAS_SDL)
+    //----------------------------------------------------------------------------------------------------------------------
+    // tool_replay_mode
+    //----------------------------------------------------------------------------------------------------------------------
+    static bool tool_replay_mode()
     {
-        vogl_error_printf("No trace file specified!\n");
-        return false;
-    }
+        VOGL_FUNC_TRACER
 
-    dynamic_string actual_trace_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(
+        dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
+        if (trace_filename.is_empty())
+        {
+            vogl_error_printf("No trace file specified!\n");
+            return false;
+        }
+
+        dynamic_string actual_trace_filename;
+        vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(
+            vogl_open_trace_file(
                 trace_filename,
                 actual_trace_filename,
-                g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
-    if (!pTrace_reader.get())
-    {
-        vogl_error_printf("File not found, or unable to determine file type of trace file \"%s\"\n", trace_filename.get_ptr());
-        return false;
-    }
+                g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()
+            )
+        );
 
-    vogl_printf("Reading trace file %s\n", actual_trace_filename.get_ptr());
-
-    vogl_gl_replayer replayer;
-    vogl_replay_window window;
-
-    uint replayer_flags = get_replayer_flags_from_command_line_params();
-
-    // TODO: This will create a window with default attributes, which seems fine for the majority of traces.
-    // Unfortunately, some GL call streams *don't* want an alpha channel, or depth, or stencil etc. in the default framebuffer so this may become a problem.
-    // Also, this design only supports a single window, which is going to be a problem with multiple window traces.
-    if (!window.open(g_command_line_params().get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params().get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params().get_value_as_int("msaa", 0, 0, 0, 65535)))
-    {
-        vogl_error_printf("Failed initializing replay window\n");
-        return false;
-    }
-
-    if (!replayer.init(replayer_flags, &window, pTrace_reader->get_sof_packet(), pTrace_reader->get_multi_blob_manager()))
-    {
-        vogl_error_printf("Failed initializing GL replayer\n");
-        return false;
-    }
-
-    // Disable all glGetError() calls in vogl_utils.cpp.
-    vogl_disable_gl_get_error();
-
-    XSelectInput(window.get_display(), window.get_xwindow(),
-                 EnterWindowMask | LeaveWindowMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask | FocusChangeMask | KeyPressMask | KeyReleaseMask | PropertyChangeMask | StructureNotifyMask | KeymapStateMask);
-
-    Atom wmDeleteMessage = XInternAtom(window.get_display(), "WM_DELETE_WINDOW", False);
-    XSetWMProtocols(window.get_display(), window.get_xwindow(), &wmDeleteMessage, 1);
-
-    // Bool win_mapped = false;
-
-    vogl_gl_state_snapshot *pSnapshot = NULL;
-    int64_t snapshot_loop_start_frame = -1;
-    int64_t snapshot_loop_end_frame = -1;
-
-    vogl::hash_map<uint64_t> keys_pressed, keys_down;
-
-    int loop_frame = g_command_line_params().get_value_as_int("loop_frame", 0, -1);
-    int loop_len = math::maximum<int>(g_command_line_params().get_value_as_int("loop_len", 0, 1), 1);
-    int loop_count = math::maximum<int>(g_command_line_params().get_value_as_int("loop_count", 0, cINT32_MAX), 1);
-    bool endless_mode = g_command_line_params().get_value_as_bool("endless");
-
-    timer tm;
-    tm.start();
-
-    for (;;)
-    {
-        tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "Main Loop");
-
-        while (X11_Pending(window.get_display()))
+        if (!pTrace_reader.get())
         {
-            XEvent newEvent;
+            vogl_error_printf("File not found, or unable to determine file type of trace file \"%s\"\n", trace_filename.get_ptr());
+            return false;
+        }
 
-            // Watch for new X eventsn
-            XNextEvent(window.get_display(), &newEvent);
+        vogl_printf("Reading trace file %s\n", actual_trace_filename.get_ptr());
 
-            switch (newEvent.type)
+        vogl_gl_replayer replayer;
+        vogl_replay_window window;
+
+        #if defined(PLATFORM_WINDOWS)
+            // We need to get proc addresses for windows late.
+            replayer.set_proc_address_helper(vogl_get_proc_address_helper, false);
+        #endif
+
+        uint replayer_flags = get_replayer_flags_from_command_line_params();
+
+        // TODO: This will create a window with default attributes, which seems fine for the majority of traces.
+        // Unfortunately, some GL call streams *don't* want an alpha channel, or depth, or stencil etc. in the default framebuffer so this may become a problem.
+        // Also, this design only supports a single window, which is going to be a problem with multiple window traces.
+        if (!window.open(g_command_line_params().get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params().get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params().get_value_as_int("msaa", 0, 0, 0, 65535)))
+        {
+            vogl_error_printf("Failed initializing replay window\n");
+            return false;
+        }
+
+        if (!replayer.init(replayer_flags, &window, pTrace_reader->get_sof_packet(), pTrace_reader->get_multi_blob_manager()))
+        {
+            vogl_error_printf("Failed initializing GL replayer\n");
+            return false;
+        }
+
+        // Disable all glGetError() calls in vogl_utils.cpp.
+        vogl_disable_gl_get_error();
+
+        // Bool win_mapped = false;
+
+        vogl_gl_state_snapshot *pSnapshot = NULL;
+        int64_t snapshot_loop_start_frame = -1;
+        int64_t snapshot_loop_end_frame = -1;
+
+        vogl::hash_map<SDL_Keycode> keys_pressed, keys_down;
+
+        int loop_frame = g_command_line_params().get_value_as_int("loop_frame", 0, -1);
+        int loop_len = math::maximum<int>(g_command_line_params().get_value_as_int("loop_len", 0, 1), 1);
+        int loop_count = math::maximum<int>(g_command_line_params().get_value_as_int("loop_count", 0, cINT32_MAX), 1);
+        bool endless_mode = g_command_line_params().get_value_as_bool("endless");
+
+        timer tm;
+        tm.start();
+
+        for (;;)
+        {
+            tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "Main Loop");
+
+            SDL_Event wnd_event;
+            
+            while (SDL_PollEvent(&wnd_event))
             {
-                case KeyPress:
+                switch (wnd_event.type)
                 {
-                    KeySym xsym = XLookupKeysym(&newEvent.xkey, 0);
+                    case SDL_KEYDOWN:
+                    {
+                        keys_down.insert(wnd_event.key.keysym.sym);
+                        keys_pressed.insert(wnd_event.key.keysym.sym);
+                        break;
+                    }
 
-                    //printf("KeyPress 0%04llX %" PRIu64 "\n", (uint64_t)xsym, (uint64_t)xsym);
+                    case SDL_KEYUP:
+                    {
+                        keys_down.erase(wnd_event.key.keysym.sym);
 
-                    keys_down.insert(xsym);
-                    keys_pressed.insert(xsym);
+                        break;
+                    }
 
-                    break;
+                    case SDL_WINDOWEVENT:
+                    {
+                        switch(wnd_event.window.event)
+                        {
+                            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                            case SDL_WINDOWEVENT_FOCUS_LOST:
+                                keys_down.reset();
+                                break;
+
+                            case SDL_WINDOWEVENT_CLOSE:
+                                vogl_message_printf("Window told to close, exiting.\n");
+                                goto normal_exit;
+                                break;
+                            default:
+                                break;
+                        };
+                        break;
+                    }
+
+                    default:
+                        // TODO: Handle these somehow?
+                        break;
+                };
+            }
+
+            if (replayer.get_at_frame_boundary())
+            {
+                if ((!pSnapshot) && (loop_frame != -1) && (static_cast<int64_t>(replayer.get_frame_index()) == loop_frame))
+                {
+                    vogl_debug_printf("Capturing replayer state at start of frame %u\n", replayer.get_frame_index());
+
+                    pSnapshot = replayer.snapshot_state();
+
+                    if (pSnapshot)
+                    {
+                        vogl_printf("Snapshot succeeded\n");
+
+                        snapshot_loop_start_frame = pTrace_reader->get_cur_frame();
+                        snapshot_loop_end_frame = pTrace_reader->get_cur_frame() + loop_len;
+
+                        vogl_debug_printf("Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", snapshot_loop_start_frame, snapshot_loop_end_frame);
+                    }
+                    else
+                    {
+                        vogl_error_printf("Snapshot failed!\n");
+                        loop_frame = -1;
+                    }
                 }
-                case KeyRelease:
+            }
+
+            vogl_gl_replayer::status_t status = replayer.process_pending_window_resize();
+            if (status == vogl_gl_replayer::cStatusOK)
+            {
+                for (;;)
                 {
-                    KeySym xsym = XLookupKeysym(&newEvent.xkey, 0);
+                    status = replayer.process_next_packet(*pTrace_reader);
 
-                    //printf("KeyRelease 0x%04llX %" PRIu64 "\n", (uint64_t)xsym, (uint64_t)xsym);
-
-                    keys_down.erase(xsym);
-
-                    break;
+                    if ((status == vogl_gl_replayer::cStatusNextFrame) ||
+                        (status == vogl_gl_replayer::cStatusResizeWindow) ||
+                        (status == vogl_gl_replayer::cStatusAtEOF) ||
+                        (status == vogl_gl_replayer::cStatusHardFailure))
+                    {
+                        break;
+                    }
                 }
-                case FocusIn:
-                case FocusOut:
+            }
+
+            if (status == vogl_gl_replayer::cStatusHardFailure)
+                break;
+
+            if (status == vogl_gl_replayer::cStatusAtEOF)
+            {
+                vogl_message_printf("At trace EOF, frame index %u\n", replayer.get_frame_index());
+            }
+
+            if (replayer.get_at_frame_boundary() &&
+                pSnapshot && 
+                (loop_count > 0) &&
+                ((pTrace_reader->get_cur_frame() == snapshot_loop_end_frame) || (status == vogl_gl_replayer::cStatusAtEOF)))
+            {
+                status = replayer.begin_applying_snapshot(pSnapshot, false);
+                if ((status != vogl_gl_replayer::cStatusOK) && (status != vogl_gl_replayer::cStatusResizeWindow))
+                    goto error_exit;
+
+                pTrace_reader->seek_to_frame(static_cast<uint>(snapshot_loop_start_frame));
+
+                vogl_debug_printf("Applying snapshot and seeking back to frame %" PRIi64 "\n", snapshot_loop_start_frame);
+                loop_count--;
+            }
+            else
+            {
+                bool print_progress = (status == vogl_gl_replayer::cStatusAtEOF) ||
+                    ((replayer.get_at_frame_boundary()) && ((replayer.get_frame_index() % 100) == 0));
+                if (print_progress)
                 {
-                    //printf("FocusIn/FocusOut\n");
+                    if (pTrace_reader->get_type() == cBINARY_TRACE_FILE_READER)
+                    {
+                        vogl_binary_trace_file_reader &binary_trace_reader = *static_cast<vogl_binary_trace_file_reader *>(pTrace_reader.get());
 
-                    keys_down.reset();
-
-                    break;
+                        vogl_printf("Replay now at frame index %u, trace file offet %" PRIu64 ", GL call counter %" PRIu64 ", %3.2f%% percent complete\n",
+                            replayer.get_frame_index(),
+                            binary_trace_reader.get_cur_file_ofs(),
+                            replayer.get_last_parsed_call_counter(),
+                            binary_trace_reader.get_trace_file_size() ? (binary_trace_reader.get_cur_file_ofs() * 100.0f) / binary_trace_reader.get_trace_file_size() : 0);
+                    }
                 }
-                case MappingNotify:
+
+                if (status == vogl_gl_replayer::cStatusAtEOF)
                 {
-                    //XRefreshKeyboardMapping(&newEvent);
-                    break;
-                }
-                case UnmapNotify:
-                {
-                    // printf("UnmapNotify\n");
-                    // win_mapped = false;
+                    if (!endless_mode)
+                    {
+                        double time_since_start = tm.get_elapsed_secs();
 
-                    keys_down.reset();
+                        vogl_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+                        break;
+                    }
 
-                    break;
-                }
-                case MapNotify:
-                {
-                    // printf("MapNotify\n");
-                    // win_mapped = true;
+                    vogl_printf("Resetting state and rewinding back to frame 0\n");
 
-                    keys_down.reset();
+                    replayer.reset_state();
 
-                    if (!replayer.update_window_dimensions())
+                    if (!pTrace_reader->seek_to_frame(0))
+                    {
+                        vogl_error_printf("Failed rewinding trace reader!\n");
                         goto error_exit;
+                    }
+                }
+            }
 
-                    break;
-                }
-                case ConfigureNotify:
-                {
-                    if (!replayer.update_window_dimensions())
-                        goto error_exit;
+            telemetry_tick();
+        }
 
-                    break;
-                }
-                case DestroyNotify:
+    normal_exit:
+        return true;
+
+    error_exit:
+        return false;
+    }
+
+#elif (VOGL_PLATFORM_HAS_X11)
+    //----------------------------------------------------------------------------------------------------------------------
+    // tool_replay_mode
+    //----------------------------------------------------------------------------------------------------------------------
+    static bool tool_replay_mode()
+    {
+        VOGL_FUNC_TRACER
+
+        dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
+        if (trace_filename.is_empty())
+        {
+            vogl_error_printf("No trace file specified!\n");
+            return false;
+        }
+
+        dynamic_string actual_trace_filename;
+        vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(
+                    trace_filename,
+                    actual_trace_filename,
+                    g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
+        if (!pTrace_reader.get())
+        {
+            vogl_error_printf("File not found, or unable to determine file type of trace file \"%s\"\n", trace_filename.get_ptr());
+            return false;
+        }
+
+        vogl_printf("Reading trace file %s\n", actual_trace_filename.get_ptr());
+
+        vogl_gl_replayer replayer;
+        vogl_replay_window window;
+
+        uint replayer_flags = get_replayer_flags_from_command_line_params();
+
+        // TODO: This will create a window with default attributes, which seems fine for the majority of traces.
+        // Unfortunately, some GL call streams *don't* want an alpha channel, or depth, or stencil etc. in the default framebuffer so this may become a problem.
+        // Also, this design only supports a single window, which is going to be a problem with multiple window traces.
+        if (!window.open(g_command_line_params().get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params().get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params().get_value_as_int("msaa", 0, 0, 0, 65535)))
+        {
+            vogl_error_printf("Failed initializing replay window\n");
+            return false;
+        }
+
+        if (!replayer.init(replayer_flags, &window, pTrace_reader->get_sof_packet(), pTrace_reader->get_multi_blob_manager()))
+        {
+            vogl_error_printf("Failed initializing GL replayer\n");
+            return false;
+        }
+
+        // Disable all glGetError() calls in vogl_utils.cpp.
+        vogl_disable_gl_get_error();
+
+        XSelectInput(window.get_display(), window.get_xwindow(),
+                     EnterWindowMask | LeaveWindowMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask | FocusChangeMask | KeyPressMask | KeyReleaseMask | PropertyChangeMask | StructureNotifyMask | KeymapStateMask);
+
+        Atom wmDeleteMessage = XInternAtom(window.get_display(), "WM_DELETE_WINDOW", False);
+        XSetWMProtocols(window.get_display(), window.get_xwindow(), &wmDeleteMessage, 1);
+
+        // Bool win_mapped = false;
+
+        vogl_gl_state_snapshot *pSnapshot = NULL;
+        int64_t snapshot_loop_start_frame = -1;
+        int64_t snapshot_loop_end_frame = -1;
+
+        vogl::hash_map<uint64_t> keys_pressed, keys_down;
+
+        int loop_frame = g_command_line_params().get_value_as_int("loop_frame", 0, -1);
+        int loop_len = math::maximum<int>(g_command_line_params().get_value_as_int("loop_len", 0, 1), 1);
+        int loop_count = math::maximum<int>(g_command_line_params().get_value_as_int("loop_count", 0, cINT32_MAX), 1);
+        bool endless_mode = g_command_line_params().get_value_as_bool("endless");
+
+        timer tm;
+        tm.start();
+
+        for (;;)
+        {
+            tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "Main Loop");
+
+            while (X11_Pending(window.get_display()))
+            {
+                XEvent newEvent;
+
+                // Watch for new X eventsn
+                XNextEvent(window.get_display(), &newEvent);
+
+                switch (newEvent.type)
                 {
-                    vogl_message_printf("Exiting\n");
-                    goto normal_exit;
-                }
-                case ClientMessage:
-                {
-                    if (newEvent.xclient.data.l[0] == (int)wmDeleteMessage)
+                    case KeyPress:
+                    {
+                        KeySym xsym = XLookupKeysym(&newEvent.xkey, 0);
+
+                        //printf("KeyPress 0%04llX %" PRIu64 "\n", (uint64_t)xsym, (uint64_t)xsym);
+
+                        keys_down.insert(xsym);
+                        keys_pressed.insert(xsym);
+
+                        break;
+                    }
+                    case KeyRelease:
+                    {
+                        KeySym xsym = XLookupKeysym(&newEvent.xkey, 0);
+
+                        //printf("KeyRelease 0x%04llX %" PRIu64 "\n", (uint64_t)xsym, (uint64_t)xsym);
+
+                        keys_down.erase(xsym);
+
+                        break;
+                    }
+                    case FocusIn:
+                    case FocusOut:
+                    {
+                        //printf("FocusIn/FocusOut\n");
+
+                        keys_down.reset();
+
+                        break;
+                    }
+                    case MappingNotify:
+                    {
+                        //XRefreshKeyboardMapping(&newEvent);
+                        break;
+                    }
+                    case UnmapNotify:
+                    {
+                        // printf("UnmapNotify\n");
+                        // win_mapped = false;
+
+                        keys_down.reset();
+
+                        break;
+                    }
+                    case MapNotify:
+                    {
+                        // printf("MapNotify\n");
+                        // win_mapped = true;
+
+                        keys_down.reset();
+
+                        if (!replayer.update_window_dimensions())
+                            goto error_exit;
+
+                        break;
+                    }
+                    case ConfigureNotify:
+                    {
+                        if (!replayer.update_window_dimensions())
+                            goto error_exit;
+
+                        break;
+                    }
+                    case DestroyNotify:
                     {
                         vogl_message_printf("Exiting\n");
                         goto normal_exit;
                     }
+                    case ClientMessage:
+                    {
+                        if (newEvent.xclient.data.l[0] == (int)wmDeleteMessage)
+                        {
+                            vogl_message_printf("Exiting\n");
+                            goto normal_exit;
+                        }
 
-                    break;
+                        break;
+                    }
+                    default:
+                        break;
                 }
-                default:
-                    break;
             }
-        }
 
-        if (replayer.get_at_frame_boundary())
-        {
-            if ((!pSnapshot) && (loop_frame != -1) && (static_cast<int64_t>(replayer.get_frame_index()) == loop_frame))
+            if (replayer.get_at_frame_boundary())
             {
-                vogl_debug_printf("Capturing replayer state at start of frame %u\n", replayer.get_frame_index());
-
-                pSnapshot = replayer.snapshot_state();
-
-                if (pSnapshot)
+                if ((!pSnapshot) && (loop_frame != -1) && (static_cast<int64_t>(replayer.get_frame_index()) == loop_frame))
                 {
-                    vogl_printf("Snapshot succeeded\n");
+                    vogl_debug_printf("Capturing replayer state at start of frame %u\n", replayer.get_frame_index());
 
-                    snapshot_loop_start_frame = pTrace_reader->get_cur_frame();
-                    snapshot_loop_end_frame = pTrace_reader->get_cur_frame() + loop_len;
+                    pSnapshot = replayer.snapshot_state();
 
-                    vogl_debug_printf("Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", snapshot_loop_start_frame, snapshot_loop_end_frame);
-                }
-                else
-                {
-                    vogl_error_printf("Snapshot failed!\n");
-                    loop_frame = -1;
+                    if (pSnapshot)
+                    {
+                        vogl_printf("Snapshot succeeded\n");
+
+                        snapshot_loop_start_frame = pTrace_reader->get_cur_frame();
+                        snapshot_loop_end_frame = pTrace_reader->get_cur_frame() + loop_len;
+
+                        vogl_debug_printf("Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", snapshot_loop_start_frame, snapshot_loop_end_frame);
+                    }
+                    else
+                    {
+                        vogl_error_printf("Snapshot failed!\n");
+                        loop_frame = -1;
+                    }
                 }
             }
-        }
 
-        vogl_gl_replayer::status_t status = replayer.process_pending_window_resize();
-        if (status == vogl_gl_replayer::cStatusOK)
-        {
-            for (;;)
+            vogl_gl_replayer::status_t status = replayer.process_pending_window_resize();
+            if (status == vogl_gl_replayer::cStatusOK)
             {
-                status = replayer.process_next_packet(*pTrace_reader);
-
-                if ((status == vogl_gl_replayer::cStatusNextFrame) ||
-                    (status == vogl_gl_replayer::cStatusResizeWindow) ||
-                    (status == vogl_gl_replayer::cStatusAtEOF) ||
-                    (status == vogl_gl_replayer::cStatusHardFailure))
+                for (;;)
                 {
-                    break;
+                    status = replayer.process_next_packet(*pTrace_reader);
+
+                    if ((status == vogl_gl_replayer::cStatusNextFrame) ||
+                        (status == vogl_gl_replayer::cStatusResizeWindow) ||
+                        (status == vogl_gl_replayer::cStatusAtEOF) ||
+                        (status == vogl_gl_replayer::cStatusHardFailure))
+                    {
+                        break;
+                    }
                 }
             }
-        }
 
-        if (status == vogl_gl_replayer::cStatusHardFailure)
-            break;
-
-        if (status == vogl_gl_replayer::cStatusAtEOF)
-        {
-            vogl_message_printf("At trace EOF, frame index %u\n", replayer.get_frame_index());
-        }
-
-        if (replayer.get_at_frame_boundary() &&
-                pSnapshot && 
-                (loop_count > 0) &&
-                ((pTrace_reader->get_cur_frame() == snapshot_loop_end_frame) || (status == vogl_gl_replayer::cStatusAtEOF)))
-        {
-            status = replayer.begin_applying_snapshot(pSnapshot, false);
-            if ((status != vogl_gl_replayer::cStatusOK) && (status != vogl_gl_replayer::cStatusResizeWindow))
-                goto error_exit;
-
-            pTrace_reader->seek_to_frame(static_cast<uint>(snapshot_loop_start_frame));
-
-            vogl_debug_printf("Applying snapshot and seeking back to frame %" PRIi64 "\n", snapshot_loop_start_frame);
-            loop_count--;
-        }
-        else
-        {
-            bool print_progress = (status == vogl_gl_replayer::cStatusAtEOF) ||
-                    ((replayer.get_at_frame_boundary()) && ((replayer.get_frame_index() % 100) == 0));
-            if (print_progress)
-            {
-                if (pTrace_reader->get_type() == cBINARY_TRACE_FILE_READER)
-                {
-                    vogl_binary_trace_file_reader &binary_trace_reader = *static_cast<vogl_binary_trace_file_reader *>(pTrace_reader.get());
-
-                    vogl_printf("Replay now at frame index %u, trace file offet %" PRIu64 ", GL call counter %" PRIu64 ", %3.2f%% percent complete\n",
-                               replayer.get_frame_index(),
-                               binary_trace_reader.get_cur_file_ofs(),
-                               replayer.get_last_parsed_call_counter(),
-                               binary_trace_reader.get_trace_file_size() ? (binary_trace_reader.get_cur_file_ofs() * 100.0f) / binary_trace_reader.get_trace_file_size() : 0);
-                }
-            }
+            if (status == vogl_gl_replayer::cStatusHardFailure)
+                break;
 
             if (status == vogl_gl_replayer::cStatusAtEOF)
             {
-                if (!endless_mode)
-                {
-                    double time_since_start = tm.get_elapsed_secs();
+                vogl_message_printf("At trace EOF, frame index %u\n", replayer.get_frame_index());
+            }
 
-                    vogl_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
-                    break;
+            if (replayer.get_at_frame_boundary() &&
+                    pSnapshot && 
+                    (loop_count > 0) &&
+                    ((pTrace_reader->get_cur_frame() == snapshot_loop_end_frame) || (status == vogl_gl_replayer::cStatusAtEOF)))
+            {
+                status = replayer.begin_applying_snapshot(pSnapshot, false);
+                if ((status != vogl_gl_replayer::cStatusOK) && (status != vogl_gl_replayer::cStatusResizeWindow))
+                    goto error_exit;
+
+                pTrace_reader->seek_to_frame(static_cast<uint>(snapshot_loop_start_frame));
+
+                vogl_debug_printf("Applying snapshot and seeking back to frame %" PRIi64 "\n", snapshot_loop_start_frame);
+                loop_count--;
+            }
+            else
+            {
+                bool print_progress = (status == vogl_gl_replayer::cStatusAtEOF) ||
+                        ((replayer.get_at_frame_boundary()) && ((replayer.get_frame_index() % 100) == 0));
+                if (print_progress)
+                {
+                    if (pTrace_reader->get_type() == cBINARY_TRACE_FILE_READER)
+                    {
+                        vogl_binary_trace_file_reader &binary_trace_reader = *static_cast<vogl_binary_trace_file_reader *>(pTrace_reader.get());
+
+                        vogl_printf("Replay now at frame index %u, trace file offet %" PRIu64 ", GL call counter %" PRIu64 ", %3.2f%% percent complete\n",
+                                   replayer.get_frame_index(),
+                                   binary_trace_reader.get_cur_file_ofs(),
+                                   replayer.get_last_parsed_call_counter(),
+                                   binary_trace_reader.get_trace_file_size() ? (binary_trace_reader.get_cur_file_ofs() * 100.0f) / binary_trace_reader.get_trace_file_size() : 0);
+                    }
                 }
 
-                vogl_printf("Resetting state and rewinding back to frame 0\n");
-
-                replayer.reset_state();
-
-                if (!pTrace_reader->seek_to_frame(0))
+                if (status == vogl_gl_replayer::cStatusAtEOF)
                 {
-                    vogl_error_printf("Failed rewinding trace reader!\n");
-                    goto error_exit;
+                    if (!endless_mode)
+                    {
+                        double time_since_start = tm.get_elapsed_secs();
+
+                        vogl_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+                        break;
+                    }
+
+                    vogl_printf("Resetting state and rewinding back to frame 0\n");
+
+                    replayer.reset_state();
+
+                    if (!pTrace_reader->seek_to_frame(0))
+                    {
+                        vogl_error_printf("Failed rewinding trace reader!\n");
+                        goto error_exit;
+                    }
                 }
             }
+
+            telemetry_tick();
         }
 
-        telemetry_tick();
+    normal_exit:
+        return true;
+
+    error_exit:
+        return false;
     }
 
-normal_exit:
-    return true;
+    //----------------------------------------------------------------------------------------------------------------------
+    // xerror_handler
+    //----------------------------------------------------------------------------------------------------------------------
+    static int xerror_handler(Display *dsp, XErrorEvent *error)
+    {
+        char error_string[256];
+        XGetErrorText(dsp, error->error_code, error_string, sizeof(error_string));
 
-error_exit:
-    return false;
-}
+        fprintf(stderr, "voglbench: Fatal X Windows Error: %s\n", error_string);
+        abort();
+    }
 
-//----------------------------------------------------------------------------------------------------------------------
-// xerror_handler
-//----------------------------------------------------------------------------------------------------------------------
-static int xerror_handler(Display *dsp, XErrorEvent *error)
-{
-    char error_string[256];
-    XGetErrorText(dsp, error->error_code, error_string, sizeof(error_string));
-
-    fprintf(stderr, "voglbench: Fatal X Windows Error: %s\n", error_string);
-    abort();
-}
+#else
+    #error "Need to provide tool_replay_mode for this platform."
+#endif
 
 //----------------------------------------------------------------------------------------------------------------------
 // main
@@ -650,7 +950,9 @@ int main(int argc, char *argv[])
     // Initialize vogl_core.
     vogl_core_init();
 
-    XSetErrorHandler(xerror_handler);
+    #if VOGL_PLATFORM_HAS_X11
+        XSetErrorHandler(xerror_handler);
+    #endif
 
     if (!voglbench_init(argc, argv))
     {

@@ -44,6 +44,9 @@
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_INT_MAGIC 0x12345678
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_FLOAT_MAGIC -999999.0f
 
+// TODO: Move this declaration into a header that we share with the location the code actually exists.
+vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pName);
+
 //----------------------------------------------------------------------------------------------------------------------
 // glInterleavedArrays helper table
 //----------------------------------------------------------------------------------------------------------------------
@@ -113,6 +116,28 @@ static const interleaved_array_desc_entry_t vogl_g_interleaved_array_descs[] =
 #define VOGL_INTERLEAVED_ARRAY_SIZE (sizeof(vogl_g_interleaved_array_descs) / sizeof(vogl_g_interleaved_array_descs[0]))
 
 //----------------------------------------------------------------------------------------------------------------------
+static vogl_trace_ptr_value get_trace_context_from_packet(const vogl_trace_packet& pkt)
+{
+    const gl_entrypoint_id_t entrypoint_id = pkt.get_entrypoint_id();
+
+    int param_index = 0;
+    switch (entrypoint_id)
+    {
+    case VOGL_ENTRYPOINT_glXMakeCurrent:            param_index = 2; break;
+    case VOGL_ENTRYPOINT_glXMakeContextCurrent:     param_index = 3; break;
+    case VOGL_ENTRYPOINT_wglMakeCurrent:            param_index = 1; break;
+    default:
+        vogl_error_printf("Unexpected packet type (%s) in get_trace_context_from_packet, review for possible bug.\n", 
+                          pkt.get_entrypoint_desc().m_pName);
+        return NULL;
+        break;
+    }
+
+    return pkt.get_param_ptr_value(param_index);
+}
+
+
+//----------------------------------------------------------------------------------------------------------------------
 // vogl_replayer::vogl_replayer
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::vogl_gl_replayer()
@@ -148,7 +173,10 @@ vogl_gl_replayer::vogl_gl_replayer()
       m_pBlob_manager(NULL),
       m_pPending_snapshot(NULL),
       m_delete_pending_snapshot_after_applying(false),
+      m_proc_address_helper_func(NULL),
+      m_wrap_all_gl_calls(false),
       m_replay_to_trace_remapper(*this)
+
 {
     VOGL_FUNC_TRACER
 
@@ -684,50 +712,105 @@ void vogl_gl_replayer::destroy_contexts()
 {
     VOGL_FUNC_TRACER
 
-    if ((m_contexts.size()) && (m_pWindow->get_display()) && (GL_ENTRYPOINT(glXMakeCurrent)) && (GL_ENTRYPOINT(glXDestroyContext)))
-    {
-        GL_ENTRYPOINT(glXMakeCurrent)(m_pWindow->get_display(), (GLXDrawable)NULL, NULL);
-
-        vogl::vector<context_state *> contexts_to_destroy;
-        for (context_hash_map::const_iterator it = m_contexts.begin(); it != m_contexts.end(); ++it)
-            contexts_to_destroy.push_back(it->second);
-
-        // Delete "tail" contexts (ones that are not referenced by any other context) in sharegroups first.
-        while (contexts_to_destroy.size())
+    #if (VOGL_PLATFORM_HAS_SDL)
+        if ((m_contexts.size()) && (m_pWindow->is_opened()))
         {
-            for (int i = 0; i < static_cast<int>(contexts_to_destroy.size()); i++)
+            m_pWindow->make_current(NULL);
+
+            vogl::vector<context_state *> contexts_to_destroy;
+            for (context_hash_map::const_iterator it = m_contexts.begin(); it != m_contexts.end(); ++it)
+                contexts_to_destroy.push_back(it->second);
+
+            // Delete "tail" contexts (ones that are not referenced by any other context) in sharegroups first.
+            // TODO: I think we could just lazily O(n^2) delete the contexts by picking one that doesn't have a 
+            // child (or deleting all of the ones each time that doesn't have at least one child) and then 
+            // repeat the process until there are zero contexts. The perf should be fine, we're typically dealing
+            // with a small number of contexts.
+            while (contexts_to_destroy.size())
             {
-                context_state *pContext_state = contexts_to_destroy[i];
-
-                vogl_trace_ptr_value trace_context = pContext_state->m_context_desc.get_trace_context();
-
-                bool skip_context = false;
-                for (int j = 0; j < static_cast<int>(contexts_to_destroy.size()); j++)
+                for (int i = 0; i < static_cast<int>(contexts_to_destroy.size()); i++)
                 {
-                    if (i == j)
+                    context_state *pContext_state = contexts_to_destroy[i];
+
+                    vogl_trace_ptr_value trace_context = pContext_state->m_context_desc.get_trace_context();
+
+                    bool skip_context = false;
+                    for (int j = 0; j < static_cast<int>(contexts_to_destroy.size()); j++)
+                    {
+                        if (i == j)
+                            continue;
+
+                        if (contexts_to_destroy[j]->m_context_desc.get_trace_share_context() == trace_context)
+                        {
+                            skip_context = true;
+                            break;
+                        }
+                    }
+
+                    if (skip_context)
                         continue;
 
-                    if (contexts_to_destroy[j]->m_context_desc.get_trace_share_context() == trace_context)
+                    // This context may have been the sharegroup's root and could have been already deleted.
+                    if (!pContext_state->m_deleted)
                     {
-                        skip_context = true;
-                        break;
+                        m_pWindow->destroy_context(pContext_state->m_replay_context);
                     }
+
+                    contexts_to_destroy.erase(i);
+                    i--;
                 }
-
-                if (skip_context)
-                    continue;
-
-                // This context may have been the sharegroup's root and could have been already deleted.
-                if (!pContext_state->m_deleted)
-                {
-                    GL_ENTRYPOINT(glXDestroyContext)(m_pWindow->get_display(), pContext_state->m_replay_context);
-                }
-
-                contexts_to_destroy.erase(i);
-                i--;
             }
         }
-    }
+
+    #elif (VOGL_PLATFORM_HAS_X11)
+
+        if ((m_contexts.size()) && (m_pWindow->get_display()) && (GL_ENTRYPOINT(glXMakeCurrent)) && (GL_ENTRYPOINT(glXDestroyContext)))
+        {
+            GL_ENTRYPOINT(glXMakeCurrent)(m_pWindow->get_display(), (GLXDrawable)NULL, NULL);
+
+            vogl::vector<context_state *> contexts_to_destroy;
+            for (context_hash_map::const_iterator it = m_contexts.begin(); it != m_contexts.end(); ++it)
+                contexts_to_destroy.push_back(it->second);
+
+            // Delete "tail" contexts (ones that are not referenced by any other context) in sharegroups first.
+            while (contexts_to_destroy.size())
+            {
+                for (int i = 0; i < static_cast<int>(contexts_to_destroy.size()); i++)
+                {
+                    context_state *pContext_state = contexts_to_destroy[i];
+
+                    vogl_trace_ptr_value trace_context = pContext_state->m_context_desc.get_trace_context();
+
+                    bool skip_context = false;
+                    for (int j = 0; j < static_cast<int>(contexts_to_destroy.size()); j++)
+                    {
+                        if (i == j)
+                            continue;
+
+                        if (contexts_to_destroy[j]->m_context_desc.get_trace_share_context() == trace_context)
+                        {
+                            skip_context = true;
+                            break;
+                        }
+                    }
+
+                    if (skip_context)
+                        continue;
+
+                    // This context may have been the sharegroup's root and could have been already deleted.
+                    if (!pContext_state->m_deleted)
+                    {
+                        GL_ENTRYPOINT(glXDestroyContext)(m_pWindow->get_display(), pContext_state->m_replay_context);
+                    }
+
+                    contexts_to_destroy.erase(i);
+                    i--;
+                }
+            }
+        }
+    #else
+        #error "Need vogl_gl_replayer::destroy_contexts this platform"
+    #endif
 
     clear_contexts();
 }
@@ -736,7 +819,7 @@ void vogl_gl_replayer::destroy_contexts()
 // vogl_replayer::define_new_context
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::context_state *vogl_gl_replayer::define_new_context(
-    vogl_trace_context_ptr_value trace_context, GLXContext replay_context, vogl_trace_context_ptr_value trace_share_context, GLboolean direct, gl_entrypoint_id_t creation_func, const int *pAttrib_list, uint32_t attrib_list_size)
+    vogl_trace_context_ptr_value trace_context, GLReplayContextType replay_context, vogl_trace_context_ptr_value trace_share_context, GLboolean direct, gl_entrypoint_id_t creation_func, const int *pAttrib_list, uint32_t attrib_list_size)
 {
     VOGL_FUNC_TRACER
 
@@ -784,7 +867,7 @@ vogl_gl_replayer::context_state *vogl_gl_replayer::define_new_context(
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_replayer::remap_context
 //----------------------------------------------------------------------------------------------------------------------
-GLXContext vogl_gl_replayer::remap_context(vogl_trace_context_ptr_value trace_context)
+GLReplayContextType vogl_gl_replayer::remap_context(vogl_trace_context_ptr_value trace_context)
 {
     VOGL_FUNC_TRACER
 
@@ -1408,25 +1491,18 @@ vogl_gl_replayer::status_t vogl_gl_replayer::switch_contexts(vogl_trace_context_
 
     // pContext_state will be NULL if they are unmapping!
     context_state *pContext_state = get_trace_context_state(trace_context);
-    GLXContext replay_context = pContext_state ? pContext_state->m_replay_context : 0;
+    GLReplayContextType replay_context = pContext_state ? pContext_state->m_replay_context : 0;
 
-    #if (VOGL_PLATFORM_HAS_GLX)
-        const Display *dpy = m_pWindow->get_display();
-        GLXDrawable drawable = replay_context ? m_pWindow->get_xwindow() : (GLXDrawable)NULL;
-
-        Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
-    #else
-        VOGL_VERIFY(!"impl vogl_gl_replayer::switch_contexts for Windows");
-        bool result = true;
-
-    #endif
-
-    if (!result)
+    if (!m_pWindow->make_current(replay_context))
     {
         process_entrypoint_error("Failed switching current trace context to 0x%" PRIX64 "\n", trace_context);
         return cStatusHardFailure;
     }
 
+    // This needs to be done after every (or at least the first) make current because windows can't get proper 
+    // extensions until MakeCurrent time.
+    if (m_proc_address_helper_func)
+        vogl_init_actual_gl_entrypoints(m_proc_address_helper_func, m_wrap_all_gl_calls);
 
     m_cur_trace_context = trace_context;
     m_cur_replay_context = replay_context;
@@ -1667,7 +1743,7 @@ int vogl_gl_replayer::find_attrib_key(const vogl::vector<int> &attrib_list, int 
 // vogl_replayer::create_context_attribs
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
-    vogl_trace_context_ptr_value trace_context, Display *dpy, GLXFBConfig config, vogl_trace_context_ptr_value trace_share_context, GLXContext replay_share_context, Bool direct,
+    vogl_trace_context_ptr_value trace_context, vogl_trace_context_ptr_value trace_share_context, GLReplayContextType replay_share_context, Bool direct,
     const int *pTrace_attrib_list, int trace_attrib_list_size, bool expecting_attribs)
 {
     VOGL_FUNC_TRACER
@@ -1759,7 +1835,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
     if (m_flags & cGLReplayerVerboseMode)
         dump_context_attrib_list(pAttrib_list, attrib_list_size);
 
-    GLXContext replay_context = GL_ENTRYPOINT(glXCreateContextAttribsARB)(dpy, config, replay_share_context, direct, pAttrib_list);
+    GLReplayContextType replay_context = m_pWindow->create_context_attrib(replay_share_context, direct, pAttrib_list);
+
     if (!replay_context)
     {
         if (trace_context)
@@ -1782,7 +1859,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
         }
         else
         {
-            GL_ENTRYPOINT(glXDestroyContext)(m_pWindow->get_display(), replay_context);
+            m_pWindow->destroy_context(replay_context);
+            // TODO: Not sure why we don't return an error code here. Figure out when this happens?
         }
     }
 
@@ -1803,13 +1881,10 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
 
     Bool trace_result = gl_packet.get_return_value<Bool>();
 
-    gl_entrypoint_id_t entrypoint_id = gl_packet.get_entrypoint_id();
-    VOGL_ASSERT((entrypoint_id == VOGL_ENTRYPOINT_glXMakeCurrent) || (entrypoint_id == VOGL_ENTRYPOINT_glXMakeContextCurrent));
-
     // pContext_state will be NULL if they are unmapping!
-    vogl_trace_ptr_value trace_context = gl_packet.get_param_ptr_value((entrypoint_id == VOGL_ENTRYPOINT_glXMakeCurrent) ? 2 : 3);
+    vogl_trace_ptr_value trace_context = get_trace_context_from_packet(gl_packet);
     context_state *pContext_state = get_trace_context_state(trace_context);
-    GLXContext replay_context = pContext_state ? pContext_state->m_replay_context : 0;
+    GLReplayContextType replay_context = pContext_state ? pContext_state->m_replay_context : 0;
 
     if ((trace_context) && (!replay_context))
     {
@@ -1818,16 +1893,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
         return cStatusHardFailure;
     }
 
-    #if (VOGL_PLATFORM_HAS_GLX)
-        const Display *dpy = m_pWindow->get_display();
-        GLXDrawable drawable = replay_context ? m_pWindow->get_xwindow() : (GLXDrawable)NULL;
-        Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
-    #elif (VOGL_PLATFORM_HAS_WGL)
-        VOGL_VERIFY(!"impl vogl_gl_replayer::process_pending_make_current on Windows");
-        bool result = true;
-    #else
-        #error "impl vogl_gl_replayer::process_pending_make_current on this platform"
-    #endif
+    bool result = m_pWindow->make_current(replay_context);
+
+    // This needs to be done after every (or at least the first) make current because windows can't get proper 
+    // extensions until MakeCurrent time.
+    if (m_proc_address_helper_func)
+        vogl_init_actual_gl_entrypoints(m_proc_address_helper_func, m_wrap_all_gl_calls);
 
     if (!result)
     {
@@ -1864,7 +1935,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
 
             if (!m_pCur_context_state->m_has_been_made_current)
             {
-                vogl_printf("glXMakeCurrent(): Trace Viewport: [%u,%u,%u,%u], Window: [%u %u]\n",
+                vogl_printf("MakeCurrent(): Trace Viewport: [%u,%u,%u,%u], Window: [%u %u]\n",
                            viewport_x, viewport_y,
                            viewport_width, viewport_height,
                            win_width, win_height);
@@ -1878,7 +1949,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
 
             if (!m_pCur_context_state->m_has_been_made_current)
             {
-                vogl_printf("glXMakeCurrent(): Replay Viewport: [%u,%u,%u,%u], Window: [%u %u]\n",
+                vogl_printf("MakeCurrent(): Replay Viewport: [%u,%u,%u,%u], Window: [%u %u]\n",
                            cur_viewport[0], cur_viewport[1],
                            cur_viewport[2], cur_viewport[3],
                            cur_win_width, cur_win_height);
@@ -1924,6 +1995,7 @@ bool vogl_process_internal_trace_command_ctypes_packet(const key_value_map &kvm,
         dynamic_string ctype(kvm.get_string(base_index++));
         int size = kvm.get_int(base_index++);
         uint32_t loki_type_flags = kvm.get_uint(base_index++);
+
         bool is_pointer = kvm.get_bool(base_index++);
         bool is_opaque_pointer = kvm.get_bool(base_index++);
         bool is_pointer_diff = kvm.get_bool(base_index++);
@@ -1942,7 +2014,13 @@ bool vogl_process_internal_trace_command_ctypes_packet(const key_value_map &kvm,
         VOGL_VERIFY(is_pointer == desc.m_is_pointer);
         VOGL_VERIFY(is_opaque_pointer == desc.m_is_opaque_pointer);
         VOGL_VERIFY(is_pointer_diff == desc.m_is_pointer_diff);
-        VOGL_VERIFY(is_opaque_type == desc.m_is_opaque_type);
+
+        // We need to massively rethink the way this is going to work. 
+        // I think what we need to do is always shmoo types into cross-platform friendly types
+        // where they just become "name + bits we care about". In the meantime, relax the restriction
+        // that trace opacity matches replayer opacity. If a type is captured as transparent, it 
+        // can be marked as opaque during replay time.
+        VOGL_VERIFY(is_opaque_type == false || desc.m_is_opaque_type == true);
     }
 
     return true;
@@ -3635,12 +3713,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
     bool processed_glx_packet = true;
     switch (entrypoint_id)
     {
+        case VOGL_ENTRYPOINT_wglDeleteContext:
         case VOGL_ENTRYPOINT_glXDestroyContext:
         {
-            const Display *dpy = m_pWindow->get_display();
-
-            vogl_trace_context_ptr_value trace_context = trace_packet.get_param_ptr_value(1);
-            GLXContext replay_context = remap_context(trace_context);
+            vogl_trace_context_ptr_value trace_context = trace_packet.get_param_ptr_value(entrypoint_id == VOGL_ENTRYPOINT_wglDeleteContext ? 0 : 1);
+            GLReplayContextType replay_context = remap_context(trace_context);
 
             if ((trace_context) && (!replay_context))
             {
@@ -3658,10 +3735,106 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 m_pCur_context_state = NULL;
             }
 
-            GL_ENTRYPOINT(glXDestroyContext)(dpy, replay_context);
+            m_pWindow->destroy_context(replay_context);
 
             destroy_context(trace_context);
 
+            break;
+        }
+
+        case VOGL_ENTRYPOINT_wglMakeCurrent:
+        {
+            Bool trace_result = trace_packet.get_return_value<Bool>();
+
+            vogl_trace_context_ptr_value trace_context = trace_packet.get_param_ptr_value(1);
+
+            // pContext_state can be NULL!
+            context_state *pContext_state = get_trace_context_state(trace_context);
+            GLReplayContextType replay_context = pContext_state ? pContext_state->m_replay_context : 0;
+
+            if ((trace_context) && (!replay_context))
+            {
+                process_entrypoint_error("Failed remapping GL context\n");
+                return cStatusHardFailure;
+            }
+
+            int viewport_x = trace_packet.get_key_value_map().get_int(string_hash("viewport_x"));
+            VOGL_NOTE_UNUSED(viewport_x);
+            int viewport_y = trace_packet.get_key_value_map().get_int(string_hash("viewport_y"));
+            VOGL_NOTE_UNUSED(viewport_y);
+            int viewport_width = trace_packet.get_key_value_map().get_int(string_hash("viewport_width"));
+            VOGL_NOTE_UNUSED(viewport_width);
+            int viewport_height = trace_packet.get_key_value_map().get_int(string_hash("viewport_height"));
+            VOGL_NOTE_UNUSED(viewport_height);
+            int win_width = trace_packet.get_key_value_map().get_int(string_hash("win_width"));
+            int win_height = trace_packet.get_key_value_map().get_int(string_hash("win_height"));
+
+            // We may need to defer the make current until the window is the proper size, because the initial GL viewport's state depends on the Window size. Ugh.
+            if ((trace_context) && (trace_result))
+            {
+                if ((win_width) && (win_height))
+                {
+                    if (!(m_flags & cGLReplayerLockWindowDimensions))
+                    {
+                        if ((m_pWindow->get_width() != win_width) || (m_pWindow->get_height() != win_height))
+                        {
+                            m_pending_make_current_packet = *m_pCur_gl_packet;
+
+                            status = trigger_pending_window_resize(win_width, win_height);
+
+                            vogl_printf("%s: Deferring glXMakeCurrent() until window resizes to %ux%u\n", VOGL_FUNCTION_INFO_CSTR, win_width, win_height);
+                        }
+                    }
+                }
+            }
+
+            if (status != cStatusResizeWindow)
+            {
+                bool result = m_pWindow->make_current(replay_context);
+
+                // This needs to be done after every (or at least the first) make current because windows can't get proper 
+                // extensions until MakeCurrent time.
+                if (m_proc_address_helper_func)
+                    vogl_init_actual_gl_entrypoints(m_proc_address_helper_func, m_wrap_all_gl_calls);
+
+                if (!result)
+                {
+                    if (trace_result)
+                    {
+                        process_entrypoint_error("Failed making context current, but in the trace this call succeeded!\n");
+                        return cStatusHardFailure;
+                    }
+                    else
+                    {
+                        process_entrypoint_warning("Failed making context current, in the trace this call also failed\n");
+                    }
+                }
+                else
+                {
+                    m_cur_trace_context = trace_context;
+                    m_cur_replay_context = replay_context;
+                    m_pCur_context_state = pContext_state;
+
+                    if (!trace_result)
+                    {
+                        process_entrypoint_warning("Context was successfuly made current, but this operation failed in the trace\n");
+                    }
+
+                    #if 0
+                        vogl_printf("glXMakeCurrent(): Trace Viewport: [%u,%u,%u,%u], Window: [%u %u]\n",
+                            viewport_x, viewport_y,
+                            viewport_width, viewport_height,
+                            win_width, win_height);
+                    #endif
+
+                    if (m_cur_replay_context)
+                    {
+                        if (!handle_context_made_current())
+                            return cStatusHardFailure;
+                    }
+                }
+            }
+            
             break;
         }
         case VOGL_ENTRYPOINT_glXMakeCurrent:
@@ -3673,7 +3846,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             // pContext_state can be NULL!
             context_state *pContext_state = get_trace_context_state(trace_context);
-            GLXContext replay_context = pContext_state ? pContext_state->m_replay_context : 0;
+            GLReplayContextType replay_context = pContext_state ? pContext_state->m_replay_context : 0;
 
             if ((trace_context) && (!replay_context))
             {
@@ -3713,16 +3886,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (status != cStatusResizeWindow)
             {
-                #if (VOGL_PLATFORM_HAS_GLX)
-                    const Display *dpy = m_pWindow->get_display();
-                    GLXDrawable drawable = replay_context ? m_pWindow->get_xwindow() : (GLXDrawable)NULL;
-                    Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
-                #elif (VOGL_PLATFORM_HAS_WGL)
-                    bool result = true;
-                    VOGL_VERIFY(!"impl - vogl_gl_replayer::process_gl_entrypoint_packet_internal");
-                #else
-                    #error "impl - vogl_gl_replayer::process_gl_entrypoint_packet_internal"
-                #endif
+                bool result = m_pWindow->make_current(replay_context);
+
+                // This needs to be done after every (or at least the first) make current because windows can't get proper 
+                // extensions until MakeCurrent time.
+                if (m_proc_address_helper_func)
+                    vogl_init_actual_gl_entrypoints(m_proc_address_helper_func, m_wrap_all_gl_calls);
 
                 if (!result)
                 {
@@ -3767,7 +3936,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_glXQueryVersion:
         {
             int major = 0, minor = 0;
-            Bool status2 = GL_ENTRYPOINT(glXQueryVersion)(m_pWindow->get_display(), &major, &minor);
+            Bool status2 = m_pWindow->query_version(&major, &minor);
+
             process_entrypoint_message("glXQueryVersion returned major %u minor %u status %u, trace recorded major %u minor %u status %u\n", major, minor, status2,
                                        *trace_packet.get_param_client_memory<int>(1),
                                        *trace_packet.get_param_client_memory<int>(2),
@@ -3790,32 +3960,59 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             // TODO
             break;
         }
+        case VOGL_ENTRYPOINT_wglDescribePixelFormat:
+        {
+            // TODO
+            break;
+        }
+        case VOGL_ENTRYPOINT_wglSetPixelFormat:
+        {
+            // TODO
+            break;
+        }
+        case VOGL_ENTRYPOINT_wglGetPixelFormatAttribivARB:
+        {
+            // TODO
+            break;
+        }
+        case VOGL_ENTRYPOINT_wglGetExtensionsStringEXT:
+        {
+            // TODO
+            break;
+        }
+        case VOGL_ENTRYPOINT_wglGetProcAddress:
         case VOGL_ENTRYPOINT_glXGetProcAddress:
         case VOGL_ENTRYPOINT_glXGetProcAddressARB:
         {
             const GLubyte *procName = trace_packet.get_param_client_memory<GLubyte>(0);
             vogl_trace_ptr_value trace_func_ptr_value = trace_packet.get_return_ptr_value();
 
-            void *pFunc = (void *)GL_ENTRYPOINT(glXGetProcAddress)(procName);
+            #if (VOGL_PLATFORM_HAS_SDL)
+                void *pFunc = (void *)SDL_GL_GetProcAddress(reinterpret_cast<const char*>(procName));
+            #elif (VOGL_PLATFORM_HAS_X11)
+                void *pFunc = (void *)GL_ENTRYPOINT(glXGetProcAddress)(procName);
+            #else
+                #error "Need to implement GetProcAddress for this platform."
+                void *pFunc = NULL;
+            #endif
 
             if ((pFunc != NULL) != (trace_func_ptr_value != 0))
             {
-                process_entrypoint_warning("glXGetProcAddress of function %s %s in the replay, but %s in the trace\n",
+                process_entrypoint_warning("GetProcAddress of function %s %s in the replay, but %s in the trace\n",
                                            (const char *)procName,
                                            (pFunc != NULL) ? "succeeded" : "failed",
                                            (trace_func_ptr_value != 0) ? "succeeded" : "failed");
             }
-
+            
             break;
         }
+        
         case VOGL_ENTRYPOINT_glXCreateNewContext:
         {
-            Display *dpy = m_pWindow->get_display();
-            GLXFBConfig fb_config = m_pWindow->get_fb_configs()[0];
             int render_type = trace_packet.get_param_value<GLint>(2);
 
             vogl_trace_context_ptr_value trace_share_context = trace_packet.get_param_ptr_value(3);
-            GLXContext replay_share_context = remap_context(trace_share_context);
+            GLReplayContextType replay_share_context = remap_context(trace_share_context);
 
             if ((trace_share_context) && (!replay_share_context))
             {
@@ -3829,13 +4026,59 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             {
                 process_entrypoint_warning("glxCreateNewContext() called but we're trying to force debug contexts, which requires us to call glXCreateContextAttribsARB(). This may fail if the user has called glXCreateWindow().\n");
 
-                status = create_context_attribs(trace_context, dpy, fb_config, trace_share_context, replay_share_context, direct, NULL, 0, false);
+                status = create_context_attribs(trace_context, trace_share_context, replay_share_context, direct, NULL, 0, false);
                 if (status != cStatusOK)
                     return status;
             }
             else
             {
-                GLXContext replay_context = GL_ENTRYPOINT(glXCreateNewContext)(dpy, fb_config, render_type, replay_share_context, direct);
+                GLReplayContextType replay_context = m_pWindow->create_new_context(replay_share_context, render_type, direct); 
+
+                if (!replay_context)
+                {
+                    if (trace_context)
+                    {
+                        process_entrypoint_error("Failed creating new GL context!\n");
+                        return cStatusHardFailure;
+                    }
+                    else
+                    {
+                        // TODO: This logic is wrong, this case is where both the traced app and the replay failed to create a context.
+                        process_entrypoint_warning("Successfully created a new GL context where the traced app failed!\n");
+                    }
+                }
+
+                if (replay_context)
+                {
+                    if (trace_context)
+                    {
+                        context_state *pContext_state = define_new_context(trace_context, replay_context, trace_share_context, direct, VOGL_ENTRYPOINT_glXCreateNewContext, NULL, 0);
+                        VOGL_NOTE_UNUSED(pContext_state);
+                    }
+                    else
+                    {
+                        m_pWindow->destroy_context(replay_context);
+                    }
+                }
+            }
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_wglCreateContext:
+        {
+            // We just force this to true for windows; it's bogus here.
+            const Bool cDirect = 1;
+
+            vogl_trace_context_ptr_value trace_context = trace_packet.get_return_ptr_value();
+            if (m_flags & cGLReplayerForceDebugContexts)
+            {
+                status = create_context_attribs(trace_context, NULL, NULL, cDirect, NULL, 0, false);
+                if (status != cStatusOK)
+                    return status;
+            }
+            else
+            {
+                GLReplayContextType replay_context = m_pWindow->create_context(NULL, cDirect);
 
                 if (!replay_context)
                 {
@@ -3854,12 +4097,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (trace_context)
                     {
-                        context_state *pContext_state = define_new_context(trace_context, replay_context, trace_share_context, direct, VOGL_ENTRYPOINT_glXCreateNewContext, NULL, 0);
+                        context_state *pContext_state = define_new_context(trace_context, replay_context, NULL, cDirect, VOGL_ENTRYPOINT_wglCreateContext, NULL, 0);
                         VOGL_NOTE_UNUSED(pContext_state);
                     }
                     else
                     {
-                        GL_ENTRYPOINT(glXDestroyContext)(m_pWindow->get_display(), replay_context);
+                        m_pWindow->destroy_context(replay_context);
                     }
                 }
             }
@@ -3868,31 +4111,26 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         }
         case VOGL_ENTRYPOINT_glXCreateContext:
         {
-            Display *dpy = m_pWindow->get_display();
-
             vogl_trace_context_ptr_value trace_share_context = trace_packet.get_param_ptr_value(2);
-            GLXContext replay_share_context = remap_context(trace_share_context);
+            GLReplayContextType replay_share_context = remap_context(trace_share_context);
 
             if ((trace_share_context) && (!replay_share_context))
             {
                 process_entrypoint_warning("Failed remapping trace sharelist context 0x%" PRIx64 "!\n", cast_val_to_uint64(trace_share_context));
             }
 
-            GLXFBConfig fb_config = m_pWindow->get_fb_configs()[0];
             Bool direct = trace_packet.get_param_value<Bool>(3);
             vogl_trace_context_ptr_value trace_context = trace_packet.get_return_ptr_value();
 
             if (m_flags & cGLReplayerForceDebugContexts)
             {
-                status = create_context_attribs(trace_context, dpy, fb_config, trace_share_context, replay_share_context, direct, NULL, 0, false);
+                status = create_context_attribs(trace_context, trace_share_context, replay_share_context, direct, NULL, 0, false);
                 if (status != cStatusOK)
                     return status;
             }
             else
             {
-                XVisualInfo *pVisual_info = GL_ENTRYPOINT(glXGetVisualFromFBConfig)(dpy, fb_config);
-
-                GLXContext replay_context = GL_ENTRYPOINT(glXCreateContext)(dpy, pVisual_info, replay_share_context, direct);
+                GLReplayContextType replay_context = m_pWindow->create_context(replay_share_context, direct);
 
                 if (!replay_context)
                 {
@@ -3916,20 +4154,38 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                     else
                     {
-                        GL_ENTRYPOINT(glXDestroyContext)(m_pWindow->get_display(), replay_context);
+                        m_pWindow->destroy_context(replay_context);
                     }
                 }
             }
 
             break;
         }
+        case VOGL_ENTRYPOINT_wglCreateContextAttribsARB:
+        {
+            vogl_trace_ptr_value trace_share_context = trace_packet.get_param_ptr_value(1);
+            GLReplayContextType replay_share_context = remap_context(trace_share_context);
+
+            if ((trace_share_context) && (!replay_share_context))
+            {
+                process_entrypoint_warning("%s: Failed remapping trace sharelist context 0x%" PRIx64 "!\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(trace_share_context));
+            }
+
+            const int *pTrace_attrib_list = static_cast<const int *>(trace_packet.get_param_client_memory_ptr(2));
+            const uint32_t trace_attrib_list_size = trace_packet.get_param_client_memory_data_size(2) / sizeof(int);
+
+            vogl_trace_ptr_value trace_context = trace_packet.get_return_ptr_value();
+
+            status = create_context_attribs(trace_context, trace_share_context, replay_share_context, true, pTrace_attrib_list, trace_attrib_list_size, true);
+            if (status != cStatusOK)
+                return status;
+
+            break;
+        }
         case VOGL_ENTRYPOINT_glXCreateContextAttribsARB:
         {
-            Display *dpy = m_pWindow->get_display();
-            GLXFBConfig fb_config = m_pWindow->get_fb_configs()[0];
-
             vogl_trace_ptr_value trace_share_context = trace_packet.get_param_ptr_value(2);
-            GLXContext replay_share_context = remap_context(trace_share_context);
+            GLReplayContextType replay_share_context = remap_context(trace_share_context);
 
             if ((trace_share_context) && (!replay_share_context))
             {
@@ -3942,12 +4198,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             vogl_trace_ptr_value trace_context = trace_packet.get_return_ptr_value();
 
-            status = create_context_attribs(trace_context, dpy, fb_config, trace_share_context, replay_share_context, direct, pTrace_attrib_list, trace_attrib_list_size, true);
+            status = create_context_attribs(trace_context, trace_share_context, replay_share_context, direct, pTrace_attrib_list, trace_attrib_list_size, true);
             if (status != cStatusOK)
                 return status;
 
             break;
         }
+        case VOGL_ENTRYPOINT_wglSwapBuffers:
         case VOGL_ENTRYPOINT_glXSwapBuffers:
         {
             check_program_binding_shadow();
@@ -3971,16 +4228,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 m_dump_frontbuffer_filename.clear();
             }
 
-            #if (VOGL_PLATFORM_HAS_GLX)
-                const Display *dpy = m_pWindow->get_display();
-                GLXDrawable drawable = m_pWindow->get_xwindow();
-
-                GL_ENTRYPOINT(glXSwapBuffers)(dpy, drawable);
-            #elif (VOGL_PLATFORM_HAS_WGL)
-                VOGL_VERIFY(!"impl vogl_gl_replayer::process_gl_entrypoint_packet_internal on Windows");
-            #else
-                #error "impl vogl_gl_replayer::process_gl_entrypoint_packet_internal on this platform"
-            #endif
+            m_pWindow->swap_buffers();
 
             if (m_swap_sleep_time)
                 vogl_sleep(m_swap_sleep_time);
@@ -4036,12 +4284,10 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         }
         case VOGL_ENTRYPOINT_glXIsDirect:
         {
-            const Display *dpy = m_pWindow->get_display();
-
             vogl_trace_ptr_value trace_context = trace_packet.get_param_ptr_value(1);
-            GLXContext replay_context = remap_context(trace_context);
+            GLReplayContextType replay_context = remap_context(trace_context);
 
-            Bool replay_is_direct = GL_ENTRYPOINT(glXIsDirect)(dpy, replay_context);
+            Bool replay_is_direct = m_pWindow->is_direct(replay_context); 
             Bool trace_is_direct = trace_packet.get_return_value<Bool>();
 
             if (replay_is_direct != trace_is_direct)
@@ -4053,7 +4299,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         }
         case VOGL_ENTRYPOINT_glXGetCurrentContext:
         {
-            GLXContext replay_context = GL_ENTRYPOINT(glXGetCurrentContext)();
+            GLReplayContextType replay_context = GL_ENTRYPOINT(glXGetCurrentContext)();
             vogl_trace_ptr_value trace_context = trace_packet.get_return_ptr_value();
 
             if ((replay_context != 0) != (trace_context != 0))
@@ -10226,10 +10472,6 @@ void vogl_gl_replayer::reset_state()
     m_cur_trace_context = 0;
     m_cur_replay_context = 0;
     m_pCur_context_state = NULL;
-
-    // Testing
-    //if (m_pWindow->is_opened())
-    //   m_pWindow->clear_window();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -10973,7 +11215,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
         vogl_message_printf("Recreating %u display lists\n", disp_lists.get_display_list_map().size());
     }
 
-    vogl_xfont_cache xfont_cache(m_pWindow->get_display());
+    #if VOGL_PLATFORM_HAS_X11
+        vogl_xfont_cache xfont_cache(m_pWindow->get_display());
+    #endif
 
     const vogl_display_list_map &disp_list_map = disp_lists.get_display_list_map();
 
@@ -10996,19 +11240,19 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
         {
             if (disp_list.is_xfont())
             {
-                XFontStruct *pXFont = xfont_cache.get_or_create(disp_list.get_xfont_name().get_ptr());
-                if (!pXFont)
-                {
-                    vogl_error_printf("Unable to load XFont \"%s\", can't recreate trace display list %u!\n", disp_list.get_xfont_name().get_ptr(), trace_handle);
-                }
-                else
-                {
-                    #if (VOGL_PLATFORM_HAS_GLX)
+                #if (VOGL_PLATFORM_HAS_X11)
+                    XFontStruct *pXFont = xfont_cache.get_or_create(disp_list.get_xfont_name().get_ptr());
+                    if (!pXFont)
+                    {
+                        vogl_error_printf("Unable to load XFont \"%s\", can't recreate trace display list %u!\n", disp_list.get_xfont_name().get_ptr(), trace_handle);
+                    }
+                    else
+                    {
                         GL_ENTRYPOINT(glXUseXFont)(pXFont->fid, disp_list.get_xfont_glyph(), 1, replay_handle);
-                    #else
-                        VOGL_ASSERT(!"impl glXUseXFont callsite");
-                    #endif
-                }
+                    }
+                #else
+                    vogl_error_printf("Cannot create display lists that use X11 Fonts on non-X11 platforms.\n");
+                #endif
             }
             else
             {
@@ -11415,12 +11659,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
 
     // TODO: This always creates with attribs, also need to support plain glXCreateContext()
 
-    Display *dpy = m_pWindow->get_display();
-    GLXFBConfig fb_config = m_pWindow->get_fb_configs()[0];
-
     vogl_trace_context_ptr_value trace_share_context = context_snapshot.get_context_desc().get_trace_share_context();
 
-    GLXContext replay_share_context = remap_context(trace_share_context);
+    GLReplayContextType replay_share_context = remap_context(trace_share_context);
     if ((trace_share_context) && (!replay_share_context))
     {
         vogl_error_printf("Failed remapping trace share context handle 0x%" PRIx64 " to replay context!\n", cast_val_to_uint64(trace_share_context));
@@ -11431,7 +11672,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
 
     vogl_trace_context_ptr_value trace_context = context_snapshot.get_context_desc().get_trace_context();
 
-    status_t status = create_context_attribs(trace_context, dpy, fb_config, trace_share_context, replay_share_context, direct,
+    status_t status = create_context_attribs(trace_context, trace_share_context, replay_share_context, direct,
                                              context_snapshot.get_context_desc().get_attribs().get_vec().get_ptr(),
                                              context_snapshot.get_context_desc().get_attribs().get_vec().size(), true);
     if (status != cStatusOK)
@@ -11450,24 +11691,14 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
             return cStatusHardFailure;
         }
 
-        GLXContext replay_context = pContext_state->m_replay_context;
+        GLReplayContextType replay_context = pContext_state->m_replay_context;
         if (!replay_context)
         {
             vogl_error_printf("Failed finding replay context current\n");
             return cStatusHardFailure;
         }
 
-        #if (VOGL_PLATFORM_HAS_GLX)
-            GLXDrawable drawable = m_pWindow->get_xwindow();
-            Bool result = GL_ENTRYPOINT(glXMakeCurrent)(dpy, drawable, replay_context);
-        #elif (VOGL_PLATFORM_HAS_WGL)
-            bool result = false;
-            VOGL_VERIFY(!"impl vogl_gl_replayer::restore_context on Windows");
-        #else
-            #error "impl vogl_gl_replayer::restore_context on this platform"
-        #endif
-            
-        if (!result)
+        if (!m_pWindow->make_current(replay_context))
         {
             vogl_error_printf("Failed making context current\n");
             return cStatusHardFailure;

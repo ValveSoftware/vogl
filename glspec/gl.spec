@@ -14766,6 +14766,7 @@ DebugMessageControlARB(source, type, severity, count, ids, enabled)
 	glxflags	ignore
 	offset		?
 
+# Valve/McJohn: Modified buf to use COMPSIZE macro to match KHR_Debug/DebugMessageInsert
 DebugMessageInsertARB(source, type, id, severity, length, buf)
 	return		void
 	param		source		GLenum in value
@@ -14773,7 +14774,7 @@ DebugMessageInsertARB(source, type, id, severity, length, buf)
 	param		id		UInt32 in value
 	param		severity	GLenum in value
 	param		length		SizeI in value
-	param		buf		Char in array [length]
+	param		buf		Char in array [COMPSIZE(buf/length)]
 	category	ARB_debug_output
 	version		4.1
 	extension
@@ -34532,13 +34533,14 @@ DebugMessageEnableAMD(category, severity, count, ids, enabled)
 	glxflags	ignore
 	offset		?
 
+# Valve/McJohn: Modified buf to use COMPSIZE macro to match KHR_Debug/DebugMessageInsert
 DebugMessageInsertAMD(category, severity, id, length, buf)
 	return		void
 	param		category	GLenum in value
 	param		severity	GLenum in value
 	param		id		UInt32 in value
 	param		length		SizeI in value
-	param		buf		Char in array [length]
+	param		buf		Char in array [COMPSIZE(buf/length)]
 	category	AMD_debug_output
 	version		4.1
 	extension

@@ -3328,6 +3328,8 @@ static inline bool vogl_func_is_nulled(gl_entrypoint_id_t id)
 
 // KHR_debug
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glDebugMessageInsert_buf(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (buf ? strlen((const char *)buf) : 0 ) : length)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glDebugMessageInsertAMD_buf(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (buf ? strlen((const char *)buf) : 0 ) : length)
+#define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glDebugMessageInsertARB_buf(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (buf ? strlen((const char *)buf) : 0 ) : length)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glPushDebugGroup_message(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (message ? strlen((const char *)message) : 0 ) : length)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glObjectLabel_label(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (label ? strlen((const char *)label) : 0 ) : length)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_FUNC_glObjectPtrLabel_label(e, c, rt, r, nu, ne, a, p) ((length < 0) ? (label ? strlen((const char *)label) : 0 ) : length)
@@ -6634,7 +6636,7 @@ static void vogl_check_for_capture_trigger_file()
 
     //----------------------------------------------------------------------------------------------------------------------
     #define DEF_FUNCTION_CUSTOM_HANDLER_wglSwapBuffers(exported, category, ret, ret_type_enum, num_params, name, args, params)
-    static BOOL vogl_wglSwapBuffers(HDC hdc)
+    static BOOL WINAPI vogl_wglSwapBuffers(HDC hdc)
     {
         uint64_t begin_rdtsc = utils::RDTSC();
 
@@ -6709,10 +6711,142 @@ static void vogl_check_for_capture_trigger_file()
 
         return result;
     }
-    
+
+    #define DEF_FUNCTION_CUSTOM_HANDLER_wglCreateContextAttribsARB(exported, category, ret, ret_type_enum, num_params, name, args, params)
+    static HGLRC WINAPI vogl_wglCreateContextAttribsARB(HDC hDC, HGLRC hShareContext, const int *attribList)
+    {
+        uint64_t begin_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_current_kernel_thread_id());
+        }
+
+        vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglCreateContextAttribsARB);
+        if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+        {
+            vogl_warning_printf("%s: GL call detected while libvogltrace was itself making a GL call to func %s! This call will not be traced.\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[pTLS_data->m_calling_driver_entrypoint_id].m_pName);
+            return GL_ENTRYPOINT(wglCreateContextAttribsARB)(hDC, hShareContext, attribList);
+        }
+
+        vogl_context_attribs context_attribs;
+
+        if (g_command_line_params().get_value_as_bool("vogl_force_debug_context"))
+        {
+            vogl_warning_printf("%s: Forcing debug context\n", VOGL_FUNCTION_INFO_CSTR);
+
+            context_attribs.init(attribList);
+            if (!context_attribs.has_key(WGL_CONTEXT_FLAGS_ARB))
+                context_attribs.add_key(WGL_CONTEXT_FLAGS_ARB, 0);
+
+            int context_flags_value_ofs = context_attribs.find_value_ofs(WGL_CONTEXT_FLAGS_ARB);
+            VOGL_ASSERT(context_flags_value_ofs >= 0);
+            if (context_flags_value_ofs >= 0)
+                context_attribs[context_flags_value_ofs] |= WGL_CONTEXT_DEBUG_BIT_ARB;
+
+            int context_major_version_ofs = context_attribs.find_value_ofs(WGL_CONTEXT_MAJOR_VERSION_ARB);
+            int context_minor_version_ofs = context_attribs.find_value_ofs(WGL_CONTEXT_MINOR_VERSION_ARB);
+
+            if (context_major_version_ofs < 0)
+            {
+                // Don't slam up if they haven't requested a specific GL version, the driver will give us the most recent version that is backwards compatible with 1.0 (i.e. 4.3 for NVidia's current dirver).
+            }
+            else if (context_attribs[context_major_version_ofs] < 3)
+            {
+                context_attribs[context_major_version_ofs] = 3;
+
+                if (context_minor_version_ofs < 0)
+                    context_attribs.add_key(WGL_CONTEXT_MINOR_VERSION_ARB, 0);
+                else
+                    context_attribs[context_minor_version_ofs] = 0;
+
+                vogl_warning_printf("%s: Forcing GL context version up to v3.0 due to debug context usage\n", VOGL_FUNCTION_INFO_CSTR);
+            }
+
+            attribList = context_attribs.get_vec().get_ptr();
+        }
+
+        uint64_t gl_begin_rdtsc = utils::RDTSC();
+        HGLRC result = GL_ENTRYPOINT(wglCreateContextAttribsARB)(hDC, hShareContext, attribList);
+        uint64_t gl_end_rdtsc = utils::RDTSC();
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_log_printf("** wglCreateContextAttribsARB TID: 0x%" PRIX64 " hDC: 0x%" PRIX64 " hShareContext: 0x%" PRIX64 " attribList: 0x%" PRIX64 ", result: 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id(), cast_val_to_uint64(hDC), cast_val_to_uint64(hShareContext), cast_val_to_uint64(attribList), cast_val_to_uint64(result));
+        }
+
+        vogl_context_manager &context_manager = get_context_manager();
+
+        if (get_vogl_trace_writer().is_opened())
+        {
+            vogl_entrypoint_serializer serializer(VOGL_ENTRYPOINT_wglCreateContextAttribsARB, context_manager.get_current(true));
+            serializer.set_begin_rdtsc(begin_rdtsc);
+            serializer.set_gl_begin_end_rdtsc(gl_begin_rdtsc, gl_end_rdtsc);
+            serializer.add_param(0, VOGL_HDC, &hDC, sizeof(hDC));
+            serializer.add_param(1, VOGL_HGLRC, &hShareContext, sizeof(hShareContext));
+            serializer.add_param(2, VOGL_CONST_INT_PTR, &attribList, sizeof(attribList));
+            if (attribList)
+            {
+                uint32_t n = vogl_determine_attrib_list_array_size(attribList);
+                serializer.add_array_client_memory(2, VOGL_INT, n, attribList, sizeof(int) * n);
+            }
+            serializer.add_return_param(VOGL_HGLRC, &result, sizeof(result));
+            serializer.end();
+            vogl_write_packet_to_trace(serializer.get_packet());
+        }
+
+        if (result)
+        {
+            if (hShareContext)
+            {
+                if (!g_app_uses_sharelists)
+                    vogl_message_printf("%s: sharelist usage detected\n", VOGL_FUNCTION_INFO_CSTR);
+
+                g_app_uses_sharelists = true;
+            }
+
+            context_manager.lock();
+
+            vogl_context *pVOGL_context = context_manager.create_context(result);
+            pVOGL_context->set_hdc(hDC);
+            pVOGL_context->set_sharelist_handle(hShareContext);
+            pVOGL_context->set_attrib_list(attribList);
+            pVOGL_context->set_created_from_attribs(true);
+            pVOGL_context->set_creation_func(VOGL_ENTRYPOINT_wglCreateContextAttribsARB);
+
+            if (hShareContext)
+            {
+                vogl_context *pShare_context = context_manager.lookup_vogl_context(hShareContext);
+
+                if (!pShare_context)
+                    vogl_error_printf("%s: Failed finding share context 0x%" PRIx64 " in context manager's hashmap! This handle is probably invalid.\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(hShareContext));
+                else
+                {
+                    while (!pShare_context->is_root_context())
+                        pShare_context = pShare_context->get_shared_state();
+
+                    pVOGL_context->set_shared_context(pShare_context);
+
+                    pShare_context->add_ref();
+                }
+            }
+
+            pVOGL_context->init();
+
+            context_manager.unlock();
+        }
+
+        if (g_dump_gl_calls_flag)
+        {
+            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_current_kernel_thread_id());
+        }
+
+        return result;
+    }
+
     //----------------------------------------------------------------------------------------------------------------------
     #define DEF_FUNCTION_CUSTOM_HANDLER_wglCreateContext(exported, category, ret, ret_type_enum, num_params, name, args, params)
-    static HGLRC vogl_wglCreateContext(HDC hdc)
+    static HGLRC WINAPI vogl_wglCreateContext(HDC hdc)
     {
         uint64_t begin_rdtsc = utils::RDTSC();
 
@@ -6783,7 +6917,7 @@ static void vogl_check_for_capture_trigger_file()
 
     //----------------------------------------------------------------------------------------------------------------------
     #define DEF_FUNCTION_CUSTOM_HANDLER_wglShareLists(exported, category, ret, ret_type_enum, num_params, name, args, params)
-    static BOOL vogl_wglShareLists(HGLRC hglrc1, HGLRC hglrc2)
+    static BOOL WINAPI vogl_wglShareLists(HGLRC hglrc1, HGLRC hglrc2)
     {
         uint64_t begin_rdtsc = utils::RDTSC();
 
