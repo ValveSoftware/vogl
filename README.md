@@ -49,7 +49,7 @@ We are currently working on making it much easier to launch and profile Steam ap
 ## Replay ##
 
 ```
-./voglreplay64 vogltrace.glxspheres64.bin
+./voglreplay64 play vogltrace.glxspheres64.bin
 ```
 
 or launch `vogleditor64` and open trace file.

@@ -466,7 +466,7 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
         }
         else
         {
-            console::error("%s: Unrecognized pname func \"%s\" in pname table\n", VOGL_FUNCTION_INFO_CSTR, pname_def.m_pFuncs);
+            vogl_error_printf("Unrecognized pname func \"%s\" in pname table\n", pname_def.m_pFuncs);
         }
     }
 
@@ -534,7 +534,7 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
                         break;
                     default:
                     {
-                        console::error("%s: GL_CULL_FACE_MODE is 0x%X, which is not valid! Forcing it to GL_BACK.\n", VOGL_FUNCTION_INFO_CSTR, *p);
+                        vogl_error_printf("GL_CULL_FACE_MODE is 0x%X, which is not valid! Forcing it to GL_BACK.\n", *p);
                         *p = GL_BACK;
                         break;
                     }
@@ -605,7 +605,7 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
                     int handle = *p;
                     if (handle < 0)
                     {
-                        vogl_error_printf("%s: Driver has returned a negative handle (%i) for state %s, slamming it to 0!\n", VOGL_FUNCTION_INFO_CSTR, handle, pname_def.m_pName);
+                        vogl_error_printf("Driver has returned a negative handle (%i) for state %s, slamming it to 0!\n", handle, pname_def.m_pName);
                         *p = 0;
                     }
                     else if (handle > 0xFFFF)
@@ -613,12 +613,12 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
                         // We know this pname is unreliable on AMD right now.
                         if (enum_val == GL_DRAW_INDIRECT_BUFFER_BINDING)
                         {
-                            vogl_error_printf("%s: Driver has returned a probably bogus handle (%i) for state %s, slamming it to 0!\n", VOGL_FUNCTION_INFO_CSTR, handle, pname_def.m_pName);
+                            vogl_error_printf("Driver has returned a probably bogus handle (%i) for state %s, slamming it to 0!\n", handle, pname_def.m_pName);
                             *p = 0;
                         }
                         else
                         {
-                            vogl_warning_printf("%s: Driver has returned a potentially bogus handle (%i) for state %s!\n", VOGL_FUNCTION_INFO_CSTR, handle, pname_def.m_pName);
+                            vogl_warning_printf("Driver has returned a potentially bogus handle (%i) for state %s!\n", handle, pname_def.m_pName);
                         }
                     }
                     break;
@@ -722,7 +722,7 @@ bool vogl_general_context_state::snapshot_state(const vogl_context_info &context
     trial_state_data.debug_check();
 
     if (!insert(trial_state_data))
-        vogl_warning_printf("%s: vogl_state_vector::deserialize: Ignoring duplicate state 0x%X index %u\n", VOGL_FUNCTION_INFO_CSTR, trial_state_data.get_enum_val(), trial_state_data.get_index());
+        vogl_warning_printf("vogl_state_vector::deserialize: Ignoring duplicate state 0x%X index %u\n", trial_state_data.get_enum_val(), trial_state_data.get_index());
 
     return true;
 }
@@ -1203,7 +1203,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 }
                 default:
                 {
-                    vogl_debug_printf("%s: FIXME: Don't know how to hande boolean GLenum 0x%04X %s\n", VOGL_FUNCTION_INFO_CSTR, enum_val, get_gl_enums().find_name(enum_val));
+                    vogl_debug_printf("FIXME: Don't know how to hande boolean GLenum 0x%04X %s\n", enum_val, get_gl_enums().find_name(enum_val));
                     break;
                 }
             }
@@ -2224,14 +2224,14 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     int attrib_stack_depth;
     if (get(GL_ATTRIB_STACK_DEPTH, 0, &attrib_stack_depth) && attrib_stack_depth)
     {
-        vogl_warning_printf("%s: Attribute stack is not empty and cannot be restored\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_warning_printf("Attribute stack is not empty and cannot be restored\n");
         ADD_PROCESSED_STATE(GL_ATTRIB_STACK_DEPTH, 0);
     }
 
     int client_attrib_stack_depth;
     if (get(GL_CLIENT_ATTRIB_STACK_DEPTH, 0, &client_attrib_stack_depth) && client_attrib_stack_depth)
     {
-        vogl_warning_printf("%s: Client attribute stack is not empty and cannot be restored\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_warning_printf("Client attribute stack is not empty and cannot be restored\n");
         ADD_PROCESSED_STATE(GL_CLIENT_ATTRIB_STACK_DEPTH, 0);
     }
 
@@ -2240,7 +2240,7 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     {
         if ((!persistent_state.m_pSelect_buffer) || (!persistent_state.m_pSelect_buffer->try_resize(selection_buffer_size)))
         {
-            vogl_warning_printf("%s: Unable to restore selection buffer\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_warning_printf("Unable to restore selection buffer\n");
         }
         else
         {
@@ -2807,7 +2807,7 @@ bool vogl_polygon_stipple_state::deserialize(const json_node &node, const vogl_b
     }
     else
     {
-        vogl_warning_printf("%s: Polygon stipple data is not valid in this older trace file so it's being ignored - please recapture (sorry)\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_warning_printf("Polygon stipple data is not valid in this older trace file so it's being ignored - please recapture (sorry)\n");
     }
 
     m_valid = true;

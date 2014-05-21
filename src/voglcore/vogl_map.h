@@ -1114,14 +1114,14 @@ namespace vogl
         {
             m_pHead->check_head_debug_marker();
 
-            console::debug("map 0x%p: Size: %u elements, Max possible level: %u, Cur max level: %u, Cur level: %u\n",
+            vogl_debug_printf("map 0x%p: Size: %u elements, Max possible level: %u, Cur max level: %u, Cur level: %u\n",
                            this, m_size, cMaxLevels - 1, m_max_level, m_cur_level);
-            console::debug("  Bump max level size: %u\n", m_bump_max_level_size_thresh);
-            console::debug("  Key size: %u bytes, Value size: %u bytes, KeyValue size: %u bytes, Min element size: %u bytes\n", (uint32_t)sizeof(Key), (uint32_t)sizeof(Value), (uint32_t)sizeof(value_type), (uint32_t)sizeof(node_type));
-            console::debug("  Total allocated: %" PRIu64 " bytes, Avg allocated per element: %f bytes, Avg overhead: %f bytes\n", m_total_allocated,
+            vogl_debug_printf("  Bump max level size: %u\n", m_bump_max_level_size_thresh);
+            vogl_debug_printf("  Key size: %u bytes, Value size: %u bytes, KeyValue size: %u bytes, Min element size: %u bytes\n", (uint32_t)sizeof(Key), (uint32_t)sizeof(Value), (uint32_t)sizeof(value_type), (uint32_t)sizeof(node_type));
+            vogl_debug_printf("  Total allocated: %" PRIu64 " bytes, Avg allocated per element: %f bytes, Avg overhead: %f bytes\n", m_total_allocated,
                            m_size ? m_total_allocated / (double)m_size : 0,
                            m_size ? (m_total_allocated / (double)m_size) - sizeof(value_type) : 0);
-            console::debug("  Max element size: %u bytes\n", (uint32_t)(sizeof(node_type) + sizeof(void *) * m_max_level));
+            vogl_debug_printf("  Max element size: %u bytes\n", (uint32_t)(sizeof(node_type) + sizeof(void *) * m_max_level));
 
             for (uint32_t level = 0; level <= m_max_level; level++)
             {
@@ -1147,7 +1147,7 @@ namespace vogl
                 }
 
                 float prob = VOGL_MAP_USE_POINT_25_PROB ? (1.0f / 4.0f) : (1.0f / 2.0f);
-                console::debug("  Level %u: Total: %u (Expected: %f), At this level: %u (Expected: %f), Alloc bytes at this level: %" PRIi64 ", Avg alloc bytes at this level: %f\n",
+                vogl_debug_printf("  Level %u: Total: %u (Expected: %f), At this level: %u (Expected: %f), Alloc bytes at this level: %" PRIi64 ", Avg alloc bytes at this level: %f\n",
                                level, n, m_size * pow(prob, level),
                                total_count_at_this_level, m_size * pow(prob, level) * ((level == m_max_level) ? 1.0f : (1.0f - prob)),
                                total_size_at_this_level,

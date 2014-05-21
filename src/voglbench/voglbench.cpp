@@ -26,9 +26,6 @@
 // File: voglbench.cpp
 #include "vogl_common.h"
 #include "vogl_gl_replayer.h"
-#include "vogl_texture_format.h"
-#include "vogl_trace_file_writer.h"
-
 #include "vogl_colorized_console.h"
 #include "vogl_command_line_params.h"
 #include "vogl_cfile_stream.h"
@@ -74,27 +71,28 @@ static cfile_stream *g_vogl_pLog_stream;
 // command line params
 //----------------------------------------------------------------------------------------------------------------------
 static command_line_param_desc g_command_line_param_descs[] =
-    {
-        { "width", 1, false, "Replay: Set initial window width (default is 1024)" },
-        { "height", 1, false, "Replay: Set initial window height (default is 768)" },
-        { "msaa", 1, false, "Replay: Set initial window multisamples (default is 0)" },
-        { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
-        { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
-        { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
+{
+    { "width", 1, false, "Replay: Set initial window width (default is 1024)" },
+    { "height", 1, false, "Replay: Set initial window height (default is 768)" },
+    { "msaa", 1, false, "Replay: Set initial window multisamples (default is 0)" },
+    { "lock_window_dimensions", 0, false, "Replay: Don't automatically change window's dimensions during replay" },
+    { "endless", 0, false, "Replay: Loop replay endlessly instead of exiting" },
+    { "force_debug_context", 0, false, "Replay: Force GL debug contexts" },
 #ifdef USE_TELEMETRY
-        { "telemetry_level", 1, false, "Set Telemetry level." },
+    { "telemetry_level", 1, false, "Set Telemetry level." },
 #endif
-        { "loop_frame", 1, false, "Replay: loop mode's start frame" },
-        { "loop_len", 1, false, "Replay: loop mode's loop length" },
-        { "loop_count", 1, false, "Replay: loop mode's loop count" },
-        { "logfile", 1, false, "Create logfile" },
-        { "logfile_append", 1, false, "Append output to logfile" },
-        { "help", 0, false, "Display this help" },
-        { "?", 0, false, "Display this help" },
-        { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
-        { "verbose", 0, false, "Verbose debug output" },
-        { "quiet", 0, false, "Disable all console output" },
-    };
+    { "loop_frame", 1, false, "Replay: loop mode's start frame" },
+    { "loop_len", 1, false, "Replay: loop mode's loop length" },
+    { "loop_count", 1, false, "Replay: loop mode's loop count" },
+    { "logfile", 1, false, "Create logfile" },
+    { "logfile_append", 1, false, "Append output to logfile" },
+    { "help", 0, false, "Display this help" },
+    { "?", 0, false, "Display this help" },
+    { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
+    { "quiet", 0, false, "Disable warning, verbose, and debug output" },
+    { "verbose", 0, false, "Enable verbose output" },
+    { "debug", 0, false, "Enable verbose debug information" },
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // init_logfile
@@ -115,7 +113,7 @@ static bool init_logfile()
 
     if (!g_vogl_pLog_stream->open(filename.get_ptr(), cDataStreamWritable, !log_file_append.is_empty()))
     {
-        vogl_error_printf("%s: Failed opening log file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, filename.get_ptr());
+        vogl_error_printf("Failed opening log file \"%s\"\n", filename.get_ptr());
         return false;
     }
     else
@@ -175,7 +173,7 @@ static bool init_command_line_params(int argc, char *argv[])
 
     if (!g_command_line_params().parse(get_command_line_params(argc, argv), VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
     {
-        vogl_error_printf("%s: Failed parsing command line parameters!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed parsing command line parameters!\n");
         return false;
     }
 
@@ -201,7 +199,7 @@ static bool load_gl()
     g_actual_libgl_module_handle = plat_load_system_gl(PLAT_RTLD_LAZY);
     if (!g_actual_libgl_module_handle)
     {
-        vogl_error_printf("%s: Failed loading libGL.so.1!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed loading %s!\n", plat_get_system_gl_module_name());
         return false;
     }
 
@@ -209,14 +207,14 @@ static bool load_gl()
         GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
         if (!GL_ENTRYPOINT(glXGetProcAddress))
         {
-            vogl_error_printf("%s: Failed getting address of glXGetProcAddress() from %s!\n", VOGL_FUNCTION_INFO_CSTR, plat_get_system_gl_module_name());
+            vogl_error_printf("Failed getting address of glXGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
             return false;
         }
     #elif VOGL_PLATFORM_HAS_WGL
         GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
         if (!GL_ENTRYPOINT(wglGetProcAddress))
         {
-            vogl_error_printf("%s: Failed getting address of wglGetProcAddress() from %s!\n", VOGL_FUNCTION_INFO_CSTR, plat_get_system_gl_module_name());
+            vogl_error_printf("Failed getting address of wglGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
             return false;
         }
     #else
@@ -299,7 +297,11 @@ static bool voglbench_init(int argc, char *argv[])
     vogl_common_lib_global_init();
 
     if (g_command_line_params().get_value_as_bool("quiet"))
-        console::disable_output();
+        console::set_output_level(cMsgError);
+    else if (g_command_line_params().get_value_as_bool("debug"))
+        console::set_output_level(cMsgDebug);
+    else if (g_command_line_params().get_value_as_bool("verbose"))
+        console::set_output_level(cMsgVerbose);
 
     if (g_command_line_params().get_value_as_bool("gl_debug_log"))
     {
@@ -342,7 +344,7 @@ static void voglbench_deinit()
         XFlush(display);
         if (XEventsQueued(display, QueuedAlready))
         {
-            return (1);
+            return 1;
         }
 
         /* More drastic measures are required -- see if X is ready to talk */
@@ -361,7 +363,7 @@ static void voglbench_deinit()
         }
 
         /* Oh well, nothing is ready .. */
-        return (0);
+        return 0;
     }
 #endif
 
@@ -404,7 +406,7 @@ static uint get_replayer_flags_from_command_line_params()
         dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
         if (trace_filename.is_empty())
         {
-            vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("No trace file specified!\n");
             return false;
         }
 
@@ -419,7 +421,7 @@ static uint get_replayer_flags_from_command_line_params()
 
         if (!pTrace_reader.get())
         {
-            vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, trace_filename.get_ptr());
+            vogl_error_printf("File not found, or unable to determine file type of trace file \"%s\"\n", trace_filename.get_ptr());
             return false;
         }
 
@@ -440,13 +442,13 @@ static uint get_replayer_flags_from_command_line_params()
         // Also, this design only supports a single window, which is going to be a problem with multiple window traces.
         if (!window.open(g_command_line_params().get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params().get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params().get_value_as_int("msaa", 0, 0, 0, 65535)))
         {
-            vogl_error_printf("%s: Failed initializing replay window\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed initializing replay window\n");
             return false;
         }
 
         if (!replayer.init(replayer_flags, &window, pTrace_reader->get_sof_packet(), pTrace_reader->get_multi_blob_manager()))
         {
-            vogl_error_printf("%s: Failed initializing GL replayer\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed initializing GL replayer\n");
             return false;
         }
 
@@ -522,7 +524,7 @@ static uint get_replayer_flags_from_command_line_params()
             {
                 if ((!pSnapshot) && (loop_frame != -1) && (static_cast<int64_t>(replayer.get_frame_index()) == loop_frame))
                 {
-                    vogl_debug_printf("%s: Capturing replayer state at start of frame %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
+                    vogl_debug_printf("Capturing replayer state at start of frame %u\n", replayer.get_frame_index());
 
                     pSnapshot = replayer.snapshot_state();
 
@@ -533,7 +535,7 @@ static uint get_replayer_flags_from_command_line_params()
                         snapshot_loop_start_frame = pTrace_reader->get_cur_frame();
                         snapshot_loop_end_frame = pTrace_reader->get_cur_frame() + loop_len;
 
-                        vogl_debug_printf("%s: Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, snapshot_loop_start_frame, snapshot_loop_end_frame);
+                        vogl_debug_printf("Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", snapshot_loop_start_frame, snapshot_loop_end_frame);
                     }
                     else
                     {
@@ -565,7 +567,7 @@ static uint get_replayer_flags_from_command_line_params()
 
             if (status == vogl_gl_replayer::cStatusAtEOF)
             {
-                vogl_message_printf("%s: At trace EOF, frame index %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
+                vogl_message_printf("At trace EOF, frame index %u\n", replayer.get_frame_index());
             }
 
             if (replayer.get_at_frame_boundary() &&
@@ -579,7 +581,7 @@ static uint get_replayer_flags_from_command_line_params()
 
                 pTrace_reader->seek_to_frame(static_cast<uint>(snapshot_loop_start_frame));
 
-                vogl_debug_printf("%s: Applying snapshot and seeking back to frame %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, snapshot_loop_start_frame);
+                vogl_debug_printf("Applying snapshot and seeking back to frame %" PRIi64 "\n", snapshot_loop_start_frame);
                 loop_count--;
             }
             else
@@ -616,7 +618,7 @@ static uint get_replayer_flags_from_command_line_params()
 
                     if (!pTrace_reader->seek_to_frame(0))
                     {
-                        vogl_error_printf("%s: Failed rewinding trace reader!\n", VOGL_FUNCTION_INFO_CSTR);
+                        vogl_error_printf("Failed rewinding trace reader!\n");
                         goto error_exit;
                     }
                 }
@@ -643,7 +645,7 @@ static uint get_replayer_flags_from_command_line_params()
         dynamic_string trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
         if (trace_filename.is_empty())
         {
-            vogl_error_printf("%s: No trace file specified!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("No trace file specified!\n");
             return false;
         }
 
@@ -654,7 +656,7 @@ static uint get_replayer_flags_from_command_line_params()
                     g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
         if (!pTrace_reader.get())
         {
-            vogl_error_printf("%s: File not found, or unable to determine file type of trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, trace_filename.get_ptr());
+            vogl_error_printf("File not found, or unable to determine file type of trace file \"%s\"\n", trace_filename.get_ptr());
             return false;
         }
 
@@ -670,13 +672,13 @@ static uint get_replayer_flags_from_command_line_params()
         // Also, this design only supports a single window, which is going to be a problem with multiple window traces.
         if (!window.open(g_command_line_params().get_value_as_int("width", 0, 1024, 1, 65535), g_command_line_params().get_value_as_int("height", 0, 768, 1, 65535), g_command_line_params().get_value_as_int("msaa", 0, 0, 0, 65535)))
         {
-            vogl_error_printf("%s: Failed initializing replay window\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed initializing replay window\n");
             return false;
         }
 
         if (!replayer.init(replayer_flags, &window, pTrace_reader->get_sof_packet(), pTrace_reader->get_multi_blob_manager()))
         {
-            vogl_error_printf("%s: Failed initializing GL replayer\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed initializing GL replayer\n");
             return false;
         }
 
@@ -805,7 +807,7 @@ static uint get_replayer_flags_from_command_line_params()
             {
                 if ((!pSnapshot) && (loop_frame != -1) && (static_cast<int64_t>(replayer.get_frame_index()) == loop_frame))
                 {
-                    vogl_debug_printf("%s: Capturing replayer state at start of frame %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
+                    vogl_debug_printf("Capturing replayer state at start of frame %u\n", replayer.get_frame_index());
 
                     pSnapshot = replayer.snapshot_state();
 
@@ -816,7 +818,7 @@ static uint get_replayer_flags_from_command_line_params()
                         snapshot_loop_start_frame = pTrace_reader->get_cur_frame();
                         snapshot_loop_end_frame = pTrace_reader->get_cur_frame() + loop_len;
 
-                        vogl_debug_printf("%s: Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, snapshot_loop_start_frame, snapshot_loop_end_frame);
+                        vogl_debug_printf("Loop start: %" PRIi64 " Loop end: %" PRIi64 "\n", snapshot_loop_start_frame, snapshot_loop_end_frame);
                     }
                     else
                     {
@@ -848,7 +850,7 @@ static uint get_replayer_flags_from_command_line_params()
 
             if (status == vogl_gl_replayer::cStatusAtEOF)
             {
-                vogl_message_printf("%s: At trace EOF, frame index %u\n", VOGL_FUNCTION_INFO_CSTR, replayer.get_frame_index());
+                vogl_message_printf("At trace EOF, frame index %u\n", replayer.get_frame_index());
             }
 
             if (replayer.get_at_frame_boundary() &&
@@ -862,7 +864,7 @@ static uint get_replayer_flags_from_command_line_params()
 
                 pTrace_reader->seek_to_frame(static_cast<uint>(snapshot_loop_start_frame));
 
-                vogl_debug_printf("%s: Applying snapshot and seeking back to frame %" PRIi64 "\n", VOGL_FUNCTION_INFO_CSTR, snapshot_loop_start_frame);
+                vogl_debug_printf("Applying snapshot and seeking back to frame %" PRIi64 "\n", snapshot_loop_start_frame);
                 loop_count--;
             }
             else
@@ -899,7 +901,7 @@ static uint get_replayer_flags_from_command_line_params()
 
                     if (!pTrace_reader->seek_to_frame(0))
                     {
-                        vogl_error_printf("%s: Failed rewinding trace reader!\n", VOGL_FUNCTION_INFO_CSTR);
+                        vogl_error_printf("Failed rewinding trace reader!\n");
                         goto error_exit;
                     }
                 }
@@ -978,8 +980,8 @@ int main(int argc, char *argv[])
     bool success = tool_replay_mode();
 
     vogl_printf("%u warning(s), %u error(s)\n",
-                    console::get_total_messages(cWarningConsoleMessage),
-                    console::get_total_messages(cErrorConsoleMessage));
+                    console::get_total_messages(cMsgWarning),
+                    console::get_total_messages(cMsgError));
 
     voglbench_deinit();
 

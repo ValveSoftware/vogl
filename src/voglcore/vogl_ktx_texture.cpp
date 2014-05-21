@@ -413,7 +413,7 @@ namespace vogl
             if ((!m_header.m_glInternalFormat) && (!m_header.m_glType) && (!m_header.m_glTypeSize) && (!m_header.m_glBaseInternalFormat))
             {
                 // PVRTexTool writes bogus headers when outputting ETC1.
-                console::warning("ktx_texture::compute_pixel_info: Header doesn't specify any format, assuming ETC1 and hoping for the best\n");
+                vogl_warning_printf("ktx_texture::compute_pixel_info: Header doesn't specify any format, assuming ETC1 and hoping for the best\n");
                 m_header.m_glBaseInternalFormat = KTX_RGB;
                 m_header.m_glInternalFormat = KTX_ETC1_RGB8_OES;
                 m_header.m_glTypeSize = 1;
@@ -544,7 +544,7 @@ namespace vogl
             {
                 has_valid_image_size_fields = false;
                 disable_mip_and_cubemap_padding = true;
-                console::warning("ktx_texture::read_from_stream: KTX file size is smaller than expected - trying to read anyway without imageSize fields\n");
+                vogl_warning_printf("ktx_texture::read_from_stream: KTX file size is smaller than expected - trying to read anyway without imageSize fields\n");
             }
         }
 #endif

@@ -131,7 +131,7 @@ bool vogl_handle_tracker::update(handle_t handle, handle_t inv_handle, GLenum ta
         handle_def &def = m_handles.get_or_create_element(handle);
 
         if ((def.get_target() != GL_NONE) && (target != def.get_target()))
-            vogl_debug_printf("%s: Object target is being changed from %s to %s, handle %u inv handle %u, namespace %s\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(def.get_target()), get_gl_enums().find_gl_name(target), def.get_handle(), def.get_inv_handle(), vogl_get_namespace_name(m_namespace));
+            vogl_debug_printf("Object target is being changed from %s to %s, handle %u inv handle %u, namespace %s\n", get_gl_enums().find_gl_name(def.get_target()), get_gl_enums().find_gl_name(target), def.get_handle(), def.get_inv_handle(), vogl_get_namespace_name(m_namespace));
 
         def.set_target(target);
         return true;
@@ -152,7 +152,7 @@ bool vogl_handle_tracker::update_inv(handle_t inv_handle, handle_t handle, GLenu
         handle_def &def = m_handles.get_or_create_element(actual_handle);
 
         if ((def.get_target() != GL_NONE) && (target != def.get_target()))
-            vogl_debug_printf("%s: Object target is being changed from %s to %s, handle %u inv handle %u, namespace %s\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(def.get_target()), get_gl_enums().find_gl_name(target), def.get_handle(), def.get_inv_handle(), vogl_get_namespace_name(m_namespace));
+            vogl_debug_printf("Object target is being changed from %s to %s, handle %u inv handle %u, namespace %s\n", get_gl_enums().find_gl_name(def.get_target()), get_gl_enums().find_gl_name(target), def.get_handle(), def.get_inv_handle(), vogl_get_namespace_name(m_namespace));
 
         def.set_target(target);
 

@@ -32,6 +32,7 @@ set(SRC_LIST
     replay_tool_find.cpp
     replay_tool_compare_hash.cpp
     replay_tool_replay.cpp
+    replay_tool_syms.cpp
 #    vogl_remote.cpp
 #    ../common/channel.cpp
 )
@@ -43,6 +44,7 @@ add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
 target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
+    ${LibBackTrace_LIBRARY}
     voglcommon
     ${CMAKE_DL_LIBS}
     ${X11_X11_LIB}

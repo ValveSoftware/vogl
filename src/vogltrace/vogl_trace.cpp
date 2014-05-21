@@ -64,95 +64,98 @@ bool g_vogl_initializing_flag = false;
 // dlopen interceptor
 //----------------------------------------------------------------------------------------------------------------------
 #if defined(PLATFORM_LINUX)
-    typedef void *(*dlopen_func_ptr_t)(const char *pFile, int mode);
-    VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
+
+typedef void *(*dlopen_func_ptr_t)(const char *pFile, int mode);
+VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
+{
+    static dlopen_func_ptr_t s_pActual_dlopen = (dlopen_func_ptr_t)dlsym(RTLD_NEXT, "dlopen");
+    if (!s_pActual_dlopen)
+        return NULL;
+
+    printf("(vogltrace) dlopen: %s %i\n", pFile ? pFile : "(nullptr)", mode);
+
+    // Only redirect libGL.so when it comes from the app, NOT the driver or one of its associated helpers.
+    // This is definitely fragile as all fuck.
+    if (!g_vogl_initializing_flag)
     {
-        static dlopen_func_ptr_t s_pActual_dlopen = (dlopen_func_ptr_t)dlsym(RTLD_NEXT, "dlopen");
-        if (!s_pActual_dlopen)
-            return NULL;
-
-        printf("(vogltrace) dlopen: %s %i\n", pFile ? pFile : "(nullptr)", mode);
-
-        // Only redirect libGL.so when it comes from the app, NOT the driver or one of its associated helpers.
-        // This is definitely fragile as all fuck.
-        if (!g_vogl_initializing_flag)
+        if (pFile && (strstr(pFile, "libGL.so") != NULL))
         {
-            if (pFile && (strstr(pFile, "libGL.so") != NULL))
+            const char *calling_module = btrace_get_calling_module();
+            bool should_redirect = !strstr(calling_module, "fglrx");
+
+            if (should_redirect)
             {
-                const char *calling_module = btrace_get_calling_module();
-                bool should_redirect = !strstr(calling_module, "fglrx");
-
-                if (should_redirect)
-                {
-                    pFile = btrace_get_current_module();
-                    printf("(vogltrace) redirecting dlopen to %s\n", pFile);
-                }
-                else
-                {
-                    printf("(vogltrace) NOT redirecting dlopen to %s, this dlopen() call appears to be coming from the driver\n", pFile);
-                }
-
-                printf("------------\n");
+                pFile = btrace_get_current_module();
+                printf("(vogltrace) redirecting dlopen to %s\n", pFile);
             }
+            else
+            {
+                printf("(vogltrace) NOT redirecting dlopen to %s, this dlopen() call appears to be coming from the driver\n", pFile);
+            }
+
+            printf("------------\n");
         }
-
-        // Check if this module is already loaded.
-        void *is_loaded = (*s_pActual_dlopen)(pFile, RTLD_NOLOAD);
-        // Call the real dlopen().
-        void *dlopen_ret = (*s_pActual_dlopen)(pFile, mode);
-
-        // Only call btrace routines after vogl has been initialized. Otherwise we get
-        //  called before memory routines have been set up, etc. and possibly crash.
-        if (g_vogl_has_been_initialized)
-        {
-            // If this file hadn't been loaded before, notify btrace.
-            if (!is_loaded && dlopen_ret)
-                btrace_dlopen_notify(pFile);
-        }
-
-        return dlopen_ret;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------
-    // Intercept _exit() so we get a final chance to flush our trace/log files
-    //----------------------------------------------------------------------------------------------------------------------
-    typedef void (*exit_func_ptr_t)(int status);
-    VOGL_API_EXPORT VOGL_NORETURN void _exit(int status)
+    // Check if this module is already loaded.
+    void *is_loaded = (*s_pActual_dlopen)(pFile, RTLD_NOLOAD);
+    // Call the real dlopen().
+    void *dlopen_ret = (*s_pActual_dlopen)(pFile, mode);
+
+    // Only call btrace routines after vogl has been initialized. Otherwise we get
+    //  called before memory routines have been set up, etc. and possibly crash.
+    if (g_vogl_has_been_initialized)
     {
-        static exit_func_ptr_t s_pActual_exit = (exit_func_ptr_t)dlsym(RTLD_NEXT, "_exit");
-
-        vogl_deinit();
-
-        if (s_pActual_exit)
-            (*s_pActual_exit)(status);
-
-        raise(SIGKILL);
-
-        // to shut up compiler about this func marked as noreturn
-        for (;;)
-            ;
+        // If this file hadn't been loaded before, notify btrace.
+        if (!is_loaded && dlopen_ret)
+            btrace_dlopen_notify(pFile);
     }
 
-    //----------------------------------------------------------------------------------------------------------------------
-    // Intercept _exit() so we get a final chance to flush our trace/log files
-    //----------------------------------------------------------------------------------------------------------------------
-    typedef void (*Exit_func_ptr_t)(int status);
-    VOGL_API_EXPORT VOGL_NORETURN void _Exit(int status)
-    {
-        static Exit_func_ptr_t s_pActual_Exit = (Exit_func_ptr_t)dlsym(RTLD_NEXT, "_Exit");
+    return dlopen_ret;
+}
 
-        vogl_deinit();
+//----------------------------------------------------------------------------------------------------------------------
+// Intercept _exit() so we get a final chance to flush our trace/log files
+//----------------------------------------------------------------------------------------------------------------------
+typedef void (*exit_func_ptr_t)(int status);
+VOGL_API_EXPORT VOGL_NORETURN void _exit(int status)
+{
+    static exit_func_ptr_t s_pActual_exit = (exit_func_ptr_t)dlsym(RTLD_NEXT, "_exit");
 
-        if (s_pActual_Exit)
-            (*s_pActual_Exit)(status);
+    vogl_deinit();
 
-        raise(SIGKILL);
+    if (s_pActual_exit)
+        (*s_pActual_exit)(status);
 
-        // to shut up compiler about this func marked as noreturn
-        for (;;)
-            ;
-    }
-#endif
+    raise(SIGKILL);
+
+    // to shut up compiler about this func marked as noreturn
+    for (;;)
+        ;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// Intercept _exit() so we get a final chance to flush our trace/log files
+//----------------------------------------------------------------------------------------------------------------------
+typedef void (*Exit_func_ptr_t)(int status);
+VOGL_API_EXPORT VOGL_NORETURN void _Exit(int status)
+{
+    static Exit_func_ptr_t s_pActual_Exit = (Exit_func_ptr_t)dlsym(RTLD_NEXT, "_Exit");
+
+    vogl_deinit();
+
+    if (s_pActual_Exit)
+        (*s_pActual_Exit)(status);
+
+    raise(SIGKILL);
+
+    // to shut up compiler about this func marked as noreturn
+    for (;;)
+        ;
+}
+
+#endif // defined(PLATFORM_LINUX)
+
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_glInternalTraceCommandRAD_dummy_func
 //----------------------------------------------------------------------------------------------------------------------
@@ -204,7 +207,7 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
         {
             // This shouldn't ever happen hopefully. Ie, our atexit() handler or exit() hooks should call vogl_deinit()
             //  well before this destructor is called.
-            vogl_warning_printf_once("ERROR: %s called with open trace file. Somehow vogl_deinit() hasn't been called?", VOGL_FUNCTION_INFO_CSTR);
+            vogl_warning_printf_once("ERROR: Called with open trace file. Somehow vogl_deinit() hasn't been called?");
 
             // Try to do vogl_deinit().
             vogl_deinit();

@@ -393,7 +393,8 @@ static void check(const char *pFile_line)
 
 #endif // #ifdef VOGL_USE_STB_MALLOC
 
-VOGL_NAMESPACE_BEGIN(vogl)
+namespace vogl
+{
 
 void vogl_init_heap()
 {
@@ -619,7 +620,7 @@ void vogl_tracked_check_heap(const char *pFile_line)
 #endif
 }
 
-VOGL_NAMESPACE_END(vogl)
+} // namespace vogl
 
 extern "C" void *vogl_realloc(const char *pFile_line, void *p, size_t new_size)
 {

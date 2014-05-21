@@ -215,13 +215,13 @@ bool vogl_shader_state::restore(const vogl_context_info &context_info, vogl_hand
                 info_log.set(reinterpret_cast<char *>(temp_buf.get_ptr()));
             }
 
-            vogl_warning_printf("%s: Restored shader failed to compile: trace compile status %u, snapshot handle %u, restore handle %u, type: %s, blob id: %s, info log:\n\"%s\"\n",
-                               VOGL_FUNCTION_INFO_CSTR, m_compile_status, m_snapshot_handle, (uint32_t)handle, get_gl_enums().find_gl_name(m_shader_type), m_source_blob_id.get_ptr(), info_log.get_ptr());
+            vogl_warning_printf("Restored shader failed to compile: trace compile status %u, snapshot handle %u, restore handle %u, type: %s, blob id: %s, info log:\n\"%s\"\n",
+                                m_compile_status, m_snapshot_handle, (uint32_t)handle, get_gl_enums().find_gl_name(m_shader_type), m_source_blob_id.get_ptr(), info_log.get_ptr());
         }
         else if (!m_compile_status)
         {
-            vogl_warning_printf("%s: Shader successfully compiled during restore, but was not compiled successfully during tracing: trace compile status %u, snapshot handle %u, restore handle %u, type: %s, blob id: %s\n",
-                               VOGL_FUNCTION_INFO_CSTR, m_compile_status, m_snapshot_handle, (uint32_t)handle, get_gl_enums().find_gl_name(m_shader_type), m_source_blob_id.get_ptr());
+            vogl_warning_printf("Shader successfully compiled during restore, but was not compiled successfully during tracing: trace compile status %u, snapshot handle %u, restore handle %u, type: %s, blob id: %s\n",
+                                m_compile_status, m_snapshot_handle, (uint32_t)handle, get_gl_enums().find_gl_name(m_shader_type), m_source_blob_id.get_ptr());
         }
     }
 

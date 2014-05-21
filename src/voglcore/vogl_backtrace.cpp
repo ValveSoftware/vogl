@@ -114,7 +114,7 @@ namespace vogl
     {
         strings.resize(0);
 
-        console::debug("TODO: %s\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_debug_printf("TODOs\n");
 
         return false;
     }

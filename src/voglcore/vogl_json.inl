@@ -804,12 +804,6 @@ namespace vogl
         return add_key_value(key.get_ptr(), val);
     }
 
-    // Adds a new key/value to a node. pValueToParse must be JSON text.
-    inline bool add_key_and_parsed_value(const dynamic_string &key, const char *pValueToParse)
-    {
-        return add_key_and_parsed_value(key.get_ptr(), pValueToParse);
-    }
-
     inline bool json_node::erase(const dynamic_string &key)
     {
         return erase(key.get_ptr());

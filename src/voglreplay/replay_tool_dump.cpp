@@ -36,12 +36,27 @@
 
 #include "libtelemetry.h"
 
+static command_line_param_desc g_command_line_param_descs_dump[] =
+{
+    // dump specific
+    { "verify", 0, false, "Dump: Fully round-trip verify all JSON objects vs. the original packet's" },
+    { "write_debug_info", 0, false, "Dump: Write extra debug info to output JSON trace files" },
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
+    { "debug", 0, false, "Enable verbose debug information" },
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // tool_dump_mode
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_dump_mode()
+bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs_dump, VOGL_ARRAY_SIZE(g_command_line_param_descs_dump));
+        return true;
+    }
 
     dynamic_string input_trace_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_trace_filename.is_empty())
@@ -60,16 +75,18 @@ bool tool_dump_mode()
     vogl_loose_file_blob_manager output_file_blob_manager;
 
     dynamic_string output_trace_path(file_utils::get_pathname(output_base_filename.get_ptr()));
-    vogl_debug_printf("%s: Output trace path: %s\n", VOGL_FUNCTION_INFO_CSTR, output_trace_path.get_ptr());
+    vogl_debug_printf("Output trace path: %s\n", output_trace_path.get_ptr());
     output_file_blob_manager.init(cBMFReadWrite, output_trace_path.get_ptr());
 
     file_utils::create_directories(output_trace_path, false);
 
     dynamic_string actual_input_trace_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_trace_filename, actual_input_trace_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
+    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(
+            vogl_open_trace_file(input_trace_filename, actual_input_trace_filename,
+            g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
     {
-        vogl_error_printf("%s: Failed opening input trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, input_trace_filename.get_ptr());
+        vogl_error_printf("Failed opening input trace file \"%s\"\n", input_trace_filename.get_ptr());
         return false;
     }
 
@@ -91,19 +108,19 @@ bool tool_dump_mode()
         cfile_stream archive_stream;
         if (!archive_stream.open(archive_filename.get_ptr(), cDataStreamWritable | cDataStreamSeekable))
         {
-            vogl_error_printf("%s: Failed opening output trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
+            vogl_error_printf("Failed opening output trace archive \"%s\"!\n", archive_filename.get_ptr());
             return false;
         }
 
         if (!pTrace_reader->get_archive_blob_manager().write_archive_to_stream(archive_stream))
         {
-            vogl_error_printf("%s: Failed writing to output trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
+            vogl_error_printf("Failed writing to output trace archive \"%s\"!\n", archive_filename.get_ptr());
             return false;
         }
 
         if (!archive_stream.close())
         {
-            vogl_error_printf("%s: Failed writing to output trace archive \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, archive_filename.get_ptr());
+            vogl_error_printf("Failed writing to output trace archive \"%s\"!\n", archive_filename.get_ptr());
             return false;
         }
     }
@@ -183,14 +200,14 @@ bool tool_dump_mode()
 
             if (!cur_doc.serialize_to_file(output_filename.get_ptr(), true))
             {
-                vogl_error_printf("%s: Failed serializing JSON document to file %s\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
+                vogl_error_printf("Failed serializing JSON document to file %s\n", output_filename.get_ptr());
 
                 status = false;
                 break;
             }
 
             if (cur_doc.get_root()->check_for_duplicate_keys())
-                vogl_warning_printf("%s: JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
+                vogl_warning_printf("JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", output_filename.get_ptr());
 
             cur_file_index++;
 
@@ -390,13 +407,13 @@ bool tool_dump_mode()
 
         if (!cur_doc.serialize_to_file(output_filename.get_ptr(), true))
         {
-            vogl_error_printf("%s: Failed serializing JSON document to file %s\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
+            vogl_error_printf("Failed serializing JSON document to file %s\n", output_filename.get_ptr());
 
             status = false;
         }
 
         if (cur_doc.get_root()->check_for_duplicate_keys())
-            vogl_warning_printf("%s: JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", VOGL_FUNCTION_INFO_CSTR, output_filename.get_ptr());
+            vogl_warning_printf("JSON document %s has nodes with duplicate keys, this document may not be readable by some JSON parsers\n", output_filename.get_ptr());
 
         cur_file_index++;
     }

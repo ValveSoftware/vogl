@@ -148,6 +148,7 @@ vogl_gl_replayer::vogl_gl_replayer()
       m_dump_framebuffer_on_draw_frame_index(-1),
       m_dump_framebuffer_on_draw_first_gl_call_index(-1),
       m_dump_framebuffer_on_draw_last_gl_call_index(-1),
+      m_allow_snapshot_restoring(true),
       m_ctypes_packet(&m_trace_gl_ctypes),
       m_trace_pointer_size_in_bytes(0),
       m_trace_pointer_size_in_uints(0),
@@ -210,7 +211,7 @@ bool vogl_gl_replayer::init(uint32_t flags, vogl_replay_window *pWindow, const v
 
     if ((sof_packet.m_pointer_sizes != sizeof(uint32_t)) && (sof_packet.m_pointer_sizes != sizeof(uint64_t)))
     {
-        vogl_error_printf("%s: Invalid trace pointer size (%u)\n", VOGL_FUNCTION_INFO_CSTR, m_sof_packet.m_pointer_sizes);
+        vogl_error_printf("Invalid trace pointer size (%u)\n", m_sof_packet.m_pointer_sizes);
         return false;
     }
 
@@ -231,7 +232,7 @@ bool vogl_gl_replayer::init(uint32_t flags, vogl_replay_window *pWindow, const v
         const uint32_t initial_window_height = 768;
         if (!m_pWindow->open(initial_window_width, initial_window_height))
         {
-            vogl_error_printf("%s: Failed opening window!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed opening window!\n");
             return false;
         }
     }
@@ -347,7 +348,7 @@ void vogl_gl_replayer::dump_packet_as_func_call(const vogl_trace_packet& trace_p
     dynamic_string str;
     str.reserve(128);
     if (!trace_packet.pretty_print(str, true))
-        vogl_error_printf("%s: packet pretty print failed!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("packet pretty print failed!\n");
     else
         vogl_debug_printf("%s\n", str.get_ptr());
 }
@@ -418,7 +419,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_next_packet(vogl_trace_file
 
     if (status < 0)
     {
-        vogl_error_printf("%s: %s failure processing GL entrypoint packet\n", VOGL_FUNCTION_INFO_CSTR, (status == cStatusHardFailure) ? "Hard" : "Soft");
+        vogl_error_printf("%s failure processing GL entrypoint packet\n",
+                          (status == cStatusHardFailure) ? "Hard" : "Soft");
     }
 
     return status;
@@ -516,7 +518,7 @@ bool vogl_gl_replayer::dump_frontbuffer_to_file(const dynamic_string &filename)
     bool success = vogl_copy_buffer_to_image(m_screenshot_buffer.get_ptr(), m_screenshot_buffer.size(), width, height, GL_RGB, GL_UNSIGNED_BYTE, false, 0, GL_FRONT);
     if (!success)
     {
-        vogl_error_printf("%s: Failed calling glReadPixels() to take frontbuffer screenshot!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed calling glReadPixels() to take frontbuffer screenshot!\n");
         return false;
     }
 
@@ -526,7 +528,7 @@ bool vogl_gl_replayer::dump_frontbuffer_to_file(const dynamic_string &filename)
     success = file_utils::write_buf_to_file(filename.get_ptr(), pPNG_data, png_size);
     if (!success)
     {
-        vogl_error_printf("%s: Failed writing PNG screenshot to file \"%s\"\n", filename.get_ptr(), VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed writing PNG screenshot to file \"%s\"\n", filename.get_ptr());
     }
     else
     {
@@ -553,7 +555,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::trigger_pending_window_resize(uint3
     m_pWindow->resize(win_width, win_height);
 
     if (m_flags & cGLReplayerVerboseMode)
-        vogl_debug_printf("%s: Waiting for window to resize to %ux%u\n", VOGL_FUNCTION_INFO_CSTR, win_width, win_height);
+        vogl_debug_printf("Waiting for window to resize to %ux%u\n", win_width, win_height);
 
     return cStatusResizeWindow;
 }
@@ -673,7 +675,7 @@ bool vogl_gl_replayer::check_gl_error_internal(bool quietly, const char *pFile, 
 
         if (!quietly)
         {
-            process_entrypoint_warning("%s: GL error: 0x%08X (%u): %s (Called from File: %s Line: %u Func: %s)\n", VOGL_FUNCTION_INFO_CSTR, gl_err, gl_err, get_gl_enums().find_name("ErrorCode", gl_err), pFile ? pFile : "?", line, pFunc ? pFunc : "?");
+            process_entrypoint_warning("GL error: 0x%08X (%u): %s (Called from File: %s Line: %u Func: %s)\n", gl_err, gl_err, get_gl_enums().find_name("ErrorCode", gl_err), pFile ? pFile : "?", line, pFunc ? pFunc : "?");
         }
 
         status = true;
@@ -853,7 +855,7 @@ vogl_gl_replayer::context_state *vogl_gl_replayer::define_new_context(
 
         if (!pContext_state->m_pShared_state)
         {
-            process_entrypoint_error("%s: Unable to find trace share context handle 0x%" PRIX64 "!\n", VOGL_FUNCTION_INFO_CSTR, trace_share_context);
+            process_entrypoint_error("Unable to find trace share context handle 0x%" PRIX64 "!\n", trace_share_context);
         }
     }
 
@@ -1023,7 +1025,7 @@ bool vogl_gl_replayer::set_client_side_array_data(const key_value_map &map, GLui
             uint32_t type_size = vogl_get_gl_type_size(type);
             if (!type_size)
             {
-                process_entrypoint_error("%s: Can't determine type size of enabled client side array set by func %s\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName);
+                process_entrypoint_error("Can't determine type size of enabled client side array set by func %s\n", g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName);
                 continue;
             }
 
@@ -1039,7 +1041,7 @@ bool vogl_gl_replayer::set_client_side_array_data(const key_value_map &map, GLui
             }
             else if ((size < 1) && (size > 4))
             {
-                process_entrypoint_error("%s: Size of client side array set by func %s must be between 1 and 4\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName);
+                process_entrypoint_error("Size of client side array set by func %s must be between 1 and 4\n", g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName);
                 continue;
             }
 
@@ -1054,7 +1056,7 @@ bool vogl_gl_replayer::set_client_side_array_data(const key_value_map &map, GLui
 #if 0
 			if (!pVertex_blob)
 			{
-				process_entrypoint_error("%s: Failed finding client side vertex data blob set by func %s \n", VOGL_FUNCTION_INFO_CSTR,  g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName);
+				process_entrypoint_error("Failed finding client side vertex data blob set by func %s \n",  g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName);
 				continue;
 			}
 #endif
@@ -1062,7 +1064,7 @@ bool vogl_gl_replayer::set_client_side_array_data(const key_value_map &map, GLui
             uint8_vec temp_blob;
             if (vertex_data_size != pVertex_blob->size())
             {
-                process_entrypoint_error("%s: %s will access more client side data (%u bytes) than stored in the trace (%u bytes), using what is in the trace and using zeros for the rest\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName, vertex_data_size, pVertex_blob->size());
+                process_entrypoint_error("%s will access more client side data (%u bytes) than stored in the trace (%u bytes), using what is in the trace and using zeros for the rest\n", g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName, vertex_data_size, pVertex_blob->size());
                 temp_blob = *pVertex_blob;
                 temp_blob.resize(vertex_data_size);
                 pVertex_blob = &temp_blob;
@@ -1073,7 +1075,7 @@ bool vogl_gl_replayer::set_client_side_array_data(const key_value_map &map, GLui
             if (bytes_to_copy != pVertex_blob->size())
             {
                 // Can't resize buffer, it could move and that would invalidate any VAO pointer bindings.
-                process_entrypoint_error("%s: %s accesses too much client side data (%u bytes), increase VOGL_MAX_CLIENT_SIDE_VERTEX_ARRAY_SIZE\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName, first_vertex_ofs + total_data_size);
+                process_entrypoint_error("%s accesses too much client side data (%u bytes), increase VOGL_MAX_CLIENT_SIDE_VERTEX_ARRAY_SIZE\n", g_vogl_entrypoint_descs[desc.m_entrypoint].m_pName, first_vertex_ofs + total_data_size);
             }
 
             VOGL_ASSERT((first_vertex_ofs + bytes_to_copy) <= array_data.size());
@@ -1138,7 +1140,7 @@ bool vogl_gl_replayer::set_client_side_vertex_attrib_array_data(const key_value_
 #if 0
 		if (!pVertex_blob)
 		{
-			process_entrypoint_error("%s: Failed finding client side vertex data blob for generic vertex attrib %u\n", VOGL_FUNCTION_INFO_CSTR, vertex_attrib_index);
+			process_entrypoint_error("Failed finding client side vertex data blob for generic vertex attrib %u\n", vertex_attrib_index);
 			continue;
 		}
 #endif
@@ -1146,7 +1148,7 @@ bool vogl_gl_replayer::set_client_side_vertex_attrib_array_data(const key_value_
         uint32_t num_comps = 4;
         if ((attrib_size != GL_BGRA) && (attrib_size < 1) && (attrib_size > 4))
         {
-            process_entrypoint_error("%s: Enabled vertex attribute index %i has invalid size 0x%0X\n", VOGL_FUNCTION_INFO_CSTR, vertex_attrib_index, attrib_size);
+            process_entrypoint_error("Enabled vertex attribute index %i has invalid size 0x%0X\n", vertex_attrib_index, attrib_size);
             continue;
         }
         if ((attrib_size >= 1) && (attrib_size <= 4))
@@ -1155,7 +1157,7 @@ bool vogl_gl_replayer::set_client_side_vertex_attrib_array_data(const key_value_
         uint32_t type_size = vogl_get_gl_type_size(attrib_type);
         if (!type_size)
         {
-            process_entrypoint_error("%s: Vertex attribute index %i has unsupported type 0x%0X\n", VOGL_FUNCTION_INFO_CSTR, vertex_attrib_index, attrib_type);
+            process_entrypoint_error("Vertex attribute index %i has unsupported type 0x%0X\n", vertex_attrib_index, attrib_type);
             continue;
         }
 
@@ -1169,7 +1171,7 @@ bool vogl_gl_replayer::set_client_side_vertex_attrib_array_data(const key_value_
         uint8_vec temp_blob;
         if (vertex_data_size != pVertex_blob->size())
         {
-            process_entrypoint_error("%s: Vertex attribute index %i will access more client side data (%u bytes) than stored in the trace (%u bytes), using what is in the trace and using zeros for the rest\n", VOGL_FUNCTION_INFO_CSTR, vertex_attrib_index, vertex_data_size, pVertex_blob->size());
+            process_entrypoint_error("Vertex attribute index %i will access more client side data (%u bytes) than stored in the trace (%u bytes), using what is in the trace and using zeros for the rest\n", vertex_attrib_index, vertex_data_size, pVertex_blob->size());
             temp_blob = *pVertex_blob;
             temp_blob.resize(vertex_data_size);
             pVertex_blob = &temp_blob;
@@ -1180,7 +1182,7 @@ bool vogl_gl_replayer::set_client_side_vertex_attrib_array_data(const key_value_
         if (bytes_to_copy != pVertex_blob->size())
         {
             // Can't resize buffer, it could move and that would invalidate any VAO pointer bindings.
-            process_entrypoint_error("%s: Vertex attribute index %i accesses too much client side data (%u bytes), increase VOGL_MAX_CLIENT_SIDE_VERTEX_ARRAY_SIZE\n", VOGL_FUNCTION_INFO_CSTR, vertex_attrib_index, first_vertex_ofs + total_data_size);
+            process_entrypoint_error("Vertex attribute index %i accesses too much client side data (%u bytes), increase VOGL_MAX_CLIENT_SIDE_VERTEX_ARRAY_SIZE\n", vertex_attrib_index, first_vertex_ofs + total_data_size);
         }
 
         VOGL_ASSERT((first_vertex_ofs + bytes_to_copy) <= m_client_side_vertex_attrib_data[vertex_attrib_index].size());
@@ -1218,7 +1220,7 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
         index_size = vogl_get_gl_type_size(type);
         if (!index_size)
         {
-            process_entrypoint_error("%s: Invalid type parameter 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, type);
+            process_entrypoint_error("Invalid type parameter 0x%08X\n", type);
             return false;
         }
 
@@ -1232,7 +1234,7 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
 
     if (count <= 0)
     {
-        process_entrypoint_warning("%s: count parameter is <= 0 (%i)\n", VOGL_FUNCTION_INFO_CSTR, count);
+        process_entrypoint_warning("count parameter is <= 0 (%i)\n", count);
         return true;
     }
 
@@ -1241,7 +1243,7 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
     {
         if ((indexed) && (!element_array_buffer) && (trace_indices_ptr_value))
         {
-            process_entrypoint_error("%s: No element array buffer is bound, but key value map doesn't have an indices blob. Can't remap indices pointer!\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_error("No element array buffer is bound, but key value map doesn't have an indices blob. Can't remap indices pointer!\n");
             if (trace_indices_ptr_value)
             {
                 // We can't remap the pointer to valid memory, so give up.
@@ -1264,20 +1266,20 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
         const uint8_vec *pIndices_vec = map.get_blob(string_hash("indices"));
         if (!pIndices_vec)
         {
-            process_entrypoint_error("%s: No element array buffer is bound, but key value map doesn't have an indices blob\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_error("No element array buffer is bound, but key value map doesn't have an indices blob\n");
             return false;
         }
 
         pIndices = pIndices_vec->get_ptr();
         if (!pIndices)
         {
-            process_entrypoint_error("%s: No element array buffer is bound, but key value map has an empty indices blob\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_error("No element array buffer is bound, but key value map has an empty indices blob\n");
             return false;
         }
 
         if ((pIndices_vec->size() / index_size) != static_cast<uint32_t>(count))
         {
-            process_entrypoint_error("%s: Client side index data blob stored in packet is too small (wanted %u indices, got %u indices)\n", VOGL_FUNCTION_INFO_CSTR, count, pIndices_vec->size() / index_size);
+            process_entrypoint_error("Client side index data blob stored in packet is too small (wanted %u indices, got %u indices)\n", count, pIndices_vec->size() / index_size);
             return false;
         }
     }
@@ -1301,7 +1303,7 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
 
             if (check_gl_error())
             {
-                process_entrypoint_warning("%s: GL error while trying to retrieve index buffer data\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("GL error while trying to retrieve index buffer data\n");
 
                 memset(m_index_data.get_ptr(), 0, total_index_data_size);
             }
@@ -1322,7 +1324,7 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
                 v = reinterpret_cast<const uint32_t *>(pIndices_to_scan)[i];
             else
             {
-                process_entrypoint_error("%s: Invalid index type\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Invalid index type\n");
                 return false;
             }
 
@@ -1357,7 +1359,7 @@ GLint vogl_gl_replayer::determine_uniform_replay_location(GLuint trace_program, 
     glsl_program_hash_map::iterator it = get_shared_state()->m_glsl_program_hash_map.find(trace_program);
     if (it == get_shared_state()->m_glsl_program_hash_map.end())
     {
-        process_entrypoint_warning("%s: Failed looking up current trace program in GLSL program hash map\n", VOGL_FUNCTION_INFO_CSTR);
+        process_entrypoint_warning("Failed looking up current trace program in GLSL program hash map\n");
     }
     else
     {
@@ -1366,7 +1368,7 @@ GLint vogl_gl_replayer::determine_uniform_replay_location(GLuint trace_program, 
         uniform_location_hash_map::const_iterator loc_it = state.m_uniform_locations.find(trace_location);
         if (loc_it == state.m_uniform_locations.end())
         {
-            process_entrypoint_warning("%s: Failed looking up uniform location index\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_warning("Failed looking up uniform location index\n");
         }
         else
         {
@@ -1386,7 +1388,9 @@ void vogl_gl_replayer::process_entrypoint_print_summary_context(eConsoleMessageT
     if (!m_pCur_gl_packet)
         return;
 
-    console::printf(msg_type, "While processing GL entrypoint packet func %s, frame %u, swaps %u, GL call counter %" PRIu64 ", packet start trace context 0x%" PRIX64 ", cur trace context 0x%" PRIX64 ", trace thread 0x%" PRIX64 ":\n",
+    console::printf(VOGL_FUNCTION_INFO_CSTR, msg_type,
+                    "While processing GL entrypoint packet func %s, frame %u, swaps %u, GL call counter %" PRIu64
+                        ", packet start trace context 0x%" PRIX64 ", cur trace context 0x%" PRIX64 ", trace thread 0x%" PRIX64 ":\n",
                     g_vogl_entrypoint_descs[m_pCur_gl_packet->get_entrypoint_id()].m_pName,
                     m_frame_index, m_total_swaps,
                     m_pCur_gl_packet->get_entrypoint_packet().m_call_counter,
@@ -1398,9 +1402,9 @@ void vogl_gl_replayer::process_entrypoint_print_summary_context(eConsoleMessageT
 	dynamic_string_array backtrace;
 	if (get_printable_backtrace(backtrace))
 	{
-		console::printf("Backtrace:\n");
+		vogl_prinf("Backtrace:\n");
 		for (uint32_t i = 0; i < backtrace.size(); i++)
-			console::printf("%s\n", backtrace[i].get_ptr());
+			vogl_prinf("%s\n", backtrace[i].get_ptr());
 	}
 #endif
 }
@@ -1426,7 +1430,8 @@ void vogl_gl_replayer::print_detailed_context(eConsoleMessageType msg_type)
 
     dynamic_string node_str;
     node.serialize(node_str, true, 0);
-    console::printf(msg_type, "Packet at call counter %" PRIu64 " as JSON:\n%s\n", m_pCur_gl_packet->get_entrypoint_packet().m_call_counter, node_str.get_ptr());
+    console::printf(VOGL_FUNCTION_INFO_CSTR, msg_type, "Packet at call counter %" PRIu64 " as JSON:\n%s\n",
+                    m_pCur_gl_packet->get_entrypoint_packet().m_call_counter, node_str.get_ptr());
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1448,71 +1453,24 @@ void vogl_gl_replayer::process_entrypoint_msg_print_detailed_context(eConsoleMes
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_entrypoint_info
+// vogl_replayer::process_entrypoint_
+//  Don't call directly - use these macros:
+//    process_entrypoint_message
+//    process_entrypoint_warning
+//    process_entrypoint_error
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_gl_replayer::process_entrypoint_info(const char *pFmt, ...)
+void vogl_gl_replayer::process_entrypoint_(const char *caller_info, eConsoleMessageType msgtype, const char *pFmt, ...)
 {
     VOGL_FUNC_TRACER
 
-    process_entrypoint_print_summary_context(cInfoConsoleMessage);
+    process_entrypoint_print_summary_context(msgtype);
 
     va_list args;
     va_start(args, pFmt);
-    console::vprintf(cInfoConsoleMessage, pFmt, args);
+    console::vprintf(caller_info, msgtype, pFmt, args);
     va_end(args);
 
-    process_entrypoint_msg_print_detailed_context(cInfoConsoleMessage);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_entrypoint_message
-//----------------------------------------------------------------------------------------------------------------------
-void vogl_gl_replayer::process_entrypoint_message(const char *pFmt, ...)
-{
-    VOGL_FUNC_TRACER
-
-    process_entrypoint_print_summary_context(cMessageConsoleMessage);
-
-    va_list args;
-    va_start(args, pFmt);
-    console::vprintf(cMessageConsoleMessage, pFmt, args);
-    va_end(args);
-
-    process_entrypoint_msg_print_detailed_context(cInfoConsoleMessage);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_entrypoint_warning
-//----------------------------------------------------------------------------------------------------------------------
-void vogl_gl_replayer::process_entrypoint_warning(const char *pFmt, ...)
-{
-    VOGL_FUNC_TRACER
-
-    process_entrypoint_print_summary_context(cWarningConsoleMessage);
-
-    va_list args;
-    va_start(args, pFmt);
-    console::vprintf(cWarningConsoleMessage, pFmt, args);
-    va_end(args);
-
-    process_entrypoint_msg_print_detailed_context(cInfoConsoleMessage);
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_entrypoint_error
-//----------------------------------------------------------------------------------------------------------------------
-void vogl_gl_replayer::process_entrypoint_error(const char *pFmt, ...)
-{
-    VOGL_FUNC_TRACER
-
-    process_entrypoint_print_summary_context(cErrorConsoleMessage);
-
-    va_list args;
-    va_start(args, pFmt);
-    console::vprintf(cErrorConsoleMessage, pFmt, args);
-    va_end(args);
-
-    process_entrypoint_msg_print_detailed_context(cInfoConsoleMessage);
+    process_entrypoint_msg_print_detailed_context(cMsgPrint);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -1528,7 +1486,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::switch_contexts(vogl_trace_context_
 
     if (m_flags & cGLReplayerDebugMode)
     {
-        process_entrypoint_message("%s: Forcing context switch via glXMakeCurrent, from current trace context 0x%" PRIX64 " to new context 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(m_cur_trace_context), cast_val_to_uint64(trace_context));
+        process_entrypoint_message("Forcing context switch via glXMakeCurrent, from current trace context 0x%" PRIX64 " to new context 0x%" PRIX64 "\n", cast_val_to_uint64(m_cur_trace_context), cast_val_to_uint64(trace_context));
     }
 
     // pContext_state will be NULL if they are unmapping!
@@ -1537,7 +1495,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::switch_contexts(vogl_trace_context_
 
     if (!m_pWindow->make_current(replay_context))
     {
-        process_entrypoint_error("%s: Failed switching current trace context to 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, trace_context);
+        process_entrypoint_error("Failed switching current trace context to 0x%" PRIX64 "\n", trace_context);
         return cStatusHardFailure;
     }
 
@@ -1570,12 +1528,12 @@ void vogl_gl_replayer::debug_callback_arb(GLenum source, GLenum type, GLuint id,
 
     if (pContext_state)
     {
-        vogl_warning_printf("%s: Trace context: 0x%" PRIX64 ", Replay context 0x%" PRIX64 ", Last trace call counter: %" PRIu64 "\n%s\n", VOGL_FUNCTION_INFO_CSTR,
+        vogl_warning_printf("Trace context: 0x%" PRIX64 ", Replay context 0x%" PRIX64 ", Last trace call counter: %" PRIu64 "\n%s\n",
                            cast_val_to_uint64(pContext_state->m_trace_context), cast_val_to_uint64(pContext_state->m_replay_context), cast_val_to_uint64(pContext_state->m_last_call_counter), final_message);
     }
     else
     {
-        vogl_warning_printf("%s: %s\n", VOGL_FUNCTION_INFO_CSTR, final_message);
+        vogl_warning_printf("%s\n", final_message);
     }
 }
 
@@ -1596,12 +1554,12 @@ void vogl_gl_replayer::debug_callback(GLenum source, GLenum type, GLuint id, GLe
 
     if (pContext_state)
     {
-        vogl_warning_printf("%s: Trace context: 0x%" PRIX64 ", Replay context 0x%" PRIX64 ", Last trace call counter: %" PRIu64 "\n%s\n", VOGL_FUNCTION_INFO_CSTR,
+        vogl_warning_printf("Trace context: 0x%" PRIX64 ", Replay context 0x%" PRIX64 ", Last trace call counter: %" PRIu64 "\n%s\n",
                            cast_val_to_uint64(pContext_state->m_trace_context), cast_val_to_uint64(pContext_state->m_replay_context), cast_val_to_uint64(pContext_state->m_last_call_counter), final_message);
     }
     else
     {
-        vogl_warning_printf("%s: %s\n", VOGL_FUNCTION_INFO_CSTR, final_message);
+        vogl_warning_printf("%s\n", final_message);
     }
 }
 
@@ -1638,23 +1596,23 @@ bool vogl_gl_replayer::context_state::handle_context_made_current()
 
     if (!m_context_info.init(m_context_desc))
     {
-        vogl_error_printf("%s: vogl_context_info::init() failed!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("vogl_context_info::init() failed!\n");
         return false;
     }
 
     if (!m_context_info.get_max_vertex_attribs())
     {
-        vogl_warning_printf("%s: GL_MAX_VERTEX_ATTRIBS is 0\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_warning_printf("GL_MAX_VERTEX_ATTRIBS is 0\n");
     }
     else if (m_context_info.get_max_vertex_attribs() >= VOGL_MAX_SUPPORTED_GL_VERTEX_ATTRIBUTES)
     {
-        vogl_error_printf("%s: GL_MAX_VERTEX_ATTRIBS is too large, max supported is %u. Please increase VOGL_MAX_SUPPORTED_GL_VERTEX_ATTRIBUTES.\n", VOGL_FUNCTION_INFO_CSTR, VOGL_MAX_SUPPORTED_GL_VERTEX_ATTRIBUTES);
+        vogl_error_printf("GL_MAX_VERTEX_ATTRIBS is too large, max supported is %u. Please increase VOGL_MAX_SUPPORTED_GL_VERTEX_ATTRIBUTES.\n", VOGL_MAX_SUPPORTED_GL_VERTEX_ATTRIBUTES);
         return false;
     }
 
     if (m_replayer.m_flags & cGLReplayerLowLevelDebugMode)
     {
-        vogl_debug_printf("%s: Creating dummy handles\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_debug_printf("Creating dummy handles\n");
 
         // HACK HACK
         // Generate a bunch of replay handles, so the trace and replay namespaces are totally different to shake out handle or target remapping bugs
@@ -1675,7 +1633,7 @@ bool vogl_gl_replayer::context_state::handle_context_made_current()
         for (uint32_t i = 0; i < 22000; i++)
             GL_ENTRYPOINT(glCreateProgram)();
 
-        vogl_debug_printf("%s: Finished creating dummy handles\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_debug_printf("Finished creating dummy handles\n");
     }
 
     VOGL_CHECK_GL_ERROR;
@@ -1702,8 +1660,7 @@ bool vogl_gl_replayer::handle_context_made_current()
 
     if (m_flags & cGLReplayerVerboseMode)
     {
-        vogl_debug_printf("%s: Trace context: 0x%" PRIX64 ", replay context 0x%" PRIX64 ", GL_VERSION: %s\n",
-                         VOGL_FUNCTION_INFO_CSTR,
+        vogl_debug_printf("Trace context: 0x%" PRIX64 ", replay context 0x%" PRIX64 ", GL_VERSION: %s\n",
                          (uint64_t)m_cur_trace_context,
                          (uint64_t)m_cur_replay_context,
                          m_pCur_context_state->m_context_info.get_version_str().get_ptr());
@@ -1731,7 +1688,7 @@ void vogl_gl_replayer::dump_context_attrib_list(const int *pAttrib_list, uint32_
     {
         if (ofs >= size)
         {
-            vogl_error_printf("%s: Attrib list ended prematurely (must end in a 0 key)\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Attrib list ended prematurely (must end in a 0 key)\n");
             break;
         }
 
@@ -1742,7 +1699,7 @@ void vogl_gl_replayer::dump_context_attrib_list(const int *pAttrib_list, uint32_
 
         if (ofs >= size)
         {
-            vogl_error_printf("%s: Attrib list ended prematurely (must end in a 0 key)\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Attrib list ended prematurely (must end in a 0 key)\n");
             break;
         }
 
@@ -1770,7 +1727,7 @@ int vogl_gl_replayer::find_attrib_key(const vogl::vector<int> &attrib_list, int 
 
         if (++ofs >= attrib_list.size())
         {
-            process_entrypoint_warning("%s: Failed parsing attrib list, this call is probably going to fail\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_warning("Failed parsing attrib list, this call is probably going to fail\n");
             break;
         }
 
@@ -1798,7 +1755,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
         temp_attrib_list.append(pTrace_attrib_list, trace_attrib_list_size);
         if (temp_attrib_list.back() != 0)
         {
-            process_entrypoint_warning("%s: attrib list does not end with 0\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_warning("attrib list does not end with 0\n");
         }
     }
     else
@@ -1806,7 +1763,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
         if (expecting_attribs)
         {
             if (m_flags & cGLReplayerVerboseMode)
-                process_entrypoint_message("%s: No attrib list found in trace, assuming an attrib list ending with 0\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_message("No attrib list found in trace, assuming an attrib list ending with 0\n");
         }
 
         temp_attrib_list.push_back(0);
@@ -1823,14 +1780,14 @@ vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
             temp_attrib_list.push_back(0);
 
             if (m_flags & cGLReplayerVerboseMode)
-                process_entrypoint_warning("%s: Appending GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB to attrib list to enable debug context\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("Appending GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB to attrib list to enable debug context\n");
         }
         else
         {
             temp_attrib_list[context_flags_ofs] |= GLX_CONTEXT_DEBUG_BIT_ARB;
 
             if (m_flags & cGLReplayerVerboseMode)
-                process_entrypoint_warning("%s: Slamming on GLX_CONTEXT_DEBUG_BIT_ARB bit to enable debug context\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("Slamming on GLX_CONTEXT_DEBUG_BIT_ARB bit to enable debug context\n");
         }
 
         int context_major_version_ofs = find_attrib_key(temp_attrib_list, GLX_CONTEXT_MAJOR_VERSION_ARB);
@@ -1868,7 +1825,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
                 temp_attrib_list[context_minor_version_ofs] = 0;
             }
 
-            process_entrypoint_warning("%s: Forcing GL context version up to 3.0 due to debug context usage\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_warning("Forcing GL context version up to 3.0 due to debug context usage\n");
         }
     }
 
@@ -1884,12 +1841,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
     {
         if (trace_context)
         {
-            process_entrypoint_error("%s: Failed creating new GL context!\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_error("Failed creating new GL context!\n");
             return cStatusHardFailure;
         }
         else
         {
-            process_entrypoint_warning("%s: Successfully created a new GL context where the traced app failed!\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_warning("Successfully created a new GL context where the traced app failed!\n");
         }
     }
 
@@ -1936,7 +1893,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
 
     if ((trace_context) && (!replay_context))
     {
-        process_entrypoint_error("%s, Failed remapping GL context\n", VOGL_FUNCTION_INFO_CSTR);
+        process_entrypoint_error("Failed remapping GL context\n");
         m_pending_make_current_packet.clear();
         return cStatusHardFailure;
     }
@@ -1952,13 +1909,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
     {
         if (trace_result)
         {
-            process_entrypoint_error("%s: Failed making context current, but in the trace this call succeeded!\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_error("Failed making context current, but in the trace this call succeeded!\n");
             m_pending_make_current_packet.clear();
             return cStatusHardFailure;
         }
         else
         {
-            process_entrypoint_warning("%s: Failed making context current, in the trace this call also failed\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_warning("Failed making context current, in the trace this call also failed\n");
         }
     }
     else
@@ -1969,7 +1926,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
 
         if (!trace_result)
         {
-            process_entrypoint_warning("%s: Context was successfuly made current, but this operation failed in the trace\n", VOGL_FUNCTION_INFO_CSTR);
+            process_entrypoint_warning("Context was successfuly made current, but this operation failed in the trace\n");
         }
 
         if (m_cur_replay_context)
@@ -2005,7 +1962,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
 
             if ((cur_viewport[0] != viewport_x) || (cur_viewport[1] != viewport_y) || (cur_viewport[2] != viewport_width) || (cur_viewport[3] != viewport_height))
             {
-                process_entrypoint_warning("%s: Replay viewport differs from traces!\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("Replay viewport differs from traces!\n");
             }
 
             if (!handle_context_made_current())
@@ -2104,11 +2061,16 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(cons
             dynamic_string cmd_type(kvm.get_string("command_type"));
             if (cmd_type == "state_snapshot")
             {
+                if (!m_allow_snapshot_restoring)
+                {
+                    break;
+                }
+
                 dynamic_string text_id(kvm.get_string("id"));
                 dynamic_string binary_id(kvm.get_string("binary_id"));
                 if (text_id.is_empty() && binary_id.is_empty())
                 {
-                    process_entrypoint_error("%s: Missing id and binary_id fields in glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, cmd_type.get_ptr());
+                    process_entrypoint_error("Missing id and binary_id fields in glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", cmd_type.get_ptr());
                     return cStatusHardFailure;
                 }
 
@@ -2141,7 +2103,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(cons
 
                     if (!m_pBlob_manager)
                     {
-                        process_entrypoint_error("%s: Failed reading snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id_to_use.get_ptr());
+                        process_entrypoint_error("Failed reading snapshot blob data \"%s\"!\n", id_to_use.get_ptr());
                         return cStatusHardFailure;
                     }
 
@@ -2149,11 +2111,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(cons
 
                     if (!m_pBlob_manager->get(id_to_use, snapshot_data) || (snapshot_data.is_empty()))
                     {
-                        process_entrypoint_error("%s: Failed reading snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id_to_use.get_ptr());
+                        process_entrypoint_error("Failed reading snapshot blob data \"%s\"!\n", id_to_use.get_ptr());
                         return cStatusHardFailure;
                     }
 
-                    vogl_message_printf("%s: Deserializing state snapshot \"%s\", %u bytes\n", VOGL_FUNCTION_INFO_CSTR, id_to_use.get_ptr(), snapshot_data.size());
+                    vogl_message_printf("Deserializing state snapshot \"%s\", %u bytes\n", id_to_use.get_ptr(), snapshot_data.size());
 
                     json_document doc;
 
@@ -2164,7 +2126,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(cons
                         success = doc.binary_deserialize(snapshot_data);
                     if (!success || (!doc.get_root()))
                     {
-                        process_entrypoint_error("%s: Failed deserializing JSON snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id_to_use.get_ptr());
+                        process_entrypoint_error("Failed deserializing JSON snapshot blob data \"%s\"!\n", id_to_use.get_ptr());
                         return cStatusHardFailure;
                     }
 
@@ -2174,7 +2136,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(cons
                         vogl_delete(pSnapshot);
                         pSnapshot = NULL;
 
-                        process_entrypoint_error("%s: Failed deserializing snapshot blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id_to_use.get_ptr());
+                        process_entrypoint_error("Failed deserializing snapshot blob data \"%s\"!\n", id_to_use.get_ptr());
                         return cStatusHardFailure;
                     }
 
@@ -2212,11 +2174,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(cons
                         pSnapshot = NULL;
                     }
 
-                    process_entrypoint_error("%s: Failed applying GL snapshot from blob data \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, id_to_use.get_ptr());
+                    process_entrypoint_error("Failed applying GL snapshot from blob data \"%s\"!\n", id_to_use.get_ptr());
                     return status;
                 }
 
-                vogl_message_printf("%s: Successfully applied GL state snapshot from blob \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, id_to_use.get_ptr());
+                vogl_message_printf("Successfully applied GL state snapshot from blob \"%s\"\n", id_to_use.get_ptr());
             }
             else if (cmd_type == "ctypes")
             {
@@ -2231,13 +2193,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(cons
             }
             else
             {
-                process_entrypoint_warning("%s: Unknown glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, cmd_type.get_ptr());
+                process_entrypoint_warning("Unknown glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", cmd_type.get_ptr());
             }
             break;
         }
         default:
         {
-            process_entrypoint_warning("%s: Unknown glInternalTraceCommandRAD command type: %u\n", VOGL_FUNCTION_INFO_CSTR, cmd);
+            process_entrypoint_warning("Unknown glInternalTraceCommandRAD command type: %u\n", cmd);
             break;
         }
     }
@@ -2387,7 +2349,7 @@ void vogl_gl_replayer::handle_use_program(GLuint trace_handle, gl_entrypoint_id_
                 VOGL_ASSERT(get_shared_state()->m_shadow_state.m_objs.get_target_inv(replay_shader_handle) == VOGL_SHADER_OBJECT);
                 if (!get_shared_state()->m_shadow_state.m_objs.erase_inv(replay_shader_handle))
                 {
-                    process_entrypoint_error("%s: Failed finding attached GL shader %u in objects hash table, while handling the actual deletion of trace program %u replay program %u\n", VOGL_FUNCTION_INFO_CSTR, replay_shader_handle, prev_trace_program, prev_replay_program);
+                    process_entrypoint_error("Failed finding attached GL shader %u in objects hash table, while handling the actual deletion of trace program %u replay program %u\n", replay_shader_handle, prev_trace_program, prev_replay_program);
                 }
             }
         }
@@ -2423,8 +2385,8 @@ void vogl_gl_replayer::handle_delete_program(GLuint trace_handle)
         {
             if (pContext->m_cur_trace_program == trace_handle)
             {
-                process_entrypoint_error("%s: Trace program %u replay program %u is being deleted on context 0x%" PRIx64 ", but it's currently bound to trace context 0x%" PRIx64 "! This scenario is not currently supported with sharelists.\n",
-                                         VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle,
+                process_entrypoint_error("Trace program %u replay program %u is being deleted on context 0x%" PRIx64 ", but it's currently bound to trace context 0x%" PRIx64 "! This scenario is not currently supported with sharelists.\n",
+                                         trace_handle, replay_handle,
                                          cast_val_to_uint64(m_pCur_context_state->m_context_desc.get_trace_context()),
                                          cast_val_to_uint64(it->first));
             }
@@ -2461,7 +2423,7 @@ void vogl_gl_replayer::handle_delete_program(GLuint trace_handle)
     {
         VOGL_ASSERT(!is_program);
 
-        process_entrypoint_warning("%s: Failed deleting program, trace handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+        process_entrypoint_warning("Failed deleting program, trace handle %u GL handle %u\n", trace_handle, replay_handle);
         return;
     }
 
@@ -2522,7 +2484,7 @@ void vogl_gl_replayer::handle_delete_program(GLuint trace_handle)
             VOGL_ASSERT(get_shared_state()->m_shadow_state.m_objs.get_target_inv(replay_shader_handle) == VOGL_SHADER_OBJECT);
             if (!get_shared_state()->m_shadow_state.m_objs.erase_inv(replay_shader_handle))
             {
-                process_entrypoint_error("%s: Failed finding attached GL shader %u in objects hash table, while handling the actual deletion of trace program %u replay program %u\n", VOGL_FUNCTION_INFO_CSTR, replay_shader_handle, trace_handle, replay_handle);
+                process_entrypoint_error("Failed finding attached GL shader %u in objects hash table, while handling the actual deletion of trace program %u replay program %u\n", replay_shader_handle, trace_handle, replay_handle);
             }
         }
     }
@@ -2550,7 +2512,7 @@ void vogl_gl_replayer::handle_delete_shader(GLuint trace_handle)
     bool deletion_succeeded = !check_gl_error();
     if (!deletion_succeeded)
     {
-        process_entrypoint_warning("%s: Failed deleting shader, trace handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+        process_entrypoint_warning("Failed deleting shader, trace handle %u GL handle %u\n", trace_handle, replay_handle);
         return;
     }
 
@@ -2664,7 +2626,7 @@ void vogl_gl_replayer::handle_post_link_program(gl_entrypoint_id_t entrypoint_id
             success = get_shared_state()->m_shadow_state.m_linked_programs.add_snapshot(m_pCur_context_state->m_context_info, m_replay_to_trace_remapper, entrypoint_id, replay_handle);
 
         if (!success)
-            process_entrypoint_warning("%s: Failed inserting into link time program shadow, trace program 0x%X replay program 0x%X\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+            process_entrypoint_warning("Failed inserting into link time program shadow, trace program 0x%X replay program 0x%X\n", trace_handle, replay_handle);
     }
 
     int trace_active_attributes = 0;
@@ -2686,7 +2648,7 @@ void vogl_gl_replayer::handle_post_link_program(gl_entrypoint_id_t entrypoint_id
 
         if (replay_link_status != trace_link_status)
         {
-            process_entrypoint_warning("%s: Trace link status (%i) differs from replay link status (%i), trace program 0x%X replay program 0x%X\n", VOGL_FUNCTION_INFO_CSTR, trace_link_status, replay_link_status, trace_handle, replay_handle);
+            process_entrypoint_warning("Trace link status (%i) differs from replay link status (%i), trace program 0x%X replay program 0x%X\n", trace_link_status, replay_link_status, trace_handle, replay_handle);
         }
     }
 
@@ -2726,13 +2688,13 @@ void vogl_gl_replayer::handle_post_link_program(gl_entrypoint_id_t entrypoint_id
 
         if ((log.size()) && (log[0]))
         {
-            process_entrypoint_message("%s: Info log for trace object %u, replay object %u:\n%s\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle, log.get_ptr());
+            process_entrypoint_message("Info log for trace object %u, replay object %u:\n%s\n", trace_handle, replay_handle, log.get_ptr());
         }
     }
 
     if ((pDoc) && (replay_active_attributes != trace_active_attributes))
     {
-        process_entrypoint_warning("%s: Number of trace active attributes (%i) differs from number of replay active attributes (%i) after linking program, trace program 0x%X replay program 0x%X\n", VOGL_FUNCTION_INFO_CSTR, trace_active_attributes, replay_active_attributes, trace_handle, replay_handle);
+        process_entrypoint_warning("Number of trace active attributes (%i) differs from number of replay active attributes (%i) after linking program, trace program 0x%X replay program 0x%X\n", trace_active_attributes, replay_active_attributes, trace_handle, replay_handle);
     }
 
     const json_node *pUniforms_node = pDoc ? pDoc->get_root()->find_child_array("active_uniforms") : NULL;
@@ -2789,7 +2751,7 @@ void vogl_gl_replayer::handle_post_link_program(gl_entrypoint_id_t entrypoint_id
 
                     if (element_replay_loc < 0)
                     {
-                        process_entrypoint_warning("%s: glGetUniformLocation: Trace active array uniform %s trace location %i trace array size %i is not active during replay, trace program 0x%X replay program 0x%X\n", VOGL_FUNCTION_INFO_CSTR, element_name.get_ptr(), trace_loc, trace_array_size, trace_handle, replay_handle);
+                        process_entrypoint_warning("glGetUniformLocation: Trace active array uniform %s trace location %i trace array size %i is not active during replay, trace program 0x%X replay program 0x%X\n", element_name.get_ptr(), trace_loc, trace_array_size, trace_handle, replay_handle);
                     }
                     else
                     {
@@ -2809,7 +2771,7 @@ void vogl_gl_replayer::handle_post_link_program(gl_entrypoint_id_t entrypoint_id
 
                 if (replay_loc < 0)
                 {
-                    process_entrypoint_warning("%s: glGetUniformLocation: Trace active uniform %s trace location %i is not active during replay, trace program 0x%X replay program 0x%X\n", VOGL_FUNCTION_INFO_CSTR, pName, trace_loc, trace_handle, replay_handle);
+                    process_entrypoint_warning("glGetUniformLocation: Trace active uniform %s trace location %i is not active during replay, trace program 0x%X replay program 0x%X\n", pName, trace_loc, trace_handle, replay_handle);
                 }
                 else
                 {
@@ -2835,18 +2797,18 @@ void vogl_gl_replayer::handle_link_program(gl_entrypoint_id_t entrypoint_id)
     check_gl_error();
     if (!is_program)
     {
-        process_entrypoint_warning("%s: Handle is not a program, trace program 0x%X replay program 0x%X\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+        process_entrypoint_warning("Handle is not a program, trace program 0x%X replay program 0x%X\n", trace_handle, replay_handle);
     }
 
     const json_document *pDoc = m_pCur_gl_packet->get_key_value_map().get_json_document("metadata");
 
     if (!pDoc)
     {
-        process_entrypoint_warning("%s: JSON metadata document is missing, program will be linked without setting its attributes or initializing the uniform location shadow, trace program 0x%X replay program 0x%X\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+        process_entrypoint_warning("JSON metadata document is missing, program will be linked without setting its attributes or initializing the uniform location shadow, trace program 0x%X replay program 0x%X\n", trace_handle, replay_handle);
     }
     else if ((pDoc) && (!pDoc->is_object()))
     {
-        process_entrypoint_warning("%s: JSON metadata document must be an object, trace program 0x%X replay program 0x%X\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+        process_entrypoint_warning("JSON metadata document must be an object, trace program 0x%X replay program 0x%X\n", trace_handle, replay_handle);
         pDoc = NULL;
     }
 
@@ -2904,7 +2866,7 @@ void vogl_gl_replayer::handle_link_program(gl_entrypoint_id_t entrypoint_id)
                 else
                 {
                     if (location_index)
-                        process_entrypoint_error("%s: GL_ARB_blend_func_extended is not supported, but trace program %u GL program %u uses a non-zero location index\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+                        process_entrypoint_error("GL_ARB_blend_func_extended is not supported, but trace program %u GL program %u uses a non-zero location index\n", trace_handle, replay_handle);
 
                     GL_ENTRYPOINT(glBindFragDataLocation)(replay_handle, location, reinterpret_cast<const GLchar *>(name.get_ptr()));
                 }
@@ -3051,14 +3013,14 @@ bool vogl_gl_replayer::dump_framebuffer(
     if (replay_texture)
     {
         if (!get_shared_state()->m_shadow_state.m_textures.map_inv_handle_to_handle(replay_texture, trace_texture))
-            vogl_warning_printf("%s: Failed finding GL handle %u in texture handle shadow!\n", VOGL_FUNCTION_INFO_CSTR, replay_texture);
+            vogl_warning_printf("Failed finding GL handle %u in texture handle shadow!\n", replay_texture);
     }
 
     uint32_t trace_rbo = 0;
     if (replay_rbo)
     {
         if (!get_shared_state()->m_shadow_state.m_rbos.map_inv_handle_to_handle(replay_rbo, trace_rbo))
-            vogl_error_printf("%s: Failed finding GL handle %u in RBO handle shadow!\n", VOGL_FUNCTION_INFO_CSTR, replay_rbo);
+            vogl_error_printf("Failed finding GL handle %u in RBO handle shadow!\n", replay_rbo);
     }
 
     uint32_t image_fmt_size = vogl_get_image_format_size_in_bytes(fmt, type);
@@ -3071,7 +3033,7 @@ bool vogl_gl_replayer::dump_framebuffer(
 
     if (!success)
     {
-        process_entrypoint_warning("%s: vogl_copy_buffer_to_image() failed!\n", VOGL_FUNCTION_INFO_CSTR);
+        process_entrypoint_warning("vogl_copy_buffer_to_image() failed!\n");
         return false;
     }
 
@@ -3171,12 +3133,12 @@ bool vogl_gl_replayer::dump_framebuffer(
 
     if (!file_utils::write_buf_to_file(screenshot_filename.get_ptr(), pPNG_data, png_size))
     {
-        process_entrypoint_error("%s: Failed writing framebuffer screenshot to file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, screenshot_filename.get_ptr());
+        process_entrypoint_error("Failed writing framebuffer screenshot to file \"%s\"\n", screenshot_filename.get_ptr());
         success = false;
     }
     else
     {
-        vogl_printf("%s: Wrote framebuffer screenshot to file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, screenshot_filename.get_ptr());
+        vogl_printf("Wrote framebuffer screenshot to file \"%s\"\n", screenshot_filename.get_ptr());
     }
 
     mz_free(pPNG_data);
@@ -3196,7 +3158,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
     uint32_t max_draw_buffers = vogl_get_gl_integer(GL_MAX_DRAW_BUFFERS);
     if (!max_draw_buffers)
     {
-        process_entrypoint_warning("%s: GL_MAX_DRAW_BUFFERS is 0\n", VOGL_FUNCTION_INFO_CSTR);
+        process_entrypoint_warning("GL_MAX_DRAW_BUFFERS is 0\n");
         return;
     }
 
@@ -3224,7 +3186,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
     vogl_framebuffer_state fbo_state;
     if (!fbo_state.snapshot(m_pCur_context_state->m_context_info, m_replay_to_trace_remapper, draw_framebuffer_binding, GL_NONE))
     {
-        process_entrypoint_warning("%s: Unable to snapshot current FBO %u\n", VOGL_FUNCTION_INFO_CSTR, draw_framebuffer_binding);
+        process_entrypoint_warning("Unable to snapshot current FBO %u\n", draw_framebuffer_binding);
         return;
     }
 
@@ -3236,7 +3198,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
         const vogl_framebuffer_attachment *pAttachment = fbo_state.get_attachments().find_value(draw_buffers[i]);
         if (!pAttachment)
         {
-            process_entrypoint_warning("%s: Can't find draw buffer %s in currently bound FBO %u\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(draw_buffers[i]), draw_framebuffer_binding);
+            process_entrypoint_warning("Can't find draw buffer %s in currently bound FBO %u\n", get_gl_enums().find_gl_name(draw_buffers[i]), draw_framebuffer_binding);
             continue;
         }
 
@@ -3251,7 +3213,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
             vogl_renderbuffer_state rbo_state;
             if (!rbo_state.snapshot(m_pCur_context_state->m_context_info, m_replay_to_trace_remapper, rbo_handle, GL_NONE))
             {
-                process_entrypoint_warning("%s: Failed getting RBO %u's' state!\n", VOGL_FUNCTION_INFO_CSTR, rbo_handle);
+                process_entrypoint_warning("Failed getting RBO %u's' state!\n", rbo_handle);
                 continue;
             }
 
@@ -3266,7 +3228,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
 
             if ((!width) || (!height) || (!internal_format))
             {
-                process_entrypoint_warning("%s: Unable to determine FBO %u color attachment %u's RBO %u's dimensions\n", VOGL_FUNCTION_INFO_CSTR, draw_framebuffer_binding, i, rbo_handle);
+                process_entrypoint_warning("Unable to determine FBO %u color attachment %u's RBO %u's dimensions\n", draw_framebuffer_binding, i, rbo_handle);
                 continue;
             }
 
@@ -3331,7 +3293,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
                     }
                     else
                     {
-                        process_entrypoint_warning("%s: Failed downsampling FBO %u color attachment %u's RBO %u to temporary RBO\n", VOGL_FUNCTION_INFO_CSTR, draw_framebuffer_binding, i, rbo_handle);
+                        process_entrypoint_warning("Failed downsampling FBO %u color attachment %u's RBO %u to temporary RBO\n", draw_framebuffer_binding, i, rbo_handle);
                     }
                 }
 
@@ -3362,14 +3324,14 @@ void vogl_gl_replayer::dump_current_framebuffer()
             GLuint tex_handle = pAttachment->get_param(GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME);
             if (!tex_handle)
             {
-                process_entrypoint_warning("%s: Current FBO %u has a invalid object name\n", VOGL_FUNCTION_INFO_CSTR, draw_framebuffer_binding);
+                process_entrypoint_warning("Current FBO %u has a invalid object name\n", draw_framebuffer_binding);
                 continue;
             }
 
             GLenum target = get_shared_state()->m_shadow_state.m_textures.get_target_inv(tex_handle);
             if (target == GL_NONE)
             {
-                process_entrypoint_warning("%s: Current FBO %u first color attachment's type is GL_TEXTURE, but unable to determine the texture's target type, GL texture handle %u\n", VOGL_FUNCTION_INFO_CSTR, draw_framebuffer_binding, tex_handle);
+                process_entrypoint_warning("Current FBO %u first color attachment's type is GL_TEXTURE, but unable to determine the texture's target type, GL texture handle %u\n", draw_framebuffer_binding, tex_handle);
                 continue;
             }
 
@@ -3378,7 +3340,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
 
             if (!utils::is_in_set<GLenum, GLenum>(target, GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_1D_ARRAY, GL_TEXTURE_2D_ARRAY, GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP, GL_TEXTURE_CUBE_MAP_ARRAY))
             {
-                process_entrypoint_warning("%s: Unsupported FBO attachment texture target type (%s), GL texture handle %u\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(target), tex_handle);
+                process_entrypoint_warning("Unsupported FBO attachment texture target type (%s), GL texture handle %u\n", get_gl_enums().find_gl_name(target), tex_handle);
                 continue;
             }
 
@@ -3416,14 +3378,14 @@ void vogl_gl_replayer::dump_current_framebuffer()
 
             if ((!width) || (!height))
             {
-                process_entrypoint_warning("%s: Unable to determine FBO %u color attachment %u's texture %u's dimensions\n", VOGL_FUNCTION_INFO_CSTR, draw_framebuffer_binding, i, tex_handle);
+                process_entrypoint_warning("Unable to determine FBO %u color attachment %u's texture %u's dimensions\n", draw_framebuffer_binding, i, tex_handle);
                 continue;
             }
 
             if (samples > 1)
             {
                 // TODO: We have the code to do this now, just need to hook it up.
-                process_entrypoint_warning("%s: Can't dump multisample texture FBO attachments yet\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("Can't dump multisample texture FBO attachments yet\n");
                 continue;
             }
 
@@ -3532,15 +3494,15 @@ vogl_gl_replayer::status_t vogl_gl_replayer::handle_ShaderSource(GLhandleARB tra
     if ((trace_strings_glchar_ptr_array.get_ptr()) &&
         (trace_strings_count != static_cast<uint32_t>(count)))
     {
-        process_entrypoint_error("%s: Trace strings array has an invalid count (expected %u, got %u)\n",
-                                 VOGL_FUNCTION_INFO_CSTR, count, trace_strings_count);
+        process_entrypoint_error("Trace strings array has an invalid count (expected %u, got %u)\n",
+                                 count, trace_strings_count);
         return cStatusHardFailure;
     }
 
     if ((pTrace_lengths) && (trace_lengths_count != static_cast<uint32_t>(count)))
     {
-        process_entrypoint_error("%s: Trace lengths array has an invalid count (expected %u, got %u)\n",
-                                 VOGL_FUNCTION_INFO_CSTR, count, trace_lengths_count);
+        process_entrypoint_error("Trace lengths array has an invalid count (expected %u, got %u)\n",
+                                 count, trace_lengths_count);
         return cStatusHardFailure;
     }
 
@@ -3567,8 +3529,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::handle_ShaderSource(GLhandleARB tra
         {
             if (lengths[i] > 0)
             {
-                process_entrypoint_error("%s: Failed finding blob for non-empty string %i in packet's key value map\n",
-                                         VOGL_FUNCTION_INFO_CSTR, i);
+                process_entrypoint_error("Failed finding blob for non-empty string %i in packet's key value map\n", i);
                 return cStatusHardFailure;
             }
             continue;
@@ -3577,7 +3538,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::handle_ShaderSource(GLhandleARB tra
         const uint8_vec *pBlob = it->second.get_blob();
         if (!pBlob)
         {
-            process_entrypoint_error("%s: Can't convert string %i to a blob\n", VOGL_FUNCTION_INFO_CSTR, i);
+            process_entrypoint_error("Can't convert string %i to a blob\n", i);
             return cStatusHardFailure;
         }
 
@@ -3588,7 +3549,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::handle_ShaderSource(GLhandleARB tra
         {
             if (static_cast<uint32_t>(pTrace_lengths[i]) != blob.size())
             {
-                process_entrypoint_warning("%s: Length value (%u) stored in length array at index %u doesn't match string %u's length - changing to match\n", VOGL_FUNCTION_INFO_CSTR, pTrace_lengths[i], i, blob.size());
+                process_entrypoint_warning("Length value (%u) stored in length array at index %u doesn't match string %u's length - changing to match\n", pTrace_lengths[i], i, blob.size());
                 lengths[i] = blob.size();
             }
         }
@@ -3596,7 +3557,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::handle_ShaderSource(GLhandleARB tra
         {
             if ((blob.size()) && (blob.back() != '\0'))
             {
-                process_entrypoint_warning("%s: String %u doesn't end in 0 terminator - appending terminator\n", VOGL_FUNCTION_INFO_CSTR, i);
+                process_entrypoint_warning("String %u doesn't end in 0 terminator - appending terminator\n", i);
 
                 blob.push_back('\0');
             }
@@ -3647,7 +3608,7 @@ void vogl_gl_replayer::display_list_bind_callback(vogl_namespace_t handle_namesp
     else
     {
         // TODO - right now the display list whitelist doens't let anything else get bound.
-        pReplayer->process_entrypoint_warning("%s: Unsupported bind in display lists, namespace %s target %s trace handle %u\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_namespace_name(handle_namespace), get_gl_enums().find_gl_name(target), handle);
+        pReplayer->process_entrypoint_warning("Unsupported bind in display lists, namespace %s target %s trace handle %u\n", vogl_get_namespace_name(handle_namespace), get_gl_enums().find_gl_name(target), handle);
     }
 }
 
@@ -3740,7 +3701,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         dump_packet_as_func_call(trace_packet);
 
     if (m_flags & cGLReplayerDumpAllPackets)
-        print_detailed_context(cDebugConsoleMessage);
+        print_detailed_context(cMsgDebug);
 
     if (entrypoint_id == VOGL_ENTRYPOINT_glInternalTraceCommandRAD)
         return process_internal_trace_command(gl_entrypoint_packet);
@@ -3765,14 +3726,14 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((trace_context) && (!replay_context))
             {
-                process_entrypoint_error("%s: Failed remapping GL trace context 0x%" PRIx64 "\n", VOGL_FUNCTION_INFO_CSTR, (uint64_t)trace_context);
+                process_entrypoint_error("Failed remapping GL trace context 0x%" PRIx64 "\n", (uint64_t)trace_context);
                 return cStatusHardFailure;
             }
 
             if (trace_context == m_cur_trace_context)
             {
-                process_entrypoint_warning("%s: glXDestroyContext() called while trace context 0x%" PRIx64 " is still current, forcing it to not be current\n",
-                                           VOGL_FUNCTION_INFO_CSTR, (uint64_t)trace_context);
+                process_entrypoint_warning("glXDestroyContext() called while trace context 0x%" PRIx64 " is still current, forcing it to not be current\n",
+                                           (uint64_t)trace_context);
 
                 m_cur_trace_context = 0;
                 m_cur_replay_context = 0;
@@ -3894,7 +3855,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((trace_context) && (!replay_context))
             {
-                process_entrypoint_error("%s, Failed remapping GL context\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Failed remapping GL context\n");
                 return cStatusHardFailure;
             }
 
@@ -3922,7 +3883,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                             status = trigger_pending_window_resize(win_width, win_height);
 
-                            vogl_printf("%s: Deferring glXMakeCurrent() until window resizes to %ux%u\n", VOGL_FUNCTION_INFO_CSTR, win_width, win_height);
+                            vogl_printf("Deferring glXMakeCurrent() until window resizes to %ux%u\n", win_width, win_height);
                         }
                     }
                 }
@@ -3941,12 +3902,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (trace_result)
                     {
-                        process_entrypoint_error("%s: Failed making context current, but in the trace this call succeeded!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_error("Failed making context current, but in the trace this call succeeded!\n");
                         return cStatusHardFailure;
                     }
                     else
                     {
-                        process_entrypoint_warning("%s: Failed making context current, in the trace this call also failed\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Failed making context current, in the trace this call also failed\n");
                     }
                 }
                 else
@@ -3957,7 +3918,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (!trace_result)
                     {
-                        process_entrypoint_warning("%s: Context was successfuly made current, but this operation failed in the trace\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Context was successfuly made current, but this operation failed in the trace\n");
                     }
 
 #if 0
@@ -3982,7 +3943,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             int major = 0, minor = 0;
             Bool status2 = m_pWindow->query_version(&major, &minor);
 
-            process_entrypoint_message("%s: glXQueryVersion returned major %u minor %u status %u, trace recorded major %u minor %u status %u\n", VOGL_FUNCTION_INFO_CSTR, major, minor, status2,
+            process_entrypoint_message("glXQueryVersion returned major %u minor %u status %u, trace recorded major %u minor %u status %u\n", major, minor, status2,
                                        *trace_packet.get_param_client_memory<int>(1),
                                        *trace_packet.get_param_client_memory<int>(2),
                                        trace_packet.get_return_value<Bool>());
@@ -4022,7 +3983,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((pFunc != NULL) != (trace_func_ptr_value != 0))
             {
-                process_entrypoint_warning("%s: GetProcAddress of function %s %s in the replay, but %s in the trace\n", VOGL_FUNCTION_INFO_CSTR,
+                process_entrypoint_warning("GetProcAddress of function %s %s in the replay, but %s in the trace\n",
                                            (const char *)procName,
                                            (pFunc != NULL) ? "succeeded" : "failed",
                                            (trace_func_ptr_value != 0) ? "succeeded" : "failed");
@@ -4040,7 +4001,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((trace_share_context) && (!replay_share_context))
             {
-                process_entrypoint_warning("%s: Failed remapping trace sharelist context 0x%" PRIx64 "!\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(trace_share_context));
+                process_entrypoint_warning("Failed remapping trace sharelist context 0x%" PRIx64 "!\n", cast_val_to_uint64(trace_share_context));
             }
 
             Bool direct = trace_packet.get_param_value<Bool>(4);
@@ -4048,7 +4009,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (m_flags & cGLReplayerForceDebugContexts)
             {
-                process_entrypoint_warning("%s: glxCreateNewContext() called but we're trying to force debug contexts, which requires us to call glXCreateContextAttribsARB(). This may fail if the user has called glXCreateWindow().\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("glxCreateNewContext() called but we're trying to force debug contexts, which requires us to call glXCreateContextAttribsARB(). This may fail if the user has called glXCreateWindow().\n");
 
                 status = create_context_attribs(trace_context, trace_share_context, replay_share_context, direct, NULL, 0, false);
                 if (status != cStatusOK)
@@ -4062,13 +4023,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (trace_context)
                     {
-                        process_entrypoint_error("%s: Failed creating new GL context!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_error("Failed creating new GL context!\n");
                         return cStatusHardFailure;
                     }
                     else
                     {
                         // TODO: This logic is wrong, this case is where both the traced app and the replay failed to create a context.
-                        process_entrypoint_warning("%s: Successfully created a new GL context where the traced app failed!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Successfully created a new GL context where the traced app failed!\n");
                     }
                 }
 
@@ -4108,12 +4069,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (trace_context)
                     {
-                        process_entrypoint_error("%s: Failed creating new GL context!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_error("Failed creating new GL context!\n");
                         return cStatusHardFailure;
                     }
                     else
                     {
-                        process_entrypoint_warning("%s: Successfully created a new GL context where the traced app failed!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Successfully created a new GL context where the traced app failed!\n");
                     }
                 }
 
@@ -4140,7 +4101,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((trace_share_context) && (!replay_share_context))
             {
-                process_entrypoint_warning("%s: Failed remapping trace sharelist context 0x%" PRIx64 "!\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(trace_share_context));
+                process_entrypoint_warning("Failed remapping trace sharelist context 0x%" PRIx64 "!\n", cast_val_to_uint64(trace_share_context));
             }
 
             Bool direct = trace_packet.get_param_value<Bool>(3);
@@ -4160,12 +4121,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (trace_context)
                     {
-                        process_entrypoint_error("%s: Failed creating new GL context!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_error("Failed creating new GL context!\n");
                         return cStatusHardFailure;
                     }
                     else
                     {
-                        process_entrypoint_warning("%s: Successfully created a new GL context where the traced app failed!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Successfully created a new GL context where the traced app failed!\n");
                     }
                 }
 
@@ -4193,7 +4154,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((trace_share_context) && (!replay_share_context))
             {
-                process_entrypoint_warning("%s: Failed remapping trace sharelist context 0x%" PRIx64 "!\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(trace_share_context));
+                process_entrypoint_warning("Failed remapping trace sharelist context 0x%" PRIx64 "!\n", cast_val_to_uint64(trace_share_context));
             }
 
             Bool direct = trace_packet.get_param_value<Bool>(3);
@@ -4216,9 +4177,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             if (m_flags & cGLReplayerLowLevelDebugMode)
             {
                 if (!validate_program_and_shader_handle_tables())
-                    vogl_warning_printf("%s: Failed validating program/shaders against handle mapping tables\n", VOGL_FUNCTION_INFO_CSTR);
+                    vogl_warning_printf("Failed validating program/shaders against handle mapping tables\n");
                 if (!validate_textures())
-                    vogl_warning_printf("%s: Failed validating texture handles against handle mapping tables\n", VOGL_FUNCTION_INFO_CSTR);
+                    vogl_warning_printf("Failed validating texture handles against handle mapping tables\n");
             }
 
             if ((m_flags & cGLReplayerHashBackbuffer) || (m_flags & cGLReplayerDumpScreenshots) || (m_flags & cGLReplayerDumpBackbufferHashes))
@@ -4243,7 +4204,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (m_flags & cGLReplayerDebugMode)
             {
-                vogl_debug_printf("%s: glXSwapBuffers() processed at end of frame %u, swap %u, last GL call counter %" PRIu64 "\n", VOGL_FUNCTION_INFO_CSTR, m_frame_index, m_total_swaps, m_last_parsed_call_counter);
+                vogl_debug_printf("glXSwapBuffers() processed at end of frame %u, swap %u, last GL call counter %" PRIu64 "\n", m_frame_index, m_total_swaps, m_last_parsed_call_counter);
             }
 
             m_frame_index++;
@@ -4263,7 +4224,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                         //m_pWindow->resize(win_width, win_height);
                         trigger_pending_window_resize(win_width, win_height);
 
-                        vogl_printf("%s: Resizing window after swap to %ux%u\n", VOGL_FUNCTION_INFO_CSTR, win_width, win_height);
+                        vogl_printf("Resizing window after swap to %ux%u\n", win_width, win_height);
                     }
                 }
             }
@@ -4296,7 +4257,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (replay_is_direct != trace_is_direct)
             {
-                process_entrypoint_warning("%s: glXIsDirect() returned different results while replaying (%u) vs tracing (%u)!\n", VOGL_FUNCTION_INFO_CSTR, replay_is_direct, trace_is_direct);
+                process_entrypoint_warning("glXIsDirect() returned different results while replaying (%u) vs tracing (%u)!\n", replay_is_direct, trace_is_direct);
             }
 
             break;
@@ -4308,7 +4269,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((replay_context != 0) != (trace_context != 0))
             {
-                process_entrypoint_warning("%s: glXGetCurrentContext() returned different results while replaying (0x%" PRIX64 ") vs tracing (0x%" PRIX64 ")!\n", VOGL_FUNCTION_INFO_CSTR, (uint64_t)replay_context, (uint64_t)trace_context);
+                process_entrypoint_warning("glXGetCurrentContext() returned different results while replaying (0x%" PRIX64 ") vs tracing (0x%" PRIX64 ")!\n", (uint64_t)replay_context, (uint64_t)trace_context);
             }
 
             break;
@@ -4347,7 +4308,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
     if (!m_cur_replay_context)
     {
-        process_entrypoint_error("%s: Trace contains a GL call with no current context! Skipping call.\n", VOGL_FUNCTION_INFO_CSTR);
+        process_entrypoint_error("Trace contains a GL call with no current context! Skipping call.\n");
         return cStatusSoftFailure;
     }
 
@@ -4364,15 +4325,15 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         if (!vogl_display_list_state::is_call_listable(entrypoint_id, trace_packet))
         {
             if (!g_vogl_entrypoint_descs[entrypoint_id].m_whitelisted_for_displaylists)
-                process_entrypoint_error("%s: Failed serializing trace packet into display list shadow! Call is not whitelisted for display list usage by vogl.\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Failed serializing trace packet into display list shadow! Call is not whitelisted for display list usage by vogl.\n");
             else
-                process_entrypoint_warning("%s: Failed serializing trace packet into display list shadow! Call with these parameters is not listable.\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("Failed serializing trace packet into display list shadow! Call with these parameters is not listable.\n");
         }
         else
         {
             if (!get_shared_state()->m_shadow_state.m_display_lists.add_packet_to_list(get_context_state()->m_current_display_list_handle, entrypoint_id, trace_packet))
             {
-                process_entrypoint_warning("%s: Failed adding current packet to display list shadow!\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("Failed adding current packet to display list shadow!\n");
             }
         }
     }
@@ -4407,14 +4368,14 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 const dynamic_string *pFont_name = key_value_map.get_string_ptr("font_name");
                 if ((!pFont_name) || (pFont_name->is_empty()))
                 {
-                    process_entrypoint_warning("%s: Couldn't find font_name key, or key was empty - unable to call glXUseXFont()!\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Couldn't find font_name key, or key was empty - unable to call glXUseXFont()!\n");
                 }
                 else
                 {
                     XFontStruct *pFont = XLoadQueryFont(m_pWindow->get_display(), pFont_name->get_ptr());
                     if (!pFont)
                     {
-                        process_entrypoint_warning("%s: Couldn't load X font %s  - unable to call glXUseXFont()!\n", VOGL_FUNCTION_INFO_CSTR, pFont_name->get_ptr());
+                        process_entrypoint_warning("Couldn't load X font %s  - unable to call glXUseXFont()!\n", pFont_name->get_ptr());
                     }
                     else
                     {
@@ -4429,13 +4390,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                         if (get_context_state()->is_composing_display_list())
                         {
-                            process_entrypoint_warning("%s: glXUseXFont() called while composing a display list!\n", VOGL_FUNCTION_INFO_CSTR);
+                            process_entrypoint_warning("glXUseXFont() called while composing a display list!\n");
                         }
                         else
                         {
                             if (!get_shared_state()->m_shadow_state.m_display_lists.glx_font(pFont_name->get_ptr(), first, count, trace_list_base))
                             {
-                                process_entrypoint_warning("%s: Failed updating display list shadow\n", VOGL_FUNCTION_INFO_CSTR);
+                                process_entrypoint_warning("Failed updating display list shadow\n");
                             }
                         }
                     }
@@ -4472,7 +4433,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         {
             if (m_pCur_context_state->m_inside_gl_begin)
             {
-                process_entrypoint_warning("%s: Got a glBegin while already inside a glBegin\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("Got a glBegin while already inside a glBegin\n");
             }
             m_pCur_context_state->m_inside_gl_begin = true;
 
@@ -4484,7 +4445,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         {
             if (!m_pCur_context_state->m_inside_gl_begin)
             {
-                process_entrypoint_warning("%s: Got glEnd without a matching glBegin\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("Got glEnd without a matching glBegin\n");
             }
             m_pCur_context_state->m_inside_gl_begin = false;
 
@@ -4565,12 +4526,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
                 else if (n < static_cast<int>(trace_params_count))
                 {
-                    process_entrypoint_error("%s: Expected %i GLint's for GL pname 0x%08X, but trace only contains %i GLint's\n", VOGL_FUNCTION_INFO_CSTR, n, pname, trace_params_count);
+                    process_entrypoint_error("Expected %i GLint's for GL pname 0x%08X, but trace only contains %i GLint's\n", n, pname, trace_params_count);
                     return cStatusSoftFailure;
                 }
                 else
@@ -4584,7 +4545,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (memcmp(pTrace_params, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s target %s\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(pname), get_gl_enums().find_gl_name(target));
+                        process_entrypoint_warning("Replay's returned GLint data differed from trace's, pname %s target %s\n", get_gl_enums().find_gl_name(pname), get_gl_enums().find_gl_name(target));
                     }
                 }
             }
@@ -4600,7 +4561,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             GLenum trace_status = trace_packet.get_return_value<GLenum>();
             if (result != trace_status)
             {
-                process_entrypoint_warning("%s: glCheckFramebufferStatus returned status 0x%08X during trace, but status 0x%08X during replay\n", VOGL_FUNCTION_INFO_CSTR, trace_status, result);
+                process_entrypoint_warning("glCheckFramebufferStatus returned status 0x%08X during trace, but status 0x%08X during replay\n", trace_status, result);
             }
             break;
         }
@@ -4625,7 +4586,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             if (!get_shared_state()->m_shadow_state.m_textures.map_handle_to_inv_handle(trace_texture, replay_texture))
             {
                 if (trace_texture)
-                    process_entrypoint_warning("%s: Couldn't map trace texture ID %u to GL texture ID, using trace texture ID instead\n", VOGL_FUNCTION_INFO_CSTR, trace_texture);
+                    process_entrypoint_warning("Couldn't map trace texture ID %u to GL texture ID, using trace texture ID instead\n", trace_texture);
             }
 
             GL_ENTRYPOINT(glFramebufferTexture)(target, attachment, replay_texture, level);
@@ -4645,7 +4606,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             if (!get_shared_state()->m_shadow_state.m_textures.map_handle_to_inv_handle(trace_texture, replay_texture))
             {
                 if (trace_texture)
-                    process_entrypoint_warning("%s: Couldn't map trace texture ID %u to GL texture ID, using trace texture ID instead\n", VOGL_FUNCTION_INFO_CSTR, trace_texture);
+                    process_entrypoint_warning("Couldn't map trace texture ID %u to GL texture ID, using trace texture ID instead\n", trace_texture);
             }
 
             SWITCH_GL_ENTRYPOINT2_VOID(glFramebufferTextureLayer, glFramebufferTextureLayerEXT, target, attachment, replay_texture, level, layer);
@@ -4669,7 +4630,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             if (!get_shared_state()->m_shadow_state.m_textures.map_handle_to_inv_handle(trace_texture, replay_texture))
             {
                 if (trace_texture)
-                    process_entrypoint_warning("%s: Couldn't map trace texture ID %u to GL texture ID, using trace texture ID instead\n", VOGL_FUNCTION_INFO_CSTR, trace_texture);
+                    process_entrypoint_warning("Couldn't map trace texture ID %u to GL texture ID, using trace texture ID instead\n", trace_texture);
             }
 
             switch (entrypoint_id)
@@ -4858,7 +4819,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((pTrace_ids) && (static_cast<GLsizei>(trace_ids_count) < trace_n))
             {
-                process_entrypoint_warning("%s: trace_ids trace array is too small\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("trace_ids trace array is too small\n");
                 return cStatusHardFailure;
             }
 
@@ -4870,13 +4831,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (!get_shared_state()->m_buffer_targets.erase(trace_id))
                 {
-                    process_entrypoint_warning("%s: Couldn't find trace buffer id %u in buffer target map!\n", VOGL_FUNCTION_INFO_CSTR, trace_id);
+                    process_entrypoint_warning("Couldn't find trace buffer id %u in buffer target map!\n", trace_id);
                 }
 
                 gl_handle_hash_map::const_iterator it = get_shared_state()->m_buffers.find(trace_id);
                 if (it == get_shared_state()->m_buffers.end())
                 {
-                    process_entrypoint_warning("%s: Couldn't map trace buffer id %u to GL buffer id\n", VOGL_FUNCTION_INFO_CSTR, trace_id);
+                    process_entrypoint_warning("Couldn't map trace buffer id %u to GL buffer id\n", trace_id);
                     continue;
                 }
 
@@ -4888,7 +4849,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (mapped_bufs[i].m_buffer == replay_id)
                     {
-                        process_entrypoint_warning("%s: glDeleteBuffers() called on mapped trace buffer %u GL buffer %u\n", VOGL_FUNCTION_INFO_CSTR, trace_id, replay_id);
+                        process_entrypoint_warning("glDeleteBuffers() called on mapped trace buffer %u GL buffer %u\n", trace_id, replay_id);
 
                         mapped_bufs.erase_unordered(i);
                         break;
@@ -4941,7 +4902,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 if (it != get_shared_state()->m_arb_programs.end())
                     program = it->second;
                 else
-                    process_entrypoint_warning("%s: Couldn't map trace handle %u to GL handle, using trace handle instead (handle may not have been genned)\n", VOGL_FUNCTION_INFO_CSTR, program);
+                    process_entrypoint_warning("Couldn't map trace handle %u to GL handle, using trace handle instead (handle may not have been genned)\n", program);
             }
 
             check_gl_error();
@@ -4960,7 +4921,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             }
             else
             {
-                process_entrypoint_warning("%s: GL error while binding ARB program, trace handle %u GL handle %u target %s\n", VOGL_FUNCTION_INFO_CSTR, trace_program, program, get_gl_enums().find_gl_name(target));
+                process_entrypoint_warning("GL error while binding ARB program, trace handle %u GL handle %u target %s\n", trace_program, program, get_gl_enums().find_gl_name(target));
                 return cStatusGLError;
             }
 
@@ -4979,7 +4940,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLboolean trace_result = trace_packet.get_return_value<GLboolean>();
 
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u, trace ARB program: %u replay ARB program %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result), trace_program, program);
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u, trace ARB program: %u replay ARB program %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result), trace_program, program);
             }
 
             break;
@@ -5054,7 +5015,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLboolean trace_result = trace_packet.get_return_value<GLboolean>();
                 if (replay_result != trace_result)
                 {
-                    process_entrypoint_warning("%s: Replay's returned GLboolean data differed from trace's (got %i, expected %i)\n", VOGL_FUNCTION_INFO_CSTR, replay_result, replay_result);
+                    process_entrypoint_warning("Replay's returned GLboolean data differed from trace's (got %i, expected %i)\n", replay_result, replay_result);
                 }
             }
             break;
@@ -5067,7 +5028,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLboolean trace_result = trace_packet.get_return_value<GLboolean>();
                 if (replay_result != trace_result)
                 {
-                    process_entrypoint_warning("%s: Replay's returned GLboolean data differed from trace's (got %i, expected %i)\n", VOGL_FUNCTION_INFO_CSTR, replay_result, replay_result);
+                    process_entrypoint_warning("Replay's returned GLboolean data differed from trace's (got %i, expected %i)\n", replay_result, replay_result);
                 }
             }
             break;
@@ -5208,7 +5169,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             {
                 GLuint replay_handle = map_handle(get_shared_state()->m_shadow_state.m_objs, trace_handle);
 
-                process_entrypoint_error("%s: Failed determining if trace handle %u relay handle %u is a shader or program -- unable to delete object!\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+                process_entrypoint_error("Failed determining if trace handle %u relay handle %u is a shader or program -- unable to delete object!\n", trace_handle, replay_handle);
                 return cStatusSoftFailure;
             }
 
@@ -5303,7 +5264,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
                 else
@@ -5320,7 +5281,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (memcmp(pParams, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(pname));
+                        process_entrypoint_warning("Replay's returned GLint data differed from trace's, pname %s\n", get_gl_enums().find_gl_name(pname));
                     }
                 }
             }
@@ -5337,7 +5298,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(value);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL value 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, value);
+                    process_entrypoint_error("Can't determine count of GL value 0x%08X\n", value);
                     return cStatusSoftFailure;
                 }
                 else
@@ -5352,7 +5313,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     GLint trace_data = pTrace_data ? pTrace_data[0] : -1;
                     if (data[0] != trace_data)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint differed from trace's!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Replay's returned GLint differed from trace's!\n");
                         vogl_warning_printf("Trace data: %i, Replay data: %i\n", trace_data, data[0]);
                     }
                 }
@@ -5373,7 +5334,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if ((pReplay_ptr != NULL) != (first_trace_ptr != 0))
                 {
-                    process_entrypoint_warning("%s: First replay's returned GLvoid* differed from trace's!\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("First replay's returned GLvoid* differed from trace's!\n");
                     vogl_warning_printf("Trace: 0x%" PRIx64 ", Replay: 0x%" PRIx64 "\n", first_trace_ptr, reinterpret_cast<uint64_t>(pReplay_ptr));
                 }
             }
@@ -5400,7 +5361,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             GL_ENTRYPOINT(glGetProgramiv)(replay_object, GL_INFO_LOG_LENGTH, &length);
             if (length < 0)
             {
-                process_entrypoint_error("%s: Failed retrieving info log length for trace object %u, reply object %u\n", VOGL_FUNCTION_INFO_CSTR, trace_object, replay_object);
+                process_entrypoint_error("Failed retrieving info log length for trace object %u, reply object %u\n", trace_object, replay_object);
                 return cStatusSoftFailure;
             }
             else
@@ -5412,7 +5373,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (actual_length)
                 {
-                    process_entrypoint_message("%s: Info log for trace object %u, replay object %u:\n%s\n", VOGL_FUNCTION_INFO_CSTR, trace_object, replay_object, log.get_ptr());
+                    process_entrypoint_message("Info log for trace object %u, replay object %u:\n%s\n", trace_object, replay_object, log.get_ptr());
                 }
             }
 
@@ -5439,7 +5400,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             GL_ENTRYPOINT(glGetObjectParameterivARB)(replay_object, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
             if (length < 0)
             {
-                process_entrypoint_error("%s: Failed retrieving info log length for trace object %u, reply object %u\n", VOGL_FUNCTION_INFO_CSTR, trace_object, replay_object);
+                process_entrypoint_error("Failed retrieving info log length for trace object %u, reply object %u\n", trace_object, replay_object);
                 return cStatusSoftFailure;
             }
             else
@@ -5451,7 +5412,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (actual_length)
                 {
-                    process_entrypoint_message("%s: Info log for trace object %u, replay object %u:\n%s\n", VOGL_FUNCTION_INFO_CSTR, trace_object, replay_object, log.get_ptr());
+                    process_entrypoint_message("Info log for trace object %u, replay object %u:\n%s\n", trace_object, replay_object, log.get_ptr());
                 }
             }
 
@@ -5471,12 +5432,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 if (replay_loc < 0)
                 {
                     if (trace_loc >= 0)
-                        process_entrypoint_warning("%s: glGetUniformLocation: Function succeeded during trace, but failed during replay! (name: %s trace_handle: %u, trace_loc: %i)\n", VOGL_FUNCTION_INFO_CSTR, (const char *)pName, trace_handle, trace_loc);
+                        process_entrypoint_warning("glGetUniformLocation: Function succeeded during trace, but failed during replay! (name: %s trace_handle: %u, trace_loc: %i)\n", (const char *)pName, trace_handle, trace_loc);
                 }
                 else
                 {
                     if (trace_loc < 0)
-                        process_entrypoint_warning("%s: glGetUniformLocation: Function failed during trace, but succeeded during replay! (name: %s trace_handle: %u, trace_loc: %i)\n", VOGL_FUNCTION_INFO_CSTR, (const char *)pName, trace_handle, trace_loc);
+                        process_entrypoint_warning("glGetUniformLocation: Function failed during trace, but succeeded during replay! (name: %s trace_handle: %u, trace_loc: %i)\n", (const char *)pName, trace_handle, trace_loc);
                     else
                     {
                         glsl_program_hash_map::iterator it = get_shared_state()->m_glsl_program_hash_map.find(trace_handle);
@@ -5506,12 +5467,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 if (replay_loc < 0)
                 {
                     if (trace_loc >= 0)
-                        process_entrypoint_warning("%s: glGetUniformLocationARB: Function succeeded during trace, but failed during replay! (name: %s trace_handle: %u, trace_loc: %i)\n", VOGL_FUNCTION_INFO_CSTR, (const char *)pName, trace_handle, trace_loc);
+                        process_entrypoint_warning("glGetUniformLocationARB: Function succeeded during trace, but failed during replay! (name: %s trace_handle: %u, trace_loc: %i)\n", (const char *)pName, trace_handle, trace_loc);
                 }
                 else
                 {
                     if (trace_loc < 0)
-                        process_entrypoint_warning("%s: glGetUniformLocationARB: Function failed during trace, but succeeded during replay! (name: %s trace_handle: %u, trace_loc: %i)\n", VOGL_FUNCTION_INFO_CSTR, (const char *)pName, trace_handle, trace_loc);
+                        process_entrypoint_warning("glGetUniformLocationARB: Function failed during trace, but succeeded during replay! (name: %s trace_handle: %u, trace_loc: %i)\n", (const char *)pName, trace_handle, trace_loc);
                     else
                     {
                         glsl_program_hash_map::iterator it = get_shared_state()->m_glsl_program_hash_map.find(trace_handle);
@@ -5591,7 +5552,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (mismatch)
                 {
-                    process_entrypoint_warning("%s: Replay of %s returned data differed from trace's\n", VOGL_FUNCTION_INFO_CSTR, trace_packet.get_entrypoint_desc().m_pName);
+                    process_entrypoint_warning("Replay of %s returned data differed from trace's\n", trace_packet.get_entrypoint_desc().m_pName);
                     vogl_warning_printf("Trace handle: %u, index: %u, bufSize: %u, trace_len: %u, trace_type: %u, name: %s\n",
                                        (uint32_t)trace_handle, (uint32_t)index, (uint32_t)bufSize, (uint32_t)trace_len, (uint32_t)trace_type, (pTrace_name != NULL) ? (const char *)pTrace_name : "");
                     vogl_warning_printf("GL handle: %u, index: %u, bufSize: %u, trace_len: %u, trace_type: %u, name: %s\n",
@@ -5633,7 +5594,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (replay_result != trace_result)
                 {
-                    process_entrypoint_warning("%s: Replay of %s returned data differed from trace's\n", VOGL_FUNCTION_INFO_CSTR, trace_packet.get_entrypoint_desc().m_pName);
+                    process_entrypoint_warning("Replay of %s returned data differed from trace's\n", trace_packet.get_entrypoint_desc().m_pName);
                     vogl_warning_printf("Trace value: %i, replay: %i\n", trace_result, replay_result);
                 }
             }
@@ -5652,7 +5613,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
                 else
@@ -5669,11 +5630,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (params_count != static_cast<uint32_t>(n))
                     {
-                        process_entrypoint_warning("%s: Size of replay's params array differs from trace's\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Size of replay's params array differs from trace's\n");
                     }
                     else if (pParams && memcmp(pParams, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(pname));
+                        process_entrypoint_warning("Replay's returned GLint data differed from trace's, pname %s\n", get_gl_enums().find_gl_name(pname));
                     }
                 }
             }
@@ -5696,7 +5657,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
                 else
@@ -5713,11 +5674,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (params_count != static_cast<uint32_t>(n))
                     {
-                        process_entrypoint_warning("%s: Size of replay's params array differs from trace's\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Size of replay's params array differs from trace's\n");
                     }
                     else if (pParams && memcmp(pParams, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(pname));
+                        process_entrypoint_warning("Replay's returned GLint data differed from trace's, pname %s\n", get_gl_enums().find_gl_name(pname));
                     }
                 }
             }
@@ -5758,7 +5719,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if ((pClient_params) && (*pClient_params != params))
                 {
-                    process_entrypoint_warning("%s: Replay's returned data differed from trace's\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Replay's returned data differed from trace's\n");
                     vogl_warning_printf("Trace data: %i, Replay data: %i\n", pClient_params ? *pClient_params : 0, params);
                 }
             }
@@ -5782,7 +5743,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (length)
             {
-                process_entrypoint_message("%s: Info log for trace object %u, replay object %u:\n%s\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle, log.get_ptr());
+                process_entrypoint_message("Info log for trace object %u, replay object %u:\n%s\n", trace_handle, replay_handle, log.get_ptr());
             }
 
             break;
@@ -5797,7 +5758,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X (%s)\n", VOGL_FUNCTION_INFO_CSTR, pname, get_gl_enums().find_gl_name(pname));
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X (%s)\n", pname, get_gl_enums().find_gl_name(pname));
                     return cStatusSoftFailure;
                 }
                 else
@@ -5811,7 +5772,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (memcmp(pParams, params.get_ptr(), n * sizeof(GLboolean)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLboolean data for pname 0x%08X (%s) differed from trace's\n", VOGL_FUNCTION_INFO_CSTR, pname, get_gl_enums().find_gl_name(pname));
+                        process_entrypoint_warning("Replay's returned GLboolean data for pname 0x%08X (%s) differed from trace's\n", pname, get_gl_enums().find_gl_name(pname));
                     }
                 }
             }
@@ -5828,7 +5789,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
                 else
@@ -5842,7 +5803,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (memcmp(pParams, params.get_ptr(), n * sizeof(GLdouble)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLdouble data differed from trace's\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Replay's returned GLdouble data differed from trace's\n");
                     }
                 }
             }
@@ -5860,7 +5821,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
 
@@ -5872,10 +5833,10 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 VOGL_VERIFY(params[n] == VOGL_GL_REPLAYER_ARRAY_OVERRUN_FLOAT_MAGIC);
 
                 if (static_cast<int>(trace_params_count) < n)
-                    process_entrypoint_warning("%s: Replay param array size (%u) does not match the expected size (%u)\n", VOGL_FUNCTION_INFO_CSTR, trace_params_count, n);
+                    process_entrypoint_warning("Replay param array size (%u) does not match the expected size (%u)\n", trace_params_count, n);
                 else if (memcmp(pTrace_params, params.get_ptr(), n * sizeof(GLfloat)) != 0)
                 {
-                    process_entrypoint_warning("%s: Replay's returned GLfloat data differed from trace's\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Replay's returned GLfloat data differed from trace's\n");
                 }
             }
 
@@ -5892,7 +5853,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
 
@@ -5953,11 +5914,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (static_cast<int>(trace_params_count) < n)
                     {
-                        process_entrypoint_warning("%s: Replay param array size (%u) does not match the expected size (%u)\n", VOGL_FUNCTION_INFO_CSTR, trace_params_count, n);
+                        process_entrypoint_warning("Replay param array size (%u) does not match the expected size (%u)\n", trace_params_count, n);
                     }
                     else if (memcmp(pTrace_params, params.get_ptr(), n * sizeof(GLint)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned GLint data differed from trace's, pname %s\n", VOGL_FUNCTION_INFO_CSTR, get_gl_enums().find_gl_name(pname));
+                        process_entrypoint_warning("Replay's returned GLint data differed from trace's, pname %s\n", get_gl_enums().find_gl_name(pname));
                         for (int i = 0; i < n; i++)
                             vogl_printf("GLint %u: Trace: %i, Replay: %i\n", i, pTrace_params[i], params[i]);
                     }
@@ -6478,7 +6439,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
-                process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                 return cStatusSoftFailure;
             }
             else
@@ -6503,7 +6464,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
-                process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                 return cStatusSoftFailure;
             }
             else
@@ -6528,7 +6489,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
-                process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                 return cStatusSoftFailure;
             }
             else
@@ -6553,7 +6514,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
-                process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                 return cStatusSoftFailure;
             }
             else
@@ -6588,7 +6549,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
-                process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                 return cStatusSoftFailure;
             }
 
@@ -6613,7 +6574,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             int n = get_gl_enums().get_pname_count(pname);
             if (n <= 0)
             {
-                process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                 return cStatusSoftFailure;
             }
 
@@ -6646,7 +6607,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             {
                 GLuint *pBinding = get_shared_state()->m_buffer_targets.find_value(trace_handle);
                 if (!pBinding)
-                    process_entrypoint_error("%s: Couldn't find trace buffer handle 0x%X in buffer target map!\n", VOGL_FUNCTION_INFO_CSTR, trace_handle);
+                    process_entrypoint_error("Couldn't find trace buffer handle 0x%X in buffer target map!\n", trace_handle);
                 else if (*pBinding == GL_NONE)
                     *pBinding = target;
             }
@@ -6678,7 +6639,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             {
                 GLuint *pBinding = get_shared_state()->m_buffer_targets.find_value(trace_buffer);
                 if (!pBinding)
-                    process_entrypoint_error("%s: Couldn't find trace buffer handle 0x%X in buffer target map!\n", VOGL_FUNCTION_INFO_CSTR, trace_buffer);
+                    process_entrypoint_error("Couldn't find trace buffer handle 0x%X in buffer target map!\n", trace_buffer);
                 else if (*pBinding == GL_NONE)
                     *pBinding = target;
             }
@@ -6710,7 +6671,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             {
                 GLuint *pBinding = get_shared_state()->m_buffer_targets.find_value(trace_buffer);
                 if (!pBinding)
-                    process_entrypoint_error("%s: Couldn't find trace buffer handle 0x%X in buffer target map!\n", VOGL_FUNCTION_INFO_CSTR, trace_buffer);
+                    process_entrypoint_error("Couldn't find trace buffer handle 0x%X in buffer target map!\n", trace_buffer);
                 else if (*pBinding == GL_NONE)
                     *pBinding = target;
             }
@@ -6725,7 +6686,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLsync replay_handle = GL_ENTRYPOINT(glFenceSync)(trace_packet.get_param_value<GLenum>(0), trace_packet.get_param_value<GLbitfield>(1));
                 if (!replay_handle)
                 {
-                    process_entrypoint_error("%s: glFenceSync on trace handle 0x%" PRIX64 " succeeded in the trace, but failed during replay!\n", VOGL_FUNCTION_INFO_CSTR, trace_handle);
+                    process_entrypoint_error("glFenceSync on trace handle 0x%" PRIX64 " succeeded in the trace, but failed during replay!\n", trace_handle);
                     return cStatusHardFailure;
                 }
                 else
@@ -6747,7 +6708,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             {
                 if (trace_sync)
                 {
-                    process_entrypoint_error("%s: Unable to map trace sync handle 0x%" PRIX64 " to GL handle\n", VOGL_FUNCTION_INFO_CSTR, trace_sync);
+                    process_entrypoint_error("Unable to map trace sync handle 0x%" PRIX64 " to GL handle\n", trace_sync);
                     return cStatusHardFailure;
                 }
             }
@@ -6773,7 +6734,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             {
                 if (trace_sync)
                 {
-                    process_entrypoint_error("%s: Unable to map trace sync handle 0x%" PRIX64 " to GL handle\n", VOGL_FUNCTION_INFO_CSTR, trace_sync);
+                    process_entrypoint_error("Unable to map trace sync handle 0x%" PRIX64 " to GL handle\n", trace_sync);
                     return cStatusHardFailure;
                 }
             }
@@ -6839,7 +6800,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             int tex_index = cur_client_active_texture - GL_TEXTURE0;
             if ((tex_index < 0) || (tex_index >= VOGL_MAX_SUPPORTED_GL_TEXCOORD_ARRAYS))
             {
-                process_entrypoint_error("%s: glTexCoordPointer/glTexCoordPointerEXT called with an invalid or unsupported client active texture (0x%08X)\n", VOGL_FUNCTION_INFO_CSTR, cur_client_active_texture);
+                process_entrypoint_error("glTexCoordPointer/glTexCoordPointerEXT called with an invalid or unsupported client active texture (0x%08X)\n", cur_client_active_texture);
                 return cStatusSoftFailure;
             }
 
@@ -6858,7 +6819,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             int tex_index = cur_client_active_texture - GL_TEXTURE0;
             if ((tex_index < 0) || (tex_index >= VOGL_MAX_SUPPORTED_GL_TEXCOORD_ARRAYS))
             {
-                process_entrypoint_error("%s: glTexCoordPointer/glTexCoordPointerEXT called with an invalid or unsupported client active texture (0x%08X)\n", VOGL_FUNCTION_INFO_CSTR, cur_client_active_texture);
+                process_entrypoint_error("glTexCoordPointer/glTexCoordPointerEXT called with an invalid or unsupported client active texture (0x%08X)\n", cur_client_active_texture);
                 return cStatusSoftFailure;
             }
 
@@ -6932,13 +6893,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     break;
             if (fmt_index == VOGL_INTERLEAVED_ARRAY_SIZE)
             {
-                process_entrypoint_error("%s: Invalid interleaved vertex format: 0x%X \n", VOGL_FUNCTION_INFO_CSTR, format);
+                process_entrypoint_error("Invalid interleaved vertex format: 0x%X \n", format);
                 return cStatusSoftFailure;
             }
 
             if (stride < 0)
             {
-                process_entrypoint_error("%s: Invalid interleaved vertex stride: %i\n", VOGL_FUNCTION_INFO_CSTR, static_cast<int>(stride));
+                process_entrypoint_error("Invalid interleaved vertex stride: %i\n", static_cast<int>(stride));
                 return cStatusSoftFailure;
             }
 
@@ -6965,7 +6926,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int tex_index = cur_client_active_texture - GL_TEXTURE0;
                 if ((tex_index < 0) || (tex_index >= VOGL_MAX_SUPPORTED_GL_TEXCOORD_ARRAYS))
                 {
-                    process_entrypoint_error("%s: glInterleavedArrays called with an invalid or unsupported client active texture (0x%08X)\n", VOGL_FUNCTION_INFO_CSTR, cur_client_active_texture);
+                    process_entrypoint_error("glInterleavedArrays called with an invalid or unsupported client active texture (0x%08X)\n", cur_client_active_texture);
                     return cStatusSoftFailure;
                 }
 
@@ -7023,7 +6984,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (index >= m_pCur_context_state->m_context_info.get_max_vertex_attribs())
             {
-                process_entrypoint_error("%s: Generic vertex attribute index is too large\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Generic vertex attribute index is too large\n");
                 return cStatusSoftFailure;
             }
 
@@ -7059,7 +7020,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (index >= m_pCur_context_state->m_context_info.get_max_vertex_attribs())
             {
-                process_entrypoint_error("%s: Generic vertex attribute index is too large\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Generic vertex attribute index is too large\n");
                 return cStatusSoftFailure;
             }
 
@@ -7247,7 +7208,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((first_size != primcount * sizeof(GLint)) || (count_size != primcount * sizeof(GLsizei)))
             {
-                process_entrypoint_error("%s: first and/or count params do not point to arrays of the expected size\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("first and/or count params do not point to arrays of the expected size\n");
                 return cStatusSoftFailure;
             }
 
@@ -7278,7 +7239,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((count_size != static_cast<uint32_t>(primcount * sizeof(GLsizei))) || (trace_indices_void_ptr_array.size() != static_cast<uint32_t>(primcount)))
             {
-                process_entrypoint_error("%s: count and/or indices params do not point to arrays of the expected size\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("count and/or indices params do not point to arrays of the expected size\n");
                 return cStatusSoftFailure;
             }
 
@@ -7319,7 +7280,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 (trace_indices_void_ptr_array.size() != static_cast<uint32_t>(primcount)) ||
                 (base_vertex_size != primcount * sizeof(GLint)))
             {
-                process_entrypoint_error("%s: count, indices, and/or base_vertex_size params do not point to arrays of the expected size\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("count, indices, and/or base_vertex_size params do not point to arrays of the expected size\n");
                 return cStatusSoftFailure;
             }
 
@@ -7365,13 +7326,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (offset != static_cast<uintptr_t>(offset))
                 {
-                    process_entrypoint_error("%s: offset parameter is too large (%" PRIu64 ")\n", VOGL_FUNCTION_INFO_CSTR, (uint64_t)offset);
+                    process_entrypoint_error("offset parameter is too large (%" PRIu64 ")\n", (uint64_t)offset);
                     return cStatusHardFailure;
                 }
 
                 if ((size > cUINT32_MAX) || (size != static_cast<uintptr_t>(size)))
                 {
-                    process_entrypoint_error("%s: size parameter is too large (%" PRIu64 ")\n", VOGL_FUNCTION_INFO_CSTR, (uint64_t)size);
+                    process_entrypoint_error("size parameter is too large (%" PRIu64 ")\n", (uint64_t)size);
                     return cStatusHardFailure;
                 }
 
@@ -7383,7 +7344,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (memcmp(buf.get_ptr(), pTrace_ptr, static_cast<size_t>(size)) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned data differed from trace's\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Replay's returned data differed from trace's\n");
                     }
                 }
             }
@@ -7404,7 +7365,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (memcmp(equation, pTrace_equation, sizeof(GLdouble) * 4) != 0)
                     {
-                        process_entrypoint_warning("%s: Replay's returned data differed from trace's\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_warning("Replay's returned data differed from trace's\n");
                     }
                 }
             }
@@ -7422,13 +7383,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((data) && (static_cast<vogl_trace_ptr_value>(data_size) < size))
             {
-                process_entrypoint_error("%s: trace's data array is too small\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("trace's data array is too small\n");
                 return cStatusHardFailure;
             }
 
             if (size != static_cast<uintptr_t>(size))
             {
-                process_entrypoint_error("%s: size parameter is too large (%" PRIu64 ")\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint64_t>(size));
+                process_entrypoint_error("size parameter is too large (%" PRIu64 ")\n", static_cast<uint64_t>(size));
                 return cStatusHardFailure;
             }
 
@@ -7449,7 +7410,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (check_gl_error())
             {
-                process_entrypoint_error("%s: glBufferData() failed\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("glBufferData() failed\n");
                 return cStatusGLError;
             }
 
@@ -7463,7 +7424,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (mapped_bufs[i].m_buffer == buffer)
                     {
-                        process_entrypoint_warning("%s: glBufferData() called on already mapped GL buffer %u, assuming GL will be unmapping it\n", VOGL_FUNCTION_INFO_CSTR, buffer);
+                        process_entrypoint_warning("glBufferData() called on already mapped GL buffer %u, assuming GL will be unmapping it\n", buffer);
 
                         mapped_bufs.erase_unordered(i);
                         break;
@@ -7491,7 +7452,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (!pMap)
                 {
-                    process_entrypoint_error("%s: glMapBuffer succeeded during trace, but failed during replay!\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("glMapBuffer succeeded during trace, but failed during replay!\n");
                     return cStatusHardFailure;
                 }
 
@@ -7504,7 +7465,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (mapped_bufs[i].m_buffer == buffer)
                     {
-                        process_entrypoint_error("%s: Buffer %u is already mapped\n", VOGL_FUNCTION_INFO_CSTR, buffer);
+                        process_entrypoint_error("Buffer %u is already mapped\n", buffer);
                         return cStatusHardFailure;
                     }
                 }
@@ -7538,12 +7499,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (offset != static_cast<uintptr_t>(offset))
             {
-                process_entrypoint_error("%s: offset parameter is too large (%" PRIu64 ")\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint64_t>(offset));
+                process_entrypoint_error("offset parameter is too large (%" PRIu64 ")\n", static_cast<uint64_t>(offset));
                 return cStatusHardFailure;
             }
             if (length != static_cast<uintptr_t>(length))
             {
-                process_entrypoint_error("%s: length parameter is too large (%" PRIu64 ")\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint64_t>(length));
+                process_entrypoint_error("length parameter is too large (%" PRIu64 ")\n", static_cast<uint64_t>(length));
                 return cStatusHardFailure;
             }
 
@@ -7553,7 +7514,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 void *pMap = GL_ENTRYPOINT(glMapBufferRange)(target, static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(length), access);
                 if (!pMap)
                 {
-                    process_entrypoint_error("%s: glMapBufferRange succeeded during trace, but failed during replay!\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("glMapBufferRange succeeded during trace, but failed during replay!\n");
                     return cStatusHardFailure;
                 }
 
@@ -7565,7 +7526,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (mapped_bufs[i].m_buffer == buffer)
                     {
-                        process_entrypoint_error("%s: Buffer %u is already mapped\n", VOGL_FUNCTION_INFO_CSTR, buffer);
+                        process_entrypoint_error("Buffer %u is already mapped\n", buffer);
                         return cStatusHardFailure;
                     }
                 }
@@ -7610,7 +7571,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                         break;
                 if (mapped_buffers_index == mapped_bufs.size())
                 {
-                    process_entrypoint_error("%s: Unable to find mapped buffer during unmap\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Unable to find mapped buffer during unmap\n");
                     return cStatusHardFailure;
                 }
 
@@ -7644,13 +7605,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                             const uint8_vec *pData = unmap_data.get_blob(i * 4 + 2);
                             if (!pData)
                             {
-                                process_entrypoint_error("%s: Failed finding flushed range data in key value map\n", VOGL_FUNCTION_INFO_CSTR);
+                                process_entrypoint_error("Failed finding flushed range data in key value map\n");
                                 return cStatusHardFailure;
                             }
 
                             if (ofs != static_cast<GLintptr>(ofs))
                             {
-                                process_entrypoint_error("%s: Flush offset is too large (%" PRIu64 ")\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint64_t>(ofs));
+                                process_entrypoint_error("Flush offset is too large (%" PRIu64 ")\n", static_cast<uint64_t>(ofs));
                                 return cStatusHardFailure;
                             }
 
@@ -7670,7 +7631,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                         const uint8_vec *pData = unmap_data.get_blob(2);
                         if (!pData)
                         {
-                            process_entrypoint_error("%s: Failed finding mapped data in key value map\n", VOGL_FUNCTION_INFO_CSTR);
+                            process_entrypoint_error("Failed finding mapped data in key value map\n");
                             return cStatusHardFailure;
                         }
                         else
@@ -7690,7 +7651,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 replay_result = GL_ENTRYPOINT(glUnmapBufferARB)(target);
 
             if (trace_result != replay_result)
-                process_entrypoint_warning("%s: Replay glUnmapBuffer's return value differs from trace's (replay: %u vs. trace: %u)\n", VOGL_FUNCTION_INFO_CSTR, replay_result, trace_result);
+                process_entrypoint_warning("Replay glUnmapBuffer's return value differs from trace's (replay: %u vs. trace: %u)\n", replay_result, trace_result);
 
             break;
         }
@@ -7729,7 +7690,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     replay_result = GL_ENTRYPOINT(glIsFramebufferEXT)(replay_handle);
 
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
 
             break;
@@ -7744,7 +7705,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLboolean replay_result = GL_ENTRYPOINT(glIsBuffer)(replay_handle);
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
             break;
         }
@@ -7758,7 +7719,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLboolean replay_result = GL_ENTRYPOINT(glIsEnabledi)(cap, index);
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
             break;
         }
@@ -7771,7 +7732,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLboolean replay_result = GL_ENTRYPOINT(glIsEnabled)(cap);
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
             break;
         }
@@ -7786,7 +7747,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLboolean replay_result = GL_ENTRYPOINT(glIsProgram)(replay_handle);
 
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
             break;
         }
@@ -7800,7 +7761,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLboolean replay_result = GL_ENTRYPOINT(glIsQuery)(replay_handle);
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
             break;
         }
@@ -7814,7 +7775,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLboolean replay_result = GL_ENTRYPOINT(glIsShader)(replay_handle);
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
             break;
         }
@@ -7836,7 +7797,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     replay_result = GL_ENTRYPOINT(glIsTextureEXT)(replay_handle);
 
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
 
             break;
@@ -7851,7 +7812,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLboolean replay_result = GL_ENTRYPOINT(glIsVertexArray)(replay_handle);
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
 
             break;
@@ -7869,7 +7830,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
 
@@ -7881,11 +7842,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 VOGL_VERIFY(replay_params[n] == VOGL_GL_REPLAYER_ARRAY_OVERRUN_FLOAT_MAGIC);
 
                 if (!pTrace_params)
-                    process_entrypoint_warning("%s: Trace param data is missing from packet\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Trace param data is missing from packet\n");
                 else if (trace_params_size != sizeof(GLfloat) * n)
-                    process_entrypoint_warning("%s: Invalid trace param data size\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Invalid trace param data size\n");
                 else if (memcmp(pTrace_params, replay_params.get_ptr(), sizeof(GLfloat) * n) != 0)
-                    process_entrypoint_error("%s: Trace's param data differs from replay's\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Trace's param data differs from replay's\n");
             }
 
             break;
@@ -7903,7 +7864,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
 
@@ -7915,11 +7876,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 VOGL_VERIFY(replay_params[n] == VOGL_GL_REPLAYER_ARRAY_OVERRUN_INT_MAGIC);
 
                 if (!pTrace_params)
-                    process_entrypoint_warning("%s: Trace param data is missing from packet\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Trace param data is missing from packet\n");
                 else if (trace_params_size != sizeof(GLint) * n)
-                    process_entrypoint_warning("%s: Invalid trace param data size\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Invalid trace param data size\n");
                 else if (memcmp(pTrace_params, replay_params.get_ptr(), sizeof(GLint) * n) != 0)
-                    process_entrypoint_error("%s: Trace's param data differs from replay's\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Trace's param data differs from replay's\n");
             }
 
             break;
@@ -7937,7 +7898,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
 
@@ -7952,11 +7913,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 VOGL_VERIFY(replay_params[n] == VOGL_GL_REPLAYER_ARRAY_OVERRUN_INT_MAGIC);
 
                 if (!pTrace_params)
-                    process_entrypoint_warning("%s: Trace param data is missing from packet\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Trace param data is missing from packet\n");
                 else if (trace_params_size != sizeof(GLint) * n)
-                    process_entrypoint_warning("%s: Invalid trace param data size\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Invalid trace param data size\n");
                 else if (memcmp(pTrace_params, replay_params.get_ptr(), sizeof(GLint) * n) != 0)
-                    process_entrypoint_error("%s: Trace's param data differs from replay's\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Trace's param data differs from replay's\n");
             }
 
             break;
@@ -7973,7 +7934,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
 
@@ -7985,11 +7946,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 VOGL_VERIFY(replay_params[n] == VOGL_GL_REPLAYER_ARRAY_OVERRUN_INT_MAGIC);
 
                 if (!pTrace_params)
-                    process_entrypoint_warning("%s: Trace param data is missing from packet\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Trace param data is missing from packet\n");
                 else if (trace_params_size != sizeof(GLuint) * n)
-                    process_entrypoint_warning("%s: Invalid trace param data size\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Invalid trace param data size\n");
                 else if (memcmp(pTrace_params, replay_params.get_ptr(), sizeof(GLuint) * n) != 0)
-                    process_entrypoint_error("%s: Trace's param data differs from replay's\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Trace's param data differs from replay's\n");
             }
 
             break;
@@ -8006,7 +7967,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 int n = get_gl_enums().get_pname_count(pname);
                 if (n <= 0)
                 {
-                    process_entrypoint_error("%s: Can't determine count of GL pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Can't determine count of GL pname 0x%08X\n", pname);
                     return cStatusSoftFailure;
                 }
 
@@ -8018,11 +7979,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 VOGL_VERIFY(replay_params[n] == VOGL_GL_REPLAYER_ARRAY_OVERRUN_FLOAT_MAGIC);
 
                 if (!pTrace_params)
-                    process_entrypoint_warning("%s: Trace param data is missing from packet\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Trace param data is missing from packet\n");
                 else if (trace_params_size != sizeof(GLfloat) * n)
-                    process_entrypoint_warning("%s: Invalid trace param data size\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Invalid trace param data size\n");
                 else if (memcmp(pTrace_params, replay_params.get_ptr(), sizeof(GLfloat) * n) != 0)
-                    process_entrypoint_error("%s: Trace's param data differs from replay's\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Trace's param data differs from replay's\n");
             }
 
             break;
@@ -8090,7 +8051,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if ((check_gl_error()) || (!replay_base_handle))
                 {
-                    process_entrypoint_error("%s: glGenLists() succeeded in the trace, but failed during replay!\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("glGenLists() succeeded in the trace, but failed during replay!\n");
                     return cStatusHardFailure;
                 }
 
@@ -8104,7 +8065,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (!get_shared_state()->m_shadow_state.m_display_lists.gen_lists(trace_handle, 1, &replay_handle))
                     {
-                        process_entrypoint_warning("%s: Failed genning list into display list shadow, trace handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+                        process_entrypoint_warning("Failed genning list into display list shadow, trace handle %u GL handle %u\n", trace_handle, replay_handle);
                     }
                 }
             }
@@ -8113,7 +8074,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLuint replay_base_handle = GL_ENTRYPOINT(glGenLists)(range);
                 if (replay_base_handle)
                 {
-                    process_entrypoint_warning("%s: glGenLists() failed in the trace, but succeeded during replay!\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("glGenLists() failed in the trace, but succeeded during replay!\n");
 
                     GL_ENTRYPOINT(glDeleteLists)(replay_base_handle, range);
                 }
@@ -8130,7 +8091,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (!get_shared_state()->m_shadow_state.m_display_lists.parse_list_and_update_shadows(trace_handle, display_list_bind_callback, this))
             {
-                process_entrypoint_warning("%s: Failed processing display list shadow for trace handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+                process_entrypoint_warning("Failed processing display list shadow for trace handle %u GL handle %u\n", trace_handle, replay_handle);
             }
 
             if ((status = post_draw_call()) != cStatusOK)
@@ -8148,19 +8109,19 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             uint32_t type_size = vogl_get_gl_type_size(type);
             if (!type_size)
             {
-                process_entrypoint_error("%s: Unable to execute glCallLists, type is invalid\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Unable to execute glCallLists, type is invalid\n");
                 return cStatusSoftFailure;
             }
 
             if ((n) && (!pTrace_lists))
             {
-                process_entrypoint_error("%s: Unable to execute glCallLists, lists param is NULL\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Unable to execute glCallLists, lists param is NULL\n");
                 return cStatusSoftFailure;
             }
 
             if (trace_lists_size < (type_size * n))
             {
-                process_entrypoint_error("%s: Unable to execute glCallLists, lists param data size is too small in trace\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Unable to execute glCallLists, lists param data size is too small in trace\n");
                 return cStatusSoftFailure;
             }
 
@@ -8235,14 +8196,14 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                     default:
                     {
-                        process_entrypoint_error("%s: Invalid type parameter (0x%08X)\n", VOGL_FUNCTION_INFO_CSTR, type);
+                        process_entrypoint_error("Invalid type parameter (0x%08X)\n", type);
                         return cStatusSoftFailure;
                     }
                 }
 
                 if (trace_handle <= 0)
                 {
-                    process_entrypoint_error("%s: Trace handle after adding list base is negative (%i), skipping this list index\n", VOGL_FUNCTION_INFO_CSTR, trace_handle);
+                    process_entrypoint_error("Trace handle after adding list base is negative (%i), skipping this list index\n", trace_handle);
                 }
                 else
                 {
@@ -8251,7 +8212,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                     if (!get_shared_state()->m_shadow_state.m_display_lists.parse_list_and_update_shadows(trace_handle, display_list_bind_callback, this))
                     {
-                        process_entrypoint_warning("%s: Failed processing display list shadow for trace handle %u GL handle %u\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+                        process_entrypoint_warning("Failed processing display list shadow for trace handle %u GL handle %u\n", trace_handle, replay_handle);
                     }
                 }
             }
@@ -8273,7 +8234,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (!get_shared_state()->m_shadow_state.m_display_lists.del_lists(trace_handle, 1))
                 {
-                    process_entrypoint_warning("%s: Unable to delete list in display list shadow, trace handle %u\n", VOGL_FUNCTION_INFO_CSTR, trace_handle);
+                    process_entrypoint_warning("Unable to delete list in display list shadow, trace handle %u\n", trace_handle);
                 }
             }
 
@@ -8289,7 +8250,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 GLboolean replay_result = GL_ENTRYPOINT(glIsList)(replay_handle);
                 if (trace_result != replay_result)
-                    process_entrypoint_error("%s: Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
+                    process_entrypoint_error("Replay's returned GLboolean differed from trace's! Replay: %u Trace: %u\n", static_cast<uint32_t>(replay_result), static_cast<uint32_t>(trace_result));
             }
 
             break;
@@ -8329,12 +8290,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if (!get_context_state()->is_composing_display_list())
             {
-                process_entrypoint_warning("%s: glEndList() called without calling glNewList()!\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_warning("glEndList() called without calling glNewList()!\n");
             }
             else
             {
                 if (!get_shared_state()->m_shadow_state.m_display_lists.end_list(get_context_state()->m_current_display_list_handle))
-                    process_entrypoint_warning("%s: Failed ending display list, trace handle %u\n", VOGL_FUNCTION_INFO_CSTR, get_context_state()->m_current_display_list_handle);
+                    process_entrypoint_warning("Failed ending display list, trace handle %u\n", get_context_state()->m_current_display_list_handle);
 
                 get_context_state()->m_current_display_list_mode = GL_NONE;
                 get_context_state()->m_current_display_list_handle = -1;
@@ -8367,7 +8328,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             uint32_t row_size = trace_packet.get_param_client_memory_data_size(6);
             if (row_size < vogl_get_image_size(format, type, width, 1, 1))
             {
-                process_entrypoint_error("%s: row trace array is too small\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("row trace array is too small\n");
                 return cStatusSoftFailure;
             }
 
@@ -8375,7 +8336,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             uint32_t col_size = trace_packet.get_param_client_memory_data_size(7);
             if (col_size < vogl_get_image_size(format, type, width, 1, 1))
             {
-                process_entrypoint_error("%s: column trace array is too small\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("column trace array is too small\n");
                 return cStatusSoftFailure;
             }
 
@@ -8468,11 +8429,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (n < 0)
                 {
-                    process_entrypoint_error("%s: Unable to compute element count for pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Unable to compute element count for pname 0x%08X\n", pname);
                 }
                 else if (memcmp(pParams, vals, n * sizeof(GLfloat)) != 0)
                 {
-                    process_entrypoint_error("%s: Replay divergence detected\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Replay divergence detected\n");
                 }
             }
 
@@ -8495,11 +8456,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (n < 0)
                 {
-                    process_entrypoint_error("%s: Unable to compute element count for pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Unable to compute element count for pname 0x%08X\n", pname);
                 }
                 else if (memcmp(pParams, vals, n * sizeof(GLint)) != 0)
                 {
-                    process_entrypoint_error("%s: Replay divergence detected\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Replay divergence detected\n");
                 }
             }
 
@@ -8522,11 +8483,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (n < 0)
                 {
-                    process_entrypoint_error("%s: Unable to compute element count for pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Unable to compute element count for pname 0x%08X\n", pname);
                 }
                 else if (memcmp(pParams, vals, n * sizeof(GLdouble)) != 0)
                 {
-                    process_entrypoint_error("%s: Replay divergence detected\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Replay divergence detected\n");
                 }
             }
 
@@ -8549,11 +8510,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (n < 0)
                 {
-                    process_entrypoint_error("%s: Unable to compute element count for pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Unable to compute element count for pname 0x%08X\n", pname);
                 }
                 else if (memcmp(pParams, vals, n * sizeof(GLfloat)) != 0)
                 {
-                    process_entrypoint_error("%s: Replay divergence detected\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Replay divergence detected\n");
                 }
             }
 
@@ -8576,11 +8537,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (n < 0)
                 {
-                    process_entrypoint_error("%s: Unable to compute element count for pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Unable to compute element count for pname 0x%08X\n", pname);
                 }
                 else if (memcmp(pParams, vals, n * sizeof(GLint)) != 0)
                 {
-                    process_entrypoint_error("%s: Replay divergence detected\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Replay divergence detected\n");
                 }
             }
 
@@ -8603,11 +8564,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (n < 0)
                 {
-                    process_entrypoint_error("%s: Unable to compute element count for pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Unable to compute element count for pname 0x%08X\n", pname);
                 }
                 else if (memcmp(pParams, vals, n * sizeof(GLfloat)) != 0)
                 {
-                    process_entrypoint_error("%s: Replay divergence detected\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Replay divergence detected\n");
                 }
             }
 
@@ -8630,11 +8591,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (n < 0)
                 {
-                    process_entrypoint_error("%s: Unable to compute element count for pname 0x%08X\n", VOGL_FUNCTION_INFO_CSTR, pname);
+                    process_entrypoint_error("Unable to compute element count for pname 0x%08X\n", pname);
                 }
                 else if (memcmp(pParams, vals, n * sizeof(GLint)) != 0)
                 {
-                    process_entrypoint_error("%s: Replay divergence detected\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Replay divergence detected\n");
                 }
             }
 
@@ -8650,7 +8611,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             }
             else
             {
-                process_entrypoint_error("%s: Failed resizing context's select buffer\n", VOGL_FUNCTION_INFO_CSTR);
+                process_entrypoint_error("Failed resizing context's select buffer\n");
             }
 
             break;
@@ -9147,7 +9108,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 case GL_PROGRAM_PIPELINE: // TODO: We don't support program pipelines yet
                 default:
                 {
-                    process_entrypoint_error("%s: Unsupported object identifier 0x%X\n", VOGL_FUNCTION_INFO_CSTR, identifier);
+                    process_entrypoint_error("Unsupported object identifier 0x%X\n", identifier);
                     return cStatusSoftFailure;
                 }
             }
@@ -9168,7 +9129,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 gl_sync_hash_map::const_iterator it = get_shared_state()->m_syncs.find(trace_sync);
                 if (it == get_shared_state()->m_syncs.end())
                 {
-                    process_entrypoint_error("%s: Failed remapping trace sync value 0x%" PRIx64 "\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint64_t>(trace_sync));
+                    process_entrypoint_error("Failed remapping trace sync value 0x%" PRIx64 "\n", static_cast<uint64_t>(trace_sync));
                     return cStatusSoftFailure;
                 }
                 else
@@ -9203,16 +9164,16 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 size_t replay_data_size = vogl_get_image_size(format, type, width, height, 1);
                 if (replay_data_size != trace_data_size)
                 {
-                    process_entrypoint_warning("%s: Unexpected trace data size, got %u expected %" PRIu64 "\n", VOGL_FUNCTION_INFO_CSTR, trace_data_size, (uint64_t)replay_data_size);
+                    process_entrypoint_warning("Unexpected trace data size, got %u expected %" PRIu64 "\n", trace_data_size, (uint64_t)replay_data_size);
                 }
                 else if (!trace_data)
                 {
-                    process_entrypoint_warning("%s: Trace data is missing from packet\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_warning("Trace data is missing from packet\n");
                 }
 
                 if (replay_data_size > cUINT32_MAX)
                 {
-                    process_entrypoint_error("%s: Replay data size is too large (%" PRIu64 ")!\n", VOGL_FUNCTION_INFO_CSTR, (uint64_t)replay_data_size);
+                    process_entrypoint_error("Replay data size is too large (%" PRIu64 ")!\n", (uint64_t)replay_data_size);
                     return cStatusHardFailure;
                 }
 
@@ -9223,12 +9184,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (memcmp(data.get_ptr(), trace_data, trace_data_size) != 0)
                     {
-                        process_entrypoint_error("%s: Replay's returned pixel data differed from trace's!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_error("Replay's returned pixel data differed from trace's!\n");
                     }
                 }
                 else
                 {
-                    process_entrypoint_warning("%s: Replay's computed glReadPixels image size differs from traces (%u vs %u)!\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(trace_data_size), static_cast<uint32_t>(replay_data_size));
+                    process_entrypoint_warning("Replay's computed glReadPixels image size differs from traces (%u vs %u)!\n", static_cast<uint32_t>(trace_data_size), static_cast<uint32_t>(replay_data_size));
                 }
             }
 
@@ -9253,7 +9214,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                 if (replay_data_size > cUINT32_MAX)
                 {
-                    process_entrypoint_error("%s: Replay data size is too large (%" PRIu64 ")!\n", VOGL_FUNCTION_INFO_CSTR, (uint64_t)replay_data_size);
+                    process_entrypoint_error("Replay data size is too large (%" PRIu64 ")!\n", (uint64_t)replay_data_size);
                     return cStatusHardFailure;
                 }
 
@@ -9267,12 +9228,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (memcmp(data.get_ptr(), pTrace_pixels, trace_data_size) != 0)
                     {
-                        process_entrypoint_error("%s: Replay's returned pixel data differed from trace's!\n", VOGL_FUNCTION_INFO_CSTR);
+                        process_entrypoint_error("Replay's returned pixel data differed from trace's!\n");
                     }
                 }
                 else
                 {
-                    process_entrypoint_warning("%s: Replay's computed glGetTexImage() image size differs from traces (%u vs %u)!\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint32_t>(trace_data_size), static_cast<uint32_t>(replay_data_size));
+                    process_entrypoint_warning("Replay's computed glGetTexImage() image size differs from traces (%u vs %u)!\n", static_cast<uint32_t>(trace_data_size), static_cast<uint32_t>(replay_data_size));
                 }
             }
 
@@ -9358,20 +9319,20 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 key_value_map::const_iterator it = map.find(i);
                 if (it == map.end())
                 {
-                    process_entrypoint_error("%s: Failed finding all strings in packet's key value map\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("Failed finding all strings in packet's key value map\n");
                     return cStatusHardFailure;
                 }
 
                 const uint8_vec *pBlob = it->second.get_blob();
                 if (!pBlob)
                 {
-                    process_entrypoint_error("%s: Can't convert string %i to a blob\n", VOGL_FUNCTION_INFO_CSTR, i);
+                    process_entrypoint_error("Can't convert string %i to a blob\n", i);
                     return cStatusHardFailure;
                 }
 
                 if (pBlob->find('\0') < 0)
                 {
-                    process_entrypoint_error("%s: String %i is not null terminated\n", VOGL_FUNCTION_INFO_CSTR, i);
+                    process_entrypoint_error("String %i is not null terminated\n", i);
                     return cStatusHardFailure;
                 }
 
@@ -9728,7 +9689,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         {
             if (!(g_vogl_entrypoint_descs[entrypoint_id].m_flags & cGLEFPrintedUnimplementedWarning))
             {
-                process_entrypoint_warning("%s: TODO: Implement glGet() function %s\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[entrypoint_id].m_pName);
+                process_entrypoint_warning("TODO: Implement glGet() function %s\n", g_vogl_entrypoint_descs[entrypoint_id].m_pName);
 
                 g_vogl_entrypoint_descs[entrypoint_id].m_flags |= cGLEFPrintedUnimplementedWarning;
             }
@@ -9737,9 +9698,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         default:
         {
             if (g_vogl_entrypoint_descs[entrypoint_id].m_is_whitelisted)
-                process_entrypoint_error("%s: Unhandled GL function %s. This function is marked as whitelisted but was not handled!\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[entrypoint_id].m_pName);
+                process_entrypoint_error("Unhandled GL function %s. This function is marked as whitelisted but was not handled!\n", g_vogl_entrypoint_descs[entrypoint_id].m_pName);
             else
-                process_entrypoint_error("%s: Unhandled GL function %s. This function needs to be added to the whitelist!\n", VOGL_FUNCTION_INFO_CSTR, g_vogl_entrypoint_descs[entrypoint_id].m_pName);
+                process_entrypoint_error("Unhandled GL function %s. This function needs to be added to the whitelist!\n", g_vogl_entrypoint_descs[entrypoint_id].m_pName);
             return cStatusSoftFailure;
         }
     }
@@ -9770,7 +9731,7 @@ void vogl_gl_replayer::snapshot_backbuffer()
 
     if (!m_pCur_context_state)
     {
-        vogl_warning_printf("%s: Can't take snapshot without an active context\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_warning_printf("Can't take snapshot without an active context\n");
         return;
     }
 
@@ -9789,7 +9750,7 @@ void vogl_gl_replayer::snapshot_backbuffer()
     bool success = vogl_copy_buffer_to_image(m_screenshot_buffer.get_ptr(), m_screenshot_buffer.size(), width, height, GL_RGB, GL_UNSIGNED_BYTE, false, 0, GL_BACK);
     if (!success)
     {
-        process_entrypoint_error("%s: Failed calling glReadPixels() to take screenshot\n", VOGL_FUNCTION_INFO_CSTR);
+        process_entrypoint_error("Failed calling glReadPixels() to take screenshot\n");
     }
 
     if (m_flags & cGLReplayerDumpScreenshots)
@@ -10030,7 +9991,7 @@ uint64_t vogl_gl_replayer::replay_to_trace_handle_remapper::remap_handle(vogl_na
     }
 
     // This is BAD.
-    vogl_error_printf("%s: Failed remapping handle %" PRIu64 " in namespace %s. This is either a handle shadowing bug, or this object was deleted while it was still bound on another context or attached to an object.\n", VOGL_FUNCTION_INFO_CSTR, replay_handle, vogl_get_namespace_name(handle_namespace));
+    vogl_error_printf("Failed remapping handle %" PRIu64 " in namespace %s. This is either a handle shadowing bug, or this object was deleted while it was still bound on another context or attached to an object.\n", replay_handle, vogl_get_namespace_name(handle_namespace));
 
     VOGL_ASSERT_ALWAYS;
 
@@ -10059,7 +10020,7 @@ int32_t vogl_gl_replayer::replay_to_trace_handle_remapper::remap_location(uint32
             return loc_it->first;
     }
 
-    vogl_warning_printf("%s: Failed remapping location %i of program %u\n", VOGL_FUNCTION_INFO_CSTR, replay_location, replay_program);
+    vogl_warning_printf("Failed remapping location %i of program %u\n", replay_location, replay_program);
 
     return replay_location;
 }
@@ -10186,7 +10147,7 @@ bool vogl_gl_replayer::determine_used_program_handles(const vogl_trace_packet_ar
         replay_program_handles.insert(static_cast<uint32_t>(replay_handle));
     }
 
-    vogl_message_printf("%s: Found %u actually referenced program handles\n", VOGL_FUNCTION_INFO_CSTR, replay_program_handles.size());
+    vogl_message_printf("Found %u actually referenced program handles\n", replay_program_handles.size());
 
     return true;
 }
@@ -10220,12 +10181,12 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 
     vogl_gl_state_snapshot *pSnapshot = vogl_new(vogl_gl_state_snapshot);
 
-    vogl_message_printf("%s: Beginning capture: width %u, height %u, trace context 0x%" PRIx64 ", frame index %u, last call counter %" PRIu64 ", at frame boundary: %u\n", VOGL_FUNCTION_INFO_CSTR,
+    vogl_message_printf("Beginning capture: width %u, height %u, trace context 0x%" PRIx64 ", frame index %u, last call counter %" PRIu64 ", at frame boundary: %u\n",
                        m_pWindow->get_width(), m_pWindow->get_height(), m_cur_trace_context, m_frame_index, m_last_parsed_call_counter, m_at_frame_boundary);
 
     if (!pSnapshot->begin_capture(m_pWindow->get_width(), m_pWindow->get_height(), m_cur_trace_context, m_frame_index, m_last_parsed_call_counter, m_at_frame_boundary))
     {
-        vogl_error_printf("%s: Failed beginning capture\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed beginning capture\n");
 
         vogl_delete(pSnapshot);
         pSnapshot = NULL;
@@ -10247,7 +10208,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 
     pSnapshot->add_client_side_array_ptrs(client_side_vertex_attrib_ptrs, client_side_array_ptrs, client_side_texcoord_ptrs);
 
-    vogl_printf("%s: Capturing %u context(s)\n", VOGL_FUNCTION_INFO_CSTR, m_contexts.size());
+    vogl_printf("Capturing %u context(s)\n", m_contexts.size());
 
     context_hash_map::iterator it;
     for (it = m_contexts.begin(); it != m_contexts.end(); ++it)
@@ -10256,7 +10217,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 
         if (pContext_state->m_deleted)
         {
-            vogl_error_printf("%s: Sharelist root context 0x%" PRIx64 " was destroyed - this scenario is not yet supported for state snapshotting.\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(it->first));
+            vogl_error_printf("Sharelist root context 0x%" PRIx64 " was destroyed - this scenario is not yet supported for state snapshotting.\n", cast_val_to_uint64(it->first));
             break;
         }
 
@@ -10268,7 +10229,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
             status_t status = switch_contexts(it->first);
             if (status != cStatusOK)
             {
-                vogl_error_printf("%s: Failed switching to trace context 0x%" PRIX64 ", capture failed\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(it->first));
+                vogl_error_printf("Failed switching to trace context 0x%" PRIX64 ", capture failed\n", cast_val_to_uint64(it->first));
                 break;
             }
 
@@ -10276,7 +10237,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 
             if (m_pCur_context_state->m_inside_gl_begin)
             {
-                vogl_warning_printf("%s: Trace context 0x%" PRIX64 " is inside a glBegin, which is not fully supported for state capturing. Capture will continue but will not be replayable.\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(it->first));
+                vogl_warning_printf("Trace context 0x%" PRIX64 " is inside a glBegin, which is not fully supported for state capturing. Capture will continue but will not be replayable.\n", cast_val_to_uint64(it->first));
                 pSnapshot->set_is_restorable(false);
             }
 
@@ -10308,7 +10269,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
                     gl_handle_hash_map::const_iterator target_it = get_shared_state()->m_buffer_targets.find(trace_handle);
                     if (target_it == get_shared_state()->m_buffer_targets.end())
                     {
-                        vogl_error_printf("%s: Unable to find buffer trace handle 0x%X GL handle 0x%X in buffer target map! This should not happen!\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+                        vogl_error_printf("Unable to find buffer trace handle 0x%X GL handle 0x%X in buffer target map! This should not happen!\n", trace_handle, replay_handle);
                         continue;
                     }
                     GLenum target = target_it->second;
@@ -10337,7 +10298,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 				{
                     if (!determine_used_program_handles(*pTrim_packets, pShadow_state->m_program_handles_filter))
 					{
-						vogl_warning_printf("%s: Failed determining used program handles\n", VOGL_FUNCTION_INFO_CSTR);
+						vogl_warning_printf("Failed determining used program handles\n");
 						pShadow_state->m_program_handles_filter.clear();
 					}
 					else
@@ -10373,7 +10334,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 
                 if (mapped_bufs.size())
                 {
-                    vogl_warning_printf("%s: %u buffer(s) are currently mapped, these will be temporarily unmapped in order to snapshot them and then remapped\n", VOGL_FUNCTION_INFO_CSTR, m_pCur_context_state->m_shadow_state.m_mapped_buffers.size());
+                    vogl_warning_printf("%u buffer(s) are currently mapped, these will be temporarily unmapped in order to snapshot them and then remapped\n", m_pCur_context_state->m_shadow_state.m_mapped_buffers.size());
 
                     for (uint32_t i = 0; i < mapped_bufs.size(); i++)
                     {
@@ -10400,7 +10361,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 
         if (!pSnapshot->capture_context(pContext_state->m_context_desc, pContext_state->m_context_info, m_replay_to_trace_remapper, *pShadow_state))
         {
-            vogl_error_printf("%s: Failed capturing trace context 0x%" PRIX64 ", capture failed\n", VOGL_FUNCTION_INFO_CSTR, static_cast<uint64_t>(it->first));
+            vogl_error_printf("Failed capturing trace context 0x%" PRIX64 ", capture failed\n", static_cast<uint64_t>(it->first));
             break;
         }
 
@@ -10438,11 +10399,11 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 
     if ((it == m_contexts.end()) && (pSnapshot->end_capture()))
     {
-        vogl_printf("%s: Capture succeeded\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_printf("Capture succeeded\n");
     }
     else
     {
-        vogl_printf("%s: Capture failed\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_printf("Capture failed\n");
 
         vogl_delete(pSnapshot);
         pSnapshot = NULL;
@@ -10634,7 +10595,7 @@ uint64_t vogl_gl_replayer::trace_to_replay_handle_remapper::remap_handle(vogl_na
 
     VOGL_ASSERT_ALWAYS;
 
-    vogl_error_printf("%s: Failed remapping handle %" PRIu64 " in namespace %s.\n", VOGL_FUNCTION_INFO_CSTR, from_handle, vogl_get_namespace_name(handle_namespace));
+    vogl_error_printf("Failed remapping handle %" PRIu64 " in namespace %s.\n", from_handle, vogl_get_namespace_name(handle_namespace));
 
     return from_handle;
 }
@@ -10737,7 +10698,7 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::declare_handle(vogl_name
         {
             VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
             if (!m_replayer.get_shared_state()->m_shadow_state.m_textures.update(from_handle32, to_handle32, target))
-                vogl_warning_printf("%s: Failed inserting trace texture %u GL texture %u handle into texture handle tracker!\n", VOGL_FUNCTION_INFO_CSTR, from_handle32, to_handle32);
+                vogl_warning_printf("Failed inserting trace texture %u GL texture %u handle into texture handle tracker!\n", from_handle32, to_handle32);
             break;
         }
         case VOGL_NAMESPACE_SAMPLERS:
@@ -10757,14 +10718,14 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::declare_handle(vogl_name
         {
             VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
             if (!m_replayer.get_shared_state()->m_shadow_state.m_objs.insert(from_handle32, to_handle32, VOGL_SHADER_OBJECT))
-                vogl_warning_printf("%s: Failed inserting trace shader handle %u GL handle %u into object handle tracker!\n", VOGL_FUNCTION_INFO_CSTR, from_handle32, to_handle32);
+                vogl_warning_printf("Failed inserting trace shader handle %u GL handle %u into object handle tracker!\n", from_handle32, to_handle32);
             break;
         }
         case VOGL_NAMESPACE_PROGRAMS:
         {
             VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
             if (!m_replayer.get_shared_state()->m_shadow_state.m_objs.insert(from_handle32, to_handle32, VOGL_PROGRAM_OBJECT))
-                vogl_warning_printf("%s: Failed inserting trace program handle %u GL handle %u into object handle tracker!\n", VOGL_FUNCTION_INFO_CSTR, from_handle32, to_handle32);
+                vogl_warning_printf("Failed inserting trace program handle %u GL handle %u into object handle tracker!\n", from_handle32, to_handle32);
             break;
         }
         case VOGL_NAMESPACE_FRAMEBUFFERS:
@@ -10777,7 +10738,7 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::declare_handle(vogl_name
         {
             VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
             if (!m_replayer.get_shared_state()->m_shadow_state.m_rbos.insert(from_handle32, to_handle32, GL_NONE))
-                vogl_warning_printf("%s: Failed inserting trace RBO handle %u GL handle %u into RBO handle tracker!\n", VOGL_FUNCTION_INFO_CSTR, from_handle32, to_handle32);
+                vogl_warning_printf("Failed inserting trace RBO handle %u GL handle %u into RBO handle tracker!\n", from_handle32, to_handle32);
             break;
         }
         case VOGL_NAMESPACE_QUERIES:
@@ -10836,7 +10797,7 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::delete_handle_and_object
         {
             VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
             if (!m_replayer.get_shared_state()->m_shadow_state.m_textures.erase(from_handle32))
-                vogl_warning_printf("%s: Failed deleting trace texture handle %u GL handle %u from texture handle tracker!\n", VOGL_FUNCTION_INFO_CSTR, from_handle32, to_handle32);
+                vogl_warning_printf("Failed deleting trace texture handle %u GL handle %u from texture handle tracker!\n", from_handle32, to_handle32);
 
             vogl_destroy_gl_object(handle_namespace, to_handle);
             break;
@@ -10878,7 +10839,7 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::delete_handle_and_object
             VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
 
             if (!m_replayer.get_shared_state()->m_shadow_state.m_rbos.erase(from_handle32))
-                vogl_warning_printf("%s: Failed deleting trace texture handle %u GL handle %u from RBO handle tracker!\n", VOGL_FUNCTION_INFO_CSTR, from_handle32, to_handle32);
+                vogl_warning_printf("Failed deleting trace texture handle %u GL handle %u from RBO handle tracker!\n", from_handle32, to_handle32);
 
             vogl_destroy_gl_object(handle_namespace, to_handle);
             break;
@@ -11009,7 +10970,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
     VOGL_NOTE_UNUSED(snapshot);
 
     if (m_flags & cGLReplayerVerboseMode)
-        vogl_printf("%s: Restoring %s objects\n", VOGL_FUNCTION_INFO_CSTR, get_gl_object_state_type_str(state_type));
+        vogl_printf("Restoring %s objects\n", get_gl_object_state_type_str(state_type));
 
     vogl::timer tm;
     if (m_flags & cGLReplayerVerboseMode)
@@ -11029,7 +10990,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
         GLuint64 restore_handle = 0;
         if (!pState_obj->restore(m_pCur_context_state->m_context_info, trace_to_replay_remapper, restore_handle))
         {
-            vogl_error_printf("%s: Failed restoring object type %s object index %u trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, get_gl_object_state_type_str(state_type), i, (uint64_t)pState_obj->get_snapshot_handle(), (uint64_t)restore_handle);
+            vogl_error_printf("Failed restoring object type %s object index %u trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 "\n", get_gl_object_state_type_str(state_type), i, (uint64_t)pState_obj->get_snapshot_handle(), (uint64_t)restore_handle);
             return cStatusHardFailure;
         }
         n++;
@@ -11061,7 +11022,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
                     vogl_program_state link_snapshot(*pProg->get_link_time_snapshot());
                     if (!link_snapshot.remap_handles(trace_to_replay_remapper))
                     {
-                        vogl_error_printf("%s: Failed remapping handles in program link time snapshot, object index %u trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, i, (uint64_t)pState_obj->get_snapshot_handle(), (uint64_t)restore_handle);
+                        vogl_error_printf("Failed remapping handles in program link time snapshot, object index %u trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 "\n", i, (uint64_t)pState_obj->get_snapshot_handle(), (uint64_t)restore_handle);
                     }
                     else
                     {
@@ -11072,7 +11033,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
                 if (m_flags & cGLReplayerVerboseMode)
                 {
                     if ((n & 255) == 255)
-                        vogl_printf("%s: Restored %u programs\n", VOGL_FUNCTION_INFO_CSTR, n);
+                        vogl_printf("Restored %u programs\n", n);
                 }
 
                 break;
@@ -11126,9 +11087,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
     if (m_flags & cGLReplayerVerboseMode)
     {
         tm.stop();
-        vogl_printf("%s: Restore took %f secs\n", VOGL_FUNCTION_INFO_CSTR, tm.get_elapsed_secs());
+        vogl_printf("Restore took %f secs\n", tm.get_elapsed_secs());
 
-        vogl_printf("%s: Finished restoring %u %s objects\n", VOGL_FUNCTION_INFO_CSTR, n, get_gl_object_state_type_str(state_type));
+        vogl_printf("Finished restoring %u %s objects\n", n, get_gl_object_state_type_str(state_type));
     }
 
     return cStatusOK;
@@ -11214,7 +11175,10 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
     if (!disp_lists.size())
         return cStatusOK;
 
-    vogl_message_printf("%s: Recreating %u display lists\n", VOGL_FUNCTION_INFO_CSTR, disp_lists.get_display_list_map().size());
+    if (m_flags & cGLReplayerVerboseMode)
+    {
+        vogl_message_printf("Recreating %u display lists\n", disp_lists.get_display_list_map().size());
+    }
 
     #if VOGL_PLATFORM_HAS_X11
         vogl_xfont_cache xfont_cache(m_pWindow->get_display());
@@ -11245,14 +11209,14 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
                     XFontStruct *pXFont = xfont_cache.get_or_create(disp_list.get_xfont_name().get_ptr());
                     if (!pXFont)
                     {
-                        vogl_error_printf("%s: Unable to load XFont \"%s\", can't recreate trace display list %u!\n", VOGL_FUNCTION_INFO_CSTR, disp_list.get_xfont_name().get_ptr(), trace_handle);
+                        vogl_error_printf("Unable to load XFont \"%s\", can't recreate trace display list %u!\n", disp_list.get_xfont_name().get_ptr(), trace_handle);
                     }
                     else
                     {
                         GL_ENTRYPOINT(glXUseXFont)(pXFont->fid, disp_list.get_xfont_glyph(), 1, replay_handle);
                     }
                 #else
-                    vogl_error_printf("%s: Cannot create display lists that use X11 Fonts on non-X11 platforms.\n", VOGL_FUNCTION_INFO_CSTR);
+                    vogl_error_printf("Cannot create display lists that use X11 Fonts on non-X11 platforms.\n");
                 #endif
             }
             else
@@ -11273,7 +11237,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
                 {
                     if (packets.get_packet_type(packet_index) != cTSPTGLEntrypoint)
                     {
-                        vogl_error_printf("%s: Unexpected display list packet type %u, packet index %u, can't fully recreate trace display list %u!\n", VOGL_FUNCTION_INFO_CSTR, packets.get_packet_type(packet_index), packet_index, trace_handle);
+                        vogl_error_printf("Unexpected display list packet type %u, packet index %u, can't fully recreate trace display list %u!\n", packets.get_packet_type(packet_index), packet_index, trace_handle);
                         continue;
                     }
 
@@ -11281,7 +11245,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
 
                     if (!m_temp2_gl_packet.deserialize(packet_buf, true))
                     {
-                        vogl_error_printf("%s: Failed deserializing display list at packet index %u, can't fully recreate trace display list %u!\n", VOGL_FUNCTION_INFO_CSTR, packet_index, trace_handle);
+                        vogl_error_printf("Failed deserializing display list at packet index %u, can't fully recreate trace display list %u!\n", packet_index, trace_handle);
                         continue;
                     }
 
@@ -11312,7 +11276,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
 
                     if (status != cStatusOK)
                     {
-                        vogl_error_printf("%s: Failed recreating display list at packet index %u, can't fully recreate trace display list %u!\n", VOGL_FUNCTION_INFO_CSTR, packet_index, trace_handle);
+                        vogl_error_printf("Failed recreating display list at packet index %u, can't fully recreate trace display list %u!\n", packet_index, trace_handle);
                         continue;
                     }
                 }
@@ -11332,13 +11296,16 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
 
         if (!get_shared_state()->m_shadow_state.m_display_lists.define_list(trace_handle, replay_handle, disp_list))
         {
-            vogl_error_printf("%s: Failed adding display list trace handle %u GL handle %u into display list shadow!\n", VOGL_FUNCTION_INFO_CSTR, trace_handle, replay_handle);
+            vogl_error_printf("Failed adding display list trace handle %u GL handle %u into display list shadow!\n", trace_handle, replay_handle);
         }
     }
 
     check_gl_error();
 
-    vogl_message_printf("%s: Done recreating display lists\n", VOGL_FUNCTION_INFO_CSTR);
+    if (m_flags & cGLReplayerVerboseMode)
+    {
+        vogl_message_printf("Done recreating display lists\n");
+    }
 
     return cStatusOK;
 
@@ -11402,7 +11369,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_general_state(vogl_handle_r
             }
             else
             {
-                vogl_error_printf("%s: Unable to restore ARB program environment state to context because it does not support the \"GL_ARB_vertex_program\" extension\n", VOGL_FUNCTION_INFO_CSTR);
+                vogl_error_printf("Unable to restore ARB program environment state to context because it does not support the \"GL_ARB_vertex_program\" extension\n");
             }
         }
     }
@@ -11427,7 +11394,7 @@ bool vogl_gl_replayer::validate_program_and_shader_handle_tables()
         return true;
 
     if (!get_shared_state()->m_shadow_state.m_objs.check())
-        vogl_error_printf("%s: Object handle tracker failed validation!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Object handle tracker failed validation!\n");
 
     uint_vec replay_handles;
     get_shared_state()->m_shadow_state.m_objs.get_inv_handles(replay_handles);
@@ -11447,14 +11414,14 @@ bool vogl_gl_replayer::validate_program_and_shader_handle_tables()
         {
             if (!GL_ENTRYPOINT(glIsProgram)(replay_handle))
             {
-                vogl_error_printf("%s: GL handle %u is being tracked, but glIsProgram() reports the handle is not a program\n", VOGL_FUNCTION_INFO_CSTR, replay_handle);
+                vogl_error_printf("GL handle %u is being tracked, but glIsProgram() reports the handle is not a program\n", replay_handle);
             }
         }
         else if (target == VOGL_SHADER_OBJECT)
         {
             if (!GL_ENTRYPOINT(glIsShader)(replay_handle))
             {
-                vogl_error_printf("%s: GL handle %u is being tracked, but glIsShader() reports the handle is not a program\n", VOGL_FUNCTION_INFO_CSTR, replay_handle);
+                vogl_error_printf("GL handle %u is being tracked, but glIsShader() reports the handle is not a program\n", replay_handle);
             }
         }
         else
@@ -11477,7 +11444,7 @@ bool vogl_gl_replayer::validate_textures()
         return true;
 
     if (!get_shared_state()->m_shadow_state.m_textures.check())
-        vogl_error_printf("%s: Texture handle tracker failed validation!\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Texture handle tracker failed validation!\n");
 
     for (uint32_t replay_handle = 1; replay_handle <= 0xFFFFU; replay_handle++)
     {
@@ -11491,14 +11458,14 @@ bool vogl_gl_replayer::validate_textures()
             {
                 GLuint trace_handle = 0;
                 get_shared_state()->m_shadow_state.m_textures.map_inv_handle_to_handle(replay_handle, trace_handle);
-                vogl_debug_printf("%s: Texture %u is not a name, but it has a valid mapping to trace handle %u\n", VOGL_FUNCTION_INFO_CSTR, replay_handle, trace_handle);
+                vogl_debug_printf("Texture %u is not a name, but it has a valid mapping to trace handle %u\n", replay_handle, trace_handle);
             }
         }
         else
         {
             if (!found_in_shadow)
             {
-                vogl_debug_printf("%s: Texture %u is a valid name, but it does have a mapping to a trace handle!\n", VOGL_FUNCTION_INFO_CSTR, replay_handle);
+                vogl_debug_printf("Texture %u is a valid name, but it does have a mapping to a trace handle!\n", replay_handle);
             }
         }
     }
@@ -11532,7 +11499,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::update_context_shadows(vogl_handle_
         GLuint trace_handle = actual_current_replay_program;
         if (!get_shared_state()->m_shadow_state.m_objs.map_inv_handle_to_handle(actual_current_replay_program, trace_handle))
         {
-            process_entrypoint_error("%s: Failed finding restored GL shader %u in program/shader object handle hashmap\n", VOGL_FUNCTION_INFO_CSTR, actual_current_replay_program);
+            process_entrypoint_error("Failed finding restored GL shader %u in program/shader object handle hashmap\n", actual_current_replay_program);
 
             m_pCur_context_state->m_cur_replay_program = 0;
             m_pCur_context_state->m_cur_trace_program = 0;
@@ -11557,7 +11524,7 @@ void vogl_gl_replayer::handle_marked_for_deleted_objects(vogl_const_gl_object_st
 
     if (m_flags & cGLReplayerVerboseMode)
     {
-        vogl_debug_printf("%s: %u program/shader objects where marked as deleted\n", VOGL_FUNCTION_INFO_CSTR, objects_to_delete.size());
+        vogl_debug_printf("%u program/shader objects where marked as deleted\n", objects_to_delete.size());
     }
 
     for (uint32_t i = 0; i < objects_to_delete.size(); i++)
@@ -11570,7 +11537,7 @@ void vogl_gl_replayer::handle_marked_for_deleted_objects(vogl_const_gl_object_st
         if (m_flags & cGLReplayerVerboseMode)
         {
             // This should be a rare/exception case so let's try to be a little paranoid.
-            vogl_debug_printf("%s: Snapshot object type %s trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 ", was marked as deleted, deleting object after restoring (object should still be referenced by state in the GL context)\n", VOGL_FUNCTION_INFO_CSTR,
+            vogl_debug_printf("Snapshot object type %s trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 ", was marked as deleted, deleting object after restoring (object should still be referenced by state in the GL context)\n",
                              get_gl_object_state_type_str(pState_obj->get_type()), (uint64_t)trace_handle, (uint64_t)restore_handle);
         }
 
@@ -11605,7 +11572,7 @@ void vogl_gl_replayer::handle_marked_for_deleted_objects(vogl_const_gl_object_st
         // Same for shaders.
         if (!object_is_still_a_name)
         {
-            vogl_debug_printf("%s: Snapshot object type %s trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 ", was marked as deleted, then deleted after a full state restore, but the object which should still be referenced by state in the GL context fails the glIsProgram()/glIsShader()/etc. test\n", VOGL_FUNCTION_INFO_CSTR,
+            vogl_debug_printf("Snapshot object type %s trace handle 0x%" PRIX64 " restore handle 0x%" PRIX64 ", was marked as deleted, then deleted after a full state restore, but the object which should still be referenced by state in the GL context fails the glIsProgram()/glIsShader()/etc. test\n",
                              get_gl_object_state_type_str(pState_obj->get_type()), (uint64_t)trace_handle, (uint64_t)restore_handle);
         }
     }
@@ -11662,7 +11629,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
     GLReplayContextType replay_share_context = remap_context(trace_share_context);
     if ((trace_share_context) && (!replay_share_context))
     {
-        vogl_error_printf("%s: Failed remapping trace share context handle 0x%" PRIx64 " to replay context!\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(trace_share_context));
+        vogl_error_printf("Failed remapping trace share context handle 0x%" PRIx64 " to replay context!\n", cast_val_to_uint64(trace_share_context));
         return cStatusHardFailure;
     }
 
@@ -11675,7 +11642,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
                                              context_snapshot.get_context_desc().get_attribs().get_vec().size(), true);
     if (status != cStatusOK)
     {
-        vogl_error_printf("%s: Failed creating new context\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed creating new context\n");
         return status;
     }
 
@@ -11685,14 +11652,14 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
         context_state *pContext_state = get_trace_context_state(trace_context);
         if (!pContext_state)
         {
-            vogl_error_printf("%s: Failed finding replay context current\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed finding replay context current\n");
             return cStatusHardFailure;
         }
 
         GLReplayContextType replay_context = pContext_state->m_replay_context;
         if (!replay_context)
         {
-            vogl_error_printf("%s: Failed finding replay context current\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed finding replay context current\n");
             return cStatusHardFailure;
         }
 
@@ -11708,7 +11675,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
             
         if (!result)
         {
-            vogl_error_printf("%s: Failed making context current\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed making context current\n");
             return cStatusHardFailure;
         }
 
@@ -11733,7 +11700,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
     if (!m_pPending_snapshot)
         return cStatusOK;
 
-    timed_scope ts(VOGL_FUNCTION_INFO_CSTR);
+    timed_scope ts(VOGL_FUNCTION_INFO_CSTR, !!(m_flags & cGLReplayerVerboseMode));
 
     const vogl_gl_state_snapshot &snapshot = *m_pPending_snapshot;
 
@@ -11795,7 +11762,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
                 if (m_flags & cGLReplayerLowLevelDebugMode)
                 {
                     if (!validate_textures())
-                        vogl_warning_printf("%s: Failed validating texture handles against handle mapping tables\n", VOGL_FUNCTION_INFO_CSTR);
+                        vogl_warning_printf("Failed validating texture handles against handle mapping tables\n");
                 }
 
                 vogl_const_gl_object_state_ptr_vec &objects_to_delete = objects_to_delete_vec[context_index];
@@ -11809,17 +11776,17 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
                     if (m_flags & cGLReplayerLowLevelDebugMode)
                     {
                         if (!validate_program_and_shader_handle_tables())
-                            vogl_error_printf("%s: Program/shader handle table validation failed!\n", VOGL_FUNCTION_INFO_CSTR);
+                            vogl_error_printf("Program/shader handle table validation failed!\n");
 
                         if (!validate_textures())
-                            vogl_warning_printf("%s: Failed validating texture handles against handle mapping tables\n", VOGL_FUNCTION_INFO_CSTR);
+                            vogl_warning_printf("Failed validating texture handles against handle mapping tables\n");
                     }
                 }
 
                 if (m_flags & cGLReplayerLowLevelDebugMode)
                 {
                     if (!validate_textures())
-                        vogl_warning_printf("%s: Failed validating texture handles against handle mapping tables\n", VOGL_FUNCTION_INFO_CSTR);
+                        vogl_warning_printf("Failed validating texture handles against handle mapping tables\n");
                 }
 
                 status = restore_display_lists(trace_to_replay_remapper, snapshot, context_state);
@@ -11833,7 +11800,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
 
                     if (!snapshot.get_default_framebuffer().restore(m_pCur_context_state->m_context_info, (m_flags & cGLReplayerDisableRestoreFrontBuffer) == 0))
                     {
-                        vogl_warning_printf("%s: Failed restoring default framebuffer!\n", VOGL_FUNCTION_INFO_CSTR);
+                        vogl_warning_printf("Failed restoring default framebuffer!\n");
                     }
                 }
 
@@ -11849,10 +11816,10 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
                 if (m_flags & cGLReplayerLowLevelDebugMode)
                 {
                     if (!validate_program_and_shader_handle_tables())
-                        vogl_error_printf("%s: Program/shader handle table validation failed!\n", VOGL_FUNCTION_INFO_CSTR);
+                        vogl_error_printf("Program/shader handle table validation failed!\n");
 
                     if (!validate_textures())
-                        vogl_warning_printf("%s: Failed validating texture handles against handle mapping tables\n", VOGL_FUNCTION_INFO_CSTR);
+                        vogl_warning_printf("Failed validating texture handles against handle mapping tables\n");
                 }
             }
 
@@ -11869,7 +11836,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
 
     if (total_contexts_restored != snapshot.get_contexts().size())
     {
-        vogl_error_printf("%s: Failed satisfying sharelist dependency during context restoration\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Failed satisfying sharelist dependency during context restoration\n");
         goto handle_error;
     }
 
@@ -11883,7 +11850,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
         status = switch_contexts(context_state.get_context_desc().get_trace_context());
         if (status != cStatusOK)
         {
-            vogl_error_printf("%s: Failed switching to trace context 0x%" PRIX64 ", capture failed\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(context_state.get_context_desc().get_trace_context()));
+            vogl_error_printf("Failed switching to trace context 0x%" PRIX64 ", capture failed\n", cast_val_to_uint64(context_state.get_context_desc().get_trace_context()));
             goto handle_error;
         }
 
@@ -11937,7 +11904,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
 
         if (!trace_packet.deserialize(packet_buf.get_ptr(), packet_buf.size(), true))
         {
-            console::error("%s: Failed parsing glInternalTraceCommandRAD packet\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed parsing glInternalTraceCommandRAD packet\n");
             return false;
         }
 
@@ -11967,7 +11934,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
     vogl_trace_file_writer trace_writer(&trace_gl_ctypes);
     if (!trace_writer.open(trim_filename.get_ptr(), NULL, true, false, m_trace_pointer_size_in_bytes))
     {
-        console::error("%s: Failed creating trimmed trace file \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, trim_filename.get_ptr());
+        vogl_error_printf("Failed creating trimmed trace file \"%s\"!\n", trim_filename.get_ptr());
         return false;
     }
 
@@ -11986,7 +11953,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
 
                 if (!trace_writer.get_trace_archive()->copy_file(trace_reader.get_archive_blob_manager(), blob_files[i], blob_files[i]).has_content())
                 {
-                    vogl_error_printf("%s: Failed copying blob data for file \"%s\" to output trace archive!\n", VOGL_FUNCTION_INFO_CSTR, blob_files[i].get_ptr());
+                    vogl_error_printf("Failed copying blob data for file \"%s\" to output trace archive!\n", blob_files[i].get_ptr());
                     return false;
                 }
             }
@@ -12011,7 +11978,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
 
         if (!pTrim_snapshot.get())
         {
-            console::error("%s: Failed creating replayer GL snapshot!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed creating replayer GL snapshot!\n");
             return false;
         }
 
@@ -12020,7 +11987,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
         json_document doc;
         if (!pTrim_snapshot->serialize(*doc.get_root(), *trace_writer.get_trace_archive(), &trace_gl_ctypes))
         {
-            console::error("%s: Failed serializing GL state snapshot!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed serializing GL state snapshot!\n");
             trace_writer.close();
             file_utils::delete_file(trim_filename.get_ptr());
             return false;
@@ -12038,7 +12005,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
         dynamic_string snapshot_id(trace_writer.get_trace_archive()->add_buf_compute_unique_id(snapshot_data.get_ptr(), snapshot_data.size(), "state_snapshot", VOGL_TEXT_JSON_EXTENSION));
         if (snapshot_id.is_empty())
         {
-            console::error("%s: Failed adding GL snapshot file to output blob manager!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed adding GL snapshot file to output blob manager!\n");
             trace_writer.close();
             file_utils::delete_file(trim_filename.get_ptr());
             return false;
@@ -12053,7 +12020,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
         dynamic_string binary_id(trace_writer.get_trace_archive()->add_buf_compute_unique_id(binary_snapshot_data.get_ptr(), binary_snapshot_data.size(), "binary_state_snapshot", VOGL_BINARY_JSON_EXTENSION));
         if (binary_id.is_empty())
         {
-            console::error("%s: Failed adding binary GL snapshot file to output blob manager!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed adding binary GL snapshot file to output blob manager!\n");
             trace_writer.close();
             file_utils::delete_file(trim_filename.get_ptr());
             return false;
@@ -12069,7 +12036,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
         dynamic_stream snapshot_stream(0);
         if (!vogl_write_glInternalTraceCommandRAD(snapshot_stream, &trace_gl_ctypes, cITCRKeyValueMap, sizeof(snapshot_key_value_map), reinterpret_cast<const GLubyte *>(&snapshot_key_value_map)))
         {
-            console::error("%s: Failed serializing snapshot packet!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_error_printf("Failed serializing snapshot packet!\n");
             trace_writer.close();
             file_utils::delete_file(trim_filename.get_ptr());
             return false;
@@ -12107,7 +12074,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
 
         if (!trace_writer.write_packet(packet_buf.get_ptr(), packet_buf.size(), is_swap))
         {
-            console::error("%s: Failed writing trace packet to output trace file \"%s\"!\n", VOGL_FUNCTION_INFO_CSTR, trim_filename.get_ptr());
+            vogl_error_printf("Failed writing trace packet to output trace file \"%s\"!\n", trim_filename.get_ptr());
             trace_writer.close();
             file_utils::delete_file(trim_filename.get_ptr());
             return false;
@@ -12116,9 +12083,9 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
 
     bool success = trace_writer.close();
     if (!success)
-        console::error("%s: Failed closing wrote trim trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, trim_filename.get_ptr());
+        vogl_error_printf("Failed closing wrote trim trace file \"%s\"\n", trim_filename.get_ptr());
     else
-        console::message("%s: Successfully wrote trim trace file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, trim_filename.get_ptr());
+        vogl_message_printf("Successfully wrote trim trace file \"%s\"\n", trim_filename.get_ptr());
 
     return success;
 }
@@ -12132,7 +12099,7 @@ bool vogl_gl_replayer::write_trim_file(uint32_t flags, const dynamic_string &tri
 
     if (!m_is_valid)
     {
-        console::error("%s: Trace is not open\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Trace is not open\n");
         return false;
     }
 
@@ -12149,7 +12116,7 @@ bool vogl_gl_replayer::write_trim_file(uint32_t flags, const dynamic_string &tri
 
     if ((trim_len) || (!trim_frame))
     {
-        console::message("%s: Reading trim packets from source trace file\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_message_printf("Reading trim packets from source trace file\n");
 
         uint32_t frames_to_read = trim_len;
         if ((from_start_of_frame) && (!trim_frame) && (!trim_len))
@@ -12159,18 +12126,18 @@ bool vogl_gl_replayer::write_trim_file(uint32_t flags, const dynamic_string &tri
         vogl_trace_file_reader::trace_file_reader_status_t read_packets_status = trace_reader.read_frame_packets(trim_frame, frames_to_read, trim_packets, actual_trim_len);
         if (read_packets_status == vogl_trace_file_reader::cFailed)
         {
-            console::error("%s: Failed reading source trace file packets beginning at frame %u!\n", VOGL_FUNCTION_INFO_CSTR, trim_frame);
+            vogl_error_printf("Failed reading source trace file packets beginning at frame %u!\n", trim_frame);
             return false;
         }
 
         if (actual_trim_len != frames_to_read)
         {
-            console::warning("%s: Only able to read %u frames from trim file beginning at frame %u, not the requested %u\n", VOGL_FUNCTION_INFO_CSTR, actual_trim_len, trim_frame, frames_to_read);
+            vogl_warning_printf("Only able to read %u frames from trim file beginning at frame %u, not the requested %u\n", actual_trim_len, trim_frame, frames_to_read);
         }
 
         if (from_start_of_frame)
         {
-            console::message("%s: Read %u trim packets beginning at frame %u actual len %u from source trace file\n", VOGL_FUNCTION_INFO_CSTR, trim_packets.size(), trim_frame, actual_trim_len);
+            vogl_message_printf("Read %u trim packets beginning at frame %u actual len %u from source trace file\n", trim_packets.size(), trim_frame, actual_trim_len);
 
             if ((!trim_frame) && (!trim_len))
             {
@@ -12195,7 +12162,7 @@ bool vogl_gl_replayer::write_trim_file(uint32_t flags, const dynamic_string &tri
 
                     if (!trace_packet.deserialize(packet_buf.get_ptr(), packet_buf.size(), true))
                     {
-                        console::error("%s: Failed parsing glInternalTraceCommandRAD packet\n", VOGL_FUNCTION_INFO_CSTR);
+                        vogl_error_printf("Failed parsing glInternalTraceCommandRAD packet\n");
                         return false;
                     }
 
@@ -12232,13 +12199,13 @@ bool vogl_gl_replayer::write_trim_file(uint32_t flags, const dynamic_string &tri
                 }
             }
 
-            console::message("%s: Read %u packets from frame %u, erased %u packets before call counter %" PRIu64 ", storing %u trim packets from source trace file\n", VOGL_FUNCTION_INFO_CSTR, orig_num_packets, trim_frame, total_erased_packets, trim_call_counter, trim_packets.size());
+            vogl_message_printf("Read %u packets from frame %u, erased %u packets before call counter %" PRIu64 ", storing %u trim packets from source trace file\n", orig_num_packets, trim_frame, total_erased_packets, trim_call_counter, trim_packets.size());
         }
     }
 
     if (!write_trim_file_internal(trim_packets, trim_filename, trace_reader, (flags & cWriteTrimFileOptimizeSnapshot) != 0, pSnapshot_id))
     {
-        console::warning("%s: Trim file write failed, deleting invalid trim trace file %s\n", VOGL_FUNCTION_INFO_CSTR, trim_filename.get_ptr());
+        vogl_warning_printf("Trim file write failed, deleting invalid trim trace file %s\n", trim_filename.get_ptr());
 
         file_utils::delete_file(trim_filename.get_ptr());
         return false;

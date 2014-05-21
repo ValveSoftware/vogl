@@ -54,7 +54,7 @@ bool vogl_matrix_state::save_matrix_stack(const vogl_context_info &context_info,
         // This *should* work on AMD because it supports the ARB_imaging subset on compat contexts, and it supports the GL_COLOR matrix and the max stack depth is reported as 10.
         if (depth_get == GL_COLOR_MATRIX_STACK_DEPTH)
         {
-            vogl_warning_printf("%s: Using GL_COLOR_MATRIX_STACK_DEPTH workaround for AMD drivers - this will purposely force a stack underflow!\n", VOGL_FUNCTION_INFO_CSTR);
+            vogl_warning_printf("Using GL_COLOR_MATRIX_STACK_DEPTH workaround for AMD drivers - this will purposely force a stack underflow!\n");
 
             vogl::vector<matrix44D> matrices;
             for (;;)

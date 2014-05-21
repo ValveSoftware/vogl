@@ -1,4 +1,4 @@
-Now supporting and testing 185 format-type combinations!
+Now supporting and testing 202 format-type combinations!
 
 Cases not covered include:
 
@@ -6,7 +6,6 @@ Cases not covered include:
   - GL_COLOR_INDEX (which I may never support, except maybe for GL_BITMAP)
 
 - OpenGL "types":
-  - GL_UNSIGNED_INT_5_9_9_9_REV
   - GL_BITMAP
 
 - Add support for conversion of the following:

@@ -45,7 +45,6 @@
 
 namespace vogl
 {
-
     class json_value;
     class dynamic_string;
     typedef vogl::vector<dynamic_string> dynamic_string_array;
@@ -519,22 +518,6 @@ namespace vogl
     bool json_deserialize(dynamic_string &str, const json_value &val);
 
     bool dynamic_string_test();
-
-    inline dynamic_string vogl_function_info(const char *file, int line, const char *function)
-    {
-        // Don't trim on windows; we want the full path to show up so that if/when the message appears in debugger output 
-        // you can double-click the line to jump to that source line in the editor.
-        #if (defined(COMPILER_MSVC))
-            const char *fname = file;
-        #else
-            const char *fname = strrchr(file, '/');
-            if (!fname)
-                fname = strrchr(file, '\\');
-            fname = fname ? (fname + 1) : file;
-        #endif
-
-        return dynamic_string(cVarArg, "%s(%d): %s():", fname, line, function);
-    }
 } // namespace vogl
 
 namespace std

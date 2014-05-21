@@ -73,7 +73,7 @@ bool vogl_material_state::snapshot(const vogl_context_info &context_info)
     {
         clear();
 
-        vogl_error_printf("%s: GL error while enumerating material params\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("GL error while enumerating material params\n");
         return false;
     }
 

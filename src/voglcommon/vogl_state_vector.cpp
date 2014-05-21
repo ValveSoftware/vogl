@@ -209,7 +209,7 @@ bool vogl_state_data::init(GLenum enum_val, uint32_t index, const void *pData, u
     int pname_def_index = get_gl_enums().find_pname_def_index(enum_val);
     if (pname_def_index < 0)
     {
-        vogl_warning_printf("%s: Unable to find pname def for GL enum %s\n", VOGL_FUNCTION_INFO_CSTR, pName);
+        vogl_warning_printf("Unable to find pname def for GL enum %s\n", pName);
         return false;
     }
 
@@ -222,7 +222,7 @@ bool vogl_state_data::init(GLenum enum_val, uint32_t index, const void *pData, u
     if (state_type == cSTInvalid)
     {
         VOGL_ASSERT_ALWAYS;
-        vogl_warning_printf("%s: Can't determine type of GL enum %s\n", VOGL_FUNCTION_INFO_CSTR, pName);
+        vogl_warning_printf("Can't determine type of GL enum %s\n", pName);
         return false;
     }
 
@@ -977,14 +977,14 @@ bool vogl_state_data::deserialize(const json_node &node)
 
     if ((gl_enum == gl_enums::cUnknownEnum) || (gl_enum > cUINT32_MAX))
     {
-        vogl_warning_printf("%s: Unknown/invalid GL enum \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
+        vogl_warning_printf("Unknown/invalid GL enum \"%s\"\n", key_str.get_ptr());
         return false;
     }
 
     int index = node.value_as_int("index", -1);
     if (index < 0)
     {
-        vogl_warning_printf("%s: Expected index for GL enum \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
+        vogl_warning_printf("Expected index for GL enum \"%s\"\n", key_str.get_ptr());
         return false;
     }
 
@@ -995,14 +995,14 @@ bool vogl_state_data::deserialize(const json_node &node)
     vogl_state_type state_type = vogl_get_state_type_from_name(state_type_str.get_ptr());
     if (state_type == cSTInvalid)
     {
-        vogl_warning_printf("%s: Unknown state_type for GL enum \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
+        vogl_warning_printf("Unknown state_type for GL enum \"%s\"\n", key_str.get_ptr());
         return false;
     }
 
     const json_node *pValues_array = node.find_child_array("values");
     if (!pValues_array)
     {
-        vogl_warning_printf("%s: Can't find values array for GL enum \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, key_str.get_ptr());
+        vogl_warning_printf("Can't find values array for GL enum \"%s\"\n", key_str.get_ptr());
         return false;
     }
 
@@ -1029,7 +1029,7 @@ bool vogl_state_data::deserialize(const json_node &node)
                 const char *pStr = pValues_array->value_as_string_ptr(element_index);
                 if (!pStr)
                 {
-                    vogl_warning_printf("%s: Failed converting value %u of GL enum \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, element_index, key_str.get_ptr());
+                    vogl_warning_printf("Failed converting value %u of GL enum \"%s\"\n", element_index, key_str.get_ptr());
                     return false;
                 }
 
@@ -1041,7 +1041,7 @@ bool vogl_state_data::deserialize(const json_node &node)
 
                 if ((gl_enum_val == gl_enums::cUnknownEnum) || (gl_enum_val > cUINT32_MAX))
                 {
-                    vogl_error_printf("%s: Unknown/invalid GL enum \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pStr);
+                    vogl_error_printf("Unknown/invalid GL enum \"%s\"\n", pStr);
                     return false;
                 }
 
@@ -1089,7 +1089,7 @@ bool vogl_state_data::deserialize(const json_node &node)
                 const char *pStr = pValues_array->value_as_string_ptr(element_index);
                 if (!pStr)
                 {
-                    vogl_warning_printf("%s: Failed converting value %u of GL enum \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, element_index, key_str.get_ptr());
+                    vogl_warning_printf("Failed converting value %u of GL enum \"%s\"\n", element_index, key_str.get_ptr());
                     return false;
                 }
 
@@ -1192,7 +1192,7 @@ bool vogl_state_vector::deserialize(const json_node &node, const vogl_blob_manag
 
         if (!insert(state))
         {
-            vogl_warning_printf("%s: vogl_state_vector::deserialize: Ignoring duplicate state 0x%X index %u\n", VOGL_FUNCTION_INFO_CSTR, state.get_enum_val(), state.get_index());
+            vogl_warning_printf("vogl_state_vector::deserialize: Ignoring duplicate state 0x%X index %u\n", state.get_enum_val(), state.get_index());
         }
     }
 

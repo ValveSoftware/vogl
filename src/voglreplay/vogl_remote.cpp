@@ -631,15 +631,15 @@ LOGTYPE crnMsgTypeToLogType(vogl::eConsoleMessageType type)
 
     switch (type)
     {
-        case vogl::cDebugConsoleMessage:
+        case vogl::cMsgDebug:
         {
             return LT_DEBUG;
         }
-        case vogl::cProgressConsoleMessage:
+        case vogl::cMsgProgress:
         {
             return LT_PROGRESS;
         }
-        case vogl::cInfoConsoleMessage:
+        case vogl::cMsgPrint:
         {
             return LT_INFO;
         }
@@ -647,15 +647,15 @@ LOGTYPE crnMsgTypeToLogType(vogl::eConsoleMessageType type)
         {
             return LT_DEFAULT;
         }
-        case vogl::cMessageConsoleMessage:
+        case vogl::cMsgMessage:
         {
             return LT_MESSAGE;
         }
-        case vogl::cWarningConsoleMessage:
+        case vogl::cMsgWarning:
         {
             return LT_WARNING;
         }
-        case vogl::cErrorConsoleMessage:
+        case vogl::cMsgError:
         {
             return LT_ERROR;
         }

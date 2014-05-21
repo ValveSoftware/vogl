@@ -99,7 +99,7 @@ public:
     }
 };
 
-#define VOGL_FUNC_TRACER                                                                          \
+#define VOGL_FUNC_TRACER                                                                            \
     vogl_scoped_func_tracer VOGL_JOIN(func_tracer, __COUNTER__)(VOGL_FUNCTION_INFO_CSTR, __LINE__); \
     tmZone(TELEMETRY_LEVEL1, TMZF_NONE, "%s", VOGL_FUNCTION_INFO_CSTR);
 #else

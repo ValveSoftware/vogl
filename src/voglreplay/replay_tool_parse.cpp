@@ -30,12 +30,24 @@
 
 #include "vogl_file_utils.h"
 
+static command_line_param_desc g_command_line_param_descs_parse[] =
+{
+    // parse specific
+    { "loose_file_path", 1, false, "Prefer reading trace blob files from this directory vs. the archive referred to or present in the trace file" },
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // tool_parse_mode
 //----------------------------------------------------------------------------------------------------------------------
-bool tool_parse_mode()
+bool tool_parse_mode(vogl::vector<command_line_param_desc> *desc)
 {
     VOGL_FUNC_TRACER
+
+    if (desc)
+    {
+        desc->append(g_command_line_param_descs_parse, VOGL_ARRAY_SIZE(g_command_line_param_descs_parse));
+        return true;
+    }
 
     dynamic_string input_base_filename(g_command_line_params().get_value_as_string_or_empty("", 1));
     if (input_base_filename.is_empty())
@@ -45,7 +57,9 @@ bool tool_parse_mode()
     }
 
     dynamic_string actual_input_filename;
-    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(vogl_open_trace_file(input_base_filename, actual_input_filename, g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
+    vogl_unique_ptr<vogl_trace_file_reader> pTrace_reader(
+                vogl_open_trace_file(input_base_filename, actual_input_filename,
+                g_command_line_params().get_value_as_string_or_empty("loose_file_path").get_ptr()));
     if (!pTrace_reader.get())
         return false;
 
@@ -87,13 +101,13 @@ bool tool_parse_mode()
             {
                 if (trace_writer.get_trace_archive()->add_buf_using_id(blob_data.get_ptr(), blob_data.size(), blob_files[i]).is_empty())
                 {
-                    vogl_error_printf("%s: Failed writing blob data %s to output trace archive!\n", VOGL_FUNCTION_INFO_CSTR, blob_files[i].get_ptr());
+                    vogl_error_printf("Failed writing blob data %s to output trace archive!\n", blob_files[i].get_ptr());
                     return false;
                 }
             }
             else
             {
-                vogl_error_printf("%s: Failed reading blob data %s from trace archive!\n", VOGL_FUNCTION_INFO_CSTR, blob_files[i].get_ptr());
+                vogl_error_printf("Failed reading blob data %s from trace archive!\n", blob_files[i].get_ptr());
                 return false;
             }
         }

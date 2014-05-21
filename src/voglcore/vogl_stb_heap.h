@@ -39,7 +39,8 @@
 
 #include "stb_malloc.h"
 
-VOGL_NAMESPACE_BEGIN(vogl)
+namespace vogl
+{
 
 // A really basic STB heap that uses mmap() for sys allocs. Uses its own locking for max safety until I can be 100% sure that stb's locking is robust.
 // Note, this class is not actually used for anything right now (vogl_mem.cpp just calls stb_malloc directory).
@@ -154,4 +155,4 @@ private:
     }
 };
 
-VOGL_NAMESPACE_END(vogl)
+} // namespace vogl

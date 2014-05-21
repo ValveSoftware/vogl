@@ -63,7 +63,7 @@ namespace vogl
         const char *m_pDesc;
     };
 
-    void dump_command_line_info(uint32_t n, const command_line_param_desc *pDesc, const char *prefix = NULL);
+    void dump_command_line_info(uint32_t n, const command_line_param_desc *pDesc, const char *prefix = NULL, bool hide_null_descs = false);
 
     // I'm pretty torn about this class's design. I flip flop between hating it to tolerating it on every update.
     class command_line_params

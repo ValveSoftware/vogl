@@ -138,14 +138,14 @@ namespace vogl
     bool file_utils::is_read_only(const char *pFilename)
     {
         VOGL_NOTE_UNUSED(pFilename);
-        console::debug("%s: Unimplemented\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Unimplemented\n");
         return false;
     }
 
     bool file_utils::disable_read_only(const char *pFilename)
     {
         VOGL_NOTE_UNUSED(pFilename);
-        console::debug("%s: Unimplemented\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Unimplemented\n");
         return false;
     }
 
@@ -153,7 +153,7 @@ namespace vogl
     {
         VOGL_NOTE_UNUSED(pSrcFilename);
         VOGL_NOTE_UNUSED(pDstFilename);
-        console::debug("%s: Unimplemented\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Unimplemented\n");
         return false;
     }
 
@@ -202,13 +202,13 @@ namespace vogl
     bool file_utils::disable_read_only(const char *pFilename)
     {
         pFilename;
-        console::debug("%s: Unimplemented\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Unimplemented\n");
         return false;
     }
 
     bool file_utils::is_older_than(const char *pSrcFilename, const char *pDstFilename)
     {
-        console::debug("%s: Unimplemented\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Unimplemented\n");
         return false;
     }
 
@@ -223,7 +223,7 @@ namespace vogl
 
     bool file_utils::does_dir_exist(const char *pDir)
     {
-        console::debug("%s: Unimplemented\n", VOGL_FUNCTION_INFO_CSTR);
+        vogl_error_printf("Unimplemented\n");
         return false;
     }
 
@@ -520,7 +520,7 @@ namespace vogl
             int status = mkdir(pPath, S_IRWXU | S_IRWXG | S_IRWXO);
         #endif
         if (status == 0)
-            console::debug("%s: Created directory %s\n", VOGL_FUNCTION_INFO_CSTR, pPath);
+            vogl_debug_printf("Created directory %s\n", pPath);
         return !status;
     }
 
@@ -789,9 +789,9 @@ namespace vogl
         if (!stream.open(pPath, cDataStreamReadable))
         {
             if (flags & cRTFPrintErrorMessages)
-                console::error("%s: Failed opening text file \"%s\" for reading\n", VOGL_FUNCTION_INFO_CSTR, pPath);
+                vogl_error_printf("Failed opening text file \"%s\" for reading\n", pPath);
             else if (flags & cRTFPrintWarningMessages)
-                console::warning("%s: Failed opening text file \"%s\" for reading\n", VOGL_FUNCTION_INFO_CSTR, pPath);
+                vogl_warning_printf("Failed opening text file \"%s\" for reading\n", pPath);
 
             return false;
         }
@@ -804,9 +804,9 @@ namespace vogl
             if (!stream.read_line(line_str))
             {
                 if (flags & cRTFPrintErrorMessages)
-                    console::error("%s: Failed reading from text file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pPath);
+                    vogl_error_printf("Failed reading from text file \"%s\"\n", pPath);
                 else if (flags & cRTFPrintWarningMessages)
-                    console::warning("%s: Failed reading from text file \"%s\"\n", VOGL_FUNCTION_INFO_CSTR, pPath);
+                    vogl_warning_printf("Failed reading from text file \"%s\"\n", pPath);
 
                 break;
             }

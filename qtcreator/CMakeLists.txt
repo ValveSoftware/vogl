@@ -30,6 +30,7 @@ add_definitions("-DSDL_VIDEO_DRIVER_X11_DYNAMIC=1")
 add_definitions("-DVOGL_PLATFORM_HAS_X11=1")
 add_definitions("-DVOGL_PLATFORM_HAS_GLX=1")
 add_definitions("-DPLATFORM_POSIX=1")
+add_definitions("-DPLATFORM_LINUX=1")
 
 # Create list of vogl directories plus extensions.
 set(GLOBSPEC)

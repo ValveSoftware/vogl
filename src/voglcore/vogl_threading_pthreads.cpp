@@ -100,21 +100,21 @@ namespace vogl
         int status = pthread_mutexattr_init(&mta);
         if (status)
         {
-            dynamic_string msg(cVarArg, "%s: pthread_mutexattr_init() failed with status %i", VOGL_FUNCTION_INFO_CSTR, status);
+            dynamic_string msg(cVarArg, "pthread_mutexattr_init() failed with status %i", status);
             vogl_fail(msg.get_ptr(), __FILE__, __LINE__);
         }
 
         status = pthread_mutexattr_settype(&mta, recursive ? PTHREAD_MUTEX_RECURSIVE : PTHREAD_MUTEX_NORMAL);
         if (status)
         {
-            dynamic_string msg(cVarArg, "%s: pthread_mutexattr_settype() failed with status %i", VOGL_FUNCTION_INFO_CSTR, status);
+            dynamic_string msg(cVarArg, "pthread_mutexattr_settype() failed with status %i", status);
             vogl_fail(msg.get_ptr(), __FILE__, __LINE__);
         }
 
         status = pthread_mutex_init(&m_mutex, &mta);
         if (status)
         {
-            dynamic_string msg(cVarArg, "%s: pthread_mutex_init() failed with status %i", VOGL_FUNCTION_INFO_CSTR, status);
+            dynamic_string msg(cVarArg, "pthread_mutex_init() failed with status %i", status);
             vogl_fail(msg.get_ptr(), __FILE__, __LINE__);
         }
 
