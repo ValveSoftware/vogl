@@ -4325,7 +4325,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_glXQueryDrawable:
         case VOGL_ENTRYPOINT_glXQueryExtension:
         case VOGL_ENTRYPOINT_glXQueryExtensionsString:
-        case VOGL_ENTRYPOINT_glXSwapIntervalEXT:
         case VOGL_ENTRYPOINT_glXSwapIntervalSGI:
         case VOGL_ENTRYPOINT_glXGetCurrentDrawable:
         case VOGL_ENTRYPOINT_glXGetCurrentReadDrawable:
@@ -4334,10 +4333,24 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         case VOGL_ENTRYPOINT_glXGetConfig:
         case VOGL_ENTRYPOINT_glXGetFBConfigs:
         {
-            // TODO
             break;
-        }
 
+        }
+        #if VOGL_PLATFORM_HAS_SDL
+            case VOGL_ENTRYPOINT_wglSwapIntervalEXT:
+            case VOGL_ENTRYPOINT_glXSwapIntervalEXT:
+            {
+                SDL_GL_SetSwapInterval(trace_packet.get_param_value<int>(0));
+                break;
+            }
+        #elif VOGL_PLATFORM_HAS_X11
+            case VOGL_ENTRYPOINT_wglSwapIntervalEXT:
+            case VOGL_ENTRYPOINT_glXSwapIntervalEXT:
+            {
+                break;
+            }
+        #endif
+        
         case VOGL_ENTRYPOINT_wglChoosePixelFormat:
         {
             // These may be okay to ignore, or we may need to do something with them.
