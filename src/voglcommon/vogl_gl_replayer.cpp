@@ -3966,6 +3966,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             // TODO
             break;
         }
+        case VOGL_ENTRYPOINT_wglGetPixelFormat:
+        {
+            // TODO
+            break;
+        }
         case VOGL_ENTRYPOINT_wglGetPixelFormatAttribivARB:
         {
             // TODO
@@ -3983,10 +3988,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             const GLubyte *procName = trace_packet.get_param_client_memory<GLubyte>(0);
             vogl_trace_ptr_value trace_func_ptr_value = trace_packet.get_return_ptr_value();
 
-            #if (VOGL_PLATFORM_HAS_SDL)
-                void *pFunc = (void *)SDL_GL_GetProcAddress(reinterpret_cast<const char*>(procName));
+            #if (VOGL_PLATFORM_HAS_WGL)
+                void *pFunc = (void *)GL_ENTRYPOINT(wglGetProcAddress)((LPCSTR)procName);
             #elif (VOGL_PLATFORM_HAS_X11)
                 void *pFunc = (void *)GL_ENTRYPOINT(glXGetProcAddress)(procName);
+            #elif (VOGL_PLATFORM_HAS_SDL)
+                void *pFunc = (void *)SDL_GL_GetProcAddress(reinterpret_cast<const char*>(procName));
             #else
                 #error "Need to implement GetProcAddress for this platform."
                 void *pFunc = NULL;
