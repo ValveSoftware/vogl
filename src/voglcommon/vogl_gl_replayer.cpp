@@ -7164,6 +7164,18 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+        case VOGL_ENTRYPOINT_glDrawArraysInstancedBaseInstance:
+        {
+            VOGL_REPLAY_LOAD_PARAMS_HELPER_glDrawArraysInstancedBaseInstance;
+
+            const GLvoid *pIndices = NULL;
+            if (!draw_elements_client_side_array_setup(mode, first, first + count - 1, count, GL_UNSIGNED_BYTE, 0, pIndices, 0, true, false))
+                return cStatusSoftFailure;
+
+            VOGL_REPLAY_CALL_GL_HELPER_glDrawArraysInstancedBaseInstance;
+
+            break;
+        }
         case VOGL_ENTRYPOINT_glDrawArrays:
         case VOGL_ENTRYPOINT_glDrawArraysEXT:
         {
@@ -7211,6 +7223,26 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+        case VOGL_ENTRYPOINT_glDrawElementsInstancedBaseInstance:
+        {
+            GLenum mode = trace_packet.get_param_value<GLenum>(0);
+            GLsizei count = trace_packet.get_param_value<GLsizei>(1);
+            GLenum type = trace_packet.get_param_value<GLenum>(2);
+            vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
+            GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
+            GLuint baseinstance = trace_packet.get_param_value<GLuint>(5);
+
+            const GLvoid *pIndices;
+            if (!draw_elements_client_side_array_setup(mode, 0, 0, count, type, trace_indices_ptr_value, pIndices, 0, false, true))
+                return cStatusSoftFailure;
+
+            if (m_frame_draw_counter < m_frame_draw_counter_kill_threshold)
+            {
+                GL_ENTRYPOINT(glDrawElementsInstancedBaseInstance)(mode, count, type, pIndices, primcount, baseinstance);
+            }
+
+            break;
+        }
         case VOGL_ENTRYPOINT_glDrawElementsInstancedBaseVertex:
         {
             GLenum mode = trace_packet.get_param_value<GLenum>(0);
@@ -7227,6 +7259,27 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             if (m_frame_draw_counter < m_frame_draw_counter_kill_threshold)
             {
                 GL_ENTRYPOINT(glDrawElementsInstancedBaseVertex)(mode, count, type, pIndices, primcount, basevertex);
+            }
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glDrawElementsInstancedBaseVertexBaseInstance:
+        {
+            GLenum mode = trace_packet.get_param_value<GLenum>(0);
+            GLsizei count = trace_packet.get_param_value<GLsizei>(1);
+            GLenum type = trace_packet.get_param_value<GLenum>(2);
+            vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
+            GLsizei primcount = trace_packet.get_param_value<GLsizei>(4);
+            GLint basevertex = trace_packet.get_param_value<GLint>(5);
+            GLuint baseinstance = trace_packet.get_param_value<GLuint>(6);
+
+            const GLvoid *pIndices;
+            if (!draw_elements_client_side_array_setup(mode, 0, 0, count, type, trace_indices_ptr_value, pIndices, basevertex, false, true))
+                return cStatusSoftFailure;
+
+            if (m_frame_draw_counter < m_frame_draw_counter_kill_threshold)
+            {
+                GL_ENTRYPOINT(glDrawElementsInstancedBaseVertexBaseInstance)(mode, count, type, pIndices, primcount, basevertex, baseinstance);
             }
 
             break;
