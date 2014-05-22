@@ -3982,9 +3982,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             // TODO
             break;
         }
+        case VOGL_ENTRYPOINT_wglGetExtensionsStringARB:
         case VOGL_ENTRYPOINT_wglGetExtensionsStringEXT:
         {
-            // TODO
+            // For cross-platform replay, there's not much we can do.
+            // For same-platform replay, we could ensure that the extensions returned are equivalent or a superset
+            // of those on the capture platform.
             break;
         }
         case VOGL_ENTRYPOINT_wglGetProcAddress:
@@ -4352,6 +4355,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         #endif
         
         case VOGL_ENTRYPOINT_wglChoosePixelFormat:
+        case VOGL_ENTRYPOINT_wglChoosePixelFormatARB:
         {
             // These may be okay to ignore, or we may need to do something with them.
             break;
