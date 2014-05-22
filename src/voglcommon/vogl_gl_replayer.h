@@ -1303,8 +1303,8 @@ private:
     status_t switch_contexts(vogl_trace_context_ptr_value trace_context);
 
     // Loosely derived from http://www.altdevblogaday.com/2011/06/23/improving-opengl-error-messages/
-    static void debug_callback_arb(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param);
-    static void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param);
+    static void GLAPIENTRY debug_callback_arb(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param);
+    static void GLAPIENTRY debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param);
 
     bool is_extension_supported(const char *pExt);
 

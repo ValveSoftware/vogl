@@ -2725,7 +2725,7 @@ private:
     int m_current_display_list_handle;
     GLenum m_current_display_list_mode;
 
-    static void debug_callback_arb(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param)
+    static void GLAPIENTRY debug_callback_arb(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param)
     {
         (void)length;
 
@@ -4198,7 +4198,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
 // gl/glx override functions
 //----------------------------------------------------------------------------------------------------------------------
 template <typename GLFuncType, typename ProcNameType>
-static GLFuncType vogl_get_proc_address_helper_return_wrapper(GLFuncType (*realGetProcAddressFunc)(ProcNameType), ProcNameType procName)
+static GLFuncType vogl_get_proc_address_helper_return_wrapper(GLFuncType (GLAPIENTRY *realGetProcAddressFunc)(ProcNameType), ProcNameType procName)
 {
     if (!procName)
         return NULL;

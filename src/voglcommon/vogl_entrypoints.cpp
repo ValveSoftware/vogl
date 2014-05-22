@@ -49,7 +49,7 @@ static void *g_gl_func_epilog_func_user_data;
 // a user provided prolog/epilog funcs. This is where the *actual* GL/GLX driver funcs are called.
 //----------------------------------------------------------------------------------------------------------------------
 #define DEF_PROTO(exported, category, ret, ret_type, num_params, func_name, args, params)                         \
-    static ret VOGL_GLUER(vogl_direct_wrapper_, func_name) args                                                  \
+    static ret GLAPIENTRY VOGL_GLUER(vogl_direct_wrapper_, func_name) args                                        \
     {                                                                                                             \
         void *pStack_data = NULL;                                                                                 \
         if (g_gl_func_prolog_func_ptr)                                                                            \
@@ -61,7 +61,7 @@ static void *g_gl_func_epilog_func_user_data;
     }
 
 #define DEF_PROTO_VOID(exported, category, ret, ret_type, num_params, func_name, args, params)                    \
-    static void VOGL_GLUER(vogl_direct_wrapper_, func_name) args                                                 \
+    static void GLAPIENTRY VOGL_GLUER(vogl_direct_wrapper_, func_name) args                                       \
     {                                                                                                             \
         void *pStack_data = NULL;                                                                                 \
         if (g_gl_func_prolog_func_ptr)                                                                            \

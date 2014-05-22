@@ -1954,7 +1954,7 @@ void vogl_format_debug_output_arb(char out_str[], size_t out_str_size, GLenum so
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_generic_arb_debug_callback
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_generic_arb_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param)
+void GLAPIENTRY vogl_generic_arb_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param)
 {
     VOGL_FUNC_TRACER
 
