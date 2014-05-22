@@ -3972,6 +3972,11 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             // TODO
             break;
         }
+        case VOGL_ENTRYPOINT_wglGetPixelFormat:
+        {
+            // TODO
+            break;
+        }
         case VOGL_ENTRYPOINT_wglGetPixelFormatAttribivARB:
         {
             // TODO
@@ -3989,10 +3994,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             const GLubyte *procName = trace_packet.get_param_client_memory<GLubyte>(0);
             vogl_trace_ptr_value trace_func_ptr_value = trace_packet.get_return_ptr_value();
 
-            #if (VOGL_PLATFORM_HAS_SDL)
-                void *pFunc = (void *)SDL_GL_GetProcAddress(reinterpret_cast<const char*>(procName));
+            #if (VOGL_PLATFORM_HAS_WGL)
+                void *pFunc = (void *)GL_ENTRYPOINT(wglGetProcAddress)((LPCSTR)procName);
             #elif (VOGL_PLATFORM_HAS_X11)
                 void *pFunc = (void *)GL_ENTRYPOINT(glXGetProcAddress)(procName);
+            #elif (VOGL_PLATFORM_HAS_SDL)
+                void *pFunc = (void *)SDL_GL_GetProcAddress(reinterpret_cast<const char*>(procName));
             #else
                 #error "Need to implement GetProcAddress for this platform."
                 void *pFunc = NULL;
@@ -7355,6 +7362,96 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             if (m_frame_draw_counter < m_frame_draw_counter_kill_threshold)
             {
                 GL_ENTRYPOINT(glDrawElementsBaseVertex)(mode, count, type, pIndices, base_vertex);
+            }
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glDrawElementsIndirect:
+        {
+            GLenum mode = trace_packet.get_param_value<GLenum>(0);
+            GLenum type = trace_packet.get_param_value<GLenum>(1);
+            vogl_trace_ptr_value trace_indirect_ptr_value = trace_packet.get_param_ptr_value(2);
+
+            if (m_frame_draw_counter < m_frame_draw_counter_kill_threshold)
+            {
+                if (trace_packet.get_param_client_memory_data_size(2) != 0)
+                {
+                    // TODO: Handle glDrawElementsIndirect with client-side indirect data
+                    process_entrypoint_error("%s: client-side indirect commands not implemented\n", VOGL_FUNCTION_INFO_CSTR);
+                    return cStatusSoftFailure;
+                }
+                else
+                {
+                    GL_ENTRYPOINT(glDrawElementsIndirect)(mode, type, (const GLvoid *)trace_indirect_ptr_value);
+                }
+            }
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glMultiDrawElementsIndirect:
+        {
+            GLenum mode = trace_packet.get_param_value<GLenum>(0);
+            GLenum type = trace_packet.get_param_value<GLenum>(1);
+            vogl_trace_ptr_value trace_indirect_ptr_value = trace_packet.get_param_ptr_value(2);
+            GLsizei drawcount = trace_packet.get_param_value<GLenum>(3);
+            GLsizei stride = trace_packet.get_param_value<GLenum>(4);
+
+            if (m_frame_draw_counter < m_frame_draw_counter_kill_threshold)
+            {
+                if (trace_packet.get_param_client_memory_data_size(2) != 0)
+                {
+                    // TODO: Handle glMultiDrawElementsIndirect with client-side indirect data
+                    process_entrypoint_error("%s: client-side indirect commands not implemented\n", VOGL_FUNCTION_INFO_CSTR);
+                    return cStatusSoftFailure;
+                }
+                else
+                {
+                    GL_ENTRYPOINT(glMultiDrawElementsIndirect)(mode, type, (const GLvoid *)trace_indirect_ptr_value, drawcount, stride);
+                }
+            }
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glDrawArraysIndirect:
+        {
+            GLenum mode = trace_packet.get_param_value<GLenum>(0);
+            vogl_trace_ptr_value trace_indirect_ptr_value = trace_packet.get_param_ptr_value(1);
+
+            if (m_frame_draw_counter < m_frame_draw_counter_kill_threshold)
+            {
+                if (trace_packet.get_param_client_memory_data_size(1) != 0)
+                {
+                    // TODO: Handle glDrawArraysIndirect with client-side indirect data
+                    process_entrypoint_error("%s: client-side indirect commands not implemented\n", VOGL_FUNCTION_INFO_CSTR);
+                    return cStatusSoftFailure;
+                }
+                else
+                {
+                    GL_ENTRYPOINT(glDrawArraysIndirect)(mode, (const GLvoid *)trace_indirect_ptr_value);
+                }
+            }
+
+            break;
+        }
+        case VOGL_ENTRYPOINT_glMultiDrawArraysIndirect:
+        {
+            GLenum mode = trace_packet.get_param_value<GLenum>(0);
+            vogl_trace_ptr_value trace_indirect_ptr_value = trace_packet.get_param_ptr_value(1);
+            GLsizei drawcount = trace_packet.get_param_value<GLsizei>(2);
+            GLsizei stride = trace_packet.get_param_value<GLsizei>(3);
+
+            if (m_frame_draw_counter < m_frame_draw_counter_kill_threshold)
+            {
+                if (trace_packet.get_param_client_memory_data_size(1) != 0)
+                {
+                    // TODO: Handle glMultiDrawArraysIndirect with client-side indirect data
+                    process_entrypoint_error("%s: client-side indirect commands not implemented\n", VOGL_FUNCTION_INFO_CSTR);
+                    return cStatusSoftFailure;
+                }
+                else
+                {
+                    GL_ENTRYPOINT(glMultiDrawArraysIndirect)(mode, (const GLvoid *)trace_indirect_ptr_value, drawcount, stride);
+                }
             }
 
             break;
