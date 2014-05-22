@@ -2003,9 +2003,15 @@ bool vogl_process_internal_trace_command_ctypes_packet(const key_value_map &kvm,
         {
             VOGL_VERIFY(size == desc.m_size);
         }
+        
+        // Loki is a bit too specific, and so we don't care about certain 
+        const uint32_t loki_ignored_types = 
+            LOKI_TYPE_BITMASK(LOKI_IS_SIGNED_LONG) 
+          | LOKI_TYPE_BITMASK(LOKI_IS_UNSIGNED_LONG)
+          | LOKI_TYPE_BITMASK(LOKI_IS_FUNCTION_POINTER)
+        ;
 
-        const uint32_t loki_type_check_mask = ~(LOKI_TYPE_BITMASK(LOKI_IS_SIGNED_LONG) | LOKI_TYPE_BITMASK(LOKI_IS_UNSIGNED_LONG));
-        VOGL_VERIFY((loki_type_flags & loki_type_check_mask) == (desc.m_loki_type_flags & loki_type_check_mask));
+        VOGL_VERIFY((loki_type_flags & ~loki_ignored_types) == (desc.m_loki_type_flags & ~loki_ignored_types));
 
         VOGL_VERIFY(is_pointer == desc.m_is_pointer);
         VOGL_VERIFY(is_opaque_pointer == desc.m_is_opaque_pointer);
@@ -4324,6 +4330,13 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             // TODO
             break;
         }
+
+        case VOGL_ENTRYPOINT_wglChoosePixelFormat:
+        {
+            // These may be okay to ignore, or we may need to do something with them.
+            break;
+        }
+
         default:
         {
             processed_glx_packet = false;
