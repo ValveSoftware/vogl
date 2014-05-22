@@ -870,7 +870,7 @@ inline bool vogl_json_deserialize_vec4F(const json_node &src_node, vec4F &vec)
 // vogl_format_debug_output_arb
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_format_debug_output_arb(char out_str[], size_t out_str_size, GLenum source, GLenum type, GLuint id, GLenum severity, const char *msg);
-void vogl_generic_arb_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param);
+void GLAPIENTRY vogl_generic_arb_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param);
 void vogl_enable_generic_context_debug_messages();
 
 //----------------------------------------------------------------------------------------------------------------------
