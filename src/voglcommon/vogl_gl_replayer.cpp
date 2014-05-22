@@ -3784,7 +3784,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
                             status = trigger_pending_window_resize(win_width, win_height);
 
-                            vogl_printf("%s: Deferring glXMakeCurrent() until window resizes to %ux%u\n", VOGL_FUNCTION_INFO_CSTR, win_width, win_height);
+                            vogl_printf("Deferring MakeCurrent() until window resizes to %ux%u\n", win_width, win_height);
                         }
                     }
                 }
@@ -4180,7 +4180,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             if ((trace_share_context) && (!replay_share_context))
             {
-                process_entrypoint_warning("%s: Failed remapping trace sharelist context 0x%" PRIx64 "!\n", VOGL_FUNCTION_INFO_CSTR, cast_val_to_uint64(trace_share_context));
+                process_entrypoint_warning("Failed remapping trace sharelist context 0x%" PRIx64 "!\n", cast_val_to_uint64(trace_share_context));
             }
 
             const int *pTrace_attrib_list = static_cast<const int *>(trace_packet.get_param_client_memory_ptr(2));
@@ -7394,7 +7394,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 if (trace_packet.get_param_client_memory_data_size(2) != 0)
                 {
                     // TODO: Handle glDrawElementsIndirect with client-side indirect data
-                    process_entrypoint_error("%s: client-side indirect commands not implemented\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("client-side indirect commands not implemented\n");
                     return cStatusSoftFailure;
                 }
                 else
@@ -7418,7 +7418,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 if (trace_packet.get_param_client_memory_data_size(2) != 0)
                 {
                     // TODO: Handle glMultiDrawElementsIndirect with client-side indirect data
-                    process_entrypoint_error("%s: client-side indirect commands not implemented\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("client-side indirect commands not implemented\n");
                     return cStatusSoftFailure;
                 }
                 else
@@ -7439,7 +7439,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 if (trace_packet.get_param_client_memory_data_size(1) != 0)
                 {
                     // TODO: Handle glDrawArraysIndirect with client-side indirect data
-                    process_entrypoint_error("%s: client-side indirect commands not implemented\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("client-side indirect commands not implemented\n");
                     return cStatusSoftFailure;
                 }
                 else
@@ -7462,7 +7462,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 if (trace_packet.get_param_client_memory_data_size(1) != 0)
                 {
                     // TODO: Handle glMultiDrawArraysIndirect with client-side indirect data
-                    process_entrypoint_error("%s: client-side indirect commands not implemented\n", VOGL_FUNCTION_INFO_CSTR);
+                    process_entrypoint_error("client-side indirect commands not implemented\n");
                     return cStatusSoftFailure;
                 }
                 else
