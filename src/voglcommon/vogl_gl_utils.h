@@ -876,15 +876,24 @@ void vogl_enable_generic_context_debug_messages();
 //----------------------------------------------------------------------------------------------------------------------
 // Context helpers
 //----------------------------------------------------------------------------------------------------------------------
+#if (VOGL_PLATFORM_HAS_GLX)
 typedef GLXContext vogl_gl_context;
 typedef Display *vogl_gl_display;
+typedef GLXDrawable vogl_gl_drawable;
 typedef GLXFBConfig vogl_gl_fb_config;
-#if VOGL_PLATFORM_HAS_GLX
-    typedef GLXDrawable vogl_gl_drawable;
+#elif (VOGL_PLATFORM_HAS_WGL)
+typedef HGLRC vogl_gl_context;
+typedef HDC vogl_gl_display;
+typedef HWND vogl_gl_drawable;
+typedef int vogl_gl_fb_config;
 #else
     // TODO
+    typedef void* vogl_gl_context;
+    typedef void* vogl_gl_display;
     typedef int vogl_gl_drawable;
+    typedef int vogl_gl_fb_config;
 #endif
+
 enum
 {
     eCHCDebugContextFlag = 1,

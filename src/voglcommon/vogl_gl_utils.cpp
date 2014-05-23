@@ -264,12 +264,21 @@ uint32_t vogl_get_image_format_size_in_bytes(GLenum format, GLenum type)
 bool vogl_has_active_context()
 {
     VOGL_FUNC_TRACER
-
+#if (VOGL_PLATFORM_HAS_GLX)
     if (!GL_ENTRYPOINT(glXGetCurrentContext))
         return false;
 
     if (!GL_ENTRYPOINT(glXGetCurrentContext)())
         return false;
+#elif (VOGL_PLATFORM_HAS_WGL)
+    if (!GL_ENTRYPOINT(wglGetCurrentContext))
+        return false;
+
+    if (!GL_ENTRYPOINT(wglGetCurrentContext)())
+        return false;
+#else
+        return false;
+#endif
 
     return true;
 }
@@ -2026,7 +2035,14 @@ vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config f
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_context vogl_get_current_context()
 {
+#if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentContext)();
+#elif (VOGL_PLATFORM_HAS_WGL)
+    return GL_ENTRYPOINT(wglGetCurrentContext)();
+#else
+    VOGL_ASSERT(!"impl vogl_get_current_context");
+    return 0;
+#endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2034,7 +2050,14 @@ vogl_gl_context vogl_get_current_context()
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_display vogl_get_current_display()
 {
+#if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentDisplay)();
+#elif (VOGL_PLATFORM_HAS_WGL)
+    // TODO: Not sure if this is the correct equivalent
+    return GL_ENTRYPOINT(wglGetCurrentDC)();
+#else
+    VOGL_ASSERT(!"impl vogl_get_current_display");
+#endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2042,7 +2065,13 @@ vogl_gl_display vogl_get_current_display()
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_drawable vogl_get_current_drawable()
 {
+#if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentDrawable)();
+#elif (VOGL_PLATFORM_HAS_WGL)
+    return WindowFromDC(GL_ENTRYPOINT(wglGetCurrentDC)());
+#else
+    VOGL_ASSERT(!"impl vogl_get_current_drawable");
+#endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2080,6 +2109,9 @@ void vogl_make_current(vogl_gl_display display, vogl_gl_drawable drawable, vogl_
 {
     #if VOGL_PLATFORM_HAS_GLX
         GL_ENTRYPOINT(glXMakeCurrent)(display, drawable, context);
+    #elif VOGL_PLATFORM_HAS_WGL
+        VOGL_NOTE_UNUSED(drawable);
+        GL_ENTRYPOINT(wglMakeCurrent)(display, context);
     #else
         VOGL_ASSERT(!"impl vogl_make_current");
     #endif
@@ -2090,7 +2122,14 @@ void vogl_make_current(vogl_gl_display display, vogl_gl_drawable drawable, vogl_
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_destroy_context(vogl_gl_display display, vogl_gl_context context)
 {
+#if VOGL_PLATFORM_HAS_GLX
     GL_ENTRYPOINT(glXDestroyContext)(display, context);
+#elif (VOGL_PLATFORM_HAS_WGL)
+    VOGL_NOTE_UNUSED(display);
+    GL_ENTRYPOINT(wglDeleteContext)(context);
+#else
+    VOGL_ASSERT(!"impl vogl_destroy_context");
+#endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
