@@ -382,6 +382,9 @@ function(require_sdl2)
 	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 		include(FindPkgConfig)
 		pkg_search_module(SDL2 REQUIRED sdl2)
+
+        set(SDL2_INCLUDE "${SDL2_INCLUDE_DIRS}" PARENT_SCOPE)
+        set(SDL2_LIBRARY "${SDL2_LIBRARIES}" PARENT_SCOPE)
 	elseif (MSVC)
         set(SDL2Root "${CMAKE_EXTERNAL_PATH}/SDL")
 

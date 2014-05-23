@@ -5,10 +5,7 @@ include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
 request_backtrace()
-
-if (MSVC)
-    require_sdl2()
-endif()
+require_sdl2()
 
 include_directories(
     ${SRC_DIR}/extlib/loki/include/loki
