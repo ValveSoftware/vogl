@@ -379,9 +379,10 @@ function(require_libjpegturbo)
 endfunction()
 
 function(require_sdl2)
-    # TODO for linux
-    # find_package(SDL2)
-    if (MSVC)
+	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		include(FindPkgConfig)
+		pkg_search_module(SDL2 REQUIRED sdl2)
+	elseif (MSVC)
         set(SDL2Root "${CMAKE_EXTERNAL_PATH}/SDL")
 
         set(SDL2_INCLUDE "${SDL2Root}/include" PARENT_SCOPE)
