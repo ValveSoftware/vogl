@@ -122,7 +122,15 @@ void vogl_ctypes::change_pointer_sizes(uint32_t trace_ptr_size)
     }
 
 // Mark up long and XID types, which are unsigned longs
-#define DEF_LONG_TYPE(x) m_vogl_ctype_descs[x].m_size = sizeof(unsigned long);
+#if defined(PLATFORM_LINUX)
+    #define DEF_LONG_TYPE(x) m_vogl_ctype_descs[x].m_size = trace_ptr_size;
+#elif defined(PLATFORM_WINDOWS)
+    #define DEF_LONG_TYPE(x) m_vogl_ctype_descs[x].m_size = sizeof(long);
+    #pragma message("Need to determine the right mechanism to roundtrip data through traces.")
+#else
+    #error "Need to determine the right size for this platform."
+#endif
+
     DEF_LONG_TYPE(VOGL_LONG);
     DEF_LONG_TYPE(VOGL_UNSIGNED_LONG);
     DEF_LONG_TYPE(VOGL_GLXPIXMAP);
