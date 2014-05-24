@@ -48,6 +48,7 @@ set(SRC_LIST
     vogleditor_qapicalltreemodel.cpp
     vogleditor_qbufferexplorer.cpp
     vogleditor_qframebufferexplorer.cpp
+    vogleditor_qlaunchtracerdialog.cpp
     vogleditor_qprogramarbexplorer.cpp
     vogleditor_qprogramexplorer.cpp
     vogleditor_qshaderexplorer.cpp
@@ -92,6 +93,7 @@ set(UI_HEADER_LIST
     vogleditor_qapicalltreemodel.h
     vogleditor_qbufferexplorer.h
     vogleditor_qframebufferexplorer.h
+    vogleditor_qlaunchtracerdialog.h
     vogleditor_qprogramarbexplorer.h
     vogleditor_qprogramexplorer.h
     vogleditor_qshaderexplorer.h
@@ -144,6 +146,7 @@ set(FORM_LIST
     vogleditor.ui
     vogleditor_qbufferexplorer.ui
     vogleditor_qframebufferexplorer.ui
+    vogleditor_qlaunchtracerdialog.ui
     vogleditor_qprogramarbexplorer.ui
     vogleditor_qprogramexplorer.ui
     vogleditor_qshaderexplorer.ui

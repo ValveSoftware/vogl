@@ -42,6 +42,7 @@ class QGridLayout;
 
 class QModelIndex;
 class QProcess;
+class QProcessEnvironment;
 class QToolButton;
 class vogl_arb_program_state;
 class vogl_program_state;
@@ -55,10 +56,18 @@ class vogleditor_QFramebufferExplorer;
 class vogleditor_QShaderExplorer;
 class vogleditor_QTimelineView;
 class vogleditor_QVertexArrayExplorer;
+class vogleditor_QLaunchTracerDialog;
 
 class VoglEditor : public QMainWindow
 {
    Q_OBJECT
+
+   enum Prompt_Result
+   {
+       vogleditor_prompt_error = -1,
+       vogleditor_prompt_cancelled = 0,
+       vogleditor_prompt_success = 1
+   };
 
 public:
    explicit VoglEditor(QWidget* parent = 0);
@@ -77,10 +86,11 @@ private slots:
 
    void on_treeView_clicked(const QModelIndex& index);
 
+   Prompt_Result prompt_generate_trace();
    void playCurrentTraceFile();
    void trimCurrentTraceFile();
 
-   bool trim_trace_file(QString filename, uint maxFrameIndex, uint maxAllowedTrimLen);
+   Prompt_Result prompt_trim_trace_file(QString filename, uint maxFrameIndex, uint maxAllowedTrimLen);
 
    void on_stateTreeView_clicked(const QModelIndex &index);
 
@@ -116,6 +126,10 @@ private:
    void displayProgramArb(GLuint64 programArbHandle, bool bBringTabToFront);
    void displayProgram(GLuint64 programHandle, bool bBringTabToFront);
    bool displayBuffer(GLuint64 bufferHandle, bool bBringTabToFront);
+
+   bool launch_application_to_generate_trace(const QString &cmdLine, const QProcessEnvironment &environment);
+
+   Prompt_Result prompt_load_new_trace(const char* tracefile);
 
    // temp?
    vogl_gl_state_snapshot *read_state_snapshot_from_trace(vogl_trace_file_reader* pTrace_reader);
@@ -166,6 +180,7 @@ private:
    vogleditor_apiCallTreeItem* m_pCurrentCallTreeItem;
 
    QProcess* m_pVoglReplayProcess;
+   QToolButton* m_pGenerateTraceButton;
    QToolButton* m_pPlayButton;
    QToolButton* m_pTrimButton;
 
@@ -177,6 +192,8 @@ private:
    vogleditor_apiCallTimelineModel* m_pTimelineModel;
    vogleditor_QApiCallTreeModel* m_pApiCallTreeModel;
    vogleditor_QStateTreeModel* m_pStateTreeModel;
+
+   vogleditor_QLaunchTracerDialog* m_pLaunchTracerDialog;
 
    QColor m_searchTextboxBackgroundColor;
    bool m_bDelayUpdateUIForContext;
