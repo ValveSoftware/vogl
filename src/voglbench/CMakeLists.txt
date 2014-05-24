@@ -5,10 +5,7 @@ include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
 request_backtrace()
-
-if (MSVC)
-    require_sdl2()
-endif()
+require_sdl2()
 
 find_package(X11 REQUIRED)
 

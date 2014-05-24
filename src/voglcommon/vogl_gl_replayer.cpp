@@ -129,7 +129,7 @@ static vogl_trace_ptr_value get_trace_context_from_packet(const vogl_trace_packe
     default:
         vogl_error_printf("Unexpected packet type (%s) in get_trace_context_from_packet, review for possible bug.\n", 
                           pkt.get_entrypoint_desc().m_pName);
-        return NULL;
+        return (vogl_trace_ptr_value)0;
         break;
     }
 
@@ -4084,7 +4084,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             vogl_trace_context_ptr_value trace_context = trace_packet.get_return_ptr_value();
             if (m_flags & cGLReplayerForceDebugContexts)
             {
-                status = create_context_attribs(trace_context, NULL, NULL, cDirect, NULL, 0, false);
+                status = create_context_attribs(trace_context, (vogl_trace_context_ptr_value)0, NULL, cDirect, NULL, 0, false);
                 if (status != cStatusOK)
                     return status;
             }
@@ -4109,7 +4109,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 {
                     if (trace_context)
                     {
-                        context_state *pContext_state = define_new_context(trace_context, replay_context, NULL, cDirect, VOGL_ENTRYPOINT_wglCreateContext, NULL, 0);
+                        context_state *pContext_state = define_new_context(trace_context, replay_context, (vogl_trace_context_ptr_value)0,
+                                                                           cDirect, VOGL_ENTRYPOINT_wglCreateContext, NULL, 0);
                         VOGL_NOTE_UNUSED(pContext_state);
                     }
                     else

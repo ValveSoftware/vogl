@@ -159,7 +159,6 @@ static command_line_param_desc g_command_line_param_descs[] =
     { "vogl_sleep_at_startup", 1, false, NULL },
     { "vogl_pause", 0, false, NULL },
     { "vogl_long_pause", 0, false, NULL },
-    { "vogl_dump_stats", 0, false, NULL },
     { "vogl_quiet", 0, false, NULL },
     { "vogl_debug", 0, false, NULL },
     { "vogl_verbose", 0, false, NULL },
@@ -177,7 +176,6 @@ static command_line_param_desc g_command_line_param_descs[] =
     { "vogl_hash_backbuffer", 0, false, NULL },
     { "vogl_dump_backbuffer_hashes", 1, false, NULL },
     { "vogl_sum_hashing", 0, false, NULL },
-    { "vogl_disable_atexit_context_flushing", 0, false, NULL },
     { "vogl_null_mode", 0, false, NULL },
     { "vogl_force_debug_context", 0, false, NULL },
     { "vogl_disable_client_side_array_tracing", 0, false, NULL },
@@ -203,7 +201,6 @@ static bool g_disable_client_side_array_tracing;
 
 static bool g_flush_files_after_each_call;
 static bool g_flush_files_after_each_swap;
-static bool g_gather_statistics;
 
 static uint32_t g_vogl_total_frames_to_capture;
 static uint32_t g_vogl_frames_remaining_to_capture;
@@ -883,7 +880,6 @@ static void vogl_init_command_line_params()
     g_flush_files_after_each_call = g_command_line_params().get_value_as_bool("vogl_flush_files_after_each_call");
     g_flush_files_after_each_swap = g_command_line_params().get_value_as_bool("vogl_flush_files_after_each_swap");
 
-    g_gather_statistics = g_command_line_params().get_value_as_bool("vogl_dump_stats");
     g_null_mode = g_command_line_params().get_value_as_bool("vogl_null_mode");
     g_backtrace_all_calls = g_command_line_params().get_value_as_bool("vogl_backtrace_all_calls");
     g_backtrace_no_calls = g_command_line_params().get_value_as_bool("vogl_backtrace_no_calls");

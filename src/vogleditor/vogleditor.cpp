@@ -50,6 +50,7 @@
 #include "vogleditor_qstatetreemodel.h"
 #include "vogleditor_qtrimdialog.h"
 #include "vogleditor_qframebufferexplorer.h"
+#include "vogleditor_qlaunchtracerdialog.h"
 #include "vogleditor_qprogramarbexplorer.h"
 #include "vogleditor_qprogramexplorer.h"
 #include "vogleditor_qshaderexplorer.h"
@@ -134,12 +135,14 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_currentSnapshot(NULL),
    m_pCurrentCallTreeItem(NULL),
    m_pVoglReplayProcess(new QProcess()),
+   m_pGenerateTraceButton(NULL),
    m_pPlayButton(NULL),
    m_pTrimButton(NULL),
    m_pTraceReader(NULL),
    m_pTimelineModel(NULL),
    m_pApiCallTreeModel(NULL),
    m_pStateTreeModel(NULL),
+   m_pLaunchTracerDialog(NULL),
    m_bDelayUpdateUIForContext(false)
 {
    ui->setupUi(this);
@@ -221,6 +224,10 @@ VoglEditor::VoglEditor(QWidget *parent) :
    ui->timelineViewPlaceholder = NULL;
 
    // add buttons to toolbar
+   m_pGenerateTraceButton = new QToolButton(ui->mainToolBar);
+   m_pGenerateTraceButton->setText("Generate Trace");
+   m_pGenerateTraceButton->setEnabled(true);
+
    m_pPlayButton = new QToolButton(ui->mainToolBar);
    m_pPlayButton->setText("Play Trace");
    m_pPlayButton->setEnabled(false);
@@ -229,9 +236,11 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pTrimButton->setText("Trim Trace");
    m_pTrimButton->setEnabled(false);
 
+   ui->mainToolBar->addWidget(m_pGenerateTraceButton);
    ui->mainToolBar->addWidget(m_pPlayButton);
    ui->mainToolBar->addWidget(m_pTrimButton);
 
+   connect(m_pGenerateTraceButton, SIGNAL(clicked()), this, SLOT(prompt_generate_trace()));
    connect(m_pPlayButton, SIGNAL(clicked()), this, SLOT(playCurrentTraceFile()));
    connect(m_pTrimButton, SIGNAL(clicked()), this, SLOT(trimCurrentTraceFile()));
 
@@ -376,6 +385,141 @@ VoglEditor::~VoglEditor()
         delete m_pVoglReplayProcess;
         m_pVoglReplayProcess = NULL;
     }
+
+    if (m_pLaunchTracerDialog)
+    {
+        delete m_pLaunchTracerDialog;
+        m_pLaunchTracerDialog = NULL;
+    }
+}
+
+VoglEditor::Prompt_Result VoglEditor::prompt_load_new_trace(const char* tracefile)
+{
+    int ret = QMessageBox::warning(this, tr(g_PROJECT_NAME.toStdString().c_str()), tr("Would you like to load the new trace file?"),
+                         QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+
+    Prompt_Result result = vogleditor_prompt_success;
+
+    if (ret != QMessageBox::Yes)
+    {
+        // user chose not to open the new trace
+        result = vogleditor_prompt_cancelled;
+    }
+    else
+    {
+        // close any existing trace
+        close_trace_file();
+
+        // try to open the new file
+        if (open_trace_file(tracefile) == false)
+        {
+            vogleditor_output_error("Could not open trace file.");
+            QMessageBox::critical(this, tr("Error"), tr("Could not open trace file."));
+            result = vogleditor_prompt_error;
+        }
+    }
+
+    return result;
+}
+
+VoglEditor::Prompt_Result VoglEditor::prompt_generate_trace()
+{
+    if (m_pLaunchTracerDialog == NULL)
+    {
+        m_pLaunchTracerDialog = new vogleditor_QLaunchTracerDialog(this);
+    }
+
+    bool bShowDialog = true;
+
+    while (bShowDialog)
+    {
+        int code = m_pLaunchTracerDialog->exec();
+
+        if (code == QDialog::Rejected)
+        {
+            return vogleditor_prompt_cancelled;
+        }
+        else
+        {
+            if (m_pLaunchTracerDialog->validate_inputs())
+            {
+                QString cmdLine = m_pLaunchTracerDialog->get_command_line();
+                QProcessEnvironment env = m_pLaunchTracerDialog->get_process_environment();
+                bool bSuccess = launch_application_to_generate_trace(cmdLine, env);
+                if (bSuccess)
+                {
+                    Prompt_Result result = prompt_load_new_trace(m_pLaunchTracerDialog->get_trace_file_path().toStdString().c_str());
+                    if (result == vogleditor_prompt_success ||
+                        result == vogleditor_prompt_cancelled)
+                    {
+                        bShowDialog = false;
+                    }
+                }
+                else
+                {
+                    vogleditor_output_error("Failed to trace the application.");
+                    QMessageBox::critical(this, tr("Error"), tr("Failed to trace application."));
+                }
+            }
+        }
+    }
+
+    return vogleditor_prompt_success;
+}
+
+bool VoglEditor::launch_application_to_generate_trace(const QString& cmdLine, const QProcessEnvironment& environment)
+{
+    vogleditor_output_message("Tracing application:");
+    vogleditor_output_message(cmdLine.toStdString().c_str());
+
+    // backup existing environment
+    QProcessEnvironment tmpEnv = m_pVoglReplayProcess->processEnvironment();
+
+    m_pVoglReplayProcess->setProcessEnvironment(environment);
+
+    bool bCompleted = false;
+    m_pVoglReplayProcess->start(cmdLine);
+    if (m_pVoglReplayProcess->waitForStarted() == false)
+    {
+        vogleditor_output_error("Application could not be executed.");
+    }
+    else
+    {
+        // This is a bad idea as it will wait forever,
+        // but if the replay is taking forever then we have bigger problems.
+        if(m_pVoglReplayProcess->waitForFinished(-1))
+        {
+            vogleditor_output_message("Trace Completed!");
+        }
+
+        int procRetValue = m_pVoglReplayProcess->exitCode();
+
+        if (procRetValue == -2)
+        {
+            // proc failed to starts
+            vogleditor_output_error("Application could not be executed.");
+        }
+        else if (procRetValue == -1)
+        {
+            // proc crashed
+            vogleditor_output_error("Application aborted unexpectedly.");
+        }
+        else if (procRetValue == 0)
+        {
+            // success
+            bCompleted = true;
+        }
+        else
+        {
+            // some other return value
+            bCompleted = false;
+        }
+    }
+
+    // restore previous environment
+    m_pVoglReplayProcess->setProcessEnvironment(tmpEnv);
+
+    return bCompleted;
 }
 
 void VoglEditor::playCurrentTraceFile()
@@ -397,12 +541,12 @@ void VoglEditor::playCurrentTraceFile()
 
 void VoglEditor::trimCurrentTraceFile()
 {
-    trim_trace_file(m_openFilename, static_cast<uint>(m_pTraceReader->get_max_frame_index()), g_settings.trim_large_trace_prompt_size());
+    prompt_trim_trace_file(m_openFilename, static_cast<uint>(m_pTraceReader->get_max_frame_index()), g_settings.trim_large_trace_prompt_size());
 }
 
 /// \return True if the new trim file is now open in the editor
 /// \return False if there was an error, or the user elected NOT to open the new trim file
-bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxAllowedTrimLen)
+VoglEditor::Prompt_Result VoglEditor::prompt_trim_trace_file(QString filename, uint maxFrameIndex, uint maxAllowedTrimLen)
 {
     // open a dialog to gather parameters for the replayer
     vogleditor_QTrimDialog trimDialog(filename, maxFrameIndex, maxAllowedTrimLen, this);
@@ -410,7 +554,7 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
 
     if (code == QDialog::Rejected)
     {
-        return false;
+        return vogleditor_prompt_cancelled;
     }
 
     QStringList arguments;
@@ -431,7 +575,7 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
     if (m_pVoglReplayProcess->waitForStarted() == false)
     {
         vogleditor_output_error("voglreplay could not be executed.");
-        return false;
+        return vogleditor_prompt_error;
     }
 
     // This is a bad idea as it will wait forever,
@@ -467,21 +611,11 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
 
     if (bCompleted)
     {
-        int ret = QMessageBox::warning(this, tr("Trim Trace"), tr("Would you like to load the new trimmed trace file?"),
-                             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+        Prompt_Result result = prompt_load_new_trace(trimDialog.trim_file().toStdString().c_str());
 
-        if (ret == QMessageBox::Yes)
+        if (result == vogleditor_prompt_success)
         {
-            close_trace_file();
-            if (open_trace_file(trimDialog.trim_file().toStdString().c_str()))
-            {
-                return true;
-            }
-            else
-            {
-                vogleditor_output_error("Could not open trace file.");
-                QMessageBox::critical(this, tr("Error"), tr("Could not open trace file."));
-            }
+            return vogleditor_prompt_success;
         }
     }
     else
@@ -489,7 +623,7 @@ bool VoglEditor::trim_trace_file(QString filename, uint maxFrameIndex, uint maxA
         vogleditor_output_error("Failed to trim the trace file.");
         QMessageBox::critical(this, tr("Error"), tr("Failed to trim the trace file."));
     }
-    return false;
+    return vogleditor_prompt_error;
 }
 
 void VoglEditor::on_actionE_xit_triggered()
@@ -1132,7 +1266,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
 
        if (ret == QMessageBox::Yes)
        {
-           if (trim_trace_file(filename.c_str(), static_cast<uint>(tmpReader->get_max_frame_index()), g_settings.trim_large_trace_prompt_size()))
+           if (prompt_trim_trace_file(filename.c_str(), static_cast<uint>(tmpReader->get_max_frame_index()), g_settings.trim_large_trace_prompt_size()) == vogleditor_prompt_success)
            {
                // user decided to open the new trim file, and the UI should already be updated
                // clean up here and return

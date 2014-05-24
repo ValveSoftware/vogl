@@ -4,10 +4,7 @@ cmake_minimum_required(VERSION 2.8)
 include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
-
-if (MSVC)
-    require_sdl2()
-endif()
+require_sdl2()
 
 find_package(X11 REQUIRED)
 
@@ -19,10 +16,9 @@ include_directories(
     ${SRC_DIR}/voglcore
     ${CMAKE_BINARY_DIR}/voglinc
     ${SRC_DIR}/voglcommon
-	${SRC_DIR}/libtelemetry
-	${SRC_DIR}/extlib/loki/include/loki
-	${SDL2_INCLUDE}
-
+    ${SRC_DIR}/libtelemetry
+    ${SRC_DIR}/extlib/loki/include/loki
+    ${SDL2_INCLUDE}
 )
 
 set(SRC_LIST

@@ -35,13 +35,6 @@
 
 #if defined(PLATFORM_WINDOWS)
     #include "vogl_winhdr.h"
-
-    #pragma message("Windows: TODO: Build system should tell us where to get the correct pthread library from.")
-    #if defined(PLATFORM_32BIT)
-        #pragma comment(lib, "../../../../external/windows/pthreads.2/lib/x86/pthreadVC2.lib")
-    #else
-        #pragma comment(lib, "../../../../external/windows/pthreads.2/lib/x64/pthreadVC2.lib")
-    #endif
 #endif
 
 #if defined(COMPILER_GCCLIKE)

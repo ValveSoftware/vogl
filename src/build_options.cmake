@@ -344,8 +344,10 @@ function(require_pthreads)
     if (MSVC)
         include_directories("${WIN32_PTHREADS_INCLUDE_PATH}")
         if (BUILD_X64)
+            set(PTHREAD_SRC_LIB "${WIN32_PTHREADS_PATH}/lib/x64/pthreadVC2.lib" PARENT_SCOPE)
             set(PTHREAD_SRC_DLL "${WIN32_PTHREADS_PATH}/dll/x64/pthreadVC2.dll" PARENT_SCOPE)
         else()
+            set(PTHREAD_SRC_LIB "${WIN32_PTHREADS_PATH}/lib/x86/pthreadVC2.lib" PARENT_SCOPE)
             set(PTHREAD_SRC_DLL "${WIN32_PTHREADS_PATH}/dll/x86/pthreadVC2.dll" PARENT_SCOPE)
         endif()
 
@@ -377,9 +379,13 @@ function(require_libjpegturbo)
 endfunction()
 
 function(require_sdl2)
-    # TODO for linux
-    # find_package(SDL2)
-    if (MSVC)
+	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+		include(FindPkgConfig)
+		pkg_search_module(SDL2 REQUIRED sdl2)
+
+        set(SDL2_INCLUDE "${SDL2_INCLUDE_DIRS}" PARENT_SCOPE)
+        set(SDL2_LIBRARY "${SDL2_LIBRARIES}" PARENT_SCOPE)
+	elseif (MSVC)
         set(SDL2Root "${CMAKE_EXTERNAL_PATH}/SDL")
 
         set(SDL2_INCLUDE "${SDL2Root}/include" PARENT_SCOPE)

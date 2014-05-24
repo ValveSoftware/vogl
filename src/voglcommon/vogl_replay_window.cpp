@@ -77,7 +77,6 @@ bool vogl_replay_window::open(int width, int height, int samples)
 
     #elif (VOGL_PLATFORM_HAS_GLX)
 
-
         if (!check_glx_version())
             return false;
 
