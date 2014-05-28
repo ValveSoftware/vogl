@@ -300,12 +300,14 @@ bool vogl_copy_buffer_to_image(void *pDst, uint32_t dst_size, uint32_t width, ui
 
 inline bool vogl_is_make_current_entrypoint(gl_entrypoint_id_t id)
 {
-    return (id == VOGL_ENTRYPOINT_glXMakeCurrent);
+    return (id == VOGL_ENTRYPOINT_glXMakeCurrent ||
+            id == VOGL_ENTRYPOINT_wglMakeCurrent);
 }
 
 inline bool vogl_is_swap_buffers_entrypoint(gl_entrypoint_id_t id)
 {
-    return (id == VOGL_ENTRYPOINT_glXSwapBuffers);
+    return (id == VOGL_ENTRYPOINT_glXSwapBuffers ||
+            id == VOGL_ENTRYPOINT_wglSwapBuffers);
 }
 
 bool vogl_is_draw_entrypoint(gl_entrypoint_id_t id);
