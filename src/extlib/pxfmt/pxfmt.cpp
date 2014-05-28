@@ -2381,7 +2381,7 @@ pxfmt_conversion_status pxfmt_convert_pixels(void *pDst,
 
         for (int y = 0 ; y < height ; y++)
         {
-            for (int x = 0 ; x < height ; x++)
+            for (int x = 0 ; x < width ; x++)
             {
                 to_intermediate(intermediate, src, src_fmt);
                 from_intermediate(dst, intermediate, dst_fmt);
@@ -2401,7 +2401,7 @@ pxfmt_conversion_status pxfmt_convert_pixels(void *pDst,
 
         for (int y = 0 ; y < height ; y++)
         {
-            for (int x = 0 ; x < height ; x++)
+            for (int x = 0 ; x < width ; x++)
             {
                 to_intermediate(intermediate, src, src_fmt);
                 from_intermediate(dst, intermediate, dst_fmt);
