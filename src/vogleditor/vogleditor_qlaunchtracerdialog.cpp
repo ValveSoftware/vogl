@@ -193,3 +193,9 @@ void vogleditor_QLaunchTracerDialog::on_findTraceFileButton_clicked()
         ui->traceFileLineEdit->setText(selectedName);
     }
 }
+
+void vogleditor_QLaunchTracerDialog::on_steamLauncherCheckBox_clicked(bool checked)
+{
+    // the steam launcher script does not currently support command line arguments, so enable that field if steamlauncher is not being used
+    ui->argumentsLineEdit->setEnabled(!checked);
+}
