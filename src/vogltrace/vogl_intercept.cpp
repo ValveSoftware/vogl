@@ -4988,7 +4988,8 @@ static bool vogl_screen_capture_callback(uint32_t width, uint32_t height, uint32
         tjFree(pJPEG_data);
     }
 
-    if (g_command_line_params().get_value_as_bool("vogl_dump_backbuffer_hashes") || g_command_line_params().get_value_as_bool("vogl_hash_backbuffer"))
+    if (g_command_line_params().get_value_as_bool("vogl_dump_backbuffer_hashes") ||
+            g_command_line_params().get_value_as_bool("vogl_hash_backbuffer"))
     {
         uint64_t backbuffer_crc64;
 
@@ -5001,7 +5002,7 @@ static bool vogl_screen_capture_callback(uint32_t width, uint32_t height, uint32
             backbuffer_crc64 = calc_crc64(CRC64_INIT, static_cast<const uint8_t *>(pImage), size);
         }
 
-        vogl_printf("Frame %" PRIu64 " hash: 0x%016" PRIX64 "\n", cast_val_to_uint64(frame_index), backbuffer_crc64);
+        vogl_verbose_printf("Frame %" PRIu64 " hash: 0x%016" PRIX64 "\n", cast_val_to_uint64(frame_index), backbuffer_crc64);
 
         dynamic_string backbuffer_hash_file;
         if (g_command_line_params().get_value_as_string(backbuffer_hash_file, "vogl_dump_backbuffer_hashes"))
@@ -5030,8 +5031,10 @@ static void vogl_tick_screen_capture(vogl_context *pVOGL_context)
     if ((!width) || (!height))
         return;
 
-    bool grab_backbuffer = g_command_line_params().get_value_as_bool("vogl_dump_backbuffer_hashes") || g_command_line_params().get_value_as_bool("vogl_hash_backbuffer") ||
-                           g_command_line_params().get_value_as_bool("vogl_dump_jpeg_screenshots") || g_command_line_params().get_value_as_bool("vogl_dump_png_screenshots");
+    bool grab_backbuffer = g_command_line_params().get_value_as_bool("vogl_dump_backbuffer_hashes") ||
+            g_command_line_params().get_value_as_bool("vogl_hash_backbuffer") ||
+            g_command_line_params().get_value_as_bool("vogl_dump_jpeg_screenshots") ||
+            g_command_line_params().get_value_as_bool("vogl_dump_png_screenshots");
     if (!grab_backbuffer)
         return;
 
