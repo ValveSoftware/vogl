@@ -335,9 +335,17 @@ namespace vogl
             if (pDrive)
                 pDrive->clear();
 
-            const char *pDirName = dirname(dirtmp);
-            if (!pDirName)
-                return false;
+            const char* pDirName = dirtmp;
+
+            int len = strlen(p);
+            bool endsWithSlash = (strncmp(&p[len-1], "/", 1) == 0);
+            if (!endsWithSlash)
+            {
+                // if path does not end in a '/', then the directory needs to be split from the file
+                pDirName = dirname(dirtmp);
+                if (!pDirName)
+                    return false;
+            }
 
             if (pDir)
             {
@@ -346,9 +354,13 @@ namespace vogl
                     pDir->append_char('/');
             }
 
-            const char *pBaseName = basename(nametmp);
-            if (!pBaseName)
-                return false;
+            const char *pBaseName = "";
+            if (!endsWithSlash)
+            {
+                pBaseName = basename(nametmp);
+                if (!pBaseName)
+                    return false;
+            }
 
             if (pFilename)
             {
