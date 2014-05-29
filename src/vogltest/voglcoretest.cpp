@@ -173,7 +173,7 @@ int run_voglcore_tests(int argc, char *argv[])
 
         if (run_test)
         {
-            vogl_printf("\n%zu: %s...\n", i, g_tests[i].name);
+            vogl_printf("\n%" PRIuPTR ": %s...\n", i, g_tests[i].name);
 
             timer tm;
             tm.start();
@@ -181,9 +181,9 @@ int run_voglcore_tests(int argc, char *argv[])
             double time = tm.get_elapsed_secs();
 
             if (ret)
-                vogl_printf("%zu: %s: Success (%.3f secs)\n", i, g_tests[i].name, time);
+                vogl_printf("%" PRIuPTR ": %s: Success (%.3f secs)\n", i, g_tests[i].name, time);
             else
-                vogl_error_printf("%zu: %s: Failed (%.3f secs)\n", i, g_tests[i].name, time);
+                vogl_error_printf("%" PRIuPTR ": %s: Failed (%.3f secs)\n", i, g_tests[i].name, time);
 
             num_failures += !ret;
         }

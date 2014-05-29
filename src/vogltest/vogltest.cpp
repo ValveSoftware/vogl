@@ -32,216 +32,25 @@
 #include "vogl_colorized_console.h"
 #include "vogl_command_line_params.h"
 
-#include <GL/gl.h>
-#include <GL/glx.h>
-
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xmd.h>
-
-#include "regex/regex.h"
-
-using namespace vogl;
+#define SDL_MAIN_HANDLED 1
+#include "SDL.h"
+#include "SDL_opengl.h"
 
 // External function which has a bunch of voglcore tests.
 int run_voglcore_tests(int argc, char *argv[]);
 
 #define PI 3.14159265
 
-// Store all system info in one place
+#define CALL_GL(name) name
+
 typedef struct RenderContextRec
 {
-    GLXContext ctx;
-    Display *dpy;
-    Window win;
     int nWinWidth;
     int nWinHeight;
     int nMousePosX;
     int nMousePosY;
 
 } RenderContext;
-
-#define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
-#define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
-
-typedef GLXContext (*glXCreateContextAttribsARBProc)(Display *, GLXFBConfig, GLXContext, Bool, const int *);
-static glXCreateContextAttribsARBProc glXCreateContextAttribsARBFuncPtr;
-
-#ifdef LOAD_LIBGLITRACE
-typedef __GLXextFuncPtr (*glXGetProcAddressARBProc)(const GLubyte *procName);
-static glXGetProcAddressARBProc glXGetProcAddressARBFuncPtr;
-
-#pragma message("Using LOAD_LIBGLITRACE path.")
-typedef void(GLAPIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
-typedef int GLfixed;
-
-#define GL_FUNC(category, ret, name, args, params) typedef ret(*name##_func_ptr_t) args;
-#define GL_FUNC_VOID(category, name, args, params) typedef void(*name##_func_ptr_t) args;
-#define GL_EXT(name, major, minor)
-#include "glfuncs.h"
-#undef GL_FUNC
-#undef GL_FUNC_VOID
-#undef GL_EXT
-
-#define GL_FUNC(category, ret, name, args, params) static name##_func_ptr_t g_##name##_func_ptr;
-#define GL_FUNC_VOID(category, name, args, params) static name##_func_ptr_t g_##name##_func_ptr;
-#define GL_EXT(name, major, minor)
-#include "glfuncs.h"
-#undef GL_FUNC
-#undef GL_FUNC_VOID
-#undef GL_EXT
-
-static void *g_pLib_gl;
-
-#include <dlfcn.h>
-static void LoadGL()
-{
-    g_pLib_gl = dlopen("./libvogltrace.so", RTLD_LAZY);
-    if (!g_pLib_gl)
-    {
-        fprintf(stderr, "Failed loading libvogltrace.so!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    glXGetProcAddressARBFuncPtr = (glXGetProcAddressARBProc)dlsym(g_pLib_gl, "gliGetProcAddressRAD");
-    if (!glXGetProcAddressARBFuncPtr)
-    {
-        fprintf(stderr, "Failed finding dynamic symbol gliGetProcAddressRAD in libvogltrace.so!\n");
-        exit(EXIT_FAILURE);
-    }
-
-#define GL_FUNC(category, ret, name, args, params)                                              \
-    g_##name##_func_ptr = (name##_func_ptr_t) (*glXGetProcAddressARBFuncPtr)((GLubyte *)#name); \
-    if (!g_##name##_func_ptr)                                                                   \
-    {                                                                                           \
-        fprintf(stderr, "Failed getting func %s!\n", #name);                                    \
-    }
-#define GL_FUNC_VOID(category, name, args, params)                                              \
-    g_##name##_func_ptr = (name##_func_ptr_t) (*glXGetProcAddressARBFuncPtr)((GLubyte *)#name); \
-    if (!g_##name##_func_ptr)                                                                   \
-    {                                                                                           \
-        fprintf(stderr, "Failed getting func %s!\n", #name);                                    \
-    }
-#define GL_EXT(name, major, minor)
-#include "glfuncs.h"
-#undef GL_FUNC
-#undef GL_FUNC_VOID
-#undef GL_EXT
-}
-#define CALL_GL(name) g_##name##_func_ptr
-
-#else
-#pragma message("Using implicitly loaded libgl path.")
-
-#define CALL_GL(name) name
-
-static void LoadGL()
-{
-}
-#endif
-
-void EarlyInitGLXfnPointers()
-{
-    LoadGL();
-    glXCreateContextAttribsARBFuncPtr = (glXCreateContextAttribsARBProc)CALL_GL(glXGetProcAddressARB)((GLubyte *)"glXCreateContextAttribsARB");
-
-    //printf("glXCreateContextAttribsARB = %p %p\n", glXCreateContextAttribsARB, &glXCreateContextAttribsARB);
-}
-
-//------------------------
-
-void CreateWindow(RenderContext *rcx)
-{
-    XSetWindowAttributes winAttribs;
-    GLint winmask;
-    GLint nMajorVer = 0;
-    GLint nMinorVer = 0;
-    XVisualInfo *visualInfo;
-
-    static int fbAttribs[] =
-        {
-            GLX_RENDER_TYPE, GLX_RGBA_BIT,
-            GLX_X_RENDERABLE, True,
-            GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-            GLX_DOUBLEBUFFER, True,
-            GLX_RED_SIZE, 8,
-            GLX_BLUE_SIZE, 8,
-            GLX_GREEN_SIZE, 8,
-            0
-        };
-
-    EarlyInitGLXfnPointers();
-
-    // Tell X we are going to use the display
-    rcx->dpy = XOpenDisplay(NULL);
-
-    // Get Version info
-    CALL_GL(glXQueryVersion)(rcx->dpy, &nMajorVer, &nMinorVer);
-    printf("Supported GLX version - %d.%d\n", nMajorVer, nMinorVer);
-
-    if (nMajorVer == 1 && nMinorVer < 2)
-    {
-        printf("ERROR: GLX 1.2 or greater is necessary\n");
-        XCloseDisplay(rcx->dpy);
-        exit(0);
-    }
-
-    // Get a new fb config that meets our attrib requirements
-    GLXFBConfig *fbConfigs;
-    int numConfigs = 0;
-    fbConfigs = CALL_GL(glXChooseFBConfig)(rcx->dpy, DefaultScreen(rcx->dpy), fbAttribs, &numConfigs);
-    visualInfo = CALL_GL(glXGetVisualFromFBConfig)(rcx->dpy, fbConfigs[0]);
-
-    // Now create an X window
-    winAttribs.event_mask = ExposureMask | VisibilityChangeMask |
-                            KeyPressMask | PointerMotionMask |
-                            StructureNotifyMask;
-
-    winAttribs.border_pixel = 0;
-    winAttribs.bit_gravity = StaticGravity;
-    winAttribs.colormap = XCreateColormap(rcx->dpy,
-                                          RootWindow(rcx->dpy, visualInfo->screen),
-                                          visualInfo->visual, AllocNone);
-    winmask = CWBorderPixel | CWBitGravity | CWEventMask | CWColormap;
-
-    rcx->win = XCreateWindow(rcx->dpy, DefaultRootWindow(rcx->dpy), 20, 20,
-                             rcx->nWinWidth, rcx->nWinHeight, 0,
-                             visualInfo->depth, InputOutput,
-                             visualInfo->visual, winmask, &winAttribs);
-
-    XMapWindow(rcx->dpy, rcx->win);
-
-    Window root;
-    int x, y;
-    unsigned int width, height;
-    unsigned int border_width;
-    unsigned int depth;
-    if (XGetGeometry(rcx->dpy, rcx->win, &root, &x, &y, &width, &height, &border_width, &depth) == False)
-    {
-        fprintf(stderr, "can't get root window geometry\n");
-        exit(EXIT_FAILURE);
-    }
-    printf("%i %i\n", width, height);
-
-    // Also create a new GL context for rendering
-    GLint attribs[] =
-        {
-            GLX_CONTEXT_MAJOR_VERSION_ARB, 2,
-            GLX_CONTEXT_MINOR_VERSION_ARB, 0,
-            //GLX_CONTEXT_MINOR_VERSION_ARB, 1,
-            0
-        };
-    rcx->ctx = glXCreateContextAttribsARBFuncPtr(rcx->dpy, fbConfigs[0], 0, True, attribs);
-    Bool status = CALL_GL(glXMakeCurrent)(rcx->dpy, rcx->win, rcx->ctx);
-    if (!status)
-    {
-        fprintf(stderr, "Failed creating GL context!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    const GLubyte *s = CALL_GL(glGetString)(GL_VERSION);
-    printf("GL Version = %s\n", s);
-}
 
 void SetupGLState(RenderContext *rcx)
 {
@@ -378,13 +187,12 @@ void Draw(RenderContext *rcx)
 	CALL_GL(glEnd)();
 #endif
 
-#if 1
     float verts[3][2] =
-        {
-            { 0.0, 1.0 },
-            { -0.5, -1.0 },
-            { 0.5, -1.0 }
-        };
+    {
+        { 0.0, 1.0 },
+        { -0.5, -1.0 },
+        { 0.5, -1.0 }
+    };
 
     CALL_GL(glVertexPointer)(2, GL_FLOAT, sizeof(float) * 2, verts);
     CALL_GL(glEnableClientState)(GL_VERTEX_ARRAY);
@@ -393,36 +201,12 @@ void Draw(RenderContext *rcx)
 
     CALL_GL(glDisableClientState)(GL_VERTEX_ARRAY);
     CALL_GL(glVertexPointer)(4, GL_FLOAT, 0, NULL);
-#endif
-
-    // Purposely unset the context to better test the glXSwapBuffers() hook.
-    // This does not work on Mesa 9 with a v2.1 context!
-    //CALL_GL(glXMakeCurrent)(rcx->dpy, None, NULL);
-
-    // Display rendering
-    CALL_GL(glXSwapBuffers)(rcx->dpy, rcx->win);
-
-    // Now set the context back.
-    //CALL_GL(glXMakeContextCurrent)(rcx->dpy, rcx->win, rcx->win, rcx->ctx);
-}
-
-void Cleanup(RenderContext *rcx)
-{
-    // Unbind the context before deleting
-    CALL_GL(glXMakeCurrent)(rcx->dpy, None, NULL);
-
-    CALL_GL(glXDestroyContext)(rcx->dpy, rcx->ctx);
-    rcx->ctx = NULL;
-
-    XDestroyWindow(rcx->dpy, rcx->win);
-    rcx->win = (Window)NULL;
-
-    XCloseDisplay(rcx->dpy);
-    rcx->dpy = 0;
 }
 
 int main(int argc, char *argv[])
 {
+    int ret = EXIT_FAILURE;
+
     vogl_core_init();
 
     if (argc > 1)
@@ -431,82 +215,94 @@ int main(int argc, char *argv[])
         return run_voglcore_tests(argc, argv);
     }
 
-    colorized_console::init();
-    colorized_console::set_exception_callback();
+    vogl::colorized_console::init();
+    vogl::colorized_console::set_exception_callback();
 
-    console::set_tool_prefix("(vogltest) ");
+    vogl::console::set_tool_prefix("(vogltest) ");
 
-    Bool bWinMapped = False;
+    int done = 0;
     RenderContext rcx;
+    SDL_Window *window;
 
-    // Set initial window size
     rcx.nWinWidth = 400;
     rcx.nWinHeight = 200;
-
-    // Set initial mouse position
     rcx.nMousePosX = 0;
     rcx.nMousePosY = 0;
 
-    // Setup X window and GLX context
-    CreateWindow(&rcx);
-    SetupGLState(&rcx);
-
-    // Draw the first frame before checking for messages
-    Draw(&rcx);
-
-    Atom wmDeleteMessage = XInternAtom(rcx.dpy, "WM_DELETE_WINDOW", False);
-    XSetWMProtocols(rcx.dpy, rcx.win, &wmDeleteMessage, 1);
-
-    for (;;)
+    // Initialize SDL for video output.
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-        XEvent newEvent;
-        XWindowAttributes winData;
-
-        // Watch for new X events
-        XNextEvent(rcx.dpy, &newEvent);
-
-        switch (newEvent.type)
-        {
-            case UnmapNotify:
-                bWinMapped = False;
-                break;
-            case MapNotify:
-                bWinMapped = True;
-            case ConfigureNotify:
-
-                XGetWindowAttributes(rcx.dpy, rcx.win, &winData);
-                rcx.nWinHeight = winData.height;
-                rcx.nWinWidth = winData.width;
-                SetupGLState(&rcx);
-                break;
-            case MotionNotify:
-                rcx.nMousePosX = newEvent.xmotion.x;
-                rcx.nMousePosY = newEvent.xmotion.y;
-                Draw(&rcx);
-                break;
-            //case KeyPress:
-            case DestroyNotify:
-                Cleanup(&rcx);
-                exit(EXIT_SUCCESS);
-                break;
-            case ClientMessage:
-                if (newEvent.xclient.data.l[0] == (int)wmDeleteMessage)
-                {
-                    goto done;
-                }
-                break;
-        }
-
-        if (bWinMapped)
-        {
-            Draw(&rcx);
-        }
+        vogl_error_printf("Unable to initialize SDL: %s\n", SDL_GetError());
+        goto err;
     }
 
-done:
-    Cleanup(&rcx);
+    // Create our OpenGL window.
+    window = SDL_CreateWindow("vogltest", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, rcx.nWinWidth, rcx.nWinHeight,
+                              SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE );
+    if (!window)
+    {
+        vogl_error_printf("Unable to create OpenGL window: %s\n", SDL_GetError());
+        goto err;
+    }
 
-    colorized_console::deinit();
+    if (!SDL_GL_CreateContext(window))
+    {
+        vogl_error_printf("Unable to create OpenGL context: %s\n", SDL_GetError());
+        goto err;
+    }
 
-    return EXIT_SUCCESS;
+    SetupGLState(&rcx);
+
+    while (!done)
+    {
+        SDL_Event event;
+
+        while (SDL_PollEvent(&event))
+        {
+            switch(event.type)
+            {
+            case SDL_QUIT:
+                done = 1;
+                break;
+
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym)
+                {
+                case SDLK_ESCAPE:
+                    done = 1;
+                    break;
+                }
+
+            case SDL_MOUSEMOTION:
+                rcx.nMousePosX = event.motion.x;
+                rcx.nMousePosY = event.motion.y;
+                Draw(&rcx);
+                break;
+
+            case SDL_WINDOWEVENT:
+                switch (event.window.event)
+                {
+                case SDL_WINDOWEVENT_FOCUS_GAINED:
+                case SDL_WINDOWEVENT_FOCUS_LOST:
+                    break;
+                case SDL_WINDOWEVENT_RESIZED:
+                    rcx.nWinWidth = event.window.data1;
+                    rcx.nWinHeight = event.window.data2;
+                    SetupGLState(&rcx);
+                    break;
+                }
+            }
+        }
+
+        Draw(&rcx);
+        SDL_GL_SwapWindow(window);
+    }
+
+    vogl::colorized_console::deinit();
+
+    ret = EXIT_SUCCESS;
+
+err:
+    SDL_Quit();
+    return ret;
 }

@@ -485,7 +485,8 @@ void *vogl_tracked_malloc(const char *pFile_line, size_t size, size_t *pActual_s
         if ((size) && (*pActual_size >= static_cast<uint64_t>(size) * 16U))
         {
             // I've seen this happen with glibc's absolutely terrible debug heap crap, best to let the caller know that shit is going to die
-            fprintf(stderr, "%s: malloc_usable_size may be misbehaving! Requested %zu bytes, but the usable size is reported as %zu bytes.\n", __FUNCTION__, size, *pActual_size);
+            fprintf(stderr, "%s: malloc_usable_size may be misbehaving! Requested %" PRIuPTR " bytes, but the usable size is reported as %" PRIuPTR " bytes.\n",
+                    __FUNCTION__, size, *pActual_size);
         }
     }
 
@@ -540,7 +541,8 @@ void *vogl_tracked_realloc(const char *pFile_line, void *p, size_t size, size_t 
             if (*pActual_size >= static_cast<uint64_t>(size) * 16U)
             {
                 // I've seen this happen with glibc's absolutely terrible debug heap crap, best to let the caller know that shit is going to die
-                fprintf(stderr, "%s: malloc_usable_size may be misbehaving! Requested %zu bytes, but the usable size is reported as %zu bytes.\n", __FUNCTION__, size, *pActual_size);
+                fprintf(stderr, "%s: malloc_usable_size may be misbehaving! Requested %" PRIuPTR " bytes, but the usable size is reported as %" PRIuPTR " bytes.\n",
+                        __FUNCTION__, size, *pActual_size);
             }
         }
     }

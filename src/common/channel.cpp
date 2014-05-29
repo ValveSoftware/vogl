@@ -499,7 +499,7 @@ channel::readMsgLoop(unsigned int *pcbBufOut, char **ppBufOut, int timeoutMS)
         goto out;
     }
 
-    DEBUG_PRINT("Debug: client buffer read %zd bytes\n", cbSize64);
+    DEBUG_PRINT("Debug: client buffer read %" PRIdPTR " bytes\n", cbSize64);
 
     *ppBufOut = pRecBuff;
     *pcbBufOut = cbSize64; //  MIN(bToRead, bRead)?
@@ -639,7 +639,7 @@ channel::writeMsgLoop(unsigned int cbBufIn, const char *pbBufIn, int timeoutMS)
         goto out;
     }
 
-    DEBUG_PRINT("Debug: client buffer wrote %zd bytes on port %d\n", cbToWrite, m_port);
+    DEBUG_PRINT("Debug: client buffer wrote %" PRIuPTR " bytes on port %d\n", cbToWrite, m_port);
 
 out:
     if (EC_NONE != ec && EC_TIMEOUT != ec)
