@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
 
+require_pthreads()
 require_sdl2()
 
 # option(VOGLTEST_LOAD_LIBVOGLTRACE "If enabled vogltest will load libvogltrace.so manually and not implictly link against libgl.so" FALSE)
