@@ -3,10 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
 
-require_pthreads()
 require_sdl2()
-
-find_package(X11 REQUIRED)
 
 # option(VOGLTEST_LOAD_LIBVOGLTRACE "If enabled vogltest will load libvogltrace.so manually and not implictly link against libgl.so" FALSE)
 # message("VOGLTEST_LOAD_LIBGLITRACE: ${VOGLTEST_LOAD_LIBVOGLTRACE}")
@@ -41,7 +38,6 @@ if (MSVC)
     )
 else()
     set(VOGLTEST_OPENGL_LIBRARY
-        ${X11_X11_LIB}
         m
         GL
         GLU
@@ -63,7 +59,6 @@ add_dependencies(${PROJECT_NAME} SDL)
 
 target_link_libraries(${PROJECT_NAME}
     ${CMAKE_DL_LIBS}
-    ${X11_X11_LIB}
     voglcore
     ${VOGLTEST_OPENGL_LIBRARY}
     ${SDL2_LIBRARY}
