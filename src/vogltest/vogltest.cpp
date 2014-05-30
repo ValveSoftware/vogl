@@ -269,6 +269,7 @@ int main(int argc, char *argv[])
                 switch (event.key.keysym.sym)
                 {
                 case SDLK_ESCAPE:
+                case SDLK_q:
                     done = 1;
                     break;
                 }
