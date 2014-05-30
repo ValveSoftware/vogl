@@ -550,7 +550,12 @@ static uint get_replayer_flags_from_command_line_params()
             {
                 for (;;)
                 {
-                    status = replayer.process_next_packet(*pTrace_reader);
+                    status = replayer.process_pending_packets();
+
+                    if (status == vogl_gl_replayer::cStatusOK)
+                    {
+                        status = replayer.process_next_packet(*pTrace_reader);
+                    }
 
                     if ((status == vogl_gl_replayer::cStatusNextFrame) ||
                         (status == vogl_gl_replayer::cStatusResizeWindow) ||
@@ -833,7 +838,14 @@ static uint get_replayer_flags_from_command_line_params()
             {
                 for (;;)
                 {
-                    status = replayer.process_next_packet(*pTrace_reader);
+                    if (replayer.has_pending_packets())
+                    {
+                        status = replayer.process_pending_packets();
+                    }
+                    else
+                    {
+                        status = replayer.process_next_packet(*pTrace_reader);
+                    }
 
                     if ((status == vogl_gl_replayer::cStatusNextFrame) ||
                         (status == vogl_gl_replayer::cStatusResizeWindow) ||

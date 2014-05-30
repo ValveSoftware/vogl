@@ -138,7 +138,7 @@ static vogl_trace_ptr_value get_trace_context_from_packet(const vogl_trace_packe
 
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::vogl_replayer
+// vogl_gl_replayer::vogl_gl_replayer
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::vogl_gl_replayer()
     : m_flags(0),
@@ -184,7 +184,7 @@ vogl_gl_replayer::vogl_gl_replayer()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::~vogl_replayer
+// vogl_gl_replayer::~vogl_gl_replayer
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::~vogl_gl_replayer()
 {
@@ -194,7 +194,7 @@ vogl_gl_replayer::~vogl_gl_replayer()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::init
+// vogl_gl_replayer::init
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::init(uint32_t flags, vogl_replay_window *pWindow, const vogl_trace_stream_start_of_file_packet &sof_packet, const vogl_blob_manager &blob_manager)
 {
@@ -266,7 +266,7 @@ bool vogl_gl_replayer::init(uint32_t flags, vogl_replay_window *pWindow, const v
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::deinit
+// vogl_gl_replayer::deinit
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::deinit()
 {
@@ -354,7 +354,24 @@ void vogl_gl_replayer::dump_packet_as_func_call(const vogl_trace_packet& trace_p
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_next_packet
+// vogl_gl_replayer::has_pending_packets
+//----------------------------------------------------------------------------------------------------------------------
+bool vogl_gl_replayer::has_pending_packets()
+{
+    return (m_pPending_snapshot ||
+            m_pending_make_current_packet.is_valid());
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_gl_replayer::process_next_packet
+//----------------------------------------------------------------------------------------------------------------------
+vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_packets()
+{
+    return process_pending_gl_entrypoint_packets();
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_gl_replayer::process_next_packet
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::process_next_packet(const vogl_trace_packet &gl_packet)
 {
@@ -363,7 +380,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_next_packet(const vogl_trac
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_next_packet
+// vogl_gl_replayer::process_next_packet
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::process_next_packet(vogl_trace_file_reader &trace_reader)
 {
@@ -399,7 +416,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_next_packet(vogl_trace_file
                 break;
             }
 
-            status = process_next_packet(m_temp_gl_packet);
+            status = process_pending_packets();
+
+            if (status == cStatusOK)
+            {
+                status = process_next_packet(m_temp_gl_packet);
+            }
 
             break;
         }
@@ -427,7 +449,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_next_packet(vogl_trace_file
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_pending_window_resize
+// vogl_gl_replayer::process_pending_window_resize
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_window_resize(bool *pApplied_snapshot)
 {
@@ -459,7 +481,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_window_resize(bool 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_frame
+// vogl_gl_replayer::process_frame
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::process_frame(vogl_trace_file_reader &trace_reader)
 {
@@ -478,7 +500,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_frame(vogl_trace_file_reade
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_event
+// vogl_gl_replayer::process_event
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::update_window_dimensions()
 {
@@ -541,7 +563,7 @@ bool vogl_gl_replayer::dump_frontbuffer_to_file(const dynamic_string &filename)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::trigger_pending_window_resize
+// vogl_gl_replayer::trigger_pending_window_resize
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::trigger_pending_window_resize(uint32_t win_width, uint32_t win_height)
 {
@@ -560,7 +582,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::trigger_pending_window_resize(uint3
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::clear_pending_window_resize
+// vogl_gl_replayer::clear_pending_window_resize
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::clear_pending_window_resize()
 {
@@ -572,7 +594,7 @@ void vogl_gl_replayer::clear_pending_window_resize()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_frame_check_for_pending_window_resize
+// vogl_gl_replayer::process_frame_check_for_pending_window_resize
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::process_frame_check_for_pending_window_resize()
 {
@@ -625,7 +647,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_frame_check_for_pending_win
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::destroy_pending_snapshot
+// vogl_gl_replayer::destroy_pending_snapshot
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::destroy_pending_snapshot()
 {
@@ -656,7 +678,7 @@ void vogl_gl_replayer::destroy_pending_snapshot()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::check_gl_error
+// vogl_gl_replayer::check_gl_error
 // Returns *true* on error, just like vogl_check_gl_error()
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::check_gl_error_internal(bool quietly, const char *pFile, uint32_t line, const char *pFunc)
@@ -684,7 +706,7 @@ bool vogl_gl_replayer::check_gl_error_internal(bool quietly, const char *pFile, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::clear_contexts
+// vogl_gl_replayer::clear_contexts
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::clear_contexts()
 {
@@ -705,7 +727,7 @@ void vogl_gl_replayer::clear_contexts()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::destroy_contexts
+// vogl_gl_replayer::destroy_contexts
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::destroy_contexts()
 {
@@ -815,7 +837,7 @@ void vogl_gl_replayer::destroy_contexts()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::define_new_context
+// vogl_gl_replayer::define_new_context
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::context_state *vogl_gl_replayer::define_new_context(
     vogl_trace_context_ptr_value trace_context, GLReplayContextType replay_context, vogl_trace_context_ptr_value trace_share_context, GLboolean direct, gl_entrypoint_id_t creation_func, const int *pAttrib_list, uint32_t attrib_list_size)
@@ -864,7 +886,7 @@ vogl_gl_replayer::context_state *vogl_gl_replayer::define_new_context(
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::remap_context
+// vogl_gl_replayer::remap_context
 //----------------------------------------------------------------------------------------------------------------------
 GLReplayContextType vogl_gl_replayer::remap_context(vogl_trace_context_ptr_value trace_context)
 {
@@ -878,7 +900,7 @@ GLReplayContextType vogl_gl_replayer::remap_context(vogl_trace_context_ptr_value
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::destroy_context
+// vogl_gl_replayer::destroy_context
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::destroy_context(vogl_trace_context_ptr_value trace_context)
 {
@@ -942,7 +964,7 @@ bool vogl_gl_replayer::destroy_context(vogl_trace_context_ptr_value trace_contex
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::set_client_side_array_data
+// vogl_gl_replayer::set_client_side_array_data
 // glVertexPointer, glNormalPointer, etc. client side data
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::set_client_side_array_data(const key_value_map &map, GLuint start, GLuint end, GLuint basevertex)
@@ -1089,7 +1111,7 @@ bool vogl_gl_replayer::set_client_side_array_data(const key_value_map &map, GLui
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::set_client_side_vertex_attrib_array_data
+// vogl_gl_replayer::set_client_side_vertex_attrib_array_data
 // glVertexAttrib client side data
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::set_client_side_vertex_attrib_array_data(const key_value_map &map, GLuint start, GLuint end, GLuint basevertex)
@@ -1193,7 +1215,7 @@ bool vogl_gl_replayer::set_client_side_vertex_attrib_array_data(const key_value_
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::draw_elements_client_side_array_setup
+// vogl_gl_replayer::draw_elements_client_side_array_setup
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::draw_elements_client_side_array_setup(
     GLenum mode,
@@ -1344,7 +1366,7 @@ bool vogl_gl_replayer::draw_elements_client_side_array_setup(
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::determine_uniform_replay_location
+// vogl_gl_replayer::determine_uniform_replay_location
 //----------------------------------------------------------------------------------------------------------------------
 GLint vogl_gl_replayer::determine_uniform_replay_location(GLuint trace_program, GLint trace_location)
 {
@@ -1378,7 +1400,7 @@ GLint vogl_gl_replayer::determine_uniform_replay_location(GLuint trace_program, 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_entrypoint_print_summary_context
+// vogl_gl_replayer::process_entrypoint_print_summary_context
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::process_entrypoint_print_summary_context(const char *caller_info, eConsoleMessageType msg_type)
 {
@@ -1409,7 +1431,7 @@ void vogl_gl_replayer::process_entrypoint_print_summary_context(const char *call
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::print_detailed_context
+// vogl_gl_replayer::print_detailed_context
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::print_detailed_context(const char *caller_info, eConsoleMessageType msg_type)
 {
@@ -1434,7 +1456,7 @@ void vogl_gl_replayer::print_detailed_context(const char *caller_info, eConsoleM
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_entrypoint_msg_print_detailed_context
+// vogl_gl_replayer::process_entrypoint_msg_print_detailed_context
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::process_entrypoint_msg_print_detailed_context(const char *caller_info, eConsoleMessageType msg_type)
 {
@@ -1452,7 +1474,7 @@ void vogl_gl_replayer::process_entrypoint_msg_print_detailed_context(const char 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_entrypoint_
+// vogl_gl_replayer::process_entrypoint_
 //  Don't call directly - use these macros:
 //    process_entrypoint_message
 //    process_entrypoint_warning
@@ -1473,7 +1495,7 @@ void vogl_gl_replayer::process_entrypoint_(const char *caller_info, eConsoleMess
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::switch_contexts
+// vogl_gl_replayer::switch_contexts
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::switch_contexts(vogl_trace_context_ptr_value trace_context)
 {
@@ -1511,7 +1533,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::switch_contexts(vogl_trace_context_
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::debug_callback_arb
+// vogl_gl_replayer::debug_callback_arb
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::debug_callback_arb(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param)
 {
@@ -1537,7 +1559,7 @@ void vogl_gl_replayer::debug_callback_arb(GLenum source, GLenum type, GLuint id,
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::debug_callback
+// vogl_gl_replayer::debug_callback
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *pUser_param)
 {
@@ -1563,7 +1585,7 @@ void vogl_gl_replayer::debug_callback(GLenum source, GLenum type, GLuint id, GLe
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::is_extension_supported
+// vogl_gl_replayer::is_extension_supported
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::is_extension_supported(const char *pExt)
 {
@@ -1580,7 +1602,7 @@ bool vogl_gl_replayer::is_extension_supported(const char *pExt)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::context_state::handle_context_made_current
+// vogl_gl_replayer::context_state::handle_context_made_current
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::context_state::handle_context_made_current()
 {
@@ -1641,7 +1663,7 @@ bool vogl_gl_replayer::context_state::handle_context_made_current()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::handle_context_made_current
+// vogl_gl_replayer::handle_context_made_current
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::handle_context_made_current()
 {
@@ -1666,7 +1688,7 @@ bool vogl_gl_replayer::handle_context_made_current()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::dump_context_attrib_list
+// vogl_gl_replayer::dump_context_attrib_list
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::dump_context_attrib_list(const int *pAttrib_list, uint32_t size)
 {
@@ -1708,7 +1730,7 @@ void vogl_gl_replayer::dump_context_attrib_list(const int *pAttrib_list, uint32_
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::find_attrib_key
+// vogl_gl_replayer::find_attrib_key
 //----------------------------------------------------------------------------------------------------------------------
 int vogl_gl_replayer::find_attrib_key(const vogl::vector<int> &attrib_list, int key_to_find)
 {
@@ -1736,7 +1758,7 @@ int vogl_gl_replayer::find_attrib_key(const vogl::vector<int> &attrib_list, int 
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::create_context_attribs
+// vogl_gl_replayer::create_context_attribs
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
     vogl_trace_context_ptr_value trace_context, vogl_trace_context_ptr_value trace_share_context, GLReplayContextType replay_share_context, Bool direct,
@@ -1864,7 +1886,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::create_context_attribs(
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_pending_make_current
+// vogl_gl_replayer::process_pending_make_current
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_make_current()
 {
@@ -2027,7 +2049,7 @@ bool vogl_process_internal_trace_command_ctypes_packet(const key_value_map &kvm,
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_internal_trace_command
+// vogl_gl_replayer::process_internal_trace_command
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(const vogl_trace_gl_entrypoint_packet &gl_packet)
 {
@@ -2203,7 +2225,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_internal_trace_command(cons
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::check_program_binding_shadow
+// vogl_gl_replayer::check_program_binding_shadow
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::check_program_binding_shadow()
 {
@@ -2236,7 +2258,7 @@ bool vogl_gl_replayer::check_program_binding_shadow()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::handle_use_program
+// vogl_gl_replayer::handle_use_program
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::handle_use_program(GLuint trace_handle, gl_entrypoint_id_t entrypoint_id)
 {
@@ -2355,7 +2377,7 @@ void vogl_gl_replayer::handle_use_program(GLuint trace_handle, gl_entrypoint_id_
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::handle_delete_program
+// vogl_gl_replayer::handle_delete_program
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::handle_delete_program(GLuint trace_handle)
 {
@@ -2486,7 +2508,7 @@ void vogl_gl_replayer::handle_delete_program(GLuint trace_handle)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::handle_delete_shader
+// vogl_gl_replayer::handle_delete_shader
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::handle_delete_shader(GLuint trace_handle)
 {
@@ -2538,7 +2560,7 @@ void vogl_gl_replayer::handle_delete_shader(GLuint trace_handle)
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::handle_detach_shader
+// vogl_gl_replayer::handle_detach_shader
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::handle_detach_shader(gl_entrypoint_id_t entrypoint_id)
 {
@@ -3602,7 +3624,7 @@ void vogl_gl_replayer::display_list_bind_callback(vogl_namespace_t handle_namesp
     }
     else
     {
-        // TODO - right now the display list whitelist doens't let anything else get bound.
+        // TODO - right now the display list whitelist doesn't let anything else get bound.
         pReplayer->process_entrypoint_warning("Unsupported bind in display lists, namespace %s target %s trace handle %u\n", vogl_get_namespace_name(handle_namespace), get_gl_enums().find_gl_name(target), handle);
     }
 }
@@ -3639,13 +3661,10 @@ void vogl_gl_replayer::display_list_bind_callback(vogl_namespace_t handle_namesp
         GL_ENTRYPOINT(e2)(__VA_ARGS__);
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_gl_entrypoint_packet
-// This will be called during replaying, or when building display lists during state restoring.
+// should be called just prior to process_gl_entrypoint_packet(...)
 //----------------------------------------------------------------------------------------------------------------------
-vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet(vogl_trace_packet& trace_packet)
+vogl_gl_replayer::status_t vogl_gl_replayer::process_pending_gl_entrypoint_packets()
 {
-    m_pCur_gl_packet = &trace_packet;
-
     status_t status = cStatusOK;
 
     if (m_pPending_snapshot)
@@ -3662,6 +3681,20 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet(vogl_t
             return status;
     }
 
+    return status;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_gl_replayer::process_gl_entrypoint_packet
+// This will be called during replaying, or when building display lists during state restoring.
+// Call process_pending_gl_entrypoint_packets() before this to ensure pending snapshots and makeCurrents have completed.
+//----------------------------------------------------------------------------------------------------------------------
+vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet(vogl_trace_packet& trace_packet)
+{
+    m_pCur_gl_packet = &trace_packet;
+
+    status_t status = cStatusOK;
+
     const vogl_trace_gl_entrypoint_packet &entrypoint_packet = trace_packet.get_entrypoint_packet();
 
     m_last_parsed_call_counter = entrypoint_packet.m_call_counter;
@@ -3677,7 +3710,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet(vogl_t
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_gl_entrypoint_packet_internal
+// vogl_gl_replayer::process_gl_entrypoint_packet_internal
 // This will be called during replaying, or when building display lists during state restoring.
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_internal(vogl_trace_packet& trace_packet)
@@ -10122,7 +10155,7 @@ bool vogl_gl_replayer::replay_to_trace_handle_remapper::determine_to_object_targ
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::determine_used_program_handles
+// vogl_gl_replayer::determine_used_program_handles
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::determine_used_program_handles(const vogl_trace_packet_array &trim_packets, vogl_handle_hash_set &replay_program_handles)
 {
@@ -10189,7 +10222,7 @@ bool vogl_gl_replayer::determine_used_program_handles(const vogl_trace_packet_ar
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::fill_replay_handle_hash_set
+// vogl_gl_replayer::fill_replay_handle_hash_set
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::fill_replay_handle_hash_set(vogl_handle_hash_set &replay_handle_hash, const gl_handle_hash_map &trace_to_replay_hash)
 {
@@ -10207,7 +10240,7 @@ void vogl_gl_replayer::fill_replay_handle_hash_set(vogl_handle_hash_set &replay_
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::snapshot_state
+// vogl_gl_replayer::snapshot_state
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet_array *pTrim_packets, bool optimize_snapshot)
 {
@@ -10449,7 +10482,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::reset_state
+// vogl_gl_replayer::reset_state
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::reset_state()
 {
@@ -10910,7 +10943,7 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::delete_handle_and_object
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::trace_to_replay_handle_remapper::declare_location
+// vogl_gl_replayer::trace_to_replay_handle_remapper::declare_location
 // from_location - trace location
 // to_location - replay/GL location
 //----------------------------------------------------------------------------------------------------------------------
@@ -10995,7 +11028,7 @@ bool vogl_gl_replayer::trace_to_replay_handle_remapper::determine_to_object_targ
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::restore_objects
+// vogl_gl_replayer::restore_objects
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::restore_objects(
     vogl_handle_remapper &trace_to_replay_remapper, const vogl_gl_state_snapshot &snapshot, const vogl_context_snapshot &context_state, vogl_gl_object_state_type state_type,
@@ -11187,7 +11220,7 @@ private:
 };
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::restore_display_lists
+// vogl_gl_replayer::restore_display_lists
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_remapper &trace_to_replay_remapper, const vogl_gl_state_snapshot &snapshot, const vogl_context_snapshot &context_snapshot)
 {
@@ -11338,7 +11371,7 @@ handle_failure:
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::restore_general_state
+// vogl_gl_replayer::restore_general_state
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::restore_general_state(vogl_handle_remapper &trace_to_replay_remapper, const vogl_gl_state_snapshot &snapshot, const vogl_context_snapshot &context_snapshot)
 {
@@ -11408,7 +11441,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_general_state(vogl_handle_r
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::validate_program_and_shader_handle_tables
+// vogl_gl_replayer::validate_program_and_shader_handle_tables
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::validate_program_and_shader_handle_tables()
 {
@@ -11458,7 +11491,7 @@ bool vogl_gl_replayer::validate_program_and_shader_handle_tables()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::validate_textures
+// vogl_gl_replayer::validate_textures
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_gl_replayer::validate_textures()
 {
@@ -11498,7 +11531,7 @@ bool vogl_gl_replayer::validate_textures()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::update_context_shadows
+// vogl_gl_replayer::update_context_shadows
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::update_context_shadows(vogl_handle_remapper &trace_to_replay_remapper, const vogl_gl_state_snapshot &snapshot, const vogl_context_snapshot &context_snapshot)
 {
@@ -11540,7 +11573,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::update_context_shadows(vogl_handle_
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::handle_marked_for_deleted_objects
+// vogl_gl_replayer::handle_marked_for_deleted_objects
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_gl_replayer::handle_marked_for_deleted_objects(vogl_const_gl_object_state_ptr_vec &objects_to_delete, trace_to_replay_handle_remapper &trace_to_replay_remapper)
 {
@@ -11597,7 +11630,7 @@ void vogl_gl_replayer::handle_marked_for_deleted_objects(vogl_const_gl_object_st
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::begin_applying_snapshot
+// vogl_gl_replayer::begin_applying_snapshot
 // Takes ownership (even on errors) when delete_snapshot_after_applying is true.
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::begin_applying_snapshot(const vogl_gl_state_snapshot *pSnapshot, bool delete_snapshot_after_applying)
@@ -11631,7 +11664,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::begin_applying_snapshot(const vogl_
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::restore_context
+// vogl_gl_replayer::restore_context
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remapper &trace_to_replay_remapper, const vogl_gl_state_snapshot &snapshot, const vogl_context_snapshot &context_snapshot)
 {
@@ -11699,7 +11732,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_replayer::process_applying_pending_snapshot
+// vogl_gl_replayer::process_applying_pending_snapshot
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
 {

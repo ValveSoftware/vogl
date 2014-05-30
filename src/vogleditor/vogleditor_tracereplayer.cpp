@@ -131,6 +131,47 @@ bool vogleditor_traceReplayer::applying_snapshot_and_process_resize(const vogl_g
     return bStatus;
 }
 
+vogleditor_tracereplayer_result vogleditor_traceReplayer::take_state_snapshot_if_needed(vogleditor_gl_state_snapshot** ppNewSnapshot, uint32_t apiCallNumber)
+{
+    vogleditor_tracereplayer_result result = VOGLEDITOR_TRR_SUCCESS;
+
+    if (ppNewSnapshot != NULL)
+    {
+       // get the snapshot after the selected api call
+       if ((!*ppNewSnapshot) && (m_pTraceReplayer->get_last_processed_call_counter() == static_cast<int64_t>(apiCallNumber)))
+       {
+          dynamic_string info;
+          vogleditor_output_message(info.format("Taking snapshot on API call # %u...", apiCallNumber).c_str());
+
+          vogl_gl_state_snapshot* pNewSnapshot = m_pTraceReplayer->snapshot_state();
+          if (pNewSnapshot == NULL)
+          {
+              result = VOGLEDITOR_TRR_ERROR;
+              vogleditor_output_error("... snapshot failed!");
+          }
+          else
+          {
+              result = VOGLEDITOR_TRR_SNAPSHOT_SUCCESS;
+              vogleditor_output_message("... snapshot succeeded!\n");
+              *ppNewSnapshot = vogl_new(vogleditor_gl_state_snapshot, pNewSnapshot);
+              if (*ppNewSnapshot == NULL)
+              {
+                 result = VOGLEDITOR_TRR_ERROR;
+                 vogleditor_output_error("Allocating memory for snapshot container failed!");
+                 vogl_delete(pNewSnapshot);
+              }
+          }
+       }
+    }
+
+    return result;
+}
+
+inline bool status_indicates_end(vogl_gl_replayer::status_t status)
+{
+    return (status == vogl_gl_replayer::cStatusHardFailure) || (status == vogl_gl_replayer::cStatusAtEOF);
+}
+
 vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apicallTreeItem(vogleditor_apiCallTreeItem* pItem, vogleditor_gl_state_snapshot** ppNewSnapshot, uint64_t apiCallNumber)
 {
     vogleditor_tracereplayer_result result = VOGLEDITOR_TRR_SUCCESS;
@@ -158,41 +199,26 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
             }
         }
 
+        // process pending trace packets (this could include glXMakeCurrent)
+        if (!status_indicates_end(status) && m_pTraceReplayer->has_pending_packets())
+        {
+            status = m_pTraceReplayer->process_pending_packets();
+
+            // if that was successful, check to see if a state snapshot is needed
+            if (!status_indicates_end(status))
+            {
+                result = take_state_snapshot_if_needed(ppNewSnapshot, apiCallNumber);
+            }
+        }
+
         // replay the trace packet
-        if (status == vogl_gl_replayer::cStatusOK)
+        if (!status_indicates_end(status))
             status = m_pTraceReplayer->process_next_packet(*pTrace_packet);
 
         // if that was successful, check to see if a state snapshot is needed
-        if ((status != vogl_gl_replayer::cStatusHardFailure) && (status != vogl_gl_replayer::cStatusAtEOF))
+        if (!status_indicates_end(status))
         {
-            if (ppNewSnapshot != NULL)
-            {
-               // get the snapshot after the selected api call
-               if ((!*ppNewSnapshot) && (m_pTraceReplayer->get_last_processed_call_counter() == static_cast<int64_t>(apiCallNumber)))
-               {
-                  dynamic_string info;
-                  vogleditor_output_message(info.format("Taking snapshot on API call # %" PRIu64 "...", apiCallNumber).c_str());
-
-                  vogl_gl_state_snapshot* pNewSnapshot = m_pTraceReplayer->snapshot_state();
-                  if (pNewSnapshot == NULL)
-                  {
-                      result = VOGLEDITOR_TRR_ERROR;
-                      vogleditor_output_error("... snapshot failed!");
-                  }
-                  else
-                  {
-                      result = VOGLEDITOR_TRR_SNAPSHOT_SUCCESS;
-                      vogleditor_output_message("... snapshot succeeded!\n");
-                      *ppNewSnapshot = vogl_new(vogleditor_gl_state_snapshot, pNewSnapshot);
-                      if (*ppNewSnapshot == NULL)
-                      {
-                         result = VOGLEDITOR_TRR_ERROR;
-                         vogleditor_output_error("Allocating memory for snapshot container failed!");
-                         vogl_delete(pNewSnapshot);
-                      }
-                  }
-               }
-            }
+            result = take_state_snapshot_if_needed(ppNewSnapshot, apiCallNumber);
         }
         else
         {

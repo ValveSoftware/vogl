@@ -202,6 +202,8 @@ public:
     status_t process_pending_window_resize(bool *pApplied_snapshot = NULL);
 
     // Processes the next packet in the trace file.
+    bool has_pending_packets();
+    status_t process_pending_packets();
     status_t process_next_packet(const vogl_trace_packet &gl_packet);
     status_t process_next_packet(vogl_trace_file_reader &trace_reader);
 
@@ -1359,6 +1361,7 @@ private:
     }
 
     // DO NOT make these methods public
+    status_t process_pending_gl_entrypoint_packets();
     status_t process_gl_entrypoint_packet(vogl_trace_packet& trace_packet);
     status_t process_gl_entrypoint_packet_internal(vogl_trace_packet &trace_packet);
 };
