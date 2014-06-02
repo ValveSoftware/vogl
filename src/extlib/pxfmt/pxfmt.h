@@ -139,7 +139,7 @@ enum pxfmt_sized_format
     // NOTE: The following two OpenGL format-type combinations are actually
     // laid out the same in memory:
     // - GL_RGBA, GL_UNSIGNED_BYTE
-    // - GL_RGBA, GL_UNSIGNED_INT_8_8_8_8
+    // - GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV
     PXFMT_RGBA8_UNORM,
     PXFMT_RGBA8_SNORM,
     PXFMT_RGBA16_UNORM,
@@ -153,11 +153,15 @@ enum pxfmt_sized_format
     PXFMT_RGBA4REV_UNORM,
     PXFMT_RGB5A1_UNORM,
     PXFMT_A1RGB5_UNORM,
-    PXFMT_RGBA8REV_UNORM,
+    PXFMT_RGBA8888_UNORM,
     PXFMT_RGB10A2_UNORM,
     PXFMT_A2RGB10_UNORM,
 
 // GL_BGRA
+    // NOTE: The following two OpenGL format-type combinations are actually
+    // laid out the same in memory:
+    // - GL_BGRA, GL_UNSIGNED_BYTE
+    // - GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV
     PXFMT_BGRA8_UNORM,
     PXFMT_BGRA8_SNORM,
     PXFMT_BGRA16_UNORM,
@@ -171,7 +175,7 @@ enum pxfmt_sized_format
     PXFMT_BGRA4REV_UNORM,
     PXFMT_BGR5A1_UNORM,
     PXFMT_A1BGR5_UNORM,
-    PXFMT_BGRA8REV_UNORM,
+    PXFMT_BGRA8888_UNORM,
     PXFMT_BGR10A2_UNORM,
     PXFMT_A2BGR10_UNORM,
 

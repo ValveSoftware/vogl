@@ -1261,7 +1261,10 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
 
    if (tmpReader->get_max_frame_index() > g_settings.trim_large_trace_prompt_size())
    {
-       int ret = QMessageBox::warning(this, tr(g_PROJECT_NAME.toStdString().c_str()), tr("The loaded trace file has many frames and debugging may be difficult.\nWould you like to trim the trace?"),
+       dynamic_string warningMsg;
+       warningMsg = warningMsg.format("The loaded trace file has %" PRIi64 " frames and debugging may be difficult.\nWould you like to trim the trace?", tmpReader->get_max_frame_index());
+
+       int ret = QMessageBox::warning(this, tr(g_PROJECT_NAME.toStdString().c_str()), tr(warningMsg.c_str()),
                             QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
        if (ret == QMessageBox::Yes)

@@ -582,46 +582,42 @@ void vogleditor_stateTreeContextItem::set_diff_base_state(const vogl_context_sna
         }
     }
 
-    const vogl_light_state* lightState = &(pBaseState->get_light_state());
-    VOGL_ASSERT(lightState->is_valid() || m_lightItems.size() == 0);
-    if (lightState->is_valid())
+    const vogl_light_state& lightState = pBaseState->get_light_state();
+    if (lightState.is_valid())
     {
         for (vogleditor_stateTreeLightItem** iter = m_lightItems.begin(); iter != m_lightItems.end(); iter++)
         {
-            const vogl_state_vector& lightVec = lightState->get_light((*iter)->get_light_index());
+            const vogl_state_vector& lightVec = lightState.get_light((*iter)->get_light_index());
             (*iter)->set_diff_base_state(&lightVec);
         }
     }
 
-    const vogl_arb_program_environment_state* progEnvState = &(pBaseState->get_arb_program_environment_state());
-    VOGL_ASSERT(progEnvState->is_valid() || m_arbProgramEnvItems.size() == 0);
-    if (progEnvState->is_valid())
+    const vogl_arb_program_environment_state& progEnvState = pBaseState->get_arb_program_environment_state();
+    if (progEnvState.is_valid())
     {
         for (vogleditor_stateTreeArbProgramEnvItem** iter = m_arbProgramEnvItems.begin(); iter != m_arbProgramEnvItems.end(); iter++)
         {
-            (*iter)->set_diff_base_state(progEnvState);
+            (*iter)->set_diff_base_state(&progEnvState);
         }
     }
 
-    const vogl_material_state* materialState = &(pBaseState->get_material_state());
-    VOGL_ASSERT(materialState->is_valid() || m_materialItems.size() == 0);
-    if (materialState->is_valid())
+    const vogl_material_state& materialState = pBaseState->get_material_state();
+    if (materialState.is_valid())
     {
         for (vogleditor_stateTreeContextMaterialItem** iter = m_materialItems.begin(); iter != m_materialItems.end(); iter++)
         {
-            (*iter)->set_diff_base_state(materialState);
+            (*iter)->set_diff_base_state(&materialState);
         }
     }
 
-    const vogl_matrix_state* matrixState = &(pBaseState->get_matrix_state());
-    VOGL_ASSERT(matrixState->is_valid() || m_matrixStackItems.size() == 0);
-    if (matrixState->is_valid())
+    const vogl_matrix_state& matrixState = pBaseState->get_matrix_state();
+    if (matrixState.is_valid())
     {
         for (vogleditor_stateTreeMatrixStackItem** iter = m_matrixStackItems.begin(); iter != m_matrixStackItems.end(); iter++)
         {
             if (m_pDiffBaseState != NULL)
             {
-                (*iter)->set_diff_base_state(matrixState);
+                (*iter)->set_diff_base_state(&matrixState);
             }
         }
     }

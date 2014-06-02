@@ -18,6 +18,7 @@ if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../../bin/mkvogl.sh")
     set(VOGL_DIR
         ${VOGL_DIR}
         "${CMAKE_CURRENT_SOURCE_DIR}/../../bin"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../external/SDL"
         "${CMAKE_CURRENT_SOURCE_DIR}/../../tests")
 endif()
 
@@ -25,6 +26,7 @@ message("VOGL_DIR is ${VOGL_DIR}")
 message("CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 
 add_definitions("-DVOGL_USE_LINUX_API=1")
+add_definitions("-DSDL_VIDEO_OPENGL_GLX=1")
 add_definitions("-DSDL_VIDEO_DRIVER_X11=1")
 add_definitions("-DSDL_VIDEO_DRIVER_X11_DYNAMIC=1")
 add_definitions("-DVOGL_PLATFORM_HAS_X11=1")

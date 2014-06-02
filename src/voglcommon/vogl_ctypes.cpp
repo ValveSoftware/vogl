@@ -28,13 +28,13 @@
 /*
   Linux x86 is ILP32, x64 is LP64:
 
-					ILP32	   LP64	   LLP64 	ILP64
-	char			8			8			8			8
-	short			16			16			16			16
-	int			32			32			32			64
-	long			32			64			32			64
-	long long	64			64			64			64
-	pointer		32			64			64			64
+                ILP32       LP64       LLP64     ILP64
+    char            8       8          8         8
+    short          16       16         16        16
+    int            32       32         32        64
+    long           32       64         32        64
+    long long      64       64         64        64
+    pointer        32       64         64        64
  */
 
 #include "vogl_common.h"
@@ -151,7 +151,7 @@ void vogl_ctypes::change_pointer_sizes(uint32_t trace_ptr_size)
     // In practice this only fixes an assertion, because the packets always describe the exact length of objects.
     m_vogl_ctype_descs[VOGL_XVISUALINFO].m_size = (trace_ptr_size == 8) ? 64 : 40;
 
-#if 1
+#if !defined(NDEBUG) || VOGL_ENABLE_ASSERTIONS_IN_ALL_BUILDS
     // sanity check
     for (uint32_t ctype_iter = 0; ctype_iter < VOGL_NUM_CTYPES; ctype_iter++)
     {

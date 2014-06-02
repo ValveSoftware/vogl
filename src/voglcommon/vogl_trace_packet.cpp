@@ -318,6 +318,16 @@ bool vogl_trace_packet::deserialize(const uint8_t *pPacket_data, uint32_t packet
         }
     }
 
+#ifdef _DEBUG
+    // verify that the parameter sizes were read correctly (by comparing the sum to the packet's specified param size)
+    uint32_t totalParamSize = 0;
+    for (uint32_t param_index = 0; param_index < total_params_to_deserialize; ++param_index, ++pParam_desc)
+    {
+        totalParamSize += m_param_size[param_index];
+    }
+    VOGL_ASSERT(totalParamSize == m_packet.m_param_size);
+#endif
+
     if (m_packet.m_client_memory_size)
     {
         if (m_packet.m_client_memory_size > num_bytes_remaining)

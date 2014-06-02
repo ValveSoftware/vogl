@@ -32,17 +32,17 @@
 //----------------------------------------------------------------------------------------------------------------------
 // Console output
 //----------------------------------------------------------------------------------------------------------------------
-#define vogl_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgPrint, __VA_ARGS__)
-#define vogl_message_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgMessage, __VA_ARGS__)
+#define vogl_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, vogl::cMsgPrint, __VA_ARGS__)
+#define vogl_message_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, vogl::cMsgMessage, __VA_ARGS__)
 
-#define vogl_error_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgError, __VA_ARGS__)
-#define vogl_warning_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgWarning, __VA_ARGS__)
-#define vogl_verbose_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgVerbose, __VA_ARGS__)
-#define vogl_debug_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgDebug, __VA_ARGS__)
+#define vogl_error_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, vogl::cMsgError, __VA_ARGS__)
+#define vogl_warning_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, vogl::cMsgWarning, __VA_ARGS__)
+#define vogl_verbose_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, vogl::cMsgVerbose, __VA_ARGS__)
+#define vogl_debug_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, vogl::cMsgDebug, __VA_ARGS__)
 
 // OpenGL debug validation functions.
-#define vogl_glwarning_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgFlagOpenGL | cMsgWarning, __VA_ARGS__)
-#define vogl_glerror_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgFlagOpenGL | cMsgError, __VA_ARGS__)
+#define vogl_glwarning_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, vogl::cMsgFlagOpenGL | vogl::cMsgWarning, __VA_ARGS__)
+#define vogl_glerror_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, vogl::cMsgFlagOpenGL | vogl::cMsgError, __VA_ARGS__)
 
 #define vogl_warning_printf_once(...)         \
     {                                         \

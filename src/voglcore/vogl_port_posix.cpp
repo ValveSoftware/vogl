@@ -196,7 +196,8 @@ void* plat_virtual_alloc(size_t size_requested, uint32_t access_flags, size_t* o
         char *pError_desc = strerror(e);
 
         char buf[256];
-        snprintf(buf, sizeof(buf), "%s: mmap() of %zu bytes failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_INFO_CSTR, size_requested, pError_desc, e);
+        snprintf(buf, sizeof(buf), "%s: mmap() of %" PRIuPTR " bytes failed! Reason: %s (errno 0x%x)\n",
+                 VOGL_FUNCTION_INFO_CSTR, size_requested, pError_desc, e);
         buf[sizeof(buf) - 1] = 0;
 
         write(STDERR_FILENO, buf, strlen(buf));
@@ -219,7 +220,8 @@ void plat_virtual_free(void* free_addr, size_t size)
         char *pError_desc = strerror(e);
 
         char buf[256];
-        snprintf(buf, sizeof(buf), "%s: munmap() free_addr 0x%" PRIxPTR " size 0x%" PRIxPTR " failed! Reason: %s (errno 0x%x)\n", VOGL_FUNCTION_INFO_CSTR, (uintptr_t)free_addr, size, pError_desc, e);
+        snprintf(buf, sizeof(buf), "%s: munmap() free_addr 0x%" PRIxPTR " size 0x%" PRIxPTR " failed! Reason: %s (errno 0x%x)\n",
+                 VOGL_FUNCTION_INFO_CSTR, (uintptr_t)free_addr, size, pError_desc, e);
         buf[sizeof(buf) - 1] = 0;
 
         write(STDERR_FILENO, buf, strlen(buf));

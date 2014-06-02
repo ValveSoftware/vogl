@@ -33,7 +33,7 @@
 #include "vogl_winhdr.h"
 #endif
 
-#if VOGL_ENABLE_ASSERTIONS_IN_ALL_BUILDS &&(defined(NDEBUG) || defined(VOGL_BUILD_RELEASE))
+#if VOGL_ENABLE_ASSERTIONS_IN_ALL_BUILDS && (defined(NDEBUG) || defined(VOGL_BUILD_RELEASE))
 #pragma message("Assertions enabled in release build.")
 #endif
 

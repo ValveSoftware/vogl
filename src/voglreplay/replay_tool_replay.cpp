@@ -1214,7 +1214,14 @@ static int do_non_interactive_mode(replay_data_t &rdata)
     {
         for (;;)
         {
-            status = replayer.process_next_packet(*rdata.pTrace_reader);
+            if (replayer.has_pending_packets())
+            {
+                status = replayer.process_pending_packets();
+            }
+            else
+            {
+                status = replayer.process_next_packet(*rdata.pTrace_reader);
+            }
 
             if ((status != vogl_gl_replayer::cStatusHardFailure) && (status != vogl_gl_replayer::cStatusAtEOF))
             {

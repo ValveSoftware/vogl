@@ -9,6 +9,12 @@ vogleditor_QLaunchTracerDialog::vogleditor_QLaunchTracerDialog(QWidget *parent) 
     ui(new Ui::VoglEditor_QLaunchTracerDialog)
 {
     ui->setupUi(this);
+
+    QDir appDirectory(QCoreApplication::applicationDirPath());
+    QDir steamLauncherDir(appDirectory.absoluteFilePath("../../bin/"));
+
+    // only enable the steam launcher box if the script is available
+    ui->steamLauncherCheckBox->setEnabled(steamLauncherDir.exists("steamlauncher.sh"));
 }
 
 vogleditor_QLaunchTracerDialog::~vogleditor_QLaunchTracerDialog()
@@ -186,4 +192,10 @@ void vogleditor_QLaunchTracerDialog::on_findTraceFileButton_clicked()
     {
         ui->traceFileLineEdit->setText(selectedName);
     }
+}
+
+void vogleditor_QLaunchTracerDialog::on_steamLauncherCheckBox_clicked(bool checked)
+{
+    // the steam launcher script does not currently support command line arguments, so enable that field if steamlauncher is not being used
+    ui->argumentsLineEdit->setEnabled(!checked);
 }
