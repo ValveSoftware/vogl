@@ -42,5 +42,12 @@ target_link_libraries(${PROJECT_NAME}
     ${SDL2_LIBRARY}
     )
 
+if(NOT MSVC)
+    find_package(X11 REQUIRED)
+    target_link_libraries(${PROJECT_NAME}
+	${X11_X11_LIB}
+    )
+endif()
+
 build_options_finalize()
 
