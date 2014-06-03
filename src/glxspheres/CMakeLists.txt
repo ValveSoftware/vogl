@@ -5,27 +5,18 @@ include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
 require_sdl2()
+require_m()
+require_gl()
+require_glu()
 
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     add_definitions(-Wno-documentation)
 endif()
 
-if (MSVC)
-    set(VOGLTEST_OPENGL_LIBRARY
-        winmm.lib
-        opengl32.lib
-        glu32.lib
-    )
-else()
-    set(VOGLTEST_OPENGL_LIBRARY
-        m
-        GL
-        GLU
-    )
-endif()
-
 include_directories(
+    ${GL_INCLUDE}
+    ${GLU_INCLUDE}
     ${SDL2_INCLUDE}
     )
 
@@ -38,7 +29,9 @@ add_dependencies(${PROJECT_NAME} SDL)
 
 target_link_libraries(${PROJECT_NAME}
     ${CMAKE_DL_LIBS}
-    ${VOGLTEST_OPENGL_LIBRARY}
+    ${M_LIBRARY}
+    ${GL_LIBRARY}
+    ${GLU_LIBRARY}
     ${SDL2_LIBRARY}
     )
 
