@@ -384,7 +384,7 @@ function(require_sdl2)
 		pkg_search_module(SDL2 REQUIRED sdl2)
 
         set(SDL2_INCLUDE "${SDL2_INCLUDE_DIRS}" PARENT_SCOPE)
-        set(SDL2_LIBRARY "${SDL2_LIBRARIES}" PARENT_SCOPE)
+	set(SDL2_LIBRARY "${SDL2_PREFIX}/lib/libSDL2.so" PARENT_SCOPE)
 	elseif (MSVC)
         set(SDL2Root "${CMAKE_EXTERNAL_PATH}/SDL")
 
