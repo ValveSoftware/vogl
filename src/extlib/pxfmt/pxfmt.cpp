@@ -37,19 +37,17 @@
 #include "pxfmt.h"
 #include <cmath>  // For std::floor()
 
+#ifdef DECOMPRESS_DEBUG
+#include <stdio.h>
+#endif // DECOMPRESS_DEBUG
+
+#include "pxfmt_internal.h"
+#include "pxfmt_s3tc.h"
+
 // The internal data structures and functions are put into the following
 // unnamed namespace, so that they aren't externally visible to this file:
 namespace
 {
-
-// Temporarily work-around not being in the VOGL source-code tree:
-typedef unsigned char uint8;
-typedef signed char int8;
-typedef unsigned short uint16;
-typedef signed short int16;
-typedef unsigned int uint32;
-typedef signed int int32;
-
 
 /******************************************************************************
  *
@@ -191,7 +189,8 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
                       needfp, norm, is_signed, pack,                    \
                       in0, in1, in2, in3,                               \
                       nbits0, nbits1, nbits2, nbits3,                   \
-                      shift0, shift1, shift2, shift3)                   \
+                      shift0, shift1, shift2, shift3,                   \
+                      is_comp, bwidth, bheight, bsize)                  \
                                                                         \
     template <> struct pxfmt_per_fmt_info<F>                            \
     {                                                                   \
@@ -235,6 +234,22 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
         /* "small-floating-point" number is represented by a given */   \
         /* component. */                                                \
         static const pxfmt_small_fp m_small_fp[4];                      \
+                                                                        \
+        /* The m_is_compressed member is true for all compressed */     \
+        /* textures, and false otherwise. */                            \
+        static const bool m_is_compressed = is_comp;                    \
+        /* The m_block_size member indicates the width (in texels) */   \
+        /* of each compression block for all compressed textures, */    \
+        /* and 0 otherwise. */                                          \
+        static const uint32 m_block_width = bwidth;                     \
+        /* The m_block_size member indicates the height (in texels) */  \
+        /* of each compression block for all compressed textures, */    \
+        /* and 0 otherwise. */                                          \
+        static const uint32 m_block_height = bheight;                   \
+        /* The m_block_size member indicates the number of bytes */     \
+        /* per compression block for all compressed textures, and 0 */  \
+        /* otherwise. */                                                \
+        static const uint32 m_block_size = bsize;                       \
     };                                                                  \
     const int32 pxfmt_per_fmt_info<F>::m_index[] = {in0, in1, in2, in3}; \
     const uint32 pxfmt_per_fmt_info<F>::m_max[] =                       \
@@ -261,7 +276,8 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
                   needfp, norm, is_signed, pack,                        \
                   in0, in1, in2, in3,                                   \
                   nbits0, nbits1, nbits2, nbits3,                       \
-                  shift0, shift1, shift2, shift3);                      \
+                  shift0, shift1, shift2, shift3,                       \
+                  false, 0, 0, 1);                                      \
     const pxfmt_small_fp pxfmt_per_fmt_info<F>::m_small_fp[] =          \
         {NON_FP, NON_FP, NON_FP, NON_FP};
 
@@ -277,9 +293,22 @@ template <pxfmt_sized_format F> struct pxfmt_per_fmt_info { };
                   true, false, is_signed, false,                        \
                   in0, in1, in2, in3,                                   \
                   nbits0, nbits1, nbits2, nbits3,                       \
-                  shift0, shift1, shift2, shift3);                      \
+                  shift0, shift1, shift2, shift3,                       \
+                  false, 0, 0, 1);                                      \
     const pxfmt_small_fp pxfmt_per_fmt_info<F>::m_small_fp[] =          \
             {sfp0, sfp1, sfp2, sfp3};
+
+    // This variation is used for compressed texture formats:
+#define FMT_INFO_COMPRESSED(F, ogl_fmt, ncomps, is_signed,              \
+                            bwidth, bheight, bsize)                     \
+                                                                        \
+    FMT_INFO_BASE(F, ogl_fmt, uint32, double,                           \
+                  ncomps, /*don't care*/1,                              \
+                  true, false, is_signed, /*don't care*/false,          \
+                  0, 0, 0, 0,    0, 0, 0, 0,    0, 0, 0, 0,             \
+                  true, bwidth, bheight, bsize);                        \
+    const pxfmt_small_fp pxfmt_per_fmt_info<F>::m_small_fp[] =          \
+        {NON_FP, NON_FP, NON_FP, NON_FP};
 
 
 
@@ -536,6 +565,18 @@ FMT_INFO(PXFMT_S32_FLOAT,GL_STENCIL_INDEX,   float,  uint32, 1, 4, false, false,
 FMT_INFO(PXFMT_D24_UNORM_S8_UINT,GL_DEPTH_STENCIL,uint32,double,2,4,true, false, false, false,  0, 1, -1, -1,    24,  8,  0,  0,   0, 0, 0, 0);
 FMT_INFO(PXFMT_D32_FLOAT_S8_UINT,GL_DEPTH_STENCIL,float, double,2,8,true, false, false, false,  0, 1, -1, -1,     0,  8,  0,  0,   0, 0, 0, 0);
 
+// S3TC/DXT compressed texture internalformats
+FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGB_DXT1,    GL_RGB, 3, false, 4, 4, 8);
+  // TBD: According to the OpenGL "EXT_texture_compression_s3tc" extension
+  // specification, the GL_COMPRESSED_RGBA_DXT1_EXT type is only
+  // 64-bits-per-block.  However, the VOGL KTX files containing this type are
+  // using 128-bits-per-block.  The PVRTexTool won't open these files, but will
+  // open the DXT5 files generated by VOGL.  Are the VOGL files wrong?  For
+  // now, work-around this by use 128-bits-per-block.
+FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGBA_DXT1,  GL_RGBA, 4, false, 4, 4, 16);
+FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGBA_DXT3,  GL_RGBA, 4, false, 4, 4, 16);
+FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGBA_DXT5,  GL_RGBA, 4, false, 4, 4, 16);
+
 
 
 /******************************************************************************
@@ -549,7 +590,7 @@ FMT_INFO(PXFMT_D32_FLOAT_S8_UINT,GL_DEPTH_STENCIL,float, double,2,8,true, false,
  *
  ******************************************************************************/
 
-// This templatized function determines the per-stride and per-row stride for
+// This templatized function determines the per-pixel and per-row stride for
 // the given pxfmt_sized_format and width.
 template <pxfmt_sized_format F>
 inline
@@ -582,6 +623,74 @@ void get_pxfmt_info(const uint32 width, uint32 &pixel_stride,
     }
 }
 
+inline
+uint32 round_to_block_size(uint32 width, uint32 block_size)
+{
+    assert(block_size > 0);
+    // The idea is that if width isn't a multiple of block_size, we should be
+    // able to round-up to the next multiple.  The modulo operator (i.e. "%",
+    // or the remainder of an integer division) will tell us if width is a
+    // multiple (i.e. it will be zero), and if not, it will help us know how
+    // much to add to width.
+    uint32 remainder = width % block_size;
+    if (remainder == 0)
+    {
+        return width;
+    }
+    uint32 scaled_width = (width + (block_size - remainder));
+    return scaled_width;
+}
+
+// This templatized function determines the per-block and per-row stride for
+// the given compressed-texture pxfmt_sized_format and width.
+template <pxfmt_sized_format F>
+inline
+void get_compression_block_info(const uint32 width,
+                                uint32 &block_width,
+                                uint32 &block_height,
+                                uint32 &block_perblock_stride,
+                                uint32 &block_perrow_stride)
+{
+    assert(pxfmt_per_fmt_info<F>::m_is_compressed == true);
+
+    block_width = pxfmt_per_fmt_info<F>::m_block_width;
+    block_height = pxfmt_per_fmt_info<F>::m_block_height;
+
+    block_perblock_stride = pxfmt_per_fmt_info<F>::m_block_size;
+    // Just in case "width" isn't a multiple of "block_perblock_stride",
+    // potentially scale it up to a multiple of "block_perblock_stride":
+    uint32 scaled_width = round_to_block_size(width, block_perblock_stride);
+    // The per-row stride is really per "row" (e.g. if the block is 4x4, we
+    // need to divide by the block height of 4):
+    block_perrow_stride =
+        block_perblock_stride * (scaled_width / block_width) / block_height;
+}
+
+inline
+void get_compression_block_info(const uint32 width,
+                                uint32 &block_width,
+                                uint32 &block_height,
+                                uint32 &block_perblock_stride,
+                                uint32 &block_perrow_stride,
+                                const pxfmt_sized_format fmt)
+{
+#ifdef CASE_STATEMENT
+#undef CASE_STATEMENT
+#endif
+#define CASE_STATEMENT(fmt)                                             \
+    case fmt:                                                           \
+        get_compression_block_info<fmt>(width,                          \
+                                        block_width, block_height,      \
+                                        block_perblock_stride,          \
+                                        block_perrow_stride);           \
+        break;
+
+    switch (fmt)
+    {
+#include "pxfmt_case_statements.inl"
+        case PXFMT_INVALID: break;
+    }
+}
 
 
 /******************************************************************************
@@ -1575,9 +1684,30 @@ void query_pxfmt_sized_format(bool *has_red,   bool *has_green,
 
     *bytes_per_pixel = pxfmt_per_fmt_info<F>::m_bytes_per_pixel;
 
-    // TODO: Add support for compressed texture values
+    *is_compressed = pxfmt_per_fmt_info<F>::m_is_compressed;
+    *bytes_per_compressed_block = pxfmt_per_fmt_info<F>::m_block_size;
+    *block_size = pxfmt_per_fmt_info<F>::m_block_size * 8;
 }
 
+
+// This function calls the correct decompression function for a given PXFMT:
+inline
+void decompress(float *intermediate, const void *pSrc,
+                uint32 row_stride, int x, int y,
+                const pxfmt_sized_format fmt)
+{
+    switch (fmt)
+    {
+    case PXFMT_COMPRESSED_RGB_DXT1:
+    case PXFMT_COMPRESSED_RGBA_DXT1:
+    case PXFMT_COMPRESSED_RGBA_DXT3:
+    case PXFMT_COMPRESSED_RGBA_DXT5:
+        decompress_dxt(intermediate, pSrc, row_stride, x, y, fmt);
+        break;
+    default:
+        break;
+    }
+}
 
 
 } // unamed namespace
@@ -2182,6 +2312,47 @@ pxfmt_sized_format validate_format_type_combo(const GLenum format,
  *
  ******************************************************************************/
 
+// This function is used to get back a pxfmt_sized_format enum value for a
+// given OpenGL "internalformat" of a compressed texture.  If the format-type
+// combination isn't supported, PXFMT_INVALID is returned.
+pxfmt_sized_format validate_internal_format(const GLenum internalformat)
+{
+// FIXME: REMOVE THIS #if ONCE WE SUPPORT ANY NON-DXT PXFMT ON WINDOWS:
+#if defined(_WIN32)
+    return PXFMT_INVALID;
+#else  // defined(_WIN32)
+    switch (internalformat)
+    {
+#if defined(_WIN32)
+#else  // defined(_WIN32)
+    case GL_COMPRESSED_RGB_S3TC_DXT1_EXT:
+        return PXFMT_COMPRESSED_RGB_DXT1;
+    case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
+        return PXFMT_COMPRESSED_RGBA_DXT1;
+    case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
+        return PXFMT_COMPRESSED_RGBA_DXT3;
+    case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
+        return PXFMT_COMPRESSED_RGBA_DXT5;
+#endif // defined(_WIN32)
+#if 0
+    case GL_COMPRESSED_RGB8_ETC2:
+        return PXFMT_COMPRESSED_RGB8_ETC2;
+#endif
+    default:
+        // If we get to here, this is an unsupported compressed-texture
+        // internalformat:
+        return PXFMT_INVALID;
+    }
+#endif // defined(_WIN32)
+}
+
+
+/******************************************************************************
+ *
+ * The following is an externally-visible function of this library:
+ *
+ ******************************************************************************/
+
 // This function is used to obtain information about a given
 // pxfmt_sized_format.  The first parameter specify the pxfmt_sized_format to
 // obtain info about, and the rest of the parameters are modified by this call.
@@ -2412,5 +2583,125 @@ pxfmt_conversion_status pxfmt_convert_pixels(void *pDst,
             dst = dst_row += dst_row_stride;
         }
     }
+    return PXFMT_CONVERSION_SUCCESS;
+}
+
+
+
+/******************************************************************************
+ *
+ * The following is an externally-visible function of this library:
+ *
+ ******************************************************************************/
+
+// This function is used to convert a rectangular set of compressed-texture
+// data to an uncompressed pxfmt_sized_format.  Size-wise, there is only one
+// type of "intermediate data" values (double).  Data is uncompressed to double
+// intermediate values, and then converted from that to the destination.  As
+// long as the intermediate values contain enough precision, etc, values can be
+// converted in a loss-less fashion.
+pxfmt_conversion_status
+pxfmt_decompress_pixels(void *pDst,
+                        const void *pSrc,
+                        const int width,
+                        const int height,
+                        const pxfmt_sized_format dst_fmt,
+                        const pxfmt_sized_format src_fmt,
+                        size_t dst_size,
+                        size_t src_size)
+{
+    // Before proceeding, ensure that we are dealing with supported formats:
+    if (dst_fmt == PXFMT_INVALID)
+    {
+        return PXFMT_CONVERSION_UNSUPPORTED_DST;
+    }
+    else if (src_fmt == PXFMT_INVALID)
+    {
+        return PXFMT_CONVERSION_UNSUPPORTED_SRC;
+    }
+
+    // Get the per-pixel and per-row strides for the dst:
+    uint32 dst_pixel_stride;
+    uint32 dst_row_stride;
+    bool dst_needs_fp_intermediate;
+    get_pxfmt_info(width, dst_pixel_stride, dst_row_stride,
+                    dst_needs_fp_intermediate, dst_fmt);
+
+    // Get the per-compression-block info for the src:
+    uint32 src_block_width;
+    uint32 src_block_height;
+    uint32 src_block_perblock_stride;
+    uint32 src_block_perrow_stride;
+    get_compression_block_info(width, src_block_width, src_block_height,
+                               src_block_perblock_stride,
+                               src_block_perrow_stride,
+                               src_fmt);
+
+    // Now that we have info about the src's per-compression-block, also
+    // determine the dst's stride within a row of blocks, and between rows of
+    // blocks:
+    uint32 dst_block_perblock_stride = dst_pixel_stride * src_block_width;
+    uint32 dst_block_perrow_stride = dst_row_stride * src_block_height;
+
+    // Ensure that the values we got make sense, including that the
+    // row_stride*width match the given size:
+    if (!((dst_pixel_stride > 0) ||
+          (dst_row_stride > 0) ||
+          (dst_block_perblock_stride > 0) ||
+          (dst_block_perrow_stride > 0) ||
+          (src_block_width > 0) ||
+          (src_block_height > 0) ||
+          (src_block_perblock_stride > 0) ||
+          (src_block_perrow_stride > 0) ||
+          (true == dst_needs_fp_intermediate)))
+    {
+        return PXFMT_CONVERSION_UNKNOWN_ERROR;
+    }
+// FIXME - REMOVE THIS #ifdef
+#ifdef TEMPORARILY_DISABLE_SIZE_CHECK
+    // Now check that the row_stride*width match the given size:
+    if ((height * dst_row_stride) != dst_size)
+    {
+        return PXFMT_CONVERSION_BAD_SIZE_DST;
+    }
+    else if ((height * src_row_stride) != src_size)
+    {
+        return PXFMT_CONVERSION_BAD_SIZE_SRC;
+    }
+#endif // TEMPORARILY_DISABLE_SIZE_CHECK
+
+    // In order to handle 32-bit normalized values, we need to use
+    // double-precision floating-point intermediate values:
+    double intermediate[4];
+
+    // Use local pointers to the src and dst (both to increment within and
+    // between rows) in order to properly deal with all strides:
+    uint8 *dst, *dst_row;
+    dst = dst_row = (uint8 *) pDst;
+
+    for (int y = 0 ; y < height ; y++)
+    {
+        for (int x = 0 ; x < width ; x++)
+        {
+            float ifloat[4] = {0.0, 0.0, 0.0, 1.0};
+            // Decompress a src pixel:
+            decompress(ifloat, pSrc, src_block_perrow_stride, x, y, src_fmt);
+            // Copy the intermediate value to a double:
+            intermediate[0] = ifloat[0];
+            intermediate[1] = ifloat[1];
+            intermediate[2] = ifloat[2];
+            intermediate[3] = ifloat[3];
+            // Convert the intermediate value to the dst format-type
+            // combination:
+            from_intermediate(dst, intermediate, dst_fmt);
+#ifdef DECOMPRESS_DEBUG
+            uint32 *dst_as_uint32 = (uint32 *) dst;
+            printf("  *dst = 0x%08x\n", *dst_as_uint32);
+#endif // DECOMPRESS_DEBUG
+            dst += dst_pixel_stride;
+        }
+        dst = dst_row += dst_row_stride;
+    }
+
     return PXFMT_CONVERSION_SUCCESS;
 }
