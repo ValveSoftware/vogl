@@ -210,7 +210,9 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
         //  only causes problems when we do wind up in those processes.
         // So check if we're one of the fairly well known shells and bail if so.
         char exec_filename[PATH_MAX];
-        static const char *s_shells[] = { "bash", "sh", "tcsh", "xterm", "zsh", "zsh5", "uname" };
+        static const char *s_shells[] = {
+            "bash", "sh", "tcsh", "xterm", "zsh", "zsh5", "uname", "cgdb", "gdb", "strace"
+        };
 
         vogl::file_utils::get_exec_filename(exec_filename, sizeof(exec_filename));
 
