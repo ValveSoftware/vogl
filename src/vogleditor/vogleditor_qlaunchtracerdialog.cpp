@@ -30,14 +30,9 @@ QString vogleditor_QLaunchTracerDialog::get_command_line()
     QString executable;
     if (ui->steamLauncherCheckBox->isChecked())
     {
-        executable = appDirectory.absoluteFilePath("../../bin/steamlauncher.sh");
+        executable = appDirectory.absoluteFilePath("../../bin/steamlauncher.sh ");
 
-        if (ui->amd64CheckBox->isChecked())
-        {
-            cmdline += " --amd64";
-        }
-
-        cmdline += " --gameid " + get_application_to_launch();
+        cmdline += get_application_to_launch();
 
         if (get_trace_file_path().size() > 0)
         {
@@ -111,15 +106,9 @@ QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment()
             m_process_environment.insert("VOGL_CMD_LINE", VOGL_CMD_LINE);
         }
 
-        QString LD_PRELOAD = "";
-        if (ui->amd64CheckBox->isChecked())
-        {
-            LD_PRELOAD += appDirectory.absoluteFilePath("../../vogl_build/bin/libvogltrace64.so");
-        }
-        else
-        {
-            LD_PRELOAD += appDirectory.absoluteFilePath("../../vogl_build/bin/libvogltrace32.so");
-        }
+        QString LD_PRELOAD = appDirectory.absoluteFilePath(
+                    "../../vogl_build/bin/libvogltrace64.so:"
+                    "../../vogl_build/bin/libvogltrace32.so");
 
         if (getenv("LD_PRELOAD"))
         {
