@@ -89,7 +89,6 @@ namespace vogl
 
 inline const char *vogl_function_info(const char *file, int line, const char *function)
 {
-
     // Don't trim on windows; we want the full path to show up so that if/when the message appears in debugger output 
     // you can double-click the line to jump to that source line in the editor.
 #if (defined(COMPILER_MSVC))

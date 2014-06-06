@@ -201,9 +201,28 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
 //----------------------------------------------------------------------------------------------------------------------
 #if defined(PLATFORM_LINUX)
 
+#include "vogl_file_utils.h"
+
     VOGL_CONSTRUCTOR_FUNCTION(vogl_shared_object_constructor_func);
     static void vogl_shared_object_constructor_func()
     {
+        // We really don't want to be hooking terminals running shell scripts to launch the games, and it
+        //  only causes problems when we do wind up in those processes.
+        // So check if we're one of the fairly well known shells and bail if so.
+        char exec_filename[PATH_MAX];
+        static const char *s_shells[] = { "bash", "sh", "tcsh", "xterm", "zsh", "zsh5", "uname" };
+
+        vogl::file_utils::get_exec_filename(exec_filename, sizeof(exec_filename));
+
+        const char *fname = strrchr(exec_filename, '/');
+        fname = fname ? (fname + 1) : exec_filename;
+
+        for (size_t i = 0; i < sizeof(s_shells) / sizeof(s_shells[0]); i++)
+        {
+            if (vogl::vogl_strncasecmp(fname, s_shells[i], sizeof(exec_filename)) == 0)
+                return;
+        }
+
         vogl_init();
     }
 
