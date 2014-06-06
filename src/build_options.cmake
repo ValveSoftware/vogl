@@ -137,11 +137,15 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 
 endif()
 
-if (MSVC)
-else()
-    if (NOT BUILD_X64)
-        set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -m32")
-    endif()
+
+if ((NOT MSVC) AND (NOT BUILD_X64) AND (CMAKE_SIZEOF_VOID_P EQUAL 8))
+    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -m32")
+    set(CMAKE_EXE_LINK_FLAGS_LIST "${CMAKE_EXE_LINK_FLAGS_LIST} -m32")
+    set(CMAKE_SHARED_LINK_FLAGS_LIST "${CMAKE_SHARED_LINK_FLAGS_LIST} -m32")
+
+    set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS OFF)
+    set(CMAKE_SYSTEM_LIBRARY_PATH /lib32 /usr/lib32 /usr/lib/i386-linux-gnu /usr/local/lib32)
+    set(CMAKE_IGNORE_PATH /lib /usr/lib /usr/lib/x86_64-linux-gnu /usr/lib64 /usr/local/lib)
 endif()
 
 function(add_compiler_flag flag)
