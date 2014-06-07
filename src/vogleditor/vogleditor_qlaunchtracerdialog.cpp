@@ -54,7 +54,10 @@ QString vogleditor_QLaunchTracerDialog::get_command_line()
             cmdline += " --vogl_backtrace_all_calls";
         }
 
-        cmdline += " " + ui->argumentsLineEdit->text();
+        if (ui->argumentsLineEdit->text().size() > 0)
+        {
+            cmdline += " -- " + ui->argumentsLineEdit->text();
+        }
 
         // steam launcher must come at the beginning of cmd line
         cmdline = executable + cmdline;
@@ -185,6 +188,4 @@ void vogleditor_QLaunchTracerDialog::on_findTraceFileButton_clicked()
 
 void vogleditor_QLaunchTracerDialog::on_steamLauncherCheckBox_clicked(bool checked)
 {
-    // the steam launcher script does not currently support command line arguments, so enable that field if steamlauncher is not being used
-    ui->argumentsLineEdit->setEnabled(!checked);
 }
