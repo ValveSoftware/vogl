@@ -211,7 +211,7 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
         // So check if we're one of the fairly well known shells and bail if so.
         char exec_filename[PATH_MAX];
         static const char *s_shells[] = {
-            "bash", "sh", "tcsh", "xterm", "zsh", "zsh5", "uname", "cgdb", "gdb", "strace"
+            "bash", "sh", "tcsh", "xterm", "zsh", "zsh5", "uname", "cgdb", "gdb", "strace", "desktop-launcher"
         };
 
         vogl::file_utils::get_exec_filename(exec_filename, sizeof(exec_filename));
