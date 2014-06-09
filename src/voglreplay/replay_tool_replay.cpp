@@ -486,7 +486,7 @@ static int check_events(replay_data_t &rdata)
             break;
         }
     }
-    
+
     return 0;
 }
 
@@ -586,6 +586,7 @@ static int do_interactive_mode(replay_data_t &rdata)
             rdata.pSnapshot = NULL;
 
             rdata.pSnapshot = replayer.snapshot_state();
+
             if (!rdata.pSnapshot)
             {
                 vogl_error_printf("Snapshot failed!\n");
@@ -1043,6 +1044,14 @@ static int do_non_interactive_mode(replay_data_t &rdata)
     vogl_gl_replayer &replayer = rdata.replayer;
     vogl::vector<uint32_t> &trim_frames = rdata.trim_frames;
 
+    static double time_to_take_snapshot = 0;
+    static double time_to_apply_snapshots = 0;
+    static unsigned int num_applied_snapshots = 0;
+    static double time_looping_started = 0;
+    static unsigned int num_loops = rdata.loop_count;
+
+    vogl_debug_printf("Loop_count %u, at_frame_boundary() = %u\n", rdata.loop_count, replayer.get_at_frame_boundary());
+
     if (replayer.get_at_frame_boundary())
     {
         if (trim_frames.size())
@@ -1158,7 +1167,9 @@ static int do_non_interactive_mode(replay_data_t &rdata)
             }
         }
 
-        // This conditional will only be entered on the first play through the trace, because the replayer's frame index always increments
+        vogl_debug_printf("**** pSnapshot = %p, loop_frame = %u, frame_index = %u\n", rdata.pSnapshot, rdata.loop_frame, replayer.get_frame_index());
+
+        // This conditional will only be entered on the first play through the trace if looping is enabled and a snapshot needs to be taken
         if ((!rdata.pSnapshot) && (rdata.loop_frame != -1) && (static_cast<int64_t>(replayer.get_frame_index()) == rdata.loop_frame))
         {
             if (rdata.benchmark_mode && !rdata.benchmark_mode_allow_state_teardown)
@@ -1183,11 +1194,13 @@ static int do_non_interactive_mode(replay_data_t &rdata)
             {
                 vogl_debug_printf("Capturing replayer state at start of frame %u\n", replayer.get_frame_index());
 
+                double snapshot_start = rdata.tm.get_elapsed_secs();
                 rdata.pSnapshot = replayer.snapshot_state();
+                time_to_take_snapshot += (rdata.tm.get_elapsed_secs() - snapshot_start);
 
                 if (rdata.pSnapshot)
                 {
-                    vogl_printf("Snapshot succeeded\n");
+                    vogl_debug_printf("Snapshot succeeded\n");
 
                     rdata.snapshot_loop_start_frame = rdata.pTrace_reader->get_cur_frame();
                     rdata.snapshot_loop_end_frame = rdata.pTrace_reader->get_cur_frame() + rdata.loop_len;
@@ -1202,10 +1215,11 @@ static int do_non_interactive_mode(replay_data_t &rdata)
                 else
                 {
                     vogl_error_printf("Snapshot failed!\n");
-
-                    rdata.loop_frame = -1;
+                    return -1;
                 }
             }
+
+            time_looping_started = rdata.tm.get_elapsed_secs();
         }
     }
 
@@ -1223,72 +1237,79 @@ static int do_non_interactive_mode(replay_data_t &rdata)
                 status = replayer.process_next_packet(*rdata.pTrace_reader);
             }
 
-            if ((status != vogl_gl_replayer::cStatusHardFailure) && (status != vogl_gl_replayer::cStatusAtEOF))
+            if (status == vogl_gl_replayer::cStatusHardFailure)
+                return -1;
+
+            if (status == vogl_gl_replayer::cStatusAtEOF)
+                break;
+
+            if ((rdata.write_snapshot_index >= 0) && (rdata.write_snapshot_index == replayer.get_last_processed_call_counter()))
             {
-                if ((rdata.write_snapshot_index >= 0) && (rdata.write_snapshot_index == replayer.get_last_processed_call_counter()))
+                dynamic_string filename(rdata.write_snapshot_filename);
+
+                dynamic_string write_snapshot_path(file_utils::get_pathname(filename.get_ptr()));
+                rdata.trim_file_blob_manager.init(cBMFReadWrite, write_snapshot_path.get_ptr());
+
+                file_utils::create_directories(write_snapshot_path, false);
+
+                double snapshot_start = rdata.tm.get_elapsed_secs();
+                rdata.pSnapshot = replayer.snapshot_state();
+                time_to_take_snapshot += (rdata.tm.get_elapsed_secs() - snapshot_start);
+
+                if (rdata.pSnapshot)
                 {
-                    dynamic_string filename(rdata.write_snapshot_filename);
+                    vogl_printf("Snapshot succeeded at call counter %" PRIu64 "\n", replayer.get_last_processed_call_counter());
 
-                    dynamic_string write_snapshot_path(file_utils::get_pathname(filename.get_ptr()));
-                    rdata.trim_file_blob_manager.init(cBMFReadWrite, write_snapshot_path.get_ptr());
+                    vogl_null_blob_manager null_blob_manager;
+                    null_blob_manager.init(cBMFReadWrite);
 
-                    file_utils::create_directories(write_snapshot_path, false);
-
-                    rdata.pSnapshot = replayer.snapshot_state();
-
-                    if (rdata.pSnapshot)
+                    json_document doc;
+                    vogl_blob_manager *pBlob_manager = g_command_line_params().get_value_as_bool("write_snapshot_blobs") ?
+                                static_cast<vogl_blob_manager *>(&rdata.trim_file_blob_manager) :
+                                static_cast<vogl_blob_manager *>(&null_blob_manager);
+                    if (!rdata.pSnapshot->serialize(*doc.get_root(), *pBlob_manager, &replayer.get_trace_gl_ctypes()))
                     {
-                        vogl_printf("Snapshot succeeded at call counter %" PRIu64 "\n", replayer.get_last_processed_call_counter());
-
-                        vogl_null_blob_manager null_blob_manager;
-                        null_blob_manager.init(cBMFReadWrite);
-
-                        json_document doc;
-                        vogl_blob_manager *pBlob_manager = g_command_line_params().get_value_as_bool("write_snapshot_blobs") ?
-                                    static_cast<vogl_blob_manager *>(&rdata.trim_file_blob_manager) :
-                                    static_cast<vogl_blob_manager *>(&null_blob_manager);
-                        if (!rdata.pSnapshot->serialize(*doc.get_root(), *pBlob_manager, &replayer.get_trace_gl_ctypes()))
-                        {
-                            vogl_error_printf("Failed serializing state snapshot document!\n");
-                        }
-                        else if (!doc.serialize_to_file(filename.get_ptr(), true))
-                        {
-                            vogl_error_printf("Failed writing state snapshot to file \"%s\"!\n", filename.get_ptr());
-                        }
-                        else
-                        {
-                            vogl_printf("Successfully wrote JSON snapshot to file \"%s\"\n", filename.get_ptr());
-                        }
-
-                        vogl_delete(rdata.pSnapshot);
-                        rdata.pSnapshot = NULL;
+                        vogl_error_printf("Failed serializing state snapshot document!\n");
+                    }
+                    else if (!doc.serialize_to_file(filename.get_ptr(), true))
+                    {
+                        vogl_error_printf("Failed writing state snapshot to file \"%s\"!\n", filename.get_ptr());
                     }
                     else
                     {
-                        vogl_error_printf("Snapshot failed!\n");
+                        vogl_printf("Successfully wrote JSON snapshot to file \"%s\"\n", filename.get_ptr());
                     }
 
-                    return 1;
+                    vogl_delete(rdata.pSnapshot);
+                    rdata.pSnapshot = NULL;
                 }
-                else if ((rdata.trim_call_index >= 0) && (rdata.trim_call_index == replayer.get_last_processed_call_counter()))
+                else
                 {
-                    dynamic_string filename(rdata.trim_filenames[0]);
-
-                    dynamic_string trim_path(file_utils::get_pathname(filename.get_ptr()));
-                    rdata.trim_file_blob_manager.set_path(trim_path);
-
-                    file_utils::create_directories(trim_path, false);
-
-                    if (!replayer.write_trim_file(0, filename, rdata.trim_lens.size() ? rdata.trim_lens[0] : 1, *rdata.pTrace_reader, NULL))
-                        return -1;
-
-                    vogl_message_printf("Trim file written, stopping replay\n");
-                    return 1;
+                    vogl_error_printf("Snapshot failed!\n");
                 }
+
+                return 1;
+            }
+            else if ((rdata.trim_call_index >= 0) && (rdata.trim_call_index == replayer.get_last_processed_call_counter()))
+            {
+                dynamic_string filename(rdata.trim_filenames[0]);
+
+                dynamic_string trim_path(file_utils::get_pathname(filename.get_ptr()));
+                rdata.trim_file_blob_manager.set_path(trim_path);
+
+                file_utils::create_directories(trim_path, false);
+
+                if (!replayer.write_trim_file(0, filename, rdata.trim_lens.size() ? rdata.trim_lens[0] : 1, *rdata.pTrace_reader, NULL))
+                    return -1;
+
+                vogl_message_printf("Trim file written, stopping replay\n");
+                return 1;
             }
 
-            if ((status == vogl_gl_replayer::cStatusNextFrame) || (status == vogl_gl_replayer::cStatusResizeWindow) || (status == vogl_gl_replayer::cStatusAtEOF) || (status == vogl_gl_replayer::cStatusHardFailure))
+            if ((status == vogl_gl_replayer::cStatusNextFrame) || (status == vogl_gl_replayer::cStatusResizeWindow))
+            {
                 break;
+            }
         }
     }
 
@@ -1320,9 +1341,16 @@ static int do_non_interactive_mode(replay_data_t &rdata)
         if (rdata.pSnapshot)
         {
             vogl_debug_printf("Set pending snapshot\n");
+
+            double apply_snapshot_start = rdata.tm.get_elapsed_secs();
             status = replayer.begin_applying_snapshot(rdata.pSnapshot, false);
+            time_to_apply_snapshots += (rdata.tm.get_elapsed_secs() - apply_snapshot_start);
+            num_applied_snapshots++;
+
             if ((status != vogl_gl_replayer::cStatusOK) && (status != vogl_gl_replayer::cStatusResizeWindow))
+            {
                 return -1;
+            }
         }
 
         rdata.pTrace_reader->seek_to_frame(static_cast<uint32_t>(rdata.snapshot_loop_start_frame));
@@ -1338,7 +1366,9 @@ static int do_non_interactive_mode(replay_data_t &rdata)
             vogl_debug_printf("Seeking back to frame %" PRIi64 ". Draw kill thresh %" PRIu64 "\n", rdata.snapshot_loop_start_frame, thresh);
         }
         else
+        {
             vogl_debug_printf("Seeking back to frame %" PRIi64 ". Loops remaining: %d\n", rdata.snapshot_loop_start_frame, rdata.loop_count);
+        }
 
         rdata.loop_count--;
     }
@@ -1347,8 +1377,28 @@ static int do_non_interactive_mode(replay_data_t &rdata)
         if (rdata.pTrace_reader->get_cur_frame() == rdata.snapshot_loop_end_frame)
         {
             // just finished looping
+            vogl_debug_printf("Looping complete.\n");
+
             double time_since_start = rdata.tm.get_elapsed_secs();
-            vogl_printf("Looping complete. %u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+
+            if (time_to_take_snapshot > 0)
+            {
+                vogl_printf("Taking snapshot took %.3f secs\n", time_to_take_snapshot);
+            }
+
+            if (num_applied_snapshots > 0)
+            {
+                vogl_printf("Applying %u snapshots took %.3f secs\n", num_applied_snapshots, time_to_apply_snapshots);
+            }
+
+            double loop_time = time_since_start - time_looping_started;
+            unsigned int loop_frames = (rdata.snapshot_loop_end_frame - rdata.snapshot_loop_start_frame) * num_loops;
+
+            unsigned int initial_frames = replayer.get_total_swaps() - loop_frames;
+            vogl_printf("Initial: %u total swaps, %.3f secs, %3.3f avg fps\n", initial_frames, time_looping_started, initial_frames / time_looping_started);
+            vogl_printf("Looping: %u total swaps, %.3f secs, %3.3f avg fps\n", loop_frames, loop_time, loop_frames / loop_time);
+            vogl_printf("Overall: %u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+            vogl_debug_printf("**** pSnapshot = %p, loop_frame = %u, frame_index = %u\n", rdata.pSnapshot, rdata.loop_frame, replayer.get_frame_index());
             return 1;
         }
 
@@ -1359,7 +1409,7 @@ static int do_non_interactive_mode(replay_data_t &rdata)
             {
                 double time_since_start = rdata.tm.get_elapsed_secs();
 
-                vogl_verbose_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+                vogl_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
                 return 1;
             }
 
