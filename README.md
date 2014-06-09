@@ -17,7 +17,7 @@ This project is alpha^2. If you are up for suffering through a bit of pain with 
 
 The chroot configuration script should be a good reference for vogl dependencies. It is located here:
 
-https://bitbucket.org/raddebugger/vogl_chroot/src/3b278d4a40d936e75554a194f8eb24a42f4464b1/bin/chroot_configure.sh?at=master
+https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/chroot_configure.sh?at=master
 
 ## Get Source and Build ##
 
@@ -42,7 +42,7 @@ VOGL_CMD_LINE="--vogl_tracefile vogltrace.glxspheres64.bin" LD_PRELOAD=$(readlin
 
 For capturing Steam games, please see the steamlauncher.sh script in the chroot repository:
 
-https://bitbucket.org/raddebugger/vogl_chroot/src/3b278d4a40d936e75554a194f8eb24a42f4464b1/bin/src/sl.cpp?at=master
+https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/src/sl.cpp?at=master
 
 We are currently working on making it much easier to launch and profile Steam apps.
 
