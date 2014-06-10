@@ -67,6 +67,8 @@
 
 #include <turbojpeg.h>
 
+#include "vogl_cmdline_opts.h"
+
 #define VOGL_INTERCEPT_TRACE_FILE_VERSION 0x0102
 
 #define VOGL_STOP_CAPTURE_FILENAME "__stop_capture__"
@@ -75,9 +77,6 @@
 #define VOGL_BACKTRACE_HASHMAP_CAPACITY 50000
 
 #define VOGL_LIBGL_SO_FILENAME "libGL.so.1"
-
-class vogl_context;
-class vogl_entrypoint_serializer;
 
 #if VOGL_PLATFORM_HAS_GLX
     #define CONTEXT_TYPE GLXContext
@@ -94,6 +93,8 @@ class vogl_entrypoint_serializer;
 #endif
 
 #define vogl_log_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgMessage, __VA_ARGS__)
+
+class vogl_context;
 
 typedef vogl::hash_map<CONTEXT_TYPE, vogl_context *, bit_hasher<CONTEXT_TYPE> > context_map;
 bool get_dimensions_from_dc(unsigned int* out_width, unsigned int* out_height, HDC hdc);
@@ -142,44 +143,6 @@ public:
         if (m_took_lock)
             vogl_context_shadow_unlock();
     }
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// Command line params
-//----------------------------------------------------------------------------------------------------------------------
-static command_line_param_desc g_command_line_param_descs[] =
-{
-    { "vogl_dump_gl_full", 0, false, NULL },
-    { "vogl_dump_gl_calls", 0, false, NULL },
-    { "vogl_dump_gl_buffers", 0, false, NULL },
-    { "vogl_dump_gl_shaders", 0, false, NULL },
-    { "vogl_sleep_at_startup", 1, false, NULL },
-    { "vogl_pause", 0, false, NULL },
-    { "vogl_quiet", 0, false, NULL },
-    { "vogl_debug", 0, false, NULL },
-    { "vogl_verbose", 0, false, NULL },
-    { "vogl_flush_files_after_each_call", 0, false, NULL },
-    { "vogl_flush_files_after_each_swap", 0, false, NULL },
-    { "vogl_disable_signal_interception", 0, false, NULL },
-    { "vogl_logfile", 1, false, NULL },
-    { "vogl_tracefile", 1, false, NULL },
-    { "vogl_tracepath", 1, false, NULL },
-    { "vogl_dump_png_screenshots", 0, false, NULL },
-    { "vogl_dump_jpeg_screenshots", 0, false, NULL },
-    { "vogl_jpeg_quality", 0, false, NULL },
-    { "vogl_screenshot_prefix", 1, false, NULL },
-    { "vogl_hash_backbuffer", 0, false, NULL },
-    { "vogl_dump_backbuffer_hashes", 1, false, NULL },
-    { "vogl_sum_hashing", 0, false, NULL },
-    { "vogl_null_mode", 0, false, NULL },
-    { "vogl_force_debug_context", 0, false, NULL },
-    { "vogl_disable_client_side_array_tracing", 0, false, NULL },
-    { "vogl_disable_gl_program_binary", 0, false, NULL },
-    { "vogl_func_tracing", 0, false, NULL },
-    { "vogl_backtrace_all_calls", 0, false, NULL },
-    { "vogl_backtrace_no_calls", 0, false, NULL },
-    { "vogl_exit_after_x_frames", 1, false, NULL },
-    { "vogl_traceport", 1, false, NULL },
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -633,7 +596,20 @@ bool vogl_console_init(bool doinit)
     parse_cfg.m_ignore_unrecognized_params = pEnv_cmd_line ? false : true;
     parse_cfg.m_pParam_accept_prefix = "vogl_";
 
-    if (!g_command_line_params().parse(cmd_line_params, VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
+    vogl::vector<command_line_param_desc> command_line_param_descs;
+    for (size_t i = 0; i < VOGL_ARRAY_SIZE(g_tracer_cmdline_opts); i++)
+    {
+        command_line_param_desc desc;
+
+        desc.m_pName = g_tracer_cmdline_opts[i].name;
+        desc.m_num_values = g_tracer_cmdline_opts[i].num_values;
+        desc.m_support_listing_file = false;
+        desc.m_pDesc = g_tracer_cmdline_opts[i].desc;
+
+        command_line_param_descs.push_back(desc);
+    }
+
+    if (!g_command_line_params().parse(cmd_line_params, command_line_param_descs.size(), command_line_param_descs.get_ptr(), parse_cfg))
     {
         vogl_error_printf("Failed parsing command line parameters\n");
         VOGL_ASSERT(false);
@@ -5467,9 +5443,9 @@ static void vogl_check_for_capture_trigger_file()
     {
         VOGL_FUNC_TRACER
 
-            // pVOGL_context may be NULL here!
+        // pVOGL_context may be NULL here!
 
-            vogl_check_for_capture_stop_file();
+        vogl_check_for_capture_stop_file();
         vogl_check_for_capture_trigger_file();
 
         scoped_mutex lock(get_vogl_trace_mutex());
@@ -5594,8 +5570,7 @@ static void vogl_check_for_capture_trigger_file()
         }
 
         unsigned int width = 0, height = 0;
-        bool dims_valid = false;
-	dims_valid = vogl_query_glx_drawable_size(dpy, drawable, &width, &height);
+        bool dims_valid = vogl_query_glx_drawable_size(dpy, drawable, &width, &height);
 
         if (dims_valid)
         {
@@ -6497,9 +6472,9 @@ static void vogl_check_for_capture_trigger_file()
     {
         VOGL_FUNC_TRACER
 
-            // pVOGL_context may be NULL here!
+        // pVOGL_context may be NULL here!
 
-            vogl_check_for_capture_stop_file();
+        vogl_check_for_capture_stop_file();
         vogl_check_for_capture_trigger_file();
 
         scoped_mutex lock(get_vogl_trace_mutex());
@@ -8909,7 +8884,8 @@ static inline void vogl_check_for_client_side_array_usage(vogl_context *pContext
         if (!cur_array_buf_binding)
         {
             pContext->set_uses_client_side_arrays(true);
-            vogl_warning_printf("Client side array usage has been detected, this will negatively impact tracing performance, use --vogl_disable_client_side_array_tracing to disable\n");
+            vogl_warning_printf("Client side array usage has been detected, this will negatively impact tracing performance, "
+                                "use --vogl_disable_client_side_array_tracing to disable\n");
         }
     }
 }
