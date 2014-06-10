@@ -1642,13 +1642,19 @@ public:
             {
                 set_latched_gl_error(gl_err);
 
-                vogl_warning_printf("GL error %s occurred sometime before this function was called. This error has been latched by the tracer onto the tracer's context shadow struct. This error will be reported to the caller the next time glGetError() is called, and will mask any GL error returned by that future call.\n",
-                                   get_gl_enums().find_gl_error_name(gl_err));
+                vogl_warning_printf("GL error %s occurred sometime before this function was called. "
+                                    "This error has been latched by the tracer onto the tracer's context shadow struct. "
+                                    "This error will be reported to the caller the next time glGetError() is called, "
+                                    "and will mask any GL error returned by that future call.\n",
+                                    get_gl_enums().find_gl_error_name(gl_err));
             }
             else
             {
-                vogl_warning_printf("GL error %s occurred sometime before this function was called. The tracer already had a latched GL error of %s. This error will be suppressed by the tracer (because it would have been by GL itself if the tracer was not present).\n",
-                                   get_gl_enums().find_gl_error_name(gl_err), get_gl_enums().find_gl_error_name(get_latched_gl_error()));
+                vogl_warning_printf("GL error %s occurred sometime before this function was called. "
+                                    "The tracer already had a latched GL error of %s. "
+                                    "This error will be suppressed by the tracer "
+                                    "(because it would have been by GL itself if the tracer was not present).\n",
+                                    get_gl_enums().find_gl_error_name(gl_err), get_gl_enums().find_gl_error_name(get_latched_gl_error()));
             }
         }
 
@@ -7805,7 +7811,7 @@ static inline void vogl_map_buffer_range_gl_epilog_helper(vogl_context *pContext
 
     if (!pPtr)
     {
-        vogl_warning_printf("Map failed!\n");
+        vogl_error_printf("vogl_map_buffer_range_gl_epilog_helper() Map failed!\n");
         return;
     }
 
