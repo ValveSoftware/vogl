@@ -48,10 +48,10 @@ vogleditor_QProgramExplorer::vogleditor_QProgramExplorer(QWidget *parent) :
 
     ui->uniformTableWidget->setColumnCount(4);
     ui->uniformTableWidget->setHorizontalHeaderLabels(QStringList() << "Loc" << "Name" << "Value" << "Type");
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_location, QHeaderView::Interactive);
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_name, QHeaderView::Interactive);
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_value, QHeaderView::Stretch);
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_type, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_location, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_name, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_value, QHeaderView::Stretch);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_type, QHeaderView::Interactive);
     ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_location, 50);
     ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_name, 100);
     ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_type, 100);
@@ -548,19 +548,19 @@ void vogleditor_QProgramExplorer::update_uniforms_for_program(vogl_program_state
     }
 
     // resize columns so that they are properly sized, but still allow the user to resize them more if needed
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_location, QHeaderView::ResizeToContents);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_location, QHeaderView::ResizeToContents);
     uint tmpWidth = ui->uniformTableWidget->horizontalHeader()->sectionSize(vogleditor_utc_location);
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_location, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_location, QHeaderView::Interactive);
     ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_location, tmpWidth);
 
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_name, QHeaderView::ResizeToContents);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_name, QHeaderView::ResizeToContents);
     tmpWidth = ui->uniformTableWidget->horizontalHeader()->sectionSize(vogleditor_utc_name);
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_name, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_name, QHeaderView::Interactive);
     ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_name, tmpWidth);
 
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_type, QHeaderView::ResizeToContents);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_type, QHeaderView::ResizeToContents);
     tmpWidth = ui->uniformTableWidget->horizontalHeader()->sectionSize(vogleditor_utc_type);
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(vogleditor_utc_type, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_type, QHeaderView::Interactive);
     ui->uniformTableWidget->horizontalHeader()->resizeSection(vogleditor_utc_type, tmpWidth);
 
     ui->saveShaderButton->setEnabled(false);

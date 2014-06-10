@@ -23,6 +23,8 @@
  *
  **************************************************************************/
 
+#include <QColor>
+
 #include "vogleditor_statetreeitem.h"
 #include "vogleditor_qstatetreemodel.h"
 
@@ -263,7 +265,7 @@ QVariant vogleditor_stateTreeItem::columnData(int column, int role) const
 
    if (role == Qt::ForegroundRole && parent() != NULL && hasChanged())
    {
-       return QVariant(Qt::red);
+       return QVariant(QColor(Qt::red));
    }
 
    if (role == Qt::ToolTipRole)

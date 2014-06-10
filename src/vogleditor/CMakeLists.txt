@@ -3,11 +3,9 @@ cmake_minimum_required(VERSION 2.8.9)
 
 include("${SRC_DIR}/build_options.cmake")
 
-if (NOT DEFINED ENV{QTDIR})
-set(ENV{QTDIR} /usr/local/Trolltech/Qt-4.8.5)
-endif()
-find_package(Qt4 REQUIRED)
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SRC_DIR}/cmake/Modules/")
 
+find_package(Qt5 COMPONENTS Widgets Gui Core REQUIRED)
 find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
 
@@ -19,25 +17,8 @@ include_directories(
     ${SRC_DIR}/extlib/loki/include/loki
     ${SRC_DIR}/libtelemetry
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${QT_INCLUDE_DIR}
-    ${QT_QTCORE_INCLUDE_DIR}
-    ${QT_QTGUI_INCLUDE_DIR}
+    ${Qt5Widgets_INCLUDE_DIRS}
 )
-
-#include(${QT_USE_FILE})
-
-## uncomment these to enable additional Qt modules
-# set(QT_USE_QTNETWORK true)
-# set(QT_USE_QTOPENGL true)
-# set(QT_USE_QTSQL true)
-# set(QT_USE_QTXML true)
-# set(QT_USE_QTSVG true)
-# set(QT_USE_QTTEST true)
-# set(QT_USE_QTDBUS true)
-# set(QT_USE_QTSCRIPT true)
-# set(QT_USE_QTWEBKIT true)
-# set(QT_USE_QTXMLPATTERNS true)
-# set(QT_USE_PHONON true)
 
 set(SRC_LIST
     main.cpp
@@ -158,32 +139,31 @@ set(FORM_LIST
 set(RESOURCE_LIST
    )
 
-QT4_WRAP_CPP(QT_GEN_HEADER_MOC_LIST ${UI_HEADER_LIST})
-QT4_WRAP_UI(QT_GEN_FORM_HEADER_LIST ${FORM_LIST})
-QT4_ADD_RESOURCES(QT_GEN_RESOURCE_RCC_LIST ${RESOURCE_LIST})
-
-#add_definitions(${QT_DEFINITIONS})
+QT5_WRAP_CPP(QT_GEN_HEADER_MOC_LIST ${UI_HEADER_LIST})
+QT5_WRAP_UI(QT_GEN_FORM_HEADER_LIST ${FORM_LIST})
+QT5_ADD_RESOURCES(QT_GEN_RESOURCE_RCC_LIST ${RESOURCE_LIST})
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    add_compiler_flag("-Wno-global-constructors")
+    add_compiler_flag("-Wno-global-constructors -Wno-used-but-marked-unused")
 endif()
 
+add_compiler_flag("-fPIC")
+
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADER_LIST}
-        ${QT_GEN_HEADER_MOC_LIST}
-        ${QT_GEN_FORM_HEADER_LIST}
-        ${QT_GEN_RESOURCE_RCC_LIST}
+    ${QT_GEN_HEADER_MOC_LIST}
+    ${QT_GEN_FORM_HEADER_LIST}
+    ${QT_GEN_RESOURCE_RCC_LIST}
    )
 
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
 target_link_libraries(${PROJECT_NAME}
-	${QT_QTMAIN_LIBRARY} 
-	${QT_QTCORE_LIBRARY} 
-	${QT_QTGUI_LIBRARY} 
-	${TELEMETRY_LIBRARY}
-	${X11_X11_LIB}
-	backtracevogl
-	voglcommon
+    Qt5::Widgets
+    Qt5::Core
+    ${TELEMETRY_LIBRARY}
+    ${X11_X11_LIB}
+    backtracevogl
+    voglcommon
     voglcore
     ${CMAKE_DL_LIBS}
    )

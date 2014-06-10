@@ -1293,7 +1293,7 @@ private:
             pPtr = m_client_side_array_data[id].get_ptr();
         }
 
-        func(stride, count, static_cast<const GLchar *>(pPtr));
+        func(stride, count, static_cast<const unsigned char*>(pPtr));
     }
 
     void process_entrypoint_print_summary_context(const char *caller_info, eConsoleMessageType msg_type);

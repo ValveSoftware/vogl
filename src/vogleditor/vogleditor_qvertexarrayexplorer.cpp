@@ -666,9 +666,9 @@ void vogleditor_QVertexArrayExplorer::update_vertex_array_table()
     // resize columns to fit contents, but then reset back to interactive so the user can resize them manually
     for (int i = 0; i < ui->vertexTableWidget->columnCount(); i++)
     {
-        ui->vertexTableWidget->horizontalHeader()->setResizeMode(i, QHeaderView::ResizeToContents);
+        ui->vertexTableWidget->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
         uint tmpWidth = ui->vertexTableWidget->horizontalHeader()->sectionSize(i);
-        ui->vertexTableWidget->horizontalHeader()->setResizeMode(i, QHeaderView::Interactive);
+        ui->vertexTableWidget->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Interactive);
         ui->vertexTableWidget->horizontalHeader()->resizeSection(i, tmpWidth);
     }
 
@@ -710,9 +710,9 @@ void vogleditor_QVertexArrayExplorer::update_instance_array_table()
     // resize columns to fit contents, but then reset back to interactive so the user can resize them manually
     for (int i = 0; i < ui->instancedVertexTableWidget->columnCount(); i++)
     {
-        ui->instancedVertexTableWidget->horizontalHeader()->setResizeMode(i, QHeaderView::ResizeToContents);
+        ui->instancedVertexTableWidget->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
         uint tmpWidth = ui->instancedVertexTableWidget->horizontalHeader()->sectionSize(i);
-        ui->instancedVertexTableWidget->horizontalHeader()->setResizeMode(i, QHeaderView::Interactive);
+        ui->instancedVertexTableWidget->horizontalHeader()->setSectionResizeMode(i, QHeaderView::Interactive);
         ui->instancedVertexTableWidget->horizontalHeader()->resizeSection(i, tmpWidth);
     }
 

@@ -29,10 +29,9 @@
 #include <QAbstractItemModel>
 #include <QLinkedList>
 
-#include "vogl_common.h"
-
 class QVariant;
 class vogleditor_apiCallTreeItem;
+class vogl_ctypes;
 class vogl_trace_file_reader;
 struct vogl_trace_gl_entrypoint_packet;
 
@@ -71,8 +70,8 @@ public:
    vogleditor_apiCallTreeItem* find_prev_drawcall(vogleditor_apiCallTreeItem* start);
    vogleditor_apiCallTreeItem* find_next_drawcall(vogleditor_apiCallTreeItem* start);
 
-   vogleditor_apiCallTreeItem* find_call_number(uint64_t callNumber);
-   vogleditor_apiCallTreeItem* find_frame_number(uint64_t frameNumber);
+   vogleditor_apiCallTreeItem* find_call_number(unsigned int callNumber);
+   vogleditor_apiCallTreeItem* find_frame_number(unsigned int frameNumber);
 
 signals:
 
@@ -80,7 +79,7 @@ public slots:
 
 private:
    vogleditor_apiCallTreeItem* m_rootItem;
-   vogl_ctypes m_trace_ctypes;
+   vogl_ctypes* m_pTrace_ctypes;
    QLinkedList<vogleditor_apiCallTreeItem*> m_itemList;
    QString m_searchString;
 };

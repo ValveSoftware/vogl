@@ -3799,7 +3799,7 @@ static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoin
     vogl_dump_value_param(pContext, serializer, "RETURN_VALUE", VOGL_RETURN_PARAM_INDEX, "result", pType, type, val);
 }
 
-static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, unsigned char *pPtr)
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, char *pPtr)
 {
     VOGL_NOTE_UNUSED(size);
 
@@ -3839,6 +3839,14 @@ static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoin
 static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, long unsigned int *pPtr)
 {
     vogl_dump_array_param(pContext, serializer, "RETUURN_LUINT_PTR", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pPtr, size);
+}
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, __GLsync *pPtr)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_GLSYNC_PTR", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pPtr);
 }
 
 static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, XVisualInfo *pPtr)

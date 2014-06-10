@@ -24,6 +24,7 @@
  **************************************************************************/
 
 #include <QColor>
+#include <QFont>
 
 #include "vogleditor_qapicalltreemodel.h"
 
@@ -50,6 +51,12 @@ vogleditor_QApiCallTreeModel::~vogleditor_QApiCallTreeModel()
       m_rootItem = NULL;
    }
 
+   if (m_pTrace_ctypes != NULL)
+   {
+       vogl_delete(m_pTrace_ctypes);
+       m_pTrace_ctypes = NULL;
+   }
+
    m_itemList.clear();
 }
 
@@ -73,7 +80,14 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
    // This snapshot will be assigned to the next API call that occurs.
    vogleditor_gl_state_snapshot* pPendingSnapshot = NULL;
 
-   m_trace_ctypes.init(pTrace_reader->get_sof_packet().m_pointer_sizes);
+   m_pTrace_ctypes = vogl_new(vogl_ctypes);
+
+   if (m_pTrace_ctypes == NULL)
+   {
+       return false;
+   }
+
+   m_pTrace_ctypes->init(pTrace_reader->get_sof_packet().m_pointer_sizes);
 
    for ( ; ; )
    {
@@ -98,7 +112,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
 
       if (pTrace_reader->get_packet_type() == cTSPTGLEntrypoint)
       {
-         vogl_trace_packet* pTrace_packet = vogl_new(vogl_trace_packet, &m_trace_ctypes);
+         vogl_trace_packet* pTrace_packet = vogl_new(vogl_trace_packet, m_pTrace_ctypes);
 
          if (!pTrace_packet->deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
          {
@@ -161,7 +175,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
                   pPendingSnapshot = vogl_new(vogleditor_gl_state_snapshot, pGLSnapshot);
 
                   timed_scope ts("pPendingSnapshot->deserialize");
-                  if (!pPendingSnapshot->get_snapshot()->deserialize(*doc.get_root(), pTrace_reader->get_multi_blob_manager(), &m_trace_ctypes))
+                  if (!pPendingSnapshot->get_snapshot()->deserialize(*doc.get_root(), pTrace_reader->get_multi_blob_manager(), m_pTrace_ctypes))
                   {
                      vogl_delete(pPendingSnapshot);
                      pPendingSnapshot = NULL;
@@ -602,7 +616,7 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vog
     return pFound;
 }
 
-vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_call_number(uint64_t callNumber)
+vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_call_number(unsigned int callNumber)
 {
     QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
 
@@ -625,7 +639,7 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_call_number(uint6
     return pFound;
 }
 
-vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_frame_number(uint64_t frameNumber)
+vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_frame_number(unsigned int frameNumber)
 {
     QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
 

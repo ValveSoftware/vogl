@@ -49,9 +49,9 @@ vogleditor_QProgramArbExplorer::vogleditor_QProgramArbExplorer(QWidget *parent) 
     ui->saveShaderButton->setEnabled(false);
     ui->uniformTableWidget->setColumnCount(3);
     ui->uniformTableWidget->setHorizontalHeaderLabels(QStringList() << "Name" << "Value" << "Type");
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(0, QHeaderView::Interactive);
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(2, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Interactive);
     ui->uniformTableWidget->horizontalHeader()->resizeSection(0, 100);
     ui->uniformTableWidget->horizontalHeader()->resizeSection(2, 100);
 }
@@ -198,9 +198,9 @@ void vogleditor_QProgramArbExplorer::update_uniforms_for_source(const QString& p
         }
     }
 
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     uint tmpWidth = ui->uniformTableWidget->horizontalHeader()->sectionSize(0);
-    ui->uniformTableWidget->horizontalHeader()->setResizeMode(0, QHeaderView::Interactive);
+    ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
     ui->uniformTableWidget->horizontalHeader()->resizeSection(0, tmpWidth);
 
     ui->saveShaderButton->setEnabled(false);
