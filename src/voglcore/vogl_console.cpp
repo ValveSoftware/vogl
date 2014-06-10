@@ -245,7 +245,7 @@ bool console::set_log_stream_filename(const char *filename, bool logfile_per_pid
     // This purposely leaks, don't care
     s_vogl_pLog_stream = vogl_new(cfile_stream);
 
-    if (!s_vogl_pLog_stream->open(filename, cDataStreamWritable, false))
+    if (!s_vogl_pLog_stream->open(filename, cDataStreamWritable, true))
     {
         vogl_error_printf("Failed opening log file \"%s\"\n", filename);
 

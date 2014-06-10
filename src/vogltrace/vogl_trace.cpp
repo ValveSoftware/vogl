@@ -220,6 +220,7 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
             "cgdb", "gdb", "strace", "desktop-launcher", "glxinfo", "kmod",
             "python", "python2.7", "python3", "python3.4",
             "dpkg-query", "grep", "egrep", "head", "free", "lsusb", "uname",
+            "minidump_stackwalk"
         };
 
         char exec_filename[PATH_MAX];
