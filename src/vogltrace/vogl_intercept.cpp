@@ -7997,7 +7997,8 @@ static inline void vogl_unmap_buffer_helper(vogl_context *pContext, vogl_entrypo
 }
 
 #define DEF_FUNCTION_CUSTOM_GL_PROLOG_glBufferStorage(exported, category, ret, ret_type_enum, num_params, name, args, params) \
-    GLbitfield orig_flags = flags;                                                                                           \
+    GLbitfield orig_flags = flags;                                                                                            \
+    VOGL_NOTE_UNUSED(orig_flags);                                                                                             \
     vogl_buffer_storage_gl_prolog_helper(pContext, trace_serializer, target, size, data, flags);
 static inline void vogl_buffer_storage_gl_prolog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLenum target, GLsizeiptr size, const GLvoid * data, GLbitfield flags)
 {
