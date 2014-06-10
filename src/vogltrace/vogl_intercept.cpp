@@ -72,8 +72,6 @@
 #define VOGL_STOP_CAPTURE_FILENAME "__stop_capture__"
 #define VOGL_TRIGGER_CAPTURE_FILENAME "__trigger_capture__"
 
-#define VOGL_CMD_LINE_OPTIONS_FILE "vogl_cmd_line.txt"
-
 #define VOGL_BACKTRACE_HASHMAP_CAPACITY 50000
 
 #define VOGL_LIBGL_SO_FILENAME "libGL.so.1"
@@ -107,7 +105,6 @@ typedef struct _vogl_xlib_trap_state vogl_xlib_trap_state_t;
 bool g_vogl_has_been_initialized = false;
 static pthread_once_t g_vogl_init_once_control = PTHREAD_ONCE_INIT;
 static pthread_key_t g_vogl_thread_local_data;
-static cfile_stream *g_vogl_pLog_stream;
 static vogl_exception_callback_t g_vogl_pPrev_exception_callback;
 static GLuint g_dummy_program;
 static vogl_xlib_trap_state_t *g_vogl_xlib_trap_state;
@@ -158,7 +155,6 @@ static command_line_param_desc g_command_line_param_descs[] =
     { "vogl_dump_gl_shaders", 0, false, NULL },
     { "vogl_sleep_at_startup", 1, false, NULL },
     { "vogl_pause", 0, false, NULL },
-    { "vogl_long_pause", 0, false, NULL },
     { "vogl_quiet", 0, false, NULL },
     { "vogl_debug", 0, false, NULL },
     { "vogl_verbose", 0, false, NULL },
@@ -166,7 +162,6 @@ static command_line_param_desc g_command_line_param_descs[] =
     { "vogl_flush_files_after_each_swap", 0, false, NULL },
     { "vogl_disable_signal_interception", 0, false, NULL },
     { "vogl_logfile", 1, false, NULL },
-    { "vogl_logfile_append", 1, false, NULL },
     { "vogl_tracefile", 1, false, NULL },
     { "vogl_tracepath", 1, false, NULL },
     { "vogl_dump_png_screenshots", 0, false, NULL },
@@ -488,47 +483,6 @@ static void vogl_init_thread_local_data()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_init_logfile
-//----------------------------------------------------------------------------------------------------------------------
-static void vogl_init_logfile()
-{
-    VOGL_FUNC_TRACER
-
-    dynamic_string backbuffer_hash_file;
-    if (g_command_line_params().get_value_as_string(backbuffer_hash_file, "vogl_dump_backbuffer_hashes"))
-    {
-        remove(backbuffer_hash_file.get_ptr());
-        vogl_message_printf("Deleted backbuffer hash file \"%s\"\n", backbuffer_hash_file.get_ptr());
-    }
-
-    dynamic_string log_file(g_command_line_params().get_value_as_string_or_empty("vogl_logfile"));
-    dynamic_string log_file_append(g_command_line_params().get_value_as_string_or_empty("vogl_logfile_append"));
-    if (log_file.is_empty() && log_file_append.is_empty())
-        return;
-
-    dynamic_string filename(log_file_append.is_empty() ? log_file : log_file_append);
-
-    // This purposely leaks, don't care
-    g_vogl_pLog_stream = vogl_new(cfile_stream);
-
-    if (!g_vogl_pLog_stream->open(filename.get_ptr(), cDataStreamWritable, !log_file_append.is_empty()))
-    {
-        vogl_error_printf("Failed opening log file \"%s\"\n", filename.get_ptr());
-
-        vogl_delete(g_vogl_pLog_stream);
-        g_vogl_pLog_stream = NULL;
-
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        vogl_message_printf("Opened log file \"%s\"\n", filename.get_ptr());
-
-        console::set_log_stream(g_vogl_pLog_stream);
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 // vogl_capture_on_next_swap
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_capture_on_next_swap(uint32_t total_frames, const char *pPath, const char *pBase_filename, vogl_capture_status_callback_func_ptr pStatus_callback, void *pStatus_callback_opaque)
@@ -630,48 +584,91 @@ static void vogl_dump_statistics()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// is_command_line_param_set
-//----------------------------------------------------------------------------------------------------------------------
-static bool is_command_line_param_set(const char *param)
-{
-    if (vogl::check_for_command_line_param(param))
-        return true;
-
-    char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
-    if (pEnv_cmd_line && (strstr(pEnv_cmd_line, param)))
-        return true;
-    return false;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 // vogl_console_init
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_console_init()
+bool vogl_console_init(bool doinit)
 {
+    VOGL_FUNC_TRACER
+
     static bool s_inited = false;
+    if (s_inited)
+        return true;
+    if (!doinit)
+        return false;
+    s_inited = true;
 
-    if (!s_inited)
-    {
-        s_inited = true;
+    // Initialize vogl_core.
+    vogl_core_init();
 
-        // Initialize vogl_core.
-        vogl_core_init();
-
-        colorized_console::init();
-        console::set_tool_prefix("(vogltrace) ");
-
-        if (is_command_line_param_set("-vogl_quiet"))
-            console::set_output_level(cMsgError);
-        else if (is_command_line_param_set("-vogl_debug"))
-            console::set_output_level(cMsgDebug);
-        else if (is_command_line_param_set("-vogl_verbose"))
-            console::set_output_level(cMsgVerbose);
+    colorized_console::init();
+    console::set_tool_prefix("(vogltrace) ");
 
 #if 0
-        // Enable to see file and line information in console output.
-        console::set_caller_info_always(true);
+    // Enable to see file and line information in console output.
+    console::set_caller_info_always(true);
 #endif
+
+    dynamic_string_array cmd_line_params;
+    char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
+    if (pEnv_cmd_line)
+    {
+        dynamic_string cmd_line(pEnv_cmd_line);
+        cmd_line.unquote();
+
+        if (!split_command_line_params(cmd_line.get_ptr(), cmd_line_params))
+        {
+            vogl_error_printf("Failed splitting command line params from env var: %s\n", pEnv_cmd_line);
+            VOGL_ASSERT(false);
+        }
     }
+    else
+    {
+        cmd_line_params = get_command_line_params();
+    }
+
+    command_line_params::parse_config parse_cfg;
+    parse_cfg.m_single_minus_params = true;
+    parse_cfg.m_double_minus_params = true;
+    parse_cfg.m_ignore_non_params = pEnv_cmd_line ? false : true;
+    parse_cfg.m_ignore_unrecognized_params = pEnv_cmd_line ? false : true;
+    parse_cfg.m_pParam_accept_prefix = "vogl_";
+
+    if (!g_command_line_params().parse(cmd_line_params, VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
+    {
+        vogl_error_printf("Failed parsing command line parameters\n");
+        VOGL_ASSERT(false);
+    }
+
+    dynamic_string filename(g_command_line_params().get_value_as_string_or_empty("vogl_logfile"));
+    if (!filename.is_empty())
+    {
+        // Create a logfile with PID appended to the log filename.
+        bool ret = console::set_log_stream_filename(filename.c_str(), true);
+        if (!ret)
+        {
+            vogl_error_printf("Failed opening log file \"%s\"\n", filename.get_ptr());
+            VOGL_ASSERT(false);
+        }
+    }
+
+   
+    char exec_fname[PATH_MAX];
+	file_utils::get_exec_filename(exec_fname, sizeof(exec_fname));
+    exec_fname[sizeof(exec_fname) - 1] = 0;
+
+    vogl_message_printf("exec_filename: '%s'\n", exec_fname);
+    if (pEnv_cmd_line)
+        vogl_message_printf("VOGL_CMD_LINE: %s\n", pEnv_cmd_line);
+    vogl_message_printf("Command line params: \"%s\"\n", get_command_line().get_ptr());
+
+    if (g_command_line_params().get_value_as_bool("vogl_quiet"))
+        console::set_output_level(cMsgError);
+    else if (g_command_line_params().get_value_as_bool("vogl_debug"))
+        console::set_output_level(cMsgDebug);
+    else if (g_command_line_params().get_value_as_bool("vogl_verbose"))
+        console::set_output_level(cMsgVerbose);
+
+    return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -683,23 +680,20 @@ void vogl_init()
     g_vogl_initializing_flag = true;
 
     // Init vogl console.
-    vogl_console_init();
+    vogl_console_init(true);
 
 #if VOGL_PLATFORM_SUPPORTS_BTRACE
     vogl_message_printf("%s built %s %s, begin initialization in %s\n", btrace_get_current_module(), __DATE__, __TIME__, getenv("_"));
 #endif
 
     // We can't use the regular cmd line parser here because this func is called before global objects are constructed.
-    bool pause = is_command_line_param_set("-vogl_pause");
-    bool long_pause = is_command_line_param_set("-vogl_long_pause");
-    if (pause || long_pause)
+    bool pause = g_command_line_params().get_value_as_bool("vogl_pause");
+    if (pause)
     {
         int count = 60000;
         bool debugger_connected = false;
-        dynamic_string cmdline = vogl::get_command_line();
 
-        vogl_message_printf("cmdline: %s\n", cmdline.c_str());
-        vogl_message_printf("Pausing %d ms or until debugger is attached (pid %d).\n", count, plat_getpid());
+        vogl_message_printf("\nPausing %d ms or until debugger is attached (pid %d).\n", count, plat_getpid());
         vogl_message_printf("  Or press any key to continue.\n");
 
         while (count >= 0)
@@ -797,8 +791,8 @@ static void vogl_exception_callback()
     //if (num_contexts)
     //   vogl_error_printf("App is exiting with %u active GL context(s)! Any outstanding async buffer readbacks cannot be safely flushed!\n", num_contexts);
 
-    if (g_vogl_pLog_stream)
-        g_vogl_pLog_stream->flush();
+    if (console::get_log_stream())
+        console::get_log_stream()->flush();
 
     if (g_vogl_pPrev_exception_callback)
     {
@@ -818,59 +812,6 @@ static void vogl_init_command_line_params()
     if (sleep_time > 0.0f)
     {
         vogl_sleep(static_cast<uint32_t>(ceil(1000.0f * sleep_time)));
-    }
-
-    dynamic_string_array cmd_line_params;
-    char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
-    if (pEnv_cmd_line)
-    {
-        vogl_verbose_printf("Reading command line params from env var\n");
-
-        dynamic_string cmd_line(pEnv_cmd_line);
-        cmd_line.unquote();
-
-        vogl_message_printf("VOGL_CMD_LINE: %s\n", cmd_line.get_ptr());
-
-        if (!split_command_line_params(cmd_line.get_ptr(), cmd_line_params))
-            vogl_error_printf("Failed splitting command line params from env var: %s\n", pEnv_cmd_line);
-    }
-    else if (file_utils::does_file_exist(VOGL_CMD_LINE_OPTIONS_FILE))
-    {
-        vogl_message_printf("Reading command line params from file \"%s\"\n", VOGL_CMD_LINE_OPTIONS_FILE);
-
-        dynamic_string_array opts;
-        if (!file_utils::read_text_file(VOGL_CMD_LINE_OPTIONS_FILE, opts, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintErrorMessages))
-        {
-            vogl_error_printf("Failed reading command line params from options file \"%s\"\n", VOGL_CMD_LINE_OPTIONS_FILE);
-        }
-        else
-        {
-            dynamic_string all_opts;
-            for (uint32_t i = 0; i < opts.size(); i++)
-                all_opts.format_append("%s ", opts[i].get_ptr());
-
-            if (!split_command_line_params(all_opts.get_ptr(), cmd_line_params))
-                vogl_error_printf("Failed splitting command line params from options file: %s\n", pEnv_cmd_line);
-        }
-    }
-    else
-    {
-        vogl_message_printf("Trying to use app's command line options\n");
-
-        cmd_line_params = get_command_line_params();
-    }
-
-    command_line_params::parse_config parse_cfg;
-    parse_cfg.m_single_minus_params = true;
-    parse_cfg.m_double_minus_params = true;
-    parse_cfg.m_ignore_non_params = pEnv_cmd_line ? false : true;
-    parse_cfg.m_ignore_unrecognized_params = pEnv_cmd_line ? false : true;
-    parse_cfg.m_pParam_accept_prefix = "vogl_";
-
-    if (!g_command_line_params().parse(cmd_line_params, VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
-    {
-        vogl_error_printf("Failed parsing command line parameters\n");
-        exit(EXIT_FAILURE);
     }
 
     g_dump_gl_calls_flag = g_command_line_params().get_value_as_bool("vogl_dump_gl_calls");
@@ -934,8 +875,6 @@ static void vogl_global_init()
 
     VOGL_FUNC_TRACER
 
-    vogl_message_printf("Command line params: \"%s\"\n", get_command_line().get_ptr());
-
     bool reliable_rdtsc = vogl::utils::init_rdtsc();
     if (reliable_rdtsc)
         vogl_verbose_printf("Reliable tsc clocksource found. Using rdtsc.\n");
@@ -944,9 +883,14 @@ static void vogl_global_init()
 
     vogl_init_command_line_params();
 
-    vogl_init_logfile();
-
     vogl_common_lib_global_init();
+
+    dynamic_string backbuffer_hash_file;
+    if (g_command_line_params().get_value_as_string(backbuffer_hash_file, "vogl_dump_backbuffer_hashes"))
+    {
+        remove(backbuffer_hash_file.get_ptr());
+        vogl_message_printf("Deleted backbuffer hash file \"%s\"\n", backbuffer_hash_file.get_ptr());
+    }
 
     if (g_command_line_params().has_key("vogl_tracefile"))
     {
@@ -3189,11 +3133,8 @@ static bool vogl_flush_compilerinfo_to_trace_file()
 #ifdef __VERSION__
     compiler_info_node.add_key_value("version", __VERSION__);
 #endif
-#ifdef __i386__
-    compiler_info_node.add_key_value("arch", "32bit");
-#else
-    compiler_info_node.add_key_value("arch", "64bit");
-#endif
+
+    compiler_info_node.add_key_value("arch", (sizeof(void *) > 4) ? "64bit" : "32bit");
 
     char_vec data;
     doc.serialize(data, true, 0, false);
@@ -4033,8 +3974,8 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
             {
                 get_vogl_trace_writer().flush();
 
-                if (g_vogl_pLog_stream)
-                    g_vogl_pLog_stream->flush();
+                if (console::get_log_stream())
+                    console::get_log_stream()->flush();
             }
         }
         else
@@ -6277,11 +6218,9 @@ static void vogl_check_for_capture_trigger_file()
             context_manager.unlock();
         }
 
-        if (g_vogl_pLog_stream)
-        {
-            // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
-            g_vogl_pLog_stream->flush();
-        }
+        // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
+        if (console::get_log_stream())
+            console::get_log_stream()->flush();
 
         if (g_dump_gl_calls_flag)
         {
@@ -7024,11 +6963,9 @@ static void vogl_check_for_capture_trigger_file()
             context_manager.unlock();
         }
 
-        if (g_vogl_pLog_stream)
-        {
-            // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
-            g_vogl_pLog_stream->flush();
-        }
+        // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
+        if (console::get_log_stream())
+            console::get_log_stream()->flush();
 
         if (g_dump_gl_calls_flag)
         {

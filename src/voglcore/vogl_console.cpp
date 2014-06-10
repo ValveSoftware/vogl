@@ -28,9 +28,12 @@
 #include "vogl_core.h"
 #include "vogl_console.h"
 #include "vogl_data_stream.h"
+#include "vogl_cfile_stream.h"
 #include "vogl_threading.h"
 #include "vogl_command_line_params.h"
 #include "vogl_strutils.h"
+#include "vogl_file_utils.h"
+#include "vogl_port.h"
 
 #ifdef PLATFORM_WINDOWS
     #include <tchar.h>
@@ -192,7 +195,7 @@ void console::vprintf(const char *caller_info, uint32_t msgtype, const char *p, 
     uint32_t n = static_cast<uint32_t>(strlen(buf));
     m_at_beginning_of_line = n && (buf[n - 1] == '\n');
 
-    if (!(msgtype & cMsgFlagNoLog) && m_pLog_stream)
+    if (!(msgtype & cMsgFlagNoLog) && m_pLog_stream && (type <= m_output_level))
     {
         // Yes this is bad.
         dynamic_string tmp_buf(buf);
@@ -212,6 +215,51 @@ void console::printf(const char *caller_info, uint32_t type, const char *p, ...)
     va_start(args, p);
     vprintf(caller_info, type, p, args);
     va_end(args);
+}
+
+bool console::set_log_stream_filename(const char *filename, bool logfile_per_pid)
+{
+    static cfile_stream *s_vogl_pLog_stream = NULL;
+
+    vogl::dynamic_string filename_pid;
+    if (logfile_per_pid)
+    {
+        pid_t pid = plat_getpid();
+        dynamic_string drive, dir, fname, ext;
+
+        file_utils::split_path(filename, &drive, &dir, &fname, &ext);
+        dynamic_string new_fname(cVarArg, "%s_%" PRIu64, fname.get_ptr(), (uint64_t)pid);
+        file_utils::combine_path_and_extension(filename_pid, &drive, &dir, &new_fname, &ext);
+
+        filename = filename_pid.c_str();
+    }
+
+    if (s_vogl_pLog_stream)
+    {
+        vogl_delete(s_vogl_pLog_stream);
+        s_vogl_pLog_stream = NULL;
+
+        console::set_log_stream(NULL);
+    }
+
+    // This purposely leaks, don't care
+    s_vogl_pLog_stream = vogl_new(cfile_stream);
+
+    if (!s_vogl_pLog_stream->open(filename, cDataStreamWritable, false))
+    {
+        vogl_error_printf("Failed opening log file \"%s\"\n", filename);
+
+        vogl_delete(s_vogl_pLog_stream);
+        s_vogl_pLog_stream = NULL;
+        return false;
+    }
+
+    console::set_log_stream(s_vogl_pLog_stream);
+    
+    //$ TODO: Add a time here, etc?
+    vogl_message_printf("Opened log file \"%s\"\n", filename);
+
+    return true;
 }
 
 void console::add_console_output_func(console_output_func pFunc, void *pData)

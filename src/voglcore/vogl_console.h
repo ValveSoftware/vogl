@@ -124,7 +124,8 @@ public:
     {
         return m_caller_info_always;
     }
-    
+   
+    static bool set_log_stream_filename(const char *filename, bool logfile_per_pid);
     static void set_log_stream(data_stream *pStream)
     {
         m_pLog_stream = pStream;

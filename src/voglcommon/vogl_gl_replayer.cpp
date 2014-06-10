@@ -1641,15 +1641,27 @@ bool vogl_gl_replayer::context_state::handle_context_made_current()
         vogl::vector<GLuint> dummy_handles(65536);
 
         GL_ENTRYPOINT(glGenTextures)(4000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenBuffers)(6000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenLists)(8000);
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenQueries)(10000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
 
         GL_ENTRYPOINT(glGenVertexArrays)(12000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenProgramsARB)(14000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenFramebuffers)(16000, dummy_handles.get_ptr());
         GL_ENTRYPOINT(glGenSamplers)(18000, dummy_handles.get_ptr());
         GL_ENTRYPOINT(glGenRenderbuffers)(20000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
 
         for (uint32_t i = 0; i < 22000; i++)
             GL_ENTRYPOINT(glCreateProgram)();

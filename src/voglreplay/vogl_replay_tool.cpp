@@ -44,13 +44,11 @@ bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc);
 // globals
 //----------------------------------------------------------------------------------------------------------------------
 static void *g_actual_libgl_module_handle;
-static cfile_stream *g_vogl_pLog_stream;
 
 static command_line_param_desc g_command_line_param_descs_common[] =
 {
     // common command options
     { "logfile", 1, false, "Create logfile" },
-    { "logfile_append", 1, false, "Append output to logfile" },
     { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
 
     { "quiet", 0, false, "Disable warning, verbose, and debug output" },
@@ -122,29 +120,11 @@ static bool init_logfile()
         vogl_message_printf("Deleted backbuffer hash file \"%s\"\n", backbuffer_hash_file.get_ptr());
     }
 
-    dynamic_string log_file(g_command_line_params().get_value_as_string_or_empty("logfile"));
-    dynamic_string log_file_append(g_command_line_params().get_value_as_string_or_empty("logfile_append"));
-    if (log_file.is_empty() && log_file_append.is_empty())
+    dynamic_string filename(g_command_line_params().get_value_as_string_or_empty("logfile"));
+    if (filename.is_empty())
         return true;
 
-    dynamic_string filename(log_file_append.is_empty() ? log_file : log_file_append);
-
-    // This purposely leaks, don't care
-    g_vogl_pLog_stream = vogl_new(cfile_stream);
-
-    if (!g_vogl_pLog_stream->open(filename.get_ptr(), cDataStreamWritable, !log_file_append.is_empty()))
-    {
-        vogl_error_printf("Failed opening log file \"%s\"\n", filename.get_ptr());
-        return false;
-    }
-    else
-    {
-        vogl_message_printf("Opened log file \"%s\"\n", filename.get_ptr());
-
-        console::set_log_stream(g_vogl_pLog_stream);
-    }
-
-    return true;
+    return console::set_log_stream_filename(filename.c_str(), false);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
