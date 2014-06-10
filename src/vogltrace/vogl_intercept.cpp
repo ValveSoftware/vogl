@@ -100,6 +100,12 @@ typedef vogl::hash_map<CONTEXT_TYPE, vogl_context *, bit_hasher<CONTEXT_TYPE> > 
 bool get_dimensions_from_dc(unsigned int* out_width, unsigned int* out_height, HDC hdc);
 typedef struct _vogl_xlib_trap_state vogl_xlib_trap_state_t;
 
+enum VoglBufferCreateMethod
+{
+    VBCM_BufferData,
+    VBCM_BufferStorage
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Globals
 //----------------------------------------------------------------------------------------------------------------------
@@ -995,9 +1001,12 @@ typedef vogl::hash_map<GLenum, GLuint> gl_buffer_binding_map;
 //----------------------------------------------------------------------------------------------------------------------
 struct gl_buffer_desc
 {
+    VoglBufferCreateMethod m_create_method;
+
     GLuint m_handle;
     int64_t m_size;
-    GLenum m_usage;
+    GLenum m_usage;     // Only one of m_usage or m_flags is non-zero, it depends on how the buffer was created.
+    GLbitfield m_flags;
 
     void *m_pMap;
     int64_t m_map_ofs;
@@ -1023,7 +1032,6 @@ struct gl_buffer_desc
         int64_t m_size;
     };
     vogl::vector<flushed_range> m_flushed_ranges;
-
     inline gl_buffer_desc()
     {
         clear();
@@ -7631,8 +7639,8 @@ static inline void vogl_get_string_helper(const char *pFunc_name, vogl_context *
 // glUnmapNamedBufferEXT
 // glGetNamedBufferSubDataEXT
 
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glNamedBufferDataEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_data_ext_helper(pContext, trace_serializer, buffer, size, data, usage);
-static inline void vogl_named_buffer_data_ext_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLuint buffer, GLsizeiptr size, const GLvoid *data, GLenum usage)
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glNamedBufferDataEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_create_helper(pContext, trace_serializer, VBCM_BufferData, buffer, size, data, usage, 0);
+static inline void vogl_named_buffer_create_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, VoglBufferCreateMethod create_method, GLuint buffer, GLsizeiptr size, const GLvoid *data, GLenum usage, GLbitfield flags)
 {
     VOGL_NOTE_UNUSED(trace_serializer);
 
@@ -7647,8 +7655,10 @@ static inline void vogl_named_buffer_data_ext_helper(vogl_context *pContext, vog
     }
 
     gl_buffer_desc &buf_desc = pContext->get_or_create_buffer_desc(buffer);
+    buf_desc.m_create_method = create_method;
     buf_desc.m_size = size;
     buf_desc.m_usage = usage;
+    buf_desc.m_flags = flags;
 
     if (buf_desc.m_pMap)
     {
@@ -7663,9 +7673,9 @@ static inline void vogl_named_buffer_data_ext_helper(vogl_context *pContext, vog
     buf_desc.m_flushed_ranges.resize(0);
 }
 
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferData(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_data_helper(pContext, trace_serializer, target, size, data, usage);
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferDataARB(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_data_helper(pContext, trace_serializer, target, size, data, usage);
-static inline void vogl_buffer_data_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage)
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferData(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_helper(pContext, trace_serializer, VBCM_BufferData, target, size, data, usage, 0);
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferDataARB(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_helper(pContext, trace_serializer, VBCM_BufferData, target, size, data, usage, 0);
+static inline void vogl_buffer_create_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, VoglBufferCreateMethod create_method, GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage, GLbitfield flags)
 {
     if (!pContext)
         return;
@@ -7680,7 +7690,7 @@ static inline void vogl_buffer_data_helper(vogl_context *pContext, vogl_entrypoi
         return;
     }
 
-    vogl_named_buffer_data_ext_helper(pContext, trace_serializer, buffer, size, data, usage);
+    vogl_named_buffer_create_helper(pContext, trace_serializer, create_method, buffer, size, data, usage, flags);
 }
 
 #define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glNamedBufferSubDataEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_subdata_ext_helper(pContext, trace_serializer, buffer, offset, size, data);
@@ -7985,6 +7995,30 @@ static inline void vogl_unmap_buffer_helper(vogl_context *pContext, vogl_entrypo
     buf_desc.m_map_access = 0;
     buf_desc.m_flushed_ranges.resize(0);
 }
+
+#define DEF_FUNCTION_CUSTOM_GL_PROLOG_glBufferStorage(exported, category, ret, ret_type_enum, num_params, name, args, params) \
+    GLbitfield orig_flags = flags;                                                                                           \
+    vogl_buffer_storage_gl_prolog_helper(pContext, trace_serializer, target, size, data, flags);
+static inline void vogl_buffer_storage_gl_prolog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLenum target, GLsizeiptr size, const GLvoid * data, GLbitfield flags)
+{
+    VOGL_NOTE_UNUSED(pContext);
+    VOGL_NOTE_UNUSED(target);
+    VOGL_NOTE_UNUSED(size);
+    VOGL_NOTE_UNUSED(target);
+
+    if (trace_serializer.is_in_begin() || g_dump_gl_buffers_flag)
+    {
+        if (flags & GL_MAP_WRITE_BIT)
+        {
+            // They are going to write, so we need to be able to read the data.
+            flags |= GL_MAP_READ_BIT;
+        }
+    }
+}
+
+// Deal with ARB_buffer_storage creation. 
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glNamedBufferStorageEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_create_helper(pContext, trace_serializer, VBCM_BufferStorage, buffer, size, data, 0, flags);
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferStorage(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_helper(pContext, trace_serializer, VBCM_BufferStorage, target, size, data, 0, flags);
 
 //----------------------------------------------------------------------------------------------------------------------
 // glCreateProgram/glCreateProgramARB function epilog

@@ -35,6 +35,7 @@ glBlitFramebuffer
 glBlitFramebufferEXT
 glBufferData
 glBufferDataARB
+glBufferStorage
 glCallList
 glCallLists
 glCheckFramebufferStatus
@@ -538,6 +539,7 @@ glMultiDrawArraysEXT
 glMultiDrawElements
 glMultiDrawElementsBaseVertex
 glMultiDrawElementsEXT
+glNamedBufferStorageEXT
 glNamedProgramLocalParameter4fvEXT
 glNamedProgramLocalParameterI4iEXT
 glNamedProgramLocalParameterI4ivEXT

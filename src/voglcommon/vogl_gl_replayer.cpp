@@ -4343,8 +4343,27 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+
+#if VOGL_PLATFORM_HAS_SDL
+        case VOGL_ENTRYPOINT_glXGetCurrentContext:
+        case VOGL_ENTRYPOINT_wglGetCurrentContext:
+        {
+            GLReplayContextType replay_context = SDL_GL_GetCurrentContext();
+            vogl_trace_ptr_value trace_context = trace_packet.get_return_ptr_value();
+
+            break;
+
+            if ((replay_context != 0) != (trace_context != 0))
+            {
+                process_entrypoint_warning("glXGetCurrentContext() returned different results while replaying (0x%" PRIX64 ") vs tracing (0x%" PRIX64 ")!\n", (uint64_t)replay_context, (uint64_t)trace_context);
+            }
+
+            break;
+        }
+#elif VOGL_PLATFORM_HAS_GLX
         case VOGL_ENTRYPOINT_glXGetCurrentContext:
         {
+
             GLReplayContextType replay_context = GL_ENTRYPOINT(glXGetCurrentContext)();
             vogl_trace_ptr_value trace_context = trace_packet.get_return_ptr_value();
 
@@ -4355,6 +4374,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+#else
+#   error "Need to handle *GetCurrentContext for this platform."
+#endif
         case VOGL_ENTRYPOINT_glXCreateWindow:
         case VOGL_ENTRYPOINT_glXDestroyWindow:
         case VOGL_ENTRYPOINT_glXChooseVisual:
@@ -7736,6 +7758,65 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+        case VOGL_ENTRYPOINT_glBufferStorage:
+        {
+            GLenum target = trace_packet.get_param_value<GLenum>(0);
+            vogl_trace_ptr_value size = trace_packet.get_param_value<vogl_trace_ptr_value>(1); // GLsizeiptrARB
+            const GLvoid *data = trace_packet.get_param_client_memory_ptr(2);
+            uint32_t data_size = trace_packet.get_param_client_memory_data_size(2);
+            GLbitfield flags = trace_packet.get_param_value<GLbitfield>(3);
+
+            if ((data) && (static_cast<vogl_trace_ptr_value>(data_size) < size))
+            {
+                process_entrypoint_error("trace's data array is too small\n");
+                return cStatusHardFailure;
+            }
+
+            if (size != static_cast<uintptr_t>(size))
+            {
+                process_entrypoint_error("size parameter is too large (%" PRIu64 ")\n", static_cast<uint64_t>(size));
+                return cStatusHardFailure;
+            }
+
+            uint8_vec temp_vec;
+            if (m_flags & cGLReplayerClearUnintializedBuffers)
+            {
+                if ((!data) && (size))
+                {
+                    temp_vec.resize(static_cast<uint32_t>(size));
+                    data = temp_vec.get_ptr();
+                }
+            }
+
+            g_vogl_actual_gl_entrypoints.m_glBufferStorage(target, static_cast<GLsizeiptr>(size), data, flags);
+
+            if (check_gl_error())
+            {
+                process_entrypoint_error("glBufferStorage() failed\n");
+                return cStatusGLError;
+            }
+
+            GLuint buffer = vogl_get_bound_gl_buffer(target);
+            if (buffer)
+            {
+                vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
+
+                uint32_t i;
+                for (i = 0; i < mapped_bufs.size(); i++)
+                {
+                    if (mapped_bufs[i].m_buffer == buffer)
+                    {
+                        process_entrypoint_warning("glBufferStorage() called on already mapped GL buffer %u, assuming GL will be unmapping it\n", buffer);
+
+                        mapped_bufs.erase_unordered(i);
+                        break;
+                    }
+                }
+            }
+
+            break;
+        }
+
         case VOGL_ENTRYPOINT_glGenVertexArrays:
         {
             if (!gen_handles(get_context_state()->m_vertex_array_objects, trace_packet.get_param_value<GLsizei>(0), static_cast<const GLuint *>(trace_packet.get_param_client_memory_ptr(1)), GL_ENTRYPOINT(glGenVertexArrays), NULL))
