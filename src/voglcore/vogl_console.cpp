@@ -173,29 +173,37 @@ void console::vprintf(const char *caller_info, uint32_t msgtype, const char *p, 
     vogl::vogl_vsprintf_s(pDst, buf_left, p, args);
 
     bool handled = false;
+    bool do_logfile = m_pLog_stream && !(msgtype & cMsgFlagNoLog) && (type <= m_output_level);
 
-    if (m_num_output_funcs)
+    if (do_logfile && (msgtype & cMsgFlagLogOnly))
     {
-        console_func *funcs = get_output_funcs();
-
-        for (uint32_t i = 0; i < m_num_output_funcs; i++)
-        {
-            if (funcs[i].m_func(type, (msgtype & ~cMsgMask), buf, funcs[i].m_pData))
-                handled = true;
-        }
+        // Don't spew to screen - logfile only for this message.
     }
-
-    if (!handled && (type <= m_output_level))
+    else
     {
-        FILE *pFile = (type == cMsgError) ? stderr : stdout;
+        if (m_num_output_funcs)
+        {
+            console_func *funcs = get_output_funcs();
 
-        fputs(buf, pFile);
+            for (uint32_t i = 0; i < m_num_output_funcs; i++)
+            {
+                if (funcs[i].m_func(type, (msgtype & ~cMsgMask), buf, funcs[i].m_pData))
+                    handled = true;
+            }
+        }
+
+        if (!handled && (type <= m_output_level))
+        {
+            FILE *pFile = (type == cMsgError) ? stderr : stdout;
+
+            fputs(buf, pFile);
+        }
     }
 
     uint32_t n = static_cast<uint32_t>(strlen(buf));
     m_at_beginning_of_line = n && (buf[n - 1] == '\n');
 
-    if (!(msgtype & cMsgFlagNoLog) && m_pLog_stream && (type <= m_output_level))
+    if (do_logfile)
     {
         // Yes this is bad.
         dynamic_string tmp_buf(buf);
