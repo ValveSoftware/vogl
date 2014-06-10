@@ -110,8 +110,8 @@ QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment()
         }
 
         QString LD_PRELOAD = appDirectory.absoluteFilePath(
-                    "../../vogl_build/bin/libvogltrace64.so:"
-                    "../../vogl_build/bin/libvogltrace32.so");
+                    "../../vogl_build/libvogltrace64.so:"
+                    "../../vogl_build/libvogltrace32.so");
 
         if (getenv("LD_PRELOAD"))
         {
