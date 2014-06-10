@@ -11,10 +11,10 @@ vogleditor_QLaunchTracerDialog::vogleditor_QLaunchTracerDialog(QWidget *parent) 
     ui->setupUi(this);
 
     QDir appDirectory(QCoreApplication::applicationDirPath());
-    QDir steamLauncherDir(appDirectory.absoluteFilePath("../../bin/"));
+    QDir vogltraceDir(appDirectory.absoluteFilePath("../../bin/"));
 
     // only enable the steam launcher box if the script is available
-    ui->steamLauncherCheckBox->setEnabled(steamLauncherDir.exists("steamlauncher.sh"));
+    ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists("vogl_trace.sh"));
 }
 
 vogleditor_QLaunchTracerDialog::~vogleditor_QLaunchTracerDialog()
@@ -28,15 +28,15 @@ QString vogleditor_QLaunchTracerDialog::get_command_line()
 
     QString cmdline;
     QString executable;
-    if (ui->steamLauncherCheckBox->isChecked())
+    if (ui->vogltraceCheckBox->isChecked())
     {
-        executable = appDirectory.absoluteFilePath("../../bin/steamlauncher.sh ");
+        executable = appDirectory.absoluteFilePath("../../bin/vogl_trace.sh ");
 
         cmdline += get_application_to_launch();
 
         if (get_trace_file_path().size() > 0)
         {
-            cmdline += " --vogl_tracefile " + get_trace_file_path();
+            cmdline += " --vogl_tracefile=" + get_trace_file_path();
         }
 
         if (ui->forceDebugContextCheckBox->isChecked())
@@ -81,7 +81,7 @@ QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment()
 
     m_process_environment = QProcessEnvironment::systemEnvironment();
 
-    if (ui->steamLauncherCheckBox->isChecked() == false)
+    if (ui->vogltraceCheckBox->isChecked() == false)
     {
         if (get_trace_file_path().size() > 0)
         {
@@ -186,6 +186,6 @@ void vogleditor_QLaunchTracerDialog::on_findTraceFileButton_clicked()
     }
 }
 
-void vogleditor_QLaunchTracerDialog::on_steamLauncherCheckBox_clicked(bool checked)
+void vogleditor_QLaunchTracerDialog::on_vogltraceCheckBox_clicked(bool checked)
 {
 }

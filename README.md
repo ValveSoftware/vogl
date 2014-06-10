@@ -40,7 +40,7 @@ cd vogl_build/bin
 VOGL_CMD_LINE="--vogl_tracefile vogltrace.glxspheres64.bin" LD_PRELOAD=$(readlink -f libvogltrace64.so) ./glxspheres64  
 ```
 
-For capturing Steam games, please see the steamlauncher.sh script in the chroot repository:
+For capturing Steam games, please see the vogl_trace.sh script in the chroot repository:
 
 https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/src/sl.cpp?at=master
 
