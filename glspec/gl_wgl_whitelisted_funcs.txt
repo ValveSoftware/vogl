@@ -4,6 +4,7 @@ wglCreateContext
 wglCreateContextAttribsARB
 wglDeleteContext
 wglDescribePixelFormat
+wglGetCurrentContext
 wglGetExtensionsStringARB
 wglGetPixelFormat
 wglGetProcAddress

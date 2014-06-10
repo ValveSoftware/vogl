@@ -26,7 +26,7 @@ category: VERSION_1_0 VERSION_1_1 VERSION_1_2 VERSION_1_3 VERSION_1_4 VERSION_1_
 category: 3DFX_tbuffer
 category: AMD_conservative_depth AMD_debug_output AMD_draw_buffers_blend AMD_multi_draw_indirect AMD_name_gen_delete AMD_performance_monitor AMD_sample_positions AMD_sparse_texture AMD_stencil_operation_extended AMD_vertex_shader_tessellator
 category: APPLE_aux_depth_stencil APPLE_element_array APPLE_fence APPLE_float_pixels APPLE_flush_buffer_range APPLE_object_purgeable APPLE_row_bytes APPLE_texture_range APPLE_vertex_array_object APPLE_vertex_array_range APPLE_vertex_program_evaluators
-category: ARB_ES2_compatibility ARB_base_instance ARB_blend_func_extended ARB_cl_event ARB_color_buffer_float ARB_copy_buffer ARB_debug_output ARB_depth_buffer_float ARB_draw_buffers ARB_draw_buffers_blend ARB_draw_elements_base_vertex ARB_draw_indirect ARB_draw_instanced ARB_fragment_program ARB_fragment_shader ARB_framebuffer_object ARB_framebuffer_sRGB ARB_geometry_shader4 ARB_get_program_binary ARB_gpu_shader_fp64 ARB_half_float_vertex ARB_instanced_arrays ARB_internalformat_query ARB_map_buffer_range ARB_matrix_palette ARB_multisample ARB_multitexture ARB_occlusion_query ARB_point_parameters ARB_provoking_vertex ARB_robustness ARB_sample_shading ARB_sampler_objects ARB_separate_shader_objects ARB_shader_atomic_counters ARB_shader_image_load_store ARB_shader_objects ARB_shader_subroutine ARB_shading_language_include ARB_sync ARB_tessellation_shader ARB_texture_buffer_object ARB_texture_compression ARB_texture_compression_rgtc ARB_texture_multisample ARB_texture_rectangle ARB_texture_rg ARB_texture_storage ARB_timer_query ARB_transform_feedback2 ARB_transform_feedback3 ARB_transform_feedback_instanced ARB_transpose_matrix ARB_uniform_buffer_object ARB_vertex_array_object ARB_vertex_attrib_64bit ARB_vertex_blend ARB_vertex_buffer_object ARB_vertex_program ARB_vertex_shader ARB_vertex_type_2_10_10_10_rev ARB_viewport_array ARB_window_pos
+category: ARB_ES2_compatibility ARB_base_instance ARB_blend_func_extended ARB_buffer_storage ARB_cl_event ARB_color_buffer_float ARB_copy_buffer ARB_debug_output ARB_depth_buffer_float ARB_draw_buffers ARB_draw_buffers_blend ARB_draw_elements_base_vertex ARB_draw_indirect ARB_draw_instanced ARB_fragment_program ARB_fragment_shader ARB_framebuffer_object ARB_framebuffer_sRGB ARB_geometry_shader4 ARB_get_program_binary ARB_gpu_shader_fp64 ARB_half_float_vertex ARB_instanced_arrays ARB_internalformat_query ARB_map_buffer_range ARB_matrix_palette ARB_multisample ARB_multitexture ARB_occlusion_query ARB_point_parameters ARB_provoking_vertex ARB_robustness ARB_sample_shading ARB_sampler_objects ARB_separate_shader_objects ARB_shader_atomic_counters ARB_shader_image_load_store ARB_shader_objects ARB_shader_subroutine ARB_shading_language_include ARB_sync ARB_tessellation_shader ARB_texture_buffer_object ARB_texture_compression ARB_texture_compression_rgtc ARB_texture_multisample ARB_texture_rectangle ARB_texture_rg ARB_texture_storage ARB_timer_query ARB_transform_feedback2 ARB_transform_feedback3 ARB_transform_feedback_instanced ARB_transpose_matrix ARB_uniform_buffer_object ARB_vertex_array_object ARB_vertex_attrib_64bit ARB_vertex_blend ARB_vertex_buffer_object ARB_vertex_program ARB_vertex_shader ARB_vertex_type_2_10_10_10_rev ARB_viewport_array ARB_window_pos
 category: ARB_clear_buffer_object ARB_compute_shader ARB_copy_image ARB_framebuffer_no_attachments ARB_internalformat_query2 ARB_invalidate_subdata ARB_multi_draw_indirect ARB_program_interface_query ARB_shader_storage_buffer_object ARB_texture_buffer_range ARB_texture_storage_multisample ARB_texture_view ARB_vertex_attrib_binding
 category: ATI_draw_buffers ATI_draw_buffers ATI_element_array ATI_envmap_bumpmap ATI_fragment_shader ATI_map_object_buffer ATI_meminfo ATI_pn_triangles ATI_separate_stencil ATI_texture_env_combine3 ATI_texture_float ATI_vertex_array_object ATI_vertex_attrib_array_object ATI_vertex_streams
 category: EXT_bindable_uniform EXT_blend_color EXT_blend_equation_separate EXT_blend_func_separate EXT_blend_minmax EXT_color_subtable EXT_compiled_vertex_array EXT_convolution EXT_coordinate_frame EXT_copy_texture EXT_cull_vertex EXT_depth_bounds_test EXT_direct_state_access EXT_draw_buffers2 EXT_draw_instanced EXT_draw_range_elements EXT_fog_coord EXT_framebuffer_blit EXT_framebuffer_multisample EXT_framebuffer_object EXT_geometry_shader4 EXT_gpu_program_parameters EXT_gpu_shader4 EXT_histogram EXT_index_func EXT_index_material EXT_light_texture EXT_multi_draw_arrays EXT_multisample EXT_paletted_texture EXT_pixel_transform EXT_point_parameters EXT_polygon_offset EXT_provoking_vertex EXT_secondary_color EXT_separate_shader_objects EXT_shader_image_load_store EXT_stencil_clear_tag EXT_stencil_two_side EXT_subtexture EXT_texture3D EXT_texture_buffer_object EXT_texture_integer EXT_texture_object EXT_texture_perturb_normal EXT_texture_snorm EXT_texture_swizzle EXT_timer_query EXT_transform_feedback EXT_vertex_array EXT_vertex_array_bgra EXT_vertex_attrib_64bit EXT_vertex_shader EXT_vertex_weighting EXT_x11_sync_object
@@ -16406,6 +16406,39 @@ TextureStorage3DMultisampleEXT(texture, target, samples, internalformat, width, 
 	param		depth		SizeI in value
 	param		fixedsamplelocations	Boolean in value
 	category	ARB_texture_storage_multisample
+	version		4.3
+	extension
+	glxropcode	?
+	glxflags	ignore
+	offset		?
+
+###############################################################################
+# Added: vMcJohn (20140606)
+# Extension #ARB144
+# ARB_buffer_storage commands
+#
+###############################################################################
+
+BufferStorage(target, size, data, flags)
+	return		void
+	param		target		GLenum in value
+	param		size		Sizeiptr in value
+	param		data		ConstVoid in array [size]
+	param		flags		GLbitfield in value
+	category	ARB_buffer_storage
+	version		4.3
+	extension
+	glxropcode	?
+	glxflags	ignore
+	offset		?
+
+NamedBufferStorageEXT(buffer, size, data, flags)
+	return		void
+	param		buffer		UInt32 in value
+	param		size		Sizeiptr in value
+	param		data		ConstVoid in array [size]
+	param		flags		GLbitfield in value
+	category	ARB_buffer_storage
 	version		4.3
 	extension
 	glxropcode	?
