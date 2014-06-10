@@ -8000,7 +8000,7 @@ static inline void vogl_unmap_buffer_helper(vogl_context *pContext, vogl_entrypo
     GLbitfield orig_flags = flags;                                                                                            \
     VOGL_NOTE_UNUSED(orig_flags);                                                                                             \
     vogl_buffer_storage_gl_prolog_helper(pContext, trace_serializer, target, size, data, flags);
-static inline void vogl_buffer_storage_gl_prolog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLenum target, GLsizeiptr size, const GLvoid * data, GLbitfield flags)
+static inline void vogl_buffer_storage_gl_prolog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLenum target, GLsizeiptr size, const GLvoid * data, GLbitfield& flags)
 {
     VOGL_NOTE_UNUSED(pContext);
     VOGL_NOTE_UNUSED(target);
