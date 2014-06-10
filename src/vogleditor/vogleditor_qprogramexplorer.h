@@ -48,6 +48,7 @@ private:
 
     Ui::vogleditor_QProgramExplorer *ui;
     vogl_gl_object_state_ptr_vec m_objects;
+    vogl::vector<vogl_context_snapshot*> m_sharing_contexts;
 
     uint add_program_objects(vogl_gl_object_state_ptr_vec objects);
 

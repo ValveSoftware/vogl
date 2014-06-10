@@ -68,11 +68,14 @@ void vogleditor_QProgramExplorer::clear()
     ui->shaderListBox->clear();
     ui->shaderTextEdit->clear();
     m_objects.clear();
+    m_sharing_contexts.clear();
 }
 
 uint vogleditor_QProgramExplorer::set_program_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
 {
     clear();
+
+    m_sharing_contexts = sharingContexts;
 
     uint programCount = 0;
     for (uint c = 0; c < sharingContexts.size(); c++)
@@ -90,6 +93,8 @@ uint vogleditor_QProgramExplorer::add_program_objects(vogl_gl_object_state_ptr_v
 {
     m_objects.append(objects);
 
+    GLuint64 curProgram = m_sharing_contexts[0]->get_general_state().get_value<GLuint64>(GL_CURRENT_PROGRAM);
+
     for (vogl_gl_object_state_ptr_vec::iterator iter = objects.begin(); iter != objects.end(); iter++)
     {
         if ((*iter)->get_type() == cGLSTProgram)
@@ -98,6 +103,11 @@ uint vogleditor_QProgramExplorer::add_program_objects(vogl_gl_object_state_ptr_v
 
             QString valueStr;
             valueStr = valueStr.sprintf("Program %" PRIu64, pState->get_snapshot_handle());
+
+            if (curProgram == pState->get_snapshot_handle())
+            {
+                valueStr += " (bound)";
+            }
 
             ui->programListBox->addItem(valueStr, QVariant::fromValue(pState));
         }
