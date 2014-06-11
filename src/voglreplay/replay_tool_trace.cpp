@@ -313,7 +313,7 @@ tool_trace_mode(vogl::vector<command_line_param_desc> *desc)
         // Add the xterm command part.
         xterm_str += " -e ";
     }
-        
+
     if (is_steam_file)
     {
         // set up xterm string
@@ -347,7 +347,7 @@ tool_trace_mode(vogl::vector<command_line_param_desc> *desc)
             system(system_cmd.c_str());
     }
 
-    return 0;
+    return true;
 }
 
 // Current list of Linux Games from http://steamdb.info/linux/

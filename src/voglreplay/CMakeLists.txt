@@ -1,4 +1,4 @@
-project(voglreplay)
+project(vogl)
 cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")

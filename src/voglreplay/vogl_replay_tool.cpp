@@ -95,7 +95,7 @@ static const command_t g_options[] =
 #define XDEF(_x, _desc, _args) { #_x, _desc, tool_ ## _x ## _mode, _args }
     XDEF(play, "Play trace file", "<input JSON/blob trace filename>"),
     XDEF(replay, "Replay trace file with extended options for trimming, validation, interactive mode, and snapshots", "<input JSON/blob trace filename>"),
-    XDEF(trace, "Generate trace file", "<SteamID or path to application>"),
+    XDEF(trace, "Generate trace file", "<Steam AppID / local game filename>"),
     XDEF(info, "Output statistics about a trace file", "<input JSON/blob trace filename>"),
     XDEF(find, "Find all calls with parameters containing a specific value", "<input JSON/blob trace filename>"),
     XDEF(compare_hash_files, "Comparing hash/sum files", "<input hash filename1> <input hash filename2>"),
@@ -136,7 +136,7 @@ static void tool_print_title()
 {
     VOGL_FUNC_TRACER
 
-    printf("voglreplay ");
+    printf("vogl ");
     if (sizeof(void *) > 4)
         vogl_printf("64-bit ");
     else
@@ -162,15 +162,15 @@ static void vogl_replay_deinit()
 //----------------------------------------------------------------------------------------------------------------------
 // tool_print_help
 //----------------------------------------------------------------------------------------------------------------------
-VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_line_param_desc *descs, size_t descs_count)
+VOGL_NORETURN static void tool_print_help(const char *exename, const command_t *cmd, const command_line_param_desc *descs, size_t descs_count)
 {
     VOGL_FUNC_TRACER
 
     if (cmd == NULL)
     {
-        vogl_printf("\nUsage: voglreplay [--help] <command> [<args>]\n\n");
+        vogl_printf("\nUsage: %s [--help] <command> [<args>]\n\n", exename);
 
-        printf("The voglreplay commands are:\n");
+        printf("The vogl commands are:\n");
         for (size_t i = 0; i < g_options_count; i++)
         {
             vogl_message_printf("  %s:", g_options[i].name);
@@ -181,7 +181,7 @@ VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_li
     else
     {
         vogl_printf("\nUsage: ");
-        vogl_message_printf("voglreplay %s %s", cmd->name, cmd->filename_args);
+        vogl_message_printf("%s %s %s", exename, cmd->name, cmd->filename_args);
         vogl_printf(" [<args>]\n\n");
 
         if (descs_count)
@@ -201,11 +201,11 @@ VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_li
         else if (!vogl_strcmp(cmd->name, "trace"))
         {
             vogl_printf("\nTrace examples:\n");
-            vogl_printf("  ./voglreplay64 trace 440\n");
-            vogl_printf("  ./voglreplay64 trace ./glxspheres64\n");
-            vogl_printf("  ./voglreplay64 trace ./glxspheres32 -- -in\n");
-            vogl_printf("  ./voglreplay64 trace --vogl_verbose --vogl_backtrace_no_calls 710 -- -dev\n");
-            vogl_printf("  ./voglreplay32 trace ./glxspheres64 --xterm -- -i\n");
+            vogl_printf("  ./vogl64 trace 440\n");
+            vogl_printf("  ./vogl64 trace ./glxspheres64\n");
+            vogl_printf("  ./vogl64 trace ./glxspheres32 -- -in\n");
+            vogl_printf("  ./vogl64 trace --vogl_verbose --vogl_backtrace_no_calls 710 -- -dev\n");
+            vogl_printf("  ./vogl32 trace ./glxspheres64 --xterm -- -i\n");
         }
     }
 
@@ -234,20 +234,20 @@ static const command_t *init_command_line_params(int argc, char *argv[])
             
     dynamic_string_array args = get_command_line_params(argc, argv);
     if (args.size() <= 1)
-        tool_print_help(NULL, NULL, 0);
+        tool_print_help(argv[0], NULL, NULL, 0);
 
     if ((args[1] == "help") || (args[1] == "--help") || (args[1] == "-h") || (args[1] == "-?"))
     {
         if (args.size() > 2)
         {
-            // Transform "voglreplay --help command" to "voglreplay command --help".
+            // Transform "vogl --help command" to "vogl command --help".
             args[1] = args[2];
             args[2] = "--help";
         }
         else
         {
             // Spew command help and exit.
-            tool_print_help(NULL, NULL, 0);
+            tool_print_help(argv[0], NULL, NULL, 0);
         }
     }
 
@@ -265,8 +265,8 @@ static const command_t *init_command_line_params(int argc, char *argv[])
     if (!cmd)
     {
         // Command not found: spew command help and exit.
-        vogl_error_printf("Unknown voglreplay command '%s'.\n", args[1].c_str());
-        tool_print_help(NULL, NULL, 0);
+        vogl_error_printf("Unknown vogl command '%s'.\n", args[1].c_str());
+        tool_print_help(argv[0], NULL, NULL, 0);
     }
 
     vogl::vector<command_line_param_desc> cmdline_desc;
@@ -277,7 +277,7 @@ static const command_t *init_command_line_params(int argc, char *argv[])
     for (size_t i = 0; i < args.size(); i++)
     {
         if ((args[i] == "help") || (args[i] == "--help") || (args[i] == "-h") || (args[i] == "-?"))
-            tool_print_help(cmd, cmdline_desc.get_ptr(), cmdline_desc.size());
+            tool_print_help(argv[0], cmd, cmdline_desc.get_ptr(), cmdline_desc.size());
     }
 
     // If we're doing a playback, add the --benchmark flag by default.
@@ -456,7 +456,7 @@ static int xerror_handler(Display *dsp, XErrorEvent *error)
     char error_string[256];
     XGetErrorText(dsp, error->error_code, error_string, sizeof(error_string));
 
-    vogl_error_printf("voglreplay: Fatal X Windows Error: %s\n", error_string);
+    vogl_error_printf("vogl Fatal X Windows Error: %s\n", error_string);
     abort();
 }
 

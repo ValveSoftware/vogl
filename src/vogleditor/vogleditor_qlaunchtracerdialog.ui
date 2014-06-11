@@ -133,7 +133,7 @@
       <string/>
      </property>
      <property name="text">
-      <string>Use vogl_trace.sh</string>
+     <string>Use vogl tool</string>
      </property>
      <property name="checked">
       <bool>false</bool>

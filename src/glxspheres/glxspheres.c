@@ -554,6 +554,7 @@ void usage(char **argv)
 int main(int argc, char **argv)
 {
     int i;
+    int ret = -1;
     int screen = -1;
     int usealpha = 0;
     int fullscreen = 0;
@@ -720,9 +721,9 @@ int main(int argc, char **argv)
         go_fullscreen(window, screen);
     }
 
-    event_loop(window);
+    ret = event_loop(window);
 
 bailout:
     SDL_Quit();
-    return -1;
+    return ret;
 }

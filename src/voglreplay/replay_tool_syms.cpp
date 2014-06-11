@@ -364,7 +364,7 @@ bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc)
             if (trace_file_arch_is_64bits != is_64bit)
             {
                 const char *arch_str = is_64bit ? "64-bit" : "32-bit";
-                vogl_error_printf("ERROR: voglreplay is %s, tracefile is %s.\n", arch_str, tracefile_arch.c_str());
+                vogl_error_printf("ERROR: vogl tool is %s, tracefile is %s.\n", arch_str, tracefile_arch.c_str());
                 vogl_error_printf("ERROR: Same architecture required to resolve symbols.\n");
                 return -1;
             }

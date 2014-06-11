@@ -561,12 +561,8 @@ VoglEditor::Prompt_Result VoglEditor::prompt_trim_trace_file(QString filename, u
     arguments << "replay" << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
 
     QDir appDirectory(QCoreApplication::applicationDirPath());
-#ifdef __i386__
-    QString executable = appDirectory.absoluteFilePath("./voglreplay32");
-#else
-    QString executable = appDirectory.absoluteFilePath("./voglreplay64");
-#endif
 
+    QString executable = appDirectory.absoluteFilePath((sizeof(void *) > 4) ? "./vogl64" : "./vogl32");
     QString cmdLine = executable + " " + arguments.join(" ");
 
     vogleditor_output_message("Trimming trace file");

@@ -689,7 +689,7 @@ static int do_interactive_mode(replay_data_t &rdata)
                                                              json_trim_base_filename.get_ptr());
                     if (system(convert_to_json_spawn_str.get_ptr()) != 0)
                     {
-                        vogl_error_printf("Failed running voglreplay: %s\n", convert_to_json_spawn_str.get_ptr());
+                        vogl_error_printf("Failed running %s: %s\n", voglreplay_exec_filename, convert_to_json_spawn_str.get_ptr());
                     }
                     else
                     {

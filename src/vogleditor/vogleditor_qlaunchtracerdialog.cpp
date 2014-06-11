@@ -11,10 +11,10 @@ vogleditor_QLaunchTracerDialog::vogleditor_QLaunchTracerDialog(QWidget *parent) 
     ui->setupUi(this);
 
     QDir appDirectory(QCoreApplication::applicationDirPath());
-    QDir vogltraceDir(appDirectory.absoluteFilePath("../../bin/"));
+    QDir vogltraceDir(appDirectory.absoluteFilePath("./"));
 
     // only enable the steam launcher box if the script is available
-    ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists("vogl_trace.sh"));
+    ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists((sizeof(void *) > 4) ? "vogl64" : "vogl32"));
 }
 
 vogleditor_QLaunchTracerDialog::~vogleditor_QLaunchTracerDialog()
@@ -30,13 +30,14 @@ QString vogleditor_QLaunchTracerDialog::get_command_line()
     QString executable;
     if (ui->vogltraceCheckBox->isChecked())
     {
-        executable = appDirectory.absoluteFilePath("../../bin/vogl_trace.sh ");
+        executable = appDirectory.absoluteFilePath((sizeof(void *) > 4) ? "./vogl64" : "./vogl32");
+        executable += " trace ";
 
         cmdline += get_application_to_launch();
 
         if (get_trace_file_path().size() > 0)
         {
-            cmdline += " --vogl_tracefile=" + get_trace_file_path();
+            cmdline += " --vogl_tracefile " + get_trace_file_path();
         }
 
         if (ui->forceDebugContextCheckBox->isChecked())
@@ -109,9 +110,9 @@ QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment()
             m_process_environment.insert("VOGL_CMD_LINE", VOGL_CMD_LINE);
         }
 
-        QString LD_PRELOAD = appDirectory.absoluteFilePath(
-                    "../../vogl_build/libvogltrace64.so:"
-                    "../../vogl_build/libvogltrace32.so");
+        QString libvogltrace32 = appDirectory.absoluteFilePath("./libvogltrace32.so");
+        QString libvogltrace64 = appDirectory.absoluteFilePath("./libvogltrace64.so");
+        QString LD_PRELOAD = libvogltrace32 + ":" + libvogltrace64;
 
         if (getenv("LD_PRELOAD"))
         {
