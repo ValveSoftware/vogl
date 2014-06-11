@@ -24,7 +24,6 @@
  **************************************************************************/
 
 // File: replay_tool_trace.cpp
-#include <libgen.h>
 #include <iomanip>
 #include <sstream>
 
@@ -54,6 +53,8 @@ tool_trace_mode(vogl::vector<command_line_param_desc> *desc)
 }
 
 #else
+
+#include <libgen.h>
 
 static command_line_param_desc g_command_line_param_descs_dump[] =
 {

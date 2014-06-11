@@ -622,7 +622,7 @@ bool vogl_console_init(bool doinit)
     }
 
    
-    char exec_fname[PATH_MAX];
+    char exec_fname[VOGL_MAX_PATH];
 	file_utils::get_exec_filename(exec_fname, sizeof(exec_fname));
     exec_fname[sizeof(exec_fname) - 1] = 0;
 
