@@ -23,54 +23,45 @@
  *
  **************************************************************************/
 
-struct tracer_cmdline_opts_t
+static const command_line_param_desc g_tracer_cmdline_opts[] =
 {
-    const char *name;
-    unsigned int num_values;
-    const char *desc;
-    int group;
-    const char *arg_name;
-};
+    { "vogl_tracefile", 1, false, "Tracefile name." },
+    { "vogl_logfile", 1, false, "Spew output to logfile." },
 
-static const tracer_cmdline_opts_t g_tracer_cmdline_opts[] =
-{
-    { "vogl_tracefile", 1, "Tracefile name.", 10, "TRACEFILE" },
-    { "vogl_logfile", 1, "Spew output to logfile.", 10, "LOGFILE" },
+    { "vogl_pause", 0, false, "Pause until debugger attaches." },
+    { "vogl_quiet", 0, false, "Don't print vogl warnings." },
+    { "vogl_verbose", 0, false, "Print verbose messages." },
+    { "vogl_debug", 0, false, "Print debug messages and run extra validation code." },
 
-    { "vogl_pause", 0, "Pause until debugger attaches.", 20, NULL },
-    { "vogl_quiet", 0, "Don't print vogl warnings.", 20, NULL },
-    { "vogl_verbose", 0, "Print verbose messages.", 20, NULL },
-    { "vogl_debug", 0, "Print debug messages and run extra validation code.", 20, NULL },
+    { "vogl_force_debug_context", 0, false, "Use OpenGL debug context." },
 
-    { "vogl_force_debug_context", 0, "Use OpenGL debug context.", 30, NULL },
+    { "vogl_backtrace_all_calls", 0, false, "Get backtraces for all gl calls." },
+    { "vogl_backtrace_no_calls", 0, false, "Don't backtrace any calls." },
 
-    { "vogl_backtrace_all_calls", 0, "Get backtraces for all gl calls.", 30, NULL },
-    { "vogl_backtrace_no_calls", 0, "Don't backtrace any calls.", 30, NULL },
-
-    { "vogl_dump_gl_calls", 0, "Dump all gl calls.", 40, NULL },
-    { "vogl_dump_gl_buffers", 0, "Dump all gl buffers.", 40, NULL },
-    { "vogl_dump_gl_shaders", 0, "Dump all gl shaders.", 40, NULL },
-    { "vogl_dump_gl_full", 0, "Dump all gl calls, buffers, and shaders.", 40, NULL },
-    { "vogl_sleep_at_startup", 1, "Sleep for X seconds at startup.", 40, "TIME" },
-    { "vogl_flush_files_after_each_call", 0, "Flush trace files after each packet write.", 40, NULL },
-    { "vogl_flush_files_after_each_swap", 0, "Flush trace files after glXSwapBuffer.", 40, NULL },
-    { "vogl_disable_signal_interception", 0, "Don't set exception handler.", 40, NULL },
-    { "vogl_tracepath", 1, "Default tracefile path.", 40, NULL },
-    { "vogl_dump_png_screenshots", 0, "Save png screenshots.", 40, NULL },
-    { "vogl_dump_jpeg_screenshots", 0, "Save jpeg screenshots.", 40, NULL },
-    { "vogl_jpeg_quality", 0, "Screenshot jpeg quality.", 40, NULL },
-    { "vogl_screenshot_prefix", 1, "Screenshot prefix", 40, "PREFIX" },
-    { "vogl_hash_backbuffer", 0, "Do crc64 for framebuffer.", 40, NULL },
-    { "vogl_sum_hashing", 0, "Do sum64 for framebuffer.", 40, NULL },
-    { "vogl_dump_backbuffer_hashes", 1, "Print backbuffer hash values.", 40, "FILENAME" },
-    { "vogl_null_mode", 0, "Simple null renderer.", 40, NULL },
-    { "vogl_disable_client_side_array_tracing", 0, "Disable client side arrays which can impact performance.", 40, NULL },
-    { "vogl_disable_gl_program_binary", 0, "Remove GL_ARB_get_program_binary.", 40, NULL },
-    { "vogl_exit_after_x_frames", 1, "Call exit() after X frames.", 40, "COUNT" },
+    { "vogl_dump_gl_calls", 0, false, "Dump all gl calls." },
+    { "vogl_dump_gl_buffers", 0, false, "Dump all gl buffers." },
+    { "vogl_dump_gl_shaders", 0, false, "Dump all gl shaders." },
+    { "vogl_dump_gl_full", 0, false, "Dump all gl calls, buffers, and shaders." },
+    { "vogl_sleep_at_startup", 1, false, "Sleep for X seconds at startup." },
+    { "vogl_flush_files_after_each_call", 0, false, "Flush trace files after each packet write." },
+    { "vogl_flush_files_after_each_swap", 0, false, "Flush trace files after glXSwapBuffer." },
+    { "vogl_disable_signal_interception", 0, false, "Don't set exception handler." },
+    { "vogl_tracepath", 1, false, "Default tracefile path." },
+    { "vogl_dump_png_screenshots", 0, false, "Save png screenshots." },
+    { "vogl_dump_jpeg_screenshots", 0, false, "Save jpeg screenshots." },
+    { "vogl_jpeg_quality", 1, false, "Screenshot jpeg quality." },
+    { "vogl_screenshot_prefix", 1, false, "Screenshot prefix" },
+    { "vogl_hash_backbuffer", 0, false, "Do crc64 for framebuffer." },
+    { "vogl_sum_hashing", 0, false, "Do sum64 for framebuffer." },
+    { "vogl_dump_backbuffer_hashes", 1, false, "Print backbuffer hash values." },
+    { "vogl_null_mode", 0, false, "Simple null renderer." },
+    { "vogl_disable_client_side_array_tracing", 0, false, "Disable client side arrays which can impact performance." },
+    { "vogl_disable_gl_program_binary", 0, false, "Remove GL_ARB_get_program_binary." },
+    { "vogl_exit_after_x_frames", 1, false, "Call exit() after X frames." },
 #ifdef VOGL_REMOTING
-    { "vogl_traceport", 1, "Vogl remote port.", 50 },
+    { "vogl_traceport", 1, false, "Vogl remote port." },
 #endif
 #if VOGL_FUNCTION_TRACING
-    { "vogl_func_tracing", 0, "Print called vogl functions.", 50 },
+    { "vogl_func_tracing", 0, false, "Print called vogl functions." },
 #endif
 };

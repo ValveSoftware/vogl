@@ -39,6 +39,7 @@ bool tool_compare_hash_files_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_play_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_trace_mode(vogl::vector<command_line_param_desc> *desc);
 
 //----------------------------------------------------------------------------------------------------------------------
 // globals
@@ -94,6 +95,7 @@ static const command_t g_options[] =
 #define XDEF(_x, _desc, _args) { #_x, _desc, tool_ ## _x ## _mode, _args }
     XDEF(play, "Play trace file", "<input JSON/blob trace filename>"),
     XDEF(replay, "Replay trace file with extended options for trimming, validation, interactive mode, and snapshots", "<input JSON/blob trace filename>"),
+    XDEF(trace, "Generate trace file", "<SteamID or path to application>"),
     XDEF(info, "Output statistics about a trace file", "<input JSON/blob trace filename>"),
     XDEF(find, "Find all calls with parameters containing a specific value", "<input JSON/blob trace filename>"),
     XDEF(compare_hash_files, "Comparing hash/sum files", "<input hash filename1> <input hash filename2>"),
@@ -196,6 +198,15 @@ VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_li
             vogl_printf("\nInteractive replay mode keys:\n");
             dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_interactive_descs), g_command_line_interactive_descs, " ", true);
         }
+        else if (!vogl_strcmp(cmd->name, "trace"))
+        {
+            vogl_printf("\nTrace examples:\n");
+            vogl_printf("  ./voglreplay64 trace 440\n");
+            vogl_printf("  ./voglreplay64 trace ./glxspheres64\n");
+            vogl_printf("  ./voglreplay64 trace ./glxspheres32 -- -in\n");
+            vogl_printf("  ./voglreplay64 trace --vogl_verbose --vogl_backtrace_no_calls 710 -- -dev\n");
+            vogl_printf("  ./voglreplay32 trace ./glxspheres64 --xterm -- -i\n");
+        }
     }
 
     vogl_replay_deinit();
@@ -209,6 +220,18 @@ static const command_t *init_command_line_params(int argc, char *argv[])
 {
     VOGL_FUNC_TRACER
 
+    // Skip everything after "--" or "--args" - let others pass those to processes they launch.
+    const dynamic_string argsdelim0 = "--";
+    const dynamic_string argsdelim1 = "--args";
+    for (int i = 0; i < argc; i++)
+    {
+        if (argv[i] == argsdelim0 || argv[i] == argsdelim1)
+        {
+            argc = i;
+            break;
+        }
+    }
+            
     dynamic_string_array args = get_command_line_params(argc, argv);
     if (args.size() <= 1)
         tool_print_help(NULL, NULL, 0);

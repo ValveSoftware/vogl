@@ -603,20 +603,7 @@ bool vogl_console_init(bool doinit)
     parse_cfg.m_ignore_unrecognized_params = pEnv_cmd_line ? false : true;
     parse_cfg.m_pParam_accept_prefix = "vogl_";
 
-    vogl::vector<command_line_param_desc> command_line_param_descs;
-    for (size_t i = 0; i < VOGL_ARRAY_SIZE(g_tracer_cmdline_opts); i++)
-    {
-        command_line_param_desc desc;
-
-        desc.m_pName = g_tracer_cmdline_opts[i].name;
-        desc.m_num_values = g_tracer_cmdline_opts[i].num_values;
-        desc.m_support_listing_file = false;
-        desc.m_pDesc = g_tracer_cmdline_opts[i].desc;
-
-        command_line_param_descs.push_back(desc);
-    }
-
-    if (!g_command_line_params().parse(cmd_line_params, command_line_param_descs.size(), command_line_param_descs.get_ptr(), parse_cfg))
+    if (!g_command_line_params().parse(cmd_line_params, VOGL_ARRAY_SIZE(g_tracer_cmdline_opts), g_tracer_cmdline_opts, parse_cfg))
     {
         vogl_error_printf("Failed parsing command line parameters\n");
         VOGL_ASSERT(false);
@@ -5186,7 +5173,8 @@ static void vogl_check_for_capture_trigger_file()
     if (!success)
         vogl_error_printf("Failed enabling capture mode\n");
     else
-        vogl_message_printf("Successfully enabled capture mode, will capture up to %u frame(s), override path \"%s\", override base_name \"%s\"\n", total_frames, path.get_ptr(), base_name.get_ptr());
+        vogl_message_printf("Successfully enabled capture mode, will capture up to %u frame(s), override path \"%s\", override base_name \"%s\"\n",
+                            total_frames, path.get_ptr(), base_name.get_ptr());
 }
 
 #if (VOGL_PLATFORM_HAS_GLX)
@@ -5482,8 +5470,7 @@ static void vogl_check_for_capture_trigger_file()
 
             if (get_vogl_trace_writer().is_opened())
             {
-                VOGL_FUNC_TRACER
-                    vogl_end_capture();
+                vogl_end_capture();
                 return;
             }
         }
@@ -5506,15 +5493,21 @@ static void vogl_check_for_capture_trigger_file()
             if (!get_vogl_intercept_data().capture_basename.is_empty())
                 trace_basename = get_vogl_intercept_data().capture_basename;
 
-            dynamic_string filename(cVarArg, "%s_%04d_%02d_%02d_%02d_%02d_%02d.bin", trace_basename.get_ptr(), ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, ltm.tm_hour, ltm.tm_min, ltm.tm_sec);
+            dynamic_string filename(cVarArg, "%s_%04d_%02d_%02d_%02d_%02d_%02d.bin", trace_basename.get_ptr(),
+                                    ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, ltm.tm_hour, ltm.tm_min, ltm.tm_sec);
 
             dynamic_string full_trace_filename;
             file_utils::combine_path(full_trace_filename, trace_path.get_ptr(), filename.get_ptr());
 
             if (g_vogl_frames_remaining_to_capture == cUINT32_MAX)
+            {
                 vogl_message_printf("Initiating capture of all remaining frames to file \"%s\"\n", full_trace_filename.get_ptr());
+            }
             else
-                vogl_message_printf("Initiating capture of up to %u frame(s) to file \"%s\"\n", g_vogl_frames_remaining_to_capture, full_trace_filename.get_ptr());
+            {
+                vogl_message_printf("Initiating capture of up to %u frame(s) to file \"%s\"\n",
+                                    g_vogl_frames_remaining_to_capture, full_trace_filename.get_ptr());
+            }
 
             if (!vogl_write_snapshot_to_trace(full_trace_filename.get_ptr(), dpy, drawable, pVOGL_context))
             {
@@ -5529,10 +5522,7 @@ static void vogl_check_for_capture_trigger_file()
 
             // See if we should stop capturing.
             if (!g_vogl_frames_remaining_to_capture)
-            {
-                VOGL_FUNC_TRACER
                 vogl_end_capture();
-            }
         }
     }
 
@@ -6511,8 +6501,7 @@ static void vogl_check_for_capture_trigger_file()
 
             if (get_vogl_trace_writer().is_opened())
             {
-                VOGL_FUNC_TRACER
-                    vogl_end_capture();
+                vogl_end_capture();
                 return;
             }
         }
@@ -6558,10 +6547,7 @@ static void vogl_check_for_capture_trigger_file()
 
             // See if we should stop capturing.
             if (!g_vogl_frames_remaining_to_capture)
-            {
-                VOGL_FUNC_TRACER
-                    vogl_end_capture();
-            }
+                vogl_end_capture();
         }
     }
 
