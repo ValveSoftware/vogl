@@ -36,7 +36,7 @@ private:
 
     vogleditor_tracereplayer_result take_state_snapshot_if_needed(vogleditor_gl_state_snapshot** ppNewSnapshot, uint32_t apiCallNumber);
     vogleditor_tracereplayer_result recursive_replay_apicallTreeItem(vogleditor_apiCallTreeItem* pItem, vogleditor_gl_state_snapshot** ppNewSnapshot, uint64_t apiCallNumber);
-    bool process_x_events();
+    bool process_events();
     vogl_gl_replayer* m_pTraceReplayer;
     vogl_replay_window m_window;
     Atom m_wmDeleteMessage;

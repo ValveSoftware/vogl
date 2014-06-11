@@ -130,22 +130,6 @@ static const struct
     { "disable_frontbuffer_restore", cGLReplayerDisableRestoreFrontBuffer },
 };
 
-#if (!VOGL_PLATFORM_HAS_X11)
-
-bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
-{
-    VOGL_VERIFY(!"impl tool_replay_mode");
-    return false;
-}
-
-bool tool_play_mode(vogl::vector<command_line_param_desc> *desc)
-{
-    VOGL_VERIFY(!"impl tool_replay_mode");
-    return false;
-}
-
-#else
-
 struct replay_data_t
 {
     replay_data_t() :
@@ -192,8 +176,8 @@ struct replay_data_t
     Atom wmDeleteMessage;
 
     Bool win_mapped;
-    vogl::hash_map<uint64_t> keys_down;
-    vogl::hash_map<uint64_t> keys_pressed;
+    vogl::hash_map<SDL_Keycode> keys_down;
+    vogl::hash_map<SDL_Keycode> keys_pressed;
 
     int64_t paused_mode_frame_index;
     int64_t take_snapshot_at_frame_index;
@@ -220,37 +204,6 @@ struct replay_data_t
     bool benchmark_mode;
     bool benchmark_mode_allow_state_teardown;
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-// X11_Pending - from SDL
-//----------------------------------------------------------------------------------------------------------------------
-static int X11_Pending(Display *display)
-{
-    VOGL_FUNC_TRACER
-
-    /* Flush the display connection and look to see if events are queued */
-    XFlush(display);
-    if (XEventsQueued(display, QueuedAlready))
-        return 1;
-
-    /* More drastic measures are required -- see if X is ready to talk */
-    {
-        static struct timeval zero_time; /* static == 0 */
-        int x11_fd;
-        fd_set fdset;
-
-        x11_fd = ConnectionNumber(display);
-        FD_ZERO(&fdset);
-        FD_SET(x11_fd, &fdset);
-        if (select(x11_fd + 1, &fdset, NULL, NULL, &zero_time) == 1)
-        {
-            return (XPending(display));
-        }
-    }
-
-    /* Oh well, nothing is ready .. */
-    return 0;
-}
 
 //----------------------------------------------------------------------------------------------------------------------
 // read_state_snapshot_from_trace
@@ -401,90 +354,79 @@ static uint32_t get_replayer_flags_from_command_line_params(bool interactive_mod
 //----------------------------------------------------------------------------------------------------------------------
 static int check_events(replay_data_t &rdata)
 {
-    vogl::hash_map<uint64_t> &keys_down = rdata.keys_down;
-    vogl::hash_map<uint64_t> &keys_pressed = rdata.keys_pressed;
+    vogl::hash_map<SDL_Keycode> &keys_down = rdata.keys_down;
+    vogl::hash_map<SDL_Keycode> &keys_pressed = rdata.keys_pressed;
 
-    while (X11_Pending(rdata.window.get_display()))
+    SDL_Event wnd_event;
+    while (SDL_PollEvent(&wnd_event))
     {
-        XEvent newEvent;
-
-        // Watch for new X eventsn
-        XNextEvent(rdata.window.get_display(), &newEvent);
-
-        switch (newEvent.type)
+        switch(wnd_event.type)
         {
-        case KeyPress:
-        {
-            KeySym xsym = XLookupKeysym(&newEvent.xkey, 0);
-
-            //printf("KeyPress 0%04" PRIX64 "%" PRIu64 "\n", (uint64_t)xsym, (uint64_t)xsym);
-
-            keys_down.insert(xsym);
-            keys_pressed.insert(xsym);
-            break;
-        }
-        case KeyRelease:
-        {
-            KeySym xsym = XLookupKeysym(&newEvent.xkey, 0);
-
-            //printf("KeyRelease 0x%04" PRIX64 " %" PRIu64 "\n", (uint64_t)xsym, (uint64_t)xsym);
-            keys_down.erase(xsym);
-            break;
-        }
-        case FocusIn:
-        case FocusOut:
-        {
-            //printf("FocusIn/FocusOut\n");
-            keys_down.reset();
-            break;
-        }
-        case MappingNotify:
-        {
-            //XRefreshKeyboardMapping(&newEvent);
-            break;
-        }
-        case UnmapNotify:
-        {
-            //printf("UnmapNotify\n");
-            rdata.win_mapped = false;
-            keys_down.reset();
-            break;
-        }
-        case MapNotify:
-        {
-            //printf("MapNotify\n");
-
-            rdata.win_mapped = true;
-
-            keys_down.reset();
-
-            if (!rdata.replayer.update_window_dimensions())
-                return -1;
-            break;
-        }
-        case ConfigureNotify:
-        {
-            if (!rdata.replayer.update_window_dimensions())
-                return -1;
-            break;
-        }
-        case DestroyNotify:
-        {
-            vogl_verbose_printf("Exiting\n");
-            return 1;
-        }
-        case ClientMessage:
-        {
-            if (newEvent.xclient.data.l[0] == (int)rdata.wmDeleteMessage)
+            case SDL_KEYDOWN:
             {
-                vogl_verbose_printf("Exiting\n");
-                return 1;
+                keys_down.insert(wnd_event.key.keysym.sym);
+                keys_pressed.insert(wnd_event.key.keysym.sym);
+                break;
             }
-            break;
-        }
-        default:
-            break;
-        }
+
+            case SDL_KEYUP:
+            {
+                keys_down.erase(wnd_event.key.keysym.sym);
+
+                break;
+            }
+
+            case SDL_WINDOWEVENT:
+            {
+                switch(wnd_event.window.event)
+                {
+                    case SDL_WINDOWEVENT_FOCUS_GAINED:
+                    case SDL_WINDOWEVENT_FOCUS_LOST:
+                        keys_down.reset();
+                        break;
+
+                    case SDL_WINDOWEVENT_CLOSE:
+                        vogl_message_printf("Window told to close, exiting.\n");
+                        return 1;
+                        break;
+
+                    case SDL_WINDOWEVENT_SHOWN:
+                    case SDL_WINDOWEVENT_RESTORED:
+                    {
+                        rdata.win_mapped = true;
+
+                        keys_down.reset();
+
+                        if (!rdata.replayer.update_window_dimensions())
+                            return -1;
+                        break;
+                    }
+
+                    case SDL_WINDOWEVENT_HIDDEN:
+                    case SDL_WINDOWEVENT_MINIMIZED:
+                    {
+                        rdata.win_mapped = false;
+                        keys_down.reset();
+                        break;
+                    }
+
+                    case SDL_WINDOWEVENT_MOVED:
+                    case SDL_WINDOWEVENT_RESIZED:
+                    {
+                        if (!rdata.replayer.update_window_dimensions())
+                            return -1;
+                        break;
+                    }
+
+                    default:
+                        break;
+                };
+                break;
+            }
+
+            default:
+                break;
+        };
     }
 
     return 0;
@@ -504,8 +446,8 @@ static int do_interactive_mode(replay_data_t &rdata)
     tmZone(TELEMETRY_LEVEL0, TMZF_NONE, "Interactive");
 
     vogl_gl_replayer &replayer = rdata.replayer;
-    vogl::hash_map<uint64_t> &keys_down = rdata.keys_down;
-    vogl::hash_map<uint64_t> &keys_pressed = rdata.keys_pressed;
+    vogl::hash_map<SDL_Keycode> &keys_down = rdata.keys_down;
+    vogl::hash_map<SDL_Keycode> &keys_pressed = rdata.keys_pressed;
 
     // Interactive mode is more of a test bad to validate a bunch of classes. It's kind of gnarly because the replayer's
     // object can be in odd intermediate/pending states during window resizes - hopefully this complexity will go away
@@ -518,9 +460,9 @@ static int do_interactive_mode(replay_data_t &rdata)
                           rdata.take_snapshot_at_frame_index);
     }
 
-    if (keys_pressed.contains('c'))
+    if (keys_pressed.contains(SDLK_c))
     {
-        keys_pressed.erase('c');
+        keys_pressed.erase(SDLK_c);
         if (replayer.is_valid())
         {
             dynamic_string filename;
@@ -535,9 +477,9 @@ static int do_interactive_mode(replay_data_t &rdata)
         }
     }
 
-    if (keys_pressed.contains('s'))
+    if (keys_pressed.contains(SDLK_s))
     {
-        keys_pressed.erase('s');
+        keys_pressed.erase(SDLK_s);
         rdata.slow_mode = !rdata.slow_mode;
     }
 
@@ -554,15 +496,15 @@ static int do_interactive_mode(replay_data_t &rdata)
             rdata.take_snapshot_at_frame_index = -1;
         }
         // Check for pausing
-        else if (keys_pressed.contains(XK_space))
+        else if (keys_pressed.contains(SDLK_SPACE))
         {
-            keys_pressed.erase(XK_space);
+            keys_pressed.erase(SDLK_SPACE);
 
             if (rdata.paused_mode)
             {
                 vogl_message_printf("Unpausing\n");
 
-                keys_pressed.erase(XK_space);
+                keys_pressed.erase(SDLK_SPACE);
 
                 vogl_delete(rdata.pSnapshot);
                 rdata.pSnapshot = NULL;
@@ -649,9 +591,9 @@ static int do_interactive_mode(replay_data_t &rdata)
             rdata.window.set_title(window_title.get_ptr());
         }
 
-        // At this point, if we're paused the frame snapshot as been applied, and we're just about going to replay the frame's commands.
+        // At this point, if we're paused the frame snapshot has been applied, and we're just about going to replay the frame's commands.
         if (((applied_snapshot) || (replayer.get_at_frame_boundary())) &&
-                (keys_pressed.contains('t') || keys_pressed.contains('j')))
+                (keys_pressed.contains(SDLK_t) || keys_pressed.contains(SDLK_j)))
         {
             uint64_t frame_to_trim;
             if (rdata.paused_mode)
@@ -700,7 +642,7 @@ static int do_interactive_mode(replay_data_t &rdata)
                         system(view_json_spawn_str.get_ptr());
                     }
 
-                    if (keys_pressed.contains('j'))
+                    if (keys_pressed.contains(SDLK_j))
                     {
                         dynamic_string workdir(".");
                         file_utils::full_path(workdir);
@@ -712,8 +654,8 @@ static int do_interactive_mode(replay_data_t &rdata)
                 }
             }
 
-            keys_pressed.erase('t');
-            keys_pressed.erase('j');
+            keys_pressed.erase(SDLK_t);
+            keys_pressed.erase(SDLK_j);
         }
 
         // Now replay the next frame's GL commands up to the swap
@@ -763,10 +705,10 @@ static int do_interactive_mode(replay_data_t &rdata)
     else if (replayer.get_at_frame_boundary() && (!replayer.get_pending_apply_snapshot()))
     {
         // Rewind to beginning
-        if (keys_pressed.contains('r'))
+        if (keys_pressed.contains(SDLK_r))
         {
-            bool ctrl = (keys_down.contains(XK_Control_L) || keys_down.contains(XK_Control_R));
-            keys_pressed.erase('r');
+            bool ctrl = (keys_down.contains(SDLK_LCTRL) || keys_down.contains(SDLK_RCTRL));
+            keys_pressed.erase(SDLK_r);
 
             vogl_delete(rdata.pSnapshot);
             rdata.pSnapshot = NULL;
@@ -789,9 +731,9 @@ static int do_interactive_mode(replay_data_t &rdata)
             }
         }
         // Seek to last frame
-        else if (keys_pressed.contains('e'))
+        else if (keys_pressed.contains(SDLK_e))
         {
-            keys_pressed.erase('e');
+            keys_pressed.erase(SDLK_e);
 
             if (rdata.paused_mode)
             {
@@ -841,12 +783,12 @@ static int do_interactive_mode(replay_data_t &rdata)
                 seek_to_target_frame = math::clamp<int64_t>(static_cast<int64_t>(max_frame_index * fraction + .5f), 0, max_frame_index - 1);
                 seek_to_closest_keyframe = true;
             }
-            else if (keys_pressed.contains(XK_Left) || keys_pressed.contains(XK_Right))
+            else if (keys_pressed.contains(SDLK_LEFT) || keys_pressed.contains(SDLK_RIGHT))
             {
-                int dir = keys_pressed.contains(XK_Left) ? -1 : 1;
+                int dir = keys_pressed.contains(SDLK_LEFT) ? -1 : 1;
 
-                bool shift = (keys_down.contains(XK_Shift_L) || keys_down.contains(XK_Shift_R));
-                bool ctrl = (keys_down.contains(XK_Control_L) || keys_down.contains(XK_Control_R));
+                bool shift = (keys_down.contains(SDLK_LSHIFT) || keys_down.contains(SDLK_RSHIFT));
+                bool ctrl = (keys_down.contains(SDLK_LCTRL) || keys_down.contains(SDLK_RCTRL));
 
                 int mag = 1;
                 if ((shift) && (ctrl))
@@ -862,10 +804,10 @@ static int do_interactive_mode(replay_data_t &rdata)
 
                 seek_to_target_frame = target_frame_index;
 
-                keys_pressed.erase(XK_Left);
-                keys_pressed.erase(XK_Right);
+                keys_pressed.erase(SDLK_LEFT);
+                keys_pressed.erase(SDLK_RIGHT);
 
-                if ((rdata.keyframes.size()) && (keys_down.contains(XK_Alt_L) || keys_down.contains(XK_Alt_R)))
+                if ((rdata.keyframes.size()) && (keys_down.contains(SDLK_LALT) || keys_down.contains(SDLK_RALT)))
                 {
                     uint32_t keyframe_array_index = 0;
                     for (keyframe_array_index = 1; keyframe_array_index < rdata.keyframes.size(); keyframe_array_index++)
@@ -907,11 +849,11 @@ static int do_interactive_mode(replay_data_t &rdata)
                 }
             }
             // Check for unpause
-            else if (keys_pressed.contains(XK_space))
+            else if (keys_pressed.contains(SDLK_SPACE))
             {
                 vogl_message_printf("Unpausing\n");
 
-                keys_pressed.erase(XK_space);
+                keys_pressed.erase(SDLK_SPACE);
 
                 vogl_delete(rdata.pSnapshot);
                 rdata.pSnapshot = NULL;
@@ -1507,14 +1449,6 @@ bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
     rdata.replayer.set_dump_framebuffer_on_draw_first_gl_call_index(g_command_line_params().get_value_as_int("dump_framebuffer_on_draw_first_gl_call", 0, -1, 0, INT_MAX));
     rdata.replayer.set_dump_framebuffer_on_draw_last_gl_call_index(g_command_line_params().get_value_as_int("dump_framebuffer_on_draw_last_gl_call", 0, -1, 0, INT_MAX));
 
-    XSelectInput(rdata.window.get_display(), rdata.window.get_xwindow(),
-                 EnterWindowMask | LeaveWindowMask | ButtonPressMask | ButtonReleaseMask |
-                 PointerMotionMask | ExposureMask | FocusChangeMask | KeyPressMask | KeyReleaseMask |
-                 PropertyChangeMask | StructureNotifyMask | KeymapStateMask);
-
-    rdata.wmDeleteMessage = XInternAtom(rdata.window.get_display(), "WM_DELETE_WINDOW", False);
-    XSetWMProtocols(rdata.window.get_display(), rdata.window.get_xwindow(), &rdata.wmDeleteMessage, 1);
-
     rdata.keyframe_base_filename = g_command_line_params().get_value_as_string("keyframe_base_filename");
     rdata.take_snapshot_at_frame_index = g_command_line_params().get_value_as_int64("pause_on_frame", 0, -1);
 
@@ -1788,31 +1722,36 @@ bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
                     break;
 
                 bool exit_flag = false;
-                while (!exit_flag && X11_Pending(rdata.window.get_display()))
+                SDL_Event wnd_event;
+                while (!exit_flag && SDL_PollEvent(&wnd_event))
                 {
-                    XEvent newEvent;
-                    XNextEvent(rdata.window.get_display(), &newEvent);
-
-                    switch (newEvent.type)
+                    switch(wnd_event.type)
                     {
-                    case KeyPress:
-                    case DestroyNotify:
-                    {
-                        exit_flag = true;
-                        break;
-                    }
-                    case ClientMessage:
-                    {
-                        if (newEvent.xclient.data.l[0] == (int)rdata.wmDeleteMessage)
+                        case SDL_KEYUP:
                             exit_flag = true;
-                        break;
-                    }
-                    default:
-                        break;
+                            break;
+
+                        case SDL_WINDOWEVENT:
+                        {
+                            switch(wnd_event.window.event)
+                            {
+                                case SDL_WINDOWEVENT_CLOSE:
+                                    exit_flag = true;
+                                    break;
+                                default:
+                                    break;
+                            };
+                            break;
+                        }
+
+                        default:
+                            break;
                     }
                 }
+
                 if (exit_flag)
                     break;
+
                 vogl_sleep(50);
             }
         }
@@ -1833,5 +1772,3 @@ bool tool_play_mode(vogl::vector<command_line_param_desc> *desc)
 
     return tool_replay_mode(desc);
 }
-
-#endif  // VOGL_PLATFORM_HAS_X11
