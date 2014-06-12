@@ -23,12 +23,12 @@ https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/chroot_configure.sh
 
 ```
 git clone https://github.com/ValveSoftware/vogl.git  
-mkdir -p vogl/vogl_build/bin/release64 && cd $_  
+mkdir -p vogl/vogl_build/release64 && cd $_  
 cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_X64=On ../../..  
 make -j 10
 ```
 
-The binaries are placed in the vogl/vogl_build/bin directory.
+The binaries are placed in the vogl/vogl_build directory.
 
 For debug builds, use "-DCMAKE_BUILD_TYPE=Debug"  
 For 32-bit builds, use "-DBUILD_X64=Off"  
@@ -36,7 +36,7 @@ For 32-bit builds, use "-DBUILD_X64=Off"
 ## Capturing ##
 
 ```
-cd vogl_build/bin  
+cd vogl_build
 VOGL_CMD_LINE="--vogl_tracefile vogltrace.glxspheres64.bin" LD_PRELOAD=$(readlink -f libvogltrace64.so) ./glxspheres64  
 ```
 
