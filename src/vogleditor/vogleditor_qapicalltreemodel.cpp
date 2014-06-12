@@ -352,6 +352,19 @@ QVariant vogleditor_QApiCallTreeModel::data(const QModelIndex &index, int role) 
 
     vogleditor_apiCallTreeItem* pItem = static_cast<vogleditor_apiCallTreeItem*>(index.internalPointer());
 
+    if (pItem == NULL)
+    {
+        return QVariant();
+    }
+
+    // make draw call rows appear in bold
+    if (role == Qt::FontRole && pItem->apiCallItem() != NULL && vogl_is_draw_entrypoint((gl_entrypoint_id_t)pItem->apiCallItem()->getGLPacket()->m_entrypoint_id))
+    {
+        QFont font;
+        font.setBold(true);
+        return font;
+    }
+
     // highlight the API call cell if it has a substring which matches the searchString
     if (role == Qt::BackgroundRole && index.column() == VOGL_ACTC_APICALL)
     {
