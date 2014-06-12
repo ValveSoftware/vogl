@@ -19,5 +19,6 @@ src/telemetry/
 vogl_build/*
 voglinc/
 *~
+*.swp
 
 _out*/
