@@ -24,7 +24,7 @@ https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/chroot_configure.sh
 ```
 git clone https://github.com/ValveSoftware/vogl.git  
 mkdir -p vogl/vogl_build/release64 && cd $_  
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_X64=On ../../..  
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_X64=On ../..
 make -j 10
 ```
 
