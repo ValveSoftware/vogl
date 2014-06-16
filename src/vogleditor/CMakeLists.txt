@@ -33,6 +33,7 @@ set(SRC_LIST
     vogleditor_qprogramarbexplorer.cpp
     vogleditor_qprogramexplorer.cpp
     vogleditor_qshaderexplorer.cpp
+    vogleditor_qsnapshotoverlaywidget.cpp
     vogleditor_qstatetreemodel.cpp
     vogleditor_qtextureexplorer.cpp
     vogleditor_qtextureviewer.cpp
@@ -77,6 +78,7 @@ set(UI_HEADER_LIST
     vogleditor_qlaunchtracerdialog.h
     vogleditor_qprogramarbexplorer.h
     vogleditor_qprogramexplorer.h
+    vogleditor_qsnapshotoverlaywidget.h
     vogleditor_qshaderexplorer.h
     vogleditor_qstatetreemodel.h
     vogleditor_qtextureviewer.h

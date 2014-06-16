@@ -29,6 +29,7 @@
 #include <QToolButton>
 #include <QMessageBox>
 #include <QCoreApplication>
+#include <QGraphicsBlurEffect>
 
 #include "ui_vogleditor.h"
 #include "vogleditor.h"
@@ -54,6 +55,7 @@
 #include "vogleditor_qprogramarbexplorer.h"
 #include "vogleditor_qprogramexplorer.h"
 #include "vogleditor_qshaderexplorer.h"
+#include "vogleditor_qsnapshotoverlaywidget.h"
 #include "vogleditor_qtimelineview.h"
 #include "vogleditor_qvertexarrayexplorer.h"
 #include "vogleditor_apicalltreeitem.h"
@@ -143,6 +145,7 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_pApiCallTreeModel(NULL),
    m_pStateTreeModel(NULL),
    m_pLaunchTracerDialog(NULL),
+   m_pSnapshotStateOverlay(NULL),
    m_bDelayUpdateUIForContext(false)
 {
    ui->setupUi(this);
@@ -239,6 +242,9 @@ VoglEditor::VoglEditor(QWidget *parent) :
    ui->mainToolBar->addWidget(m_pGenerateTraceButton);
    ui->mainToolBar->addWidget(m_pPlayButton);
    ui->mainToolBar->addWidget(m_pTrimButton);
+
+   m_pSnapshotStateOverlay = new vogleditor_QSnapshotOverlayWidget(ui->snapshotLayoutWidget);
+   connect(m_pSnapshotStateOverlay, SIGNAL(takeSnapshotButtonClicked()), this, SLOT(slot_takeSnapshotButton_clicked()));
 
    connect(m_pGenerateTraceButton, SIGNAL(clicked()), this, SLOT(prompt_generate_trace()));
    connect(m_pPlayButton, SIGNAL(clicked()), this, SLOT(playCurrentTraceFile()));
@@ -390,6 +396,12 @@ VoglEditor::~VoglEditor()
     {
         delete m_pLaunchTracerDialog;
         m_pLaunchTracerDialog = NULL;
+    }
+
+    if (m_pSnapshotStateOverlay != NULL)
+    {
+        delete m_pSnapshotStateOverlay;
+        m_pSnapshotStateOverlay = NULL;
     }
 }
 
@@ -1617,6 +1629,9 @@ void VoglEditor::reset_snapshot_ui()
     VOGLEDITOR_DISABLE_STATE_TAB(ui->vertexArrayTab);
 
     ui->tabWidget->setCurrentWidget(pCurrentTab);
+
+    m_pSnapshotStateOverlay->showButton(false);
+//    m_pSnapshotStateOverlay->hide();
 }
 
 /// This helper will most often return a pointer equal to the pCurSnapshot that is passed in, or NULL if the node does not have a snapshot
@@ -1679,6 +1694,13 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
    if (pStateSnapshot == NULL)
    {
       reset_snapshot_ui();
+
+      if (this->m_pApiCallTreeModel != NULL)
+      {
+         m_pSnapshotStateOverlay->showButton(true);
+         m_pSnapshotStateOverlay->show();
+      }
+
       return;
    }
 
@@ -1693,6 +1715,8 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
        // no need to update if it is the same snapshot
        return;
    }
+
+   m_pSnapshotStateOverlay->hide();
 
    m_currentSnapshot = pStateSnapshot;
 
@@ -2228,7 +2252,7 @@ void VoglEditor::slot_treeView_currentChanged(const QModelIndex & current, const
 
 void VoglEditor::on_treeView_clicked(const QModelIndex &index)
 {
-    onApiCallSelected(index, true);
+    onApiCallSelected(index, false);
 }
 
 void VoglEditor::onApiCallSelected(const QModelIndex &index, bool bAllowStateSnapshot)
@@ -2422,6 +2446,14 @@ void VoglEditor::on_nextDrawcallButton_clicked()
     }
 }
 
+void VoglEditor::slot_takeSnapshotButton_clicked()
+{
+    if (m_pApiCallTreeModel != NULL && m_pCurrentCallTreeItem != NULL)
+    {
+        onApiCallSelected(ui->treeView->currentIndex(), true);
+    }
+}
+
 void VoglEditor::slot_program_edited(vogl_arb_program_state* pNewProgramState)
 {
     VOGL_NOTE_UNUSED(pNewProgramState);
@@ -2585,4 +2617,9 @@ void VoglEditor::on_contextComboBox_currentIndexChanged(int index)
             update_ui_for_context(pContext, m_currentSnapshot);
         }
     }
+}
+
+void VoglEditor::on_treeView_activated(const QModelIndex &index)
+{
+    onApiCallSelected(index, true);
 }

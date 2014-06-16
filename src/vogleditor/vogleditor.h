@@ -54,6 +54,7 @@ class vogleditor_QProgramArbExplorer;
 class vogleditor_QProgramExplorer;
 class vogleditor_QFramebufferExplorer;
 class vogleditor_QShaderExplorer;
+class vogleditor_QSnapshotOverlayWidget;
 class vogleditor_QTimelineView;
 class vogleditor_QVertexArrayExplorer;
 class vogleditor_QLaunchTracerDialog;
@@ -75,6 +76,9 @@ public:
 
    bool open_trace_file(vogl::dynamic_string filename);
    void close_trace_file();
+
+public slots:
+   void slot_takeSnapshotButton_clicked();
 
 private slots:
    void on_action_Open_triggered();
@@ -115,6 +119,8 @@ private slots:
    void slot_readReplayStandardError();
 
    void on_contextComboBox_currentIndexChanged(int index);
+
+   void on_treeView_activated(const QModelIndex &index);
 
 private:
    Ui::VoglEditor* ui;
@@ -194,6 +200,8 @@ private:
    vogleditor_QStateTreeModel* m_pStateTreeModel;
 
    vogleditor_QLaunchTracerDialog* m_pLaunchTracerDialog;
+
+   vogleditor_QSnapshotOverlayWidget* m_pSnapshotStateOverlay;
 
    QColor m_searchTextboxBackgroundColor;
    bool m_bDelayUpdateUIForContext;
