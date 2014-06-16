@@ -133,7 +133,7 @@
       <string/>
      </property>
      <property name="text">
-     <string>Use vogl tool</string>
+      <string>Use vogl tool</string>
      </property>
      <property name="checked">
       <bool>false</bool>
@@ -192,6 +192,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>applicationLineEdit</tabstop>
+  <tabstop>findApplicationButton</tabstop>
+  <tabstop>argumentsLineEdit</tabstop>
+  <tabstop>traceFileLineEdit</tabstop>
+  <tabstop>findTraceFileButton</tabstop>
+  <tabstop>vogltraceCheckBox</tabstop>
+  <tabstop>forceDebugContextCheckBox</tabstop>
+  <tabstop>gatherCallStacksCheckBox</tabstop>
+  <tabstop>disableProgramBinaryCheckBox</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
