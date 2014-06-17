@@ -364,8 +364,8 @@ FMT_INFO_SFP(PXFMT_BGR16_FLOAT,   GL_BGR,    uint16, double, 3, 6,              
 FMT_INFO(PXFMT_BGR32_FLOAT,       GL_BGR,    float,  double, 3, 12, true, false, false, false,  2, 1, 0, -1,      0,  0,  0,  0,   0, 0, 0, 0);
 
 // GL_RGBA
-FMT_INFO(PXFMT_RGBA8_UNORM,       GL_RGBA,   uint32, double, 4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,   24, 16, 8, 0);
-FMT_INFO(PXFMT_RGBA8_SNORM,       GL_RGBA,   uint32, double, 4, 4,  true, true, true, true,     0, 1, 2, 3,       8,  8,  8,  8,   24, 16, 8, 0);
+FMT_INFO(PXFMT_RGBA8_UNORM,       GL_RGBA,   uint32, double, 4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
+FMT_INFO(PXFMT_RGBA8_SNORM,       GL_RGBA,   uint32, double, 4, 4,  true, true, true, true,     0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
 FMT_INFO(PXFMT_RGBA16_UNORM,      GL_RGBA,   uint16, double, 4, 8,  true, true, false, false,   0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
 FMT_INFO(PXFMT_RGBA16_SNORM,      GL_RGBA,   int16,  double, 4, 8,  true, true, true, false,    0, 1, 2, 3,      16, 16, 16, 16,   0, 0, 0, 0);
 FMT_INFO(PXFMT_RGBA32_UNORM,      GL_RGBA,   uint32, double, 4, 16, true, true, false, false,   0, 1, 2, 3,      32, 32, 32, 32,   0, 0, 0, 0);
@@ -377,13 +377,13 @@ FMT_INFO(PXFMT_RGBA4_UNORM,       GL_RGBA,   uint16, double, 4, 2, true, true, f
 FMT_INFO(PXFMT_RGBA4REV_UNORM,    GL_RGBA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       4,  4,  4,  4,   0, 4, 8, 12);
 FMT_INFO(PXFMT_RGB5A1_UNORM,      GL_RGBA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       5,  5,  5,  1,   11, 6, 1, 0);
 FMT_INFO(PXFMT_A1RGB5_UNORM,      GL_RGBA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       5,  5,  5,  1,   0, 5, 10, 15);
-FMT_INFO(PXFMT_RGBA8888_UNORM,    GL_RGBA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,       8,  8,  8,  8,   0, 8, 16, 24);
+FMT_INFO(PXFMT_RGBA8888_UNORM,    GL_RGBA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,       8,  8,  8,  8,   24, 16, 8, 0);
 FMT_INFO(PXFMT_RGB10A2_UNORM,     GL_RGBA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   22, 12, 2, 0);
 FMT_INFO(PXFMT_A2RGB10_UNORM,     GL_RGBA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   0, 10, 20, 30);
 
 // GL_BGRA
-FMT_INFO(PXFMT_BGRA8_UNORM,       GL_BGRA,   uint32, double, 4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,   24, 0, 8, 16);
-FMT_INFO(PXFMT_BGRA8_SNORM,       GL_BGRA,   uint32, double, 4, 4,  true, true, true, true,     0, 1, 2, 3,       8,  8,  8,  8,   24, 0, 8, 16);
+FMT_INFO(PXFMT_BGRA8_UNORM,       GL_BGRA,   uint32, double, 4, 4,  true, true, false, true,    0, 1, 2, 3,       8,  8,  8,  8,   16, 8, 0, 24);
+FMT_INFO(PXFMT_BGRA8_SNORM,       GL_BGRA,   uint32, double, 4, 4,  true, true, true, true,     0, 1, 2, 3,       8,  8,  8,  8,   16, 8, 0, 24);
 FMT_INFO(PXFMT_BGRA16_UNORM,      GL_BGRA,   uint16, double, 4, 8,  true, true, false, false,   2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
 FMT_INFO(PXFMT_BGRA16_SNORM,      GL_BGRA,   int16,  double, 4, 8,  true, true, true, false,    2, 1, 0, 3,      16, 16, 16, 16,   0, 0, 0, 0);
 FMT_INFO(PXFMT_BGRA32_UNORM,      GL_BGRA,   uint32, double, 4, 16, true, true, false, false,   2, 1, 0, 3,      32, 32, 32, 32,   0, 0, 0, 0);
@@ -395,7 +395,7 @@ FMT_INFO(PXFMT_BGRA4_UNORM,       GL_BGRA,   uint16, double, 4, 2, true, true, f
 FMT_INFO(PXFMT_BGRA4REV_UNORM,    GL_BGRA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       4,  4,  4,  4,   0, 12, 8, 4);
 FMT_INFO(PXFMT_BGR5A1_UNORM,      GL_BGRA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       5,  5,  5,  1,   1, 6, 11, 0);
 FMT_INFO(PXFMT_A1BGR5_UNORM,      GL_BGRA,   uint16, double, 4, 2, true, true, false, true,     0, 1, 2, 3,       5,  5,  5,  1,   10, 5, 0, 15);
-FMT_INFO(PXFMT_BGRA8888_UNORM,    GL_BGRA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,       8,  8,  8,  8,   16, 8, 0, 24);
+FMT_INFO(PXFMT_BGRA8888_UNORM,    GL_BGRA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,       8,  8,  8,  8,   24, 0, 8, 16);
 FMT_INFO(PXFMT_BGR10A2_UNORM,     GL_BGRA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   2, 12, 22, 0);
 FMT_INFO(PXFMT_A2BGR10_UNORM,     GL_BGRA,   uint32, double, 4, 4, true, true, false, true,     0, 1, 2, 3,      10, 10, 10,  2,   20, 10, 0, 30);
 
