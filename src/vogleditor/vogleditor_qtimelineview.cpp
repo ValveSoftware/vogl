@@ -23,7 +23,8 @@
  *
  **************************************************************************/
 
-#include <QtGui>
+#include <QPainter>
+#include <QPaintEvent>
 #include "vogleditor_qtimelineview.h"
 #include "vogleditor_frameitem.h"
 
