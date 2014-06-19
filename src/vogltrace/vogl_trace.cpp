@@ -87,22 +87,20 @@ VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
     {
         if (pFile && (strstr(pFile, "libGL.so") != NULL))
         {
+            // When the AMD or Intel driver tries to dlopen libGL.so, we need to return the real libGL.so handle.
             const char *calling_module = btrace_get_calling_module();
-            bool should_redirect = !strstr(calling_module, "fglrx");
+            bool should_redirect = !strstr(calling_module, "fglrx") &&
+                    !strstr(calling_module, "mesa/lib/libGL.so.1");
 
             if (should_redirect)
             {
                 pFile = btrace_get_current_module();
-                if (ret)
-                {
-                    vogl_verbose_printf("redirecting dlopen to %s\n", pFile);
-                    vogl_verbose_printf("------------\n");
-                }
             }
-            else if (ret)
+
+            if (ret)
             {
-                vogl_verbose_printf("NOT redirecting dlopen to %s, this dlopen() call appears to be coming from the driver\n", pFile);
-                vogl_verbose_printf("------------\n");
+                vogl_verbose_printf("%sRedirecting dlopen to: %s.\n", (should_redirect ? "" : " NOT"), pFile);
+                vogl_verbose_printf("  Calling module: %s.\n", calling_module);
             }
         }
     }
