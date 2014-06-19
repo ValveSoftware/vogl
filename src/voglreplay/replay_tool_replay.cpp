@@ -134,7 +134,6 @@ struct replay_data_t
 {
     replay_data_t() :
         trim_call_index(-1),
-        wmDeleteMessage(None),
         win_mapped(false),
         paused_mode_frame_index(-1),
         take_snapshot_at_frame_index(-1),
@@ -173,7 +172,6 @@ struct replay_data_t
 
     vogl_gl_replayer replayer;
     vogl_replay_window window;
-    Atom wmDeleteMessage;
 
     Bool win_mapped;
     vogl::hash_map<SDL_Keycode> keys_down;
