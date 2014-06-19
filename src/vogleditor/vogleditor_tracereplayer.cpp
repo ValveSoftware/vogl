@@ -24,39 +24,6 @@ vogleditor_traceReplayer::~vogleditor_traceReplayer()
     }
 }
 
-//----------------------------------------------------------------------------------------------------------------------
-// X11_Pending - from SDL
-//----------------------------------------------------------------------------------------------------------------------
-static int X11_Pending(Display *display)
-{
-   VOGL_FUNC_TRACER
-
-   /* Flush the display connection and look to see if events are queued */
-   XFlush(display);
-   if (XEventsQueued(display, QueuedAlready))
-   {
-      return(1);
-   }
-
-   /* More drastic measures are required -- see if X is ready to talk */
-   {
-      static struct timeval zero_time;	/* static == 0 */
-      int x11_fd;
-      fd_set fdset;
-
-      x11_fd = ConnectionNumber(display);
-      FD_ZERO(&fdset);
-      FD_SET(x11_fd, &fdset);
-      if (select(x11_fd+1, &fdset, NULL, NULL, &zero_time) == 1)
-      {
-         return(XPending(display));
-      }
-   }
-
-   /* Oh well, nothing is ready .. */
-   return(0);
-}
-
 bool vogleditor_traceReplayer::process_events()
 {
     SDL_Event wnd_event;
