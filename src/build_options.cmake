@@ -130,6 +130,9 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
           "-Wno-switch-enum"
           "-Wno-extra-tokens"
 
+          # Added because SDL2 headers have a ton of Doxygen warnings currently.
+          "-Wno-documentation"
+
           # This needs to be removed after fixing the VOGL_NO_ATOMICS, etc.
           "-Wno-undef"
           )
