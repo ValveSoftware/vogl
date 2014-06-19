@@ -29,6 +29,11 @@
 #include "vogl_colorized_console.h"
 #include "libtelemetry.h"
 
+#if VOGL_PLATFORM_HAS_SDL
+#define SDL_MAIN_HANDLED 1
+#include "SDL.h"
+#endif
+
 bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_parse_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_info_mode(vogl::vector<command_line_param_desc> *desc);
@@ -155,6 +160,8 @@ static void tool_print_title()
 static void vogl_replay_deinit()
 {
     VOGL_FUNC_TRACER
+
+    SDL_Quit();
 
     colorized_console::deinit();
 }
@@ -432,6 +439,9 @@ static const command_t *vogl_replay_init(int argc, char *argv[])
             vogl_set_direct_gl_func_epilog(vogl_direct_gl_func_epilog, NULL);
         }
 
+        if(SDL_Init(SDL_INIT_VIDEO) < 0)
+            return false;
+
         if (!load_gl())
             return NULL;
 
@@ -444,23 +454,6 @@ static const command_t *vogl_replay_init(int argc, char *argv[])
 
     return cmd;
 }
-
-
-#if VOGL_PLATFORM_HAS_X11
-
-//----------------------------------------------------------------------------------------------------------------------
-// xerror_handler
-//----------------------------------------------------------------------------------------------------------------------
-static int xerror_handler(Display *dsp, XErrorEvent *error)
-{
-    char error_string[256];
-    XGetErrorText(dsp, error->error_code, error_string, sizeof(error_string));
-
-    vogl_error_printf("vogl Fatal X Windows Error: %s\n", error_string);
-    abort();
-}
-
-#endif // VOGL_PLATFORM_HAS_X11
 
 //----------------------------------------------------------------------------------------------------------------------
 // main
@@ -478,10 +471,6 @@ int main(int argc, char *argv[])
 
     // Initialize vogl_core.
     vogl_core_init();
-
-#if VOGL_PLATFORM_HAS_X11
-    XSetErrorHandler(xerror_handler);
-#endif
 
     const command_t *cmd = vogl_replay_init(argc, argv);
     if (!cmd)

@@ -29,15 +29,13 @@
 
 #include "vogl_common.h"
 
-#if (VOGL_PLATFORM_HAS_SDL)
-    #define SDL_MAIN_HANDLED 1
-    #include "SDL.h"
+#if VOGL_PLATFORM_HAS_SDL
+#define SDL_MAIN_HANDLED 1
+#include "SDL.h"
 #endif
 
 #if (VOGL_PLATFORM_HAS_SDL)
     typedef SDL_GLContext GLReplayContextType;
-#elif (VOGL_PLATFORM_HAS_GLX)
-    typedef GLXContext GLReplayContextType;
 #else
     #error "Need to define a suitable type for GLReplayContextType for this platform"
 #endif
@@ -58,8 +56,6 @@ public:
     {
         #if (VOGL_PLATFORM_HAS_SDL)
             return (m_width > 0) && (m_win != NULL);
-        #elif (VOGL_PLATFORM_HAS_X11)
-            return (m_width > 0) && (m_dpy != NULL);
         #else
             #error "Need is_opened for this platform."
         #endif
@@ -74,20 +70,13 @@ public:
     void close();
 
 
-    #if VOGL_PLATFORM_HAS_X11
-        inline Display *get_display() const
-        {
-            return m_dpy;
-        }
-        inline Window get_xwindow() const
-        {
-            return m_win;
-        }
-    #elif VOGL_PLATFORM_HAS_SDL
+    #if VOGL_PLATFORM_HAS_SDL
         inline SDL_Window* get_sdlwindow() const
         {
             return m_win;
         }
+    #else
+        #error "Need get_window for this platform."
     #endif
 
     inline int get_width() const
@@ -101,17 +90,6 @@ public:
     }
 
     void update_dimensions();
-
-    #if VOGL_PLATFORM_HAS_X11
-        GLXFBConfig *get_fb_configs() const
-        {
-            return m_pFB_configs;
-        }
-        uint32_t get_num_fb_configs() const
-        {
-            return m_num_fb_configs;
-        }
-    #endif
 
     bool get_actual_dimensions(uint32_t &width, uint32_t &height) const;
 
@@ -138,14 +116,7 @@ public:
 
 private:
 #if VOGL_PLATFORM_HAS_SDL
-
     SDL_Window* m_win;
-
-#elif VOGL_PLATFORM_HAS_X11
-    Window m_win;
-    Display *m_dpy;
-    GLXFBConfig *m_pFB_configs;
-    int m_num_fb_configs;
 #endif
 
     int m_width;
