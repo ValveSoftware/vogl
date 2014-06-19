@@ -39,4 +39,3 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 build_options_finalize()
-

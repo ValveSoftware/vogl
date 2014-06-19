@@ -5,6 +5,8 @@ include("${SRC_DIR}/build_options.cmake")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SRC_DIR}/cmake/Modules/")
 
+require_sdl2()
+
 find_package(Qt5 COMPONENTS Widgets Gui Core REQUIRED)
 find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
@@ -18,6 +20,7 @@ include_directories(
     ${SRC_DIR}/libtelemetry
     ${CMAKE_CURRENT_BINARY_DIR}
     ${Qt5Widgets_INCLUDE_DIRS}
+    ${SDL2_INCLUDE}
 )
 
 set(SRC_LIST
@@ -157,7 +160,7 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADER_LIST}
     ${QT_GEN_RESOURCE_RCC_LIST}
    )
 
-add_dependencies(${PROJECT_NAME} voglgen_make_inc)
+add_dependencies(${PROJECT_NAME} voglgen_make_inc SDL)
 
 target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
@@ -168,6 +171,7 @@ target_link_libraries(${PROJECT_NAME}
     voglcommon
     voglcore
     ${CMAKE_DL_LIBS}
-   )
+    ${SDL2_LIBRARY}
+)
 
 build_options_finalize()

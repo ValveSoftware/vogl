@@ -57,46 +57,46 @@ static int X11_Pending(Display *display)
    return(0);
 }
 
-bool vogleditor_traceReplayer::process_x_events()
+bool vogleditor_traceReplayer::process_events()
 {
-    while (X11_Pending(m_window.get_display()))
+    SDL_Event wnd_event;
+    while (SDL_PollEvent(&wnd_event))
     {
-       XEvent newEvent;
+        switch(wnd_event.type)
+        {
+            case SDL_WINDOWEVENT_SHOWN:
+            case SDL_WINDOWEVENT_RESTORED:
+            {
+                m_pTraceReplayer->update_window_dimensions();
+                break;
+            }
 
-       // Watch for new X events
-       XNextEvent(m_window.get_display(), &newEvent);
+            case SDL_WINDOWEVENT_MOVED:
+            case SDL_WINDOWEVENT_RESIZED:
+            {
+                m_pTraceReplayer->update_window_dimensions();
+                break;
+            }
 
-       switch (newEvent.type)
-       {
-          case MapNotify:
-          {
-             m_pTraceReplayer->update_window_dimensions();
-             break;
-          }
-          case ConfigureNotify:
-          {
-             m_pTraceReplayer->update_window_dimensions();
-             break;
-          }
-          case DestroyNotify:
-          {
-             vogl_message_printf("Exiting\n");
-             return false;
-             break;
-          }
-          case ClientMessage:
-          {
-             if(newEvent.xclient.data.l[0] == (int)m_wmDeleteMessage)
-             {
-                vogl_message_printf("Exiting\n");
-                return false;
-             }
+            case SDL_WINDOWEVENT:
+            {
+                switch(wnd_event.window.event)
+                {
+                    case SDL_WINDOWEVENT_CLOSE:
+                        vogl_message_printf("Exiting\n");
+                        return false;
+                        break;
+                    default:
+                        break;
+                };
+                break;
+            }
 
-             break;
-          }
-          default: break;
-       }
+            default:
+                break;
+        }
     }
+
 
     return true;
 }
@@ -111,7 +111,7 @@ bool vogleditor_traceReplayer::applying_snapshot_and_process_resize(const vogl_g
         vogleditor_output_message("Waiting for replay window to resize.");
 
         // Pump X events in case the window is resizing
-        if (process_x_events())
+        if (process_events())
         {
             status = m_pTraceReplayer->process_pending_window_resize();
         }
@@ -186,7 +186,7 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
         while (m_pTraceReplayer->get_has_pending_window_resize() || m_pTraceReplayer->get_pending_apply_snapshot())
         {
             // Pump X events in case the window is resizing
-            if (process_x_events())
+            if (process_events())
             {
                 status = m_pTraceReplayer->process_pending_window_resize();
                 if (status != vogl_gl_replayer::cStatusResizeWindow)
@@ -247,7 +247,7 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
                 break;
 
             // Pump X events in case the window is resizing
-            if (process_x_events() == false)
+            if (process_events() == false)
             {
                 // most likely the window wants to close, so let's return
                 return VOGLEDITOR_TRR_USER_EXIT;
@@ -280,12 +280,6 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file
       return VOGLEDITOR_TRR_ERROR;
    }
 
-   XSelectInput(m_window.get_display(), m_window.get_xwindow(),
-                EnterWindowMask | LeaveWindowMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask | FocusChangeMask | KeyPressMask | KeyReleaseMask | PropertyChangeMask | StructureNotifyMask | KeymapStateMask);
-
-   m_wmDeleteMessage = XInternAtom(m_window.get_display(), "WM_DELETE_WINDOW", False);
-   XSetWMProtocols(m_window.get_display(), m_window.get_xwindow(), &m_wmDeleteMessage, 1);
-
    timer tm;
    tm.start();
 
@@ -293,7 +287,7 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file
 
    for ( ; ; )
    {
-      if (process_x_events() == false)
+      if (process_events() == false)
       {
           result = VOGLEDITOR_TRR_USER_EXIT;
           break;

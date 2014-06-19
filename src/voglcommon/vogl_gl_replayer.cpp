@@ -783,52 +783,6 @@ void vogl_gl_replayer::destroy_contexts()
             }
         }
 
-    #elif (VOGL_PLATFORM_HAS_X11)
-
-        if ((m_contexts.size()) && (m_pWindow->get_display()) && (GL_ENTRYPOINT(glXMakeCurrent)) && (GL_ENTRYPOINT(glXDestroyContext)))
-        {
-            GL_ENTRYPOINT(glXMakeCurrent)(m_pWindow->get_display(), (GLXDrawable)NULL, NULL);
-
-            vogl::vector<context_state *> contexts_to_destroy;
-            for (context_hash_map::const_iterator it = m_contexts.begin(); it != m_contexts.end(); ++it)
-                contexts_to_destroy.push_back(it->second);
-
-            // Delete "tail" contexts (ones that are not referenced by any other context) in sharegroups first.
-            while (contexts_to_destroy.size())
-            {
-                for (int i = 0; i < static_cast<int>(contexts_to_destroy.size()); i++)
-                {
-                    context_state *pContext_state = contexts_to_destroy[i];
-
-                    vogl_trace_ptr_value trace_context = pContext_state->m_context_desc.get_trace_context();
-
-                    bool skip_context = false;
-                    for (int j = 0; j < static_cast<int>(contexts_to_destroy.size()); j++)
-                    {
-                        if (i == j)
-                            continue;
-
-                        if (contexts_to_destroy[j]->m_context_desc.get_trace_share_context() == trace_context)
-                        {
-                            skip_context = true;
-                            break;
-                        }
-                    }
-
-                    if (skip_context)
-                        continue;
-
-                    // This context may have been the sharegroup's root and could have been already deleted.
-                    if (!pContext_state->m_deleted)
-                    {
-                        GL_ENTRYPOINT(glXDestroyContext)(m_pWindow->get_display(), pContext_state->m_replay_context);
-                    }
-
-                    contexts_to_destroy.erase(i);
-                    i--;
-                }
-            }
-        }
     #else
         #error "Need vogl_gl_replayer::destroy_contexts this platform"
     #endif
@@ -4034,8 +3988,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             #if (VOGL_PLATFORM_HAS_SDL)
                 void *pFunc = (void *)SDL_GL_GetProcAddress(reinterpret_cast<const char*>(procName));
-            #elif (VOGL_PLATFORM_HAS_X11)
-                void *pFunc = (void *)GL_ENTRYPOINT(glXGetProcAddress)(procName);
             #else
                 #error "Need to implement GetProcAddress for this platform."
                 void *pFunc = NULL;
@@ -4360,22 +4312,8 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
-#elif VOGL_PLATFORM_HAS_GLX
-        case VOGL_ENTRYPOINT_glXGetCurrentContext:
-        {
-
-            GLReplayContextType replay_context = GL_ENTRYPOINT(glXGetCurrentContext)();
-            vogl_trace_ptr_value trace_context = trace_packet.get_return_ptr_value();
-
-            if ((replay_context != 0) != (trace_context != 0))
-            {
-                process_entrypoint_warning("glXGetCurrentContext() returned different results while replaying (0x%" PRIX64 ") vs tracing (0x%" PRIX64 ")!\n", (uint64_t)replay_context, (uint64_t)trace_context);
-            }
-
-            break;
-        }
 #else
-#   error "Need to handle *GetCurrentContext for this platform."
+#error "Need to handle *GetCurrentContext for this platform."
 #endif
         case VOGL_ENTRYPOINT_glXCreateWindow:
         case VOGL_ENTRYPOINT_glXDestroyWindow:
@@ -4465,7 +4403,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         // -----
         case VOGL_ENTRYPOINT_glXUseXFont:
         {
-            #if (VOGL_PLATFORM_HAS_GLX)
+            #if VOGL_PLATFORM_HAS_SDL
+                // TODO: Rely on GLX for now. Support SDL if possible.
+            #elif VOGL_PLATFORM_HAS_GLX
                 const key_value_map &key_value_map = trace_packet.get_key_value_map();
 
                 const dynamic_string *pFont_name = key_value_map.get_string_ptr("font_name");
@@ -4505,7 +4445,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                 }
             #else
-                VOGL_ASSERT(!"impl - VOGL_ENTRYPOINT_glXUseXFont");
+                vogl_warning_printf("impl - VOGL_ENTRYPOINT_glXUseXFont\n");
             #endif
 
             break;
@@ -11333,7 +11273,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
 
     vogl_verbose_printf("Recreating %u display lists\n", disp_lists.get_display_list_map().size());
 
-    #if VOGL_PLATFORM_HAS_X11
+    #if VOGL_PLATFORM_HAS_SDL
+        // TODO: Implement this with SDL. Remove the X11 path.
+    #elif VOGL_PLATFORM_HAS_X11
         vogl_xfont_cache xfont_cache(m_pWindow->get_display());
     #endif
 
@@ -11358,7 +11300,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
         {
             if (disp_list.is_xfont())
             {
-                #if (VOGL_PLATFORM_HAS_X11)
+                #if VOGL_PLATFORM_HAS_SDL
+                    // TODO: Implement this with SDL. Remove the X11 path.
+                #elif (VOGL_PLATFORM_HAS_X11)
                     XFontStruct *pXFont = xfont_cache.get_or_create(disp_list.get_xfont_name().get_ptr());
                     if (!pXFont)
                     {
