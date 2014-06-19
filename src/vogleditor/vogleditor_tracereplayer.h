@@ -39,7 +39,6 @@ private:
     bool process_events();
     vogl_gl_replayer* m_pTraceReplayer;
     vogl_replay_window m_window;
-    Atom m_wmDeleteMessage;
 };
 
 #endif // VOGLEDITOR_TRACEREPLAYER_H
