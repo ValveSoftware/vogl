@@ -1,4 +1,4 @@
-PROJECT(RadDebugger)
+PROJECT(VoglDebugger)
 cmake_minimum_required(VERSION 2.8)
 
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -43,12 +43,12 @@ add_subdirectory(src/voglbench) # 5
 add_subdirectory(src/vogltrace) # 6
 add_subdirectory(src/vogltest) # 7
 add_subdirectory(src/glxspheres) # 8
+add_subdirectory(src/vogleditor) # 9
 
 add_subdirectory(src/extlib/pxfmt) # 12
 add_subdirectory(src/ktxtool) # 13
 
 if (NOT WIN32)
-    add_subdirectory(src/vogleditor) # 9
     add_subdirectory(src/libbacktrace) # 10
     add_subdirectory(src/libbacktrace_test) # 11
 endif()
