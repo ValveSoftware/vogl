@@ -44,7 +44,9 @@
     #include <termios.h>
     #include <unistd.h>
     #include <sys/select.h>
+#if defined _XOPEN_STREAMS && _XOPEN_STREAMS != -1
     #include <stropts.h>
+#endif
     #include <sys/ioctl.h>
 #endif
 
