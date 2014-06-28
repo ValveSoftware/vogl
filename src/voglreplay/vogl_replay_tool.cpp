@@ -380,7 +380,7 @@ static const command_t *vogl_replay_init(int argc, char *argv[])
         }
 
         if(SDL_Init(SDL_INIT_VIDEO) < 0)
-            return false;
+            return NULL;
 
         if (!load_gl())
             return NULL;
