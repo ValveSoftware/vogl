@@ -1,7 +1,6 @@
 /**************************************************************************
  *
- * Copyright 2014 LunarG, Inc.
- * All Rights Reserved.
+ * Copyright 2014 LunarG, Inc.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -320,11 +319,29 @@ enum pxfmt_sized_format
     PXFMT_D24_UNORM_S8_UINT,
     PXFMT_D32_FLOAT_S8_UINT,
 
-// ETC1/ETC2 compressed texture internalformats
+// FXT1 compressed texture internalformats
+    PXFMT_COMPRESSED_RGB_FXT1,
+    PXFMT_COMPRESSED_RGBA_FXT1,
+
+// S3TC/DXT compressed texture internalformats
     PXFMT_COMPRESSED_RGB_DXT1,
     PXFMT_COMPRESSED_RGBA_DXT1,
     PXFMT_COMPRESSED_RGBA_DXT3,
     PXFMT_COMPRESSED_RGBA_DXT5,
+
+// Note: Not handling the OpenGL-ES 1.x ETC1 compressed texture internalformat
+
+// ETC2 compressed texture internalformats
+    PXFMT_COMPRESSED_RGB8_ETC2,
+    PXFMT_COMPRESSED_SRGB8_ETC2,
+    PXFMT_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2,
+    PXFMT_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2,
+    PXFMT_COMPRESSED_RGBA8_ETC2_EAC,
+    PXFMT_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC,
+    PXFMT_COMPRESSED_R11_EAC,
+    PXFMT_COMPRESSED_SIGNED_R11_EAC,
+    PXFMT_COMPRESSED_RG11_EAC,
+    PXFMT_COMPRESSED_SIGNED_RG11_EAC,
 };
 
 

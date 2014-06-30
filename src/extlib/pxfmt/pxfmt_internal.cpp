@@ -1,6 +1,8 @@
 /**************************************************************************
  *
- * All Rights Reserved.
+ * Copyright 2014 LunarG, Inc.  All Rights Reserved.
+ * Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.
+ * Copyright (c) 2011 VMware, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +26,45 @@
  *
  **************************************************************************/
 
-#ifndef PXFMT_S3TC_H
-#define PXFMT_S3TC_H
+// FIXME: NEED ALL OF THESE HEADERS?
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 
+#include <algorithm> // For std::max()
+#include <assert.h>
+
+#include <GL/gl.h>
+#include <GL/glext.h>
+#include "pxfmt.h"
+#include <cmath>  // For std::floor() and pow()
+
+#define PORTED_FROM_MESA
 #include "pxfmt_internal.h"
 
-void decompress_dxt(float *intermediate, const void *pSrc,
-                    uint32 row_stride, int x, int y,
-                    const pxfmt_sized_format fmt);
-
-#endif // PXFMT_S3TC_H
+/**
+ * Convert an 8-bit sRGB value from non-linear space to a
+ * linear RGB value in [0, 1].
+ * Implemented with a 256-entry lookup table.
+ */
+GLfloat
+_mesa_nonlinear_to_linear(GLubyte cs8)
+{
+   static GLfloat table[256];
+   static GLboolean tableReady = GL_FALSE;
+   if (!tableReady) {
+      /* compute lookup table now */
+      GLuint i;
+      for (i = 0; i < 256; i++) {
+         const GLfloat cs = UBYTE_TO_FLOAT(i);
+         if (cs <= 0.04045) {
+            table[i] = cs / 12.92f;
+         }
+         else {
+            table[i] = (GLfloat) pow((cs + 0.055) / 1.055, 2.4);
+         }
+      }
+      tableReady = GL_TRUE;
+   }
+   return table[cs8];
+}

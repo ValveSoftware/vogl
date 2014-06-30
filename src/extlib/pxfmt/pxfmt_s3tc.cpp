@@ -1,9 +1,8 @@
 /**************************************************************************
  *
- * Copyright 2014 LunarG, Inc.
+ * Copyright 2014 LunarG, Inc.  All Rights Reserved.
  * Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.
  * Copyright (c) 2008 VMware, Inc.
- * All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +43,7 @@
 #include <stdio.h>
 #endif // DECOMPRESS_DEBUG
 
+#define PORTED_FROM_MESA
 #include "pxfmt_internal.h"
 #include "pxfmt_dlopen.h"
 
@@ -140,13 +140,13 @@ void decompress_dxt(float *intermediate, const void *pSrc,
             ext_decomp_rgba_dxt5(row_stride, (const uint8 *) pSrc, x, y, tex);
             break;
         default:
+            // Don't try to handle the non-S3TC/DXT cases
             break;
         }
 #ifdef DECOMPRESS_DEBUG
         printf("decompress_dxt(stride=%d, x=%d, y=%d) = {%d, %d, %d, %d}\n",
                row_stride, x, y, tex[0], tex[1], tex[2], tex[3]);
 #endif // DECOMPRESS_DEBUG
-#define UBYTE_TO_FLOAT(u) ((float) (u) / (float) 255.0)
         intermediate[0] = UBYTE_TO_FLOAT(tex[0]);
         intermediate[1] = UBYTE_TO_FLOAT(tex[1]);
         intermediate[2] = UBYTE_TO_FLOAT(tex[2]);
