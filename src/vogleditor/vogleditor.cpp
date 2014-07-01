@@ -70,68 +70,9 @@
 //----------------------------------------------------------------------------------------------------------------------
 // globals
 //----------------------------------------------------------------------------------------------------------------------
-static void *g_actual_libgl_module_handle;
 static QString g_PROJECT_NAME = "Vogl Editor";
 static vogleditor_settings g_settings;
 static const char* g_SETTINGS_FILE = "./vogleditor_settings.json";
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_proc_address_helper
-//----------------------------------------------------------------------------------------------------------------------
-static vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
-{
-    VOGL_FUNC_TRACER
-
-        vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, pName)) : NULL;
-
-#if (VOGL_PLATFORM_HAS_GLX)
-    if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
-        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
-#elif (VOGL_PLATFORM_HAS_WGL)
-    if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
-        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
-#else
-#error "Implement vogl_get_proc_address_helper this platform."
-#endif
-
-    return pFunc;
-}
-
-
-//----------------------------------------------------------------------------------------------------------------------
-// load_gl
-//----------------------------------------------------------------------------------------------------------------------
-static bool load_gl()
-{
-    VOGL_FUNC_TRACER
-
-        g_actual_libgl_module_handle = plat_load_system_gl(PLAT_RTLD_LAZY);
-    if (!g_actual_libgl_module_handle)
-    {
-        vogl_error_printf("Failed loading %s!\n", plat_get_system_gl_module_name());
-        return false;
-    }
-
-#if VOGL_PLATFORM_HAS_GLX
-    GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
-    if (!GL_ENTRYPOINT(glXGetProcAddress))
-    {
-        vogl_error_printf("Failed getting address of glXGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
-        return false;
-    }
-#elif VOGL_PLATFORM_HAS_WGL
-    GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
-    if (!GL_ENTRYPOINT(wglGetProcAddress))
-    {
-        vogl_error_printf("Failed getting address of wglGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
-        return false;
-    }
-#else
-#error "Need to implement load_gl for this platform."
-#endif
-
-    return true;
-}
 
 VoglEditor::VoglEditor(QWidget *parent) :
    QMainWindow(parent),
@@ -167,11 +108,6 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_bDelayUpdateUIForContext(false)
 {
    ui->setupUi(this);
-
-   if (load_gl())
-   {
-      vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
-   }
 
    // load the settings file. This will only succeed if the file already exists
    g_settings.load(g_SETTINGS_FILE);
