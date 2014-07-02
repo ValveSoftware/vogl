@@ -6,7 +6,10 @@ include("${SRC_DIR}/build_options.cmake")
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SRC_DIR}/cmake/Modules/")
 
 # we want cmake to link the Qt libs into the binary
-cmake_policy(SET CMP0020 NEW)
+# This policy was introduced in 2.8.11, so on newer versions, use the OLD policy to maintain consistent behavior
+if (${CMAKE_VERSION} VERSION_GREATER 2.8.11)
+   cmake_policy(SET CMP0020 OLD)
+endif()
 
 find_package(Qt5 COMPONENTS Widgets Gui Core REQUIRED)
 find_package(Threads REQUIRED)
@@ -174,7 +177,6 @@ add_dependencies(${PROJECT_NAME} voglgen_make_inc SDL)
 target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
     Qt5::Core
-	Qt5::WinMain
     ${TELEMETRY_LIBRARY}
     ${X11_X11_LIB}
 	${LibBackTrace_LIBRARY}
