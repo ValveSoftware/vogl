@@ -10,22 +10,9 @@ file( GLOB_RECURSE HDRS *.[h|inl] )
 set(SPEC_DIR "${SRC_DIR}/../glspec")
 
 file( GLOB SPECS "${SPEC_DIR}/*.spec" "${SPEC_DIR}/*.tm" "${SPEC_DIR}/*.xml" )
-set(SRC_LIST ${HDRS} ${SPECS} voglgen.cpp)
-
-# This is not the ideal way to include TinyXML, but let's do this for now.
-if (NOT TinyXML_FOUND)
-    set(SRC_LIST 
-        ${SRC_LIST}
-        tinyxml/tinystr.cpp
-        tinyxml/tinyxml.cpp
-        tinyxml/tinyxmlerror.cpp
-        tinyxml/tinyxmlparser.cpp
-    )
-
-    # Build it instead.
-    set(TinyXML_INCLUDE_DIRS "")
-    set(TinyXML_LIBRARIES "")
-endif()
+set(SRC_LIST ${HDRS} ${SPECS}
+    voglgen.cpp
+    tinyxml2/tinyxml2.cpp)
 
 # Add a source group to easily look at the spec files.
 if (MSVC)
@@ -36,14 +23,12 @@ add_definitions(-DTIXML_USE_STL)
 
 include_directories(
     ${SRC_DIR}/voglcore
-    ${TinyXML_INCLUDE_DIRS}
 )
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 
 target_link_libraries(${PROJECT_NAME}
     voglcore
-    ${TinyXML_LIBRARIES}
 )
 
 set(FORCE_REGENERATE ${SPEC_DIR}/force_regenerate)
@@ -140,6 +125,8 @@ set(GENERATED_FILES
 # ensure we catch all the dependencies.
 
 get_target_property(VOGLGEN_EXE ${PROJECT_NAME} LOCATION)
+
+# Don't we want this FORCE_REGENERATE file to be in the build output directory?
 
 # This case deals with rebuilding the exe.
 add_custom_command(TARGET ${PROJECT_NAME}

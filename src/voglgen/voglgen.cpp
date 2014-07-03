@@ -43,7 +43,7 @@
 
 #include "vogl_port.h"
 
-#include "tinyxml/tinyxml.h"
+#include "tinyxml2/tinyxml2.h"
 
 #define VOGL_NAMESPACES_HEADER
 #define VOGL_NAMESPACES_IMPLEMENTATION
@@ -57,9 +57,8 @@ FILE *fopen_and_log_generic(const dynamic_string& outDirectory, const char* file
 // points of interest for you.
 const char* gDebugFunctionName = NULL;
 
-
-#define VOGL_DEBUG_BREAK_ON_FUNCTION(_funcNameVar, _funcToBreakOn) VOGL_CONDITIONAL_BREAKPOINT( (_funcToBreakOn != NULL && (_funcNameVar.begins_with(_funcToBreakOn))) )
-
+#define VOGL_DEBUG_BREAK_ON_FUNCTION(_funcNameVar, _funcToBreakOn) \
+    VOGL_CONDITIONAL_BREAKPOINT( (_funcToBreakOn != NULL && (_funcNameVar.begins_with(_funcToBreakOn))) )
 
 //-------------------------------------------------------------------------------------------------------------------------------
 // Command line options
@@ -93,20 +92,20 @@ enum gl_lib_t
 };
 
 static const char *g_lib_api_prefixes[] =
-    {
-        "gl",
-        "glX",
-        "wgl",
-        "glu"
-    };
+{
+    "gl",
+    "glX",
+    "wgl",
+    "glu"
+};
 
 //-------------------------------------------------------------------------------------------------------------------------------
 // Vendor suffixes
 //-------------------------------------------------------------------------------------------------------------------------------
 static const char *g_gl_vendor_suffixes[] =
-    {
-        "NV", "INTEL", "SGIS", "SGIX", "SUN", "NVX", "OES", "AMD", "ATI", "OES", "3DFX", "PGI", "INGR", "IBM"
-    };
+{
+    "NV", "INTEL", "SGIS", "SGIX", "SUN", "NVX", "OES", "AMD", "ATI", "OES", "3DFX", "PGI", "INGR", "IBM"
+};
 
 //-------------------------------------------------------------------------------------------------------------------------------
 // GL/GLX/WGL/etc. function specs
@@ -659,14 +658,15 @@ public:
 
     bool parse_gl_xml_file(const char *pFilename)
     {
-        TiXmlDocument gl_xml;
-        if (!gl_xml.LoadFile(pFilename))
+        tinyxml2::XMLDocument gl_xml;
+
+        if (gl_xml.LoadFile(pFilename) != tinyxml2::XML_SUCCESS)
         {
             vogl_error_printf("Failed loading %s!\n", pFilename);
             return false;
         }
 
-        const TiXmlElement *pRoot = gl_xml.RootElement();
+        const tinyxml2::XMLElement *pRoot = gl_xml.RootElement();
         const char *pName = pRoot->Attribute("name");
         if ((!pName) || (strcmp(pName, "gl")))
         {
@@ -674,15 +674,15 @@ public:
             return false;
         }
 
-        const TiXmlElement *pLibraries = pRoot->FirstChildElement("libraries");
-        const TiXmlElement *pExtensions = pRoot->FirstChildElement("extensions");
+        const tinyxml2::XMLElement *pLibraries = pRoot->FirstChildElement("libraries");
+        const tinyxml2::XMLElement *pExtensions = pRoot->FirstChildElement("extensions");
         if ((!pLibraries) || (!pExtensions))
         {
             vogl_error_printf("Couldn't find libraries and/or extensions elements in %s!\n", pFilename);
             return false;
         }
 
-        const TiXmlElement *pLibrary = pLibraries->FirstChildElement();
+        const tinyxml2::XMLElement *pLibrary = pLibraries->FirstChildElement();
         while (pLibrary)
         {
             const char *pName2 = pLibrary->Attribute("name");
@@ -695,7 +695,7 @@ public:
             pLibrary = pLibrary->NextSiblingElement();
         }
 
-        const TiXmlElement *pCur_extension = pExtensions->FirstChildElement();
+        const tinyxml2::XMLElement *pCur_extension = pExtensions->FirstChildElement();
         while (pCur_extension)
         {
             const char *pExt_name = pCur_extension->Attribute("name");
@@ -717,13 +717,13 @@ public:
 protected:
     gl_function_def_vec m_funcs;
 
-    bool parse_gl_xml_function_defs(const char *pFilename, const char *pCategory, const TiXmlElement *pFunctions)
+    bool parse_gl_xml_function_defs(const char *pFilename, const char *pCategory, const tinyxml2::XMLElement *pFunctions)
     {
         while (pFunctions)
         {
             if ((pFunctions->Value()) && (strcmp(pFunctions->Value(), "functions") == 0))
             {
-                const TiXmlElement *pFunction = pFunctions->FirstChildElement();
+                const tinyxml2::XMLElement *pFunction = pFunctions->FirstChildElement();
                 while (pFunction)
                 {
                     if ((pFunction->Value()) && (strcmp(pFunction->Value(), "function") == 0))
@@ -772,7 +772,7 @@ protected:
                         gl_func.m_category = pCategory;
                         gl_func.m_return = pType;
 
-                        const TiXmlElement *pParams = pFunction->FirstChildElement();
+                        const tinyxml2::XMLElement *pParams = pFunction->FirstChildElement();
                         while (pParams)
                         {
                             if (strcmp(pParams->Value(), "param") == 0)
@@ -820,20 +820,20 @@ static const struct
     const char *m_pApitrace_return_type;
     vogl_namespace_t m_namespace;
 } g_apitrace_return_type_aliases[] =
-      {
-          { "void", "Void", VOGL_NAMESPACE_INVALID },
-          { "GLenum", "GLenum_error", VOGL_NAMESPACE_INVALID },
-          { "const GLubyte *", "String(Const(GLubyte))", VOGL_NAMESPACE_INVALID },
-          { "GLuint", "Handle(\"list\", GLuint, \"range\")", VOGL_NAMESPACE_LISTS },
-          { "GLint", "Alias(\"GLint\", GLenum)", VOGL_NAMESPACE_INVALID },
-          { "GLvoid*", "GLmap", VOGL_NAMESPACE_INVALID },
-          { "GLuint", "GLprogram", VOGL_NAMESPACE_PROGRAMS },
-          { "GLuint", "GLshader", VOGL_NAMESPACE_SHADERS },
-          { "GLint", "GLlocation", VOGL_NAMESPACE_LOCATIONS },
-          { "GLubyte *", "String(Const(GLubyte))", VOGL_NAMESPACE_INVALID },
-          { "GLint", "GLlocationARB", VOGL_NAMESPACE_LOCATIONS },
-          { "GLuint", "Handle(\"fragmentShaderATI\", GLuint, \"range\")", VOGL_NAMESPACE_FRAGMENT_SHADER_ATI }
-      };
+{
+    { "void", "Void", VOGL_NAMESPACE_INVALID },
+    { "GLenum", "GLenum_error", VOGL_NAMESPACE_INVALID },
+    { "const GLubyte *", "String(Const(GLubyte))", VOGL_NAMESPACE_INVALID },
+    { "GLuint", "Handle(\"list\", GLuint, \"range\")", VOGL_NAMESPACE_LISTS },
+    { "GLint", "Alias(\"GLint\", GLenum)", VOGL_NAMESPACE_INVALID },
+    { "GLvoid*", "GLmap", VOGL_NAMESPACE_INVALID },
+    { "GLuint", "GLprogram", VOGL_NAMESPACE_PROGRAMS },
+    { "GLuint", "GLshader", VOGL_NAMESPACE_SHADERS },
+    { "GLint", "GLlocation", VOGL_NAMESPACE_LOCATIONS },
+    { "GLubyte *", "String(Const(GLubyte))", VOGL_NAMESPACE_INVALID },
+    { "GLint", "GLlocationARB", VOGL_NAMESPACE_LOCATIONS },
+    { "GLuint", "Handle(\"fragmentShaderATI\", GLuint, \"range\")", VOGL_NAMESPACE_FRAGMENT_SHADER_ATI }
+};
 
 const uint32_t APITRACE_RETURN_TYPE_ALIASES_ARRAY_SIZE = sizeof(g_apitrace_return_type_aliases) / sizeof(g_apitrace_return_type_aliases[0]);
 
@@ -846,57 +846,57 @@ static const struct
     const char *m_pSpec_type;
     const char *m_pApitrace_type;
 } g_apitrace_param_type_aliases[] =
-      {
-          { "GLbitfield", "GLbitfield_access" },
-          { "GLbitfield", "GLbitfield_attrib" },
-          { "GLbitfield", "GLbitfield_barrier" },
-          { "GLbitfield", "GLbitfield_client_attrib" },
-          { "GLbitfield", "GLbitfield_shader" },
-          { "GLbitfield", "GLbitfield_sync_flush" },
-          { "GLuint", "GLpipeline" },
-          { "GLuint", "GLarray" },
-          { "GLuint", "GLarrayAPPLE" },
-          { "GLuint", "GLbuffer" },
-          { "GLuint", "GLfeedback" },
-          { "GLuint", "GLfence" },
-          { "GLuint", "GLframebuffer" },
-          { "GLuint", "GLpipeline" },
-          { "GLuint", "GLprogramARB" },
-          { "GLuint", "GLquery" },
-          { "GLuint", "GLrenderbuffer" },
-          { "GLuint", "GLsampler" },
-          { "GLuint", "GLtexture" },
-          { "GLuint", "GLarray" },
-          { "GLuint", "GLarrayAPPLE" },
-          { "GLuint", "GLbuffer" },
-          { "GLuint", "GLfeedback" },
-          { "GLuint", "GLfence" },
-          { "GLuint", "GLfragmentShaderATI" },
-          { "GLuint", "GLframebuffer" },
-          { "GLuint", "GLlist" },
-          { "GLuint", "GLpipeline" },
-          { "GLuint", "GLprogram" },
-          { "GLuint", "GLprogramARB" },
-          { "GLuint", "GLquery" },
-          { "GLuint", "GLrenderbuffer" },
-          { "GLuint", "GLsampler" },
-          { "GLuint", "GLshader" },
-          { "GLuint", "GLtexture" },
-          { "GLvoid *", "GLpointer" },
-          { "GLvoid", "GLIndexBuffer" },
-          { "GLchar *", "GLstring" },
-          { "const GLvoid *", "GLpointerConst" },
-          { "GLhalf", "GLhalfNV" },
-          { "const GLchar *", "GLstringConst" },
-          { "const GLchar *", "GLstringConstARB" },
-          { "GLchar *", "GLstringARB" },
-          { "GLchar", "GLcharARB" },
-          { "GLint", "GLlocation" },
-          { "GLint", "GLlocationARB" },
-          { "GLenum", "GLenum_int" },
-          { "GLint", "size_bgra" },
-          { "GLenum", "GLenum_mode" },
-      };
+{
+    { "GLbitfield", "GLbitfield_access" },
+    { "GLbitfield", "GLbitfield_attrib" },
+    { "GLbitfield", "GLbitfield_barrier" },
+    { "GLbitfield", "GLbitfield_client_attrib" },
+    { "GLbitfield", "GLbitfield_shader" },
+    { "GLbitfield", "GLbitfield_sync_flush" },
+    { "GLuint", "GLpipeline" },
+    { "GLuint", "GLarray" },
+    { "GLuint", "GLarrayAPPLE" },
+    { "GLuint", "GLbuffer" },
+    { "GLuint", "GLfeedback" },
+    { "GLuint", "GLfence" },
+    { "GLuint", "GLframebuffer" },
+    { "GLuint", "GLpipeline" },
+    { "GLuint", "GLprogramARB" },
+    { "GLuint", "GLquery" },
+    { "GLuint", "GLrenderbuffer" },
+    { "GLuint", "GLsampler" },
+    { "GLuint", "GLtexture" },
+    { "GLuint", "GLarray" },
+    { "GLuint", "GLarrayAPPLE" },
+    { "GLuint", "GLbuffer" },
+    { "GLuint", "GLfeedback" },
+    { "GLuint", "GLfence" },
+    { "GLuint", "GLfragmentShaderATI" },
+    { "GLuint", "GLframebuffer" },
+    { "GLuint", "GLlist" },
+    { "GLuint", "GLpipeline" },
+    { "GLuint", "GLprogram" },
+    { "GLuint", "GLprogramARB" },
+    { "GLuint", "GLquery" },
+    { "GLuint", "GLrenderbuffer" },
+    { "GLuint", "GLsampler" },
+    { "GLuint", "GLshader" },
+    { "GLuint", "GLtexture" },
+    { "GLvoid *", "GLpointer" },
+    { "GLvoid", "GLIndexBuffer" },
+    { "GLchar *", "GLstring" },
+    { "const GLvoid *", "GLpointerConst" },
+    { "GLhalf", "GLhalfNV" },
+    { "const GLchar *", "GLstringConst" },
+    { "const GLchar *", "GLstringConstARB" },
+    { "GLchar *", "GLstringARB" },
+    { "GLchar", "GLcharARB" },
+    { "GLint", "GLlocation" },
+    { "GLint", "GLlocationARB" },
+    { "GLenum", "GLenum_int" },
+    { "GLint", "size_bgra" },
+    { "GLenum", "GLenum_mode" },
+};
 
 static const uint32_t APITRACE_PARAM_TYPE_ALIASES_ARRAY_SIZE = sizeof(g_apitrace_param_type_aliases) / sizeof(g_apitrace_param_type_aliases[0]);
 
@@ -3001,16 +3001,16 @@ private:
             const char *m_pFilename;
             uint32_t m_vers;
         } s_gl_get_files[] =
-              {
-                  { "gl10_gets.txt", 0x10 },
-                  { "gl15_gets.txt", 0x15 },
-                  { "gl21_gets.txt", 0x21 },
-                  { "gl33_gets.txt", 0x33 },
-                  { "gl40_gets.txt", 0x40 },
-                  { "gl41_gets.txt", 0x41 },
-                  { "gl42_gets.txt", 0x42 },
-                  { "gl43_gets.txt", 0x43 }
-              };
+        {
+            { "gl10_gets.txt", 0x10 },
+            { "gl15_gets.txt", 0x15 },
+            { "gl21_gets.txt", 0x21 },
+            { "gl33_gets.txt", 0x33 },
+            { "gl40_gets.txt", 0x40 },
+            { "gl41_gets.txt", 0x41 },
+            { "gl42_gets.txt", 0x42 },
+            { "gl43_gets.txt", 0x43 }
+        };
 
         for (uint32_t file_iter = 0; file_iter < sizeof(s_gl_get_files) / sizeof(s_gl_get_files[0]); file_iter++)
         {
@@ -3021,8 +3021,11 @@ private:
 
             dynamic_string_array get_names;
 
-            if (!file_utils::read_text_file(pFilename, get_names, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintErrorMessages))
+            if (!file_utils::read_text_file(pFilename, get_names,
+                file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintErrorMessages))
+            {
                 return false;
+            }
 
             for (uint32_t i = 0; i < get_names.size(); i++)
             {
@@ -4692,6 +4695,82 @@ static void print_title()
     vogl_printf("Debugger present: %u\n", vogl_is_debugger_present());
 }
 
+#if 0
+void parse_enums(const tinyxml2::XMLElement *pRegistry, const tinyxml2::XMLElement *pEnums)
+{
+    while (pEnums)
+    {
+        // namespace, group, type, vendor, comment
+        const char *nmspace = pEnums->Attribute("namespace");
+        const char *group = pEnums->Attribute("group");
+        const char *type = pEnums->Attribute("type");
+        const char *vendor = pEnums->Attribute("vendor");
+        const char *comment = pEnums->Attribute("comment");
+
+        printf("pEnums name: %s value: %s namespace: '%s' '%s' '%s' '%s' '%s'\n", pEnums->Name(), pEnums->Value(), nmspace,
+               group, type, vendor, comment);
+        const tinyxml2::XMLElement *elem = pEnums->FirstChildElement("enum");
+        while(elem)
+        {
+            // value, name, comment
+            const char *type = elem->Attribute("name");
+            const char *value = elem->Attribute("value");
+
+            printf("  type: %s %s\n", type, value);
+            elem = elem->NextSiblingElement("enum");
+        }
+
+        pEnums = pEnums->NextSiblingElement("enums");
+    }
+}
+
+bool parse_gl_xml_file2(const char *pFilename)
+{
+    tinyxml2::XMLDocument gl_xml;
+
+    tinyxml2::XMLError ret = gl_xml.LoadFile(pFilename);
+    if (ret != tinyxml2::XML_SUCCESS)
+    {
+        vogl_error_printf("Failed loading %s (%d).\n", pFilename, ret);
+        return false;
+    }
+
+    // from https://cvs.khronos.org/svn/repos/ogl/trunk/doc/registry/public/api/readme.pdf 
+    //
+    // <registry>
+    //    <types>     Defines API types.
+    //    <groups>    Named groups of tokens for parameter validation.
+    //    <enums>     Defines API enumerants (tokens). Multiple.
+    //    <commands>  Defines API functions.
+    //    <feature>   Defines API features interfaces (API versions). One tag per feature set.
+    //    <extension> Defines API extension interfaces.
+    //
+    const tinyxml2::XMLElement *pRegistry = gl_xml.RootElement();
+    const tinyxml2::XMLElement *pTypes = pRegistry->FirstChildElement("types");
+    const tinyxml2::XMLElement *pGroups = pRegistry->FirstChildElement("groups");
+    const tinyxml2::XMLElement *pEnums = pRegistry->FirstChildElement("enums");
+    const tinyxml2::XMLElement *pCommands = pRegistry->FirstChildElement("commands");
+    const tinyxml2::XMLElement *pFeature = pRegistry->FirstChildElement("feature");
+    const tinyxml2::XMLElement *pExtensions = pRegistry->FirstChildElement("extensions");
+
+//        tinyxml2::XMLPrinter printer(stdout);
+//        pRegistry->Print(&printer);
+
+    printf("\n");
+    printf("%p %s\n", pRegistry, pRegistry->Name());
+    printf("%p %s\n", pTypes, pTypes ? pTypes->Name() : "??");
+    printf("%p %s\n", pGroups, pGroups ? pGroups->Name() : "??");
+    printf("%p %s\n", pEnums, pEnums ? pEnums->Name() : "??");
+    printf("%p %s\n", pCommands, pCommands ? pCommands->Name() : "??");
+    printf("%p %s\n", pFeature, pFeature ? pFeature->Name() : "??");
+    printf("%p %s\n", pExtensions, pExtensions ? pExtensions->Name() : "??");
+    printf("\n");
+    
+    parse_enums(pRegistry, pEnums);
+    return true;
+}
+#endif
+
 //-------------------------------------------------------------------------------------------------------------------------------
 // main_internal
 //-------------------------------------------------------------------------------------------------------------------------------
@@ -4704,6 +4783,11 @@ static int main_internal(int argc, char *argv[])
     cwd[0] = 0;
     colorized_console::init();
     colorized_console::set_exception_callback();
+
+#if 0
+    printf("%s\n", get_current_dir_name());
+    parse_gl_xml_file2("/home/mikesart/dev/voglproj/vogl_chroot.bitbucket/vogl/glspec/khronos/gl.xml");
+#endif
 
     if (check_for_option(argc, argv, "quiet"))
         console::set_output_level(cMsgError);

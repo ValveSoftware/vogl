@@ -124,3 +124,5 @@ SDL is zlib licensed: [zlib license](http://www.libsdl.org/license.php).
 
 stb files (from Sean Barrett) are public domain.
 
+TinyXML-2 is zlib licensed: [zlib license](https://github.com/leethomason/tinyxml2).
+
