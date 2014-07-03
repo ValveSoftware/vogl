@@ -43,6 +43,8 @@
 #define VOGL_MAX_CLIENT_SIDE_VERTEX_ARRAY_SIZE (8U * 1024U * 1024U)
 
 bool vogl_process_internal_trace_command_ctypes_packet(const key_value_map &kvm, const vogl_ctypes &ctypes);
+vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName);
+bool load_gl();
 
 //----------------------------------------------------------------------------------------------------------------------
 // enum vogl_gl_replayer_flags
