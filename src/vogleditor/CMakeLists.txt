@@ -201,10 +201,6 @@ if (MSVC)
 					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Cored.dll ${COPY_DEST}
 					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Gui.dll ${COPY_DEST}
 					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Guid.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/libEGL.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/libEGLd.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/libGLESv2.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/libGLESv2d.dll ${COPY_DEST}
 					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icudt52.dll ${COPY_DEST}
 					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icuin52.dll ${COPY_DEST}
 					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icuuc52.dll ${COPY_DEST}
