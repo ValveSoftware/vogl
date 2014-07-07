@@ -171,7 +171,7 @@ bool vogl_default_framebuffer_state::snapshot(const vogl_context_info &context_i
 
     vogl_reset_pixel_store_states();
     if (!context_info.is_core_profile())
-        vogl_reset_pixel_transfer_states();
+        vogl_reset_pixel_transfer_states(context_info);
 
     // TODO: Test multisampled default framebuffers
     const GLenum tex_target = (fb_attribs.m_samples > 1) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;

@@ -70,7 +70,7 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
     vogl_scoped_state_saver state_saver(cGSTPixelStore, cGSTPixelTransfer);
 
     vogl_reset_pixel_store_states();
-    vogl_reset_pixel_transfer_states();
+    vogl_reset_pixel_transfer_states(context_info);
 
 #if 0
 	// silly experiment

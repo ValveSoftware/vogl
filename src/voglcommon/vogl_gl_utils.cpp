@@ -755,7 +755,7 @@ void vogl_reset_pixel_store_states()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_reset_pixel_transfer_states
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_reset_pixel_transfer_states()
+void vogl_reset_pixel_transfer_states(const vogl_context_info &context_info)
 {
     VOGL_FUNC_TRACER
 
@@ -776,26 +776,27 @@ void vogl_reset_pixel_transfer_states()
     GL_ENTRYPOINT(glPixelTransferf)(GL_BLUE_BIAS, 0.0f);
     GL_ENTRYPOINT(glPixelTransferf)(GL_ALPHA_BIAS, 0.0f);
     GL_ENTRYPOINT(glPixelTransferf)(GL_DEPTH_BIAS, 0.0f);
+    if (context_info.supports_extension("GL_ARB_imaging")) {
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_RED_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_GREEN_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_BLUE_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_ALPHA_SCALE, 1.0f);
 
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_RED_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_GREEN_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_BLUE_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_ALPHA_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_RED_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_GREEN_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_BLUE_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_ALPHA_BIAS, 0.0f);
 
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_RED_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_GREEN_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_BLUE_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_ALPHA_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_RED_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_GREEN_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_BLUE_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_ALPHA_SCALE, 1.0f);
 
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_RED_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_GREEN_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_BLUE_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_ALPHA_SCALE, 1.0f);
-
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_RED_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_GREEN_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_BLUE_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_ALPHA_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_RED_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_GREEN_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_BLUE_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_ALPHA_BIAS, 0.0f);
+    }
 }
 
 #include "vogl_general_context_state.h"
@@ -1325,7 +1326,7 @@ GLenum vogl_determine_texture_target(const vogl_context_info &context_info, GLui
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_state_saver::save
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_state_saver::save(vogl_generic_state_type type)
+void vogl_state_saver::save(vogl_generic_state_type type, const vogl_context_info *context_info)
 {
     VOGL_FUNC_TRACER
 
@@ -1357,7 +1358,6 @@ void vogl_state_saver::save(vogl_generic_state_type type)
         }
         case cGSTPixelTransfer:
         {
-            // FIXME: All pixel transfer was marked deprecated and not available in a Core Profile (let the caller worry about it)
             static const GLenum s_pixel_transfer_int_enums[] =
                 {
                     GL_MAP_COLOR, GL_MAP_STENCIL, GL_INDEX_SHIFT, GL_INDEX_OFFSET
@@ -1374,9 +1374,11 @@ void vogl_state_saver::save(vogl_generic_state_type type)
                     GL_POST_CONVOLUTION_RED_SCALE, GL_POST_CONVOLUTION_GREEN_SCALE, GL_POST_CONVOLUTION_BLUE_SCALE, GL_POST_CONVOLUTION_ALPHA_SCALE, GL_POST_CONVOLUTION_RED_BIAS,
                     GL_POST_CONVOLUTION_GREEN_BIAS, GL_POST_CONVOLUTION_BLUE_BIAS, GL_POST_CONVOLUTION_ALPHA_BIAS
                 };
-
-            for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums); i++)
-                SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
+            uint32_t array_size = VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums);
+            if (!context_info || !context_info->supports_extension("GL_ARB_imaging"))
+                array_size -= 16;  // skip enums from GL_POST_COLOR_MATRIX_RED_SCALE
+            for (uint32_t i = 0; i < array_size; i++)
+                    SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
 
             break;
         }

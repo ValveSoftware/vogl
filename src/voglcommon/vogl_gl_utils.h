@@ -290,7 +290,7 @@ vec4D vogl_get_gl_vec4D(GLenum pname);
 matrix44D vogl_get_gl_matrix44D(GLenum pname);
 
 void vogl_reset_pixel_store_states();
-void vogl_reset_pixel_transfer_states();
+void vogl_reset_pixel_transfer_states(const vogl_context_info &context_info);
 
 bool vogl_copy_buffer_to_image(void *pDst, uint32_t dst_size, uint32_t width, uint32_t height, GLuint format = GL_RGB, GLuint type = GL_UNSIGNED_BYTE, bool flip_image = false, GLuint framebuffer = 0, GLuint read_buffer = GL_BACK, GLuint pixel_pack_buffer = 0);
 
@@ -582,7 +582,7 @@ public:
         m_draw_buffers.clear();
     }
 
-    void save(vogl_generic_state_type type);
+    void save(vogl_generic_state_type type, const vogl_context_info *context_info = NULL);
     void restore();
 
 private:
@@ -638,6 +638,11 @@ public:
     void save(vogl_generic_state_type type)
     {
         VOGL_FUNC_TRACER m_state.save(type);
+    }
+
+    void save(const vogl_context_info &context_info, vogl_generic_state_type type)
+    {
+        VOGL_FUNC_TRACER m_state.save(type, &context_info);
     }
     void restore()
     {
