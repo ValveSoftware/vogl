@@ -832,23 +832,3 @@ bool vogl_gl_state_snapshot::deserialize(const json_node &node, const vogl_blob_
 
     return true;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

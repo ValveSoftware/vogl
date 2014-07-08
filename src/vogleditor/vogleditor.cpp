@@ -70,50 +70,9 @@
 //----------------------------------------------------------------------------------------------------------------------
 // globals
 //----------------------------------------------------------------------------------------------------------------------
-static void *g_actual_libgl_module_handle;
 static QString g_PROJECT_NAME = "Vogl Editor";
 static vogleditor_settings g_settings;
 static const char* g_SETTINGS_FILE = "./vogleditor_settings.json";
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_proc_address_helper
-//----------------------------------------------------------------------------------------------------------------------
-static vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
-{
-   VOGL_FUNC_TRACER
-
-   vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(dlsym(g_actual_libgl_module_handle, pName)) : NULL;
-
-   if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
-      pFunc = reinterpret_cast<vogl_void_func_ptr_t>( GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte*>(pName)) );
-
-   return pFunc;
-}
-
-
-//----------------------------------------------------------------------------------------------------------------------
-// load_gl
-//----------------------------------------------------------------------------------------------------------------------
-static bool load_gl()
-{
-   VOGL_FUNC_TRACER
-
-   g_actual_libgl_module_handle = dlopen("libGL.so.1", RTLD_LAZY);
-   if (!g_actual_libgl_module_handle)
-   {
-      vogl_error_printf("Failed loading libGL.so.1!\n");
-      return false;
-   }
-
-   GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
-   if (!GL_ENTRYPOINT(glXGetProcAddress))
-   {
-      vogl_error_printf("Failed getting address of glXGetProcAddress() from libGL.so.1!\n");
-      return false;
-   }
-
-   return true;
-}
 
 VoglEditor::VoglEditor(QWidget *parent) :
    QMainWindow(parent),
@@ -149,11 +108,6 @@ VoglEditor::VoglEditor(QWidget *parent) :
    m_bDelayUpdateUIForContext(false)
 {
    ui->setupUi(this);
-
-   if (load_gl())
-   {
-      vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
-   }
 
    // load the settings file. This will only succeed if the file already exists
    g_settings.load(g_SETTINGS_FILE);
@@ -455,10 +409,27 @@ VoglEditor::Prompt_Result VoglEditor::prompt_generate_trace()
         {
             if (m_pLaunchTracerDialog->validate_inputs())
             {
+#if defined (_WIN32)
+                // if the app to launch is a valid executable (alternatively it could be a name or number if it's Steam title) than make sure the opengl32.dll is in the same directory
+                QFileInfo appDir(m_pLaunchTracerDialog->get_application_to_launch());
+                if (appDir.exists())
+                {
+                    QDir dir = appDir.dir();
+                    if(!QFileInfo::exists(dir.absolutePath() + "/opengl32.dll"))
+                    {
+                        QMessageBox::StandardButton result = QMessageBox::information(this, "Reminder", "Before continuing, please copy the vogltrace*.dll into the application's directory and rename it to opengl32.dll", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok);
+                        if (result == QMessageBox::Cancel)
+                        {
+                            return vogleditor_prompt_cancelled;
+                        }
+                    }
+                }
+#endif
+
                 QString cmdLine = m_pLaunchTracerDialog->get_command_line();
                 QProcessEnvironment env = m_pLaunchTracerDialog->get_process_environment();
                 bool bSuccess = launch_application_to_generate_trace(cmdLine, env);
-                if (bSuccess)
+                if (bSuccess && QFileInfo::exists(m_pLaunchTracerDialog->get_trace_file_path()))
                 {
                     Prompt_Result result = prompt_load_new_trace(m_pLaunchTracerDialog->get_trace_file_path().toStdString().c_str());
                     if (result == vogleditor_prompt_success ||
@@ -617,7 +588,7 @@ VoglEditor::Prompt_Result VoglEditor::prompt_trim_trace_file(QString filename, u
         bCompleted = false;
     }
 
-    if (bCompleted)
+    if (bCompleted && QFileInfo::exists(trimDialog.trim_file()))
     {
         Prompt_Result result = prompt_load_new_trace(trimDialog.trim_file().toStdString().c_str());
 

@@ -44,8 +44,68 @@
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_INT_MAGIC 0x12345678
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_FLOAT_MAGIC -999999.0f
 
+static void *g_actual_libgl_module_handle;
+
 // TODO: Move this declaration into a header that we share with the location the code actually exists.
 vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pName);
+
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_proc_address_helper
+//----------------------------------------------------------------------------------------------------------------------
+vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
+{
+    VOGL_FUNC_TRACER
+
+        vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, pName)) : NULL;
+
+#if (VOGL_PLATFORM_HAS_GLX)
+    if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
+        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
+#elif (VOGL_PLATFORM_HAS_WGL)
+    if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
+        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
+#else
+#error "Implement vogl_get_proc_address_helper this platform."
+#endif
+
+    return pFunc;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// load gl entrypoints
+//----------------------------------------------------------------------------------------------------------------------
+bool load_gl()
+{
+    VOGL_FUNC_TRACER
+
+        g_actual_libgl_module_handle = plat_load_system_gl(PLAT_RTLD_LAZY);
+
+    if (!g_actual_libgl_module_handle)
+    {
+        vogl_error_printf("Failed loading %s!\n", plat_get_system_gl_module_name());
+        return false;
+    }
+
+#if (VOGL_PLATFORM_HAS_GLX)
+    GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
+    if (!GL_ENTRYPOINT(glXGetProcAddress))
+    {
+        vogl_error_printf("Failed getting address of glXGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
+        return false;
+    }
+#elif (VOGL_PLATFORM_HAS_WGL)
+    GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
+    if (!GL_ENTRYPOINT(wglGetProcAddress))
+    {
+        vogl_error_printf("Failed getting address of wglGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
+        return false;
+    }
+#else
+#error "Implement load_gl for this platform."
+#endif
+
+    return true;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // glInterleavedArrays helper table
@@ -11977,6 +12037,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
         const uint8_vec &packet_buf = trim_packets.get_packet_buf(packet_index);
 
         const vogl_trace_gl_entrypoint_packet *pGL_packet = &trim_packets.get_packet<vogl_trace_gl_entrypoint_packet>(packet_index);
+
         if (pGL_packet->m_entrypoint_id != VOGL_ENTRYPOINT_glInternalTraceCommandRAD)
             continue;
 
@@ -12051,6 +12112,8 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
             // backtrace_map_addrs.json
             trace_writer.get_trace_archive()->copy_file(trace_reader.get_archive_blob_manager(), VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME, VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME);
         }
+
+        vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper, true);
 
         vogl_unique_ptr<vogl_gl_state_snapshot> pTrim_snapshot(snapshot_state(&trim_packets, optimize_snapshot));
 

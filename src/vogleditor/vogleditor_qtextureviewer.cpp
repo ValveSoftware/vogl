@@ -232,13 +232,13 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
 
         if (m_pixmaps.contains(mip))
         {
-            uint left = 0;
-            uint top = 0;
+            int left = 0;
+            int top = 0;
             if (m_bInvert)
             {
                 // invert
                 painter->scale(1,-1);
-                top = -drawHeight;
+                top = -(int)drawHeight;
             }
 
             painter->drawPixmap(left, top, drawWidth, drawHeight, m_pixmaps[mip]);

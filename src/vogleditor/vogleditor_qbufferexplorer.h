@@ -35,13 +35,21 @@ private slots:
 private:
     Ui::vogleditor_QBufferExplorer *ui;
 
-    struct vogleditor_buffer_format_params
-    {
-        unsigned char m_component_byte_count;
-        unsigned char m_component_count;
-        const char* m_string_formatter;
-        const char* m_name;
-    };
+	class vogleditor_buffer_format_params
+	{
+	public:
+		vogleditor_buffer_format_params(unsigned char component_byte_count, unsigned char component_count, const char* string_formatter, const char* name)
+            : m_component_byte_count(component_byte_count),
+              m_component_count(component_count),
+              m_string_formatter(string_formatter),
+              m_name(name)
+		{
+		}
+		unsigned char m_component_byte_count;
+		unsigned char m_component_count;
+		const char* m_string_formatter;
+		const char* m_name;
+	};
 
     vogl::vector<vogleditor_buffer_format_params> m_formatParams;
     void append_value(vogl::dynamic_string& rString, void* dataPtr, uint formatParamIndex);

@@ -265,12 +265,21 @@ bool vogl_has_active_context()
 {
     VOGL_FUNC_TRACER
 
+#if (VOGL_PLATFORM_HAS_GLX)
     if (!GL_ENTRYPOINT(glXGetCurrentContext))
         return false;
-
     if (!GL_ENTRYPOINT(glXGetCurrentContext)())
         return false;
 
+#elif (VOGL_PLATFORM_HAS_WGL)
+    
+    if (!GL_ENTRYPOINT(wglGetCurrentContext))
+        return false;
+    if (!GL_ENTRYPOINT(wglGetCurrentContext)())
+        return false;
+#else
+#error "Implement vogl_has_active_context this platform."
+#endif
     return true;
 }
 

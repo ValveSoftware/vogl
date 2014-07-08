@@ -95,8 +95,44 @@ bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attr
 
         return true;
     #else
-        VOGL_ASSERT(!"vogl_get_default_framebuffer_attribs");
-        return false;
+        HDC hDeviceContext = GL_ENTRYPOINT(wglGetCurrentDC)();
+        if (hDeviceContext == NULL)
+            return false;
+
+        HWND hWindow = WindowFromDC(hDeviceContext);
+        if (hWindow == NULL)
+        {
+            VOGL_ASSERT(!"No window available");
+            return false;
+        }
+
+        int pixelFormatIndex = GL_ENTRYPOINT(wglGetPixelFormat)(hDeviceContext);
+        PIXELFORMATDESCRIPTOR pfd;
+        memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
+        int result = GL_ENTRYPOINT(wglDescribePixelFormat)(hDeviceContext, pixelFormatIndex, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+        if (result == 0)
+        {
+            VOGL_ASSERT(!"wglDescribePixelFormat failed");
+            return false;
+        }
+
+        attribs.m_r_size = pfd.cRedBits;
+        attribs.m_g_size = pfd.cGreenBits;
+        attribs.m_b_size = pfd.cBlueBits;
+        attribs.m_a_size = pfd.cAlphaBits;
+        attribs.m_depth_size = pfd.cDepthBits;
+        attribs.m_stencil_size = pfd.cStencilBits;
+        attribs.m_samples = 0;
+        attribs.m_double_buffered = (pfd.dwFlags & PFD_DOUBLEBUFFER) == PFD_DOUBLEBUFFER;
+
+        RECT clientRect;
+        if (GetClientRect(hWindow, &clientRect))
+        {
+            attribs.m_width = clientRect.right - clientRect.left;
+            attribs.m_height = clientRect.bottom - clientRect.top;
+        }
+
+        return true;
     #endif
 }
 

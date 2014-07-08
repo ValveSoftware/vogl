@@ -5,11 +5,19 @@ include("${SRC_DIR}/build_options.cmake")
 
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SRC_DIR}/cmake/Modules/")
 
-require_sdl2()
+# we want cmake to link the Qt libs into the binary
+# This policy was introduced in 2.8.11, so on newer versions, use the OLD policy to maintain consistent behavior
+if (${CMAKE_VERSION} VERSION_GREATER 2.8.11)
+   cmake_policy(SET CMP0020 OLD)
+endif()
 
 find_package(Qt5 COMPONENTS Widgets Gui Core REQUIRED)
 find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
+
+require_pthreads()
+request_backtrace()
+require_sdl2()
 
 include_directories(
     ${SRC_DIR}
@@ -21,6 +29,7 @@ include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
     ${Qt5Widgets_INCLUDE_DIRS}
     ${SDL2_INCLUDE}
+    ${LibBackTrace_INCLUDE}
 )
 
 set(SRC_LIST
@@ -152,7 +161,10 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
     add_compiler_flag("-Wno-global-constructors -Wno-used-but-marked-unused")
 endif()
 
-add_compiler_flag("-fPIC")
+# Platform specific compile flags.
+if (NOT MSVC)
+    add_compiler_flag("-fPIC")
+endif()
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADER_LIST}
     ${QT_GEN_HEADER_MOC_LIST}
@@ -167,11 +179,35 @@ target_link_libraries(${PROJECT_NAME}
     Qt5::Core
     ${TELEMETRY_LIBRARY}
     ${X11_X11_LIB}
-    backtracevogl
+	${LibBackTrace_LIBRARY}
     voglcommon
     voglcore
     ${CMAKE_DL_LIBS}
     ${SDL2_LIBRARY}
 )
+
+if (MSVC)
+  # copy the debug and release dlls for Qt5Widgets, Qt5Core, and Qt5Gui
+  set (COPY_DEST ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR})
+
+  # There are also several other files that need to be copied or created
+  FILE(WRITE ${CMAKE_CURRENT_LIST_DIR}/qt.conf "[Paths]\nPlugins=.")
+  add_custom_target(copy_deps_qt5 ALL
+                    ${CMAKE_COMMAND} -E make_directory ${COPY_DEST}/platforms
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_LIST_DIR}/qt.conf ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Widgets.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Widgetsd.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Core.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Cored.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Gui.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Guid.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icudt52.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icuin52.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icuuc52.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_PLUGINS}/platforms/qwindows.dll ${COPY_DEST}/platforms
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_PLUGINS}/platforms/qwindowsd.dll  ${COPY_DEST}/platforms
+					COMMENT "Copying vogleditor Qt5 dependedencies to ${COPY_DEST}"
+					VERBATIM)
+endif()
 
 build_options_finalize()
