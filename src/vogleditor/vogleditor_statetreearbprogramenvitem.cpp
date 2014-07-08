@@ -43,18 +43,18 @@ QString vogleditor_stateTreeArbProgramEnvParameterItem::getDiffedValue() const
 
 //=============================================================================
 vogleditor_stateTreeArbProgramEnvItem::vogleditor_stateTreeArbProgramEnvItem(QString name, unsigned int index, vogleditor_stateTreeItem* parentNode, vogl_arb_program_environment_state& state)
-   : vogleditor_stateTreeItem(name, "", parentNode),
-     m_index(index),
-     m_pState(&state),
-     m_pDiffBaseState(NULL)
+    : vogleditor_stateTreeItem(name, "", parentNode),
+      m_index(index),
+      m_pState(&state),
+      m_pDiffBaseState(NULL)
 {
-   setValue(m_pState->get_cur_program(index));
+    setValue(m_pState->get_cur_program(index));
 
-   vec4F_vec envParams = state.get_env_params(index);
-   for (uint i = 0; i < envParams.size(); i++)
-   {
-       this->appendChild(new vogleditor_stateTreeArbProgramEnvParameterItem(i, envParams, this));
-   }
+    vec4F_vec envParams = state.get_env_params(index);
+    for (uint i = 0; i < envParams.size(); i++)
+    {
+        this->appendChild(new vogleditor_stateTreeArbProgramEnvParameterItem(i, envParams, this));
+    }
 }
 
 vogleditor_stateTreeArbProgramEnvItem::~vogleditor_stateTreeArbProgramEnvItem()

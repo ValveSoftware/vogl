@@ -28,18 +28,18 @@
 #include "vogl_buffer_stream.h"
 
 QTextureViewer::QTextureViewer(QWidget *parent) :
-   QWidget(parent),
-   m_channelSelection(VOGL_CSO_RGBA),
-   m_zoomFactor(1),
-   m_bInvert(false),
-   m_pKtxTexture(NULL),
-   m_baseMipLevel(0),
-   m_maxMipLevel(0),
-   m_arrayIndex(0)
+    QWidget(parent),
+    m_channelSelection(VOGL_CSO_RGBA),
+    m_zoomFactor(1),
+    m_bInvert(false),
+    m_pKtxTexture(NULL),
+    m_baseMipLevel(0),
+    m_maxMipLevel(0),
+    m_arrayIndex(0)
 {
-   m_background = QBrush(QColor(0, 0, 0));
-   m_outlinePen = QPen(Qt::black);
-   m_outlinePen.setWidth(1);
+    m_background = QBrush(QColor(0, 0, 0));
+    m_outlinePen = QPen(Qt::black);
+    m_outlinePen.setWidth(1);
 }
 
 void QTextureViewer::setTexture(const vogl::ktx_texture* pTexture, uint baseMipLevel, uint maxMipLevel)
@@ -75,12 +75,12 @@ void QTextureViewer::paintEvent(QPaintEvent *event)
 
     if (m_draw_enabled == false)
     {
-       // clear the viewer
-       painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
+        // clear the viewer
+        painter.fillRect(event->rect(), QWidget::palette().color(QWidget::backgroundRole()));
     }
     else
     {
-       paint(&painter, event);
+        paint(&painter, event);
     }
     painter.end();
 }

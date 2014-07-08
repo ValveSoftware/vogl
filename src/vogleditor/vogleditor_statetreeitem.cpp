@@ -31,40 +31,40 @@
 //=============================================================================
 
 vogleditor_stateTreeItem::vogleditor_stateTreeItem(QList<QVariant> columnTitles, vogleditor_QStateTreeModel* pModel)
- : m_columnData(columnTitles),
-   m_parentItem(NULL),
-   m_pModel(pModel),
-   m_bWasEdited(false)
+    : m_columnData(columnTitles),
+      m_parentItem(NULL),
+      m_pModel(pModel),
+      m_bWasEdited(false)
 {
 }
 
 vogleditor_stateTreeItem::vogleditor_stateTreeItem(QString name, QString value, vogleditor_stateTreeItem* parent)
- : m_parentItem(parent),
-   m_pModel(NULL)
+    : m_parentItem(parent),
+      m_pModel(NULL)
 {
-   m_columnData << name;
-   m_columnData << value;
+    m_columnData << name;
+    m_columnData << value;
 
-   if (m_parentItem != NULL)
-   {
-      m_pModel = m_parentItem->m_pModel;
-   }
+    if (m_parentItem != NULL)
+    {
+        m_pModel = m_parentItem->m_pModel;
+    }
 }
 
 vogleditor_stateTreeItem::~vogleditor_stateTreeItem()
 {
-   for (int i = 0; i < m_childItems.size(); i++)
-   {
-      delete m_childItems[i];
-      m_childItems[i] = NULL;
-   }
+    for (int i = 0; i < m_childItems.size(); i++)
+    {
+        delete m_childItems[i];
+        m_childItems[i] = NULL;
+    }
 
-   m_childItems.clear();
+    m_childItems.clear();
 }
 
 vogleditor_stateTreeItem* vogleditor_stateTreeItem::parent() const
 {
-   return m_parentItem;
+    return m_parentItem;
 }
 
 void vogleditor_stateTreeItem::setValue(QString value)
@@ -208,7 +208,7 @@ QString vogleditor_stateTreeItem::getValueFromPtrs(const int* values, uint count
 
 void vogleditor_stateTreeItem::appendChild(vogleditor_stateTreeItem* pChild)
 {
-   m_childItems.append(pChild);
+    m_childItems.append(pChild);
 }
 
 void vogleditor_stateTreeItem::transferChildren(vogleditor_stateTreeItem* pNewParent)
@@ -227,76 +227,76 @@ void vogleditor_stateTreeItem::transferChildren(vogleditor_stateTreeItem* pNewPa
 
 int vogleditor_stateTreeItem::childCount() const
 {
-   return m_childItems.size();
+    return m_childItems.size();
 }
 
 vogleditor_stateTreeItem* vogleditor_stateTreeItem::child(int index) const
 {
-   if (index < 0 || index >= childCount())
-   {
-      return NULL;
-   }
+    if (index < 0 || index >= childCount())
+    {
+        return NULL;
+    }
 
-   return m_childItems[index];
+    return m_childItems[index];
 }
 
 int vogleditor_stateTreeItem::columnCount() const
 {
-   int count = 0;
-   if (m_parentItem == NULL)
-   {
-      // this must be the root node
-      count = m_columnData.size();
-   }
-   else
-   {
-      m_pModel->columnCount();
-   }
+    int count = 0;
+    if (m_parentItem == NULL)
+    {
+        // this must be the root node
+        count = m_columnData.size();
+    }
+    else
+    {
+        m_pModel->columnCount();
+    }
 
-   return count;
+    return count;
 }
 
 QVariant vogleditor_stateTreeItem::columnData(int column, int role) const
 {
-   if (column >= m_columnData.size())
-   {
-      return QVariant();
-   }
+    if (column >= m_columnData.size())
+    {
+        return QVariant();
+    }
 
-   if (role == Qt::ForegroundRole && parent() != NULL && hasChanged())
-   {
-       return QVariant(QColor(Qt::red));
-   }
+    if (role == Qt::ForegroundRole && parent() != NULL && hasChanged())
+    {
+        return QVariant(QColor(Qt::red));
+    }
 
-   if (role == Qt::ToolTipRole)
-   {
-       if (hasChanged())
-       {
-           QString prevValue = getDiffedValue();
-           if (prevValue.isEmpty())
-               return "";
-           else
-               return "Previous value was: " + prevValue;
-       }
-   }
+    if (role == Qt::ToolTipRole)
+    {
+        if (hasChanged())
+        {
+            QString prevValue = getDiffedValue();
+            if (prevValue.isEmpty())
+                return "";
+            else
+                return "Previous value was: " + prevValue;
+        }
+    }
 
-   // catch any other roles that we don't specifically handle
-   if (role != Qt::DisplayRole)
-   {
-       return QVariant();
-   }
+    // catch any other roles that we don't specifically handle
+    if (role != Qt::DisplayRole)
+    {
+        return QVariant();
+    }
 
-   // return the data since the only role left is the DisplayRole
-   return m_columnData[column];
+    // return the data since the only role left is the DisplayRole
+    return m_columnData[column];
 }
 
 int vogleditor_stateTreeItem::row() const
 {
-   // note, this is just the row within the current level of the hierarchy
-   if (m_parentItem)
-      return m_parentItem->m_childItems.indexOf(const_cast<vogleditor_stateTreeItem*>(this));
+    // note, this is just the row within the current level of the hierarchy
+    if (m_parentItem)
+        return m_parentItem->m_childItems.indexOf(const_cast<vogleditor_stateTreeItem*>(this));
 
-   return 0;
+    return 0;
 }
 
 bool vogleditor_stateTreeItem::hasChanged() const
@@ -326,35 +326,35 @@ template <typename T> vogleditor_stateTreeDatatypeItem<T>::vogleditor_stateTreeD
 
 template <typename T> bool vogleditor_stateTreeDatatypeItem<T>::hasChanged() const
 {
-   if (m_pDiffBaseState == NULL)
-       return false;
+    if (m_pDiffBaseState == NULL)
+        return false;
 
-   static T baseValues[4];
-   static T curValues[4];
-   VOGL_ASSERT(m_numComponents <= 4);
+    static T baseValues[4];
+    static T curValues[4];
+    VOGL_ASSERT(m_numComponents <= 4);
 
-   bool bFoundInBase = m_pDiffBaseState->get<T>(m_name, m_index, baseValues, m_numComponents, m_isIndexed);
-   bool bFoundInCurrent = m_pStateVec->get<T>(m_name, m_index, curValues, m_numComponents, m_isIndexed);
+    bool bFoundInBase = m_pDiffBaseState->get<T>(m_name, m_index, baseValues, m_numComponents, m_isIndexed);
+    bool bFoundInCurrent = m_pStateVec->get<T>(m_name, m_index, curValues, m_numComponents, m_isIndexed);
 
-   if (bFoundInBase && bFoundInCurrent)
-   {
-       for (unsigned int i = 0; i < m_numComponents; i++)
-       {
-           if (baseValues[i] != curValues[i])
-           {
-               // one of the values has changed, so return early
-               return true;
-           }
-       }
-   }
+    if (bFoundInBase && bFoundInCurrent)
+    {
+        for (unsigned int i = 0; i < m_numComponents; i++)
+        {
+            if (baseValues[i] != curValues[i])
+            {
+                // one of the values has changed, so return early
+                return true;
+            }
+        }
+    }
 
-   if (bFoundInCurrent && !bFoundInBase)
-   {
-       // the enum must have been added, so it is different
-       return true;
-   }
+    if (bFoundInCurrent && !bFoundInBase)
+    {
+        // the enum must have been added, so it is different
+        return true;
+    }
 
-   return false;
+    return false;
 }
 
 template <typename T> QString vogleditor_stateTreeDatatypeItem<T>::getDiffedValue() const
@@ -376,13 +376,13 @@ template <typename T> QString vogleditor_stateTreeDatatypeItem<T>::getDiffedValu
 
 //=============================================================================
 vogleditor_stateTreeStateVecBoolItem::vogleditor_stateTreeStateVecBoolItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, bool* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent)
-   : vogleditor_stateTreeDatatypeItem<bool>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
+    : vogleditor_stateTreeDatatypeItem<bool>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
 {
     setValue(getValueFromBools(values, numComponents));
 }
 
 vogleditor_stateTreeStateVecBoolItem::vogleditor_stateTreeStateVecBoolItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent)
-   : vogleditor_stateTreeDatatypeItem<bool>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
+    : vogleditor_stateTreeDatatypeItem<bool>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
 {
     bool bVals[4] = {values[0] != 0, values[1] != 0, values[2] != 0, values[3] != 0 };
     setValue(getValueFromBools(bVals, numComponents));
@@ -405,7 +405,7 @@ QString vogleditor_stateTreeStateVecBoolItem::getDiffedValue() const
 //=============================================================================
 
 vogleditor_stateTreeStateVecIntItem::vogleditor_stateTreeStateVecIntItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent)
-   : vogleditor_stateTreeDatatypeItem<int>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
+    : vogleditor_stateTreeDatatypeItem<int>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
 {
     setValue(getValueFromInts(values, numComponents));
 }
@@ -427,7 +427,7 @@ QString vogleditor_stateTreeStateVecIntItem::getDiffedValue() const
 //=============================================================================
 
 vogleditor_stateTreeStateVecPtrItem::vogleditor_stateTreeStateVecPtrItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent)
-   : vogleditor_stateTreeDatatypeItem<int>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
+    : vogleditor_stateTreeDatatypeItem<int>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
 {
     setValue(getValueFromPtrs(values, numComponents));
 }
@@ -449,7 +449,7 @@ QString vogleditor_stateTreeStateVecPtrItem::getDiffedValue() const
 //=============================================================================
 
 vogleditor_stateTreeStateVecFloatItem::vogleditor_stateTreeStateVecFloatItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, float* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent)
-   : vogleditor_stateTreeDatatypeItem<float>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
+    : vogleditor_stateTreeDatatypeItem<float>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
 {
     setValue(getValueFromFloats(values, numComponents));
 }
@@ -471,7 +471,7 @@ QString vogleditor_stateTreeStateVecFloatItem::getDiffedValue() const
 //=============================================================================
 
 vogleditor_stateTreeStateVecEnumItem::vogleditor_stateTreeStateVecEnumItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent)
-   : vogleditor_stateTreeDatatypeItem<int>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
+    : vogleditor_stateTreeDatatypeItem<int>(glenumName, name, index, stateVec, numComponents, isIndexed, parent)
 {
     setValue(getValueFromEnums(values, numComponents));
 }
@@ -516,7 +516,7 @@ bool vogleditor_stateTreeStateVecMatrixRowItem::hasChanged() const
     VOGL_ASSERT(m_numComponents <= 16);
 
     if (m_pDiffBaseState->get<float>(m_name, m_index, baseValues, m_numComponents, m_isIndexed) &&
-        m_pState->get<float>(m_name, m_index, curValues, m_numComponents, m_isIndexed))
+            m_pState->get<float>(m_name, m_index, curValues, m_numComponents, m_isIndexed))
     {
         for(unsigned int i = 0; i < 4; i++)
         {

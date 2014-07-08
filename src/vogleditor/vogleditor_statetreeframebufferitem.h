@@ -42,7 +42,7 @@ public:
 
     virtual QString getDiffedValue() const;
 
- private:
+private:
     GLenum m_enumName;
     const vogl_framebuffer_attachment* m_pState;
 };
@@ -95,28 +95,28 @@ private:
 class vogleditor_stateTreeFramebufferItem : public vogleditor_stateTreeItem
 {
 public:
-   vogleditor_stateTreeFramebufferItem(QString name, QString value, GLuint64 handle, vogleditor_stateTreeItem* parent, vogl_framebuffer_state* pState);
-   virtual ~vogleditor_stateTreeFramebufferItem() { m_pFramebufferState = NULL; }
-   virtual state_tree_type getStateType() const { return vogleditor_stateTreeItem::cFRAMEBUFFER; }
+    vogleditor_stateTreeFramebufferItem(QString name, QString value, GLuint64 handle, vogleditor_stateTreeItem* parent, vogl_framebuffer_state* pState);
+    virtual ~vogleditor_stateTreeFramebufferItem() { m_pFramebufferState = NULL; }
+    virtual state_tree_type getStateType() const { return vogleditor_stateTreeItem::cFRAMEBUFFER; }
 
-   vogl_framebuffer_state* get_framebuffer_state() const { return m_pFramebufferState; }
+    vogl_framebuffer_state* get_framebuffer_state() const { return m_pFramebufferState; }
 
-   void set_diff_base_state(const vogl_framebuffer_state* pBaseState)
-   {
-       m_pDiffBaseState = pBaseState;
+    void set_diff_base_state(const vogl_framebuffer_state* pBaseState)
+    {
+        m_pDiffBaseState = pBaseState;
 
-       for (vogleditor_stateTreeFramebufferDiffableItem** iter = m_diffableItems.begin(); iter != m_diffableItems.end(); iter++)
-       {
-           (*iter)->set_diff_base_state(pBaseState);
-       }
-   }
+        for (vogleditor_stateTreeFramebufferDiffableItem** iter = m_diffableItems.begin(); iter != m_diffableItems.end(); iter++)
+        {
+            (*iter)->set_diff_base_state(pBaseState);
+        }
+    }
 
-   GLuint64 get_handle() const { return m_handle; }
+    GLuint64 get_handle() const { return m_handle; }
 private:
-   GLuint64 m_handle;
-   vogl_framebuffer_state* m_pFramebufferState;
-   const vogl_framebuffer_state* m_pDiffBaseState;
-   vogl::vector<vogleditor_stateTreeFramebufferDiffableItem*> m_diffableItems;
+    GLuint64 m_handle;
+    vogl_framebuffer_state* m_pFramebufferState;
+    const vogl_framebuffer_state* m_pDiffBaseState;
+    vogl::vector<vogleditor_stateTreeFramebufferDiffableItem*> m_diffableItems;
 };
 
 #endif // VOGLEDITOR_STATETREEFRAMEBUFFERITEM_H

@@ -35,57 +35,57 @@
 class vogleditor_frameItem : public vogleditor_snapshotItem
 {
 public:
-   vogleditor_frameItem(uint64_t frameNumber)
-      : m_frameNumber(frameNumber)
-   {
-   }
+    vogleditor_frameItem(uint64_t frameNumber)
+        : m_frameNumber(frameNumber)
+    {
+    }
 
-   ~vogleditor_frameItem()
-   {
-      m_apiCallList.clear();
-   }
+    ~vogleditor_frameItem()
+    {
+        m_apiCallList.clear();
+    }
 
-   inline uint64_t frameNumber() const
-   {
-      return m_frameNumber;
-   }
+    inline uint64_t frameNumber() const
+    {
+        return m_frameNumber;
+    }
 
-   void appendCall(vogleditor_apiCallItem* pItem)
-   {
-      m_apiCallList.append(pItem);
-   }
+    void appendCall(vogleditor_apiCallItem* pItem)
+    {
+        m_apiCallList.append(pItem);
+    }
 
-   inline int callCount() const
-   {
-      return m_apiCallList.size();
-   }
+    inline int callCount() const
+    {
+        return m_apiCallList.size();
+    }
 
-   vogleditor_apiCallItem* call(int index) const
-   {
-      if (index < 0 || index > callCount())
-      {
-         return NULL;
-      }
+    vogleditor_apiCallItem* call(int index) const
+    {
+        if (index < 0 || index > callCount())
+        {
+            return NULL;
+        }
 
-      return m_apiCallList[index];
-   }
+        return m_apiCallList[index];
+    }
 
-   bool getStartEndTimes(uint64_t& start, uint64_t& end) const
-   {
-      int numCalls = callCount();
-      if (numCalls == 0)
-      {
-         return false;
-      }
+    bool getStartEndTimes(uint64_t& start, uint64_t& end) const
+    {
+        int numCalls = callCount();
+        if (numCalls == 0)
+        {
+            return false;
+        }
 
-      start = m_apiCallList[0]->startTime();
-      end = m_apiCallList[numCalls-1]->endTime();
-      return true;
-   }
+        start = m_apiCallList[0]->startTime();
+        end = m_apiCallList[numCalls-1]->endTime();
+        return true;
+    }
 
 private:
-   uint64_t m_frameNumber;
-   QList<vogleditor_apiCallItem*> m_apiCallList;
+    uint64_t m_frameNumber;
+    QList<vogleditor_apiCallItem*> m_apiCallList;
 };
 
 #endif // VOGLEDITOR_FRAMEITEM_H

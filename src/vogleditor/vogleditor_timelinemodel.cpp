@@ -27,17 +27,17 @@
 #include "vogleditor_timelineitem.h"
 
 vogleditor_timelineModel::vogleditor_timelineModel()
-   : m_rootItem(NULL)
+    : m_rootItem(NULL)
 {
 }
 
 vogleditor_timelineModel::~vogleditor_timelineModel()
 {
-   if (m_rootItem != NULL)
-   {
-      delete m_rootItem;
-      m_rootItem = NULL;
-   }
+    if (m_rootItem != NULL)
+    {
+        delete m_rootItem;
+        m_rootItem = NULL;
+    }
 }
 
 vogleditor_timelineItem* vogleditor_timelineModel::get_root_item()
