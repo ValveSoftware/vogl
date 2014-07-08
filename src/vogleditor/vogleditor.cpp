@@ -1668,7 +1668,12 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
 
         if (this->m_pApiCallTreeModel != NULL)
         {
-            m_pSnapshotStateOverlay->showButton(true);
+            // Don't show the take snapshot button if the current call tree item is not an API call
+            if (m_pCurrentCallTreeItem->apiCallItem() != NULL)
+            {
+                m_pSnapshotStateOverlay->showButton(true);
+            }
+
             m_pSnapshotStateOverlay->show();
         }
 
