@@ -27,6 +27,7 @@
 #include <QPalette>
 #include <QProcess>
 #include <QToolButton>
+#include <QStandardPaths>
 #include <QMessageBox>
 #include <QCoreApplication>
 #include <QGraphicsBlurEffect>
@@ -99,6 +100,7 @@ VoglEditor::VoglEditor(QWidget *parent) :
     m_pGenerateTraceButton(NULL),
     m_pPlayButton(NULL),
     m_pTrimButton(NULL),
+    m_pCollectScreenshotsButton(NULL),
     m_pTraceReader(NULL),
     m_pTimelineModel(NULL),
     m_pApiCallTreeModel(NULL),
@@ -193,9 +195,14 @@ VoglEditor::VoglEditor(QWidget *parent) :
     m_pTrimButton->setText("Trim Trace");
     m_pTrimButton->setEnabled(false);
 
+    m_pCollectScreenshotsButton = new QToolButton(ui->mainToolBar);
+    m_pCollectScreenshotsButton->setText("Collect Per-Frame Screenshots");
+    m_pCollectScreenshotsButton->setEnabled(false);
+
     ui->mainToolBar->addWidget(m_pGenerateTraceButton);
     ui->mainToolBar->addWidget(m_pPlayButton);
     ui->mainToolBar->addWidget(m_pTrimButton);
+    ui->mainToolBar->addWidget(m_pCollectScreenshotsButton);
 
     m_pSnapshotStateOverlay = new vogleditor_QSnapshotOverlayWidget(ui->snapshotLayoutWidget);
     connect(m_pSnapshotStateOverlay, SIGNAL(takeSnapshotButtonClicked()), this, SLOT(slot_takeSnapshotButton_clicked()));
@@ -203,6 +210,7 @@ VoglEditor::VoglEditor(QWidget *parent) :
     connect(m_pGenerateTraceButton, SIGNAL(clicked()), this, SLOT(prompt_generate_trace()));
     connect(m_pPlayButton, SIGNAL(clicked()), this, SLOT(playCurrentTraceFile()));
     connect(m_pTrimButton, SIGNAL(clicked()), this, SLOT(trimCurrentTraceFile()));
+    connect(m_pCollectScreenshotsButton, SIGNAL(clicked()), this, SLOT(collect_screenshots()));
 
     connect(m_pProgramArbExplorer, SIGNAL(program_edited(vogl_arb_program_state*)), this, SLOT(slot_program_edited(vogl_arb_program_state*)));
     connect(m_pProgramExplorer, SIGNAL(program_edited(vogl_program_state*)), this, SLOT(slot_program_edited(vogl_program_state*)));
@@ -284,6 +292,12 @@ VoglEditor::~VoglEditor()
     {
         delete m_pTrimButton;
         m_pTrimButton = NULL;
+    }
+
+    if (m_pCollectScreenshotsButton != NULL)
+    {
+        delete m_pCollectScreenshotsButton;
+        m_pCollectScreenshotsButton = NULL;
     }
 
     if (m_pFramebufferTab_layout != NULL)
@@ -514,11 +528,13 @@ void VoglEditor::playCurrentTraceFile()
     // update UI
     m_pPlayButton->setEnabled(false);
     m_pTrimButton->setEnabled(false);
+    m_pCollectScreenshotsButton->setEnabled(false);
 
     m_traceReplayer.replay(m_pTraceReader, m_pApiCallTreeModel->root(), NULL, 0, true);
 
     m_pPlayButton->setEnabled(true);
     m_pTrimButton->setEnabled(true);
+    m_pCollectScreenshotsButton->setEnabled(true);
 
     setCursor(origCursor);
 }
@@ -526,6 +542,19 @@ void VoglEditor::playCurrentTraceFile()
 void VoglEditor::trimCurrentTraceFile()
 {
     prompt_trim_trace_file(m_openFilename, static_cast<uint>(m_pTraceReader->get_max_frame_index()), g_settings.trim_large_trace_prompt_size());
+}
+
+void VoglEditor::collect_screenshots()
+{
+    QString tempFolder = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    dynamic_string tracefilename;
+    file_utils::split_path(m_openFilename.toStdString().c_str(), NULL, NULL, &tracefilename, NULL);
+    dynamic_string screenshot_prefix;
+    screenshot_prefix = screenshot_prefix.format("%s/vogleditor/%s/screenshot", tempFolder.toStdString().c_str(), tracefilename.c_str());
+    file_utils::create_directories(screenshot_prefix, true);
+
+    m_traceReplayer.enable_screenshot_capturing(screenshot_prefix.c_str());
+    m_traceReplayer.replay(this->m_pTraceReader, m_pApiCallTreeModel->root(), NULL, 0, false);
 }
 
 /// \return True if the new trim file is now open in the editor
@@ -1396,6 +1425,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
     // update toolbar
     m_pPlayButton->setEnabled(true);
     m_pTrimButton->setEnabled(true);
+    m_pCollectScreenshotsButton->setEnabled(true);
 
     // timeline
     m_pTimelineModel = new vogleditor_apiCallTimelineModel(m_pApiCallTreeModel->root());
@@ -1564,6 +1594,7 @@ void VoglEditor::reset_tracefile_ui()
 
     m_pPlayButton->setEnabled(false);
     m_pTrimButton->setEnabled(false);
+    m_pCollectScreenshotsButton->setEnabled(false);
 
     VOGLEDITOR_DISABLE_BOTTOM_TAB(ui->machineInfoTab);
     VOGLEDITOR_DISABLE_BOTTOM_TAB(ui->callStackTab);

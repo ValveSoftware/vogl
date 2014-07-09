@@ -1,7 +1,7 @@
 
 #include "vogleditor_apicalltreeitem.h"
 #include "vogleditor_apicallitem.h"
-
+#include "vogleditor_frameitem.h"
 #include "vogleditor_tracereplayer.h"
 
 #include "vogl_find_files.h"
@@ -22,6 +22,11 @@ vogleditor_traceReplayer::~vogleditor_traceReplayer()
         vogl_delete(m_pTraceReplayer);
         m_pTraceReplayer = NULL;
     }
+}
+
+void vogleditor_traceReplayer::enable_screenshot_capturing(std::string screenshot_prefix)
+{
+    m_screenshot_prefix = screenshot_prefix;
 }
 
 bool vogleditor_traceReplayer::process_events()
@@ -142,6 +147,15 @@ inline bool status_indicates_end(vogl_gl_replayer::status_t status)
 vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apicallTreeItem(vogleditor_apiCallTreeItem* pItem, vogleditor_gl_state_snapshot** ppNewSnapshot, uint64_t apiCallNumber)
 {
     vogleditor_tracereplayer_result result = VOGLEDITOR_TRR_SUCCESS;
+
+    if (pItem->frameItem() != NULL && m_screenshot_prefix.size() > 0)
+    {
+        // take screenshot
+        m_pTraceReplayer->snapshot_backbuffer();
+        dynamic_string screenshot_filename;
+        pItem->frameItem()->set_screenshot_filename(screenshot_filename.format("%s_%07" PRIu64 ".png", m_screenshot_prefix.c_str(), pItem->frameItem()->frameNumber()));
+    }
+
     vogleditor_apiCallItem* pApiCall = pItem->apiCallItem();
     if (pApiCall != NULL)
     {
@@ -252,6 +266,13 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file
    }
 
    uint replayer_flags = cGLReplayerForceDebugContexts;
+
+   if (m_screenshot_prefix.size() > 0)
+   {
+       replayer_flags |= cGLReplayerDumpScreenshots;
+       m_pTraceReplayer->set_screenshot_prefix(m_screenshot_prefix.c_str());
+   }
+
    if (!m_pTraceReplayer->init(replayer_flags, &m_window, m_pTraceReader->get_sof_packet(), m_pTraceReader->get_multi_blob_manager()))
    {
       vogleditor_output_error("Failed initializing GL replayer!");

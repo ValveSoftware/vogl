@@ -24,6 +24,7 @@
  **************************************************************************/
 
 #include <QColor>
+#include <QIcon>
 
 #include "vogleditor_apicalltreeitem.h"
 #include "vogleditor_qapicalltreemodel.h"
@@ -245,6 +246,10 @@ QVariant vogleditor_apiCallTreeItem::columnData(int column, int role) const
                     // snapshot is good
                     return QColor(0, 0, 255);
                 }
+            }
+            else if (frameItem() != NULL && frameItem()->get_screenshot_filename().size() > 0)
+            {
+                return QIcon(frameItem()->get_screenshot_filename().c_str());
             }
         }
     }

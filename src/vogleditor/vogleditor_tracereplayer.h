@@ -30,6 +30,8 @@ public:
     bool trim();
     bool stop();
 
+    void enable_screenshot_capturing(std::string screenshot_prefix);
+
 private:
 
     bool applying_snapshot_and_process_resize(const vogl_gl_state_snapshot* pSnapshot);
@@ -40,6 +42,8 @@ private:
     bool process_events();
     vogl_gl_replayer* m_pTraceReplayer;
     vogl_replay_window m_window;
+
+    std::string m_screenshot_prefix;
 };
 
 #endif // VOGLEDITOR_TRACEREPLAYER_H

@@ -305,6 +305,8 @@ public:
 
     bool write_trim_file(uint32_t flags, const dynamic_string &trim_filename, uint32_t trim_len, vogl_trace_file_reader &trace_reader, dynamic_string *pSnapshot_id = NULL);
 
+    void snapshot_backbuffer();
+
 private:
     status_t handle_ShaderSource(GLhandleARB trace_object,
                                  GLsizei count,
@@ -1325,8 +1327,6 @@ private:
     status_t process_pending_make_current();
 
     status_t process_internal_trace_command(const vogl_trace_gl_entrypoint_packet &gl_packet);
-
-    void snapshot_backbuffer();
 
     bool check_program_binding_shadow();
     void handle_use_program(GLuint trace_handle, gl_entrypoint_id_t entrypoint_id);

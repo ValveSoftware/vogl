@@ -93,6 +93,7 @@ private slots:
     Prompt_Result prompt_generate_trace();
     void playCurrentTraceFile();
     void trimCurrentTraceFile();
+    void collect_screenshots();
 
     Prompt_Result prompt_trim_trace_file(QString filename, uint maxFrameIndex, uint maxAllowedTrimLen);
 
@@ -189,6 +190,8 @@ private:
     QToolButton* m_pGenerateTraceButton;
     QToolButton* m_pPlayButton;
     QToolButton* m_pTrimButton;
+
+    QToolButton* m_pCollectScreenshotsButton;
 
     vogleditor_traceReplayer m_traceReplayer;
     vogl_trace_file_reader* m_pTraceReader;

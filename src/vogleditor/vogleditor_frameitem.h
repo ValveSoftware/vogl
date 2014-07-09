@@ -83,9 +83,21 @@ public:
         return true;
     }
 
+    void set_screenshot_filename(const dynamic_string& filename)
+    {
+        m_screenshot_filename = filename;
+    }
+
+    const dynamic_string& get_screenshot_filename() const
+    {
+        return m_screenshot_filename;
+    }
+
 private:
     uint64_t m_frameNumber;
     QList<vogleditor_apiCallItem*> m_apiCallList;
+
+    dynamic_string m_screenshot_filename;
 };
 
 #endif // VOGLEDITOR_FRAMEITEM_H
