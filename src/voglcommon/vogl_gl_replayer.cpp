@@ -3396,7 +3396,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
 
             {
                 vogl_scoped_binding_state binding_saver;
-                binding_saver.save_textures();
+                binding_saver.save_textures(&(m_pCur_context_state->m_context_info));
 
                 GL_ENTRYPOINT(glBindTexture)(target, tex_handle);
                 check_gl_error();

@@ -905,7 +905,7 @@ bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile
     bool status = false;
     for (;;)
     {
-        // http://www.opengl.org/sdk/docs/man/xhtml/glGetError.xml
+        // http://www.opengl.org/sdk/docs/man/html/glGetError.xhtml
         // "Thus, glGetError should always be called in a loop, until it returns GL_NO_ERROR, if all error flags are to be reset."
         GLenum gl_err = GL_ENTRYPOINT(glGetError)();
         if (gl_err == GL_NO_ERROR)
@@ -1293,7 +1293,7 @@ GLenum vogl_determine_texture_target(const vogl_context_info &context_info, GLui
         return GL_NONE;
 
     vogl_scoped_binding_state orig_texture_state;
-    orig_texture_state.save_textures();
+    orig_texture_state.save_textures(&context_info);
 
     VOGL_CHECK_GL_ERROR;
 
@@ -2594,4 +2594,45 @@ size_t vogl_determine_glMap2_size(GLenum target, GLint ustride, GLint uorder, GL
     return channels +
            ustride * (uorder - 1) +
            vstride * (vorder - 1);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_binding_state::save_textures
+//   Defining this here rather than in vogl_gl_utils.h with the rest of the class due to
+//   dependency issues caused by its use of vogl_context_info
+//----------------------------------------------------------------------------------------------------------------------
+void vogl_binding_state::save_textures(const vogl_context_info *context_info)
+{
+    VOGL_FUNC_TRACER
+
+    // TODO: the valid stuff to save depends on the context version, argh
+    // TODO: Add GL4 texture types!
+    static const GLenum s_texture_targets_with_texbuffer[] =
+        {
+            GL_ACTIVE_TEXTURE,
+            GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_1D_ARRAY,
+            GL_TEXTURE_2D_ARRAY, GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP,
+            GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_BUFFER, GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_2D_MULTISAMPLE_ARRAY
+        };
+
+    static const GLenum s_texture_targets[] =
+        {
+            GL_ACTIVE_TEXTURE,
+            GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_1D_ARRAY,
+            GL_TEXTURE_2D_ARRAY, GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP,
+            GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_2D_MULTISAMPLE_ARRAY
+        };
+
+    if (context_info && context_info->supports_extension("GL_EXT_texture_buffer_object"))
+    {
+        m_bindings.reserve(VOGL_ARRAY_SIZE(s_texture_targets_with_texbuffer) + 8);
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_texture_targets_with_texbuffer); i++)
+            save(s_texture_targets_with_texbuffer[i]);
+    }
+    else
+    {
+        m_bindings.reserve(VOGL_ARRAY_SIZE(s_texture_targets) + 8);
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_texture_targets); i++)
+            save(s_texture_targets[i]);
+    }
 }

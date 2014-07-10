@@ -407,24 +407,9 @@ public:
         m_bindings.enlarge(1)->set(target, handle);
     }
 
-    void save_textures()
-    {
-        VOGL_FUNC_TRACER
-
-        // TODO: the valid stuff to save depends on the context version, argh
-        // TODO: Add GL4 texture types!
-        static const GLenum s_texture_targets[] =
-            {
-                GL_ACTIVE_TEXTURE,
-                GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_1D_ARRAY,
-                GL_TEXTURE_2D_ARRAY, GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP,
-                GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_BUFFER, GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_2D_MULTISAMPLE_ARRAY
-            };
-
-        m_bindings.reserve(VOGL_ARRAY_SIZE(s_texture_targets) + 8);
-        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_texture_targets); i++)
-            save(s_texture_targets[i]);
-    }
+    // Defining this function in vogl_gl_utils.cpp due to its use
+    //   of vogl_context_info to avoid dependency errors
+    void save_textures(const vogl_context_info *context_info);
 
     void save_buffers()
     {
@@ -504,9 +489,9 @@ public:
         VOGL_FUNC_TRACER m_saved_state.save(target);
     }
 
-    void save_textures()
+    void save_textures(const vogl_context_info *context_info)
     {
-        VOGL_FUNC_TRACER m_saved_state.save_textures();
+        VOGL_FUNC_TRACER m_saved_state.save_textures(context_info);
     }
     void save_buffers()
     {

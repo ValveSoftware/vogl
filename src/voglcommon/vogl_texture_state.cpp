@@ -70,7 +70,7 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     VOGL_CHECK_GL_ERROR;
 
     vogl_scoped_binding_state orig_bindings(GL_PIXEL_PACK_BUFFER, GL_PIXEL_UNPACK_BUFFER);
-    orig_bindings.save_textures();
+    orig_bindings.save_textures(&context_info);
 
     vogl_scoped_state_saver pixelstore_state_saver(cGSTPixelStore);
 
@@ -1099,7 +1099,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
     vogl_msaa_texture_splitter splitter;
 
     vogl_scoped_binding_state orig_bindings(GL_PIXEL_PACK_BUFFER, GL_PIXEL_UNPACK_BUFFER);
-    orig_bindings.save_textures();
+    orig_bindings.save_textures(&context_info);
 
     vogl_scoped_state_saver pixeltransfer_state_saver(cGSTPixelStore);
 
