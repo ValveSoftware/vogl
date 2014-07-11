@@ -74,8 +74,13 @@ public:
     explicit VoglEditor(QWidget* parent = 0);
     ~VoglEditor();
 
-    bool open_trace_file(vogl::dynamic_string filename);
+    // Opens the trace file and reads the UUID so that it can access associated session data from the user's app data folder
+    bool pre_open_trace_file(dynamic_string filename);
     void close_trace_file();
+
+    QString get_sessionfile_name(const QString& tracefile, const vogl_trace_file_reader& traceReader);
+    QString get_sessionfile_path(const QString& tracefile, const vogl_trace_file_reader& traceReader);
+    QString get_sessiondata_folder(const QString& tracefile, const vogl_trace_file_reader& traceReader);
 
 public slots:
     void slot_takeSnapshotButton_clicked();
@@ -110,10 +115,6 @@ private slots:
     void slot_program_edited(vogl_arb_program_state* pNewProgramState);
     void slot_program_edited(vogl_program_state* pNewProgramState);
 
-    void on_actionSave_Session_triggered();
-
-    void on_actionOpen_Session_triggered();
-
     void on_searchTextBox_returnPressed();
 
     void slot_readReplayStandardOutput();
@@ -125,6 +126,9 @@ private slots:
 
 private:
     Ui::VoglEditor* ui;
+
+    // Opens a trace file without looking for associated session data
+    bool open_trace_file(vogl::dynamic_string filename);
 
     void onApiCallSelected(const QModelIndex &index, bool bAllowStateSnapshot);
     bool displayTexture(GLuint64 textureHandle, bool bBringTabToFront);
@@ -159,8 +163,10 @@ private:
 
     void write_child_api_calls(vogleditor_apiCallTreeItem* pItem, FILE* pFile);
 
-    bool load_session_from_disk(QString sessionFile);
-    bool save_session_to_disk(QString sessionFile);
+    // returns the name of the session file
+    QString load_or_create_session(const char *tracefile, vogl_trace_file_reader *pTraceReader);
+    bool load_session_from_disk(const QString &sessionFile);
+    bool save_session_to_disk(const QString &sessionFile, const QString &traceFile, vogl_trace_file_reader *pTraceReader, vogleditor_QApiCallTreeModel* pApiCallTreeModel);
     bool save_snapshot_to_disk(vogl_gl_state_snapshot* pSnapshot, dynamic_string filename, vogl_blob_manager *pBlob_manager);
 
     QString m_openFilename;

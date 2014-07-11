@@ -398,9 +398,6 @@
     <addaction name="action_Open"/>
     <addaction name="action_Close"/>
     <addaction name="separator"/>
-    <addaction name="actionOpen_Session"/>
-    <addaction name="actionSave_Session"/>
-    <addaction name="separator"/>
     <addaction name="actionExport_API_Calls"/>
     <addaction name="separator"/>
     <addaction name="actionE_xit"/>
@@ -437,16 +434,6 @@
   <action name="actionExport_API_Calls">
    <property name="text">
     <string>Export API Calls...</string>
-   </property>
-  </action>
-  <action name="actionSave_Session">
-   <property name="text">
-    <string>Save Session...</string>
-   </property>
-  </action>
-  <action name="actionOpen_Session">
-   <property name="text">
-    <string>Open Session...</string>
    </property>
   </action>
  </widget>
