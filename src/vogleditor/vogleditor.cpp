@@ -429,7 +429,8 @@ VoglEditor::Prompt_Result VoglEditor::prompt_generate_trace()
                 QString cmdLine = m_pLaunchTracerDialog->get_command_line();
                 QProcessEnvironment env = m_pLaunchTracerDialog->get_process_environment();
                 bool bSuccess = launch_application_to_generate_trace(cmdLine, env);
-                if (bSuccess && QFileInfo::exists(m_pLaunchTracerDialog->get_trace_file_path()))
+                QFileInfo fileInfo(m_pLaunchTracerDialog->get_trace_file_path() );
+                if (bSuccess && fileInfo.exists())
                 {
                     Prompt_Result result = prompt_load_new_trace(m_pLaunchTracerDialog->get_trace_file_path().toStdString().c_str());
                     if (result == vogleditor_prompt_success ||
@@ -587,8 +588,8 @@ VoglEditor::Prompt_Result VoglEditor::prompt_trim_trace_file(QString filename, u
         // some other return value
         bCompleted = false;
     }
-
-    if (bCompleted && QFileInfo::exists(trimDialog.trim_file()))
+    QFileInfo fileInfo(trimDialog.trim_file());
+    if (bCompleted && fileInfo.exists())
     {
         Prompt_Result result = prompt_load_new_trace(trimDialog.trim_file().toStdString().c_str());
 
