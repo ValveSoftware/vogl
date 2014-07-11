@@ -280,6 +280,10 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file
           // if the first snapshot has not been edited, then restore it here, otherwise it will get restored in the recursive call below.
           if (pFirstFrame->has_snapshot() && !pFirstFrame->get_snapshot()->is_edited())
           {
+              // Attempt to initialize GL func pointers here so they're available when loading from a snapshot at start of trace
+              if (load_gl())
+                  vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
+
               bStatus = applying_snapshot_and_process_resize(pFirstFrame->get_snapshot()->get_snapshot());
           }
 
