@@ -179,29 +179,62 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
     painter->setBrush(m_triangleBrush);
     painter->setPen(m_trianglePen);
 
+    bool bFoundFrame   = false;
+    bool bFoundApiCall = false;
+
     int numChildren = m_pModel->get_root_item()->childCount();
     for (int c = 0; c < numChildren; c++)
     {
         vogleditor_timelineItem* pChild = m_pModel->get_root_item()->child(c);
 
         // draw current frame marker
-        if (pChild->getFrameItem() != NULL && pChild->getFrameItem()->frameNumber() == m_curFrame)
+        if (bFoundFrame == false
+            && pChild->getFrameItem() != NULL 
+            && pChild->getFrameItem()->frameNumber() == m_curFrame)
         {
             painter->save();
             painter->translate(scalePositionHorizontally(pChild->getBeginTime()), 0);
             painter->drawPolygon(triangle);
             painter->restore();
+            bFoundFrame  = true;
         }
 
         // draw current api call marker
-        if (pChild->getApiCallItem() != NULL && pChild->getApiCallItem()->globalCallIndex() == m_curApiCallNumber)
+        bFoundApiCall = drawCurrentApiCallMarker(painter, triangle, pChild);
+
+        if (bFoundFrame && bFoundApiCall) break;
+    }
+}
+
+bool vogleditor_QTimelineView::drawCurrentApiCallMarker(QPainter* painter,
+                                                        QPolygon& triangle,
+                                         vogleditor_timelineItem* pItem)
+{
+    bool bRetVal = false;
+    if (pItem->getApiCallItem() != NULL)
+    {
+        if (pItem->getApiCallItem()->globalCallIndex() == m_curApiCallNumber)
         {
             painter->save();
-            painter->translate(scalePositionHorizontally(pChild->getBeginTime()), 0);
+            painter->translate(scalePositionHorizontally(pItem->getBeginTime()), 0);
             painter->drawPolygon(triangle);
             painter->restore();
+            bRetVal = true;
+        }
+        else
+        {
+            // check children
+            int numChildren = pItem->childCount();
+            for (int c = 0; c < numChildren; c++)
+            {
+                if ((bRetVal = drawCurrentApiCallMarker(painter, triangle, pItem->child(c))))
+                {
+                    break;
+                }
+            }
         }
     }
+    return bRetVal;
 }
 
 float vogleditor_QTimelineView::scaleDurationHorizontally(float value)
@@ -273,13 +306,13 @@ void vogleditor_QTimelineView::drawTimelineItem(QPainter* painter, vogleditor_ti
             rect.setWidth(scaledWidth);
             rect.setHeight(height);
             painter->drawRect(rect);
+        }
 
-            // now draw all children
-            int numChildren = pItem->childCount();
-            for (int c = 0; c < numChildren; c++)
-            {
-                drawTimelineItem(painter, pItem->child(c), height-1, minimumOffset);
-            }
+        // now draw all children
+        int numChildren = pItem->childCount();
+        for (int c = 0; c < numChildren; c++)
+        {
+            drawTimelineItem(painter, pItem->child(c), height-1, minimumOffset);
         }
     }
 
