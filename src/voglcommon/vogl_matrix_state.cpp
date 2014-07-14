@@ -195,7 +195,7 @@ bool vogl_matrix_state::snapshot(const vogl_context_info &context_info)
     if (!save_matrix_stack(context_info, GL_MODELVIEW, 0, GL_MODELVIEW_STACK_DEPTH, GL_MODELVIEW_MATRIX))
         any_errors = true;
 
-    if (!save_matrix_stack(context_info, GL_COLOR, 0, GL_COLOR_MATRIX_STACK_DEPTH, GL_COLOR_MATRIX))
+    if (context_info.supports_extension("GL_ARB_imaging") && !save_matrix_stack(context_info, GL_COLOR, 0, GL_COLOR_MATRIX_STACK_DEPTH, GL_COLOR_MATRIX))
         any_errors = true;
 
     for (uint32_t texcoord_index = 0; texcoord_index < context_info.get_max_texture_coords(); texcoord_index++)
@@ -245,7 +245,7 @@ bool vogl_matrix_state::restore(const vogl_context_info &context_info) const
     if (!restore_matrix_stack(context_info, GL_MODELVIEW, 0))
         any_errors = true;
 
-    if (!restore_matrix_stack(context_info, GL_COLOR, 0))
+    if (context_info.supports_extension("GL_ARB_imaging") && !restore_matrix_stack(context_info, GL_COLOR, 0))
         any_errors = true;
 
     // TODO: Check to make sure we can actually restore the proper # of matrices

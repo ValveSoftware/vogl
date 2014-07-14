@@ -65,12 +65,12 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
     VOGL_CHECK_GL_ERROR;
 
     vogl_scoped_binding_state orig_texture;
-    orig_texture.save_textures();
+    orig_texture.save_textures(&context_info);
 
     vogl_scoped_state_saver state_saver(cGSTPixelStore, cGSTPixelTransfer);
 
     vogl_reset_pixel_store_states();
-    vogl_reset_pixel_transfer_states();
+    vogl_reset_pixel_transfer_states(context_info);
 
 #if 0
 	// silly experiment

@@ -178,12 +178,12 @@ target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
     Qt5::Core
     ${TELEMETRY_LIBRARY}
-    ${X11_X11_LIB}
-	${LibBackTrace_LIBRARY}
+    ${LibBackTrace_LIBRARY}
     voglcommon
     voglcore
     ${CMAKE_DL_LIBS}
     ${SDL2_LIBRARY}
+    ${X11_X11_LIB}
 )
 
 if (MSVC)

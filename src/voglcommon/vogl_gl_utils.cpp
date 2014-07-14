@@ -755,7 +755,7 @@ void vogl_reset_pixel_store_states()
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_reset_pixel_transfer_states
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_reset_pixel_transfer_states()
+void vogl_reset_pixel_transfer_states(const vogl_context_info &context_info)
 {
     VOGL_FUNC_TRACER
 
@@ -776,26 +776,27 @@ void vogl_reset_pixel_transfer_states()
     GL_ENTRYPOINT(glPixelTransferf)(GL_BLUE_BIAS, 0.0f);
     GL_ENTRYPOINT(glPixelTransferf)(GL_ALPHA_BIAS, 0.0f);
     GL_ENTRYPOINT(glPixelTransferf)(GL_DEPTH_BIAS, 0.0f);
+    if (context_info.supports_extension("GL_ARB_imaging")) {
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_RED_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_GREEN_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_BLUE_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_ALPHA_SCALE, 1.0f);
 
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_RED_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_GREEN_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_BLUE_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_ALPHA_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_RED_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_GREEN_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_BLUE_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_ALPHA_BIAS, 0.0f);
 
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_RED_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_GREEN_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_BLUE_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_ALPHA_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_RED_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_GREEN_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_BLUE_SCALE, 1.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_ALPHA_SCALE, 1.0f);
 
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_RED_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_GREEN_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_BLUE_SCALE, 1.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_ALPHA_SCALE, 1.0f);
-
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_RED_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_GREEN_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_BLUE_BIAS, 0.0f);
-    GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_ALPHA_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_RED_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_GREEN_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_BLUE_BIAS, 0.0f);
+        GL_ENTRYPOINT(glPixelTransferf)(GL_POST_COLOR_MATRIX_ALPHA_BIAS, 0.0f);
+    }
 }
 
 #include "vogl_general_context_state.h"
@@ -904,7 +905,7 @@ bool vogl_check_gl_error_internal(bool suppress_error_message, const char *pFile
     bool status = false;
     for (;;)
     {
-        // http://www.opengl.org/sdk/docs/man/xhtml/glGetError.xml
+        // http://www.opengl.org/sdk/docs/man/html/glGetError.xhtml
         // "Thus, glGetError should always be called in a loop, until it returns GL_NO_ERROR, if all error flags are to be reset."
         GLenum gl_err = GL_ENTRYPOINT(glGetError)();
         if (gl_err == GL_NO_ERROR)
@@ -1292,7 +1293,7 @@ GLenum vogl_determine_texture_target(const vogl_context_info &context_info, GLui
         return GL_NONE;
 
     vogl_scoped_binding_state orig_texture_state;
-    orig_texture_state.save_textures();
+    orig_texture_state.save_textures(&context_info);
 
     VOGL_CHECK_GL_ERROR;
 
@@ -1325,7 +1326,7 @@ GLenum vogl_determine_texture_target(const vogl_context_info &context_info, GLui
 //----------------------------------------------------------------------------------------------------------------------
 // vogl_state_saver::save
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_state_saver::save(vogl_generic_state_type type)
+void vogl_state_saver::save(vogl_generic_state_type type, const vogl_context_info *context_info)
 {
     VOGL_FUNC_TRACER
 
@@ -1357,7 +1358,6 @@ void vogl_state_saver::save(vogl_generic_state_type type)
         }
         case cGSTPixelTransfer:
         {
-            // FIXME: All pixel transfer was marked deprecated and not available in a Core Profile (let the caller worry about it)
             static const GLenum s_pixel_transfer_int_enums[] =
                 {
                     GL_MAP_COLOR, GL_MAP_STENCIL, GL_INDEX_SHIFT, GL_INDEX_OFFSET
@@ -1374,9 +1374,11 @@ void vogl_state_saver::save(vogl_generic_state_type type)
                     GL_POST_CONVOLUTION_RED_SCALE, GL_POST_CONVOLUTION_GREEN_SCALE, GL_POST_CONVOLUTION_BLUE_SCALE, GL_POST_CONVOLUTION_ALPHA_SCALE, GL_POST_CONVOLUTION_RED_BIAS,
                     GL_POST_CONVOLUTION_GREEN_BIAS, GL_POST_CONVOLUTION_BLUE_BIAS, GL_POST_CONVOLUTION_ALPHA_BIAS
                 };
-
-            for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums); i++)
-                SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
+            uint32_t array_size = VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums);
+            if (!context_info || !context_info->supports_extension("GL_ARB_imaging"))
+                array_size -= 16;  // skip enums from GL_POST_COLOR_MATRIX_RED_SCALE
+            for (uint32_t i = 0; i < array_size; i++)
+                    SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
 
             break;
         }
@@ -2592,4 +2594,45 @@ size_t vogl_determine_glMap2_size(GLenum target, GLint ustride, GLint uorder, GL
     return channels +
            ustride * (uorder - 1) +
            vstride * (vorder - 1);
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_binding_state::save_textures
+//   Defining this here rather than in vogl_gl_utils.h with the rest of the class due to
+//   dependency issues caused by its use of vogl_context_info
+//----------------------------------------------------------------------------------------------------------------------
+void vogl_binding_state::save_textures(const vogl_context_info *context_info)
+{
+    VOGL_FUNC_TRACER
+
+    // TODO: the valid stuff to save depends on the context version, argh
+    // TODO: Add GL4 texture types!
+    static const GLenum s_texture_targets_with_texbuffer[] =
+        {
+            GL_ACTIVE_TEXTURE,
+            GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_1D_ARRAY,
+            GL_TEXTURE_2D_ARRAY, GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP,
+            GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_BUFFER, GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_2D_MULTISAMPLE_ARRAY
+        };
+
+    static const GLenum s_texture_targets[] =
+        {
+            GL_ACTIVE_TEXTURE,
+            GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_1D_ARRAY,
+            GL_TEXTURE_2D_ARRAY, GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP,
+            GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_2D_MULTISAMPLE_ARRAY
+        };
+
+    if (context_info && context_info->supports_extension("GL_EXT_texture_buffer_object"))
+    {
+        m_bindings.reserve(VOGL_ARRAY_SIZE(s_texture_targets_with_texbuffer) + 8);
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_texture_targets_with_texbuffer); i++)
+            save(s_texture_targets_with_texbuffer[i]);
+    }
+    else
+    {
+        m_bindings.reserve(VOGL_ARRAY_SIZE(s_texture_targets) + 8);
+        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_texture_targets); i++)
+            save(s_texture_targets[i]);
+    }
 }

@@ -50,36 +50,22 @@ bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attr
         if ((!pDrawable) || (!pDisplay))
             return false;
 
-        GLuint fbconfig_id = 0;
-        GL_ENTRYPOINT(glXQueryDrawable)(pDisplay, pDrawable, GLX_FBCONFIG_ID, &fbconfig_id);
-
-        GLint attrib_list[3] = { GLX_FBCONFIG_ID, static_cast<GLint>(fbconfig_id), None };
-        GLint nelements = 0;
-        GLXFBConfig *pConfigs = GL_ENTRYPOINT(glXChooseFBConfig)(pDisplay, screen, attrib_list, &nelements);
-
         GLint red_size = 8, green_size = 8, blue_size = 8, alpha_size = 8;
         GLint doublebuffer = 1, stereo = 0, depth_size = 24, stencil_size = 8;
         GLint drawable_type = GLX_WINDOW_BIT;
         GLint render_type = GLX_RGBA_BIT;
         GLint samples = 0, sample_buffers = 0;
 
-        if ((pConfigs) && (nelements > 0))
-        {
-            GLXFBConfig config = pConfigs[0];
-
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_DRAWABLE_TYPE, &drawable_type); // what does a drawable type of 7 mean?
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_RENDER_TYPE, &render_type);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_RED_SIZE, &red_size);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_GREEN_SIZE, &green_size);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_BLUE_SIZE, &blue_size);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_ALPHA_SIZE, &alpha_size);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_DOUBLEBUFFER, &doublebuffer);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_STEREO, &stereo);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_DEPTH_SIZE, &depth_size);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_STENCIL_SIZE, &stencil_size);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_SAMPLES, &samples);
-            GL_ENTRYPOINT(glXGetFBConfigAttrib)(pDisplay, config, GLX_SAMPLE_BUFFERS, &sample_buffers);
-        }
+        GL_ENTRYPOINT(glGetIntegerv)(GL_RED_BITS, &red_size);
+        GL_ENTRYPOINT(glGetIntegerv)(GL_GREEN_BITS, &green_size);
+        GL_ENTRYPOINT(glGetIntegerv)(GL_BLUE_BITS, &blue_size);
+        GL_ENTRYPOINT(glGetIntegerv)(GL_ALPHA_BITS, &alpha_size);
+        GL_ENTRYPOINT(glGetIntegerv)(GL_DOUBLEBUFFER, &doublebuffer);
+        GL_ENTRYPOINT(glGetIntegerv)(GL_STEREO, &stereo);
+        GL_ENTRYPOINT(glGetIntegerv)(GL_DEPTH_BITS, &depth_size);
+        GL_ENTRYPOINT(glGetIntegerv)(GL_STENCIL_BITS, &stencil_size);
+        GL_ENTRYPOINT(glGetIntegerv)(GL_SAMPLES, &samples);
+        GL_ENTRYPOINT(glGetIntegerv)(GL_SAMPLE_BUFFERS, &sample_buffers);
 
         attribs.m_r_size = red_size;
         attribs.m_g_size = green_size;
@@ -90,8 +76,12 @@ bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attr
         attribs.m_samples = samples;
         attribs.m_double_buffered = (doublebuffer != 0);
 
-        GL_ENTRYPOINT(glXQueryDrawable)(pDisplay, pDrawable, GLX_WIDTH, &attribs.m_width);
-        GL_ENTRYPOINT(glXQueryDrawable)(pDisplay, pDrawable, GLX_HEIGHT, &attribs.m_height);
+        //GL_ENTRYPOINT(glXQueryDrawable)(pDisplay, pDrawable, GLX_WIDTH, &attribs.m_width);
+        //GL_ENTRYPOINT(glXQueryDrawable)(pDisplay, pDrawable, GLX_HEIGHT, &attribs.m_height);
+        XWindowAttributes attrs;
+        XGetWindowAttributes(pDisplay, pDrawable, &attrs);
+        attribs.m_width = attrs.width;
+        attribs.m_height = attrs.height;
 
         return true;
     #else
@@ -181,7 +171,7 @@ bool vogl_default_framebuffer_state::snapshot(const vogl_context_info &context_i
 
     vogl_reset_pixel_store_states();
     if (!context_info.is_core_profile())
-        vogl_reset_pixel_transfer_states();
+        vogl_reset_pixel_transfer_states(context_info);
 
     // TODO: Test multisampled default framebuffers
     const GLenum tex_target = (fb_attribs.m_samples > 1) ? GL_TEXTURE_2D_MULTISAMPLE : GL_TEXTURE_2D;
