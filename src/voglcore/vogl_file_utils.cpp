@@ -552,6 +552,13 @@ namespace vogl
         return create_directories_from_full_path(path_to_create);
     }
 
+    bool file_utils::create_directories(const char* pPath, bool remove_filename)
+    {
+        dynamic_string path_to_create(pPath);
+
+        return create_directories(path_to_create, remove_filename);
+    }
+
     bool file_utils::create_directories_from_full_path(const dynamic_string &fullpath)
     {
         bool got_unc = false;
