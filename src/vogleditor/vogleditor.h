@@ -81,6 +81,7 @@ public:
     QString get_sessionfile_name(const QString& tracefile, const vogl_trace_file_reader& traceReader);
     QString get_sessionfile_path(const QString& tracefile, const vogl_trace_file_reader& traceReader);
     QString get_sessiondata_folder(const QString& tracefile, const vogl_trace_file_reader& traceReader);
+    QString get_sessiondata_path(const QString& tracefile, const vogl_trace_file_reader& traceReader);
 
 public slots:
     void slot_takeSnapshotButton_clicked();
