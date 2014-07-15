@@ -65,7 +65,7 @@ bool g_vogl_initializing_flag = false;
 #if defined(PLATFORM_LINUX)
 
 // Console initialization.
-void vogl_console_init();
+bool vogl_console_init(bool doinit);
 
 typedef void *(*dlopen_func_ptr_t)(const char *pFile, int mode);
 VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
@@ -74,10 +74,12 @@ VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
     if (!s_pActual_dlopen)
         return NULL;
 
-    // Make sure our console has been initialized (since we're calling vogl_printf routines).
-    vogl_console_init();
-
-    vogl_verbose_printf("(vogltrace) dlopen: %s %i\n", pFile ? pFile : "(nullptr)", mode);
+    // Check to see if the vogl_console has been initialized. Only use the vogl console APIs if so.
+    bool ret = vogl_console_init(false);
+    if (ret)
+    {
+        vogl_verbose_printf("dlopen: %s %i\n", pFile ? pFile : "(nullptr)", mode);
+    }
 
     // Only redirect libGL.so when it comes from the app, NOT the driver or one of its associated helpers.
     // This is definitely fragile as all fuck.
@@ -85,20 +87,21 @@ VOGL_API_EXPORT void *dlopen(const char *pFile, int mode)
     {
         if (pFile && (strstr(pFile, "libGL.so") != NULL))
         {
+            // When the AMD or Intel driver tries to dlopen libGL.so, we need to return the real libGL.so handle.
             const char *calling_module = btrace_get_calling_module();
-            bool should_redirect = !strstr(calling_module, "fglrx");
+            bool should_redirect = !strstr(calling_module, "fglrx") &&
+                    !strstr(calling_module, "mesa/lib/libGL.so.1");
 
             if (should_redirect)
             {
                 pFile = btrace_get_current_module();
-                vogl_verbose_printf("(vogltrace) redirecting dlopen to %s\n", pFile);
-            }
-            else
-            {
-                vogl_verbose_printf("(vogltrace) NOT redirecting dlopen to %s, this dlopen() call appears to be coming from the driver\n", pFile);
             }
 
-            vogl_verbose_printf("------------\n");
+            if (ret)
+            {
+                vogl_verbose_printf("%sRedirecting dlopen to: %s.\n", (should_redirect ? "" : " NOT"), pFile);
+                vogl_verbose_printf("  Calling module: %s.\n", calling_module);
+            }
         }
     }
 
@@ -201,9 +204,35 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
 //----------------------------------------------------------------------------------------------------------------------
 #if defined(PLATFORM_LINUX)
 
+#include "vogl_file_utils.h"
+
     VOGL_CONSTRUCTOR_FUNCTION(vogl_shared_object_constructor_func);
     static void vogl_shared_object_constructor_func()
     {
+        // We really don't want to be hooking terminals running shell scripts to launch the games, and it
+        //  only causes problems when we do wind up in those processes.
+        // So check if we're one of the fairly well known shells and bail if so.
+        static const char *s_notrace[] =
+        {
+            "bash", "dash", "sh", "tcsh", "xterm", "zsh", "zsh5",
+            "cgdb", "gdb", "strace", "desktop-launcher", "glxinfo", "kmod",
+            "python", "python2.7", "python3", "python3.4",
+            "dpkg-query", "grep", "egrep", "head", "free", "lsusb", "uname",
+            "minidump_stackwalk"
+        };
+
+        char exec_filename[PATH_MAX];
+        vogl::file_utils::get_exec_filename(exec_filename, sizeof(exec_filename));
+
+        const char *fname = strrchr(exec_filename, '/');
+        fname = fname ? (fname + 1) : exec_filename;
+
+        for (size_t i = 0; i < sizeof(s_notrace) / sizeof(s_notrace[0]); i++)
+        {
+            if (vogl::vogl_strncasecmp(fname, s_notrace[i], sizeof(exec_filename)) == 0)
+                return;
+        }
+
         vogl_init();
     }
 

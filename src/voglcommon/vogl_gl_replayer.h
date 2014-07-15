@@ -43,6 +43,8 @@
 #define VOGL_MAX_CLIENT_SIDE_VERTEX_ARRAY_SIZE (8U * 1024U * 1024U)
 
 bool vogl_process_internal_trace_command_ctypes_packet(const key_value_map &kvm, const vogl_ctypes &ctypes);
+vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName);
+bool load_gl();
 
 //----------------------------------------------------------------------------------------------------------------------
 // enum vogl_gl_replayer_flags
@@ -302,6 +304,8 @@ public:
     };
 
     bool write_trim_file(uint32_t flags, const dynamic_string &trim_filename, uint32_t trim_len, vogl_trace_file_reader &trace_reader, dynamic_string *pSnapshot_id = NULL);
+
+    void snapshot_backbuffer();
 
 private:
     status_t handle_ShaderSource(GLhandleARB trace_object,
@@ -1293,7 +1297,7 @@ private:
             pPtr = m_client_side_array_data[id].get_ptr();
         }
 
-        func(stride, count, static_cast<const GLchar *>(pPtr));
+        func(stride, count, static_cast<const unsigned char*>(pPtr));
     }
 
     void process_entrypoint_print_summary_context(const char *caller_info, eConsoleMessageType msg_type);
@@ -1323,8 +1327,6 @@ private:
     status_t process_pending_make_current();
 
     status_t process_internal_trace_command(const vogl_trace_gl_entrypoint_packet &gl_packet);
-
-    void snapshot_backbuffer();
 
     bool check_program_binding_shadow();
     void handle_use_program(GLuint trace_handle, gl_entrypoint_id_t entrypoint_id);

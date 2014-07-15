@@ -70,17 +70,17 @@ bool vogl_texture_state::snapshot(const vogl_context_info &context_info, vogl_ha
     VOGL_CHECK_GL_ERROR;
 
     vogl_scoped_binding_state orig_bindings(GL_PIXEL_PACK_BUFFER, GL_PIXEL_UNPACK_BUFFER);
-    orig_bindings.save_textures();
+    orig_bindings.save_textures(&context_info);
 
     vogl_scoped_state_saver pixelstore_state_saver(cGSTPixelStore);
 
     vogl_scoped_state_saver pixeltransfer_state_saver;
     if (!context_info.is_core_profile())
-        pixeltransfer_state_saver.save(cGSTPixelTransfer);
+        pixeltransfer_state_saver.save(context_info, cGSTPixelTransfer);
 
     vogl_reset_pixel_store_states();
     if (!context_info.is_core_profile())
-        vogl_reset_pixel_transfer_states();
+        vogl_reset_pixel_transfer_states(context_info);
 
     GL_ENTRYPOINT(glBindBuffer)(GL_PIXEL_PACK_BUFFER, 0);
     VOGL_CHECK_GL_ERROR;
@@ -1099,7 +1099,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
     vogl_msaa_texture_splitter splitter;
 
     vogl_scoped_binding_state orig_bindings(GL_PIXEL_PACK_BUFFER, GL_PIXEL_UNPACK_BUFFER);
-    orig_bindings.save_textures();
+    orig_bindings.save_textures(&context_info);
 
     vogl_scoped_state_saver pixeltransfer_state_saver(cGSTPixelStore);
 
@@ -1109,7 +1109,7 @@ bool vogl_texture_state::restore(const vogl_context_info &context_info, vogl_han
     vogl_reset_pixel_store_states();
 
     if (!context_info.is_core_profile())
-        vogl_reset_pixel_transfer_states();
+        vogl_reset_pixel_transfer_states(context_info);
 
     GL_ENTRYPOINT(glBindBuffer)(GL_PIXEL_PACK_BUFFER, 0);
     VOGL_CHECK_GL_ERROR;

@@ -290,7 +290,7 @@ vec4D vogl_get_gl_vec4D(GLenum pname);
 matrix44D vogl_get_gl_matrix44D(GLenum pname);
 
 void vogl_reset_pixel_store_states();
-void vogl_reset_pixel_transfer_states();
+void vogl_reset_pixel_transfer_states(const vogl_context_info &context_info);
 
 bool vogl_copy_buffer_to_image(void *pDst, uint32_t dst_size, uint32_t width, uint32_t height, GLuint format = GL_RGB, GLuint type = GL_UNSIGNED_BYTE, bool flip_image = false, GLuint framebuffer = 0, GLuint read_buffer = GL_BACK, GLuint pixel_pack_buffer = 0);
 
@@ -300,14 +300,15 @@ bool vogl_copy_buffer_to_image(void *pDst, uint32_t dst_size, uint32_t width, ui
 
 inline bool vogl_is_make_current_entrypoint(gl_entrypoint_id_t id)
 {
-    return (id == VOGL_ENTRYPOINT_glXMakeCurrent ||
-            id == VOGL_ENTRYPOINT_wglMakeCurrent);
+    return (id == VOGL_ENTRYPOINT_glXMakeCurrent) 
+        || (id == VOGL_ENTRYPOINT_wglMakeCurrent)
+        || (id == VOGL_ENTRYPOINT_wglMakeContextCurrentARB)
+        || (id == VOGL_ENTRYPOINT_wglMakeContextCurrentEXT);
 }
 
 inline bool vogl_is_swap_buffers_entrypoint(gl_entrypoint_id_t id)
 {
-    return (id == VOGL_ENTRYPOINT_glXSwapBuffers ||
-            id == VOGL_ENTRYPOINT_wglSwapBuffers);
+    return (id == VOGL_ENTRYPOINT_glXSwapBuffers) || (id == VOGL_ENTRYPOINT_wglSwapBuffers);
 }
 
 bool vogl_is_draw_entrypoint(gl_entrypoint_id_t id);
@@ -406,24 +407,9 @@ public:
         m_bindings.enlarge(1)->set(target, handle);
     }
 
-    void save_textures()
-    {
-        VOGL_FUNC_TRACER
-
-        // TODO: the valid stuff to save depends on the context version, argh
-        // TODO: Add GL4 texture types!
-        static const GLenum s_texture_targets[] =
-            {
-                GL_ACTIVE_TEXTURE,
-                GL_TEXTURE_1D, GL_TEXTURE_2D, GL_TEXTURE_3D, GL_TEXTURE_1D_ARRAY,
-                GL_TEXTURE_2D_ARRAY, GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP,
-                GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_BUFFER, GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_2D_MULTISAMPLE_ARRAY
-            };
-
-        m_bindings.reserve(VOGL_ARRAY_SIZE(s_texture_targets) + 8);
-        for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_texture_targets); i++)
-            save(s_texture_targets[i]);
-    }
+    // Defining this function in vogl_gl_utils.cpp due to its use
+    //   of vogl_context_info to avoid dependency errors
+    void save_textures(const vogl_context_info *context_info);
 
     void save_buffers()
     {
@@ -503,9 +489,9 @@ public:
         VOGL_FUNC_TRACER m_saved_state.save(target);
     }
 
-    void save_textures()
+    void save_textures(const vogl_context_info *context_info)
     {
-        VOGL_FUNC_TRACER m_saved_state.save_textures();
+        VOGL_FUNC_TRACER m_saved_state.save_textures(context_info);
     }
     void save_buffers()
     {
@@ -581,7 +567,7 @@ public:
         m_draw_buffers.clear();
     }
 
-    void save(vogl_generic_state_type type);
+    void save(vogl_generic_state_type type, const vogl_context_info *context_info = NULL);
     void restore();
 
 private:
@@ -637,6 +623,11 @@ public:
     void save(vogl_generic_state_type type)
     {
         VOGL_FUNC_TRACER m_state.save(type);
+    }
+
+    void save(const vogl_context_info &context_info, vogl_generic_state_type type)
+    {
+        VOGL_FUNC_TRACER m_state.save(type, &context_info);
     }
     void restore()
     {

@@ -117,13 +117,6 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="2">
-    <widget class="QCheckBox" name="amd64CheckBox">
-     <property name="text">
-      <string>64-bit</string>
-     </property>
-    </widget>
-   </item>
    <item row="12" column="0" colspan="4" alignment="Qt::AlignHCenter">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
@@ -135,12 +128,12 @@
     </widget>
    </item>
    <item row="3" column="2">
-    <widget class="QCheckBox" name="steamLauncherCheckBox">
+    <widget class="QCheckBox" name="vogltraceCheckBox">
      <property name="statusTip">
       <string/>
      </property>
      <property name="text">
-      <string>Use SteamLauncher</string>
+      <string>Use vogl tool</string>
      </property>
      <property name="checked">
       <bool>false</bool>
@@ -199,6 +192,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>applicationLineEdit</tabstop>
+  <tabstop>findApplicationButton</tabstop>
+  <tabstop>argumentsLineEdit</tabstop>
+  <tabstop>traceFileLineEdit</tabstop>
+  <tabstop>findTraceFileButton</tabstop>
+  <tabstop>vogltraceCheckBox</tabstop>
+  <tabstop>forceDebugContextCheckBox</tabstop>
+  <tabstop>gatherCallStacksCheckBox</tabstop>
+  <tabstop>disableProgramBinaryCheckBox</tabstop>
+  <tabstop>buttonBox</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

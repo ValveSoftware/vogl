@@ -24,6 +24,7 @@
  **************************************************************************/
 
 #include <QColor>
+#include <QFont>
 
 #include "vogleditor_qapicalltreemodel.h"
 
@@ -44,230 +45,243 @@ vogleditor_QApiCallTreeModel::vogleditor_QApiCallTreeModel(QObject *parent)
 
 vogleditor_QApiCallTreeModel::~vogleditor_QApiCallTreeModel()
 {
-   if (m_rootItem != NULL)
-   {
-      vogl_delete(m_rootItem);
-      m_rootItem = NULL;
-   }
+    if (m_rootItem != NULL)
+    {
+        vogl_delete(m_rootItem);
+        m_rootItem = NULL;
+    }
 
-   m_itemList.clear();
+    if (m_pTrace_ctypes != NULL)
+    {
+        vogl_delete(m_pTrace_ctypes);
+        m_pTrace_ctypes = NULL;
+    }
+
+    m_itemList.clear();
 }
 
 bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
 {
-   vogleditor_apiCallTreeItem* parent = m_rootItem;
-   const vogl_trace_stream_start_of_file_packet &sof_packet = pTrace_reader->get_sof_packet();
-   VOGL_NOTE_UNUSED(sof_packet);
+    vogleditor_apiCallTreeItem* parent = m_rootItem;
+    const vogl_trace_stream_start_of_file_packet &sof_packet = pTrace_reader->get_sof_packet();
+    VOGL_NOTE_UNUSED(sof_packet);
 
-   uint64_t total_swaps = 0;
-   bool found_eof_packet = false;
+    uint64_t total_swaps = 0;
+    bool found_eof_packet = false;
 
-   // make a PendingFrame node to hold the api calls
-   // this will remain in the pending state until the first
-   // api call is seen, then it will be made the CurFrame and
-   // appended to the parent
-   vogleditor_frameItem* pCurFrame = NULL;
-   vogleditor_apiCallTreeItem* pCurParent = parent;
+    // make a PendingFrame node to hold the api calls
+    // this will remain in the pending state until the first
+    // api call is seen, then it will be made the CurFrame and
+    // appended to the parent
+    vogleditor_frameItem* pCurFrame = NULL;
+    vogleditor_apiCallTreeItem* pCurParent = parent;
 
-   // Make a PendingSnapshot that may or may not be populated when reading the trace.
-   // This snapshot will be assigned to the next API call that occurs.
-   vogleditor_gl_state_snapshot* pPendingSnapshot = NULL;
+    // Make a PendingSnapshot that may or may not be populated when reading the trace.
+    // This snapshot will be assigned to the next API call that occurs.
+    vogleditor_gl_state_snapshot* pPendingSnapshot = NULL;
 
-   m_trace_ctypes.init(pTrace_reader->get_sof_packet().m_pointer_sizes);
+    m_pTrace_ctypes = vogl_new(vogl_ctypes);
 
-   for ( ; ; )
-   {
-      vogl_trace_file_reader::trace_file_reader_status_t read_status = pTrace_reader->read_next_packet();
+    if (m_pTrace_ctypes == NULL)
+    {
+        return false;
+    }
 
-      if ((read_status != vogl_trace_file_reader::cOK) && (read_status != vogl_trace_file_reader::cEOF))
-      {
-         vogleditor_output_error("Failed reading from trace file!");
-         return false;
-      }
+    m_pTrace_ctypes->init(pTrace_reader->get_sof_packet().m_pointer_sizes);
 
-      if (read_status == vogl_trace_file_reader::cEOF)
-      {
-         vogl_printf("At trace file EOF on swap %" PRIu64 "\n", total_swaps);
-         return false;
-      }
+    for ( ; ; )
+    {
+        vogl_trace_file_reader::trace_file_reader_status_t read_status = pTrace_reader->read_next_packet();
 
-      const vogl::vector<uint8_t> &packet_buf = pTrace_reader->get_packet_buf(); VOGL_NOTE_UNUSED(packet_buf);
+        if ((read_status != vogl_trace_file_reader::cOK) && (read_status != vogl_trace_file_reader::cEOF))
+        {
+            vogleditor_output_error("Failed reading from trace file!");
+            return false;
+        }
 
-      const vogl_trace_stream_packet_base &base_packet = pTrace_reader->get_base_packet(); VOGL_NOTE_UNUSED(base_packet);
-      const vogl_trace_gl_entrypoint_packet *pGL_packet = NULL;
+        if (read_status == vogl_trace_file_reader::cEOF)
+        {
+            vogl_printf("At trace file EOF on swap %" PRIu64 "\n", total_swaps);
+            return false;
+        }
 
-      if (pTrace_reader->get_packet_type() == cTSPTGLEntrypoint)
-      {
-         vogl_trace_packet* pTrace_packet = vogl_new(vogl_trace_packet, &m_trace_ctypes);
+        const vogl::vector<uint8_t> &packet_buf = pTrace_reader->get_packet_buf(); VOGL_NOTE_UNUSED(packet_buf);
 
-         if (!pTrace_packet->deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
-         {
-             vogleditor_output_error("Failed parsing GL entrypoint packet.");
-             return false;
-         }
+        const vogl_trace_stream_packet_base &base_packet = pTrace_reader->get_base_packet(); VOGL_NOTE_UNUSED(base_packet);
+        const vogl_trace_gl_entrypoint_packet *pGL_packet = NULL;
 
-         if (!pTrace_packet->check())
-         {
-             vogleditor_output_error("GL entrypoint packet failed consistency check. Please make sure the trace was made with the most recent version of VOGL.");
-             return false;
-         }
+        if (pTrace_reader->get_packet_type() == cTSPTGLEntrypoint)
+        {
+            vogl_trace_packet* pTrace_packet = vogl_new(vogl_trace_packet, m_pTrace_ctypes);
 
-         pGL_packet = &pTrace_reader->get_packet<vogl_trace_gl_entrypoint_packet>();
-         gl_entrypoint_id_t entrypoint_id = static_cast<gl_entrypoint_id_t>(pGL_packet->m_entrypoint_id);
-
-         if (entrypoint_id == VOGL_ENTRYPOINT_glInternalTraceCommandRAD)
-         {
-            // Check if this is a state snapshot.
-            // This is entirely optional since the client is designed to dynamically get new snapshots
-            // if they don't exist.
-            GLuint cmd = pTrace_packet->get_param_value<GLuint>(0);
-            GLuint size = pTrace_packet->get_param_value<GLuint>(1); VOGL_NOTE_UNUSED(size);
-
-            if (cmd == cITCRKeyValueMap)
+            if (!pTrace_packet->deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
             {
-               key_value_map &kvm = pTrace_packet->get_key_value_map();
-
-               dynamic_string cmd_type(kvm.get_string("command_type"));
-               if (cmd_type == "state_snapshot")
-               {
-                  dynamic_string id(kvm.get_string("binary_id"));
-                  if (id.is_empty())
-                  {
-                     vogl_warning_printf("Missing binary_id field in glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", cmd_type.get_ptr());
-                     continue;
-                  }
-
-                  uint8_vec snapshot_data;
-                  {
-                     timed_scope ts("get_multi_blob_manager().get");
-                     if (!pTrace_reader->get_multi_blob_manager().get(id, snapshot_data) || (snapshot_data.is_empty()))
-                     {
-                        vogl_warning_printf("Failed reading snapshot blob data \"%s\"!\n", id.get_ptr());
-                        continue;
-                     }
-                  }
-
-                  json_document doc;
-                  {
-                     timed_scope ts("doc.binary_deserialize");
-                     if (!doc.binary_deserialize(snapshot_data) || (!doc.get_root()))
-                     {
-                        vogl_warning_printf("Failed deserializing JSON snapshot blob data \"%s\"!\n", id.get_ptr());
-                        continue;
-                     }
-                  }
-
-                  vogl_gl_state_snapshot* pGLSnapshot = vogl_new(vogl_gl_state_snapshot);
-                  pPendingSnapshot = vogl_new(vogleditor_gl_state_snapshot, pGLSnapshot);
-
-                  timed_scope ts("pPendingSnapshot->deserialize");
-                  if (!pPendingSnapshot->get_snapshot()->deserialize(*doc.get_root(), pTrace_reader->get_multi_blob_manager(), &m_trace_ctypes))
-                  {
-                     vogl_delete(pPendingSnapshot);
-                     pPendingSnapshot = NULL;
-
-                     vogl_warning_printf("Failed deserializing snapshot blob data \"%s\"!\n", id.get_ptr());
-                  }
-               }
+                vogleditor_output_error("Failed parsing GL entrypoint packet.");
+                return false;
             }
 
-            continue;
-         }
+            if (!pTrace_packet->check())
+            {
+                vogleditor_output_error("GL entrypoint packet failed consistency check. Please make sure the trace was made with the most recent version of VOGL.");
+                return false;
+            }
 
-         const gl_entrypoint_desc_t &entrypoint_desc = g_vogl_entrypoint_descs[entrypoint_id];
+            pGL_packet = &pTrace_reader->get_packet<vogl_trace_gl_entrypoint_packet>();
+            gl_entrypoint_id_t entrypoint_id = static_cast<gl_entrypoint_id_t>(pGL_packet->m_entrypoint_id);
 
-         QString funcCall = entrypoint_desc.m_pName;
+            if (entrypoint_id == VOGL_ENTRYPOINT_glInternalTraceCommandRAD)
+            {
+                // Check if this is a state snapshot.
+                // This is entirely optional since the client is designed to dynamically get new snapshots
+                // if they don't exist.
+                GLuint cmd = pTrace_packet->get_param_value<GLuint>(0);
+                GLuint size = pTrace_packet->get_param_value<GLuint>(1); VOGL_NOTE_UNUSED(size);
 
-         // format parameters
-         funcCall.append("( ");
-         dynamic_string paramStr;
-         for (uint param_index = 0; param_index < pTrace_packet->total_params(); param_index++)
-         {
-            if (param_index != 0)
-               funcCall.append(", ");
+                if (cmd == cITCRKeyValueMap)
+                {
+                    key_value_map &kvm = pTrace_packet->get_key_value_map();
 
-            paramStr.clear();
-            pTrace_packet->pretty_print_param(paramStr, param_index, false);
+                    dynamic_string cmd_type(kvm.get_string("command_type"));
+                    if (cmd_type == "state_snapshot")
+                    {
+                        dynamic_string id(kvm.get_string("binary_id"));
+                        if (id.is_empty())
+                        {
+                            vogl_warning_printf("Missing binary_id field in glInternalTraceCommandRAD key_value_map command type: \"%s\"\n", cmd_type.get_ptr());
+                            continue;
+                        }
 
-            funcCall.append(paramStr.c_str());
-         }
-         funcCall.append(" )");
+                        uint8_vec snapshot_data;
+                        {
+                            timed_scope ts("get_multi_blob_manager().get");
+                            if (!pTrace_reader->get_multi_blob_manager().get(id, snapshot_data) || (snapshot_data.is_empty()))
+                            {
+                                vogl_warning_printf("Failed reading snapshot blob data \"%s\"!\n", id.get_ptr());
+                                continue;
+                            }
+                        }
 
-         if (pTrace_packet->has_return_value())
-         {
-            funcCall.append(" = ");
-            paramStr.clear();
-            pTrace_packet->pretty_print_return_value(paramStr, false);
-            funcCall.append(paramStr.c_str());
-         }
+                        json_document doc;
+                        {
+                            timed_scope ts("doc.binary_deserialize");
+                            if (!doc.binary_deserialize(snapshot_data) || (!doc.get_root()))
+                            {
+                                vogl_warning_printf("Failed deserializing JSON snapshot blob data \"%s\"!\n", id.get_ptr());
+                                continue;
+                            }
+                        }
 
-         // if we don't have a current frame, make a new frame node
-         // and append it to the parent
-         if (pCurFrame == NULL)
-         {
-            pCurFrame = vogl_new(vogleditor_frameItem, total_swaps);
-            vogleditor_apiCallTreeItem* pNewFrameNode = vogl_new(vogleditor_apiCallTreeItem, pCurFrame, pCurParent);
-            pCurParent->appendChild(pNewFrameNode);
-            m_itemList.append(pNewFrameNode);
+                        vogl_gl_state_snapshot* pGLSnapshot = vogl_new(vogl_gl_state_snapshot);
+                        pPendingSnapshot = vogl_new(vogleditor_gl_state_snapshot, pGLSnapshot);
+
+                        timed_scope ts("pPendingSnapshot->deserialize");
+                        if (!pPendingSnapshot->get_snapshot()->deserialize(*doc.get_root(), pTrace_reader->get_multi_blob_manager(), m_pTrace_ctypes))
+                        {
+                            vogl_delete(pPendingSnapshot);
+                            pPendingSnapshot = NULL;
+
+                            vogl_warning_printf("Failed deserializing snapshot blob data \"%s\"!\n", id.get_ptr());
+                        }
+                    }
+                }
+
+                continue;
+            }
+
+            const gl_entrypoint_desc_t &entrypoint_desc = g_vogl_entrypoint_descs[entrypoint_id];
+
+            QString funcCall = entrypoint_desc.m_pName;
+
+            // format parameters
+            funcCall.append("( ");
+            dynamic_string paramStr;
+            for (uint param_index = 0; param_index < pTrace_packet->total_params(); param_index++)
+            {
+                if (param_index != 0)
+                    funcCall.append(", ");
+
+                paramStr.clear();
+                pTrace_packet->pretty_print_param(paramStr, param_index, false);
+
+                funcCall.append(paramStr.c_str());
+            }
+            funcCall.append(" )");
+
+            if (pTrace_packet->has_return_value())
+            {
+                funcCall.append(" = ");
+                paramStr.clear();
+                pTrace_packet->pretty_print_return_value(paramStr, false);
+                funcCall.append(paramStr.c_str());
+            }
+
+            // if we don't have a current frame, make a new frame node
+            // and append it to the parent
+            if (pCurFrame == NULL)
+            {
+                pCurFrame = vogl_new(vogleditor_frameItem, total_swaps);
+                vogleditor_apiCallTreeItem* pNewFrameNode = vogl_new(vogleditor_apiCallTreeItem, pCurFrame, pCurParent);
+                pCurParent->appendChild(pNewFrameNode);
+                m_itemList.append(pNewFrameNode);
+
+                if (pPendingSnapshot != NULL)
+                {
+                    pCurFrame->set_snapshot(pPendingSnapshot);
+                    pPendingSnapshot = NULL;
+                }
+
+                // update current parent
+                pCurParent = pNewFrameNode;
+            }
+
+            // make item and node for the api call
+            vogleditor_apiCallItem* pCallItem = vogl_new(vogleditor_apiCallItem, pCurFrame, pTrace_packet, *pGL_packet);
+            pCurFrame->appendCall(pCallItem);
 
             if (pPendingSnapshot != NULL)
             {
-               pCurFrame->set_snapshot(pPendingSnapshot);
-               pPendingSnapshot = NULL;
+                pCallItem->set_snapshot(pPendingSnapshot);
+                pPendingSnapshot = NULL;
             }
 
-            // update current parent
-            pCurParent = pNewFrameNode;
-         }
+            vogleditor_apiCallTreeItem* item = vogl_new(vogleditor_apiCallTreeItem, funcCall, pCallItem, pCurParent);
+            pCurParent->appendChild(item);
+            m_itemList.append(item);
 
-         // make item and node for the api call
-         vogleditor_apiCallItem* pCallItem = vogl_new(vogleditor_apiCallItem, pCurFrame, pTrace_packet, *pGL_packet);
-         pCurFrame->appendCall(pCallItem);
+            if (vogl_is_swap_buffers_entrypoint(entrypoint_id))
+            {
+                total_swaps++;
 
-         if (pPendingSnapshot != NULL)
-         {
-            pCallItem->set_snapshot(pPendingSnapshot);
-            pPendingSnapshot = NULL;
-         }
+                // reset the CurParent back to the original parent so that the next frame will be at the root level
+                pCurParent = parent;
 
-         vogleditor_apiCallTreeItem* item = vogl_new(vogleditor_apiCallTreeItem, funcCall, pCallItem, pCurParent);
-         pCurParent->appendChild(item);
-         m_itemList.append(item);
+                // reset the CurFrame so that a new frame node will be created on the next api call
+                pCurFrame = NULL;
+            }
+            else if (vogl_is_start_nested_entrypoint(entrypoint_id))
+            {
+                // Nest logically paired blocks of gl calls including terminating
+                // nest call
+                pCurParent = item;
+            }
+            else if (vogl_is_end_nested_entrypoint(entrypoint_id))
+            {
+                // move the parent back one level of the hierarchy, to its own parent
+                // (but not past Frame parent [e.g., unpaired "end" operation])
+                if (pCurParent->parent() != parent)
+                    pCurParent = pCurParent->parent();
+            }
+        }
 
-         if (vogl_is_swap_buffers_entrypoint(entrypoint_id))
-         {
-            total_swaps++;
+        if (pTrace_reader->get_packet_type() == cTSPTEOF)
+        {
+            found_eof_packet = true;
+            vogl_printf("Found trace file EOF packet on swap %" PRIu64 "\n", total_swaps);
+            break;
+        }
+    }
 
-            // reset the CurParent back to the original parent so that the next frame will be at the root level
-            pCurParent = parent;
-
-            // reset the CurFrame so that a new frame node will be created on the next api call
-            pCurFrame = NULL;
-         }
-         else if (vogl_is_start_nested_entrypoint(entrypoint_id))
-         {
-             // Nest logically paired blocks of gl calls including terminating
-             // nest call
-             pCurParent = item;
-         }
-         else if (vogl_is_end_nested_entrypoint(entrypoint_id))
-         {
-             // move the parent back one level of the hierarchy, to its own parent
-             // (but not past Frame parent [e.g., unpaired "end" operation])
-             if (pCurParent->parent() != parent)
-                 pCurParent = pCurParent->parent();
-         }
-      }
-
-      if (pTrace_reader->get_packet_type() == cTSPTEOF)
-      {
-          found_eof_packet = true;
-          vogl_printf("Found trace file EOF packet on swap %" PRIu64 "\n", total_swaps);
-          break;
-      }
-   }
-
-   return found_eof_packet;
+    return found_eof_packet;
 }
 
 QModelIndex vogleditor_QApiCallTreeModel::index(int row, int column, const QModelIndex &parent) const
@@ -327,8 +341,8 @@ int vogleditor_QApiCallTreeModel::rowCount(const QModelIndex &parent) const
 
 int vogleditor_QApiCallTreeModel::columnCount(const QModelIndex &parent) const
 {
-   VOGL_NOTE_UNUSED(parent);
-   return VOGL_MAX_ACTC;
+    VOGL_NOTE_UNUSED(parent);
+    return VOGL_MAX_ACTC;
 }
 
 QVariant vogleditor_QApiCallTreeModel::data(const QModelIndex &index, int role) const
@@ -337,6 +351,19 @@ QVariant vogleditor_QApiCallTreeModel::data(const QModelIndex &index, int role) 
         return QVariant();
 
     vogleditor_apiCallTreeItem* pItem = static_cast<vogleditor_apiCallTreeItem*>(index.internalPointer());
+
+    if (pItem == NULL)
+    {
+        return QVariant();
+    }
+
+    // make draw call rows appear in bold
+    if (role == Qt::FontRole && pItem->apiCallItem() != NULL && vogl_is_draw_entrypoint((gl_entrypoint_id_t)pItem->apiCallItem()->getGLPacket()->m_entrypoint_id))
+    {
+        QFont font;
+        font.setBold(true);
+        return font;
+    }
 
     // highlight the API call cell if it has a substring which matches the searchString
     if (role == Qt::BackgroundRole && index.column() == VOGL_ACTC_APICALL)
@@ -364,7 +391,7 @@ Qt::ItemFlags vogleditor_QApiCallTreeModel::flags(const QModelIndex &index) cons
 }
 
 QVariant vogleditor_QApiCallTreeModel::headerData(int section, Qt::Orientation orientation,
-                               int role) const
+                                                  int role) const
 {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
         return m_rootItem->columnData(section, role);
@@ -552,9 +579,9 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_prev_drawcall(vog
         {
             gl_entrypoint_id_t entrypointId = static_cast<gl_entrypoint_id_t>(pItem->apiCallItem()->getGLPacket()->m_entrypoint_id);
             if (vogl_is_draw_entrypoint(entrypointId) ||
-                vogl_is_clear_entrypoint(entrypointId) ||
-                (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
-                (entrypointId == VOGL_ENTRYPOINT_glEnd))
+                    vogl_is_clear_entrypoint(entrypointId) ||
+                    (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
+                    (entrypointId == VOGL_ENTRYPOINT_glEnd))
             {
                 pFound = iter.peekPrevious();
                 break;
@@ -587,9 +614,9 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vog
         {
             gl_entrypoint_id_t entrypointId = static_cast<gl_entrypoint_id_t>(pItem->apiCallItem()->getGLPacket()->m_entrypoint_id);
             if (vogl_is_draw_entrypoint(entrypointId) ||
-                vogl_is_clear_entrypoint(entrypointId) ||
-                (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
-                (entrypointId == VOGL_ENTRYPOINT_glEnd))
+                    vogl_is_clear_entrypoint(entrypointId) ||
+                    (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
+                    (entrypointId == VOGL_ENTRYPOINT_glEnd))
             {
                 pFound = iter.peekNext();
                 break;
@@ -602,7 +629,7 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vog
     return pFound;
 }
 
-vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_call_number(uint64_t callNumber)
+vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_call_number(unsigned int callNumber)
 {
     QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
 
@@ -625,7 +652,7 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_call_number(uint6
     return pFound;
 }
 
-vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_frame_number(uint64_t frameNumber)
+vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_frame_number(unsigned int frameNumber)
 {
     QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
 

@@ -1,7 +1,6 @@
 /**************************************************************************
  *
- * Copyright 2014 LunarG, Inc.
- * All Rights Reserved.
+ * Copyright 2014 LunarG, Inc.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -319,6 +318,30 @@ enum pxfmt_sized_format
 // GL_DEPTH_STENCIL
     PXFMT_D24_UNORM_S8_UINT,
     PXFMT_D32_FLOAT_S8_UINT,
+
+// FXT1 compressed texture internalformats
+    PXFMT_COMPRESSED_RGB_FXT1,
+    PXFMT_COMPRESSED_RGBA_FXT1,
+
+// S3TC/DXT compressed texture internalformats
+    PXFMT_COMPRESSED_RGB_DXT1,
+    PXFMT_COMPRESSED_RGBA_DXT1,
+    PXFMT_COMPRESSED_RGBA_DXT3,
+    PXFMT_COMPRESSED_RGBA_DXT5,
+
+// Note: Not handling the OpenGL-ES 1.x ETC1 compressed texture internalformat
+
+// ETC2 compressed texture internalformats
+    PXFMT_COMPRESSED_RGB8_ETC2,
+    PXFMT_COMPRESSED_SRGB8_ETC2,
+    PXFMT_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2,
+    PXFMT_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2,
+    PXFMT_COMPRESSED_RGBA8_ETC2_EAC,
+    PXFMT_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC,
+    PXFMT_COMPRESSED_R11_EAC,
+    PXFMT_COMPRESSED_SIGNED_R11_EAC,
+    PXFMT_COMPRESSED_RG11_EAC,
+    PXFMT_COMPRESSED_SIGNED_RG11_EAC,
 };
 
 
@@ -327,6 +350,12 @@ enum pxfmt_sized_format
 // supported, PXFMT_INVALID is returned.
 pxfmt_sized_format validate_format_type_combo(const GLenum format,
                                               const GLenum type);
+
+
+// This function is used to get back a pxfmt_sized_format enum value for a
+// given OpenGL "internalformat" of a compressed texture.  If the format-type
+// combination isn't supported, PXFMT_INVALID is returned.
+pxfmt_sized_format validate_internal_format(const GLenum internalformat);
 
 
 // This function is used to obtain information about a given
@@ -407,5 +436,34 @@ pxfmt_conversion_status pxfmt_convert_pixels(void *pDst,
                                              size_t src_size,
                                              size_t alt_dst_row_stride = 0,
                                              size_t alt_src_row_stride = 0);
+
+
+// This function is used to convert a rectangular set of compressed-texture
+// data to an uncompressed pxfmt_sized_format.  Size-wise, there is only one
+// type of "intermediate data" values (double).  Data is uncompressed to double
+// intermediate values, and then converted from that to the destination.  As
+// long as the intermediate values contain enough precision, etc, values can be
+// converted in a loss-less fashion.
+//
+// Parameters:
+//
+//   pDst    (IN) - pointer to memory to copy/convert pixels into.
+//   pSrc    (IN) - pointer to memory to copy/convert pixels from.
+//   width   (IN) - the image is this many pixels wide.
+//   height  (IN) - the image is this many pixels tall.
+//   dst_fmt (IN) - the pxfmt_sized_format of the destination image.
+//   src_fmt (IN) - the pxfmt_sized_format of the source image.
+//   dst_size (IN) - size (in bytes) of the dst.
+//   src_size (IN) - size (in bytes) of the src.
+//
+// Return Value: whether the conversion succeeded, or why it did not succeed.
+pxfmt_conversion_status pxfmt_decompress_pixels(void *pDst,
+                                                const void *pSrc,
+                                                const int width,
+                                                const int height,
+                                                const pxfmt_sized_format dst_fmt,
+                                                const pxfmt_sized_format src_fmt,
+                                                size_t dst_size,
+                                                size_t src_size);
 
 #endif // PXFMT_H

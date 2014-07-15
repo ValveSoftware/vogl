@@ -1,4 +1,4 @@
-project(voglreplay)
+project(vogl)
 cmake_minimum_required(VERSION 2.8)
 
 include("${SRC_DIR}/build_options.cmake")
@@ -32,6 +32,7 @@ set(SRC_LIST
     replay_tool_compare_hash.cpp
     replay_tool_replay.cpp
     replay_tool_syms.cpp
+    replay_tool_trace.cpp
 #    vogl_remote.cpp
 #    ../common/channel.cpp
 )

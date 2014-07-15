@@ -130,6 +130,9 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
           "-Wno-switch-enum"
           "-Wno-extra-tokens"
 
+          # Added because SDL2 headers have a ton of Doxygen warnings currently.
+          "-Wno-documentation"
+
           # This needs to be removed after fixing the VOGL_NO_ATOMICS, etc.
           "-Wno-undef"
           )
@@ -137,11 +140,15 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
 
 endif()
 
-if (MSVC)
-else()
-    if (NOT BUILD_X64)
-        set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -m32")
-    endif()
+
+if ((NOT MSVC) AND (NOT BUILD_X64) AND (CMAKE_SIZEOF_VOID_P EQUAL 8))
+    set(CMAKE_CXX_FLAGS_LIST "${CMAKE_CXX_FLAGS_LIST} -m32")
+    set(CMAKE_EXE_LINK_FLAGS_LIST "${CMAKE_EXE_LINK_FLAGS_LIST} -m32")
+    set(CMAKE_SHARED_LINK_FLAGS_LIST "${CMAKE_SHARED_LINK_FLAGS_LIST} -m32")
+
+    set_property(GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS OFF)
+    set(CMAKE_SYSTEM_LIBRARY_PATH /lib32 /usr/lib32 /usr/lib/i386-linux-gnu /usr/local/lib32)
+    set(CMAKE_IGNORE_PATH /lib /usr/lib /usr/lib/x86_64-linux-gnu /usr/lib64 /usr/local/lib)
 endif()
 
 function(add_compiler_flag flag)
@@ -284,8 +291,8 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/../bin/chroot_build.sh")
 else()
     set(RADPROJ_BUILD_DIR ${CMAKE_SOURCE_DIR}/vogl_build)
 endif()
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${RADPROJ_BUILD_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RADPROJ_BUILD_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${RADPROJ_BUILD_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${RADPROJ_BUILD_DIR})
 
 # Telemetry setup
 function(telemetry_init)
@@ -379,30 +386,35 @@ function(require_libjpegturbo)
 endfunction()
 
 function(require_sdl2)
-	if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-		include(FindPkgConfig)
-		pkg_search_module(SDL2 REQUIRED sdl2)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        include(FindPkgConfig)
+        pkg_search_module(PC_SDL2 REQUIRED sdl2)
 
-        set(SDL2_INCLUDE "${SDL2_INCLUDE_DIRS}" PARENT_SCOPE)
-        set(SDL2_LIBRARY "${SDL2_LIBRARIES}" PARENT_SCOPE)
-	elseif (MSVC)
+        find_path(SDL2_INCLUDE SDL.h
+            DOC "SDL2 Include Path"
+	    HINTS ${PC_SDL2_INCLUDEDIR} ${PC_SDL2_INCLUDE_DIRS} )
+
+        find_library(SDL2_LIBRARY SDL2
+            DOC "SDL2 Library"
+	    HINTS ${PC_SDL2_LIBDIR} ${PC_SDL2_LIBRARY_DIRS} )
+    elseif (MSVC)
         set(SDL2Root "${CMAKE_EXTERNAL_PATH}/SDL")
 
-        set(SDL2_INCLUDE "${SDL2Root}/include" PARENT_SCOPE)
-        set(SDL2_LIBRARY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/SDL2.lib" PARENT_SCOPE)
+        set(SDL2_INCLUDE "${SDL2Root}/include" CACHE PATH "SDL2 Include Path")
+        set(SDL2_LIBRARY "${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR}/SDL2.lib" CACHE FILEPATH "SDL2 Library")
 
         # Only want to include this once.
         # This has to go into properties because it needs to persist across the entire cmake run.
         get_property(SDL_PROJECT_ALREADY_INCLUDED 
             GLOBAL 
             PROPERTY SDL_PROJECT_INCLUDED
-        )
+            )
 
         if (NOT SDL_PROJECT_ALREADY_INCLUDED)
             INCLUDE_EXTERNAL_MSPROJECT(SDL "${SDL2Root}/VisualC/SDL/SDL_VS2013.vcxproj")
             set_property(GLOBAL
                 PROPERTY SDL_PROJECT_INCLUDED "TRUE"
-            )
+                )
             message("Including SDL_VS2013.vcxproj for you!")
         endif()
 
@@ -411,6 +423,55 @@ function(require_sdl2)
     endif()
 endfunction()
 
+function(require_m)
+    if (MSVC)
+	set(M_LIBRARY "winmm.lib" PARENT_SCOPE)
+    else()
+	set(M_LIBRARY "m" PARENT_SCOPE)
+    endif()
+endfunction()
+
+function(require_gl)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	include(FindPkgConfig)
+	pkg_search_module(PC_GL QUIET gl)
+
+	find_path(GL_INCLUDE GL/gl.h
+	    DOC "OpenGL Include Path"
+	    HINTS ${PC_GL_INCLUDEDIR} ${PC_GL_INCLUDE_DIRS} )
+
+	find_library(GL_LIBRARY GL
+	    DOC "OpenGL Library"
+	    HINTS ${PC_GL_LIBDIR} ${PC_GL_LIBRARY_DIRS} )
+    elseif (MSVC)
+	set(GL_INCLUDE ""	      CACHE PATH "OpenGL Include Path")
+	set(GL_LIBRARY "opengl32.lib" CACHE FILEPATH "OpenGL Library")
+    else()
+	set(GL_INCLUDE ""   CACHE PATH "OpenGL Include Path")
+	set(GL_LIBRARY "GL" CACHE FILEPATH "OpenGL Library")
+    endif()
+endfunction()
+
+function(require_glu)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	include(FindPkgConfig)
+	pkg_search_module(PC_GLU QUIET glu)
+
+	find_path(GLU_INCLUDE GL/glu.h
+	    DOC "GLU Include Path"
+	    HINTS ${PC_GLU_INCLUDEDIR} ${PC_GLU_INCLUDE_DIRS} )
+
+	find_library(GLU_LIBRARY GLU
+	    DOC "GLU Library"
+	    HINTS ${PC_GLU_LIBDIR} ${PC_GLU_LIBRARY_DIRS} )
+    elseif (MSVC)
+	set(GLU_INCLUDE ""	    CACHE PATH "GLU Include Path")
+	set(GLU_LIBRARY "glu32.lib" CACHE FILEPATH "GLU Library")
+    else()
+	set(GLU_INCLUDE ""    CACHE PATH "GLU Include Path")
+	set(GLU_LIBRARY "GLU" CACHE FILEPATH "GLU Library")
+    endif()
+endfunction()
 
 function(request_backtrace)
     if (NOT MSVC)

@@ -47,30 +47,30 @@ vogleditor_QBufferExplorer::vogleditor_QBufferExplorer(QWidget *parent) :
     ui->bufferTableWidget->setColumnCount(2);
     ui->bufferTableWidget->setHorizontalHeaderLabels(QStringList() << "Byte Offset" << "Value");
 
-    m_formatParams.push_back((vogleditor_buffer_format_params){1, 1, "0x%02hhx", "8-bit hex"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){2, 1, "0x%04hx", "16-bit hex"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 1, "0x%08x", "32-bit hex"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){8, 1, "0x%016" PRIx64, "64-bit hex"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 1, "%1.8g", "GL_FLOAT"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 2, "%1.8g", "GL_FLOAT_VEC2"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 3, "%1.8g", "GL_FLOAT_VEC3"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 4, "%1.8g", "GL_FLOAT_VEC4"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){8, 1, "%1.17g", "GL_DOUBLE"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){8, 2, "%1.17g", "GL_DOUBLE_VEC2"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){8, 3, "%1.17g", "GL_DOUBLE_VEC3"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){8, 4, "%1.17g", "GL_DOUBLE_VEC4"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){1, 1, "%hhd", "GL_BYTE"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){1, 1, "%hhu", "GL_UNSIGNED_BYTE"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){2, 1, "%hd", "GL_SHORT"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){2, 1, "%hu", "GL_UNSIGNED_SHORT"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 1, "%d", "GL_INT"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 2, "%d", "GL_INT_VEC2"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 3, "%d", "GL_INT_VEC3"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 4, "%d", "GL_INT_VEC4"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 1, "%u", "GL_UNSIGNED_INT"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 2, "%u", "GL_UNSIGNED_INT_VEC2"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 3, "%u", "GL_UNSIGNED_INT_VEC3"});
-    m_formatParams.push_back((vogleditor_buffer_format_params){4, 4, "%u", "GL_UNSIGNED_INT_VEC4"});
+    m_formatParams.push_back(vogleditor_buffer_format_params(1, 1, "0x%02hhx", "8-bit hex"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(2, 1, "0x%04hx", "16-bit hex"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 1, "0x%08x", "32-bit hex"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(8, 1, "0x%016" PRIx64, "64-bit hex"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 1, "%1.8g", "GL_FLOAT"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 2, "%1.8g", "GL_FLOAT_VEC2"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 3, "%1.8g", "GL_FLOAT_VEC3"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 4, "%1.8g", "GL_FLOAT_VEC4"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(8, 1, "%1.17g", "GL_DOUBLE"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(8, 2, "%1.17g", "GL_DOUBLE_VEC2"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(8, 3, "%1.17g", "GL_DOUBLE_VEC3"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(8, 4, "%1.17g", "GL_DOUBLE_VEC4"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(1, 1, "%hhd", "GL_BYTE"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(1, 1, "%hhu", "GL_UNSIGNED_BYTE"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(2, 1, "%hd", "GL_SHORT"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(2, 1, "%hu", "GL_UNSIGNED_SHORT"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 1, "%d", "GL_INT"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 2, "%d", "GL_INT_VEC2"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 3, "%d", "GL_INT_VEC3"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 4, "%d", "GL_INT_VEC4"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 1, "%u", "GL_UNSIGNED_INT"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 2, "%u", "GL_UNSIGNED_INT_VEC2"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 3, "%u", "GL_UNSIGNED_INT_VEC3"));
+    m_formatParams.push_back(vogleditor_buffer_format_params(4, 4, "%u", "GL_UNSIGNED_INT_VEC4"));
 
     for (uint i = 0; i < m_formatParams.size(); i++)
     {

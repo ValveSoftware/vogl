@@ -17,18 +17,18 @@ This project is alpha^2. If you are up for suffering through a bit of pain with 
 
 The chroot configuration script should be a good reference for vogl dependencies. It is located here:
 
-https://bitbucket.org/raddebugger/vogl_chroot/src/3b278d4a40d936e75554a194f8eb24a42f4464b1/bin/chroot_configure.sh?at=master
+https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/chroot_configure.sh?at=master
 
 ## Get Source and Build ##
 
 ```
 git clone https://github.com/ValveSoftware/vogl.git  
-mkdir -p vogl/vogl_build/bin/release64 && cd $_  
-cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_X64=On ../../..  
+mkdir -p vogl/vogl_build/release64 && cd $_  
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_X64=On ../..
 make -j 10
 ```
 
-The binaries are placed in the vogl/vogl_build/bin directory.
+The binaries are placed in the vogl/vogl_build directory.
 
 For debug builds, use "-DCMAKE_BUILD_TYPE=Debug"  
 For 32-bit builds, use "-DBUILD_X64=Off"  
@@ -36,13 +36,13 @@ For 32-bit builds, use "-DBUILD_X64=Off"
 ## Capturing ##
 
 ```
-cd vogl_build/bin  
+cd vogl_build
 VOGL_CMD_LINE="--vogl_tracefile vogltrace.glxspheres64.bin" LD_PRELOAD=$(readlink -f libvogltrace64.so) ./glxspheres64  
 ```
 
-For capturing Steam games, please see the steamlauncher.sh script in the chroot repository:
+For capturing Steam games, please see the vogl_trace.sh script in the chroot repository:
 
-https://bitbucket.org/raddebugger/vogl_chroot/src/3b278d4a40d936e75554a194f8eb24a42f4464b1/bin/src/sl.cpp?at=master
+https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/src/sl.cpp?at=master
 
 We are currently working on making it much easier to launch and profile Steam apps.
 
@@ -110,7 +110,7 @@ THE SOFTWARE.
 
 libbacktrace is BSD licensed. [Libbacktrace license](https://github.com/mirrors/gcc/blob/master/libbacktrace/README).
 
-apitrace is BSD licensed: [Apitrace license](https://github.com/apitrace/apitrace/blob/master/LICENSE).
+apitrace is MIT licensed: [Apitrace license](https://github.com/apitrace/apitrace/blob/master/LICENSE).
 
 Loki is MIT licensed: [Loki license](http://loki-lib.sourceforge.net/index.php?n=Main.License).
 
@@ -123,4 +123,6 @@ glxspheres (from VirtualGL) is wxWindows Library licensed: [wxWindows Library Li
 SDL is zlib licensed: [zlib license](http://www.libsdl.org/license.php).
 
 stb files (from Sean Barrett) are public domain.
+
+TinyXML-2 is zlib licensed: [zlib license](https://github.com/leethomason/tinyxml2).
 

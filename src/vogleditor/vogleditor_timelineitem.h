@@ -36,49 +36,49 @@ class vogleditor_apiCallItem;
 class vogleditor_timelineItem
 {
 public:
-   vogleditor_timelineItem(float time, vogleditor_timelineItem* parent = 0);
-   vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent = 0);
-   ~vogleditor_timelineItem();
+    vogleditor_timelineItem(float time, vogleditor_timelineItem* parent = 0);
+    vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent = 0);
+    ~vogleditor_timelineItem();
 
-   void appendChild(vogleditor_timelineItem *child);
+    void appendChild(vogleditor_timelineItem *child);
 
-   vogleditor_timelineItem* child(int row);
-   vogleditor_timelineItem* parent();
+    vogleditor_timelineItem* child(int row);
+    vogleditor_timelineItem* parent();
 
-   int childCount() const;
+    int childCount() const;
 
-   QBrush* getBrush();
+    QBrush* getBrush();
 
-   void setBrush(QBrush* brush);
+    void setBrush(QBrush* brush);
 
-   float getBeginTime() const;
-   float getEndTime() const;
-   float getDuration() const;
+    float getBeginTime() const;
+    float getEndTime() const;
+    float getDuration() const;
 
-   float getMaxChildDuration() const;
+    float getMaxChildDuration() const;
 
-   bool isSpan() const;
-   bool isMarker() const;
+    bool isSpan() const;
+    bool isMarker() const;
 
-   vogleditor_frameItem* getFrameItem() const
-   {
-      return m_pFrameItem;
-   }
+    vogleditor_frameItem* getFrameItem() const
+    {
+        return m_pFrameItem;
+    }
 
-   void setFrameItem(vogleditor_frameItem* pFrameItem)
-   {
-      m_pFrameItem = pFrameItem;
-   }
+    void setFrameItem(vogleditor_frameItem* pFrameItem)
+    {
+        m_pFrameItem = pFrameItem;
+    }
 
-   vogleditor_apiCallItem* getApiCallItem() const
-   {
-      return m_pApiCallItem;
-   }
+    vogleditor_apiCallItem* getApiCallItem() const
+    {
+        return m_pApiCallItem;
+    }
 
-   void setApiCallItem(vogleditor_apiCallItem* pItem )
-   {
-      m_pApiCallItem = pItem;
-   }
+    void setApiCallItem(vogleditor_apiCallItem* pItem )
+    {
+        m_pApiCallItem = pItem;
+    }
 
 private:
     QBrush* m_brush;

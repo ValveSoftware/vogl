@@ -67,19 +67,16 @@
 
 #include <turbojpeg.h>
 
+#include "vogl_cmdline_opts.h"
+
 #define VOGL_INTERCEPT_TRACE_FILE_VERSION 0x0102
 
 #define VOGL_STOP_CAPTURE_FILENAME "__stop_capture__"
 #define VOGL_TRIGGER_CAPTURE_FILENAME "__trigger_capture__"
 
-#define VOGL_CMD_LINE_OPTIONS_FILE "vogl_cmd_line.txt"
-
 #define VOGL_BACKTRACE_HASHMAP_CAPACITY 50000
 
 #define VOGL_LIBGL_SO_FILENAME "libGL.so.1"
-
-class vogl_context;
-class vogl_entrypoint_serializer;
 
 #if VOGL_PLATFORM_HAS_GLX
     #define CONTEXT_TYPE GLXContext
@@ -95,7 +92,10 @@ class vogl_entrypoint_serializer;
 	#pragma warning( disable : 4273 )
 #endif
 
-#define vogl_log_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgMessage, __VA_ARGS__)
+// Message to logfile only if logging is set, otherwise to screen.
+#define vogl_log_printf(...) vogl::console::printf(VOGL_FUNCTION_INFO_CSTR, cMsgMessage | cMsgFlagLogOnly, __VA_ARGS__)
+
+class vogl_context;
 
 typedef vogl::hash_map<CONTEXT_TYPE, vogl_context *, bit_hasher<CONTEXT_TYPE> > context_map;
 bool get_dimensions_from_dc(unsigned int* out_width, unsigned int* out_height, HDC hdc);
@@ -113,7 +113,6 @@ enum VoglBufferCreateMethod
 bool g_vogl_has_been_initialized = false;
 static pthread_once_t g_vogl_init_once_control = PTHREAD_ONCE_INIT;
 static pthread_key_t g_vogl_thread_local_data;
-static cfile_stream *g_vogl_pLog_stream;
 static vogl_exception_callback_t g_vogl_pPrev_exception_callback;
 static GLuint g_dummy_program;
 static vogl_xlib_trap_state_t *g_vogl_xlib_trap_state;
@@ -151,46 +150,6 @@ public:
         if (m_took_lock)
             vogl_context_shadow_unlock();
     }
-};
-
-//----------------------------------------------------------------------------------------------------------------------
-// Command line params
-//----------------------------------------------------------------------------------------------------------------------
-static command_line_param_desc g_command_line_param_descs[] =
-{
-    { "vogl_dump_gl_full", 0, false, NULL },
-    { "vogl_dump_gl_calls", 0, false, NULL },
-    { "vogl_dump_gl_buffers", 0, false, NULL },
-    { "vogl_dump_gl_shaders", 0, false, NULL },
-    { "vogl_sleep_at_startup", 1, false, NULL },
-    { "vogl_pause", 0, false, NULL },
-    { "vogl_long_pause", 0, false, NULL },
-    { "vogl_quiet", 0, false, NULL },
-    { "vogl_debug", 0, false, NULL },
-    { "vogl_verbose", 0, false, NULL },
-    { "vogl_flush_files_after_each_call", 0, false, NULL },
-    { "vogl_flush_files_after_each_swap", 0, false, NULL },
-    { "vogl_disable_signal_interception", 0, false, NULL },
-    { "vogl_logfile", 1, false, NULL },
-    { "vogl_logfile_append", 1, false, NULL },
-    { "vogl_tracefile", 1, false, NULL },
-    { "vogl_tracepath", 1, false, NULL },
-    { "vogl_dump_png_screenshots", 0, false, NULL },
-    { "vogl_dump_jpeg_screenshots", 0, false, NULL },
-    { "vogl_jpeg_quality", 0, false, NULL },
-    { "vogl_screenshot_prefix", 1, false, NULL },
-    { "vogl_hash_backbuffer", 0, false, NULL },
-    { "vogl_dump_backbuffer_hashes", 1, false, NULL },
-    { "vogl_sum_hashing", 0, false, NULL },
-    { "vogl_null_mode", 0, false, NULL },
-    { "vogl_force_debug_context", 0, false, NULL },
-    { "vogl_disable_client_side_array_tracing", 0, false, NULL },
-    { "vogl_disable_gl_program_binary", 0, false, NULL },
-    { "vogl_func_tracing", 0, false, NULL },
-    { "vogl_backtrace_all_calls", 0, false, NULL },
-    { "vogl_backtrace_no_calls", 0, false, NULL },
-    { "vogl_exit_after_x_frames", 1, false, NULL },
-    { "vogl_traceport", 1, false, NULL },
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -494,47 +453,6 @@ static void vogl_init_thread_local_data()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// vogl_init_logfile
-//----------------------------------------------------------------------------------------------------------------------
-static void vogl_init_logfile()
-{
-    VOGL_FUNC_TRACER
-
-    dynamic_string backbuffer_hash_file;
-    if (g_command_line_params().get_value_as_string(backbuffer_hash_file, "vogl_dump_backbuffer_hashes"))
-    {
-        remove(backbuffer_hash_file.get_ptr());
-        vogl_message_printf("Deleted backbuffer hash file \"%s\"\n", backbuffer_hash_file.get_ptr());
-    }
-
-    dynamic_string log_file(g_command_line_params().get_value_as_string_or_empty("vogl_logfile"));
-    dynamic_string log_file_append(g_command_line_params().get_value_as_string_or_empty("vogl_logfile_append"));
-    if (log_file.is_empty() && log_file_append.is_empty())
-        return;
-
-    dynamic_string filename(log_file_append.is_empty() ? log_file : log_file_append);
-
-    // This purposely leaks, don't care
-    g_vogl_pLog_stream = vogl_new(cfile_stream);
-
-    if (!g_vogl_pLog_stream->open(filename.get_ptr(), cDataStreamWritable, !log_file_append.is_empty()))
-    {
-        vogl_error_printf("Failed opening log file \"%s\"\n", filename.get_ptr());
-
-        vogl_delete(g_vogl_pLog_stream);
-        g_vogl_pLog_stream = NULL;
-
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        vogl_message_printf("Opened log file \"%s\"\n", filename.get_ptr());
-
-        console::set_log_stream(g_vogl_pLog_stream);
-    }
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 // vogl_capture_on_next_swap
 //----------------------------------------------------------------------------------------------------------------------
 bool vogl_capture_on_next_swap(uint32_t total_frames, const char *pPath, const char *pBase_filename, vogl_capture_status_callback_func_ptr pStatus_callback, void *pStatus_callback_opaque)
@@ -636,48 +554,91 @@ static void vogl_dump_statistics()
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// is_command_line_param_set
-//----------------------------------------------------------------------------------------------------------------------
-static bool is_command_line_param_set(const char *param)
-{
-    if (vogl::check_for_command_line_param(param))
-        return true;
-
-    char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
-    if (pEnv_cmd_line && (strstr(pEnv_cmd_line, param)))
-        return true;
-    return false;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
 // vogl_console_init
 //----------------------------------------------------------------------------------------------------------------------
-void vogl_console_init()
+bool vogl_console_init(bool doinit)
 {
+    VOGL_FUNC_TRACER
+
     static bool s_inited = false;
+    if (s_inited)
+        return true;
+    if (!doinit)
+        return false;
+    s_inited = true;
 
-    if (!s_inited)
-    {
-        s_inited = true;
+    // Initialize vogl_core.
+    vogl_core_init();
 
-        // Initialize vogl_core.
-        vogl_core_init();
-
-        colorized_console::init();
-        console::set_tool_prefix("(vogltrace) ");
-
-        if (is_command_line_param_set("-vogl_quiet"))
-            console::set_output_level(cMsgError);
-        else if (is_command_line_param_set("-vogl_debug"))
-            console::set_output_level(cMsgDebug);
-        else if (is_command_line_param_set("-vogl_verbose"))
-            console::set_output_level(cMsgVerbose);
+    colorized_console::init();
+    console::set_tool_prefix("(vogltrace) ");
 
 #if 0
-        // Enable to see file and line information in console output.
-        console::set_caller_info_always(true);
+    // Enable to see file and line information in console output.
+    console::set_caller_info_always(true);
 #endif
+
+    dynamic_string_array cmd_line_params;
+    char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
+    if (pEnv_cmd_line)
+    {
+        dynamic_string cmd_line(pEnv_cmd_line);
+        cmd_line.unquote();
+
+        if (!split_command_line_params(cmd_line.get_ptr(), cmd_line_params))
+        {
+            vogl_error_printf("Failed splitting command line params from env var: %s\n", pEnv_cmd_line);
+            VOGL_ASSERT(false);
+        }
     }
+    else
+    {
+        cmd_line_params = get_command_line_params();
+    }
+
+    command_line_params::parse_config parse_cfg;
+    parse_cfg.m_single_minus_params = true;
+    parse_cfg.m_double_minus_params = true;
+    parse_cfg.m_ignore_non_params = pEnv_cmd_line ? false : true;
+    parse_cfg.m_ignore_unrecognized_params = pEnv_cmd_line ? false : true;
+    parse_cfg.m_pParam_accept_prefix = "vogl_";
+
+    if (!g_command_line_params().parse(cmd_line_params, VOGL_ARRAY_SIZE(g_tracer_cmdline_opts), g_tracer_cmdline_opts, parse_cfg))
+    {
+        vogl_error_printf("Failed parsing command line parameters\n");
+        VOGL_ASSERT(false);
+    }
+
+    dynamic_string filename(g_command_line_params().get_value_as_string_or_empty("vogl_logfile"));
+    if (!filename.is_empty())
+    {
+        // Create a logfile with PID appended to the log filename.
+        bool ret = console::set_log_stream_filename(filename.c_str(), true);
+        if (!ret)
+        {
+            vogl_error_printf("Failed opening log file \"%s\"\n", filename.get_ptr());
+            VOGL_ASSERT(false);
+        }
+    }
+
+   
+    char exec_fname[VOGL_MAX_PATH];
+	file_utils::get_exec_filename(exec_fname, sizeof(exec_fname));
+    exec_fname[sizeof(exec_fname) - 1] = 0;
+
+    vogl_message_printf("exec_filename: '%s'\n", exec_fname);
+    if (pEnv_cmd_line)
+        vogl_message_printf("VOGL_CMD_LINE: %s\n", pEnv_cmd_line);
+    vogl_message_printf("Command line params: \"%s\"\n", get_command_line().get_ptr());
+
+    if (g_command_line_params().get_value_as_bool("vogl_quiet"))
+        console::set_output_level(cMsgError);
+    else if (g_command_line_params().get_value_as_bool("vogl_debug"))
+        console::set_output_level(cMsgDebug);
+    else if (g_command_line_params().get_value_as_bool("vogl_verbose"))
+        console::set_output_level(cMsgVerbose);
+
+    return true;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -689,23 +650,20 @@ void vogl_init()
     g_vogl_initializing_flag = true;
 
     // Init vogl console.
-    vogl_console_init();
+    vogl_console_init(true);
 
 #if VOGL_PLATFORM_SUPPORTS_BTRACE
     vogl_message_printf("%s built %s %s, begin initialization in %s\n", btrace_get_current_module(), __DATE__, __TIME__, getenv("_"));
 #endif
 
     // We can't use the regular cmd line parser here because this func is called before global objects are constructed.
-    bool pause = is_command_line_param_set("-vogl_pause");
-    bool long_pause = is_command_line_param_set("-vogl_long_pause");
-    if (pause || long_pause)
+    bool pause = g_command_line_params().get_value_as_bool("vogl_pause");
+    if (pause)
     {
         int count = 60000;
         bool debugger_connected = false;
-        dynamic_string cmdline = vogl::get_command_line();
 
-        vogl_message_printf("cmdline: %s\n", cmdline.c_str());
-        vogl_message_printf("Pausing %d ms or until debugger is attached (pid %d).\n", count, plat_getpid());
+        vogl_message_printf("\nPausing %d ms or until debugger is attached (pid %d).\n", count, plat_getpid());
         vogl_message_printf("  Or press any key to continue.\n");
 
         while (count >= 0)
@@ -803,8 +761,8 @@ static void vogl_exception_callback()
     //if (num_contexts)
     //   vogl_error_printf("App is exiting with %u active GL context(s)! Any outstanding async buffer readbacks cannot be safely flushed!\n", num_contexts);
 
-    if (g_vogl_pLog_stream)
-        g_vogl_pLog_stream->flush();
+    if (console::get_log_stream())
+        console::get_log_stream()->flush();
 
     if (g_vogl_pPrev_exception_callback)
     {
@@ -824,59 +782,6 @@ static void vogl_init_command_line_params()
     if (sleep_time > 0.0f)
     {
         vogl_sleep(static_cast<uint32_t>(ceil(1000.0f * sleep_time)));
-    }
-
-    dynamic_string_array cmd_line_params;
-    char *pEnv_cmd_line = getenv("VOGL_CMD_LINE");
-    if (pEnv_cmd_line)
-    {
-        vogl_verbose_printf("Reading command line params from env var\n");
-
-        dynamic_string cmd_line(pEnv_cmd_line);
-        cmd_line.unquote();
-
-        vogl_message_printf("VOGL_CMD_LINE: %s\n", cmd_line.get_ptr());
-
-        if (!split_command_line_params(cmd_line.get_ptr(), cmd_line_params))
-            vogl_error_printf("Failed splitting command line params from env var: %s\n", pEnv_cmd_line);
-    }
-    else if (file_utils::does_file_exist(VOGL_CMD_LINE_OPTIONS_FILE))
-    {
-        vogl_message_printf("Reading command line params from file \"%s\"\n", VOGL_CMD_LINE_OPTIONS_FILE);
-
-        dynamic_string_array opts;
-        if (!file_utils::read_text_file(VOGL_CMD_LINE_OPTIONS_FILE, opts, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFIgnoreCommentedLines | file_utils::cRTFPrintErrorMessages))
-        {
-            vogl_error_printf("Failed reading command line params from options file \"%s\"\n", VOGL_CMD_LINE_OPTIONS_FILE);
-        }
-        else
-        {
-            dynamic_string all_opts;
-            for (uint32_t i = 0; i < opts.size(); i++)
-                all_opts.format_append("%s ", opts[i].get_ptr());
-
-            if (!split_command_line_params(all_opts.get_ptr(), cmd_line_params))
-                vogl_error_printf("Failed splitting command line params from options file: %s\n", pEnv_cmd_line);
-        }
-    }
-    else
-    {
-        vogl_message_printf("Trying to use app's command line options\n");
-
-        cmd_line_params = get_command_line_params();
-    }
-
-    command_line_params::parse_config parse_cfg;
-    parse_cfg.m_single_minus_params = true;
-    parse_cfg.m_double_minus_params = true;
-    parse_cfg.m_ignore_non_params = pEnv_cmd_line ? false : true;
-    parse_cfg.m_ignore_unrecognized_params = pEnv_cmd_line ? false : true;
-    parse_cfg.m_pParam_accept_prefix = "vogl_";
-
-    if (!g_command_line_params().parse(cmd_line_params, VOGL_ARRAY_SIZE(g_command_line_param_descs), g_command_line_param_descs, parse_cfg))
-    {
-        vogl_error_printf("Failed parsing command line parameters\n");
-        exit(EXIT_FAILURE);
     }
 
     g_dump_gl_calls_flag = g_command_line_params().get_value_as_bool("vogl_dump_gl_calls");
@@ -940,8 +845,6 @@ static void vogl_global_init()
 
     VOGL_FUNC_TRACER
 
-    vogl_message_printf("Command line params: \"%s\"\n", get_command_line().get_ptr());
-
     bool reliable_rdtsc = vogl::utils::init_rdtsc();
     if (reliable_rdtsc)
         vogl_verbose_printf("Reliable tsc clocksource found. Using rdtsc.\n");
@@ -950,9 +853,14 @@ static void vogl_global_init()
 
     vogl_init_command_line_params();
 
-    vogl_init_logfile();
-
     vogl_common_lib_global_init();
+
+    dynamic_string backbuffer_hash_file;
+    if (g_command_line_params().get_value_as_string(backbuffer_hash_file, "vogl_dump_backbuffer_hashes"))
+    {
+        remove(backbuffer_hash_file.get_ptr());
+        vogl_message_printf("Deleted backbuffer hash file \"%s\"\n", backbuffer_hash_file.get_ptr());
+    }
 
     if (g_command_line_params().has_key("vogl_tracefile"))
     {
@@ -1730,13 +1638,19 @@ public:
             {
                 set_latched_gl_error(gl_err);
 
-                vogl_warning_printf("GL error %s occurred sometime before this function was called. This error has been latched by the tracer onto the tracer's context shadow struct. This error will be reported to the caller the next time glGetError() is called, and will mask any GL error returned by that future call.\n",
-                                   get_gl_enums().find_gl_error_name(gl_err));
+                vogl_warning_printf("GL error %s occurred sometime before this function was called. "
+                                    "This error has been latched by the tracer onto the tracer's context shadow struct. "
+                                    "This error will be reported to the caller the next time glGetError() is called, "
+                                    "and will mask any GL error returned by that future call.\n",
+                                    get_gl_enums().find_gl_error_name(gl_err));
             }
             else
             {
-                vogl_warning_printf("GL error %s occurred sometime before this function was called. The tracer already had a latched GL error of %s. This error will be suppressed by the tracer (because it would have been by GL itself if the tracer was not present).\n",
-                                   get_gl_enums().find_gl_error_name(gl_err), get_gl_enums().find_gl_error_name(get_latched_gl_error()));
+                vogl_warning_printf("GL error %s occurred sometime before this function was called. "
+                                    "The tracer already had a latched GL error of %s. "
+                                    "This error will be suppressed by the tracer "
+                                    "(because it would have been by GL itself if the tracer was not present).\n",
+                                    get_gl_enums().find_gl_error_name(gl_err), get_gl_enums().find_gl_error_name(get_latched_gl_error()));
             }
         }
 
@@ -3197,11 +3111,8 @@ static bool vogl_flush_compilerinfo_to_trace_file()
 #ifdef __VERSION__
     compiler_info_node.add_key_value("version", __VERSION__);
 #endif
-#ifdef __i386__
-    compiler_info_node.add_key_value("arch", "32bit");
-#else
-    compiler_info_node.add_key_value("arch", "64bit");
-#endif
+
+    compiler_info_node.add_key_value("arch", (sizeof(void *) > 4) ? "64bit" : "32bit");
 
     char_vec data;
     doc.serialize(data, true, 0, false);
@@ -3568,6 +3479,11 @@ static void vogl_print_hex(const void *p, uint64_t size, uint64_t type_size)
         return;
     }
 
+    // If we're not doing full on --vogl_debug then limit the size of data we spew.
+    bool limited = ((size > 15) && (console::get_output_level() < cMsgDebug));
+    if (limited)
+        size = 15;
+
     const uint8_t *ptr = reinterpret_cast<const uint8_t *>(p);
     if ((type_size == 2) && (!(size & 1)))
     {
@@ -3582,7 +3498,6 @@ static void vogl_print_hex(const void *p, uint64_t size, uint64_t type_size)
             if ((++c & 7) == 7)
                 vogl_log_printf("\n");
         }
-        vogl_log_printf(" ]");
     }
     else if ((type_size == 4) && (!(size & 3)))
     {
@@ -3597,7 +3512,6 @@ static void vogl_print_hex(const void *p, uint64_t size, uint64_t type_size)
             if ((++c & 7) == 7)
                 vogl_log_printf("\n");
         }
-        vogl_log_printf(" ]");
     }
     else if ((type_size == 8) && (!(size & 7)))
     {
@@ -3612,7 +3526,6 @@ static void vogl_print_hex(const void *p, uint64_t size, uint64_t type_size)
             if ((++c & 7) == 7)
                 vogl_log_printf("\n");
         }
-        vogl_log_printf(" ]");
     }
     else
     {
@@ -3630,8 +3543,11 @@ static void vogl_print_hex(const void *p, uint64_t size, uint64_t type_size)
             if ((++c & 63) == 63)
                 vogl_log_printf("\n");
         }
-        vogl_log_printf(" ]");
     }
+    
+    if (limited)
+        vogl_log_printf(" ...");
+    vogl_log_printf(" ]");
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -3883,7 +3799,7 @@ static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoin
     vogl_dump_value_param(pContext, serializer, "RETURN_VALUE", VOGL_RETURN_PARAM_INDEX, "result", pType, type, val);
 }
 
-static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, unsigned char *pPtr)
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, char *pPtr)
 {
     VOGL_NOTE_UNUSED(size);
 
@@ -3923,6 +3839,14 @@ static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoin
 static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, long unsigned int *pPtr)
 {
     vogl_dump_array_param(pContext, serializer, "RETUURN_LUINT_PTR", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pPtr, size);
+}
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, __GLsync *pPtr)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_GLSYNC_PTR", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pPtr);
 }
 
 static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, XVisualInfo *pPtr)
@@ -4041,8 +3965,8 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
             {
                 get_vogl_trace_writer().flush();
 
-                if (g_vogl_pLog_stream)
-                    g_vogl_pLog_stream->flush();
+                if (console::get_log_stream())
+                    console::get_log_stream()->flush();
             }
         }
         else
@@ -4097,7 +4021,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
 #define VOGL_MASTER_FUNCTION_PROLOG(name, params)                                                                                                                                                                                                  \
     if (g_dump_gl_calls_flag)                                                                                                                                                                                                                     \
     {                                                                                                                                                                                                                                             \
-        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "" PRIX64 "\n", #name, vogl_get_current_kernel_thread_id());                                                                                                                                                           \
+        vogl_log_printf("** BEGIN %s 0x%" PRIX64 "" PRIX64 "\n", #name, vogl_get_current_kernel_thread_id());                                                                                                                                                           \
     }                                                                                                                                                                                                                                             \
     vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_##name);                                                                                                                                                              \
     if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)                                                                                                                                                                      \
@@ -4119,7 +4043,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
 #define VOGL_MASTER_FUNCTION_PROLOG_VOID(name, params)                                                                                                                                                                                             \
     if (g_dump_gl_calls_flag)                                                                                                                                                                                                                     \
     {                                                                                                                                                                                                                                             \
-        vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", #name, vogl_get_current_kernel_thread_id());                                                                                                                                                           \
+        vogl_log_printf("** BEGIN %s 0x%" PRIX64 "\n", #name, vogl_get_current_kernel_thread_id());                                                                                                                                                           \
     }                                                                                                                                                                                                                                             \
     vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_##name);                                                                                                                                                              \
     if (pTLS_data->m_calling_driver_entrypoint_id != VOGL_ENTRYPOINT_INVALID)                                                                                                                                                                      \
@@ -4172,7 +4096,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
 #define DEF_FUNCTION_END(exported, category, ret, ret_type_enum, num_params, name, args, params)                \
     if (g_dump_gl_calls_flag)                                                                                   \
     {                                                                                                           \
-        vogl_message_printf("** END %s res=%s 0x%" PRIX64 "\n", #name, #ret, cast_val_to_uint64(result));                  \
+        vogl_log_printf("** END %s res=%s 0x%" PRIX64 "\n", #name, #ret, cast_val_to_uint64(result));                  \
     }                                                                                                           \
     if (trace_serializer.is_in_begin())                                                                         \
     {                                                                                                           \
@@ -4187,7 +4111,7 @@ static inline void vogl_write_packet_to_trace(vogl_trace_packet &packet)
 #define DEF_FUNCTION_END_VOID(exported, category, ret, ret_type_enum, num_params, name, args, params)           \
     if (g_dump_gl_calls_flag)                                                                                   \
     {                                                                                                           \
-        vogl_message_printf("** END %s\n", #name);                                                               \
+        vogl_log_printf("** END %s\n", #name);                                                               \
     }                                                                                                           \
     if (trace_serializer.is_in_begin())                                                                         \
     {                                                                                                           \
@@ -4250,7 +4174,7 @@ static void vogl_glInternalTraceCommandRAD(GLuint cmd, GLuint size, const GLubyt
 {
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 
     if (get_vogl_trace_writer().is_opened())
@@ -4298,7 +4222,7 @@ static void vogl_glInternalTraceCommandRAD(GLuint cmd, GLuint size, const GLubyt
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 }
 
@@ -4311,7 +4235,7 @@ static __GLXextFuncPtr vogl_glXGetProcAddress(const GLubyte *procName)
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 
     vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXGetProcAddress);
@@ -4343,7 +4267,7 @@ static __GLXextFuncPtr vogl_glXGetProcAddress(const GLubyte *procName)
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 
     return ptr;
@@ -4357,7 +4281,7 @@ static __GLXextFuncPtr vogl_glXGetProcAddressARB(const GLubyte *procName)
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 
     vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXGetProcAddressARB);
@@ -4389,7 +4313,7 @@ static __GLXextFuncPtr vogl_glXGetProcAddressARB(const GLubyte *procName)
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 
     return ptr;
@@ -4403,7 +4327,7 @@ static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 
     vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglGetProcAddress);
@@ -4435,7 +4359,7 @@ static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 
     return ptr;
@@ -4652,7 +4576,7 @@ static void vogl_glTexStorage2D(	GLenum target,
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXMakeCurrent);
@@ -4728,7 +4652,7 @@ static void vogl_glTexStorage2D(	GLenum target,
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         static bool s_added_atexit = false;
@@ -4752,7 +4676,7 @@ static void vogl_glTexStorage2D(	GLenum target,
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXMakeContextCurrent);
@@ -4829,7 +4753,7 @@ static void vogl_glTexStorage2D(	GLenum target,
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         return result;
@@ -4846,7 +4770,7 @@ static void vogl_glTexStorage2D(	GLenum target,
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglMakeCurrent);
@@ -4919,7 +4843,7 @@ static void vogl_glTexStorage2D(	GLenum target,
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         static bool s_added_atexit = false;
@@ -5257,7 +5181,8 @@ static void vogl_check_for_capture_trigger_file()
     if (!success)
         vogl_error_printf("Failed enabling capture mode\n");
     else
-        vogl_message_printf("Successfully enabled capture mode, will capture up to %u frame(s), override path \"%s\", override base_name \"%s\"\n", total_frames, path.get_ptr(), base_name.get_ptr());
+        vogl_message_printf("Successfully enabled capture mode, will capture up to %u frame(s), override path \"%s\", override base_name \"%s\"\n",
+                            total_frames, path.get_ptr(), base_name.get_ptr());
 }
 
 #if (VOGL_PLATFORM_HAS_GLX)
@@ -5409,7 +5334,7 @@ static void vogl_check_for_capture_trigger_file()
     static bool vogl_write_snapshot_to_trace(const char *pTrace_filename, const Display *dpy, GLXDrawable drawable, vogl_context *pVOGL_context)
     {
         VOGL_FUNC_TRACER
-            vogl_message_printf("Snapshot begin\n");
+        vogl_message_printf("Snapshot begin %s\n", pTrace_filename);
 
         // pVOGL_context may be NULL here!
 
@@ -5534,9 +5459,9 @@ static void vogl_check_for_capture_trigger_file()
     {
         VOGL_FUNC_TRACER
 
-            // pVOGL_context may be NULL here!
+        // pVOGL_context may be NULL here!
 
-            vogl_check_for_capture_stop_file();
+        vogl_check_for_capture_stop_file();
         vogl_check_for_capture_trigger_file();
 
         scoped_mutex lock(get_vogl_trace_mutex());
@@ -5553,8 +5478,7 @@ static void vogl_check_for_capture_trigger_file()
 
             if (get_vogl_trace_writer().is_opened())
             {
-                VOGL_FUNC_TRACER
-                    vogl_end_capture();
+                vogl_end_capture();
                 return;
             }
         }
@@ -5577,15 +5501,21 @@ static void vogl_check_for_capture_trigger_file()
             if (!get_vogl_intercept_data().capture_basename.is_empty())
                 trace_basename = get_vogl_intercept_data().capture_basename;
 
-            dynamic_string filename(cVarArg, "%s_%04d_%02d_%02d_%02d_%02d_%02d.bin", trace_basename.get_ptr(), ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, ltm.tm_hour, ltm.tm_min, ltm.tm_sec);
+            dynamic_string filename(cVarArg, "%s_%04d_%02d_%02d_%02d_%02d_%02d.bin", trace_basename.get_ptr(),
+                                    ltm.tm_year + 1900, ltm.tm_mon + 1, ltm.tm_mday, ltm.tm_hour, ltm.tm_min, ltm.tm_sec);
 
             dynamic_string full_trace_filename;
             file_utils::combine_path(full_trace_filename, trace_path.get_ptr(), filename.get_ptr());
 
             if (g_vogl_frames_remaining_to_capture == cUINT32_MAX)
+            {
                 vogl_message_printf("Initiating capture of all remaining frames to file \"%s\"\n", full_trace_filename.get_ptr());
+            }
             else
-                vogl_message_printf("Initiating capture of up to %u frame(s) to file \"%s\"\n", g_vogl_frames_remaining_to_capture, full_trace_filename.get_ptr());
+            {
+                vogl_message_printf("Initiating capture of up to %u frame(s) to file \"%s\"\n",
+                                    g_vogl_frames_remaining_to_capture, full_trace_filename.get_ptr());
+            }
 
             if (!vogl_write_snapshot_to_trace(full_trace_filename.get_ptr(), dpy, drawable, pVOGL_context))
             {
@@ -5600,10 +5530,7 @@ static void vogl_check_for_capture_trigger_file()
 
             // See if we should stop capturing.
             if (!g_vogl_frames_remaining_to_capture)
-            {
-                VOGL_FUNC_TRACER
                 vogl_end_capture();
-            }
         }
     }
 
@@ -5661,8 +5588,7 @@ static void vogl_check_for_capture_trigger_file()
         }
 
         unsigned int width = 0, height = 0;
-        bool dims_valid = false;
-	dims_valid = vogl_query_glx_drawable_size(dpy, drawable, &width, &height);
+        bool dims_valid = vogl_query_glx_drawable_size(dpy, drawable, &width, &height);
 
         if (dims_valid)
         {
@@ -5702,7 +5628,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXSwapBuffers);
@@ -5748,7 +5674,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         if (g_command_line_params().has_key("vogl_exit_after_x_frames") && (pTLS_data->m_pContext))
@@ -5776,7 +5702,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXCreateContextAttribsARB);
@@ -5899,7 +5825,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         return result;
@@ -5984,7 +5910,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXCreateContext);
@@ -6080,7 +6006,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         return result;
@@ -6106,7 +6032,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXCreateNewContext);
@@ -6186,7 +6112,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         return result;
@@ -6200,7 +6126,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glXDestroyContext);
@@ -6285,15 +6211,13 @@ static void vogl_check_for_capture_trigger_file()
             context_manager.unlock();
         }
 
-        if (g_vogl_pLog_stream)
-        {
-            // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
-            g_vogl_pLog_stream->flush();
-        }
+        // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
+        if (console::get_log_stream())
+            console::get_log_stream()->flush();
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
     }
 
@@ -6441,7 +6365,7 @@ static void vogl_check_for_capture_trigger_file()
     static bool vogl_write_snapshot_to_trace(const char *pTrace_filename, HDC hdc, vogl_context *pVOGL_context)
     {
         VOGL_FUNC_TRACER
-            vogl_message_printf("Snapshot begin\n");
+        vogl_message_printf("Snapshot begin %s\n", pTrace_filename);
 
         // pVOGL_context may be NULL here!
 
@@ -6566,9 +6490,9 @@ static void vogl_check_for_capture_trigger_file()
     {
         VOGL_FUNC_TRACER
 
-            // pVOGL_context may be NULL here!
+        // pVOGL_context may be NULL here!
 
-            vogl_check_for_capture_stop_file();
+        vogl_check_for_capture_stop_file();
         vogl_check_for_capture_trigger_file();
 
         scoped_mutex lock(get_vogl_trace_mutex());
@@ -6585,8 +6509,7 @@ static void vogl_check_for_capture_trigger_file()
 
             if (get_vogl_trace_writer().is_opened())
             {
-                VOGL_FUNC_TRACER
-                    vogl_end_capture();
+                vogl_end_capture();
                 return;
             }
         }
@@ -6632,10 +6555,7 @@ static void vogl_check_for_capture_trigger_file()
 
             // See if we should stop capturing.
             if (!g_vogl_frames_remaining_to_capture)
-            {
-                VOGL_FUNC_TRACER
-                    vogl_end_capture();
-            }
+                vogl_end_capture();
         }
     }
 
@@ -6688,7 +6608,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglSwapBuffers);
@@ -6736,7 +6656,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         if (g_command_line_params().has_key("vogl_exit_after_x_frames") && (pTLS_data->m_pContext))
@@ -6765,7 +6685,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN %s 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglCreateContextAttribsARB);
@@ -6884,7 +6804,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END %s 0x%" PRIX64 "\n", VOGL_FUNCTION_INFO_CSTR, vogl_get_current_kernel_thread_id());
         }
 
         return result;
@@ -6898,7 +6818,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglCreateContext);
@@ -6954,7 +6874,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         return result;
@@ -6973,7 +6893,7 @@ static void vogl_check_for_capture_trigger_file()
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_wglShareLists);
@@ -7032,15 +6952,13 @@ static void vogl_check_for_capture_trigger_file()
             context_manager.unlock();
         }
 
-        if (g_vogl_pLog_stream)
-        {
-            // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
-            g_vogl_pLog_stream->flush();
-        }
+        // TODO: Ensure this is actually thread safe (does the gcc C runtime mutex this?)
+        if (console::get_log_stream())
+            console::get_log_stream()->flush();
 
         if (g_dump_gl_calls_flag)
         {
-            vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+            vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
         }
 
         return result;
@@ -7056,7 +6974,7 @@ static GLenum vogl_glGetError()
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** BEGIN 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 
     vogl_thread_local_data *pTLS_data = vogl_entrypoint_prolog(VOGL_ENTRYPOINT_glGetError);
@@ -7113,7 +7031,7 @@ static GLenum vogl_glGetError()
 
     if (g_dump_gl_calls_flag)
     {
-        vogl_message_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
+        vogl_log_printf("** END 0x%" PRIX64 "\n", vogl_get_current_kernel_thread_id());
     }
 
     return gl_err;
@@ -7721,56 +7639,8 @@ static inline void vogl_get_string_helper(const char *pFunc_name, vogl_context *
 // glUnmapNamedBufferEXT
 // glGetNamedBufferSubDataEXT
 
-// Normal buffer creation
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferData(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_epilog_helper(pContext, trace_serializer, VBCM_BufferData, target, size, data, usage, 0);
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferDataARB(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_epilog_helper(pContext, trace_serializer, VBCM_BufferData, target, size, data, usage, 0);
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glNamedBufferDataEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_create_epilog_helper(pContext, trace_serializer, VBCM_BufferData, buffer, size, data, usage, 0);
-
-// ARB_buffer_storage creation -- need to modify flags
-#define DEF_FUNCTION_CUSTOM_GL_PROLOG_glBufferStorage(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_prolog_helper(pContext, trace_serializer, target, size, data, flags);
-#define DEF_FUNCTION_CUSTOM_GL_PROLOG_glNamedBufferStorageEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_create_prolog_helper(pContext, trace_serializer, buffer, size, data, flags);
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferStorage(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_epilog_helper(pContext, trace_serializer, VBCM_BufferStorage, target, size, data, 0, flags);
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glNamedBufferStorageEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_create_epilog_helper(pContext, trace_serializer, VBCM_BufferStorage, buffer, size, data, 0, flags);
-
-// BufferSubData
-#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glNamedBufferSubDataEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_subdata_ext_helper(pContext, trace_serializer, buffer, offset, size, data);
-
-static inline void vogl_buffer_create_prolog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLenum target, GLsizeiptr size, const GLvoid * data, GLbitfield& flags)
-{
-    VOGL_NOTE_UNUSED(pContext);
-    VOGL_NOTE_UNUSED(target);
-    VOGL_NOTE_UNUSED(size);
-    VOGL_NOTE_UNUSED(data);
-
-    if (trace_serializer.is_in_begin() || g_dump_gl_buffers_flag)
-    {
-        if (flags & GL_MAP_WRITE_BIT)
-        {
-            // They are going to write, so we need to be able to read the data.
-            flags |= GL_MAP_READ_BIT;
-        }
-    }
-}
-
-static inline void vogl_named_buffer_create_prolog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLuint buffer, GLsizeiptr size, const GLvoid * data, GLbitfield& flags)
-{
-    VOGL_NOTE_UNUSED(pContext);
-    VOGL_NOTE_UNUSED(buffer);
-    VOGL_NOTE_UNUSED(size);
-    VOGL_NOTE_UNUSED(data);
-
-    if (trace_serializer.is_in_begin() || g_dump_gl_buffers_flag)
-    {
-        if (flags & GL_MAP_WRITE_BIT)
-        {
-            // They are going to write, so we need to be able to read the data.
-            flags |= GL_MAP_READ_BIT;
-        }
-    }
-
-}
-
-static inline void vogl_named_buffer_create_epilog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, VoglBufferCreateMethod create_method, GLuint buffer, GLsizeiptr size, const GLvoid *data, GLenum usage, GLbitfield flags)
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glNamedBufferDataEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_create_helper(pContext, trace_serializer, VBCM_BufferData, buffer, size, data, usage, 0);
+static inline void vogl_named_buffer_create_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, VoglBufferCreateMethod create_method, GLuint buffer, GLsizeiptr size, const GLvoid *data, GLenum usage, GLbitfield flags)
 {
     VOGL_NOTE_UNUSED(trace_serializer);
 
@@ -7803,7 +7673,9 @@ static inline void vogl_named_buffer_create_epilog_helper(vogl_context *pContext
     buf_desc.m_flushed_ranges.resize(0);
 }
 
-static inline void vogl_buffer_create_epilog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, VoglBufferCreateMethod create_method, GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage, GLbitfield flags)
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferData(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_helper(pContext, trace_serializer, VBCM_BufferData, target, size, data, usage, 0);
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferDataARB(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_helper(pContext, trace_serializer, VBCM_BufferData, target, size, data, usage, 0);
+static inline void vogl_buffer_create_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, VoglBufferCreateMethod create_method, GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage, GLbitfield flags)
 {
     if (!pContext)
         return;
@@ -7818,7 +7690,7 @@ static inline void vogl_buffer_create_epilog_helper(vogl_context *pContext, vogl
         return;
     }
 
-    vogl_named_buffer_create_epilog_helper(pContext, trace_serializer, create_method, buffer, size, data, usage, flags);
+    vogl_named_buffer_create_helper(pContext, trace_serializer, create_method, buffer, size, data, usage, flags);
 }
 
 static inline void vogl_named_buffer_subdata_ext_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLuint buffer, GLintptr offset, GLsizeiptr size, const GLvoid *data)
@@ -7948,7 +7820,7 @@ static inline void vogl_map_buffer_range_gl_epilog_helper(vogl_context *pContext
 
     if (!pPtr)
     {
-        vogl_warning_printf("Map failed!\n");
+        vogl_error_printf("vogl_map_buffer_range_gl_epilog_helper() Map failed!\n");
         return;
     }
 
@@ -8122,6 +7994,31 @@ static inline void vogl_unmap_buffer_helper(vogl_context *pContext, vogl_entrypo
     buf_desc.m_map_access = 0;
     buf_desc.m_flushed_ranges.resize(0);
 }
+
+#define DEF_FUNCTION_CUSTOM_GL_PROLOG_glBufferStorage(exported, category, ret, ret_type_enum, num_params, name, args, params) \
+    GLbitfield orig_flags = flags;                                                                                            \
+    VOGL_NOTE_UNUSED(orig_flags);                                                                                             \
+    vogl_buffer_storage_gl_prolog_helper(pContext, trace_serializer, target, size, data, flags);
+static inline void vogl_buffer_storage_gl_prolog_helper(vogl_context *pContext, vogl_entrypoint_serializer &trace_serializer, GLenum target, GLsizeiptr size, const GLvoid * data, GLbitfield& flags)
+{
+    VOGL_NOTE_UNUSED(pContext);
+    VOGL_NOTE_UNUSED(target);
+    VOGL_NOTE_UNUSED(size);
+    VOGL_NOTE_UNUSED(target);
+
+    if (trace_serializer.is_in_begin() || g_dump_gl_buffers_flag)
+    {
+        if (flags & GL_MAP_WRITE_BIT)
+        {
+            // They are going to write, so we need to be able to read the data.
+            flags |= GL_MAP_READ_BIT;
+        }
+    }
+}
+
+// Deal with ARB_buffer_storage creation. 
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glNamedBufferStorageEXT(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_named_buffer_create_helper(pContext, trace_serializer, VBCM_BufferStorage, buffer, size, data, 0, flags);
+#define DEF_FUNCTION_CUSTOM_FUNC_EPILOG_glBufferStorage(exported, category, ret, ret_type_enum, num_params, name, args, params) vogl_buffer_create_helper(pContext, trace_serializer, VBCM_BufferStorage, target, size, data, 0, flags);
 
 //----------------------------------------------------------------------------------------------------------------------
 // glCreateProgram/glCreateProgramARB function epilog
@@ -9027,7 +8924,8 @@ static inline void vogl_check_for_client_side_array_usage(vogl_context *pContext
         if (!cur_array_buf_binding)
         {
             pContext->set_uses_client_side_arrays(true);
-            vogl_warning_printf("Client side array usage has been detected, this will negatively impact tracing performance, use --vogl_disable_client_side_array_tracing to disable\n");
+            vogl_warning_printf("Client side array usage has been detected, this will negatively impact tracing performance, "
+                                "use --vogl_disable_client_side_array_tracing to disable\n");
         }
     }
 }
@@ -9369,7 +9267,7 @@ static void vogl_direct_gl_func_prolog(gl_entrypoint_id_t entrypoint_id, void *p
     VOGL_NOTE_UNUSED(pUser_data);
 
     if (g_dump_gl_calls_flag)
-        printf("** GLPROLOG %s\n", g_vogl_entrypoint_descs[entrypoint_id].m_pName);
+        vogl_log_printf("** GLPROLOG %s\n", g_vogl_entrypoint_descs[entrypoint_id].m_pName);
 
     gl_entrypoint_id_t *pPrev_state = reinterpret_cast<gl_entrypoint_id_t *>(ppStack_data);
     *pPrev_state = VOGL_ENTRYPOINT_INVALID;
@@ -9399,7 +9297,7 @@ static void vogl_direct_gl_func_epilog(gl_entrypoint_id_t entrypoint_id, void *p
 #endif
 
     if (g_dump_gl_calls_flag)
-        printf("** GLEPILOG %s\n", g_vogl_entrypoint_descs[entrypoint_id].m_pName);
+        vogl_log_printf("** GLEPILOG %s\n", g_vogl_entrypoint_descs[entrypoint_id].m_pName);
 
     gl_entrypoint_id_t *pPrev_state = reinterpret_cast<gl_entrypoint_id_t *>(ppStack_data);
 

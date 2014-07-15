@@ -37,79 +37,79 @@ class vogl_trace_packet;
 class vogleditor_apiCallItem : public vogleditor_snapshotItem
 {
 public:
-   vogleditor_apiCallItem(vogleditor_frameItem* pFrame, vogl_trace_packet* pTracePacket, const vogl_trace_gl_entrypoint_packet& glPacket)
-       : m_pParentFrame(pFrame),
-        m_glPacket(glPacket),
-        m_pTracePacket(pTracePacket),
-        m_globalCallIndex(glPacket.m_call_counter),
-        m_begin_rdtsc(glPacket.m_packet_begin_rdtsc),
-        m_end_rdtsc(glPacket.m_packet_end_rdtsc),
-        m_backtrace_hash_index(glPacket.m_backtrace_hash_index)
-   {
-      if (m_end_rdtsc < m_begin_rdtsc)
-      {
-         m_end_rdtsc = m_begin_rdtsc + 1;
-      }
-   }
+    vogleditor_apiCallItem(vogleditor_frameItem* pFrame, vogl_trace_packet* pTracePacket, const vogl_trace_gl_entrypoint_packet& glPacket)
+        : m_pParentFrame(pFrame),
+          m_glPacket(glPacket),
+          m_pTracePacket(pTracePacket),
+          m_globalCallIndex(glPacket.m_call_counter),
+          m_begin_rdtsc(glPacket.m_packet_begin_rdtsc),
+          m_end_rdtsc(glPacket.m_packet_end_rdtsc),
+          m_backtrace_hash_index(glPacket.m_backtrace_hash_index)
+    {
+        if (m_end_rdtsc < m_begin_rdtsc)
+        {
+            m_end_rdtsc = m_begin_rdtsc + 1;
+        }
+    }
 
-   ~vogleditor_apiCallItem()
-   {
-       if (m_pTracePacket != NULL)
-       {
-           vogl_delete(m_pTracePacket);
-           m_pTracePacket = NULL;
-       }
-   }
+    ~vogleditor_apiCallItem()
+    {
+        if (m_pTracePacket != NULL)
+        {
+            vogl_delete(m_pTracePacket);
+            m_pTracePacket = NULL;
+        }
+    }
 
-   inline vogleditor_frameItem* frame() const
-   {
-      return m_pParentFrame;
-   }
+    inline vogleditor_frameItem* frame() const
+    {
+        return m_pParentFrame;
+    }
 
-   inline uint64_t globalCallIndex() const
-   {
-      return m_globalCallIndex;
-   }
+    inline uint64_t globalCallIndex() const
+    {
+        return m_globalCallIndex;
+    }
 
-   inline uint64_t startTime() const
-   {
-      return m_begin_rdtsc;
-   }
+    inline uint64_t startTime() const
+    {
+        return m_begin_rdtsc;
+    }
 
-   inline uint64_t endTime() const
-   {
-      return m_end_rdtsc;
-   }
+    inline uint64_t endTime() const
+    {
+        return m_end_rdtsc;
+    }
 
-   inline uint64_t duration() const
-   {
-      return endTime() - startTime();
-   }
+    inline uint64_t duration() const
+    {
+        return endTime() - startTime();
+    }
 
-   const vogl_trace_gl_entrypoint_packet* getGLPacket() const
-   {
-      return &m_glPacket;
-   }
+    const vogl_trace_gl_entrypoint_packet* getGLPacket() const
+    {
+        return &m_glPacket;
+    }
 
-   vogl_trace_packet* getTracePacket()
-   {
-      return m_pTracePacket;
-   }
+    vogl_trace_packet* getTracePacket()
+    {
+        return m_pTracePacket;
+    }
 
-   inline uint64_t backtraceHashIndex() const
-   {
-       return m_backtrace_hash_index;
-   }
+    inline uint64_t backtraceHashIndex() const
+    {
+        return m_backtrace_hash_index;
+    }
 
 private:
-   vogleditor_frameItem* m_pParentFrame;
-   const vogl_trace_gl_entrypoint_packet m_glPacket;
-   vogl_trace_packet* m_pTracePacket;
+    vogleditor_frameItem* m_pParentFrame;
+    const vogl_trace_gl_entrypoint_packet m_glPacket;
+    vogl_trace_packet* m_pTracePacket;
 
-   uint64_t m_globalCallIndex;
-   uint64_t m_begin_rdtsc;
-   uint64_t m_end_rdtsc;
-   uint64_t m_backtrace_hash_index;
+    uint64_t m_globalCallIndex;
+    uint64_t m_begin_rdtsc;
+    uint64_t m_end_rdtsc;
+    uint64_t m_backtrace_hash_index;
 };
 
 #endif // VOGLEDITOR_APICALLITEM_H

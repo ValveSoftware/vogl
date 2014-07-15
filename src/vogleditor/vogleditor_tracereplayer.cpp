@@ -1,7 +1,7 @@
 
 #include "vogleditor_apicalltreeitem.h"
 #include "vogleditor_apicallitem.h"
-
+#include "vogleditor_frameitem.h"
 #include "vogleditor_tracereplayer.h"
 
 #include "vogl_find_files.h"
@@ -24,79 +24,51 @@ vogleditor_traceReplayer::~vogleditor_traceReplayer()
     }
 }
 
-//----------------------------------------------------------------------------------------------------------------------
-// X11_Pending - from SDL
-//----------------------------------------------------------------------------------------------------------------------
-static int X11_Pending(Display *display)
+void vogleditor_traceReplayer::enable_screenshot_capturing(std::string screenshot_prefix)
 {
-   VOGL_FUNC_TRACER
-
-   /* Flush the display connection and look to see if events are queued */
-   XFlush(display);
-   if (XEventsQueued(display, QueuedAlready))
-   {
-      return(1);
-   }
-
-   /* More drastic measures are required -- see if X is ready to talk */
-   {
-      static struct timeval zero_time;	/* static == 0 */
-      int x11_fd;
-      fd_set fdset;
-
-      x11_fd = ConnectionNumber(display);
-      FD_ZERO(&fdset);
-      FD_SET(x11_fd, &fdset);
-      if (select(x11_fd+1, &fdset, NULL, NULL, &zero_time) == 1)
-      {
-         return(XPending(display));
-      }
-   }
-
-   /* Oh well, nothing is ready .. */
-   return(0);
+    m_screenshot_prefix = screenshot_prefix;
 }
 
-bool vogleditor_traceReplayer::process_x_events()
+bool vogleditor_traceReplayer::process_events()
 {
-    while (X11_Pending(m_window.get_display()))
+    SDL_Event wnd_event;
+    while (SDL_PollEvent(&wnd_event))
     {
-       XEvent newEvent;
+        switch(wnd_event.type)
+        {
+            case SDL_WINDOWEVENT_SHOWN:
+            case SDL_WINDOWEVENT_RESTORED:
+            {
+                m_pTraceReplayer->update_window_dimensions();
+                break;
+            }
 
-       // Watch for new X events
-       XNextEvent(m_window.get_display(), &newEvent);
+            case SDL_WINDOWEVENT_MOVED:
+            case SDL_WINDOWEVENT_RESIZED:
+            {
+                m_pTraceReplayer->update_window_dimensions();
+                break;
+            }
 
-       switch (newEvent.type)
-       {
-          case MapNotify:
-          {
-             m_pTraceReplayer->update_window_dimensions();
-             break;
-          }
-          case ConfigureNotify:
-          {
-             m_pTraceReplayer->update_window_dimensions();
-             break;
-          }
-          case DestroyNotify:
-          {
-             vogl_message_printf("Exiting\n");
-             return false;
-             break;
-          }
-          case ClientMessage:
-          {
-             if(newEvent.xclient.data.l[0] == (int)m_wmDeleteMessage)
-             {
-                vogl_message_printf("Exiting\n");
-                return false;
-             }
+            case SDL_WINDOWEVENT:
+            {
+                switch(wnd_event.window.event)
+                {
+                    case SDL_WINDOWEVENT_CLOSE:
+                        vogl_message_printf("Exiting\n");
+                        return false;
+                        break;
+                    default:
+                        break;
+                };
+                break;
+            }
 
-             break;
-          }
-          default: break;
-       }
+            default:
+                break;
+        }
     }
+
 
     return true;
 }
@@ -111,7 +83,7 @@ bool vogleditor_traceReplayer::applying_snapshot_and_process_resize(const vogl_g
         vogleditor_output_message("Waiting for replay window to resize.");
 
         // Pump X events in case the window is resizing
-        if (process_x_events())
+        if (process_events())
         {
             status = m_pTraceReplayer->process_pending_window_resize();
         }
@@ -175,6 +147,15 @@ inline bool status_indicates_end(vogl_gl_replayer::status_t status)
 vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apicallTreeItem(vogleditor_apiCallTreeItem* pItem, vogleditor_gl_state_snapshot** ppNewSnapshot, uint64_t apiCallNumber)
 {
     vogleditor_tracereplayer_result result = VOGLEDITOR_TRR_SUCCESS;
+
+    if (pItem->frameItem() != NULL && m_screenshot_prefix.size() > 0)
+    {
+        // take screenshot
+        m_pTraceReplayer->snapshot_backbuffer();
+        dynamic_string screenshot_filename;
+        pItem->frameItem()->set_screenshot_filename(screenshot_filename.format("%s_%07" PRIu64 ".png", m_screenshot_prefix.c_str(), pItem->frameItem()->frameNumber()));
+    }
+
     vogleditor_apiCallItem* pApiCall = pItem->apiCallItem();
     if (pApiCall != NULL)
     {
@@ -186,7 +167,7 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
         while (m_pTraceReplayer->get_has_pending_window_resize() || m_pTraceReplayer->get_pending_apply_snapshot())
         {
             // Pump X events in case the window is resizing
-            if (process_x_events())
+            if (process_events())
             {
                 status = m_pTraceReplayer->process_pending_window_resize();
                 if (status != vogl_gl_replayer::cStatusResizeWindow)
@@ -207,6 +188,12 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
             // if that was successful, check to see if a state snapshot is needed
             if (!status_indicates_end(status))
             {
+                // update gl entrypoints if needed
+                if (vogl_is_make_current_entrypoint(pTrace_packet->get_entrypoint_id()) && load_gl())
+                {
+                    vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
+                }
+
                 result = take_state_snapshot_if_needed(ppNewSnapshot, apiCallNumber);
             }
         }
@@ -218,6 +205,12 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
         // if that was successful, check to see if a state snapshot is needed
         if (!status_indicates_end(status))
         {
+            // update gl entrypoints if needed
+            if (vogl_is_make_current_entrypoint(pTrace_packet->get_entrypoint_id()) && load_gl())
+            {
+                vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
+            }
+
             result = take_state_snapshot_if_needed(ppNewSnapshot, apiCallNumber);
         }
         else
@@ -247,7 +240,7 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
                 break;
 
             // Pump X events in case the window is resizing
-            if (process_x_events() == false)
+            if (process_events() == false)
             {
                 // most likely the window wants to close, so let's return
                 return VOGLEDITOR_TRR_USER_EXIT;
@@ -273,18 +266,19 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file
    }
 
    uint replayer_flags = cGLReplayerForceDebugContexts;
+
+   if (m_screenshot_prefix.size() > 0)
+   {
+       replayer_flags |= cGLReplayerDumpScreenshots;
+       m_pTraceReplayer->set_screenshot_prefix(m_screenshot_prefix.c_str());
+   }
+
    if (!m_pTraceReplayer->init(replayer_flags, &m_window, m_pTraceReader->get_sof_packet(), m_pTraceReader->get_multi_blob_manager()))
    {
       vogleditor_output_error("Failed initializing GL replayer!");
       m_window.close();
       return VOGLEDITOR_TRR_ERROR;
    }
-
-   XSelectInput(m_window.get_display(), m_window.get_xwindow(),
-                EnterWindowMask | LeaveWindowMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | ExposureMask | FocusChangeMask | KeyPressMask | KeyReleaseMask | PropertyChangeMask | StructureNotifyMask | KeymapStateMask);
-
-   m_wmDeleteMessage = XInternAtom(m_window.get_display(), "WM_DELETE_WINDOW", False);
-   XSetWMProtocols(m_window.get_display(), m_window.get_xwindow(), &m_wmDeleteMessage, 1);
 
    timer tm;
    tm.start();
@@ -293,7 +287,7 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file
 
    for ( ; ; )
    {
-      if (process_x_events() == false)
+      if (process_events() == false)
       {
           result = VOGLEDITOR_TRR_USER_EXIT;
           break;
@@ -307,6 +301,10 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file
           // if the first snapshot has not been edited, then restore it here, otherwise it will get restored in the recursive call below.
           if (pFirstFrame->has_snapshot() && !pFirstFrame->get_snapshot()->is_edited())
           {
+              // Attempt to initialize GL func pointers here so they're available when loading from a snapshot at start of trace
+              if (load_gl())
+                  vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
+
               bStatus = applying_snapshot_and_process_resize(pFirstFrame->get_snapshot()->get_snapshot());
           }
 

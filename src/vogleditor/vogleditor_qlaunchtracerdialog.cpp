@@ -11,10 +11,19 @@ vogleditor_QLaunchTracerDialog::vogleditor_QLaunchTracerDialog(QWidget *parent) 
     ui->setupUi(this);
 
     QDir appDirectory(QCoreApplication::applicationDirPath());
-    QDir steamLauncherDir(appDirectory.absoluteFilePath("../../bin/"));
+    QDir vogltraceDir(appDirectory.absoluteFilePath("./"));
 
     // only enable the steam launcher box if the script is available
-    ui->steamLauncherCheckBox->setEnabled(steamLauncherDir.exists("steamlauncher.sh"));
+#if defined(PLATFORM_WINDOWS)
+    // vogl64.exe / vogl32.exe does not yet properly support windows, so disable it
+    // Eventually, remove this line and enable the code below so that vogl*.exe can be found
+    ui->vogltraceCheckBox->setEnabled(false);
+
+    //// the '.exe' is necessary on Windows to find the file, but not necessary to execute it.
+    //ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists((sizeof(void *) > 4) ? "vogl64.exe" : "vogl32.exe"));
+#else
+    ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists((sizeof(void *) > 4) ? "vogl64" : "vogl32"));
+#endif
 }
 
 vogleditor_QLaunchTracerDialog::~vogleditor_QLaunchTracerDialog()
@@ -28,16 +37,12 @@ QString vogleditor_QLaunchTracerDialog::get_command_line()
 
     QString cmdline;
     QString executable;
-    if (ui->steamLauncherCheckBox->isChecked())
+    if (ui->vogltraceCheckBox->isChecked())
     {
-        executable = appDirectory.absoluteFilePath("../../bin/steamlauncher.sh");
+        executable = appDirectory.absoluteFilePath((sizeof(void *) > 4) ? "./vogl64" : "./vogl32");
+        executable += " trace ";
 
-        if (ui->amd64CheckBox->isChecked())
-        {
-            cmdline += " --amd64";
-        }
-
-        cmdline += " --gameid " + get_application_to_launch();
+        cmdline += get_application_to_launch();
 
         if (get_trace_file_path().size() > 0)
         {
@@ -59,7 +64,10 @@ QString vogleditor_QLaunchTracerDialog::get_command_line()
             cmdline += " --vogl_backtrace_all_calls";
         }
 
-        cmdline += " " + ui->argumentsLineEdit->text();
+        if (ui->argumentsLineEdit->text().size() > 0)
+        {
+            cmdline += " -- " + ui->argumentsLineEdit->text();
+        }
 
         // steam launcher must come at the beginning of cmd line
         cmdline = executable + cmdline;
@@ -83,7 +91,7 @@ QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment()
 
     m_process_environment = QProcessEnvironment::systemEnvironment();
 
-    if (ui->steamLauncherCheckBox->isChecked() == false)
+    if (ui->vogltraceCheckBox->isChecked() == false)
     {
         if (get_trace_file_path().size() > 0)
         {
@@ -111,15 +119,9 @@ QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment()
             m_process_environment.insert("VOGL_CMD_LINE", VOGL_CMD_LINE);
         }
 
-        QString LD_PRELOAD = "";
-        if (ui->amd64CheckBox->isChecked())
-        {
-            LD_PRELOAD += appDirectory.absoluteFilePath("../../vogl_build/bin/libvogltrace64.so");
-        }
-        else
-        {
-            LD_PRELOAD += appDirectory.absoluteFilePath("../../vogl_build/bin/libvogltrace32.so");
-        }
+        QString libvogltrace32 = appDirectory.absoluteFilePath("./libvogltrace32.so");
+        QString libvogltrace64 = appDirectory.absoluteFilePath("./libvogltrace64.so");
+        QString LD_PRELOAD = libvogltrace32 + ":" + libvogltrace64;
 
         if (getenv("LD_PRELOAD"))
         {
@@ -194,8 +196,6 @@ void vogleditor_QLaunchTracerDialog::on_findTraceFileButton_clicked()
     }
 }
 
-void vogleditor_QLaunchTracerDialog::on_steamLauncherCheckBox_clicked(bool checked)
+void vogleditor_QLaunchTracerDialog::on_vogltraceCheckBox_clicked(bool checked)
 {
-    // the steam launcher script does not currently support command line arguments, so enable that field if steamlauncher is not being used
-    ui->argumentsLineEdit->setEnabled(!checked);
 }

@@ -44,8 +44,68 @@
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_INT_MAGIC 0x12345678
 #define VOGL_GL_REPLAYER_ARRAY_OVERRUN_FLOAT_MAGIC -999999.0f
 
+static void *g_actual_libgl_module_handle;
+
 // TODO: Move this declaration into a header that we share with the location the code actually exists.
 vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pName);
+
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_get_proc_address_helper
+//----------------------------------------------------------------------------------------------------------------------
+vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
+{
+    VOGL_FUNC_TRACER
+
+        vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, pName)) : NULL;
+
+#if (VOGL_PLATFORM_HAS_GLX)
+    if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
+        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
+#elif (VOGL_PLATFORM_HAS_WGL)
+    if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
+        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
+#else
+#error "Implement vogl_get_proc_address_helper this platform."
+#endif
+
+    return pFunc;
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// load gl entrypoints
+//----------------------------------------------------------------------------------------------------------------------
+bool load_gl()
+{
+    VOGL_FUNC_TRACER
+
+        g_actual_libgl_module_handle = plat_load_system_gl(PLAT_RTLD_LAZY);
+
+    if (!g_actual_libgl_module_handle)
+    {
+        vogl_error_printf("Failed loading %s!\n", plat_get_system_gl_module_name());
+        return false;
+    }
+
+#if (VOGL_PLATFORM_HAS_GLX)
+    GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
+    if (!GL_ENTRYPOINT(glXGetProcAddress))
+    {
+        vogl_error_printf("Failed getting address of glXGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
+        return false;
+    }
+#elif (VOGL_PLATFORM_HAS_WGL)
+    GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
+    if (!GL_ENTRYPOINT(wglGetProcAddress))
+    {
+        vogl_error_printf("Failed getting address of wglGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
+        return false;
+    }
+#else
+#error "Implement load_gl for this platform."
+#endif
+
+    return true;
+}
 
 //----------------------------------------------------------------------------------------------------------------------
 // glInterleavedArrays helper table
@@ -783,52 +843,6 @@ void vogl_gl_replayer::destroy_contexts()
             }
         }
 
-    #elif (VOGL_PLATFORM_HAS_X11)
-
-        if ((m_contexts.size()) && (m_pWindow->get_display()) && (GL_ENTRYPOINT(glXMakeCurrent)) && (GL_ENTRYPOINT(glXDestroyContext)))
-        {
-            GL_ENTRYPOINT(glXMakeCurrent)(m_pWindow->get_display(), (GLXDrawable)NULL, NULL);
-
-            vogl::vector<context_state *> contexts_to_destroy;
-            for (context_hash_map::const_iterator it = m_contexts.begin(); it != m_contexts.end(); ++it)
-                contexts_to_destroy.push_back(it->second);
-
-            // Delete "tail" contexts (ones that are not referenced by any other context) in sharegroups first.
-            while (contexts_to_destroy.size())
-            {
-                for (int i = 0; i < static_cast<int>(contexts_to_destroy.size()); i++)
-                {
-                    context_state *pContext_state = contexts_to_destroy[i];
-
-                    vogl_trace_ptr_value trace_context = pContext_state->m_context_desc.get_trace_context();
-
-                    bool skip_context = false;
-                    for (int j = 0; j < static_cast<int>(contexts_to_destroy.size()); j++)
-                    {
-                        if (i == j)
-                            continue;
-
-                        if (contexts_to_destroy[j]->m_context_desc.get_trace_share_context() == trace_context)
-                        {
-                            skip_context = true;
-                            break;
-                        }
-                    }
-
-                    if (skip_context)
-                        continue;
-
-                    // This context may have been the sharegroup's root and could have been already deleted.
-                    if (!pContext_state->m_deleted)
-                    {
-                        GL_ENTRYPOINT(glXDestroyContext)(m_pWindow->get_display(), pContext_state->m_replay_context);
-                    }
-
-                    contexts_to_destroy.erase(i);
-                    i--;
-                }
-            }
-        }
     #else
         #error "Need vogl_gl_replayer::destroy_contexts this platform"
     #endif
@@ -1641,15 +1655,27 @@ bool vogl_gl_replayer::context_state::handle_context_made_current()
         vogl::vector<GLuint> dummy_handles(65536);
 
         GL_ENTRYPOINT(glGenTextures)(4000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenBuffers)(6000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenLists)(8000);
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenQueries)(10000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
 
         GL_ENTRYPOINT(glGenVertexArrays)(12000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenProgramsARB)(14000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
+
         GL_ENTRYPOINT(glGenFramebuffers)(16000, dummy_handles.get_ptr());
         GL_ENTRYPOINT(glGenSamplers)(18000, dummy_handles.get_ptr());
         GL_ENTRYPOINT(glGenRenderbuffers)(20000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
 
         for (uint32_t i = 0; i < 22000; i++)
             GL_ENTRYPOINT(glCreateProgram)();
@@ -3376,7 +3402,7 @@ void vogl_gl_replayer::dump_current_framebuffer()
 
             {
                 vogl_scoped_binding_state binding_saver;
-                binding_saver.save_textures();
+                binding_saver.save_textures(&(m_pCur_context_state->m_context_info));
 
                 GL_ENTRYPOINT(glBindTexture)(target, tex_handle);
                 check_gl_error();
@@ -4034,11 +4060,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
             const GLubyte *procName = trace_packet.get_param_client_memory<GLubyte>(0);
             vogl_trace_ptr_value trace_func_ptr_value = trace_packet.get_return_ptr_value();
 
-            #if (VOGL_PLATFORM_HAS_WGL)
-                void *pFunc = (void *)GL_ENTRYPOINT(wglGetProcAddress)((LPCSTR)procName);
-            #elif (VOGL_PLATFORM_HAS_X11)
-                void *pFunc = (void *)GL_ENTRYPOINT(glXGetProcAddress)(procName);
-            #elif (VOGL_PLATFORM_HAS_SDL)
+            #if (VOGL_PLATFORM_HAS_SDL)
                 void *pFunc = (void *)SDL_GL_GetProcAddress(reinterpret_cast<const char*>(procName));
             #else
                 #error "Need to implement GetProcAddress for this platform."
@@ -4364,20 +4386,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
-#elif VOGL_PLATFORM_HAS_GLX
-        case VOGL_ENTRYPOINT_glXGetCurrentContext:
-        {
-
-            GLReplayContextType replay_context = GL_ENTRYPOINT(glXGetCurrentContext)();
-            vogl_trace_ptr_value trace_context = trace_packet.get_return_ptr_value();
-
-            if ((replay_context != 0) != (trace_context != 0))
-            {
-                process_entrypoint_warning("glXGetCurrentContext() returned different results while replaying (0x%" PRIX64 ") vs tracing (0x%" PRIX64 ")!\n", (uint64_t)replay_context, (uint64_t)trace_context);
-            }
-
-            break;
-        }
 #else
 #   error "Need to handle *GetCurrentContext for this platform."
 #endif
@@ -4490,7 +4498,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
         // -----
         case VOGL_ENTRYPOINT_glXUseXFont:
         {
-            #if (VOGL_PLATFORM_HAS_GLX)
+            #if VOGL_PLATFORM_HAS_SDL
+                // TODO: Rely on GLX for now. Support SDL if possible.
+            #elif VOGL_PLATFORM_HAS_GLX
                 const key_value_map &key_value_map = trace_packet.get_key_value_map();
 
                 const dynamic_string *pFont_name = key_value_map.get_string_ptr("font_name");
@@ -4530,7 +4540,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     }
                 }
             #else
-                VOGL_ASSERT(!"impl - VOGL_ENTRYPOINT_glXUseXFont");
+                vogl_warning_printf("impl - VOGL_ENTRYPOINT_glXUseXFont\n");
             #endif
 
             break;
@@ -11501,7 +11511,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
 
     vogl_verbose_printf("Recreating %u display lists\n", disp_lists.get_display_list_map().size());
 
-    #if VOGL_PLATFORM_HAS_X11
+    #if VOGL_PLATFORM_HAS_SDL
+        // TODO: Implement this with SDL. Remove the X11 path.
+    #elif VOGL_PLATFORM_HAS_X11
         vogl_xfont_cache xfont_cache(m_pWindow->get_display());
     #endif
 
@@ -11526,7 +11538,9 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_display_lists(vogl_handle_r
         {
             if (disp_list.is_xfont())
             {
-                #if (VOGL_PLATFORM_HAS_X11)
+                #if VOGL_PLATFORM_HAS_SDL
+                    // TODO: Implement this with SDL. Remove the X11 path.
+                #elif (VOGL_PLATFORM_HAS_X11)
                     XFontStruct *pXFont = xfont_cache.get_or_create(disp_list.get_xfont_name().get_ptr());
                     if (!pXFont)
                     {
@@ -12201,6 +12215,7 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
         const uint8_vec &packet_buf = trim_packets.get_packet_buf(packet_index);
 
         const vogl_trace_gl_entrypoint_packet *pGL_packet = &trim_packets.get_packet<vogl_trace_gl_entrypoint_packet>(packet_index);
+
         if (pGL_packet->m_entrypoint_id != VOGL_ENTRYPOINT_glInternalTraceCommandRAD)
             continue;
 
@@ -12275,6 +12290,8 @@ bool vogl_gl_replayer::write_trim_file_internal(vogl_trace_packet_array &trim_pa
             // backtrace_map_addrs.json
             trace_writer.get_trace_archive()->copy_file(trace_reader.get_archive_blob_manager(), VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME, VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME);
         }
+
+        vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper, true);
 
         vogl_unique_ptr<vogl_gl_state_snapshot> pTrim_snapshot(snapshot_state(&trim_packets, optimize_snapshot));
 

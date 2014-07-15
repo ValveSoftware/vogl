@@ -72,9 +72,10 @@ enum eConsoleMessageType
     cMsgMask    = 0xff,
 
     // Message flags
-    cMsgFlagNoLog  = 0x100, // Don't write to log file (progress messages, etc.)
-    cMsgFlagHeader = 0x200, // Use header color
-    cMsgFlagOpenGL = 0x300,
+    cMsgFlagNoLog   = 0x100, // Don't write to log file (progress messages, etc.)
+    cMsgFlagHeader  = 0x200, // Use header color
+    cMsgFlagOpenGL  = 0x400,
+    cMsgFlagLogOnly = 0x800,
 };
 
 typedef bool (*console_output_func)(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData);
@@ -124,7 +125,8 @@ public:
     {
         return m_caller_info_always;
     }
-    
+   
+    static bool set_log_stream_filename(const char *filename, bool logfile_per_pid);
     static void set_log_stream(data_stream *pStream)
     {
         m_pLog_stream = pStream;

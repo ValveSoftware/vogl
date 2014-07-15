@@ -28,7 +28,7 @@ private slots:
 
     void on_findTraceFileButton_clicked();
 
-    void on_steamLauncherCheckBox_clicked(bool checked);
+    void on_vogltraceCheckBox_clicked(bool checked);
 
 private:
     Ui::VoglEditor_QLaunchTracerDialog *ui;

@@ -3,13 +3,21 @@ cmake_minimum_required(VERSION 2.8.9)
 
 include("${SRC_DIR}/build_options.cmake")
 
-if (NOT DEFINED ENV{QTDIR})
-set(ENV{QTDIR} /usr/local/Trolltech/Qt-4.8.5)
-endif()
-find_package(Qt4 REQUIRED)
+set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SRC_DIR}/cmake/Modules/")
 
+# we want cmake to link the Qt libs into the binary
+# This policy was introduced in 2.8.11, so on newer versions, use the OLD policy to maintain consistent behavior
+if (${CMAKE_VERSION} VERSION_GREATER 2.8.11)
+   cmake_policy(SET CMP0020 OLD)
+endif()
+
+find_package(Qt5 COMPONENTS Widgets Gui Core REQUIRED)
 find_package(Threads REQUIRED)
 find_package(X11 REQUIRED)
+
+require_pthreads()
+request_backtrace()
+require_sdl2()
 
 include_directories(
     ${SRC_DIR}
@@ -19,25 +27,10 @@ include_directories(
     ${SRC_DIR}/extlib/loki/include/loki
     ${SRC_DIR}/libtelemetry
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${QT_INCLUDE_DIR}
-    ${QT_QTCORE_INCLUDE_DIR}
-    ${QT_QTGUI_INCLUDE_DIR}
+    ${Qt5Widgets_INCLUDE_DIRS}
+    ${SDL2_INCLUDE}
+    ${LibBackTrace_INCLUDE}
 )
-
-#include(${QT_USE_FILE})
-
-## uncomment these to enable additional Qt modules
-# set(QT_USE_QTNETWORK true)
-# set(QT_USE_QTOPENGL true)
-# set(QT_USE_QTSQL true)
-# set(QT_USE_QTXML true)
-# set(QT_USE_QTSVG true)
-# set(QT_USE_QTTEST true)
-# set(QT_USE_QTDBUS true)
-# set(QT_USE_QTSCRIPT true)
-# set(QT_USE_QTWEBKIT true)
-# set(QT_USE_QTXMLPATTERNS true)
-# set(QT_USE_PHONON true)
 
 set(SRC_LIST
     main.cpp
@@ -52,6 +45,7 @@ set(SRC_LIST
     vogleditor_qprogramarbexplorer.cpp
     vogleditor_qprogramexplorer.cpp
     vogleditor_qshaderexplorer.cpp
+    vogleditor_qsnapshotoverlaywidget.cpp
     vogleditor_qstatetreemodel.cpp
     vogleditor_qtextureexplorer.cpp
     vogleditor_qtextureviewer.cpp
@@ -96,6 +90,7 @@ set(UI_HEADER_LIST
     vogleditor_qlaunchtracerdialog.h
     vogleditor_qprogramarbexplorer.h
     vogleditor_qprogramexplorer.h
+    vogleditor_qsnapshotoverlaywidget.h
     vogleditor_qshaderexplorer.h
     vogleditor_qstatetreemodel.h
     vogleditor_qtextureviewer.h
@@ -158,34 +153,61 @@ set(FORM_LIST
 set(RESOURCE_LIST
    )
 
-QT4_WRAP_CPP(QT_GEN_HEADER_MOC_LIST ${UI_HEADER_LIST})
-QT4_WRAP_UI(QT_GEN_FORM_HEADER_LIST ${FORM_LIST})
-QT4_ADD_RESOURCES(QT_GEN_RESOURCE_RCC_LIST ${RESOURCE_LIST})
-
-#add_definitions(${QT_DEFINITIONS})
+QT5_WRAP_CPP(QT_GEN_HEADER_MOC_LIST ${UI_HEADER_LIST})
+QT5_WRAP_UI(QT_GEN_FORM_HEADER_LIST ${FORM_LIST})
+QT5_ADD_RESOURCES(QT_GEN_RESOURCE_RCC_LIST ${RESOURCE_LIST})
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    add_compiler_flag("-Wno-global-constructors")
+    add_compiler_flag("-Wno-global-constructors -Wno-used-but-marked-unused")
+endif()
+
+# Platform specific compile flags.
+if (NOT MSVC)
+    add_compiler_flag("-fPIC")
 endif()
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADER_LIST}
-        ${QT_GEN_HEADER_MOC_LIST}
-        ${QT_GEN_FORM_HEADER_LIST}
-        ${QT_GEN_RESOURCE_RCC_LIST}
+    ${QT_GEN_HEADER_MOC_LIST}
+    ${QT_GEN_FORM_HEADER_LIST}
+    ${QT_GEN_RESOURCE_RCC_LIST}
    )
 
-add_dependencies(${PROJECT_NAME} voglgen_make_inc)
+add_dependencies(${PROJECT_NAME} voglgen_make_inc SDL)
 
 target_link_libraries(${PROJECT_NAME}
-	${QT_QTMAIN_LIBRARY} 
-	${QT_QTCORE_LIBRARY} 
-	${QT_QTGUI_LIBRARY} 
-	${TELEMETRY_LIBRARY}
-	${X11_X11_LIB}
-	backtracevogl
-	voglcommon
+    Qt5::Widgets
+    Qt5::Core
+    ${TELEMETRY_LIBRARY}
+    ${LibBackTrace_LIBRARY}
+    voglcommon
     voglcore
     ${CMAKE_DL_LIBS}
-   )
+    ${SDL2_LIBRARY}
+    ${X11_X11_LIB}
+)
+
+if (MSVC)
+  # copy the debug and release dlls for Qt5Widgets, Qt5Core, and Qt5Gui
+  set (COPY_DEST ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR})
+
+  # There are also several other files that need to be copied or created
+  FILE(WRITE ${CMAKE_CURRENT_LIST_DIR}/qt.conf "[Paths]\nPlugins=.")
+  add_custom_target(copy_deps_qt5 ALL
+                    ${CMAKE_COMMAND} -E make_directory ${COPY_DEST}/platforms
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_LIST_DIR}/qt.conf ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Widgets.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Widgetsd.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Core.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Cored.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Gui.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Guid.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icudt52.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icuin52.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icuuc52.dll ${COPY_DEST}
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_PLUGINS}/platforms/qwindows.dll ${COPY_DEST}/platforms
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_PLUGINS}/platforms/qwindowsd.dll  ${COPY_DEST}/platforms
+					COMMENT "Copying vogleditor Qt5 dependedencies to ${COPY_DEST}"
+					VERBATIM)
+endif()
 
 build_options_finalize()

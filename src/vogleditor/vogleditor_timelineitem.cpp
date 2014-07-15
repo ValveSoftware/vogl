@@ -27,7 +27,7 @@
 #include "vogleditor_timelineitem.h"
 
 vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timelineItem* parent)
-   :  m_beginTime(time),
+    :  m_beginTime(time),
       m_endTime(time),
       m_duration(0),
       m_isSpan(false),
@@ -39,7 +39,7 @@ vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timeline
 }
 
 vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem* parent)
-   :  m_beginTime(begin),
+    :  m_beginTime(begin),
       m_endTime(end),
       m_duration(end - begin),
       m_isSpan(true),
@@ -78,65 +78,65 @@ void vogleditor_timelineItem::appendChild(vogleditor_timelineItem* child)
 
 vogleditor_timelineItem* vogleditor_timelineItem::child(int row)
 {
-   return m_childItems[row];
+    return m_childItems[row];
 }
 
 int vogleditor_timelineItem::childCount() const
 {
-   return m_childItems.size();
+    return m_childItems.size();
 }
 
 vogleditor_timelineItem* vogleditor_timelineItem::parent()
 {
-   return m_parentItem;
+    return m_parentItem;
 }
 
 QBrush* vogleditor_timelineItem::getBrush()
 {
-   // if a local brush isn't set, use the parent's brush as a default
-   if (m_brush == NULL)
-   {
-      if (parent() != NULL)
-      {
-         return parent()->getBrush();
-      }
-      else
-      {
-         return NULL;
-      }
-   }
+    // if a local brush isn't set, use the parent's brush as a default
+    if (m_brush == NULL)
+    {
+        if (parent() != NULL)
+        {
+            return parent()->getBrush();
+        }
+        else
+        {
+            return NULL;
+        }
+    }
 
-   return m_brush;
+    return m_brush;
 }
 
 void vogleditor_timelineItem::setBrush(QBrush* brush)
 {
-   m_brush = brush;
+    m_brush = brush;
 }
 
 float vogleditor_timelineItem::getBeginTime() const
 {
-   return m_beginTime;
+    return m_beginTime;
 }
 
 float vogleditor_timelineItem::getEndTime() const
 {
-   return m_endTime;
+    return m_endTime;
 }
 
 float vogleditor_timelineItem::getDuration() const
 {
-   return m_duration;
+    return m_duration;
 }
 
 bool vogleditor_timelineItem::isSpan() const
 {
-   return m_isSpan;
+    return m_isSpan;
 }
 
 bool vogleditor_timelineItem::isMarker() const
 {
-   return !m_isSpan;
+    return !m_isSpan;
 }
 
 float vogleditor_timelineItem::getMaxChildDuration() const

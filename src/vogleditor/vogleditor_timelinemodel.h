@@ -35,13 +35,13 @@ class vogleditor_timelineItem;
 class vogleditor_timelineModel
 {
 public:
-   vogleditor_timelineModel();
-   ~vogleditor_timelineModel();
+    vogleditor_timelineModel();
+    ~vogleditor_timelineModel();
 
-   vogleditor_timelineItem* get_root_item();
+    vogleditor_timelineItem* get_root_item();
 
 protected:
-   vogleditor_timelineItem* m_rootItem;
+    vogleditor_timelineItem* m_rootItem;
 
 signals:
 

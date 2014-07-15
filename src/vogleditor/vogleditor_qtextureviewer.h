@@ -65,120 +65,120 @@ typedef enum ChannelSelectionOptions
 
 class QTextureViewer : public QWidget
 {
-   Q_OBJECT
+    Q_OBJECT
 public:
-   explicit QTextureViewer(QWidget *parent = 0);
-   void paint(QPainter *painter, QPaintEvent *event);
+    explicit QTextureViewer(QWidget *parent = 0);
+    void paint(QPainter *painter, QPaintEvent *event);
 
-   void setTexture(const vogl::ktx_texture* pTexture, uint baseMipLevel, uint maxMipLevel);
+    void setTexture(const vogl::ktx_texture* pTexture, uint baseMipLevel, uint maxMipLevel);
 
-   void setChannelSelectionOption(ChannelSelectionOption channels)
-   {
-       if (m_channelSelection != channels)
-       {
-           delete_pixmaps();
-           m_channelSelection = channels;
-           repaint();
-       }
-   }
+    void setChannelSelectionOption(ChannelSelectionOption channels)
+    {
+        if (m_channelSelection != channels)
+        {
+            delete_pixmaps();
+            m_channelSelection = channels;
+            repaint();
+        }
+    }
 
-   void clear()
-   {
-      m_draw_enabled = false;
-      m_pKtxTexture = NULL;
-      m_mipmappedTexture.clear();
-   }
+    void clear()
+    {
+        m_draw_enabled = false;
+        m_pKtxTexture = NULL;
+        m_mipmappedTexture.clear();
+    }
 
-   inline QColor getBackgroundColor() const { return m_background.color(); }
+    inline QColor getBackgroundColor() const { return m_background.color(); }
 
-   inline void setBackgroundColor(QBrush color)
-   {
-      m_draw_enabled = true;
-      m_background = color;
-      delete_pixmaps();
-      repaint();
-   }
+    inline void setBackgroundColor(QBrush color)
+    {
+        m_draw_enabled = true;
+        m_background = color;
+        delete_pixmaps();
+        repaint();
+    }
 
-   double getZoomFactor() const { return m_zoomFactor; }
-   void setZoomFactor(double zoomFactor)
-   {
-       if (m_zoomFactor != zoomFactor)
-       {
-           m_zoomFactor = zoomFactor;
-           repaint();
-       }
-   }
+    double getZoomFactor() const { return m_zoomFactor; }
+    void setZoomFactor(double zoomFactor)
+    {
+        if (m_zoomFactor != zoomFactor)
+        {
+            m_zoomFactor = zoomFactor;
+            repaint();
+        }
+    }
 
-   bool getInverted() const { return m_bInvert; }
-   void setInverted(bool bInvert)
-   {
-       if (m_bInvert != bInvert)
-       {
-           m_bInvert = bInvert;
-           repaint();
-       }
-   }
+    bool getInverted() const { return m_bInvert; }
+    void setInverted(bool bInvert)
+    {
+        if (m_bInvert != bInvert)
+        {
+            m_bInvert = bInvert;
+            repaint();
+        }
+    }
 
-   uint get_preferred_height() const
-   {
-       uint height = 0;
-       if (m_pKtxTexture != NULL)
-       {
-           height += (m_pKtxTexture->get_height() * m_zoomFactor);
+    uint get_preferred_height() const
+    {
+        uint height = 0;
+        if (m_pKtxTexture != NULL)
+        {
+            height += (m_pKtxTexture->get_height() * m_zoomFactor);
 
-           // is it a cubemap?
-           if (m_pKtxTexture->get_num_faces() == 6)
-           {
-               height *= 3;
-           }
-       }
-       return height;
-   }
+            // is it a cubemap?
+            if (m_pKtxTexture->get_num_faces() == 6)
+            {
+                height *= 3;
+            }
+        }
+        return height;
+    }
 
-   void setArrayElement(uint arrayElementIndex)
-   {
-       m_arrayIndex = arrayElementIndex;
-       delete_pixmaps();
-       repaint();
-   }
+    void setArrayElement(uint arrayElementIndex)
+    {
+        m_arrayIndex = arrayElementIndex;
+        delete_pixmaps();
+        repaint();
+    }
 
-   void setSliceIndex(uint sliceIndex)
-   {
-       m_sliceIndex = sliceIndex;
-       delete_pixmaps();
-       repaint();
-   }
+    void setSliceIndex(uint sliceIndex)
+    {
+        m_sliceIndex = sliceIndex;
+        delete_pixmaps();
+        repaint();
+    }
 
 private:
-   bool m_draw_enabled;
-   QBrush m_background;
-   QPen m_outlinePen;
-   ChannelSelectionOption m_channelSelection;
-   double m_zoomFactor;
-   bool m_bInvert;
+    bool m_draw_enabled;
+    QBrush m_background;
+    QPen m_outlinePen;
+    ChannelSelectionOption m_channelSelection;
+    double m_zoomFactor;
+    bool m_bInvert;
 
-   vogl::map<uint,QPixmap> m_pixmaps;
-   vogl::map<uint, vogl::color_quad_u8*> m_pixmapData;
+    vogl::map<uint,QPixmap> m_pixmaps;
+    vogl::map<uint, vogl::color_quad_u8*> m_pixmapData;
 
-   const vogl::ktx_texture* m_pKtxTexture;
-   vogl::mipmapped_texture m_mipmappedTexture;
-   uint m_baseMipLevel;
-   uint m_maxMipLevel;
-   uint m_arrayIndex;
-   uint m_sliceIndex;
+    const vogl::ktx_texture* m_pKtxTexture;
+    vogl::mipmapped_texture m_mipmappedTexture;
+    uint m_baseMipLevel;
+    uint m_maxMipLevel;
+    uint m_arrayIndex;
+    uint m_sliceIndex;
 
-   void delete_pixmaps()
-   {
-      m_pixmaps.clear();
-      for (vogl::map<uint, vogl::color_quad_u8*>::iterator iter = m_pixmapData.begin(); iter != m_pixmapData.end(); iter++)
-      {
-          delete [] iter->second;
-          iter->second = NULL;
-      }
-      m_pixmapData.clear();
-   }
+    void delete_pixmaps()
+    {
+        m_pixmaps.clear();
+        for (vogl::map<uint, vogl::color_quad_u8*>::iterator iter = m_pixmapData.begin(); iter != m_pixmapData.end(); iter++)
+        {
+            delete [] iter->second;
+            iter->second = NULL;
+        }
+        m_pixmapData.clear();
+    }
 
-   void adjustChannels(ChannelSelectionOption selection, unsigned char& r, unsigned char& g, unsigned char& b, unsigned char& a);
+    void adjustChannels(ChannelSelectionOption selection, unsigned char& r, unsigned char& g, unsigned char& b, unsigned char& a);
 
 protected:
     void paintEvent(QPaintEvent *event);

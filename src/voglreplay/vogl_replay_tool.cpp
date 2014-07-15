@@ -29,6 +29,11 @@
 #include "vogl_colorized_console.h"
 #include "libtelemetry.h"
 
+#if VOGL_PLATFORM_HAS_SDL
+#define SDL_MAIN_HANDLED 1
+#include "SDL.h"
+#endif
+
 bool tool_dump_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_parse_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_info_mode(vogl::vector<command_line_param_desc> *desc);
@@ -39,18 +44,15 @@ bool tool_compare_hash_files_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_play_mode(vogl::vector<command_line_param_desc> *desc);
 bool tool_symbols_mode(vogl::vector<command_line_param_desc> *desc);
+bool tool_trace_mode(vogl::vector<command_line_param_desc> *desc);
 
 //----------------------------------------------------------------------------------------------------------------------
 // globals
 //----------------------------------------------------------------------------------------------------------------------
-static void *g_actual_libgl_module_handle;
-static cfile_stream *g_vogl_pLog_stream;
-
 static command_line_param_desc g_command_line_param_descs_common[] =
 {
     // common command options
     { "logfile", 1, false, "Create logfile" },
-    { "logfile_append", 1, false, "Append output to logfile" },
     { "pause", 0, false, "Wait for a key at startup (so a debugger can be attached)" },
 
     { "quiet", 0, false, "Disable warning, verbose, and debug output" },
@@ -96,6 +98,7 @@ static const command_t g_options[] =
 #define XDEF(_x, _desc, _args) { #_x, _desc, tool_ ## _x ## _mode, _args }
     XDEF(play, "Play trace file", "<input JSON/blob trace filename>"),
     XDEF(replay, "Replay trace file with extended options for trimming, validation, interactive mode, and snapshots", "<input JSON/blob trace filename>"),
+    XDEF(trace, "Generate trace file", "<Steam AppID / local game filename>"),
     XDEF(info, "Output statistics about a trace file", "<input JSON/blob trace filename>"),
     XDEF(find, "Find all calls with parameters containing a specific value", "<input JSON/blob trace filename>"),
     XDEF(compare_hash_files, "Comparing hash/sum files", "<input hash filename1> <input hash filename2>"),
@@ -122,29 +125,11 @@ static bool init_logfile()
         vogl_message_printf("Deleted backbuffer hash file \"%s\"\n", backbuffer_hash_file.get_ptr());
     }
 
-    dynamic_string log_file(g_command_line_params().get_value_as_string_or_empty("logfile"));
-    dynamic_string log_file_append(g_command_line_params().get_value_as_string_or_empty("logfile_append"));
-    if (log_file.is_empty() && log_file_append.is_empty())
+    dynamic_string filename(g_command_line_params().get_value_as_string_or_empty("logfile"));
+    if (filename.is_empty())
         return true;
 
-    dynamic_string filename(log_file_append.is_empty() ? log_file : log_file_append);
-
-    // This purposely leaks, don't care
-    g_vogl_pLog_stream = vogl_new(cfile_stream);
-
-    if (!g_vogl_pLog_stream->open(filename.get_ptr(), cDataStreamWritable, !log_file_append.is_empty()))
-    {
-        vogl_error_printf("Failed opening log file \"%s\"\n", filename.get_ptr());
-        return false;
-    }
-    else
-    {
-        vogl_message_printf("Opened log file \"%s\"\n", filename.get_ptr());
-
-        console::set_log_stream(g_vogl_pLog_stream);
-    }
-
-    return true;
+    return console::set_log_stream_filename(filename.c_str(), false);
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -154,7 +139,7 @@ static void tool_print_title()
 {
     VOGL_FUNC_TRACER
 
-    printf("voglreplay ");
+    printf("vogl ");
     if (sizeof(void *) > 4)
         vogl_printf("64-bit ");
     else
@@ -174,21 +159,23 @@ static void vogl_replay_deinit()
 {
     VOGL_FUNC_TRACER
 
+    SDL_Quit();
+
     colorized_console::deinit();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
 // tool_print_help
 //----------------------------------------------------------------------------------------------------------------------
-VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_line_param_desc *descs, size_t descs_count)
+VOGL_NORETURN static void tool_print_help(const char *exename, const command_t *cmd, const command_line_param_desc *descs, size_t descs_count)
 {
     VOGL_FUNC_TRACER
 
     if (cmd == NULL)
     {
-        vogl_printf("\nUsage: voglreplay [--help] <command> [<args>]\n\n");
+        vogl_printf("\nUsage: %s [--help] <command> [<args>]\n\n", exename);
 
-        printf("The voglreplay commands are:\n");
+        printf("The vogl commands are:\n");
         for (size_t i = 0; i < g_options_count; i++)
         {
             vogl_message_printf("  %s:", g_options[i].name);
@@ -199,7 +186,7 @@ VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_li
     else
     {
         vogl_printf("\nUsage: ");
-        vogl_message_printf("voglreplay %s %s", cmd->name, cmd->filename_args);
+        vogl_message_printf("%s %s %s", exename, cmd->name, cmd->filename_args);
         vogl_printf(" [<args>]\n\n");
 
         if (descs_count)
@@ -216,6 +203,15 @@ VOGL_NORETURN static void tool_print_help(const command_t *cmd, const command_li
             vogl_printf("\nInteractive replay mode keys:\n");
             dump_command_line_info(VOGL_ARRAY_SIZE(g_command_line_interactive_descs), g_command_line_interactive_descs, " ", true);
         }
+        else if (!vogl_strcmp(cmd->name, "trace"))
+        {
+            vogl_printf("\nTrace examples:\n");
+            vogl_printf("  ./vogl64 trace 440\n");
+            vogl_printf("  ./vogl64 trace ./glxspheres64\n");
+            vogl_printf("  ./vogl64 trace ./glxspheres32 -- -in\n");
+            vogl_printf("  ./vogl64 trace --vogl_verbose --vogl_backtrace_no_calls 710 -- -dev\n");
+            vogl_printf("  ./vogl32 trace ./glxspheres64 --xterm -- -i\n");
+        }
     }
 
     vogl_replay_deinit();
@@ -229,22 +225,34 @@ static const command_t *init_command_line_params(int argc, char *argv[])
 {
     VOGL_FUNC_TRACER
 
+    // Skip everything after "--" or "--args" - let others pass those to processes they launch.
+    const dynamic_string argsdelim0 = "--";
+    const dynamic_string argsdelim1 = "--args";
+    for (int i = 0; i < argc; i++)
+    {
+        if (argv[i] == argsdelim0 || argv[i] == argsdelim1)
+        {
+            argc = i;
+            break;
+        }
+    }
+            
     dynamic_string_array args = get_command_line_params(argc, argv);
     if (args.size() <= 1)
-        tool_print_help(NULL, NULL, 0);
+        tool_print_help(argv[0], NULL, NULL, 0);
 
     if ((args[1] == "help") || (args[1] == "--help") || (args[1] == "-h") || (args[1] == "-?"))
     {
         if (args.size() > 2)
         {
-            // Transform "voglreplay --help command" to "voglreplay command --help".
+            // Transform "vogl --help command" to "vogl command --help".
             args[1] = args[2];
             args[2] = "--help";
         }
         else
         {
             // Spew command help and exit.
-            tool_print_help(NULL, NULL, 0);
+            tool_print_help(argv[0], NULL, NULL, 0);
         }
     }
 
@@ -262,8 +270,8 @@ static const command_t *init_command_line_params(int argc, char *argv[])
     if (!cmd)
     {
         // Command not found: spew command help and exit.
-        vogl_error_printf("Unknown voglreplay command '%s'.\n", args[1].c_str());
-        tool_print_help(NULL, NULL, 0);
+        vogl_error_printf("Unknown vogl command '%s'.\n", args[1].c_str());
+        tool_print_help(argv[0], NULL, NULL, 0);
     }
 
     vogl::vector<command_line_param_desc> cmdline_desc;
@@ -274,7 +282,7 @@ static const command_t *init_command_line_params(int argc, char *argv[])
     for (size_t i = 0; i < args.size(); i++)
     {
         if ((args[i] == "help") || (args[i] == "--help") || (args[i] == "-h") || (args[i] == "-?"))
-            tool_print_help(cmd, cmdline_desc.get_ptr(), cmdline_desc.size());
+            tool_print_help(argv[0], cmd, cmdline_desc.get_ptr(), cmdline_desc.size());
     }
 
     // If we're doing a playback, add the --benchmark flag by default.
@@ -302,64 +310,6 @@ static const command_t *init_command_line_params(int argc, char *argv[])
         return NULL;
 
     return cmd;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// load_gl
-//----------------------------------------------------------------------------------------------------------------------
-static bool load_gl()
-{
-    VOGL_FUNC_TRACER
-
-    g_actual_libgl_module_handle = plat_load_system_gl(PLAT_RTLD_LAZY);
-    
-    if (!g_actual_libgl_module_handle)
-    {
-        vogl_error_printf("Failed loading %s!\n", plat_get_system_gl_module_name());
-        return false;
-    }
-
-#if (VOGL_PLATFORM_HAS_GLX)
-    GL_ENTRYPOINT(glXGetProcAddress) = reinterpret_cast<glXGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "glXGetProcAddress"));
-    if (!GL_ENTRYPOINT(glXGetProcAddress))
-    {
-        vogl_error_printf("Failed getting address of glXGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
-        return false;
-    }
-#elif (VOGL_PLATFORM_HAS_WGL)
-    GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
-    if (!GL_ENTRYPOINT(wglGetProcAddress))
-    {
-        vogl_error_printf("Failed getting address of wglGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
-        return false;
-    }
-#else
-    #error "Implement load_gl for this platform."
-#endif
-
-    return true;
-}
-
-//----------------------------------------------------------------------------------------------------------------------
-// vogl_get_proc_address_helper
-//----------------------------------------------------------------------------------------------------------------------
-static vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
-{
-    VOGL_FUNC_TRACER
-
-    vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, pName)) : NULL;
-
-#if (VOGL_PLATFORM_HAS_GLX)
-    if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
-        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
-#elif (VOGL_PLATFORM_HAS_WGL)
-    if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
-        pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
-#else
-    #error "Implement vogl_get_proc_address_helper this platform."
-#endif
-
-    return pFunc;
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -429,6 +379,9 @@ static const command_t *vogl_replay_init(int argc, char *argv[])
             vogl_set_direct_gl_func_epilog(vogl_direct_gl_func_epilog, NULL);
         }
 
+        if(SDL_Init(SDL_INIT_VIDEO) < 0)
+            return false;
+
         if (!load_gl())
             return NULL;
 
@@ -441,23 +394,6 @@ static const command_t *vogl_replay_init(int argc, char *argv[])
 
     return cmd;
 }
-
-
-#if VOGL_PLATFORM_HAS_X11
-
-//----------------------------------------------------------------------------------------------------------------------
-// xerror_handler
-//----------------------------------------------------------------------------------------------------------------------
-static int xerror_handler(Display *dsp, XErrorEvent *error)
-{
-    char error_string[256];
-    XGetErrorText(dsp, error->error_code, error_string, sizeof(error_string));
-
-    vogl_error_printf("voglreplay: Fatal X Windows Error: %s\n", error_string);
-    abort();
-}
-
-#endif // VOGL_PLATFORM_HAS_X11
 
 //----------------------------------------------------------------------------------------------------------------------
 // main
@@ -475,10 +411,6 @@ int main(int argc, char *argv[])
 
     // Initialize vogl_core.
     vogl_core_init();
-
-#if VOGL_PLATFORM_HAS_X11
-    XSetErrorHandler(xerror_handler);
-#endif
 
     const command_t *cmd = vogl_replay_init(argc, argv);
     if (!cmd)

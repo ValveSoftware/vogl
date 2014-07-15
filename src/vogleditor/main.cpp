@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
     if (argc == 2)
     {
-        w.open_trace_file(argv[1]);
+        w.pre_open_trace_file(argv[1]);
     }
 
     return a.exec();

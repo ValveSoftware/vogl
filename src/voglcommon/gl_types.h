@@ -43,7 +43,7 @@ typedef ptrdiff_t GLsizeiptrARB;
 typedef ptrdiff_t GLintptrARB;
 
 typedef char GLcharARB;
-typedef unsigned char GLchar;
+typedef char GLchar;
 
 typedef unsigned int GLhandleARB;
 
@@ -72,7 +72,7 @@ typedef uint64_t GLuint64;
 typedef int64_t GLint64EXT;
 typedef uint64_t GLuint64EXT;
 
-typedef void *GLsync;
+typedef struct __GLsync *GLsync;
 
 typedef int GLfixed;
 struct _cl_context;

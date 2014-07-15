@@ -28,9 +28,12 @@
 #include "vogl_core.h"
 #include "vogl_console.h"
 #include "vogl_data_stream.h"
+#include "vogl_cfile_stream.h"
 #include "vogl_threading.h"
 #include "vogl_command_line_params.h"
 #include "vogl_strutils.h"
+#include "vogl_file_utils.h"
+#include "vogl_port.h"
 
 #ifdef PLATFORM_WINDOWS
     #include <tchar.h>
@@ -41,7 +44,9 @@
     #include <termios.h>
     #include <unistd.h>
     #include <sys/select.h>
+#if defined _XOPEN_STREAMS && _XOPEN_STREAMS != -1
     #include <stropts.h>
+#endif
     #include <sys/ioctl.h>
 #endif
 
@@ -170,29 +175,37 @@ void console::vprintf(const char *caller_info, uint32_t msgtype, const char *p, 
     vogl::vogl_vsprintf_s(pDst, buf_left, p, args);
 
     bool handled = false;
+    bool do_logfile = m_pLog_stream && !(msgtype & cMsgFlagNoLog) && (type <= m_output_level);
 
-    if (m_num_output_funcs)
+    if (do_logfile && (msgtype & cMsgFlagLogOnly))
     {
-        console_func *funcs = get_output_funcs();
-
-        for (uint32_t i = 0; i < m_num_output_funcs; i++)
-        {
-            if (funcs[i].m_func(type, (msgtype & ~cMsgMask), buf, funcs[i].m_pData))
-                handled = true;
-        }
+        // Don't spew to screen - logfile only for this message.
     }
-
-    if (!handled && (type <= m_output_level))
+    else
     {
-        FILE *pFile = (type == cMsgError) ? stderr : stdout;
+        if (m_num_output_funcs)
+        {
+            console_func *funcs = get_output_funcs();
 
-        fputs(buf, pFile);
+            for (uint32_t i = 0; i < m_num_output_funcs; i++)
+            {
+                if (funcs[i].m_func(type, (msgtype & ~cMsgMask), buf, funcs[i].m_pData))
+                    handled = true;
+            }
+        }
+
+        if (!handled && (type <= m_output_level))
+        {
+            FILE *pFile = (type == cMsgError) ? stderr : stdout;
+
+            fputs(buf, pFile);
+        }
     }
 
     uint32_t n = static_cast<uint32_t>(strlen(buf));
     m_at_beginning_of_line = n && (buf[n - 1] == '\n');
 
-    if (!(msgtype & cMsgFlagNoLog) && m_pLog_stream)
+    if (do_logfile)
     {
         // Yes this is bad.
         dynamic_string tmp_buf(buf);
@@ -212,6 +225,51 @@ void console::printf(const char *caller_info, uint32_t type, const char *p, ...)
     va_start(args, p);
     vprintf(caller_info, type, p, args);
     va_end(args);
+}
+
+bool console::set_log_stream_filename(const char *filename, bool logfile_per_pid)
+{
+    static cfile_stream *s_vogl_pLog_stream = NULL;
+
+    vogl::dynamic_string filename_pid;
+    if (logfile_per_pid)
+    {
+        pid_t pid = plat_getpid();
+        dynamic_string drive, dir, fname, ext;
+
+        file_utils::split_path(filename, &drive, &dir, &fname, &ext);
+        dynamic_string new_fname(cVarArg, "%s_%" PRIu64, fname.get_ptr(), (uint64_t)pid);
+        file_utils::combine_path_and_extension(filename_pid, &drive, &dir, &new_fname, &ext);
+
+        filename = filename_pid.c_str();
+    }
+
+    if (s_vogl_pLog_stream)
+    {
+        vogl_delete(s_vogl_pLog_stream);
+        s_vogl_pLog_stream = NULL;
+
+        console::set_log_stream(NULL);
+    }
+
+    // This purposely leaks, don't care
+    s_vogl_pLog_stream = vogl_new(cfile_stream);
+
+    if (!s_vogl_pLog_stream->open(filename, cDataStreamWritable, true))
+    {
+        vogl_error_printf("Failed opening log file \"%s\"\n", filename);
+
+        vogl_delete(s_vogl_pLog_stream);
+        s_vogl_pLog_stream = NULL;
+        return false;
+    }
+
+    console::set_log_stream(s_vogl_pLog_stream);
+    
+    //$ TODO: Add a time here, etc?
+    vogl_message_printf("Opened log file \"%s\"\n", filename);
+
+    return true;
 }
 
 void console::add_console_output_func(console_output_func pFunc, void *pData)

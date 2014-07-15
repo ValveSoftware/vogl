@@ -293,7 +293,8 @@ namespace vogl
         return true;
     }
 
-    bool command_line_params::parse(const dynamic_string_array &params, uint32_t total_param_descs, const command_line_param_desc *pParam_desc, const command_line_params::parse_config &config)
+    bool command_line_params::parse(const dynamic_string_array &params, uint32_t total_param_descs,
+                                    const command_line_param_desc *pParam_desc, const command_line_params::parse_config &config)
     {
         m_params = params;
 

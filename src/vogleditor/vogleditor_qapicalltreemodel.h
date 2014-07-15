@@ -29,60 +29,61 @@
 #include <QAbstractItemModel>
 #include <QLinkedList>
 
-#include "vogl_common.h"
-
 class QVariant;
 class vogleditor_apiCallTreeItem;
+class vogl_ctypes;
 class vogl_trace_file_reader;
 struct vogl_trace_gl_entrypoint_packet;
 
 class vogleditor_QApiCallTreeModel : public QAbstractItemModel
 {
-   Q_OBJECT
+    Q_OBJECT
 
 public:
-   vogleditor_QApiCallTreeModel(QObject* parent = 0);
-   ~vogleditor_QApiCallTreeModel();
+    vogleditor_QApiCallTreeModel(QObject* parent = 0);
+    ~vogleditor_QApiCallTreeModel();
 
-   bool init(vogl_trace_file_reader* pTrace_reader);
+    bool init(vogl_trace_file_reader* pTrace_reader);
 
-   virtual QVariant data(const QModelIndex &index, int role) const;
-   virtual Qt::ItemFlags flags(const QModelIndex &index) const;
-   virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-   virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
-   virtual QModelIndex parent(const QModelIndex &index) const;
-   virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
-   virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
+    virtual QVariant data(const QModelIndex &index, int role) const;
+    virtual Qt::ItemFlags flags(const QModelIndex &index) const;
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    virtual QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+    virtual QModelIndex parent(const QModelIndex &index) const;
+    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
-   QModelIndex indexOf(const vogleditor_apiCallTreeItem* pItem) const;
+    QModelIndex indexOf(const vogleditor_apiCallTreeItem* pItem) const;
 
-   vogleditor_apiCallTreeItem* root() const
-   {
-      return m_rootItem;
-   }
+    vogleditor_apiCallTreeItem* root() const
+    {
+        return m_rootItem;
+    }
 
-   void set_highlight_search_string(const QString searchString);
-   QModelIndex find_prev_search_result(vogleditor_apiCallTreeItem* start, const QString searchText);
-   QModelIndex find_next_search_result(vogleditor_apiCallTreeItem* start, const QString searchText);
+    void set_highlight_search_string(const QString searchString);
+    QModelIndex find_prev_search_result(vogleditor_apiCallTreeItem* start, const QString searchText);
+    QModelIndex find_next_search_result(vogleditor_apiCallTreeItem* start, const QString searchText);
 
-   vogleditor_apiCallTreeItem* find_prev_snapshot(vogleditor_apiCallTreeItem* start);
-   vogleditor_apiCallTreeItem* find_next_snapshot(vogleditor_apiCallTreeItem* start);
+    vogleditor_apiCallTreeItem* find_prev_snapshot(vogleditor_apiCallTreeItem* start);
+    vogleditor_apiCallTreeItem* find_next_snapshot(vogleditor_apiCallTreeItem* start);
 
-   vogleditor_apiCallTreeItem* find_prev_drawcall(vogleditor_apiCallTreeItem* start);
-   vogleditor_apiCallTreeItem* find_next_drawcall(vogleditor_apiCallTreeItem* start);
+    vogleditor_apiCallTreeItem* find_prev_drawcall(vogleditor_apiCallTreeItem* start);
+    vogleditor_apiCallTreeItem* find_next_drawcall(vogleditor_apiCallTreeItem* start);
 
-   vogleditor_apiCallTreeItem* find_call_number(uint64_t callNumber);
-   vogleditor_apiCallTreeItem* find_frame_number(uint64_t frameNumber);
+    vogleditor_apiCallTreeItem* find_call_number(unsigned int callNumber);
+    vogleditor_apiCallTreeItem* find_frame_number(unsigned int frameNumber);
+
+
 
 signals:
 
 public slots:
 
 private:
-   vogleditor_apiCallTreeItem* m_rootItem;
-   vogl_ctypes m_trace_ctypes;
-   QLinkedList<vogleditor_apiCallTreeItem*> m_itemList;
-   QString m_searchString;
+    vogleditor_apiCallTreeItem* m_rootItem;
+    vogl_ctypes* m_pTrace_ctypes;
+    QLinkedList<vogleditor_apiCallTreeItem*> m_itemList;
+    QString m_searchString;
 };
 
 #endif // VOGLEDITOR_QAPICALLTREEMODEL_H

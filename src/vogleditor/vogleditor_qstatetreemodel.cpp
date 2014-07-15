@@ -32,82 +32,82 @@
 //===============================================
 
 vogleditor_QStateTreeModel::vogleditor_QStateTreeModel( QObject* parent)
-   : QAbstractItemModel(parent),
-     m_pSnapshot(NULL),
-     m_pBaseSnapshot(NULL)
+    : QAbstractItemModel(parent),
+      m_pSnapshot(NULL),
+      m_pBaseSnapshot(NULL)
 {
-   m_ColumnTitles << "State";
-   m_ColumnTitles << "Value";
+    m_ColumnTitles << "State";
+    m_ColumnTitles << "Value";
 
-   m_rootItem = new vogleditor_stateTreeItem(m_ColumnTitles, this);
+    m_rootItem = new vogleditor_stateTreeItem(m_ColumnTitles, this);
 }
 
 vogleditor_QStateTreeModel::vogleditor_QStateTreeModel(vogleditor_gl_state_snapshot* pSnapshot, vogl_context_snapshot* pContext, vogleditor_gl_state_snapshot *pDiffBaseSnapshot, QObject* parent)
-   : QAbstractItemModel(parent),
-     m_pSnapshot(pSnapshot),
-     m_pBaseSnapshot(pDiffBaseSnapshot)
+    : QAbstractItemModel(parent),
+      m_pSnapshot(pSnapshot),
+      m_pBaseSnapshot(pDiffBaseSnapshot)
 {
-   m_ColumnTitles << "State";
-   m_ColumnTitles << "Value";
+    m_ColumnTitles << "State";
+    m_ColumnTitles << "Value";
 
-   m_rootItem = new vogleditor_stateTreeItem(m_ColumnTitles, this);
-   setupModelData(m_pSnapshot, pContext, m_rootItem);
+    m_rootItem = new vogleditor_stateTreeItem(m_ColumnTitles, this);
+    setupModelData(m_pSnapshot, pContext, m_rootItem);
 }
 
 vogleditor_QStateTreeModel::~vogleditor_QStateTreeModel()
 {
-   if (m_rootItem != NULL)
-   {
-      delete m_rootItem;
-      m_rootItem = NULL;
-   }
+    if (m_rootItem != NULL)
+    {
+        delete m_rootItem;
+        m_rootItem = NULL;
+    }
 }
 
 QModelIndex vogleditor_QStateTreeModel::index(int row, int column, const QModelIndex& parent) const
 {
-   if (!hasIndex(row, column, parent))
-       return QModelIndex();
+    if (!hasIndex(row, column, parent))
+        return QModelIndex();
 
-   vogleditor_stateTreeItem *parentItem;
+    vogleditor_stateTreeItem *parentItem;
 
-   if (!parent.isValid())
-       parentItem = m_rootItem;
-   else
-       parentItem = static_cast<vogleditor_stateTreeItem*>(parent.internalPointer());
+    if (!parent.isValid())
+        parentItem = m_rootItem;
+    else
+        parentItem = static_cast<vogleditor_stateTreeItem*>(parent.internalPointer());
 
-   vogleditor_stateTreeItem *childItem = parentItem->child(row);
-   if (childItem)
-       return createIndex(row, column, childItem);
-   else
-       return QModelIndex();
+    vogleditor_stateTreeItem *childItem = parentItem->child(row);
+    if (childItem)
+        return createIndex(row, column, childItem);
+    else
+        return QModelIndex();
 }
 
 QModelIndex vogleditor_QStateTreeModel::parent(const QModelIndex& child) const
 {
-   if (!child.isValid())
-       return QModelIndex();
+    if (!child.isValid())
+        return QModelIndex();
 
-   vogleditor_stateTreeItem* childItem = static_cast<vogleditor_stateTreeItem*>(child.internalPointer());
-   vogleditor_stateTreeItem* parentItem = childItem->parent();
+    vogleditor_stateTreeItem* childItem = static_cast<vogleditor_stateTreeItem*>(child.internalPointer());
+    vogleditor_stateTreeItem* parentItem = childItem->parent();
 
-   if (parentItem == m_rootItem)
-       return QModelIndex();
+    if (parentItem == m_rootItem)
+        return QModelIndex();
 
-   return createIndex(parentItem->row(), 0, parentItem);
+    return createIndex(parentItem->row(), 0, parentItem);
 }
 
 int vogleditor_QStateTreeModel::rowCount(const QModelIndex& parent) const
 {
-   vogleditor_stateTreeItem* parentItem;
-   if (parent.column() > 0)
-       return 0;
+    vogleditor_stateTreeItem* parentItem;
+    if (parent.column() > 0)
+        return 0;
 
-   if (!parent.isValid())
-       parentItem = m_rootItem;
-   else
-       parentItem = static_cast<vogleditor_stateTreeItem*>(parent.internalPointer());
+    if (!parent.isValid())
+        parentItem = m_rootItem;
+    else
+        parentItem = static_cast<vogleditor_stateTreeItem*>(parent.internalPointer());
 
-   return parentItem->childCount();
+    return parentItem->childCount();
 }
 
 int vogleditor_QStateTreeModel::columnCount(const QModelIndex& parent) const
@@ -118,30 +118,30 @@ int vogleditor_QStateTreeModel::columnCount(const QModelIndex& parent) const
 
 QVariant vogleditor_QStateTreeModel::data(const QModelIndex& index, int role) const
 {
-   if (!index.isValid())
-       return QVariant();
+    if (!index.isValid())
+        return QVariant();
 
-   vogleditor_stateTreeItem *item = static_cast<vogleditor_stateTreeItem*>(index.internalPointer());
+    vogleditor_stateTreeItem *item = static_cast<vogleditor_stateTreeItem*>(index.internalPointer());
 
-   return item->columnData(index.column(), role);
+    return item->columnData(index.column(), role);
 }
 
 QVariant vogleditor_QStateTreeModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-   if (orientation == Qt::Horizontal)
-       return m_rootItem->columnData(section, role);
+    if (orientation == Qt::Horizontal)
+        return m_rootItem->columnData(section, role);
 
-   return QVariant();
+    return QVariant();
 }
 
 vogleditor_stateTreeItem* vogleditor_QStateTreeModel::root() const
 {
-   return m_rootItem;
+    return m_rootItem;
 }
 
 vogleditor_gl_state_snapshot* vogleditor_QStateTreeModel::get_snapshot() const
 {
-   return m_pSnapshot;
+    return m_pSnapshot;
 }
 
 void vogleditor_QStateTreeModel::setupModelData(vogleditor_gl_state_snapshot* pSnapshot, vogl_context_snapshot* pContext, vogleditor_stateTreeItem* parent)
