@@ -1053,6 +1053,26 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                     ADD_PROCESSED_STATE(enum_val, index);
                     break;
                 }
+                // isolate imaging state
+                case GL_COLOR_TABLE:
+                case GL_CONVOLUTION_1D:
+                case GL_CONVOLUTION_2D:
+                case GL_SEPARABLE_2D:
+                case GL_HISTOGRAM:
+                case GL_MINMAX:
+                case GL_POST_COLOR_MATRIX_COLOR_TABLE:
+                case GL_POST_CONVOLUTION_COLOR_TABLE:
+                {
+                    if (context_info.supports_extension("GL_ARB_imaging"))
+                    {
+                        if (boolean_val)
+                            GL_ENTRYPOINT(glEnable)(enum_val);
+                        else
+                            GL_ENTRYPOINT(glDisable)(enum_val);
+                        ADD_PROCESSED_STATE(enum_val, index);
+                    }
+                    break;
+                }
                 case GL_ALPHA_TEST:
                 case GL_AUTO_NORMAL:
                 case GL_BLEND:
@@ -1067,9 +1087,6 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 case GL_COLOR_LOGIC_OP:
                 case GL_COLOR_MATERIAL:
                 case GL_COLOR_SUM:
-                case GL_COLOR_TABLE:
-                case GL_CONVOLUTION_1D:
-                case GL_CONVOLUTION_2D:
                 case GL_CULL_FACE:
                 case GL_DEBUG_OUTPUT:
                 case GL_DEBUG_OUTPUT_SYNCHRONOUS:
@@ -1078,7 +1095,6 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 case GL_DITHER:
                 case GL_FOG:
                 case GL_FRAMEBUFFER_SRGB:
-                case GL_HISTOGRAM:
                 case GL_INDEX_LOGIC_OP:
                 case GL_LIGHT0:
                 case GL_LIGHT1:
@@ -1109,7 +1125,6 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 case GL_MAP2_TEXTURE_COORD_4:
                 case GL_MAP2_VERTEX_3:
                 case GL_MAP2_VERTEX_4:
-                case GL_MINMAX:
                 case GL_MULTISAMPLE:
                 case GL_NORMALIZE:
                 case GL_POINT_SMOOTH:
@@ -1119,8 +1134,6 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 case GL_POLYGON_OFFSET_POINT:
                 case GL_POLYGON_SMOOTH:
                 case GL_POLYGON_STIPPLE:
-                case GL_POST_COLOR_MATRIX_COLOR_TABLE:
-                case GL_POST_CONVOLUTION_COLOR_TABLE:
                 case GL_PRIMITIVE_RESTART:
                 case GL_PRIMITIVE_RESTART_FIXED_INDEX:
                 case GL_PROGRAM_POINT_SIZE: // same as GL_VERTEX_PROGRAM_POINT_SIZE
@@ -1132,7 +1145,6 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
                 case GL_SAMPLE_MASK:
                 case GL_SAMPLE_SHADING:
                 case GL_SCISSOR_TEST:
-                case GL_SEPARABLE_2D:
                 case GL_STENCIL_TEST:
                 case GL_TEXTURE_1D:
                 case GL_TEXTURE_2D:
@@ -1930,7 +1942,12 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
             GL_POST_CONVOLUTION_GREEN_BIAS, GL_POST_CONVOLUTION_BLUE_BIAS, GL_POST_CONVOLUTION_ALPHA_BIAS
         };
 
-    for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_pixel_transfer_pnames); i++)
+    uint32_t array_size = VOGL_ARRAY_SIZE(s_pixel_transfer_pnames);
+    
+    if (!context_info.supports_extension("GL_ARB_imaging"))
+        array_size -= 16;  // skip enums from GL_POST_COLOR_MATRIX_RED_SCALE
+
+    for (uint32_t i = 0; i < array_size; i++)
     {
         GLenum enum_val = s_pixel_transfer_pnames[i];
 
@@ -2329,44 +2346,46 @@ bool vogl_general_context_state::restore(const vogl_context_info &context_info, 
     //ADD_PROCESSED_STATE(GL_CURRENT_RASTER_SECONDARY_COLOR, 0); // can't retrieve on AMD's v13 drivers
 
     // Image bindings
-    GLint max_image_units = 0;
-    GL_ENTRYPOINT(glGetIntegerv)(GL_MAX_IMAGE_UNITS, &max_image_units);
-    VOGL_CHECK_GL_ERROR;
-
-    for (int i = 0; i < max_image_units; i++)
+    if (context_info.supports_extension("GL_ARB_shader_image_load_store"))
     {
-        GLuint trace_binding = 0;
-        if (!get(GL_IMAGE_BINDING_NAME, i, &trace_binding, 1, true))
-            continue;
-
-        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_NAME, i);
-
-        GLuint replay_binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, trace_binding));
-
-        int level = 0;
-        get(GL_IMAGE_BINDING_LEVEL, i, &level, 1, true);
-        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_LEVEL, i);
-
-        bool layered = false;
-        get(GL_IMAGE_BINDING_LAYERED, i, &layered, 1, true);
-        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_LAYERED, i);
-
-        GLint layer = 0;
-        get(GL_IMAGE_BINDING_LAYER, i, &layer, 1, true);
-        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_LAYER, i);
-
-        GLenum access = 0;
-        get(GL_IMAGE_BINDING_ACCESS, i, &access, 1, true);
-        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_ACCESS, i);
-
-        GLenum format = GL_NONE;
-        get(GL_IMAGE_BINDING_FORMAT, i, &format, 1, true);
-        ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_FORMAT, i);
-
-        GL_ENTRYPOINT(glBindImageTexture)(i, replay_binding, level, layered, layer, access, format);
+        GLint max_image_units = 0;
+        GL_ENTRYPOINT(glGetIntegerv)(GL_MAX_IMAGE_UNITS, &max_image_units);
         VOGL_CHECK_GL_ERROR;
-    }
 
+        for (int i = 0; i < max_image_units; i++)
+        {
+            GLuint trace_binding = 0;
+            if (!get(GL_IMAGE_BINDING_NAME, i, &trace_binding, 1, true))
+                continue;
+
+            ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_NAME, i);
+
+            GLuint replay_binding = static_cast<uint32_t>(remapper.remap_handle(VOGL_NAMESPACE_TEXTURES, trace_binding));
+
+            int level = 0;
+            get(GL_IMAGE_BINDING_LEVEL, i, &level, 1, true);
+            ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_LEVEL, i);
+
+            bool layered = false;
+            get(GL_IMAGE_BINDING_LAYERED, i, &layered, 1, true);
+            ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_LAYERED, i);
+
+            GLint layer = 0;
+            get(GL_IMAGE_BINDING_LAYER, i, &layer, 1, true);
+            ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_LAYER, i);
+
+            GLenum access = 0;
+            get(GL_IMAGE_BINDING_ACCESS, i, &access, 1, true);
+            ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_ACCESS, i);
+
+            GLenum format = GL_NONE;
+            get(GL_IMAGE_BINDING_FORMAT, i, &format, 1, true);
+            ADD_PROCESSED_STATE_INDEXED_VARIANT(GL_IMAGE_BINDING_FORMAT, i);
+
+            GL_ENTRYPOINT(glBindImageTexture)(i, replay_binding, level, layered, layer, access, format);
+            VOGL_CHECK_GL_ERROR;
+        }
+    }
     // TODO: pixel maps?
 
     //----------------------------------------
