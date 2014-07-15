@@ -128,15 +128,19 @@ void decompress_dxt(float *intermediate, const void *pSrc,
         switch (fmt)
         {
         case PXFMT_COMPRESSED_RGB_DXT1:
+        case PXFMT_COMPRESSED_SRGB_DXT1:
             ext_decomp_rgb_dxt1(row_stride, (const uint8 *) pSrc, x, y, tex);
             break;
         case PXFMT_COMPRESSED_RGBA_DXT1:
+        case PXFMT_COMPRESSED_SRGB_ALPHA_DXT1:
             ext_decomp_rgba_dxt1(row_stride, (const uint8 *) pSrc, x, y, tex);
             break;
         case PXFMT_COMPRESSED_RGBA_DXT3:
+        case PXFMT_COMPRESSED_SRGB_ALPHA_DXT3:
             ext_decomp_rgba_dxt3(row_stride, (const uint8 *) pSrc, x, y, tex);
             break;
         case PXFMT_COMPRESSED_RGBA_DXT5:
+        case PXFMT_COMPRESSED_SRGB_ALPHA_DXT5:
             ext_decomp_rgba_dxt5(row_stride, (const uint8 *) pSrc, x, y, tex);
             break;
         default:

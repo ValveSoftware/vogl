@@ -570,8 +570,12 @@ FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGBA_FXT1,  GL_RGBA, 4, false, 8, 4, 16);
 // S3TC/DXT compressed texture internalformats
 FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGB_DXT1,    GL_RGB, 3, false, 4, 4, 8);
 FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGBA_DXT1,                      GL_RGBA, 4, false, 4, 4, 8);
+FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_SRGB_DXT1,                      GL_RGB, 3, false, 4, 4, 8);
+FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_SRGB_ALPHA_DXT1,                GL_RGBA, 4, false, 4, 4, 8);
 FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGBA_DXT3,                      GL_RGBA, 4, false, 4, 4, 16);
+FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_SRGB_ALPHA_DXT3,                GL_RGBA, 4, false, 4, 4, 16);
 FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGBA_DXT5,                      GL_RGBA, 4, false, 4, 4, 16);
+FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_SRGB_ALPHA_DXT5,                GL_RGBA, 4, false, 4, 4, 16);
 
 // ETC2 compressed texture internalformats
 FMT_INFO_COMPRESSED(PXFMT_COMPRESSED_RGB8_ETC2,                      GL_RGB,  3, false, 4, 4, 8);
@@ -1706,8 +1710,12 @@ void decompress(float *intermediate, const void *pSrc,
     {
     case PXFMT_COMPRESSED_RGB_DXT1:
     case PXFMT_COMPRESSED_RGBA_DXT1:
+    case PXFMT_COMPRESSED_SRGB_DXT1:
+    case PXFMT_COMPRESSED_SRGB_ALPHA_DXT1:
     case PXFMT_COMPRESSED_RGBA_DXT3:
+    case PXFMT_COMPRESSED_SRGB_ALPHA_DXT3:    
     case PXFMT_COMPRESSED_RGBA_DXT5:
+    case PXFMT_COMPRESSED_SRGB_ALPHA_DXT5: 
         decompress_dxt(intermediate, pSrc, row_stride, x, y, fmt);
         break;
     case PXFMT_COMPRESSED_RGB_FXT1:
@@ -2351,10 +2359,18 @@ pxfmt_sized_format validate_internal_format(const GLenum internalformat)
         return PXFMT_COMPRESSED_RGB_DXT1;
     case GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
         return PXFMT_COMPRESSED_RGBA_DXT1;
+    case GL_COMPRESSED_SRGB_S3TC_DXT1_EXT:
+        return PXFMT_COMPRESSED_SRGB_DXT1;
+    case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT:
+        return PXFMT_COMPRESSED_SRGB_ALPHA_DXT1;
     case GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
         return PXFMT_COMPRESSED_RGBA_DXT3;
+    case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT:
+        return PXFMT_COMPRESSED_SRGB_ALPHA_DXT3;
     case GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
         return PXFMT_COMPRESSED_RGBA_DXT5;
+    case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
+        return PXFMT_COMPRESSED_SRGB_ALPHA_DXT5;
 #endif // defined(_WIN32)
     case GL_COMPRESSED_RGBA_FXT1_3DFX:
         return PXFMT_COMPRESSED_RGB_FXT1;
