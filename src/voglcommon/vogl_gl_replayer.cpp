@@ -11817,6 +11817,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::restore_context(vogl_handle_remappe
             return cStatusHardFailure;
         }
 
+#if defined (_WIN32)
+        // Since a new context has been made current, the GL entrypoints need to be re-queried
+        if (load_gl())
+            vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
+#endif
+
         m_cur_trace_context = trace_context;
         m_cur_replay_context = replay_context;
         m_pCur_context_state = pContext_state;
