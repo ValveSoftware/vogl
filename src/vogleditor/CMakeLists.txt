@@ -172,7 +172,10 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADER_LIST}
     ${QT_GEN_RESOURCE_RCC_LIST}
    )
 
-add_dependencies(${PROJECT_NAME} voglgen_make_inc SDL)
+add_dependencies(${PROJECT_NAME} voglgen_make_inc)
+if (TARGET SDL)
+    add_dependencies(${PROJECT_NAME} SDL)
+endif ()
 
 target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets
