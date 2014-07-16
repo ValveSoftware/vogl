@@ -81,6 +81,7 @@ public:
     QString get_sessionfile_name(const QString& tracefile, const vogl_trace_file_reader& traceReader);
     QString get_sessionfile_path(const QString& tracefile, const vogl_trace_file_reader& traceReader);
     QString get_sessiondata_folder(const QString& tracefile, const vogl_trace_file_reader& traceReader);
+    QString get_sessiondata_path(const QString& tracefile, const vogl_trace_file_reader& traceReader);
 
 public slots:
     void slot_takeSnapshotButton_clicked();
@@ -164,7 +165,7 @@ private:
     void write_child_api_calls(vogleditor_apiCallTreeItem* pItem, FILE* pFile);
 
     // returns the name of the session file
-    QString load_or_create_session(const char *tracefile, vogl_trace_file_reader *pTraceReader);
+    bool load_or_create_session(const char *tracefile, vogl_trace_file_reader *pTraceReader);
     bool load_session_from_disk(const QString &sessionFile);
     bool save_session_to_disk(const QString &sessionFile, const QString &traceFile, vogl_trace_file_reader *pTraceReader, vogleditor_QApiCallTreeModel* pApiCallTreeModel);
     bool save_snapshot_to_disk(vogl_gl_state_snapshot* pSnapshot, dynamic_string filename, vogl_blob_manager *pBlob_manager);

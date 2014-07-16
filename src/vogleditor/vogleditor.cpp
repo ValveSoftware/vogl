@@ -558,10 +558,8 @@ void VoglEditor::trimCurrentTraceFile()
 
 void VoglEditor::collect_screenshots()
 {
-    QString tempFolder = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-
     dynamic_string screenshot_prefix;
-    screenshot_prefix = screenshot_prefix.format("%s/screenshot", get_sessiondata_folder(m_openFilename, *m_pTraceReader).toStdString().c_str());
+    screenshot_prefix = screenshot_prefix.format("%s/screenshot", get_sessiondata_path(m_openFilename, *m_pTraceReader).toStdString().c_str());
 
     m_traceReplayer.enable_screenshot_capturing(screenshot_prefix.c_str());
     m_traceReplayer.replay(this->m_pTraceReader, m_pApiCallTreeModel->root(), NULL, 0, false);
@@ -655,11 +653,13 @@ void VoglEditor::on_action_Open_triggered()
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QString(),
                                                     tr("VOGL Binary Files (*.bin);;VOGL JSON Files (*.json)"));
 
-    if (!fileName.isEmpty()) {
+    if (!fileName.isEmpty())
+    {
         vogl::dynamic_string filename;
         filename.set(fileName.toStdString().c_str());
 
-        if (pre_open_trace_file(filename) == false) {
+        if (pre_open_trace_file(filename) == false)
+        {
             QMessageBox::critical(this, tr("Error"), tr("Could not open trace file."));
             return;
         }
@@ -774,14 +774,21 @@ QString VoglEditor::get_sessionfile_name(const QString& tracefile, const vogl_tr
 
 QString VoglEditor::get_sessiondata_folder(const QString& tracefile, const vogl_trace_file_reader& traceReader)
 {
-    QString sessionFolder = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
-    sessionFolder += "/sessions/";
-
     dynamic_string baseSessionfileName;
     file_utils::split_path(get_sessionfile_name(tracefile, traceReader).toStdString().c_str(), NULL, NULL, &baseSessionfileName, NULL);
 
-    sessionFolder += baseSessionfileName.c_str();
+    QString sessionFolder = baseSessionfileName.c_str();
     sessionFolder += "-sessiondata";
+
+    return sessionFolder;
+}
+
+QString VoglEditor::get_sessiondata_path(const QString& tracefile, const vogl_trace_file_reader& traceReader)
+{
+    QString sessionFolder = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+    sessionFolder += "/sessions/";
+    sessionFolder += get_sessiondata_folder(tracefile, traceReader);
+    sessionFolder += "/";
 
     return sessionFolder;
 }
@@ -796,28 +803,42 @@ QString VoglEditor::get_sessionfile_path(const QString& tracefile, const vogl_tr
     return sessionFile;
 }
 
-QString VoglEditor::load_or_create_session(const char* tracefile, vogl_trace_file_reader* pTraceReader)
+bool VoglEditor::load_or_create_session(const char* tracefile, vogl_trace_file_reader* pTraceReader)
 {
     QString sessionFile = get_sessionfile_path(tracefile, *pTraceReader);
+    QFileInfo sessionFileInfo(sessionFile);
 
-    if (load_session_from_disk(sessionFile))
+    bool bLoaded = false;
+    if (sessionFileInfo.exists())
     {
-        // it's loaded!
-        return sessionFile;
-    }
+        vogleditor_output_message("Loading additional session data...");
 
-    // doesn't exist yet, need to create an empty session file
-    if (save_session_to_disk(sessionFile, tracefile, pTraceReader, NULL))
-    {
-        // It's created! This might seem odd, but now load that session file (which will actually re-open the trace file)
         if (load_session_from_disk(sessionFile))
         {
-            return sessionFile;
+            vogleditor_output_message("...success!");
+            bLoaded = true;
+        }
+        else
+        {
+            vogleditor_output_warning("Unable to load session data.");
         }
     }
 
-    // either the saving or loading failed
-    return "";
+    if (!bLoaded)
+    {
+        vogleditor_output_message("Creating session data folder...");
+        if (save_session_to_disk(sessionFile, tracefile, pTraceReader, NULL))
+        {
+            vogleditor_output_message("...success!");
+            bLoaded = true;
+        }
+        else
+        {
+            vogleditor_output_warning("Unable to create session data folder.");
+        }
+    }
+
+    return bLoaded;
 }
 
 static const unsigned int VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1 = 1;
@@ -845,7 +866,8 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
         return false;
     }
 
-    if (rFormatVersion.as_uint32() != VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1)
+    if (rFormatVersion.as_uint32() < VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1 ||
+        rFormatVersion.as_uint32() > VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1 )
     {
         return false;
     }
@@ -858,26 +880,29 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
     }
 
     const json_value& rBaseTraceFilePath = pBaseTraceFile->find_value("rel_path");
-    const json_value& rBaseTraceFileUuid = pBaseTraceFile->find_value("uuid");
-
-    if (!rBaseTraceFilePath.is_valid() || !rBaseTraceFileUuid.is_valid())
+    if (!rBaseTraceFilePath.is_valid())
     {
         return false;
     }
 
-    dynamic_string sessionPathName;
-    dynamic_string sessionFileName;
-    file_utils::split_path(sessionFile.toStdString().c_str(), sessionPathName, sessionFileName);
-
-    dynamic_string traceFilePath = sessionPathName;
-    traceFilePath.append(rBaseTraceFilePath.as_string());
-
-    if (!open_trace_file(traceFilePath))
+    // verify UUID in session file matches the loaded trace file - confirming this session is actually for this version of the trace file.
+    const json_node* pBaseTraceFileUuid = pBaseTraceFile->find_child_array("uuid");
+    if (pBaseTraceFileUuid == NULL)
     {
         return false;
     }
 
-    // TODO: verify UUID of the loaded trace file
+    if (m_pTraceReader != NULL)
+    {
+        for (uint i = 0; i < 4; i++)
+        {
+            if (m_pTraceReader->get_sof_packet().m_uuid[i] != pBaseTraceFileUuid->value_as_uint32(i))
+            {
+                vogleditor_output_warning("Loaded session references a different version of the loaded trace file.");
+                break;
+            }
+        }
+    }
 
     // load session data if it is available
     json_node* pSessionData = sessionDoc.get_root()->find_child_object("session_data");
@@ -1117,11 +1142,12 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
 */
 bool VoglEditor::save_session_to_disk(const QString& sessionFile, const QString& traceFile, vogl_trace_file_reader* pTraceReader, vogleditor_QApiCallTreeModel* pApiCallTreeModel)
 {
-    QString sessionDataFolder = get_sessiondata_folder(traceFile, *pTraceReader);
-
-    dynamic_string strDataFolder = sessionDataFolder.toStdString().c_str();
-    file_utils::create_directories(strDataFolder, false);
-
+    // From the session file path, add the session data folder, and create the directories
+    QFileInfo sessionFileInfo(sessionFile.toStdString().c_str());
+    QString sessionFolder = sessionFileInfo.absolutePath();
+    QString sessionDataFolder = sessionFolder + "/" + get_sessiondata_folder(traceFile, *pTraceReader);
+    file_utils::create_directories(sessionDataFolder.toStdString().c_str(), false);
+    
     vogl_loose_file_blob_manager file_blob_manager;
     file_blob_manager.init(cBMFReadWrite, sessionDataFolder.toStdString().c_str());
     vogl_blob_manager* pBlob_manager = static_cast<vogl_blob_manager*>(&file_blob_manager);
@@ -1134,14 +1160,12 @@ bool VoglEditor::save_session_to_disk(const QString& sessionFile, const QString&
     metadata.add_key_value("session_file_format_version", to_hex_string(VOGLEDITOR_SESSION_FILE_FORMAT_VERSION));
 
     // find relative path from session file to trace file
-    QFileInfo traceFileInfo(traceFile.toStdString().c_str());
-    QString absoluteTracePath = traceFileInfo.canonicalFilePath();
-    QFileInfo sessionFileInfo(sessionFile);
-    QDir absoluteSessionFileDir = sessionFileInfo.canonicalPath();
-    QString tracePathRelativeToSessionFile = absoluteSessionFileDir.relativeFilePath(absoluteTracePath);
+    QDir absoluteSessionFileDir(sessionFolder);
+    QString tracePathRelativeToSessionFile = absoluteSessionFileDir.relativeFilePath(traceFile);
 
     json_node& baseTraceFile = sessionDoc.get_root()->add_object("base_trace_file");
     baseTraceFile.add_key_value("rel_path", tracePathRelativeToSessionFile.toStdString().c_str());
+
     json_node &uuid_array = baseTraceFile.add_array("uuid");
     for (uint i = 0; i < VOGL_ARRAY_SIZE(pTraceReader->get_sof_packet().m_uuid); i++)
     {
@@ -1393,21 +1417,27 @@ bool VoglEditor::pre_open_trace_file(dynamic_string filename)
     dynamic_string keyframe_trace_path(file_utils::get_pathname(filename.get_ptr()));
     file_blob_manager.init(cBMFReadable, keyframe_trace_path.get_ptr());
 
-    dynamic_string actual_keyframe_filename;
-    vogl_trace_file_reader* tmpReader = vogl_open_trace_file(filename, actual_keyframe_filename, NULL);
-
-    if (tmpReader == NULL)
+    if (open_trace_file(filename))
     {
-        vogleditor_output_error("Unable to open trace file.");
-        return false;
+        // trace file was loaded, now attempt to open additional session data
+        if (load_or_create_session(filename.c_str(), m_pTraceReader) == false)
+        {
+            // failing to load session data is not critical, but may result in unexpected behavior at times.
+            vogleditor_output_error("VoglEditor was unable to create a session folder to save debugging information. Functionality may be limited.");
+        }
+
+        return true;
     }
 
-    QString sessionFile = load_or_create_session(filename.c_str(), tmpReader);
-    return sessionFile.size() > 0;
+    return false;
 }
 
 bool VoglEditor::open_trace_file(dynamic_string filename)
 {
+    vogleditor_output_message("*********************");
+    vogleditor_output_message("Opening trace file...");
+    vogleditor_output_message(filename.c_str());
+
     QCursor origCursor = this->cursor();
     this->setCursor(Qt::WaitCursor);
 
@@ -1416,10 +1446,6 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
     file_blob_manager.init(cBMFReadable, keyframe_trace_path.get_ptr());
 
     dynamic_string actual_keyframe_filename;
-
-    vogleditor_output_message("*********************");
-    vogleditor_output_message("Opening trace file...");
-    vogleditor_output_message(filename.c_str());
 
     vogl_trace_file_reader* tmpReader = vogl_open_trace_file(filename, actual_keyframe_filename, NULL);
 
@@ -1595,7 +1621,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
 
     m_openFilename = filename.c_str();
     setWindowTitle(m_openFilename + " - " + g_PROJECT_NAME);
-    vogleditor_output_message("...opened successfully!");
+    vogleditor_output_message("...success!");
 
     this->setCursor(origCursor);
     return true;

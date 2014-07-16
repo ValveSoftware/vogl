@@ -81,6 +81,7 @@ namespace vogl
         static bool remove_extension(dynamic_string &filename);
         static bool create_directory(const char *pPath);
         static bool create_directories(const dynamic_string &path, bool remove_filename);
+        static bool create_directories(const char *pPath, bool remove_filename);
         static bool create_directories_from_full_path(const dynamic_string &path);
         static void trim_trailing_seperator(dynamic_string &path);
         static bool add_default_extension(dynamic_string &path, const char *pExt); // pExt should begin with a '.'
@@ -123,8 +124,6 @@ namespace vogl
         static dynamic_string generate_temp_filename(const char *prefix);
 
         static bool change_directory(const char *pPath);
-
-        static bool create_directories(const char *pPath, bool remove_filename);
 
         static char *get_exec_filename(char *pPath, size_t dest_len);
     }; // struct file_utils
