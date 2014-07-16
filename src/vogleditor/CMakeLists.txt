@@ -7,7 +7,7 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SRC_DIR}/cmake/Modules/")
 
 # we want cmake to link the Qt libs into the binary
 # This policy was introduced in 2.8.11, so on newer versions, use the OLD policy to maintain consistent behavior
-if (${CMAKE_VERSION} VERSION_GREATER 2.8.11)
+if (POLICY CMP0020)
    cmake_policy(SET CMP0020 OLD)
 endif()
 
