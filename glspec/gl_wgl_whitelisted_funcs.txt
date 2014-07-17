@@ -1,6 +1,8 @@
 wglChoosePixelFormat
+wglChoosePixelFormatARB
 wglCreateContext
 wglCreateContextAttribsARB
+wglDeleteContext
 wglDescribePixelFormat
 wglGetCurrentContext
 wglGetExtensionsStringARB
@@ -9,3 +11,4 @@ wglGetProcAddress
 wglMakeCurrent
 wglSetPixelFormat
 wglSwapBuffers
+wglSwapIntervalEXT

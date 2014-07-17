@@ -80,7 +80,14 @@ struct _cl_event;
 
 typedef GLintptr GLvdpauSurfaceNV;
 
+#ifndef GLAPIENTRY
+#if (VOGL_PLATFORM_HAS_WGL)
+#define GLAPIENTRY __stdcall
+#else
 #define GLAPIENTRY
+#endif
+#endif
+
 typedef void(GLAPIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 typedef void(GLAPIENTRY *GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
 typedef void(GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam);
