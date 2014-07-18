@@ -10911,8 +10911,10 @@ uint64_t vogl_gl_replayer::trace_to_replay_handle_remapper::remap_handle(vogl_na
             GLuint replay_handle = from_handle32;
             if (m_replayer.get_shared_state()->m_shadow_state.m_rbos.map_handle_to_inv_handle(from_handle32, replay_handle))
                 return replay_handle;
-
-            break;
+            // TODO : return 0 instead of break & assert here as temporary workaround for an apparent snapshot capture bug
+            //   On Dota2 trace trying to restore RBs bound to FBs that don't appear to have been saved into the trace.
+            return 0;
+            //break;
         }
         case VOGL_NAMESPACE_QUERIES:
         {
