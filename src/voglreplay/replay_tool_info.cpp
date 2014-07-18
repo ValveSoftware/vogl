@@ -177,6 +177,7 @@ bool tool_info_mode(vogl::vector<command_line_param_desc> *desc)
     uint64_t total_programs_linked = 0;
     uint64_t total_program_binary_calls = 0;
     uint_map unique_programs_used;
+    uint_map unique_program_pipelines_used;
 
     uint32_t total_gl_state_snapshots = 0;
 
@@ -332,6 +333,13 @@ bool tool_info_mode(vogl::vector<command_line_param_desc> *desc)
 
                     break;
                 }
+                case VOGL_ENTRYPOINT_glUseProgramStages:
+                {
+                    GLuint trace_handle = trace_packet.get_param_value<GLuint>(0);
+                    unique_program_pipelines_used.insert(trace_handle);
+
+                    break;
+                }
                 case VOGL_ENTRYPOINT_glGenLists:
                 case VOGL_ENTRYPOINT_glDeleteLists:
                 case VOGL_ENTRYPOINT_glXUseXFont:
@@ -433,6 +441,7 @@ done:
     vogl_printf("----------------------\n%s: %" PRIu64 "\n", "Total calls to glLinkProgram/glLinkProgramARB", total_programs_linked);
     vogl_printf("%s: %" PRIu64 "\n", "Total calls to glProgramBinary", total_program_binary_calls);
     vogl_printf("%s: %u\n", "Total unique program handles passed to glUseProgram/glUseProgramObjectARB", unique_programs_used.size());
+    vogl_printf("%s: %u\n", "Total unique program pipeline handles passed to glUseProgramStages", unique_program_pipelines_used.size());
 
     dump_histogram("API histogram", all_apis_called, total_gl_entrypoint_packets, total_swaps);
     dump_histogram("API Category histogram", category_histogram, total_gl_entrypoint_packets, total_swaps);

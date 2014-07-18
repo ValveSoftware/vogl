@@ -22,6 +22,7 @@ class vogleditor_stateTreeTextureItem;
 class vogleditor_stateTreeMatrixStackItem;
 class vogleditor_stateTreeVertexArrayItem;
 class vogleditor_stateTreeTexEnvItem;
+class vogleditor_stateTreeProgramPipelineItem;
 
 class vogleditor_stateTreeContextAttributesItem : public vogleditor_stateTreeItem
 {
@@ -328,6 +329,7 @@ private:
     vogl::vector<vogleditor_stateTreeSyncItem*> m_syncItems;
     vogl::vector<vogleditor_stateTreeArbProgramItem*> m_arbProgramItems;
     vogl::vector<vogleditor_stateTreeArbProgramEnvItem*> m_arbProgramEnvItems;
+    vogl::vector<vogleditor_stateTreeProgramPipelineItem*> m_programPipelineItems;
 };
 
 #endif // VOGLEDITOR_STATETREECONTEXTITEM_H

@@ -68,6 +68,7 @@ set(SRC_LIST
     vogleditor_statetreematrixitem.cpp
     vogleditor_statetreepolygonstippleitem.cpp
     vogleditor_statetreeprogramitem.cpp
+    vogleditor_statetreeprogrampipelineitem.cpp
     vogleditor_statetreequeryitem.cpp
     vogleditor_statetreerenderbufferitem.cpp
     vogleditor_statetreesampleritem.cpp

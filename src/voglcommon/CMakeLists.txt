@@ -45,6 +45,7 @@ set(SRC_LIST
     vogl_gl_object.cpp
     vogl_gl_state_snapshot.cpp
     vogl_vao_state.cpp
+    vogl_sso_state.cpp
     vogl_sync_object.cpp
     vogl_replay_window.cpp
     vogl_gl_replayer.cpp

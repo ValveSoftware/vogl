@@ -453,7 +453,7 @@ private:
 
         gl_handle_hash_map m_arb_programs;        // ARB_vertex_program/ARB_fragment_program, maps trace to replay handles
         gl_handle_hash_map m_arb_program_targets; // maps trace programs to targets
-
+        
         GLuint m_cur_replay_program;
         GLuint m_cur_trace_program;
 

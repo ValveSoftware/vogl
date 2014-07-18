@@ -1680,6 +1680,9 @@ bool vogl_gl_replayer::context_state::handle_context_made_current()
         for (uint32_t i = 0; i < 22000; i++)
             GL_ENTRYPOINT(glCreateProgram)();
 
+        GL_ENTRYPOINT(glGenProgramPipelines)(24000, dummy_handles.get_ptr());
+        VOGL_CHECK_GL_ERROR;
+
         vogl_debug_printf("Finished creating dummy handles\n");
     }
 
@@ -5083,6 +5086,43 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 
             break;
         }
+        case VOGL_ENTRYPOINT_glGenProgramPipelines:
+        {
+            if (!gen_handles(get_shared_state()->m_shadow_state.m_program_pipelines, trace_packet.get_param_value<GLsizei>(0), static_cast<const GLuint *>(trace_packet.get_param_client_memory_ptr(1)), GL_ENTRYPOINT(glGenProgramPipelines), NULL, GL_NONE))
+                return cStatusHardFailure;
+            break;
+        }
+        case VOGL_ENTRYPOINT_glDeleteProgramPipelines:
+        {
+            delete_handles(get_shared_state()->m_shadow_state.m_program_pipelines, trace_packet.get_param_value<GLsizei>(0), static_cast<const GLuint *>(trace_packet.get_param_client_memory_ptr(1)), GL_ENTRYPOINT(glDeleteProgramPipelines));
+            break;
+        }
+        case VOGL_ENTRYPOINT_glIsProgramPipeline:
+        {
+            if (!benchmark_mode())
+            {
+                GLboolean replay_result = GL_ENTRYPOINT(glIsProgramPipeline)(map_handle(get_shared_state()->m_shadow_state.m_program_pipelines, trace_packet.get_param_value<GLuint>(0)));
+                GLboolean trace_result = trace_packet.get_return_value<GLboolean>();
+                if (replay_result != trace_result)
+                    process_entrypoint_warning("Replay's Program Pipeline returned GLboolean data differed from trace's (got %i, expected %i)\n", replay_result, trace_result);
+            }
+            break;
+        }
+        case VOGL_ENTRYPOINT_glBindProgramPipeline:
+        {
+            GLuint replay_handle = map_handle(get_shared_state()->m_shadow_state.m_program_pipelines, trace_packet.get_param_value<GLuint>(0));
+            GL_ENTRYPOINT(glBindProgramPipeline)(replay_handle);
+            break;
+        }
+        case VOGL_ENTRYPOINT_glUseProgramStages:
+        {
+            // TODO: Verify this is correct. Pipeline obj should come from pipeline state mapping and Prog obj from obj mappings
+            GL_ENTRYPOINT(glUseProgramStages)(
+                map_handle(get_shared_state()->m_shadow_state.m_program_pipelines, trace_packet.get_param_value<GLuint>(0)),
+                trace_packet.get_param_value<GLenum>(1),
+                map_handle(get_shared_state()->m_shadow_state.m_objs, trace_packet.get_param_value<GLuint>(2)));
+            break;
+        }
         case VOGL_ENTRYPOINT_glGenQueries:
         case VOGL_ENTRYPOINT_glGenQueriesARB:
         {
@@ -5152,9 +5192,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLboolean replay_result = GL_ENTRYPOINT(glIsRenderbuffer)(map_handle(get_shared_state()->m_shadow_state.m_rbos, trace_packet.get_param_value<GLuint>(0)));
                 GLboolean trace_result = trace_packet.get_return_value<GLboolean>();
                 if (replay_result != trace_result)
-                {
-                    process_entrypoint_warning("Replay's returned GLboolean data differed from trace's (got %i, expected %i)\n", replay_result, replay_result);
-                }
+                    process_entrypoint_warning("Replay's Renderbuffer returned GLboolean data differed from trace's (got %i, expected %i)\n", replay_result, trace_result);
             }
             break;
         }
@@ -5166,7 +5204,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                 GLboolean trace_result = trace_packet.get_return_value<GLboolean>();
                 if (replay_result != trace_result)
                 {
-                    process_entrypoint_warning("Replay's returned GLboolean data differed from trace's (got %i, expected %i)\n", replay_result, replay_result);
+                    process_entrypoint_warning("Replay's Renderbuffer returned GLboolean data differed from trace's (got %i, expected %i)\n", replay_result, replay_result);
                 }
             }
             break;
@@ -9444,8 +9482,12 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                     name = map_handle(get_shared_state()->m_lists, name);
                     break;
                 }
+                case GL_PROGRAM_PIPELINE:
+                {
+                    name = map_handle(get_shared_state()->m_shadow_state.m_program_pipelines, name);
+                    break;
+                }
                 case GL_TRANSFORM_FEEDBACK: // TODO: Investigate this more
-                case GL_PROGRAM_PIPELINE: // TODO: We don't support program pipelines yet
                 default:
                 {
                     process_entrypoint_error("Unsupported object identifier 0x%X\n", identifier);
@@ -10209,6 +10251,11 @@ bool vogl_gl_replayer::replay_to_trace_handle_remapper::is_valid_handle(vogl_nam
             VOGL_ASSERT(replay_handle32 == replay_handle);
             return m_replayer.get_shared_state()->m_arb_programs.search_table_for_value_get_count(replay_handle32) != 0;
         }
+        case VOGL_NAMESPACE_PIPELINES:
+        {
+            VOGL_ASSERT(replay_handle32 == replay_handle);
+            return (m_replayer.get_shared_state()->m_shadow_state.m_program_pipelines.contains_inv(replay_handle32) != 0);
+        }
         default:
             break;
     }
@@ -10322,6 +10369,14 @@ uint64_t vogl_gl_replayer::replay_to_trace_handle_remapper::remap_handle(vogl_na
             VOGL_ASSERT(replay_handle32 == replay_handle);
             if (remap_replay_to_trace_handle(m_replayer.get_shared_state()->m_arb_programs, replay_handle32))
                 return replay_handle32;
+            break;
+        }
+        case VOGL_NAMESPACE_PIPELINES:
+        {
+            VOGL_ASSERT(replay_handle32 == replay_handle);
+            GLuint trace_handle = replay_handle32;
+            if (m_replayer.get_shared_state()->m_shadow_state.m_program_pipelines.map_inv_handle_to_handle(replay_handle32, trace_handle))
+                return trace_handle;
             break;
         }
         default:
@@ -10666,6 +10721,7 @@ vogl_gl_state_snapshot *vogl_gl_replayer::snapshot_state(const vogl_trace_packet
                     GLenum target = arb_prog_it->second;
                     pShadow_state->m_arb_program_targets.insert(replay_handle, target);
                 }
+                // TODO: How to deal with Program pipeline objects
 
                 // Deal with any currently mapped buffers.
                 vogl_mapped_buffer_desc_vec &mapped_bufs = get_shared_state()->m_shadow_state.m_mapped_buffers;
@@ -10842,6 +10898,10 @@ bool vogl_gl_replayer::trace_to_replay_handle_remapper::is_valid_handle(vogl_nam
         {
             return m_replayer.get_shared_state()->m_arb_programs.contains(from_handle32);
         }
+        case VOGL_NAMESPACE_PIPELINES:
+        {
+            return m_replayer.get_shared_state()->m_shadow_state.m_program_pipelines.contains(from_handle32);
+        }
         default:
             break;
     }
@@ -10928,6 +10988,14 @@ uint64_t vogl_gl_replayer::trace_to_replay_handle_remapper::remap_handle(vogl_na
         case VOGL_NAMESPACE_PROGRAM_ARB:
         {
             return m_replayer.get_shared_state()->m_arb_programs.value(from_handle32, from_handle32);
+        }
+        case VOGL_NAMESPACE_PIPELINES:
+        {
+            VOGL_ASSERT(from_handle32 == from_handle);
+            GLuint replay_handle = from_handle32;
+            if (m_replayer.get_shared_state()->m_shadow_state.m_program_pipelines.map_handle_to_inv_handle(from_handle32, replay_handle))
+                    return replay_handle;
+            break;
         }
         default:
         {
@@ -11101,6 +11169,13 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::declare_handle(vogl_name
             m_replayer.get_shared_state()->m_arb_program_targets.insert(from_handle32, target);
             break;
         }
+        case VOGL_NAMESPACE_PIPELINES:
+        {
+            VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
+            if (!m_replayer.get_shared_state()->m_shadow_state.m_program_pipelines.insert(from_handle32, to_handle32, GL_NONE))
+                vogl_warning_printf("Failed inserting trace SSO handle %u GL handle %u into SSO handle tracker!\n", from_handle32, to_handle32);
+            break;
+        }
         default:
         {
             VOGL_VERIFY(0);
@@ -11181,7 +11256,7 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::delete_handle_and_object
             VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
 
             if (!m_replayer.get_shared_state()->m_shadow_state.m_rbos.erase(from_handle32))
-                vogl_warning_printf("Failed deleting trace texture handle %u GL handle %u from RBO handle tracker!\n", from_handle32, to_handle32);
+                vogl_warning_printf("Failed deleting trace RBO handle %u GL handle %u from RBO handle tracker!\n", from_handle32, to_handle32);
 
             vogl_destroy_gl_object(handle_namespace, to_handle);
             break;
@@ -11204,6 +11279,14 @@ void vogl_gl_replayer::trace_to_replay_handle_remapper::delete_handle_and_object
             VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
             m_replayer.get_shared_state()->m_arb_programs.erase(from_handle32);
             m_replayer.get_shared_state()->m_arb_program_targets.erase(from_handle32);
+            vogl_destroy_gl_object(handle_namespace, to_handle);
+            break;
+        }
+        case VOGL_NAMESPACE_PIPELINES:
+        {
+            VOGL_ASSERT((from_handle32 == from_handle) && (to_handle32 == to_handle));
+            if (!m_replayer.get_shared_state()->m_shadow_state.m_program_pipelines.erase(from_handle32))
+                vogl_warning_printf("Failed deleting trace SSO handle %u GL handle %u from SSO handle tracker!\n", from_handle32, to_handle32);
             vogl_destroy_gl_object(handle_namespace, to_handle);
             break;
         }
@@ -12080,7 +12163,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_applying_pending_snapshot()
             if (context_state.get_context_info().is_valid())
             {
                 // Keep this in sync with vogl_gl_object_state_type (the order doesn't need to match the enum, but be sure to restore leaf GL objects first!)
-                const vogl_gl_object_state_type s_object_type_restore_order[] = { cGLSTBuffer, cGLSTSampler, cGLSTQuery, cGLSTRenderbuffer, cGLSTTexture, cGLSTFramebuffer, cGLSTVertexArray, cGLSTShader, cGLSTProgram, cGLSTSync, cGLSTARBProgram };
+                const vogl_gl_object_state_type s_object_type_restore_order[] = { cGLSTBuffer, cGLSTSampler, cGLSTQuery, cGLSTRenderbuffer, cGLSTTexture, cGLSTFramebuffer, cGLSTVertexArray, cGLSTShader, cGLSTProgram, cGLSTSync, cGLSTARBProgram, cGLSTProgramPipeline };
                 VOGL_ASSUME(VOGL_ARRAY_SIZE(s_object_type_restore_order) == (cGLSTTotalTypes - 1));
 
                 if (m_flags & cGLReplayerLowLevelDebugMode)

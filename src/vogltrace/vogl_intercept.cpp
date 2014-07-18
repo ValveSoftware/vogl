@@ -1934,6 +1934,48 @@ public:
                 get_shared_state()->m_capture_context_params.m_arb_program_targets.erase(handle);
         }
     }
+    
+    // program pipelines
+    void gen_program_pipelines(GLsizei n, const GLuint *pHandles)
+    {
+        if (!pHandles)
+            return;
+
+        vogl_scoped_context_shadow_lock lock;
+
+        for (GLsizei i = 0; i < n; i++)
+        {
+            GLuint handle = pHandles[i];
+            if (handle)
+                if (!get_shared_state()->m_capture_context_params.m_program_pipelines.insert(handle, handle, GL_NONE))
+                    vogl_error_printf("Can't insert program pipeline handle 0x%04X into program pipeline shadow!\n", handle);
+        }
+    }
+
+    void bind_program_pipelines(GLenum target, GLuint handle)
+    {
+        if (handle)
+        {
+            vogl_scoped_context_shadow_lock lock;
+
+            get_shared_state()->m_capture_context_params.m_program_pipelines.update(handle, target);
+        }
+    }
+
+    void del_program_pipelines(GLsizei n, const GLuint *pHandles)
+    {
+        if (!pHandles)
+            return;
+
+        vogl_scoped_context_shadow_lock lock;
+
+        for (GLsizei i = 0; i < n; i++)
+        {
+            GLuint handle = pHandles[i];
+            if (handle)
+                get_shared_state()->m_capture_context_params.m_program_pipelines.erase(handle);
+        }
+    }
 
     // renderbuffer handle shadowing
     void gen_render_buffers(GLsizei n, GLuint *pIDs)
@@ -8498,6 +8540,30 @@ static inline void vogl_transform_feedback_varyings(vogl_context *pContext, vogl
 #define DEF_FUNCTION_CUSTOM_GL_EPILOG_glBindProgramARB(e, c, rt, r, nu, ne, a, p) \
     if (pContext && !pContext->peek_and_record_gl_error())                        \
         pContext->bind_arb_program(target, program);
+
+//----------------------------------------------------------------------------------------------------------------------
+// Program pipeline shadowing
+//----------------------------------------------------------------------------------------------------------------------
+#define DEF_FUNCTION_CUSTOM_GL_PROLOG_glGenProgramPipelines(e, c, rt, r, nu, ne, a, p) \
+    if (pContext)                                                                 \
+        pContext->peek_and_record_gl_error();
+#define DEF_FUNCTION_CUSTOM_GL_EPILOG_glGenProgramPipelines(e, c, rt, r, nu, ne, a, p) \
+    if (pContext && !pContext->peek_and_record_gl_error())                        \
+        pContext->gen_program_pipelines(n, pipelines);
+
+#define DEF_FUNCTION_CUSTOM_GL_PROLOG_glDeleteProgramPipelines(e, c, rt, r, nu, ne, a, p) \
+    if (pContext)                                                                    \
+        pContext->peek_and_record_gl_error();
+#define DEF_FUNCTION_CUSTOM_GL_EPILOG_glDeleteProgramPipelines(e, c, rt, r, nu, ne, a, p) \
+    if (pContext && !pContext->peek_and_record_gl_error())                           \
+        pContext->del_program_pipelines(n, pipelines);
+
+#define DEF_FUNCTION_CUSTOM_GL_PROLOG_glBindProgramPipelines(e, c, rt, r, nu, ne, a, p) \
+    if (pContext)                                                                 \
+        pContext->peek_and_record_gl_error();
+#define DEF_FUNCTION_CUSTOM_GL_EPILOG_glBindProgramPipelines(e, c, rt, r, nu, ne, a, p) \
+    if (pContext && !pContext->peek_and_record_gl_error())                        \
+        pContext->bind_program_pipeline(pipeline);
 
 //----------------------------------------------------------------------------------------------------------------------
 // renderbuffer shadowing

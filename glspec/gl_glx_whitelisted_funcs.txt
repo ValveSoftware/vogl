@@ -24,6 +24,7 @@ glBindFramebuffer
 glBindFramebufferEXT
 glBindMultiTextureEXT
 glBindProgramARB
+glBindProgramPipeline
 glBindRenderbuffer
 glBindRenderbufferEXT
 glBindSampler
@@ -68,6 +69,7 @@ glDeleteLists
 glDeleteObjectARB
 glDeleteProgram
 glDeleteProgramsARB
+glDeleteProgramPipelines
 glDeleteQueries
 glDeleteQueriesARB
 glDeleteRenderbuffers
@@ -124,6 +126,7 @@ glGenBuffersARB
 glGenFramebuffers
 glGenFramebuffersEXT
 glGenLists
+glGenProgramPipelines
 glGenProgramsARB
 glGenQueries
 glGenQueriesARB
@@ -519,6 +522,7 @@ glIsList
 glIsList
 glIsProgram
 glIsProgramARB
+glIsProgramPipeline
 glIsQuery
 glIsQueryARB
 glIsRenderbuffer
@@ -688,6 +692,7 @@ glUnmapBuffer
 glUnmapBufferARB
 glUseProgram
 glUseProgramObjectARB
+glUseProgramStages
 glValidateProgram
 glValidateProgramARB
 glVertexAttribIPointer
