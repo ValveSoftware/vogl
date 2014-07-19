@@ -35,12 +35,18 @@ vogleditor_QTimelineView::vogleditor_QTimelineView(QWidget *parent) :
     m_pModel(NULL),
     m_pPixmap(NULL)
 {
-    QLinearGradient gradient(QPointF(50, -20), QPointF(80, 20));
+    QLinearGradient gradient(QPointF(0, 1), QPointF(0, 0));
+    gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
+
     gradient.setColorAt(0.0, Qt::white);
     gradient.setColorAt(1.0, QColor(0xa6, 0xce, 0x39));
+    m_triangleBrushWhite = QBrush(gradient);
+
+    gradient.setColorAt(0.0, Qt::black);
+    gradient.setColorAt(1.0, QColor(0xa6, 0xce, 0x39));
+    m_triangleBrushBlack = QBrush(gradient);
 
     m_background = QBrush(QColor(200,200,200));//QBrush(parent->palette().brush(parent->backgroundRole()));
-    m_triangleBrush = QBrush(gradient);
     m_trianglePen = QPen(Qt::black);
     m_trianglePen.setWidth(1);
     m_textPen = QPen(Qt::white);
@@ -82,7 +88,7 @@ void vogleditor_QTimelineView::drawBaseTimeline(QPainter* painter, const QRect& 
     // translate drawing to vertical center of rect
     painter->translate(0, rect.height()/2);
 
-    painter->setBrush(m_triangleBrush);
+    painter->setBrush(m_triangleBrushWhite);
     painter->setPen(m_trianglePen);
 
     // everything will have a small gap on the left and right sides
@@ -150,7 +156,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
 
         if (m_pModel->get_root_item()->getBrush() == NULL)
         {
-            m_pModel->get_root_item()->setBrush(&m_triangleBrush);
+            m_pModel->get_root_item()->setBrush(&m_triangleBrushWhite);
         }
 
         m_horizontalScale = (float)m_lineLength / (float)m_pModel->get_root_item()->getDuration();
@@ -159,7 +165,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
         int numChildren = m_pModel->get_root_item()->childCount();
         int height = event->rect().height()/2-2*gap;
 
-        pixmapPainter.setBrush(m_triangleBrush);
+        pixmapPainter.setBrush(m_triangleBrushWhite);
         pixmapPainter.setPen(m_trianglePen);
 
         float minimumOffset = 0;
@@ -176,7 +182,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
     // everything will have a small gap on the left and right sides
     painter->translate(gap, event->rect().height()/2);
 
-    painter->setBrush(m_triangleBrush);
+    painter->setBrush(m_triangleBrushWhite);
     painter->setPen(m_trianglePen);
 
     bool bFoundFrame   = false;
@@ -193,6 +199,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
             && pChild->getFrameItem()->frameNumber() == m_curFrame)
         {
             painter->save();
+            painter->setBrush(m_triangleBrushBlack);
             painter->translate(scalePositionHorizontally(pChild->getBeginTime()), 0);
             painter->drawPolygon(triangle);
             painter->restore();
@@ -268,7 +275,7 @@ void vogleditor_QTimelineView::drawTimelineItem(QPainter* painter, vogleditor_ti
     painter->save();
     if (pItem->isMarker())
     {
-        painter->setBrush(m_triangleBrush);
+        painter->setBrush(m_triangleBrushWhite);
         painter->setPen(m_trianglePen);
 
         float offset = scalePositionHorizontally(pItem->getBeginTime());
