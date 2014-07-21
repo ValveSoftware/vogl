@@ -26,6 +26,7 @@
 #include <QtGui>
 #include "vogleditor_qtextureviewer.h"
 #include "vogl_buffer_stream.h"
+#include "pxfmt.h"
 
 QTextureViewer::QTextureViewer(QWidget *parent) :
     QWidget(parent),
@@ -44,22 +45,111 @@ QTextureViewer::QTextureViewer(QWidget *parent) :
 
 void QTextureViewer::setTexture(const vogl::ktx_texture* pTexture, uint baseMipLevel, uint maxMipLevel)
 {
-    m_mipmappedTexture.clear();
-    bool bStatus = m_mipmappedTexture.read_ktx(*pTexture);
-    VOGL_ASSERT(bStatus);
-    if (bStatus)
-    {
-        bStatus = m_mipmappedTexture.convert(vogl::PIXEL_FMT_A8R8G8B8, false, vogl::dxt_image::pack_params());
-
-        m_mipmappedTexture.unflip(true, true);
-
-        VOGL_ASSERT(bStatus);
-    }
-
-    if (!bStatus)
-    {
+    pxfmt_sized_format src_pxfmt;
+    pxfmt_sized_format dest_pxfmt = PXFMT_RGBA8_UNORM;
+    bool has_red;
+    bool has_green;
+    bool has_blue;
+    bool has_alpha;
+    bool has_depth;
+    bool has_stencil;
+    bool has_large_components;
+    bool is_floating_point;
+    bool is_integer;
+    bool is_compressed;
+    uint bytes_per_pixel;
+    uint bytes_per_compressed_block;
+    uint block_size;
+    
+    deleteTexture();
+    if (!pTexture->is_valid())
         return;
+    
+
+    if (pTexture->is_compressed())
+    {
+        src_pxfmt = validate_internal_format(pTexture->get_ogl_internal_fmt());
+        if (src_pxfmt == PXFMT_INVALID)
+        {
+            vogl_error_printf("validate_internal_format() returned an unsupported KTX compressed format: 0x%X\n",
+                              pTexture->get_ogl_internal_fmt());
+            return;
+        }
     }
+    else
+    {
+        src_pxfmt = validate_format_type_combo(pTexture->get_ogl_fmt(),
+                                               pTexture->get_ogl_type());
+        if (src_pxfmt == PXFMT_INVALID)
+        {
+            vogl_error_printf("validate_format_type_combo() returned an unsupported KTX format/type: 0x%X 0x%X\n",
+                              pTexture->get_ogl_fmt(), pTexture->get_ogl_type());
+            return;
+        }
+    }
+    
+    // Get information about the source:
+    query_pxfmt_sized_format(src_pxfmt, &has_red, &has_green, &has_blue, &has_alpha,
+            &has_depth, &has_stencil, &has_large_components, &is_floating_point,
+            &is_integer, &is_compressed, &bytes_per_pixel,
+            &bytes_per_compressed_block, &block_size);    
+
+    for (uint mip_level = 0; mip_level < pTexture->get_num_mips(); mip_level++)
+    {
+        uint mip_width = vogl::math::maximum<uint>(1U, pTexture->get_width() >> mip_level);
+        uint mip_height = vogl::math::maximum<uint>(1U, pTexture->get_height() >> mip_level);
+        uint mip_depth = vogl::math::maximum<uint>(1U, pTexture->get_depth() >> mip_level);
+        for (uint array_index = 0; array_index < pTexture->get_array_size(); array_index++)
+        {
+            for (uint face_index = 0; face_index < pTexture->get_num_faces(); face_index++)
+            {
+                for (uint zslice_index = 0; zslice_index < mip_depth; zslice_index++)
+                {
+                    pxfmt_conversion_status status;
+
+                    uint image_index = pTexture->get_image_index(mip_level, array_index,
+                                                                     face_index, zslice_index);
+                    if (image_index >= pTexture->get_num_images())
+                        continue;
+
+                    const vogl::uint8_vec &image_data = pTexture->get_image_data(image_index);
+                    if (image_data.is_empty())
+                        continue;
+
+                    size_t src_size = bytes_per_pixel * mip_width * mip_height;
+                    uint dest_size = mip_width * sizeof (uint) * mip_height;
+                    vogl::image_u8 *dest_image = vogl_new(vogl::image_u8, mip_width, mip_height);
+                    if (image_index >= m_image.size())
+                    {
+                        m_image.resize(image_index + 1);
+                    }
+                    m_image[image_index] = dest_image;
+
+                    if (is_compressed)
+                    {
+                        // FIXME/TBD/TODO: CONSIDER MERGING THIS FUNCTION BACK
+                        // INTO THE NEXT FUNCTION (i.e. have one function for
+                        // both compressed and non-compressed src data):
+                        status = pxfmt_decompress_pixels(dest_image->get_ptr(), image_data.get_ptr(),
+                                                         mip_width, mip_height,
+                                                         dest_pxfmt, src_pxfmt, dest_size, src_size);
+                    } else {
+                        status = pxfmt_convert_pixels(dest_image->get_ptr(), image_data.get_ptr(),
+                                                      mip_width, mip_height,
+                                                      dest_pxfmt, src_pxfmt, dest_size, src_size);
+                    }
+
+                    if (status != PXFMT_CONVERSION_SUCCESS)
+                    {
+                        vogl_error_printf("pxfmt_convert_pixels() returned a non-success status of %d!\n", status);
+                        return;
+                    }
+
+                    dest_image->flip_y();
+                } // zslice
+            } // face
+        } // array
+    } // mip_level
 
     delete_pixmaps();
     m_draw_enabled = true;
@@ -93,7 +183,7 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
         return;
     }
 
-    if (!m_mipmappedTexture.is_valid() || !m_mipmappedTexture.get_num_levels())
+    if (m_image.is_empty() || !m_image[0]->is_valid() || !m_pKtxTexture->get_num_mips())
     {
         return;
     }
@@ -118,10 +208,12 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
 
     uint numMips = m_pKtxTexture->get_num_mips();
     uint maxMip = vogl::math::minimum(numMips, m_maxMipLevel);
-    maxMip = vogl::math::minimum(maxMip, m_mipmappedTexture.get_num_levels() - 1);
+
+    maxMip = vogl::math::minimum(maxMip, m_pKtxTexture->get_num_mips() - 1);
 
     uint mipWidth = 0;
     uint mipHeight = 0;
+    uint mipDepth;
 
     drawWidth = drawWidth >> m_baseMipLevel;
     drawHeight = drawHeight >> m_baseMipLevel;
@@ -138,17 +230,21 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
 
     for (uint mip = m_baseMipLevel; mip <= maxMip; mip++)
     {
-        if (m_pixmaps.contains(mip) == false && m_mipmappedTexture.is_valid())
+        uint imageIndex = m_pKtxTexture->get_image_index(mip, m_arrayIndex, 0, m_sliceIndex);
+        
+        mipDepth = vogl::math::maximum<uint>(1U, m_pKtxTexture->get_depth() >> mip);
+        if (mipDepth <= m_sliceIndex)
+            break;
+        if (m_pixmaps.contains(mip) == false && m_image[imageIndex] && m_image[imageIndex]->is_valid())        
         {
             QWidget* pParent = (QWidget*)this->parent();
             QCursor origCursor = pParent->cursor();
             pParent->setCursor(Qt::WaitCursor);
 
             vogl::color_quad_u8* pTmpPixels = NULL;
-            if (m_mipmappedTexture.is_cubemap())
+            if (m_pKtxTexture->get_num_faces() == 6)
             {
-                vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(m_arrayIndex, 0, mip);
-                vogl::image_u8* image = mipLevel->get_image();
+                vogl::image_u8* image = m_image[imageIndex];
 
                 mipWidth = image->get_width();
                 mipHeight = image->get_height();
@@ -173,10 +269,9 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
                 uint faceRowOffset[6] = {faceHeight, faceHeight, 0, 2*faceHeight, faceHeight, faceHeight};
                 uint faceColOffset[6] = {0, 2*faceWidth, faceWidth, faceWidth, 3*faceWidth, faceWidth};
 
-                for (uint face = 0; face < m_mipmappedTexture.get_num_faces(); face++)
+                for (uint face = 0; face < m_pKtxTexture->get_num_faces(); face++)
                 {
-                    vogl::mip_level* mipLevel2 = m_mipmappedTexture.get_level(m_arrayIndex, face, mip);
-                    vogl::image_u8* image2 = mipLevel2->get_image();
+                    vogl::image_u8* image2 = m_image[m_pKtxTexture->get_image_index(mip, m_arrayIndex, face, 0)];
                     vogl::color_quad_u8* pPixels = image2->get_pixels();
 
                     // calculate write location to start of face
@@ -201,8 +296,7 @@ void QTextureViewer::paint(QPainter *painter, QPaintEvent *event)
             }
             else
             {
-                vogl::mip_level* mipLevel = m_mipmappedTexture.get_level(m_arrayIndex, m_sliceIndex, mip);
-                vogl::image_u8* image = mipLevel->get_image();
+                vogl::image_u8* image = m_image[imageIndex];
                 vogl::color_quad_u8* pPixels = image->get_pixels();
 
                 mipWidth = image->get_width();
