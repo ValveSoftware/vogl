@@ -7,7 +7,7 @@ set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SRC_DIR}/cmake/Modules/")
 
 # we want cmake to link the Qt libs into the binary
 # This policy was introduced in 2.8.11, so on newer versions, use the OLD policy to maintain consistent behavior
-if (${CMAKE_VERSION} VERSION_GREATER 2.8.11)
+if (POLICY CMP0020)
    cmake_policy(SET CMP0020 OLD)
 endif()
 
@@ -172,7 +172,10 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADER_LIST}
     ${QT_GEN_RESOURCE_RCC_LIST}
    )
 
-add_dependencies(${PROJECT_NAME} voglgen_make_inc SDL)
+add_dependencies(${PROJECT_NAME} voglgen_make_inc)
+if (TARGET SDL)
+    add_dependencies(${PROJECT_NAME} SDL)
+endif ()
 
 target_link_libraries(${PROJECT_NAME}
     Qt5::Widgets

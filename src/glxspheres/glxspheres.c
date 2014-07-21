@@ -680,6 +680,8 @@ int main(int argc, char **argv)
         case SDL_SYSWM_COCOA:     subsystem = "Apple OS X";             break;
         case SDL_SYSWM_UIKIT:     subsystem = "UIKit";                  break;
         case SDL_SYSWM_WAYLAND:   subsystem = "Wayland";                break;
+        case SDL_SYSWM_MIR:       subsystem = "Mir";                    break;
+        case SDL_SYSWM_WINRT:     subsystem = "WinRT";                  break;
         }
 
         printf("Running SDL version %d.%d.%d on '%s'\n", 
