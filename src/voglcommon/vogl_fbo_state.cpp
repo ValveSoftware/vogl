@@ -80,7 +80,9 @@ bool vogl_framebuffer_attachment::snapshot(const vogl_context_info &context_info
         DO_QUERY(GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL);
         DO_QUERY(GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE);
         DO_QUERY(GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER);
-        DO_QUERY(GL_FRAMEBUFFER_ATTACHMENT_LAYERED);
+        // only need to query LAYERED if GS supported
+        if (context_info.supports_extension("GL_ARB_geometry_shader4"))
+            DO_QUERY(GL_FRAMEBUFFER_ATTACHMENT_LAYERED);
     }
 
 #undef DO_QUERY

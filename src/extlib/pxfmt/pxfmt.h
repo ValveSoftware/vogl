@@ -326,8 +326,12 @@ enum pxfmt_sized_format
 // S3TC/DXT compressed texture internalformats
     PXFMT_COMPRESSED_RGB_DXT1,
     PXFMT_COMPRESSED_RGBA_DXT1,
+    PXFMT_COMPRESSED_SRGB_DXT1,
+    PXFMT_COMPRESSED_SRGB_ALPHA_DXT1,
     PXFMT_COMPRESSED_RGBA_DXT3,
+    PXFMT_COMPRESSED_SRGB_ALPHA_DXT3,
     PXFMT_COMPRESSED_RGBA_DXT5,
+    PXFMT_COMPRESSED_SRGB_ALPHA_DXT5,
 
 // Note: Not handling the OpenGL-ES 1.x ETC1 compressed texture internalformat
 
