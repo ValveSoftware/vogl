@@ -38,7 +38,7 @@ QT_END_NAMESPACE
 
 #include "vogl_core.h"
 #include "vogl_map.h"
-#include "vogl_mipmapped_texture.h"
+#include "vogl_image.h"
 #include "vogl_ktx_texture.h"
 
 typedef enum ChannelSelectionOptions
@@ -82,11 +82,22 @@ public:
         }
     }
 
+    void deleteTexture()
+    {
+        for (vogl::vector<vogl::image_u8*>::iterator it = m_image.begin(); it < m_image.end(); ++it)
+        {
+            vogl::image_u8 *img = *it;
+            img->clear();
+            vogl_delete(img);
+        }
+        m_image.clear();
+    }
+
     void clear()
     {
         m_draw_enabled = false;
         m_pKtxTexture = NULL;
-        m_mipmappedTexture.clear();
+        deleteTexture();
     }
 
     inline QColor getBackgroundColor() const { return m_background.color(); }
@@ -161,7 +172,7 @@ private:
     vogl::map<uint, vogl::color_quad_u8*> m_pixmapData;
 
     const vogl::ktx_texture* m_pKtxTexture;
-    vogl::mipmapped_texture m_mipmappedTexture;
+    vogl::vector<vogl::image_u8*> m_image;
     uint m_baseMipLevel;
     uint m_maxMipLevel;
     uint m_arrayIndex;

@@ -25,6 +25,7 @@ include_directories(
     ${SRC_DIR}/voglcommon
     ${CMAKE_BINARY_DIR}/voglinc
     ${SRC_DIR}/extlib/loki/include/loki
+    ${SRC_DIR}/extlib/pxfmt
     ${SRC_DIR}/libtelemetry
     ${CMAKE_CURRENT_BINARY_DIR}
     ${Qt5Widgets_INCLUDE_DIRS}
@@ -184,6 +185,7 @@ target_link_libraries(${PROJECT_NAME}
     ${LibBackTrace_LIBRARY}
     voglcommon
     voglcore
+    pxfmt
     ${CMAKE_DL_LIBS}
     ${SDL2_LIBRARY}
     ${X11_X11_LIB}
