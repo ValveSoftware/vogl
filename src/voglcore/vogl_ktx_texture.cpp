@@ -71,6 +71,8 @@ namespace vogl
             case KTX_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
             case KTX_RGBA_DXT5_S3TC:
             case KTX_RGBA4_DXT5_S3TC:
+            case KTX_COMPRESSED_RGB_FXT1_3DFX:
+            case KTX_COMPRESSED_RGBA_FXT1_3DFX:
             case KTX_COMPRESSED_RGBA8_ETC2_EAC:
             case KTX_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC:
             case KTX_COMPRESSED_RG11_EAC:
@@ -180,6 +182,7 @@ namespace vogl
             case KTX_COMPRESSED_SRGB_S3TC_DXT1_EXT:
             case KTX_COMPRESSED_RGB8_ETC2:
             case KTX_COMPRESSED_SRGB8_ETC2:
+            case KTX_COMPRESSED_RGB_FXT1_3DFX:
             case KTX_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB:
             case KTX_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB:
                 return KTX_RGB;
@@ -194,6 +197,7 @@ namespace vogl
             case KTX_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
             case KTX_RGBA_DXT5_S3TC:
             case KTX_RGBA4_DXT5_S3TC:
+            case KTX_COMPRESSED_RGBA_FXT1_3DFX:
             case KTX_COMPRESSED_RGBA_BPTC_UNORM_ARB:
             case KTX_COMPRESSED_SRGB_ALPHA_BPTC_UNORM_ARB:
             case KTX_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
@@ -205,11 +209,12 @@ namespace vogl
         return 0;
     }
 
-    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint32_t &block_dim, uint32_t &bytes_per_block)
+    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint32_t &block_dim_x, uint32_t &block_dim_y, uint32_t &bytes_per_block)
     {
         uint32_t ogl_type_size = ktx_get_ogl_type_size(ogl_type);
 
-        block_dim = 1;
+        block_dim_x = 0;
+        block_dim_y = 0;
         bytes_per_block = 0;
 
         switch (ogl_fmt)
@@ -232,7 +237,8 @@ namespace vogl
             case KTX_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2:
             case KTX_COMPRESSED_SRGB8_PUNCHTHROUGH_ALPHA1_ETC2:
             {
-                block_dim = 4;
+                block_dim_x = 4;
+                block_dim_y = 4;
                 bytes_per_block = 8;
                 break;
             }
@@ -257,9 +263,18 @@ namespace vogl
             case KTX_COMPRESSED_RGB_BPTC_SIGNED_FLOAT_ARB:
             case KTX_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT_ARB:
             {
-                block_dim = 4;
+                block_dim_x = 4;
+                block_dim_y = 4;
                 bytes_per_block = 16;
                 break;
+            }
+            case KTX_COMPRESSED_RGB_FXT1_3DFX:
+            case KTX_COMPRESSED_RGBA_FXT1_3DFX:
+            {
+                block_dim_x = 8;
+                block_dim_y = 4;
+                bytes_per_block = 16;
+                break;               
             }
             case 1:
             case KTX_ALPHA:
@@ -274,6 +289,8 @@ namespace vogl
             case KTX_DEPTH_COMPONENT:
             case KTX_LUMINANCE_INTEGER_EXT:
             {
+                block_dim_x = 1;
+                block_dim_y = 1;
                 bytes_per_block = ogl_type_size;
                 break;
             }
@@ -283,6 +300,8 @@ namespace vogl
             case KTX_LUMINANCE8:
             {
                 VOGL_ASSERT(ogl_type_size == 1);
+                block_dim_x = 1;
+                block_dim_y = 1;
                 bytes_per_block = 1;
                 break;
             }
@@ -292,6 +311,8 @@ namespace vogl
             case KTX_LUMINANCE_ALPHA:
             case KTX_LUMINANCE_ALPHA_INTEGER_EXT:
             {
+                block_dim_x = 1;
+                block_dim_y = 1;
                 bytes_per_block = 2 * ogl_type_size;
                 break;
             }
@@ -299,6 +320,8 @@ namespace vogl
             case KTX_LUMINANCE8_ALPHA8:
             {
                 VOGL_ASSERT(ogl_type_size == 1);
+                block_dim_x = 1;
+                block_dim_y = 1;
                 bytes_per_block = 2;
                 break;
             }
@@ -309,6 +332,8 @@ namespace vogl
             case KTX_RGB_INTEGER:
             case KTX_BGR_INTEGER:
             {
+                block_dim_x = 1;
+                block_dim_y = 1;
                 bytes_per_block = ktx_is_packed_pixel_ogl_type(ogl_type) ? ogl_type_size : (3 * ogl_type_size);
                 break;
             }
@@ -316,6 +341,8 @@ namespace vogl
             case KTX_SRGB8:
             {
                 VOGL_ASSERT(ogl_type_size == 1);
+                block_dim_x = 1;
+                block_dim_y = 1;
                 bytes_per_block = 3;
                 break;
             }
@@ -326,6 +353,8 @@ namespace vogl
             case KTX_BGRA_INTEGER:
             case KTX_SRGB_ALPHA:
             {
+                block_dim_x = 1;
+                block_dim_y = 1;
                 bytes_per_block = ktx_is_packed_pixel_ogl_type(ogl_type) ? ogl_type_size : (4 * ogl_type_size);
                 break;
             }
@@ -333,11 +362,15 @@ namespace vogl
             case KTX_RGBA8:
             {
                 VOGL_ASSERT(ogl_type_size == 1);
+                block_dim_x = 1;
+                block_dim_y = 1;
                 bytes_per_block = 4;
                 break;
             }
             case KTX_DEPTH_STENCIL:
             {
+                block_dim_x = 1;
+                block_dim_y = 1;
                 bytes_per_block = ktx_is_packed_pixel_ogl_type(ogl_type) ? ogl_type_size : (2 * ogl_type_size);
                 break;
             }
@@ -358,10 +391,10 @@ namespace vogl
             if ((m_header.m_glType) || (m_header.m_glFormat))
                 return false;
 
-            if (!ktx_get_ogl_fmt_desc(m_header.m_glInternalFormat, m_header.m_glType, m_block_dim, m_bytes_per_block))
+            if (!ktx_get_ogl_fmt_desc(m_header.m_glInternalFormat, m_header.m_glType, m_block_dim_x, m_block_dim_y, m_bytes_per_block))
                 return false;
 
-            if (m_block_dim == 1)
+            if (m_block_dim_x == 1 && m_block_dim_y == 1)
                 return false;
         }
         else
@@ -370,10 +403,10 @@ namespace vogl
             if (ktx_is_compressed_ogl_fmt(m_header.m_glInternalFormat))
                 return false;
 
-            if (!ktx_get_ogl_fmt_desc(m_header.m_glFormat, m_header.m_glType, m_block_dim, m_bytes_per_block))
+            if (!ktx_get_ogl_fmt_desc(m_header.m_glFormat, m_header.m_glType, m_block_dim_x, m_block_dim_y, m_bytes_per_block))
                 return false;
 
-            if (m_block_dim > 1)
+            if (m_block_dim_x > 1 || m_block_dim_y > 1)
                 return false;
         }
         return true;
@@ -417,7 +450,8 @@ namespace vogl
                 m_header.m_glBaseInternalFormat = KTX_RGB;
                 m_header.m_glInternalFormat = KTX_ETC1_RGB8_OES;
                 m_header.m_glTypeSize = 1;
-                m_block_dim = 4;
+                m_block_dim_x = 4;
+                m_block_dim_y = 4;
                 m_bytes_per_block = 8;
             }
             else
@@ -477,11 +511,11 @@ namespace vogl
 // See Section 2.8 of KTX file format: No rounding to block sizes should be applied for block compressed textures.
 // OK, I'm going to break that rule otherwise KTX can only store a subset of textures that DDS can handle for no good reason.
 #if 0
-	const uint32_t mip0_row_blocks = m_header.m_pixelWidth / m_block_dim;
-	const uint32_t mip0_col_blocks = VOGL_MAX(1, m_header.m_pixelHeight) / m_block_dim;
+	const uint32_t mip0_row_blocks = m_header.m_pixelWidth / m_block_dim_x;
+	const uint32_t mip0_col_blocks = VOGL_MAX(1, m_header.m_pixelHeight) / m_block_dim_y;
 #else
-        const uint32_t mip0_row_blocks = (m_header.m_pixelWidth + m_block_dim - 1) / m_block_dim;
-        const uint32_t mip0_col_blocks = (VOGL_MAX(1, m_header.m_pixelHeight) + m_block_dim - 1) / m_block_dim;
+        const uint32_t mip0_row_blocks = (m_header.m_pixelWidth + m_block_dim_x - 1) / m_block_dim_x;
+        const uint32_t mip0_col_blocks = (VOGL_MAX(1, m_header.m_pixelHeight) + m_block_dim_y - 1) / m_block_dim_y;
 #endif
         if ((!mip0_row_blocks) || (!mip0_col_blocks))
             return false;
@@ -501,8 +535,8 @@ namespace vogl
                 uint32_t mip_width, mip_height, mip_depth;
                 get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-                const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-                const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+                const uint32_t mip_row_blocks = (mip_width + m_block_dim_x - 1) / m_block_dim_x;
+                const uint32_t mip_col_blocks = (mip_height + m_block_dim_y - 1) / m_block_dim_y;
                 if ((!mip_row_blocks) || (!mip_col_blocks))
                     return false;
 
@@ -554,8 +588,8 @@ namespace vogl
             uint32_t mip_width, mip_height, mip_depth;
             get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-            const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-            const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+            const uint32_t mip_row_blocks = (mip_width + m_block_dim_x - 1) / m_block_dim_x;
+            const uint32_t mip_col_blocks = (mip_height + m_block_dim_y - 1) / m_block_dim_y;
             if ((!mip_row_blocks) || (!mip_col_blocks))
                 return false;
 
@@ -670,7 +704,7 @@ namespace vogl
         memcpy(m_header.m_identifier, s_ktx_file_id, sizeof(m_header.m_identifier));
         m_header.m_endianness = m_opposite_endianness ? KTX_OPPOSITE_ENDIAN : KTX_ENDIAN;
 
-        if (m_block_dim == 1)
+        if (m_block_dim_x == 1 && m_block_dim_y == 1)
         {
             m_header.m_glTypeSize = ktx_get_ogl_type_size(m_header.m_glType);
             m_header.m_glBaseInternalFormat = m_header.m_glFormat;
@@ -741,8 +775,8 @@ namespace vogl
             uint32_t mip_width, mip_height, mip_depth;
             get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-            const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-            const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+            const uint32_t mip_row_blocks = (mip_width + m_block_dim_x - 1) / m_block_dim_x;
+            const uint32_t mip_col_blocks = (mip_height + m_block_dim_y - 1) / m_block_dim_y;
             if ((!mip_row_blocks) || (!mip_col_blocks))
                 return false;
 
@@ -998,8 +1032,8 @@ namespace vogl
         uint32_t mip_width, mip_height, mip_depth;
         get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-        const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-        const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+        const uint32_t mip_row_blocks = (mip_width + m_block_dim_x - 1) / m_block_dim_x;
+        const uint32_t mip_col_blocks = (mip_height + m_block_dim_y - 1) / m_block_dim_y;
         if ((!mip_row_blocks) || (!mip_col_blocks))
         {
             VOGL_ASSERT_ALWAYS;
@@ -1034,26 +1068,26 @@ namespace vogl
         if (!check_header())
             return false;
 
-        uint32_t block_dim = 0, bytes_per_block = 0;
+        uint32_t block_dim_x = 0, block_dim_y = 0, bytes_per_block = 0;
         if ((!m_header.m_glType) || (!m_header.m_glFormat))
         {
             if ((m_header.m_glType) || (m_header.m_glFormat))
                 return false;
-            if (!ktx_get_ogl_fmt_desc(m_header.m_glInternalFormat, m_header.m_glType, block_dim, bytes_per_block))
+            if (!ktx_get_ogl_fmt_desc(m_header.m_glInternalFormat, m_header.m_glType, block_dim_x, block_dim_y, bytes_per_block))
                 return false;
-            if (block_dim == 1)
+            if (block_dim_x == 1 && block_dim_y == 1)
                 return false;
             //if ((get_width() % block_dim) || (get_height() % block_dim))
             //   return false;
         }
         else
         {
-            if (!ktx_get_ogl_fmt_desc(m_header.m_glFormat, m_header.m_glType, block_dim, bytes_per_block))
+            if (!ktx_get_ogl_fmt_desc(m_header.m_glFormat, m_header.m_glType, block_dim_x, block_dim_y, bytes_per_block))
                 return false;
-            if (block_dim > 1)
+            if (block_dim_x > 1 || block_dim_y > 1)
                 return false;
         }
-        if ((m_block_dim != block_dim) || (m_bytes_per_block != bytes_per_block))
+        if ((m_block_dim_x != block_dim_x) || (m_block_dim_y != block_dim_y) || (m_bytes_per_block != bytes_per_block))
             return false;
 
         uint32_t total_expected_images = get_total_images();
@@ -1065,8 +1099,8 @@ namespace vogl
             uint32_t mip_width, mip_height, mip_depth;
             get_mip_dim(mip_level, mip_width, mip_height, mip_depth);
 
-            const uint32_t mip_row_blocks = (mip_width + m_block_dim - 1) / m_block_dim;
-            const uint32_t mip_col_blocks = (mip_height + m_block_dim - 1) / m_block_dim;
+            const uint32_t mip_row_blocks = (mip_width + m_block_dim_x - 1) / m_block_dim_x;
+            const uint32_t mip_col_blocks = (mip_height + m_block_dim_y - 1) / m_block_dim_y;
             if ((!mip_row_blocks) || (!mip_col_blocks))
                 return false;
 
@@ -1184,7 +1218,8 @@ namespace vogl
         CMP(get_array_size());
         CMP(get_num_faces());
         CMP(is_compressed());
-        CMP(get_block_dim());
+        CMP(get_block_dim_x());
+        CMP(get_block_dim_y());
 
         // The image fmt/type shouldn't matter with compressed textures.
         if (!is_compressed())
