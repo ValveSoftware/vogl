@@ -88,7 +88,8 @@ public:
 
 private:
    QBrush m_background;
-   QBrush m_triangleBrush;
+   QBrush m_triangleBrushWhite;
+   QBrush m_triangleBrushBlack;
    QPen m_trianglePen;
    QPen m_textPen;
    QFont m_textFont;

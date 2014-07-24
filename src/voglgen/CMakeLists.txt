@@ -124,8 +124,6 @@ set(GENERATED_FILES
 # TODO: Add some logic to glob the files in SPEC_DIR and then compare them with the above list to 
 # ensure we catch all the dependencies.
 
-get_target_property(VOGLGEN_EXE ${PROJECT_NAME} LOCATION)
-
 # Don't we want this FORCE_REGENERATE file to be in the build output directory?
 
 # This case deals with rebuilding the exe.
@@ -137,7 +135,7 @@ add_custom_command(TARGET ${PROJECT_NAME}
 # And this deals with the input files changing. It's not clear why Cmake can't tolerate this project being
 # pushed into the depends list (or listed as the MAIN_DEPENDENCY), but this works so we'll live with it.
 add_custom_command(OUTPUT ${GENERATED_FILES}
-                   COMMAND ${VOGLGEN_EXE} --specdir ${SPEC_DIR} --outinc "${VOGLINCDIR}" --outlinker "${VOGLTRACEDIR}"
+                   COMMAND $<TARGET_FILE:${PROJECT_NAME}> --specdir ${SPEC_DIR} --outinc "${VOGLINCDIR}" --outlinker "${VOGLTRACEDIR}"
                    DEPENDS ${GENERATOR_INPUT_FILES}
                    COMMENT "Running ${PROJECT_NAME} to generate include and linker files for other targets"
                    VERBATIM

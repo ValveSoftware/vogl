@@ -25,7 +25,10 @@ set(SRC_LIST
 )
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
-add_dependencies(${PROJECT_NAME} voglgen_make_inc SDL)
+add_dependencies(${PROJECT_NAME} voglgen_make_inc)
+if (TARGET SDL)
+    add_dependencies(${PROJECT_NAME} SDL)
+endif ()
 
 target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
