@@ -148,7 +148,8 @@ struct vogl_handle_remapper
     DEF(Sampler)                  \
     DEF(VertexArray)              \
     DEF(Sync)                     \
-    DEF(ARBProgram)
+    DEF(ARBProgram)               \
+    DEF(ProgramPipeline)
 
 enum vogl_gl_object_state_type
 {
