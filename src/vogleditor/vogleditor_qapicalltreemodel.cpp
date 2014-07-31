@@ -252,10 +252,6 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
             {
                 total_swaps++;
 
-                vogl_warning_printf("Total # of swaps: \"%d\"!\n", (int)total_swaps);
-                if (520 == total_swaps) {
-                    vogl_warning_printf("Please break here!\n");
-                }
                 // reset the CurParent back to the original parent so that the next frame will be at the root level
                 pCurParent = parent;
 
