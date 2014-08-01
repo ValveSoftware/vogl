@@ -91,6 +91,7 @@ private slots:
     void on_action_Close_triggered();
     void on_actionE_xit_triggered();
     void on_actionExport_API_Calls_triggered();
+    void on_actionEdit_triggered();
 
     void slot_treeView_currentChanged(const QModelIndex & current, const QModelIndex & previous);
 

@@ -2,6 +2,11 @@
 #define VOGLEDITOR_SETTINGS_H
 
 #include "vogl_dynamic_string.h"
+#include "vogl_json.h"
+#include <QString>
+
+class vogleditor_settings;
+extern vogleditor_settings g_settings;
 
 struct vogleditor_setting_struct
 {
@@ -21,6 +26,9 @@ public:
     bool load(const char* settingsFile);
     bool save(const char* settingsFile);
 
+    QString to_string();
+    bool from_string(const char* settingsStr);
+
     int window_position_left() { return m_settings.window_position_left; }
     int window_position_top() { return m_settings.window_position_top; }
     int window_size_width() { return m_settings.window_size_width; }
@@ -39,6 +47,8 @@ private:
     vogleditor_setting_struct m_defaults;
 
     vogl::dynamic_string get_settings_path(const char* settingsFilename);
+    bool to_json(vogl::json_document& doc);
+    bool from_json(const vogl::json_document& doc);
 };
 
 #endif // VOGLEDITOR_SETTINGS_H

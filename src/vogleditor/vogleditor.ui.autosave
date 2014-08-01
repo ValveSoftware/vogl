@@ -391,7 +391,7 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="menuFIle">
     <property name="title">
      <string>&amp;File</string>
     </property>
@@ -408,7 +408,7 @@
     </property>
     <addaction name="actionEdit"/>
    </widget>
-   <addaction name="menuFile"/>
+   <addaction name="menuFIle"/>
    <addaction name="menuSettings"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
@@ -444,9 +444,9 @@
    </property>
   </action>
   <action name="actionEdit">
-    <property name="text">
-      <string>Edit</string>
-    </property>
+   <property name="text">
+    <string>Edit</string>
+   </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

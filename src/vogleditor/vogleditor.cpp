@@ -55,6 +55,7 @@
 #include "vogleditor_qlaunchtracerdialog.h"
 #include "vogleditor_qprogramarbexplorer.h"
 #include "vogleditor_qprogramexplorer.h"
+#include "vogleditor_qsettingsdialog.h"
 #include "vogleditor_qshaderexplorer.h"
 #include "vogleditor_qsnapshotoverlaywidget.h"
 #include "vogleditor_qtimelineview.h"
@@ -72,7 +73,6 @@
 // globals
 //----------------------------------------------------------------------------------------------------------------------
 static QString g_PROJECT_NAME = "Vogl Editor";
-static vogleditor_settings g_settings;
 static const char* g_SETTINGS_FILE = "./vogleditor_settings.json";
 
 VoglEditor::VoglEditor(QWidget *parent) :
@@ -753,6 +753,17 @@ void VoglEditor::on_actionExport_API_Calls_triggered()
             write_child_api_calls(pRoot->child(i), pFile);
         }
         vogl_fclose(pFile);
+    }
+}
+
+void VoglEditor::on_actionEdit_triggered()
+{
+    vogleditor_QSettingsDialog dialog(this);
+    int code = dialog.exec();
+
+    if (code == QDialog::Accepted)
+    {
+        dialog.save(g_SETTINGS_FILE);
     }
 }
 
