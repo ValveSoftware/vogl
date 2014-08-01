@@ -199,23 +199,27 @@ if (MSVC)
   # copy the debug and release dlls for Qt5Widgets, Qt5Core, and Qt5Gui
   set (COPY_DEST ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR})
 
+  get_property(qt5_qmake_executable TARGET ${Qt5Core_QMAKE_EXECUTABLE} PROPERTY IMPORT_LOCATION)
+  EXEC_PROGRAM(${qt5_qmake_executable} ARGS "-query QT_INSTALL_PLUGINS" OUTPUT_VARIABLE QT_INSTALL_PLUGINS)
+  EXEC_PROGRAM(${qt5_qmake_executable} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
+
   # There are also several other files that need to be copied or created
   FILE(WRITE ${CMAKE_CURRENT_LIST_DIR}/qt.conf "[Paths]\nPlugins=.")
   add_custom_target(copy_deps_qt5 ALL
-                    ${CMAKE_COMMAND} -E make_directory ${COPY_DEST}/platforms
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_LIST_DIR}/qt.conf ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Widgets.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Widgetsd.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Core.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Cored.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Gui.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/Qt5Guid.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icudt52.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icuin52.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_BINS}/icuuc52.dll ${COPY_DEST}
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_PLUGINS}/platforms/qwindows.dll ${COPY_DEST}/platforms
-					COMMAND ${CMAKE_COMMAND} -E copy_if_different ${QT_INSTALL_PLUGINS}/platforms/qwindowsd.dll  ${COPY_DEST}/platforms
-					COMMENT "Copying vogleditor Qt5 dependedencies to ${COPY_DEST}"
+                    ${CMAKE_COMMAND} -E make_directory "${COPY_DEST}/platforms"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_LIST_DIR}/qt.conf" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_BINS}/Qt5Widgets.dll" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_BINS}/Qt5Widgetsd.dll" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_BINS}/Qt5Core.dll" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_BINS}/Qt5Cored.dll" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_BINS}/Qt5Gui.dll" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_BINS}/Qt5Guid.dll" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_BINS}/icudt52.dll" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_BINS}/icuin52.dll" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_BINS}/icuuc52.dll" "${COPY_DEST}"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_PLUGINS}/platforms/qwindows.dll" "${COPY_DEST}/platforms"
+					COMMAND ${CMAKE_COMMAND} -E copy_if_different "${QT_INSTALL_PLUGINS}/platforms/qwindowsd.dll"  "${COPY_DEST}/platforms"
+					COMMENT "Copying vogleditor Qt5 dependencies to ${COPY_DEST}"
 					VERBATIM)
 endif()
 
