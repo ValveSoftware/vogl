@@ -91,6 +91,8 @@ namespace vogl
         KTX_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT = 0x8C4F,
         KTX_RGBA_DXT5_S3TC = 0x83A4,
         KTX_RGBA4_DXT5_S3TC = 0x83A5,
+        KTX_COMPRESSED_RGB_FXT1_3DFX = 0x86B0,
+        KTX_COMPRESSED_RGBA_FXT1_3DFX = 0x86B1,
         KTX_COMPRESSED_SIGNED_RED_RGTC1_EXT = 0x8DBC,
         KTX_COMPRESSED_RED_GREEN_RGTC2_EXT = 0x8DBD,
         KTX_COMPRESSED_SIGNED_RED_GREEN_RGTC2_EXT = 0x8DBE,
@@ -189,7 +191,7 @@ namespace vogl
     bool ktx_is_compressed_ogl_fmt(uint32_t ogl_fmt);
     bool ktx_is_packed_pixel_ogl_type(uint32_t ogl_type);
     uint32_t ktx_get_ogl_type_size(uint32_t ogl_type);
-    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint32_t &block_dim, uint32_t &bytes_per_block);
+    bool ktx_get_ogl_fmt_desc(uint32_t ogl_fmt, uint32_t ogl_type, uint32_t &block_dim_x, uint32_t &block_dim_y, uint32_t &bytes_per_block);
     uint32_t ktx_get_ogl_compressed_base_internal_fmt(uint32_t ogl_fmt);
 
     class ktx_texture
@@ -215,7 +217,8 @@ namespace vogl
             m_header = rhs.m_header;
             m_key_values = rhs.m_key_values;
             m_image_data = rhs.m_image_data;
-            m_block_dim = rhs.m_block_dim;
+            m_block_dim_x = rhs.m_block_dim_x;
+            m_block_dim_y = rhs.m_block_dim_y;
             m_bytes_per_block = rhs.m_bytes_per_block;
             m_opposite_endianness = rhs.m_opposite_endianness;
 
@@ -228,7 +231,8 @@ namespace vogl
             m_key_values.clear();
             m_image_data.clear();
 
-            m_block_dim = 0;
+            m_block_dim_x = 0;
+            m_block_dim_y = 0;
             m_bytes_per_block = 0;
 
             m_opposite_endianness = false;
@@ -304,7 +308,7 @@ namespace vogl
 
         bool is_compressed() const
         {
-            return m_block_dim > 1;
+            return (m_block_dim_x > 1) || (m_block_dim_y > 1);
         }
         bool is_uncompressed() const
         {
@@ -320,9 +324,14 @@ namespace vogl
             m_opposite_endianness = flag;
         }
 
-        uint32_t get_block_dim() const
+        uint32_t get_block_dim_x() const
         {
-            return m_block_dim;
+            return m_block_dim_x;
+        }
+
+        uint32_t get_block_dim_y() const
+        {
+            return m_block_dim_y;
         }
         uint32_t get_bytes_per_block() const
         {
@@ -457,7 +466,8 @@ namespace vogl
         ktx_key_value_vec m_key_values;
         ktx_image_data_vec m_image_data;
 
-        uint32_t m_block_dim;
+        uint32_t m_block_dim_x;
+        uint32_t m_block_dim_y;
         uint32_t m_bytes_per_block;
 
         bool m_opposite_endianness;

@@ -136,9 +136,9 @@ int main(int argc, char **argv)
     if (tex.is_compressed())
     {
         vogl_printf("\t    InternalFormat=0x%04x, BaseInternalFormat=0x%04x,\n\t    "
-                    "Compressed texture: BlockDimension=%d, BytesPerBlock=%d\n",
+                    "Compressed texture: BlockDimension=%d x %d, BytesPerBlock=%d\n",
                     tex.get_ogl_internal_fmt(), tex.get_ogl_base_fmt(),
-                    tex.get_block_dim(), tex.get_bytes_per_block());
+                    tex.get_block_dim_x(), tex.get_block_dim_y(), tex.get_bytes_per_block());
 
         src_pxfmt = validate_internal_format(tex.get_ogl_internal_fmt());
         if (src_pxfmt == PXFMT_INVALID)

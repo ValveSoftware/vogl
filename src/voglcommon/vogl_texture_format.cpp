@@ -681,10 +681,11 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             img_fmt = fmt.m_optimum_get_image_fmt;
             img_type = fmt.m_optimum_get_image_type;
 
-            uint32_t block_dim, bytes_per_block;
-            bool success = ktx_get_ogl_fmt_desc(img_fmt, img_type, block_dim, bytes_per_block);
+            uint32_t block_dim_x, block_dim_y, bytes_per_block;
+            bool success = ktx_get_ogl_fmt_desc(img_fmt, img_type, block_dim_x, block_dim_y, bytes_per_block);
             VOGL_VERIFY(success);
-            VOGL_VERIFY(block_dim == 1);
+            VOGL_VERIFY(block_dim_x == 1);
+            VOGL_VERIFY(block_dim_y == 1);
             VOGL_VERIFY(bytes_per_block == actual_size);
 
             if (!ktx_tex.init_2D(1, 1, 1, fmt.m_fmt, img_fmt, img_type))
@@ -722,9 +723,9 @@ void vogl_devel_dump_internal_texture_formats(const vogl_context_info &context_i
             if (block_size == actual_size * 8U)
                 block_size /= 8;
 
-            uint32_t block_dim, bytes_per_block;
-            bool success = ktx_get_ogl_fmt_desc(fmt.m_fmt, GL_UNSIGNED_BYTE, block_dim, bytes_per_block);
-            if ((!success) || (block_dim != block_width) || (block_dim != block_height) || (bytes_per_block != actual_size) || (bytes_per_block != block_size))
+            uint32_t block_dim_x, block_dim_y, bytes_per_block;
+            bool success = ktx_get_ogl_fmt_desc(fmt.m_fmt, GL_UNSIGNED_BYTE, block_dim_x, block_dim_y, bytes_per_block);
+            if ((!success) || (block_dim_x != block_width) || (block_dim_y != block_height) || (bytes_per_block != actual_size) || (bytes_per_block != block_size))
             {
                 printf("ktx_get_ogl_fmt_desc on compressed format failed: %s %s %s %u %i %i %i\n", fmt.m_name.get_ptr(), get_gl_enums().find_name(fmt.m_optimum_get_image_fmt, "gl"), get_gl_enums().find_name(fmt.m_optimum_get_image_type, "gl"), actual_size, block_width, block_height, block_size);
             }

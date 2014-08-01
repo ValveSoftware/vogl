@@ -671,7 +671,7 @@ void get_compression_block_info(const uint32 width,
     block_perblock_stride = pxfmt_per_fmt_info<F>::m_block_size;
     // Just in case "width" isn't a multiple of "block_perblock_stride",
     // potentially scale it up to a multiple of "block_perblock_stride":
-    uint32 scaled_width = round_to_block_size(width, block_perblock_stride);
+    uint32 scaled_width = round_to_block_size(width, block_width);
     // The per-row stride is a pixel stride
     block_perrow_stride = scaled_width;
 }
