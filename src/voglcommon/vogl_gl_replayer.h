@@ -68,7 +68,8 @@ enum vogl_gl_replayer_flags
     cGLReplayerDumpBackbufferHashes = 0x00004000,
     cGLReplayerSumHashing = 0x00008000,
     cGLReplayerClearUnintializedBuffers = 0x00010000,
-    cGLReplayerDisableRestoreFrontBuffer = 0x00020000
+    cGLReplayerDisableRestoreFrontBuffer = 0x00020000,
+    cGLReplayerFSPreprocessor = 0x00040000, // run FSs through preprocessor prior to glShaderSource call
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -166,6 +167,24 @@ public:
     int64_t get_dump_framebuffer_on_draw_last_gl_call_index() const
     {
         return m_dump_framebuffer_on_draw_last_gl_call_index;
+    }
+    
+    const dynamic_string &get_fs_preprocessor() const
+    {
+        return m_fs_preprocessor;
+    }
+    void set_fs_preprocessor(const dynamic_string &str)
+    {
+        m_fs_preprocessor = str;    
+    }
+    
+    const dynamic_string &get_fs_preprocessor_options() const
+    {
+        return m_fs_preprocessor_options;
+    }
+    void set_fs_preprocessor_options(const dynamic_string &str)
+    {
+        m_fs_preprocessor_options = str;    
     }
 
     void set_allow_snapshot_restoring(bool bAllowed)
@@ -306,6 +325,7 @@ public:
     bool write_trim_file(uint32_t flags, const dynamic_string &trim_filename, uint32_t trim_len, vogl_trace_file_reader &trace_reader, dynamic_string *pSnapshot_id = NULL);
 
     void snapshot_backbuffer();
+    const vogl_client_memory_array run_fs_preprocessor(vogl_client_memory_array trace_strings_glchar_ptr_array, GLuint &size);
 
 private:
     status_t handle_ShaderSource(GLhandleARB trace_object,
@@ -328,6 +348,8 @@ private:
     int64_t m_dump_framebuffer_on_draw_frame_index;
     int64_t m_dump_framebuffer_on_draw_first_gl_call_index;
     int64_t m_dump_framebuffer_on_draw_last_gl_call_index;
+    dynamic_string m_fs_preprocessor;
+    dynamic_string m_fs_preprocessor_options;
 
     bool m_allow_snapshot_restoring;
 
