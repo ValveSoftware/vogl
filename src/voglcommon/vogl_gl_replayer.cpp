@@ -208,8 +208,6 @@ vogl_gl_replayer::vogl_gl_replayer()
       m_dump_framebuffer_on_draw_frame_index(-1),
       m_dump_framebuffer_on_draw_first_gl_call_index(-1),
       m_dump_framebuffer_on_draw_last_gl_call_index(-1),
-      m_fs_preprocessor("fs_preprocessor"),
-      m_fs_preprocessor_options(""),
       m_allow_snapshot_restoring(true),
       m_ctypes_packet(&m_trace_gl_ctypes),
       m_trace_pointer_size_in_bytes(0),
@@ -243,6 +241,7 @@ vogl_gl_replayer::vogl_gl_replayer()
     VOGL_FUNC_TRACER
 
     m_trace_gl_ctypes.init();
+    m_fs_pp = vogl_fs_preprocessor::get_instance();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -375,8 +374,7 @@ void vogl_gl_replayer::deinit()
     m_dump_framebuffer_on_draw_frame_index = -1;
     m_dump_framebuffer_on_draw_first_gl_call_index = -1;
     m_dump_framebuffer_on_draw_last_gl_call_index = -1;
-    m_fs_preprocessor = "fs_preprocessor";
-    m_fs_preprocessor_options = "";
+    m_fs_pp->reset();
 
     m_dump_frontbuffer_filename.clear();
 
@@ -3632,48 +3630,17 @@ vogl_gl_replayer::status_t vogl_gl_replayer::handle_ShaderSource(GLhandleARB tra
         GL_ENTRYPOINT(glGetShaderiv)(replay_object, GL_SHADER_TYPE, &type);
         if (GL_FRAGMENT_SHADER == type)
         {
-            // TODO : Right now just storing in/out shaders in hard-coded tmp files. Improve this.
-            //dynamic_string in_fs_filename(cVarArg, "tmp_shader_in_%i.frag", replay_object);
-            dynamic_string in_fs_filename("tmp_shader_in.frag");
-            dynamic_string_array shader_strings;
-            for (GLsizei i = 0; i < count; i++)
-                shader_strings.push_back(dynamic_string(strings[i], lengths[i]));
-            bool success = file_utils::write_text_file(in_fs_filename.get_ptr(), shader_strings, true);
-            if (success)
+            // Assuming that m_fs_pp class was instantiated when this class was and that it already has pp cmd & option info
+            // TODO : Need to handle the case where count != 1
+            m_fs_pp->set_shader(strings, lengths);
+            if (m_fs_pp->run())
             {
-                //const dynamic_string out_shader_filename(cVarArg, "tmp_shader_out_%i.frag", replay_object);
-                const dynamic_string out_shader_filename("tmp_shader_out.frag");
-                dynamic_string pp_cmd(cVarArg, "%s %s %s 1>%s", m_fs_preprocessor.get_ptr(), m_fs_preprocessor_options.get_ptr(), in_fs_filename.get_ptr(), out_shader_filename.get_ptr());
-                system(pp_cmd.get_ptr());
-                dynamic_string_array updated_fs_lines;
-                if (file_utils::read_text_file(out_shader_filename.get_ptr(), updated_fs_lines, file_utils::cRTFTrim | file_utils::cRTFIgnoreEmptyLines | file_utils::cRTFPrintErrorMessages))
-                {
-                    // TODO : Error handling here to parse for error cases in the pre-processor output
-                    // We successfully read updated shader so now use updated data
-                    count = updated_fs_lines.size();
-                    dynamic_string new_shader_string;
-                    // When trying to use multi-line shader string as read into updated_fs_lines there were
-                    //   various compile errors so for now we just smash all shader lines into a single string
-                    for (GLsizei i = 0; i < count; i++)
-                    {
-                        new_shader_string.append(updated_fs_lines[i].get_ptr());
-                        new_shader_string.append("\n");
-                    }
-                    count = 1;
-                    lengths[0] = new_shader_string.get_len();
-                    strings[0] = reinterpret_cast<const GLcharARB *>(new_shader_string.get_ptr());
-                }
-                else
-                {
-                    vogl_error_printf("Could not read in new FS for id #%i that was written out by FS pre-processor.\n", replay_object);
-                    return cStatusHardFailure;
-                }
+                count = m_fs_pp->get_count();
+                strings[0] = m_fs_pp->get_output_shader();
+                lengths[0] = m_fs_pp->get_length();
             }
             else
-            {
-                vogl_error_printf("Could not write out FS id #%i to a file to input into FS pre-processor.\n", replay_object);
                 return cStatusHardFailure;
-            }
         }
     }
     // no pre-processor so just use passed in values
@@ -3691,7 +3658,6 @@ vogl_gl_replayer::status_t vogl_gl_replayer::handle_ShaderSource(GLhandleARB tra
                                          trace_strings_glchar_ptr_array.get_ptr() ? strings.get_ptr() : NULL,
                                          pTrace_lengths ? lengths.get_ptr() : NULL);
     }
-
     return cStatusOK;
 }
 

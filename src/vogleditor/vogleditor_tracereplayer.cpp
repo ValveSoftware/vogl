@@ -32,7 +32,6 @@ void vogleditor_traceReplayer::enable_screenshot_capturing(std::string screensho
 void vogleditor_traceReplayer::enable_fs_preprocessor(std::string fs_preprocessor)
 {
     m_fs_preprocessor = fs_preprocessor;
-    // ?? TODO : How to handle fs_preprocessor_options here??
 }
 
 bool vogleditor_traceReplayer::process_events()

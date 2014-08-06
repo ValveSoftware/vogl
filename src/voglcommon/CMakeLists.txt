@@ -42,6 +42,7 @@ set(SRC_LIST
     vogl_query_state.cpp
     vogl_shader_state.cpp
     vogl_program_state.cpp
+    vogl_fs_preprocessor.cpp
     vogl_gl_object.cpp
     vogl_gl_state_snapshot.cpp
     vogl_vao_state.cpp
