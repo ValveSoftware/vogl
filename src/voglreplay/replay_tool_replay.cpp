@@ -1453,7 +1453,7 @@ bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
     rdata.keyframe_base_filename = g_command_line_params().get_value_as_string("keyframe_base_filename");
     rdata.take_snapshot_at_frame_index = g_command_line_params().get_value_as_int64("pause_on_frame", 0, -1);
     
-    rdata.replayer.set_fs_preprocessor(g_command_line_params().get_value_as_string("fs_preprocessor", 0, "fs_preprocessor"));
+    rdata.replayer.set_fs_preprocessor(g_command_line_params().get_value_as_string("fs_preprocessor", 0, ""));
     rdata.replayer.set_fs_preprocessor_options(g_command_line_params().get_value_as_string("fs_preprocessor_options", 0, ""));
 
     if (!rdata.keyframe_base_filename.is_empty())

@@ -35,6 +35,7 @@ vogl_shader_state::vogl_shader_state()
       m_compile_status(false),
       m_is_valid(false)
 {
+    m_fs_pp = vogl_fs_preprocessor::get_instance();
     VOGL_FUNC_TRACER
 }
 
@@ -180,8 +181,23 @@ bool vogl_shader_state::restore(const vogl_context_info &context_info, vogl_hand
     if (m_source.get_len())
     {
         GLchar *const pStr = (GLchar *)(m_source.get_ptr());
+        // Assuming that m_fs_pp class was instantiated when this class was and that it already has pp cmd & option info
+        if ((GL_FRAGMENT_SHADER == m_shader_type) && m_fs_pp->enabled())
+        {
+            m_fs_pp->set_shader(pStr, m_source.get_len());
+            if (!m_fs_pp->run())
+                return false;
 
-        GL_ENTRYPOINT(glShaderSource)(static_cast<GLuint>(handle), 1, &pStr, NULL);
+            GLchar *const pOutStr = (GLchar *)m_fs_pp->get_output_shader();
+            vogl::vector<GLint> lengths(1);
+            lengths[0] = m_fs_pp->get_length();
+            GL_ENTRYPOINT(glShaderSource)(static_cast<GLuint>(handle), m_fs_pp->get_count(), &pOutStr, lengths.get_ptr());
+        }
+        else
+        {
+            GL_ENTRYPOINT(glShaderSource)(static_cast<GLuint>(handle), 1, &pStr, NULL);
+        }
+
         if (vogl_check_gl_error())
             goto handle_error;
 

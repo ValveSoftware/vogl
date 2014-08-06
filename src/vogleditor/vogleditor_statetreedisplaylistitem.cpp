@@ -1,6 +1,5 @@
 #include "vogleditor_statetreedisplaylistitem.h"
 #include "vogl_display_list_state.h"
-#include "vogleditor_output.h"
 
 
 vogleditor_stateTreeDisplaylistItem::vogleditor_stateTreeDisplaylistItem(QString name, QString value, vogleditor_stateTreeItem* parentNode, vogl_display_list_state* pState)
@@ -53,8 +52,7 @@ vogleditor_stateTreeDisplaylistItem::vogleditor_stateTreeDisplaylistItem(QString
         }
         else
         {
-            //VOGL_ASSERT(!"Encountered an invalid displaylist.");
-            vogleditor_output_warning("Encountered an invalid displaylist.");
+            VOGL_ASSERT(!"Encountered an invalid displaylist.");
         }
     }
 }
