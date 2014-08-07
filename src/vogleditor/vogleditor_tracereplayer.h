@@ -31,6 +31,7 @@ public:
     bool stop();
 
     void enable_screenshot_capturing(std::string screenshot_prefix);
+    void enable_fs_preprocessor(std::string fs_preprocessor);
 
 private:
 
@@ -44,6 +45,8 @@ private:
     vogl_replay_window m_window;
 
     std::string m_screenshot_prefix;
+    std::string m_fs_preprocessor;
+    std::string m_fs_preprocessor_options;
 };
 
 #endif // VOGLEDITOR_TRACEREPLAYER_H

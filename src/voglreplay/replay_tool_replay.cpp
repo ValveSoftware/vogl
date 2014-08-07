@@ -103,6 +103,8 @@ static command_line_param_desc g_command_line_param_descs_replay[] =
     { "disable_frontbuffer_restore", 0, false, "Replay: Do not restore the front buffer's contents when restoring a state snapshot" },
     { "pause_on_exit", 0, false, "Replay: Wait for a keypress on exit" },
     { "swap_sleep", 1, false, "Replay: Sleep for X milliseconds after every swap" },
+    { "fs_preprocessor", 1, false, "Replay: Run all FS through specified pre-processor prior to glCreateShader() call and substitute the shader output by the pre-processor into the glCreateShader() call." },
+    { "fs_preprocessor_options", 1, false, "Replay: Options to pass to the FS pre-processor.  Must also specify --fs_preprocessor" },
 };
 
 static const struct
@@ -128,6 +130,7 @@ static const struct
     { "dump_framebuffer_on_draw", cGLReplayerDumpFramebufferOnDraws },
     { "clear_uninitialized_bufs", cGLReplayerClearUnintializedBuffers },
     { "disable_frontbuffer_restore", cGLReplayerDisableRestoreFrontBuffer },
+    { "fs_preprocessor", cGLReplayerFSPreprocessor },
 };
 
 struct replay_data_t
@@ -1449,6 +1452,9 @@ bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
 
     rdata.keyframe_base_filename = g_command_line_params().get_value_as_string("keyframe_base_filename");
     rdata.take_snapshot_at_frame_index = g_command_line_params().get_value_as_int64("pause_on_frame", 0, -1);
+    
+    rdata.replayer.set_fs_preprocessor(g_command_line_params().get_value_as_string("fs_preprocessor", 0, ""));
+    rdata.replayer.set_fs_preprocessor_options(g_command_line_params().get_value_as_string("fs_preprocessor_options", 0, ""));
 
     if (!rdata.keyframe_base_filename.is_empty())
     {

@@ -38,6 +38,7 @@
 #include "vogl_replay_window.h"
 #include "vogl_gl_state_snapshot.h"
 #include "vogl_blob_manager.h"
+#include "vogl_fs_preprocessor.h"
 
 // TODO: Make this a command line param
 #define VOGL_MAX_CLIENT_SIDE_VERTEX_ARRAY_SIZE (8U * 1024U * 1024U)
@@ -68,7 +69,8 @@ enum vogl_gl_replayer_flags
     cGLReplayerDumpBackbufferHashes = 0x00004000,
     cGLReplayerSumHashing = 0x00008000,
     cGLReplayerClearUnintializedBuffers = 0x00010000,
-    cGLReplayerDisableRestoreFrontBuffer = 0x00020000
+    cGLReplayerDisableRestoreFrontBuffer = 0x00020000,
+    cGLReplayerFSPreprocessor = 0x00040000, // run FSs through preprocessor prior to glShaderSource call
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -166,6 +168,16 @@ public:
     int64_t get_dump_framebuffer_on_draw_last_gl_call_index() const
     {
         return m_dump_framebuffer_on_draw_last_gl_call_index;
+    }
+
+    void set_fs_preprocessor(const dynamic_string &str)
+    {
+        m_fs_pp->set_pp(str);
+    }
+    
+    void set_fs_preprocessor_options(const dynamic_string &str)
+    {
+        m_fs_pp->set_pp_opts(str);
     }
 
     void set_allow_snapshot_restoring(bool bAllowed)
@@ -328,6 +340,7 @@ private:
     int64_t m_dump_framebuffer_on_draw_frame_index;
     int64_t m_dump_framebuffer_on_draw_first_gl_call_index;
     int64_t m_dump_framebuffer_on_draw_last_gl_call_index;
+    vogl_fs_preprocessor* m_fs_pp;
 
     bool m_allow_snapshot_restoring;
 

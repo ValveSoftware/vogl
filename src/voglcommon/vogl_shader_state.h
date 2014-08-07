@@ -35,6 +35,7 @@
 #include "vogl_common.h"
 #include "vogl_general_context_state.h"
 #include "vogl_blob_manager.h"
+#include "vogl_fs_preprocessor.h"
 
 class vogl_shader_state : public vogl_gl_object_state
 {
@@ -128,6 +129,7 @@ private:
     dynamic_string m_source;
     mutable dynamic_string m_source_blob_id; // only use for informational purposes
     mutable bool m_restore_compile_status;
+    vogl_fs_preprocessor* m_fs_pp;
 
     bool m_marked_for_deletion;
     bool m_compile_status;

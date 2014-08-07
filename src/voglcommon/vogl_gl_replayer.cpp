@@ -241,6 +241,7 @@ vogl_gl_replayer::vogl_gl_replayer()
     VOGL_FUNC_TRACER
 
     m_trace_gl_ctypes.init();
+    m_fs_pp = vogl_fs_preprocessor::get_instance();
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -373,6 +374,7 @@ void vogl_gl_replayer::deinit()
     m_dump_framebuffer_on_draw_frame_index = -1;
     m_dump_framebuffer_on_draw_first_gl_call_index = -1;
     m_dump_framebuffer_on_draw_last_gl_call_index = -1;
+    m_fs_pp->reset();
 
     m_dump_frontbuffer_filename.clear();
 
@@ -3621,7 +3623,27 @@ vogl_gl_replayer::status_t vogl_gl_replayer::handle_ShaderSource(GLhandleARB tra
 
         strings[i] = reinterpret_cast<const GLcharARB *>(blob.get_ptr());
     }
-
+    if (m_flags & cGLReplayerFSPreprocessor)
+    {
+        // Query the shader type to verify if it's an FS
+        GLint type = -1;
+        GL_ENTRYPOINT(glGetShaderiv)(replay_object, GL_SHADER_TYPE, &type);
+        if (GL_FRAGMENT_SHADER == type)
+        {
+            // Assuming that m_fs_pp class was instantiated when this class was and that it already has pp cmd & option info
+            // TODO : Need to handle the case where count != 1
+            m_fs_pp->set_shader(strings, lengths);
+            if (m_fs_pp->run())
+            {
+                count = m_fs_pp->get_count();
+                strings[0] = m_fs_pp->get_output_shader();
+                lengths[0] = m_fs_pp->get_length();
+            }
+            else
+                return cStatusHardFailure;
+        }
+    }
+    // no pre-processor so just use passed in values
     if (m_pCur_gl_packet->get_entrypoint_id() == VOGL_ENTRYPOINT_glShaderSource)
     {
         GL_ENTRYPOINT(glShaderSource)(replay_object,
