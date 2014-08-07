@@ -36,7 +36,6 @@
 #include "vogl_miniz.h"
 #include "vogl_jpge.h"
 #include "vogl_cfile_stream.h"
-#include "vogl_mipmapped_texture.h"
 #include "vogl_buffer_stream.h"
 #include "vogl_vector2d.h"
 
@@ -1485,70 +1484,6 @@ namespace vogl
             var = math::maximum<double>(var, 0.0f);
 
             return sqrt(var);
-        }
-
-        uint8_t *read_image_from_memory(const uint8_t *pImage, int nSize, int *pWidth, int *pHeight, int *pActualComps, int req_comps, const char *pFilename)
-        {
-            *pWidth = 0;
-            *pHeight = 0;
-            *pActualComps = 0;
-
-            if ((req_comps < 1) || (req_comps > 4))
-                return NULL;
-
-            mipmapped_texture tex;
-
-            buffer_stream buf_stream(pImage, nSize);
-            buf_stream.set_name(pFilename);
-            data_stream_serializer serializer(buf_stream);
-
-            if (!tex.read_from_stream(serializer))
-                return NULL;
-
-            if (tex.is_packed())
-            {
-                if (!tex.unpack_from_dxt(true))
-                    return NULL;
-            }
-
-            image_u8 img;
-            image_u8 *pImg = tex.get_level_image(0, 0, 0, img);
-            if (!pImg)
-                return NULL;
-
-            *pWidth = tex.get_width();
-            *pHeight = tex.get_height();
-
-            if (pImg->has_alpha())
-                *pActualComps = 4;
-            else if (pImg->is_grayscale())
-                *pActualComps = 1;
-            else
-                *pActualComps = 3;
-
-            uint8_t *pDst = NULL;
-            if (req_comps == 4)
-            {
-                pDst = (uint8_t *)vogl_malloc(tex.get_total_pixels() * sizeof(uint32_t));
-                uint8_t *pSrc = (uint8_t *)pImg->get_ptr();
-                memcpy(pDst, pSrc, tex.get_total_pixels() * sizeof(uint32_t));
-            }
-            else
-            {
-                image_u8 luma_img;
-                if (req_comps == 1)
-                {
-                    luma_img = *pImg;
-                    luma_img.convert_to_grayscale();
-                    pImg = &luma_img;
-                }
-
-                pixel_packer packer(req_comps, 8);
-                uint32_t n;
-                pDst = image_utils::pack_image(*pImg, packer, n);
-            }
-
-            return pDst;
         }
 
         // http://lodev.org/cgtutor/fourier.html

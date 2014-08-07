@@ -119,7 +119,7 @@ bool vogl_context_snapshot::capture(const vogl_context_desc &desc, const vogl_co
         }
 
         // Keep this list in sync with vogl_gl_object_state_type (order doesn't matter, just make sure all valid object types are present)
-        const vogl_gl_object_state_type s_object_type_capture_order[] = { cGLSTTexture, cGLSTBuffer, cGLSTSampler, cGLSTQuery, cGLSTRenderbuffer, cGLSTFramebuffer, cGLSTVertexArray, cGLSTShader, cGLSTProgram, cGLSTSync, cGLSTARBProgram };
+        const vogl_gl_object_state_type s_object_type_capture_order[] = { cGLSTTexture, cGLSTBuffer, cGLSTSampler, cGLSTQuery, cGLSTRenderbuffer, cGLSTFramebuffer, cGLSTVertexArray, cGLSTShader, cGLSTProgram, cGLSTSync, cGLSTARBProgram, cGLSTProgramPipeline };
         VOGL_ASSUME(VOGL_ARRAY_SIZE(s_object_type_capture_order) == cGLSTTotalTypes - 1);
 
         for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(s_object_type_capture_order); i++)
@@ -319,6 +319,17 @@ bool vogl_context_snapshot::capture_objects(vogl_gl_object_state_type state_type
 
                         handles_to_capture.push_back(std::make_pair(handle, def.get_target()));
                     }
+                }
+
+                break;
+            }
+            case cGLSTProgramPipeline:
+            {
+                for (uint32_t i = 0; i < capture_params.m_program_pipelines.size(); i++)
+                {
+                    const vogl_handle_tracker::handle_def &def = capture_params.m_program_pipelines[i];
+                    if (def.is_valid())
+                        handles_to_capture.push_back(std::make_pair(def.get_inv_handle(), def.get_target()));
                 }
 
                 break;

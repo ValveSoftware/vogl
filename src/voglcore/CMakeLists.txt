@@ -45,7 +45,6 @@ set(SRC_LIST
     vogl_miniz.cpp
     vogl_miniz_zip.cpp
     vogl_miniz_zip_test.cpp
-    vogl_mipmapped_texture.cpp
     vogl_pixel_format.cpp
     vogl_platform.cpp
     vogl_port.cpp

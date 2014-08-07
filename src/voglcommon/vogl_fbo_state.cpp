@@ -373,8 +373,12 @@ bool vogl_framebuffer_state::restore(const vogl_context_info &context_info, vogl
                     if (trace_handle)
                     {
                         GLuint rbo_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_RENDER_BUFFERS, trace_handle));
-                        if (!rbo_handle)
-                            goto handle_error;
+                        if (!rbo_handle) {
+                            vogl_warning_printf("Failed mapping RenderBuffer handle %d\n", trace_handle);
+                            break;
+                            //goto handle_error;
+                        }
+                            
 
                         GL_ENTRYPOINT(glFramebufferRenderbuffer)(GL_DRAW_FRAMEBUFFER, attachment_target, GL_RENDERBUFFER, rbo_handle);
                         VOGL_CHECK_GL_ERROR;

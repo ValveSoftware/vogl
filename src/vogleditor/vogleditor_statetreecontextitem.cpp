@@ -12,6 +12,7 @@
 #include "vogleditor_statetreesyncitem.h"
 #include "vogleditor_statetreetexenvitem.h"
 #include "vogleditor_statetreevertexarrayitem.h"
+#include "vogleditor_statetreeprogrampipelineitem.h"
 #include "vogl_sync_object.h"
 #include "vogleditor_statetreetexenvitem.h"
 #include "vogleditor_statetreesampleritem.h"
@@ -323,6 +324,19 @@ vogleditor_stateTreeContextItem::vogleditor_stateTreeContextItem(QString name, Q
                     pNodeARBProgram->appendChild(pNode);
                     break;
                 }
+                case cGLSTProgramPipeline:
+                {
+                    vogl_sso_state* pSSO = static_cast<vogl_sso_state*>(*iter);
+                    if (!pSSO->is_valid())
+                    {
+                        break;
+                    }
+                    vogleditor_stateTreeProgramPipelineItem* pNode = new vogleditor_stateTreeProgramPipelineItem(int64_to_string(pSSO->get_snapshot_handle()), pSSO->get_snapshot_handle(), pNodeProgramPipeline, *pSSO);
+                    m_programPipelineItems.push_back(pNode);
+                    pNodeProgramPipeline->appendChild(pNode);
+
+                    break;
+                }
                 case cGLSTInvalid:
                 default:
                 {
@@ -575,6 +589,21 @@ void vogleditor_stateTreeContextItem::set_diff_base_state(const vogl_context_sna
         {
             const vogl_arb_program_state* pDiffObj = static_cast<const vogl_arb_program_state*>(*diffIter);
             if (pDiffObj->get_snapshot_handle() == (*iter)->get_current_state()->get_snapshot_handle())
+            {
+                (*iter)->set_diff_base_state(pDiffObj);
+                break;
+            }
+        }
+    }
+    
+    vogl_gl_object_state_ptr_vec programPipelineObjects;
+    m_pDiffBaseState->get_all_objects_of_category(cGLSTProgramPipeline, programPipelineObjects);
+    for (vogleditor_stateTreeProgramPipelineItem** iter = m_programPipelineItems.begin(); iter != m_programPipelineItems.end(); iter++)
+    {
+        for (vogl_gl_object_state** diffIter = programPipelineObjects.begin(); diffIter != programPipelineObjects.end(); diffIter++)
+        {
+            const vogl_sso_state* pDiffObj = static_cast<const vogl_sso_state*>(*diffIter);
+            if (pDiffObj->get_snapshot_handle() == (*iter)->get_handle())
             {
                 (*iter)->set_diff_base_state(pDiffObj);
                 break;

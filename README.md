@@ -21,6 +21,8 @@ https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/chroot_configure.sh
 
 ## Get Source and Build ##
 
+#### Linux ####
+
 ```
 git clone https://github.com/ValveSoftware/vogl.git  
 mkdir -p vogl/vogl_build/release64 && cd $_  
@@ -32,6 +34,22 @@ The binaries are placed in the vogl/vogl_build directory.
 
 For debug builds, use "-DCMAKE_BUILD_TYPE=Debug"  
 For 32-bit builds, use "-DBUILD_X64=Off"  
+
+#### Windows ####
+
+```
+git clone https://github.com/ValveSoftware/vogl.git
+mkdir -p vogl\vogl_build\x64
+cd vogl\vogl_build\x64
+cmake -DQt5_DIR="C:\Qt\5.3\msvc2013_64_opengl\lib\cmake\Qt5" -G "Visual Studio 12 2013 Win64" ..\..
+cd ..\..\..\
+mkdir -p vogl\vogl_build\win32
+cd vogl\vogl_build\win32
+cmake -DQt5_DIR="C:\Qt\5.3\msvc2013_opengl\lib\cmake\Qt5" -G "Visual Studio 12 2013" ..\..
+```
+
+Note: The path to Qt5 might need to be adjusted depending on your install location.
+After compiling with Visual Studio, the binaries are placed in the vogl\vogl_build\Release (or Debug) directory.
 
 ## Capturing ##
 

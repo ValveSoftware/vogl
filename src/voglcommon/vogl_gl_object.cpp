@@ -36,6 +36,7 @@
 #include "vogl_renderbuffer_state.h"
 #include "vogl_query_state.h"
 #include "vogl_vao_state.h"
+#include "vogl_sso_state.h"
 #include "vogl_sync_object.h"
 #include "vogl_gl_state_snapshot.h"
 #include "vogl_arb_program_state.h"
@@ -260,6 +261,12 @@ void vogl_destroy_gl_object(vogl_gl_object_state_type type, GLuint64 handle)
             GL_ENTRYPOINT(glDeleteProgramsARB)(1, &handle32);
             break;
         }
+        case cGLSTProgramPipeline:
+        {
+            VOGL_ASSERT(handle == handle32);
+            GL_ENTRYPOINT(glDeleteProgramPipelines)(1, &handle32);
+            break;
+        }
         default:
             VOGL_ASSERT_ALWAYS;
             break;
@@ -295,6 +302,8 @@ vogl_gl_object_state *vogl_gl_object_state_factory(vogl_gl_object_state_type typ
             return vogl_new(vogl_sync_state);
         case cGLSTARBProgram:
             return vogl_new(vogl_arb_program_state);
+        case cGLSTProgramPipeline:
+            return vogl_new(vogl_sso_state);
         default:
             VOGL_ASSERT_ALWAYS;
             break;

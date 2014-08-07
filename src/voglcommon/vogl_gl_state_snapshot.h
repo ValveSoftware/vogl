@@ -51,6 +51,7 @@
 #include "vogl_arb_program_state.h"
 #include "vogl_handle_tracker.h"
 #include "vogl_default_framebuffer_state.h"
+#include "vogl_sso_state.h"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Types
@@ -117,6 +118,7 @@ public:
         : m_rbos(VOGL_NAMESPACE_RENDER_BUFFERS),
           m_textures(VOGL_NAMESPACE_TEXTURES),
           m_objs(VOGL_NAMESPACE_PROGRAMS),
+          m_program_pipelines(VOGL_NAMESPACE_PIPELINES),
           m_filter_program_handles(false)
     {
         VOGL_FUNC_TRACER
@@ -138,6 +140,7 @@ public:
         m_rbos.clear();
         m_textures.clear();
         m_objs.clear();
+        m_program_pipelines.clear();
 
         m_linked_programs.clear();
 
@@ -167,6 +170,7 @@ public:
     vogl_handle_tracker m_rbos;
     vogl_handle_tracker m_textures;
     vogl_handle_tracker m_objs;
+    vogl_handle_tracker m_program_pipelines;
 
     vogl_handle_hash_set m_program_handles_filter;
     bool m_filter_program_handles;
