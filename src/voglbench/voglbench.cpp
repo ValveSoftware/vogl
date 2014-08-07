@@ -79,6 +79,8 @@ static command_line_param_desc g_command_line_param_descs[] =
     { "quiet", 0, false, "Disable warning, verbose, and debug output" },
     { "verbose", 0, false, "Enable verbose output" },
     { "debug", 0, false, "Enable verbose debug information" },
+    { "fs_preprocessor", 1, false, "Replay: Run all FS through specified pre-processor prior to glCreateShader() call and substitute the shader output by the pre-processor into the glCreateShader() call." },
+    { "fs_preprocessor_options", 1, false, "Replay: Options to pass to the FS pre-processor.  Must also specify --fs_preprocessor" },
 };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -262,6 +264,7 @@ static uint get_replayer_flags_from_command_line_params()
         { "force_debug_context", cGLReplayerForceDebugContexts },
         { "debug", cGLReplayerDebugMode },
         { "lock_window_dimensions", cGLReplayerLockWindowDimensions },
+        { "fs_preprocessor", cGLReplayerFSPreprocessor },
     };
 
     for (uint i = 0; i < sizeof(s_replayer_command_line_params) / sizeof(s_replayer_command_line_params[0]); i++)
@@ -490,11 +493,21 @@ static uint get_replayer_flags_from_command_line_params()
                     if (!endless_mode)
                     {
                         double time_since_start = tm.get_elapsed_secs();
-
-                        vogl_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
-                        break;
+                        if (replayer.get_flags() & cGLReplayerFSPreprocessor)
+                        {
+                            double fs_pp_time = replayer.get_fs_pp_time();
+                            vogl_printf("Ran with FS Preprocessor (FSPP) enabled:\n");
+                            vogl_printf("FSPP Time: %.3f secs\n", fs_pp_time);
+                            vogl_printf("Overall Stats:             %u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+                            vogl_printf("Stats Excluding FSPP time: %u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start-fs_pp_time, replayer.get_frame_index() / (time_since_start-fs_pp_time));
+                            break;
+                        }
+                        else
+                        {
+                            vogl_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+                            break;
+                        }
                     }
-
                     vogl_printf("Resetting state and rewinding back to frame 0\n");
 
                     replayer.reset_state();

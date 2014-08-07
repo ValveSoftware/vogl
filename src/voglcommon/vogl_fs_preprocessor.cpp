@@ -37,9 +37,12 @@ vogl_fs_preprocessor::vogl_fs_preprocessor()
       m_in_length(0),
       m_in_shader(""),
       m_output_shader(""),
+      m_tm(0),
+      m_time_to_run_pp(0),
       m_enabled(false)
 {
     VOGL_FUNC_TRACER
+    m_tm.start();
     atexit(&cleanup);
 }
 
@@ -63,10 +66,14 @@ void vogl_fs_preprocessor::reset()
     m_in_length = 0;
     m_in_shader = "";
     m_output_shader = "";
+    m_tm.stop();
+    m_tm.start();
+    m_time_to_run_pp = 0;
     m_enabled = false;
 }
 
-bool vogl_fs_preprocessor::run()
+// Internal class function wrapped by public run() call so that we can easily time how long pp takes
+bool vogl_fs_preprocessor::_run()
 {
     // Write input shader to a file to feed into pp
     dynamic_string in_fs_filename("tmp_shader_in.frag");
@@ -109,6 +116,14 @@ bool vogl_fs_preprocessor::run()
         return false;
     }
     return true;
+}
+
+bool vogl_fs_preprocessor::run()
+{
+    double pp_start = m_tm.get_elapsed_secs();
+    bool status = _run();
+    m_time_to_run_pp += m_tm.get_elapsed_secs() - pp_start;
+    return status;
 }
 
 void vogl_fs_preprocessor::set_shader(vogl::vector<const GLcharARB *> in_shader_vec, vogl::vector<GLint> lengths)
