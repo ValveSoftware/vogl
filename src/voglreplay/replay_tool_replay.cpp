@@ -105,6 +105,7 @@ static command_line_param_desc g_command_line_param_descs_replay[] =
     { "swap_sleep", 1, false, "Replay: Sleep for X milliseconds after every swap" },
     { "fs_preprocessor", 1, false, "Replay: Run all FS through specified pre-processor prior to glCreateShader() call and substitute the shader output by the pre-processor into the glCreateShader() call." },
     { "fs_preprocessor_options", 1, false, "Replay: Options to pass to the FS pre-processor.  Must also specify --fs_preprocessor" },
+    { "fs_preprocessor_prefix", 1, false, "Replay: Dir/prefix to append to FS input to PP and output from PP.  Must also specify --fs_preprocessor" },
 };
 
 static const struct
@@ -1337,6 +1338,12 @@ static int do_non_interactive_mode(replay_data_t &rdata)
             double loop_time = time_since_start - time_looping_started;
             unsigned int loop_frames = (rdata.snapshot_loop_end_frame - rdata.snapshot_loop_start_frame) * num_loops;
 
+            if (rdata.replayer.get_flags() & cGLReplayerFSPreprocessor)
+            {
+                double fs_pp_time = rdata.replayer.get_fs_pp_time();
+                vogl_printf("Ran with FS Preprocessor (FSPP) enabled:\n");
+                vogl_printf("FSPP Time: %.3f secs\n", fs_pp_time);
+            }
             unsigned int initial_frames = replayer.get_total_swaps() - loop_frames;
             vogl_printf("Initial: %u total swaps, %.3f secs, %3.3f avg fps\n", initial_frames, time_looping_started, initial_frames / time_looping_started);
             vogl_printf("Looping: %u total swaps, %.3f secs, %3.3f avg fps\n", loop_frames, loop_time, loop_frames / loop_time);
@@ -1465,6 +1472,7 @@ bool tool_replay_mode(vogl::vector<command_line_param_desc> *desc)
     
     rdata.replayer.set_fs_preprocessor(g_command_line_params().get_value_as_string("fs_preprocessor", 0, ""));
     rdata.replayer.set_fs_preprocessor_options(g_command_line_params().get_value_as_string("fs_preprocessor_options", 0, ""));
+    rdata.replayer.set_fs_preprocessor_prefix(g_command_line_params().get_value_as_string("fs_preprocessor_prefix", 0, ""));
 
     if (!rdata.keyframe_base_filename.is_empty())
     {

@@ -284,9 +284,10 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file
        m_pTraceReplayer->set_fs_preprocessor(m_fs_preprocessor.c_str());
        // Only check FSpp options when FS preprocessor is enabled
        if (m_fs_preprocessor_options.size() > 0)
-       {
           m_pTraceReplayer->set_fs_preprocessor_options(m_fs_preprocessor_options.c_str());
-       }
+
+       if (m_fs_preprocessor_prefix.size() > 0)
+           m_pTraceReplayer->set_fs_preprocessor_prefix(m_fs_preprocessor_prefix.c_str());
    }
 
    if (!m_pTraceReplayer->init(replayer_flags, &m_window, m_pTraceReader->get_sof_packet(), m_pTraceReader->get_multi_blob_manager()))

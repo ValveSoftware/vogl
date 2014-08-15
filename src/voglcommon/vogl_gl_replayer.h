@@ -174,12 +174,14 @@ public:
     {
         m_fs_pp->set_pp(str);
     }
-    
     void set_fs_preprocessor_options(const dynamic_string &str)
     {
         m_fs_pp->set_pp_opts(str);
     }
-    
+    void set_fs_preprocessor_prefix(const dynamic_string &str)
+    {
+        m_fs_pp->set_pp_prefix(str);
+    }
     double get_fs_pp_time() const
     {
         return m_fs_pp->get_pp_time();
