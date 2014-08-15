@@ -1351,8 +1351,18 @@ static int do_non_interactive_mode(replay_data_t &rdata)
             if (!rdata.endless_mode)
             {
                 double time_since_start = rdata.tm.get_elapsed_secs();
-
-                vogl_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+                if (rdata.replayer.get_flags() & cGLReplayerFSPreprocessor)
+                {
+                    double fs_pp_time = rdata.replayer.get_fs_pp_time();
+                    vogl_printf("Ran with FS Preprocessor (FSPP) enabled:\n");
+                    vogl_printf("FSPP Time: %.3f secs\n", fs_pp_time);
+                    vogl_printf("Overall Stats:             %u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+                    vogl_printf("Stats Excluding FSPP time: %u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start-fs_pp_time, replayer.get_frame_index() / (time_since_start-fs_pp_time));
+                }
+                else
+                {
+                    vogl_printf("%u total swaps, %.3f secs, %3.3f avg fps\n", replayer.get_total_swaps(), time_since_start, replayer.get_frame_index() / time_since_start);
+                }
                 return 1;
             }
 

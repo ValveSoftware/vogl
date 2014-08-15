@@ -81,6 +81,10 @@ public:
     {
         return m_enabled;
     }
+    double get_pp_time() const
+    {
+        return m_time_to_run_pp;
+    }
 
 private:
     static void cleanup();
@@ -88,6 +92,7 @@ private:
     ~vogl_fs_preprocessor();
     vogl_fs_preprocessor(const vogl_fs_preprocessor&);
     vogl_fs_preprocessor& operator=(const vogl_fs_preprocessor&);
+    bool _run();
 
     static vogl_fs_preprocessor* m_instance;
     
@@ -98,6 +103,8 @@ private:
     GLint m_in_length;
     dynamic_string m_in_shader;
     dynamic_string m_output_shader;
+    timer m_tm;
+    double m_time_to_run_pp;
     bool m_enabled; // is pp enabled?
 };
 

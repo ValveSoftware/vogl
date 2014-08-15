@@ -179,6 +179,11 @@ public:
     {
         m_fs_pp->set_pp_opts(str);
     }
+    
+    double get_fs_pp_time() const
+    {
+        return m_fs_pp->get_pp_time();
+    }
 
     void set_allow_snapshot_restoring(bool bAllowed)
     {
