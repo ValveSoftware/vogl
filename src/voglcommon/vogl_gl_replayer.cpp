@@ -3632,7 +3632,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::handle_ShaderSource(GLhandleARB tra
         {
             // Assuming that m_fs_pp class was instantiated when this class was and that it already has pp cmd & option info
             // TODO : Need to handle the case where count != 1
-            m_fs_pp->set_shader(strings, lengths);
+            m_fs_pp->set_shader(static_cast<GLuint>(trace_object), strings, lengths);
             if (m_fs_pp->run())
             {
                 count = m_fs_pp->get_count();

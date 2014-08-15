@@ -81,6 +81,7 @@ static command_line_param_desc g_command_line_param_descs[] =
     { "debug", 0, false, "Enable verbose debug information" },
     { "fs_preprocessor", 1, false, "Replay: Run all FS through specified pre-processor prior to glCreateShader() call and substitute the shader output by the pre-processor into the glCreateShader() call." },
     { "fs_preprocessor_options", 1, false, "Replay: Options to pass to the FS pre-processor.  Must also specify --fs_preprocessor" },
+    { "fs_preprocessor_prefix", 1, false, "Replay: Dir/prefix to append to FS input to PP and output from PP.  Must also specify --fs_preprocessor" },
 };
 
 //----------------------------------------------------------------------------------------------------------------------

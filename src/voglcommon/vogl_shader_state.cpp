@@ -184,7 +184,7 @@ bool vogl_shader_state::restore(const vogl_context_info &context_info, vogl_hand
         // Assuming that m_fs_pp class was instantiated when this class was and that it already has pp cmd & option info
         if ((GL_FRAGMENT_SHADER == m_shader_type) && m_fs_pp->enabled())
         {
-            m_fs_pp->set_shader(pStr, m_source.get_len());
+            m_fs_pp->set_shader(m_snapshot_handle, pStr, m_source.get_len());
             if (!m_fs_pp->run())
                 return false;
 

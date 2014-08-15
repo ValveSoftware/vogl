@@ -47,6 +47,7 @@ private:
     std::string m_screenshot_prefix;
     std::string m_fs_preprocessor;
     std::string m_fs_preprocessor_options;
+    std::string m_fs_preprocessor_prefix;
 };
 
 #endif // VOGLEDITOR_TRACEREPLAYER_H
