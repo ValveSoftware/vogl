@@ -27,6 +27,20 @@
 #include "vogl_common.h"
 #include "vogl_sso_state.h"
 
+// These global mapping tables are built to correspond to shader type enum that's
+//  declared in the header and included here in comment form for convenience
+//  enum
+//      {
+//          cVertexShader,
+//          cFragmentShader,
+//          cGeometryShader,
+//          cTessControlShader,
+//          cTessEvalShader,
+//          cNumShaders
+//      };
+static const GLenum gl_shader_type_mapping[] = {GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER};
+static const GLbitfield gl_shader_bitmask_mapping[] = {0x01, 0x02, 0x04, 0x08, 0x10};
+
 vogl_sso_state::vogl_sso_state()
     : m_snapshot_handle(0),
       m_has_been_bound(false),
@@ -81,16 +95,10 @@ bool vogl_sso_state::snapshot(const vogl_context_info &context_info, vogl_handle
 
     if (m_has_been_bound)
     {
-        // TODO : This needs to be cleaned up. Right now it's "magic" that this order
-        //   matches up to enum ordering, & that enum and this array are same size
-        const GLenum s_sso_attachments[] =
-            {
-                GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER
-            };
-        uint32_t num_attachments = VOGL_ARRAY_SIZE(s_sso_attachments);
-        
-        for (uint32_t i = 0; i < num_attachments; i++)
-            m_shader_objs[i] = vogl_get_program_pipeline(m_snapshot_handle, s_sso_attachments[i]);
+        // If GS not supported then only process VS & FS (this also skips FS types, which is not ideal but works for Intel MESA)
+        const uint32_t num_shader_types = context_info.supports_extension("GL_ARB_geometry_shader4") ? cNumShaders : 2;
+        for (uint32_t i = 0; i < num_shader_types; i++)
+            m_shader_objs[i] = vogl_get_program_pipeline(m_snapshot_handle, gl_shader_type_mapping[i]);
         
         // TODO : Could also query INFO_LOG_LENGTH, VALIDATE_STATUS, ACTIVE_PROGRAM & INFO_LOG
     }
@@ -134,7 +142,14 @@ bool vogl_sso_state::restore(const vogl_context_info &context_info, vogl_handle_
         if (vogl_check_gl_error())
             return false;
         
-        // TODO : I believe this actually needs to handle re-binding program objs etc. to recreate the SSO                  
+        // If GS not supported then only process VS & FS (this also skips FS types, which is not ideal but works for Intel MESA)
+        const uint32_t num_shader_types = context_info.supports_extension("GL_ARB_geometry_shader4") ? cNumShaders : 2;
+        // Use appropriate programs for this pipeline
+        for (uint32_t type = 0; type < num_shader_types; type++)
+        {
+            if (0 != m_shader_objs[type])
+                GL_ENTRYPOINT(glUseProgramStages)(m_snapshot_handle, gl_shader_bitmask_mapping[type], m_shader_objs[type]);
+        }
     }
 
     return true;
@@ -160,13 +175,17 @@ bool vogl_sso_state::remap_handles(vogl_handle_remapper &remapper)
     if (!m_is_valid)
         return false;
 
+    // Remap Pipeline handle
+    uint32_t replay_handle = m_snapshot_handle;
+    uint32_t trace_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_PIPELINES, m_snapshot_handle));
+    m_snapshot_handle = trace_handle;
+    // Make sure that we also have proper mapping for programs attached to pipeline
     for (uint32_t target = 0; target < cNumShaders; target++)
     {
-        uint32_t replay_handle = m_shader_objs[target];
+        replay_handle = m_shader_objs[target];
         if (replay_handle)
         {
-            uint32_t trace_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_PIPELINES, replay_handle));
-
+            trace_handle = static_cast<GLuint>(remapper.remap_handle(VOGL_NAMESPACE_PROGRAMS, replay_handle));
             m_shader_objs[target] = trace_handle;
         }
     }
@@ -183,6 +202,7 @@ bool vogl_sso_state::serialize(json_node &node, vogl_blob_manager &blob_manager)
     if (!m_is_valid)
         return false;
 
+    node.add_key_value("handle", m_snapshot_handle);
     for (uint32_t type = 0; type < cNumShaders; type++)
     {
         json_node &state_node = node.add_object(get_shader_index_name(type));
@@ -206,6 +226,7 @@ bool vogl_sso_state::deserialize(const json_node &node, const vogl_blob_manager 
     if (!node.is_object())
         return false;
 
+    m_snapshot_handle = node.value_as_uint32("handle");
     for (uint32_t type = 0; type < cNumShaders; type++)
     {
         const json_node *pState = node.find_child_object(get_shader_index_name(type));

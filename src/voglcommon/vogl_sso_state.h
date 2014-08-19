@@ -93,7 +93,6 @@ private:
     GLuint m_shader_objs[cNumShaders];
 
     bool m_is_valid;
-    
     static const char *get_shader_index_name(uint32_t index)
     {
         VOGL_ASSERT(index < cNumShaders);
