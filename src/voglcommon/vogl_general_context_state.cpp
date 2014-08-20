@@ -404,6 +404,7 @@ bool vogl_general_context_state::can_snapshot_state(const vogl_context_info &con
     {
         if (!context_info.supports_extension(pExtension))
             return false;
+        return true; // If extension is supported, snapshot regardless of GL ver
     }
 
     VOGL_ASSERT(min_vers >= VOGL_CREATE_GL_VERSION(1, 0, 0));
