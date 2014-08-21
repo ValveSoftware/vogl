@@ -127,11 +127,19 @@ bool vogl_sso_state::restore(const vogl_context_info &context_info, vogl_handle_
         return false;
     }
 
+    bool created_handle = false;
     if (!handle)
     {
-        // TODO : Don't handle this case yet
-        VOGL_ASSERT_ALWAYS;
-        return false;
+        GLuint handle32 = 0;
+        GL_ENTRYPOINT(glGenProgramPipelines)(1, &handle32);
+        if ((vogl_check_gl_error()) || (!handle32))
+            goto handle_error;
+        handle = handle32;
+
+        remapper.declare_handle(VOGL_NAMESPACE_PIPELINES, m_snapshot_handle, handle, GL_NONE);
+        VOGL_ASSERT(remapper.remap_handle(VOGL_NAMESPACE_PIPELINES, m_snapshot_handle) == handle);
+
+        created_handle = true;
     }
 
     VOGL_ASSERT(handle <= cUINT32_MAX);
@@ -140,7 +148,7 @@ bool vogl_sso_state::restore(const vogl_context_info &context_info, vogl_handle_
     {
         GL_ENTRYPOINT(glBindProgramPipeline)(static_cast<GLuint>(handle));
         if (vogl_check_gl_error())
-            return false;
+            goto handle_error;
         
         // If GS not supported then only process VS & FS (this also skips FS types, which is not ideal but works for Intel MESA)
         const uint32_t num_shader_types = context_info.supports_extension("GL_ARB_geometry_shader4") ? cNumShaders : 2;
@@ -153,6 +161,19 @@ bool vogl_sso_state::restore(const vogl_context_info &context_info, vogl_handle_
     }
 
     return true;
+handle_error:
+    vogl_error_printf("Failed restoring trace program pipeline %i, GL program pipeline %" PRIu64 "\n", m_snapshot_handle, (uint64_t)handle);
+
+    GL_ENTRYPOINT(glBindProgramPipeline)(0);
+    VOGL_CHECK_GL_ERROR;
+
+    if (created_handle)
+    {
+        remapper.delete_handle_and_object(VOGL_NAMESPACE_PIPELINES, m_snapshot_handle, handle);
+        handle = 0;
+    }
+
+    return false;
 }
 
 void vogl_sso_state::clear()
