@@ -384,6 +384,7 @@ private:
 
     bool m_marked_for_deletion;
     bool m_link_status;
+    bool m_separable;
     bool m_verify_status;
     bool m_link_snapshot;
 

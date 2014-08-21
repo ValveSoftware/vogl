@@ -62,6 +62,7 @@ vogl_program_state::vogl_program_state()
       m_create_shader_program_type(GL_NONE),
       m_marked_for_deletion(false),
       m_link_status(false),
+      m_separable(false),
       m_verify_status(false),
       m_link_snapshot(false),
       m_is_valid(false)
@@ -81,6 +82,7 @@ vogl_program_state::vogl_program_state(const vogl_program_state &other)
       m_create_shader_program_type(GL_NONE),
       m_marked_for_deletion(false),
       m_link_status(false),
+      m_separable(false),
       m_verify_status(false),
       m_link_snapshot(false),
       m_is_valid(false)
@@ -135,6 +137,7 @@ vogl_program_state &vogl_program_state::operator=(const vogl_program_state &rhs)
 
     CPY(m_marked_for_deletion);
     CPY(m_link_status);
+    CPY(m_separable);
     CPY(m_verify_status);
     CPY(m_link_snapshot);
 
@@ -432,6 +435,8 @@ bool vogl_program_state::snapshot_basic_info(const vogl_context_info &context_in
     VOGL_NOTE_UNUSED(remapper);
 
     m_link_status = get_program_bool(m_snapshot_handle, GL_LINK_STATUS);
+    if (context_info.supports_extension("GL_ARB_separate_shader_objects"))
+        m_separable = get_program_bool(m_snapshot_handle, GL_PROGRAM_SEPARABLE);
     m_marked_for_deletion = get_program_bool(m_snapshot_handle, GL_DELETE_STATUS);
     m_verify_status = get_program_bool(m_snapshot_handle, GL_VALIDATE_STATUS);
     m_num_active_attribs = get_program_int(m_snapshot_handle, GL_ACTIVE_ATTRIBUTES);
@@ -1289,6 +1294,9 @@ bool vogl_program_state::restore_link_snapshot(uint32_t handle32, const vogl_con
     if (!restore_transform_feedback(handle32, context_info, remapper, any_restore_warnings, any_gl_errors))
         return false;
 
+    if (m_separable)
+        GL_ENTRYPOINT(glProgramParameteri)(handle32, GL_PROGRAM_SEPARABLE, GL_TRUE);
+
     uint_vec shader_handles;
 
     if (m_program_binary.size())
@@ -1397,6 +1405,9 @@ bool vogl_program_state::link_program(uint32_t handle32, const vogl_context_info
 
     if (!restore_outputs(handle32, context_info, remapper, any_restore_warnings, any_gl_errors))
         return false;
+
+    if (m_separable)
+        GL_ENTRYPOINT(glProgramParameteri)(handle32, GL_PROGRAM_SEPARABLE, GL_TRUE);
 
     // TODO: Restore the CURRENT transform feedback state (not just the last linked state) - this will require deeper shadowing and considering how rarely transform feedback is used by games it's low priority.
 
@@ -1629,6 +1640,7 @@ void vogl_program_state::clear()
 
     m_marked_for_deletion = false;
     m_link_status = false;
+    m_separable = false;
     m_verify_status = false;
 
     m_link_snapshot = false;
@@ -1649,6 +1661,7 @@ bool vogl_program_state::serialize(json_node &node, vogl_blob_manager &blob_mana
     node.add_key_value("handle", m_snapshot_handle);
     node.add_key_value("link_snapshot", m_link_snapshot);
     node.add_key_value("link_status", m_link_status);
+    node.add_key_value("separable", m_separable);
     node.add_key_value("verify_status", m_verify_status);
     node.add_key_value("marked_for_deletion", m_marked_for_deletion);
     node.add_key_value("num_active_attribs", m_num_active_attribs);
@@ -1877,6 +1890,7 @@ bool vogl_program_state::deserialize(const json_node &node, const vogl_blob_mana
     m_link_entrypoint = static_cast<gl_entrypoint_id_t>(node.value_as_uint32("link_entrypoint"));
     m_link_snapshot = node.value_as_bool("link_snapshot");
     m_link_status = node.value_as_bool("link_status");
+    m_separable = node.value_as_bool("separable");
     m_verify_status = node.value_as_bool("verify_status");
     m_marked_for_deletion = node.value_as_bool("marked_for_deletion");
     m_num_active_attribs = node.value_as_int("num_active_attribs");
