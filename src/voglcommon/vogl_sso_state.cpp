@@ -38,13 +38,16 @@
 //          cTessEvalShader,
 //          cNumShaders
 //      };
-static const GLenum gl_shader_type_mapping[] = {GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER};
+static const GLenum gl_shader_type_mapping_data[] = {GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER};
+const GLenum* vogl_sso_state::gl_shader_type_mapping = gl_shader_type_mapping_data;
 static const GLbitfield gl_shader_bitmask_mapping[] = {0x01, 0x02, 0x04, 0x08, 0x10};
 
 vogl_sso_state::vogl_sso_state()
     : m_snapshot_handle(0),
       m_has_been_bound(false),
-      m_is_valid(false)      
+      m_active_program(0),
+      m_info_log_length(0),
+      m_is_valid(false)
 {
     VOGL_FUNC_TRACER
     
@@ -95,12 +98,16 @@ bool vogl_sso_state::snapshot(const vogl_context_info &context_info, vogl_handle
 
     if (m_has_been_bound)
     {
+        // Re-Bind PPO before querying state
+        GL_ENTRYPOINT(glBindProgramPipeline)(m_snapshot_handle);
         // If GS not supported then only process VS & FS (this also skips FS types, which is not ideal but works for Intel MESA)
         const uint32_t num_shader_types = context_info.supports_extension("GL_ARB_geometry_shader4") ? cNumShaders : 2;
         for (uint32_t i = 0; i < num_shader_types; i++)
             m_shader_objs[i] = vogl_get_program_pipeline(m_snapshot_handle, gl_shader_type_mapping[i]);
         
-        // TODO : Could also query INFO_LOG_LENGTH, VALIDATE_STATUS, ACTIVE_PROGRAM & INFO_LOG
+        m_info_log_length = vogl_get_program_pipeline(m_snapshot_handle, GL_INFO_LOG_LENGTH);
+        m_active_program = vogl_get_program_pipeline(m_snapshot_handle, GL_ACTIVE_PROGRAM);
+        // TODO : Could also query VALIDATE_STATUS & INFO_LOG
     }
 
     m_is_valid = true;
@@ -158,6 +165,8 @@ bool vogl_sso_state::restore(const vogl_context_info &context_info, vogl_handle_
             if (0 != m_shader_objs[type])
                 GL_ENTRYPOINT(glUseProgramStages)(m_snapshot_handle, gl_shader_bitmask_mapping[type], m_shader_objs[type]);
         }
+        if (0 != m_active_program)
+            GL_ENTRYPOINT(glActiveShaderProgram)(m_snapshot_handle, m_active_program);
     }
 
     return true;
@@ -185,7 +194,8 @@ void vogl_sso_state::clear()
 
     for (uint32_t i = 0; i < cNumShaders; i++)
         m_shader_objs[i] = 0;
-    
+    m_active_program = 0;
+    m_info_log_length = 0;
     m_is_valid = false;
 }
 
@@ -232,6 +242,8 @@ bool vogl_sso_state::serialize(json_node &node, vogl_blob_manager &blob_manager)
 
         // TODO : Probably need to serialize more here, see comment in snapshot code
     }
+    node.add_key_value("active_program", m_active_program);
+    node.add_key_value("info_log_length", m_info_log_length);
     
     return true;
 }
@@ -256,6 +268,8 @@ bool vogl_sso_state::deserialize(const json_node &node, const vogl_blob_manager 
 
         m_shader_objs[type] = pState->value_as_uint32("shader_obj");
     }
+    m_active_program = node.value_as_uint32("active_program");
+    m_info_log_length = node.value_as_uint32("info_log_length");
 
     m_is_valid = true;
 

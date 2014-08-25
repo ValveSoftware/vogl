@@ -262,6 +262,10 @@ public:
     {
         return m_link_status;
     }
+    bool get_separable() const
+    {
+        return m_separable;
+    }
     bool get_verify_status() const
     {
         return m_verify_status;

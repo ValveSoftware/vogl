@@ -68,14 +68,27 @@ public:
     {
         return m_snapshot_handle;
     }
-
     virtual bool is_valid() const
     {
         return m_is_valid;
     }
+    uint32_t get_active_program() const
+    {
+        return m_active_program;
+    }
+    uint32_t get_info_log_length() const
+    {
+        return m_info_log_length;
+    }
+    uint32_t get_shader_program(uint32_t i) const
+    {
+        VOGL_ASSERT(i < cNumShaders);
+        return m_shader_objs[i];
+    }
 
     virtual bool compare_restorable_state(const vogl_gl_object_state &rhs_obj) const;
     
+    static const GLenum* gl_shader_type_mapping;
     enum
     {
         cVertexShader,
@@ -89,8 +102,9 @@ public:
 private:
     GLuint m_snapshot_handle;
     bool m_has_been_bound;
-    // TODO : Need to put these in an array w/ enum to map GL types
     GLuint m_shader_objs[cNumShaders];
+    GLuint m_active_program;
+    GLuint m_info_log_length;
 
     bool m_is_valid;
     static const char *get_shader_index_name(uint32_t index)

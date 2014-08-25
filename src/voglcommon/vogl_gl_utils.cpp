@@ -1458,18 +1458,20 @@ void vogl_state_saver::restore()
             if (m_draw_buffers[i] != GL_NONE)
                 break;
 
-        VOGL_ASSERT(i >= 0);
-
-        // On NV, we can cvall glDrawBuffers() with a single GL_BACK, etc. and it's fine. On AMD it barfs.
-        if (!i)
+        // It's possible that every draw buffer is set to GL_NONE in which case, nothing to restore
+        if (i >= 0)
         {
-            GL_ENTRYPOINT(glDrawBuffer)(m_draw_buffers[0]);
-            VOGL_CHECK_GL_ERROR;
-        }
-        else
-        {
-            GL_ENTRYPOINT(glDrawBuffers)(i + 1, m_draw_buffers.get_ptr());
-            VOGL_CHECK_GL_ERROR;
+            // On NV, we can cvall glDrawBuffers() with a single GL_BACK, etc. and it's fine. On AMD it barfs.
+            if (!i)
+            {
+                GL_ENTRYPOINT(glDrawBuffer)(m_draw_buffers[0]);
+                VOGL_CHECK_GL_ERROR;
+            }
+            else
+            {
+                GL_ENTRYPOINT(glDrawBuffers)(i + 1, m_draw_buffers.get_ptr());
+                VOGL_CHECK_GL_ERROR;
+            }
         }
     }
 
