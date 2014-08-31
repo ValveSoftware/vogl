@@ -33,7 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.  */
 #define BACKTRACE_AUX_DWARF2_H
 
 /* Use the system header for the bulk of the definitions.  */
-#include <dwarf.h>
+#include <libdwarf/dwarf.h>
 
 /* Provide stub enum tags.  */
 enum dwarf_attribute {_dummy_dwarf_attribute};

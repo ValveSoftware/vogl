@@ -159,7 +159,7 @@ set(CMAKE_REQUIRED_LIBRARIES ${LIBLZMA_LIBRARIES})
 check_library_exists (${LIBUNWIND_LIBRARY} unw_backtrace_skip "" HAVE_UNW_BACKTRACE_SKIP)
 
 include (CheckIncludeFile)
-check_include_file (dwarf.h HAVE_DWARF_H)
+check_include_file (libdwarf/dwarf.h HAVE_DWARF_H)
 if (NOT HAVE_DWARF_H)
     if (UNIX AND NOT APPLE)
         message(FATAL_ERROR "No dwarf.h")
