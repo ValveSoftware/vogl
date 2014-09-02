@@ -19,6 +19,15 @@ The chroot configuration script should be a good reference for vogl dependencies
 
 https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/chroot_configure.sh?at=master
 
+The build dependencies for ubuntu (14.04) can be installed using the following:
+```
+sudo apt-get install build-essential pkg-config cmake libx11-dev \
+                     zip wget libtinyxml-dev liblzma-dev libunwind8-dev \
+                     libturbojpeg libdwarf-dev mesa-common-dev qt5-qmake\
+                     freeglut3-dev qt5-default libqt5x11extras5-dev git \
+                     libsdl2-gfx-dev libsdl2-image-dev libsdl2-ttf-dev
+```
+
 ## Get Source and Build ##
 
 #### Linux ####
