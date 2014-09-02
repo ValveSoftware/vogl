@@ -159,6 +159,8 @@ set(CMAKE_REQUIRED_LIBRARIES ${LIBLZMA_LIBRARIES})
 check_library_exists (${LIBUNWIND_LIBRARY} unw_backtrace_skip "" HAVE_UNW_BACKTRACE_SKIP)
 
 include (CheckIncludeFile)
+include_directories (/usr/include/libdwarf)
+set(CMAKE_REQUIRED_INCLUDES /usr/include/libdwarf)
 check_include_file (dwarf.h HAVE_DWARF_H)
 if (NOT HAVE_DWARF_H)
     if (UNIX AND NOT APPLE)
