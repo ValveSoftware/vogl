@@ -200,8 +200,8 @@ if (MSVC)
   set (COPY_DEST ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR})
 
   get_property(qt5_qmake_executable TARGET ${Qt5Core_QMAKE_EXECUTABLE} PROPERTY IMPORT_LOCATION)
-  EXEC_PROGRAM(${qt5_qmake_executable} ARGS "-query QT_INSTALL_PLUGINS" OUTPUT_VARIABLE QT_INSTALL_PLUGINS)
-  EXEC_PROGRAM(${qt5_qmake_executable} ARGS "-query QT_INSTALL_BINS" OUTPUT_VARIABLE QT_INSTALL_BINS)
+  execute_process(COMMAND ${qt5_qmake_executable} -query QT_INSTALL_PLUGINS OUTPUT_VARIABLE QT_INSTALL_PLUGINS)
+  execute_process(COMMAND ${qt5_qmake_executable} -query QT_INSTALL_BINS OUTPUT_VARIABLE QT_INSTALL_BINS)
 
   # There are also several other files that need to be copied or created
   FILE(WRITE ${CMAKE_CURRENT_LIST_DIR}/qt.conf "[Paths]\nPlugins=.")
