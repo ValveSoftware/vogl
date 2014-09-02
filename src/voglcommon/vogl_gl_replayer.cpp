@@ -57,7 +57,6 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
     VOGL_FUNC_TRACER
 
         vogl_void_func_ptr_t pFunc = g_actual_libgl_module_handle ? reinterpret_cast<vogl_void_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, pName)) : NULL;
-
 #if (VOGL_PLATFORM_HAS_GLX)
     if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
         pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
@@ -4196,6 +4195,16 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
                         context_state *pContext_state = define_new_context(trace_context, replay_context, (vogl_trace_context_ptr_value)0,
                                                                            cDirect, VOGL_ENTRYPOINT_wglCreateContext, NULL, 0);
                         VOGL_NOTE_UNUSED(pContext_state);
+                        // On windows load entrypoints here after context is created
+                        static bool update_entries = true;
+                        if (update_entries)
+                        {
+                            update_entries = false;
+                            bool wrap_all_gl_calls = true;
+                            if (benchmark_mode())
+                                wrap_all_gl_calls = false;
+                            vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper, wrap_all_gl_calls);
+                        }
                     }
                     else
                     {

@@ -218,6 +218,8 @@ vogleditor_stateTreeProgramItem::vogleditor_stateTreeProgramItem(QString name, Q
 
    // basic info
    this->appendChild(new vogleditor_stateTreeProgramBoolItem("GL_LINK_STATUS", &vogl_program_state::get_link_status, this, state));
+   if (info.supports_extension("GL_ARB_separate_shader_objects"))
+       this->appendChild(new vogleditor_stateTreeProgramBoolItem("GL_PROGRAM_SEPARABLE", &vogl_program_state::get_separable, this, state));
    this->appendChild(new vogleditor_stateTreeProgramBoolItem("GL_DELETE_STATUS", &vogl_program_state::get_marked_for_deletion, this, state));
    this->appendChild(new vogleditor_stateTreeProgramBoolItem("GL_VALIDATE_STATUS", &vogl_program_state::get_verify_status, this, state));
    if (info.get_version() >= VOGL_GL_VERSION_3_1)
