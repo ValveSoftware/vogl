@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QProcessEnvironment>
+#include <QSettings>
 
 namespace Ui {
 class VoglEditor_QLaunchTracerDialog;

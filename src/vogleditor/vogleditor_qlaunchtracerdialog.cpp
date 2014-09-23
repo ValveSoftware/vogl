@@ -22,8 +22,20 @@ vogleditor_QLaunchTracerDialog::vogleditor_QLaunchTracerDialog(QWidget *parent) 
     //// the '.exe' is necessary on Windows to find the file, but not necessary to execute it.
     //ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists((sizeof(void *) > 4) ? "vogl64.exe" : "vogl32.exe"));
 #else
-    ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists((sizeof(void *) > 4) ? "vogl64" : "vogl32"));
+    if (vogltraceDir.exists((sizeof(void *) > 4) ? "vogl64" : "vogl32")) {
+        ui->vogltraceCheckBox->setChecked(true);
+    } else {
+        ui->vogltraceCheckBox->setEnabled(false);
+    }
 #endif
+
+    // load app path from previous vogleditor instantiations
+    if (QSettings().contains("trace_file")) {
+        ui->applicationLineEdit->setText(QSettings().value("trace_file").toString());
+    }
+
+    // provide default path for trace files
+    ui->traceFileLineEdit->setText(QDir::tempPath() + QDir::separator() + "trace.bin");
 }
 
 vogleditor_QLaunchTracerDialog::~vogleditor_QLaunchTracerDialog()
@@ -144,7 +156,11 @@ QString vogleditor_QLaunchTracerDialog::get_trace_file_path()
         ui->traceFileLineEdit->setText(ui->traceFileLineEdit->text() + ".bin");
     }
 
-    return ui->traceFileLineEdit->text();
+    // save off trace file path for future loads
+    QString traceFile = ui->traceFileLineEdit->text();
+    QSettings().setValue("trace_file", traceFile);
+
+    return traceFile;
 }
 
 QString vogleditor_QLaunchTracerDialog::get_application_to_launch()
@@ -197,3 +213,4 @@ void vogleditor_QLaunchTracerDialog::on_findTraceFileButton_clicked()
 void vogleditor_QLaunchTracerDialog::on_vogltraceCheckBox_clicked(bool checked)
 {
 }
+
