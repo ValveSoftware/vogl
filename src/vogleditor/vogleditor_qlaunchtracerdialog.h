@@ -21,9 +21,11 @@ public:
     QProcessEnvironment get_process_environment();
     QString get_trace_file_path();
 
-    bool validate_inputs();
-
 private slots:
+    void on_applicationLineEdit_textChanged(const QString &text);
+
+    void on_traceFileLineEdit_textChanged(const QString &text);
+
     void on_findApplicationButton_clicked();
 
     void on_findTraceFileButton_clicked();
@@ -33,6 +35,8 @@ private slots:
 private:
     Ui::VoglEditor_QLaunchTracerDialog *ui;
     QProcessEnvironment m_process_environment;
+
+    void check_inputs();
 };
 
 #endif // VOGLEDITOR_QLAUNCHTRACERDIALOG_H

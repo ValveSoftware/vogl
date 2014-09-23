@@ -433,43 +433,40 @@ VoglEditor::Prompt_Result VoglEditor::prompt_generate_trace()
         }
         else
         {
-            if (m_pLaunchTracerDialog->validate_inputs())
-            {
 #if defined (_WIN32)
-                // if the app to launch is a valid executable (alternatively it could be a name or number if it's Steam title) than make sure the opengl32.dll is in the same directory
-                QFileInfo appDir(m_pLaunchTracerDialog->get_application_to_launch());
-                if (appDir.exists())
+            // if the app to launch is a valid executable (alternatively it could be a name or number if it's Steam title) than make sure the opengl32.dll is in the same directory
+            QFileInfo appDir(m_pLaunchTracerDialog->get_application_to_launch());
+            if (appDir.exists())
+            {
+                QDir dir = appDir.dir();
+                if(!QFileInfo::exists(dir.absolutePath() + "/opengl32.dll"))
                 {
-                    QDir dir = appDir.dir();
-                    if(!QFileInfo::exists(dir.absolutePath() + "/opengl32.dll"))
+                    QMessageBox::StandardButton result = QMessageBox::information(this, "Reminder", "Before continuing, please copy the vogltrace*.dll into the application's directory and rename it to opengl32.dll", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok);
+                    if (result == QMessageBox::Cancel)
                     {
-                        QMessageBox::StandardButton result = QMessageBox::information(this, "Reminder", "Before continuing, please copy the vogltrace*.dll into the application's directory and rename it to opengl32.dll", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok);
-                        if (result == QMessageBox::Cancel)
-                        {
-                            return vogleditor_prompt_cancelled;
-                        }
+                        return vogleditor_prompt_cancelled;
                     }
                 }
+            }
 #endif
 
-                QString cmdLine = m_pLaunchTracerDialog->get_command_line();
-                QProcessEnvironment env = m_pLaunchTracerDialog->get_process_environment();
-                bool bSuccess = launch_application_to_generate_trace(cmdLine, env);
-                QFileInfo fileInfo(m_pLaunchTracerDialog->get_trace_file_path() );
-                if (bSuccess && fileInfo.exists())
+            QString cmdLine = m_pLaunchTracerDialog->get_command_line();
+            QProcessEnvironment env = m_pLaunchTracerDialog->get_process_environment();
+            bool bSuccess = launch_application_to_generate_trace(cmdLine, env);
+            QFileInfo fileInfo(m_pLaunchTracerDialog->get_trace_file_path() );
+            if (bSuccess && fileInfo.exists())
+            {
+                Prompt_Result result = prompt_load_new_trace(m_pLaunchTracerDialog->get_trace_file_path().toStdString().c_str());
+                if (result == vogleditor_prompt_success ||
+                        result == vogleditor_prompt_cancelled)
                 {
-                    Prompt_Result result = prompt_load_new_trace(m_pLaunchTracerDialog->get_trace_file_path().toStdString().c_str());
-                    if (result == vogleditor_prompt_success ||
-                            result == vogleditor_prompt_cancelled)
-                    {
-                        bShowDialog = false;
-                    }
+                    bShowDialog = false;
                 }
-                else
-                {
-                    vogleditor_output_error("Failed to trace the application.");
-                    QMessageBox::critical(this, tr("Error"), tr("Failed to trace application."));
-                }
+            }
+            else
+            {
+                vogleditor_output_error("Failed to trace the application.");
+                QMessageBox::critical(this, tr("Error"), tr("Failed to trace application."));
             }
         }
     }

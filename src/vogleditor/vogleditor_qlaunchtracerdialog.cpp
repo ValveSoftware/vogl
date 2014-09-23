@@ -138,6 +138,12 @@ QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment()
 
 QString vogleditor_QLaunchTracerDialog::get_trace_file_path()
 {
+    // make sure it has the correct extension
+    if (!ui->traceFileLineEdit->text().endsWith(".bin"))
+    {
+        ui->traceFileLineEdit->setText(ui->traceFileLineEdit->text() + ".bin");
+    }
+
     return ui->traceFileLineEdit->text();
 }
 
@@ -146,31 +152,23 @@ QString vogleditor_QLaunchTracerDialog::get_application_to_launch()
     return ui->applicationLineEdit->text();
 }
 
-bool vogleditor_QLaunchTracerDialog::validate_inputs()
+void vogleditor_QLaunchTracerDialog::on_applicationLineEdit_textChanged(const QString &text)
 {
-    if (ui->applicationLineEdit->text().size() == 0)
-    {
-        ui->applicationLineEdit->setFocus();
-        return false;
-    }
-
-    if (ui->traceFileLineEdit->text().size() == 0)
-    {
-        ui->traceFileLineEdit->setFocus();
-        return false;
-    }
-    else
-    {
-        // make sure it has the correct extension
-        if (!ui->traceFileLineEdit->text().endsWith(".bin"))
-        {
-            ui->traceFileLineEdit->setText(ui->traceFileLineEdit->text() + ".bin");
-        }
-    }
-
-    return true;
+    check_inputs();
 }
 
+void vogleditor_QLaunchTracerDialog::on_traceFileLineEdit_textChanged(const QString &text)
+{
+    check_inputs();
+}
+
+void vogleditor_QLaunchTracerDialog::check_inputs()
+{
+    bool applicationFileEntered = ui->applicationLineEdit->text().size() != 0;
+    bool traceFileEntered = ui->traceFileLineEdit->text().size() != 0;
+
+    ui->okButton->setEnabled(applicationFileEntered && traceFileEntered);
+}
 
 void vogleditor_QLaunchTracerDialog::on_findApplicationButton_clicked()
 {
