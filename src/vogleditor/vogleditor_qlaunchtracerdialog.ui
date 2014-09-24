@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>576</width>
-    <height>236</height>
+    <height>252</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,14 +20,14 @@
    <property name="verticalSpacing">
     <number>0</number>
    </property>
-   <item row="2" column="2">
+   <item row="2" column="1">
     <widget class="QLineEdit" name="traceFileLineEdit">
      <property name="text">
       <string/>
      </property>
     </widget>
    </item>
-   <item row="2" column="3">
+   <item row="2" column="2">
     <widget class="QPushButton" name="findTraceFileButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -61,28 +61,31 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Application to trace:</string>
+      <string>&lt;span style=&quot;color: red;&quot;&gt;*&lt;/span&gt;Application to trace:</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>
-   <item row="5" column="2">
+   <item row="5" column="1">
     <widget class="QCheckBox" name="forceDebugContextCheckBox">
      <property name="text">
       <string>Force debug context</string>
      </property>
     </widget>
    </item>
-   <item row="7" column="2">
+   <item row="7" column="1">
     <widget class="QCheckBox" name="disableProgramBinaryCheckBox">
      <property name="text">
       <string>Disable glProgramBinary</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="3">
+   <item row="0" column="2">
     <widget class="QPushButton" name="findApplicationButton">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -117,30 +120,7 @@
      </property>
     </widget>
    </item>
-   <item row="12" column="0" colspan="4" alignment="Qt::AlignHCenter">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="2">
-    <widget class="QCheckBox" name="vogltraceCheckBox">
-     <property name="statusTip">
-      <string/>
-     </property>
-     <property name="text">
-      <string>Use vogl tool</string>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2">
+   <item row="0" column="1">
     <widget class="QLineEdit" name="applicationLineEdit">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -156,7 +136,7 @@
    <item row="2" column="0">
     <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>Output trace file:</string>
+      <string>&lt;span style=&quot;color: red;&quot;&gt;*&lt;/span&gt;Output trace file:</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -173,7 +153,14 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="2" colspan="2">
+   <item row="6" column="1">
+    <widget class="QCheckBox" name="gatherCallStacksCheckBox">
+     <property name="text">
+      <string>Gather call stacks</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="2">
     <widget class="QLineEdit" name="argumentsLineEdit">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -183,11 +170,84 @@
      </property>
     </widget>
    </item>
-   <item row="6" column="2">
-    <widget class="QCheckBox" name="gatherCallStacksCheckBox">
-     <property name="text">
-      <string>Gather call stacks</string>
+   <item row="3" column="1">
+    <widget class="QCheckBox" name="vogltraceCheckBox">
+     <property name="statusTip">
+      <string/>
      </property>
+     <property name="text">
+      <string>Use vogl tool</string>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="2">
+    <widget class="QFrame" name="frame">
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="cancelButton">
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="okButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>OK</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>
@@ -202,39 +262,38 @@
   <tabstop>forceDebugContextCheckBox</tabstop>
   <tabstop>gatherCallStacksCheckBox</tabstop>
   <tabstop>disableProgramBinaryCheckBox</tabstop>
-  <tabstop>buttonBox</tabstop>
  </tabstops>
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>VoglEditor_QLaunchTracerDialog</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
+   <sender>cancelButton</sender>
+   <signal>clicked()</signal>
    <receiver>VoglEditor_QLaunchTracerDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>231</x>
+     <y>227</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
+     <x>287</x>
+     <y>125</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>okButton</sender>
+   <signal>clicked()</signal>
+   <receiver>VoglEditor_QLaunchTracerDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>322</x>
+     <y>227</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>287</x>
+     <y>125</y>
     </hint>
    </hints>
   </connection>
