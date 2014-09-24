@@ -218,11 +218,6 @@ VoglEditor::VoglEditor(QWidget *parent) :
     connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slot_readReplayStandardOutput()));
     connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardError()), this, SLOT(slot_readReplayStandardError()));
 
-    // set organization/app info for QSettings
-    QCoreApplication::setOrganizationName("Valve Software");
-    QCoreApplication::setOrganizationDomain("valvesoftware.com");
-    QCoreApplication::setApplicationName("vogleditor");
-
     reset_tracefile_ui();
 }
 
