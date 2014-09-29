@@ -36,7 +36,7 @@
 #include "vogl_trace_stream_types.h"
 #include "vogleditor_gl_state_snapshot.h"
 
-vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_QApiCallTreeModel* pModel)
+vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_QApiCallTreeModel *pModel)
     : m_parentItem(NULL),
       m_pApiCallItem(NULL),
       m_pFrameItem(NULL),
@@ -53,7 +53,7 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_QApiCallTreeMo
 }
 
 // Constructor for frame nodes
-vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_frameItem* frameItem, vogleditor_apiCallTreeItem* parent)
+vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_frameItem *frameItem, vogleditor_apiCallTreeItem *parent)
     : m_parentItem(parent),
       m_pApiCallItem(NULL),
       m_pFrameItem(frameItem),
@@ -74,7 +74,7 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_frameItem* fra
 }
 
 // Constructor for apiCall nodes
-vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(QString nodeText, vogleditor_apiCallItem* apiCallItem, vogleditor_apiCallTreeItem* parent)
+vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(QString nodeText, vogleditor_apiCallItem *apiCallItem, vogleditor_apiCallTreeItem *parent)
     : m_parentItem(parent),
       m_pApiCallItem(apiCallItem),
       m_pFrameItem(NULL),
@@ -123,12 +123,12 @@ vogleditor_apiCallTreeItem::~vogleditor_apiCallTreeItem()
     m_childItems.clear();
 }
 
-vogleditor_apiCallTreeItem* vogleditor_apiCallTreeItem::parent() const
+vogleditor_apiCallTreeItem *vogleditor_apiCallTreeItem::parent() const
 {
     return m_parentItem;
 }
 
-void vogleditor_apiCallTreeItem::appendChild(vogleditor_apiCallTreeItem* pChild)
+void vogleditor_apiCallTreeItem::appendChild(vogleditor_apiCallTreeItem *pChild)
 {
     pChild->m_localRowIndex = m_childItems.size();
     m_childItems.append(pChild);
@@ -139,7 +139,7 @@ int vogleditor_apiCallTreeItem::childCount() const
     return m_childItems.size();
 }
 
-vogleditor_apiCallTreeItem* vogleditor_apiCallTreeItem::child(int index) const
+vogleditor_apiCallTreeItem *vogleditor_apiCallTreeItem::child(int index) const
 {
     if (index < 0 || index >= childCount())
     {
@@ -149,17 +149,17 @@ vogleditor_apiCallTreeItem* vogleditor_apiCallTreeItem::child(int index) const
     return m_childItems[index];
 }
 
-vogleditor_apiCallItem* vogleditor_apiCallTreeItem::apiCallItem() const
+vogleditor_apiCallItem *vogleditor_apiCallTreeItem::apiCallItem() const
 {
     return m_pApiCallItem;
 }
 
-vogleditor_frameItem* vogleditor_apiCallTreeItem::frameItem() const
+vogleditor_frameItem *vogleditor_apiCallTreeItem::frameItem() const
 {
     return m_pFrameItem;
 }
 
-void vogleditor_apiCallTreeItem::set_snapshot(vogleditor_gl_state_snapshot* pSnapshot)
+void vogleditor_apiCallTreeItem::set_snapshot(vogleditor_gl_state_snapshot *pSnapshot)
 {
     if (m_pFrameItem)
     {
@@ -187,9 +187,9 @@ bool vogleditor_apiCallTreeItem::has_snapshot() const
     return bHasSnapshot;
 }
 
-vogleditor_gl_state_snapshot* vogleditor_apiCallTreeItem::get_snapshot() const
+vogleditor_gl_state_snapshot *vogleditor_apiCallTreeItem::get_snapshot() const
 {
-    vogleditor_gl_state_snapshot* pSnapshot = NULL;
+    vogleditor_gl_state_snapshot *pSnapshot = NULL;
     if (m_pFrameItem)
     {
         pSnapshot = m_pFrameItem->get_snapshot();

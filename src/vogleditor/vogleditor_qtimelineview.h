@@ -42,80 +42,80 @@ QT_END_NAMESPACE
 
 class vogleditor_QTimelineView : public QWidget
 {
-   Q_OBJECT
+    Q_OBJECT
 public:
-   explicit vogleditor_QTimelineView(QWidget* parent = 0);
-   virtual ~vogleditor_QTimelineView();
+    explicit vogleditor_QTimelineView(QWidget *parent = 0);
+    virtual ~vogleditor_QTimelineView();
 
-   void paint(QPainter* painter, QPaintEvent* event);
+    void paint(QPainter *painter, QPaintEvent *event);
 
-    inline void setModel(vogleditor_timelineModel* pModel)
+    inline void setModel(vogleditor_timelineModel *pModel)
     {
         m_pModel = pModel;
         if (m_pModel == NULL)
         {
-           deletePixmap();
+            deletePixmap();
         }
         else
         {
             m_maxItemDuration = m_pModel->get_root_item()->getMaxChildDuration();
         }
-   }
+    }
 
-   inline vogleditor_timelineModel* model()
-   {
-      return m_pModel;
-   }
+    inline vogleditor_timelineModel *model()
+    {
+        return m_pModel;
+    }
 
-   inline void setCurrentFrame(unsigned long long frameNumber)
-   {
-      m_curFrame = frameNumber;
-   }
+    inline void setCurrentFrame(unsigned long long frameNumber)
+    {
+        m_curFrame = frameNumber;
+    }
 
-   inline void setCurrentApiCall(unsigned long long apiCallNumber)
-   {
-      m_curApiCallNumber = apiCallNumber;
-   }
+    inline void setCurrentApiCall(unsigned long long apiCallNumber)
+    {
+        m_curApiCallNumber = apiCallNumber;
+    }
 
-   void deletePixmap()
-   {
-       if (m_pPixmap != NULL)
-       {
-           delete m_pPixmap;
-           m_pPixmap = NULL;
-       }
-   }
+    void deletePixmap()
+    {
+        if (m_pPixmap != NULL)
+        {
+            delete m_pPixmap;
+            m_pPixmap = NULL;
+        }
+    }
 
 private:
-   QBrush m_background;
-   QBrush m_triangleBrushWhite;
-   QBrush m_triangleBrushBlack;
-   QPen m_trianglePen;
-   QPen m_textPen;
-   QFont m_textFont;
-   float m_horizontalScale;
-   int m_lineLength;
-   unsigned long long m_curFrame;
-   unsigned long long m_curApiCallNumber;
-   float m_maxItemDuration;
+    QBrush m_background;
+    QBrush m_triangleBrushWhite;
+    QBrush m_triangleBrushBlack;
+    QPen m_trianglePen;
+    QPen m_textPen;
+    QFont m_textFont;
+    float m_horizontalScale;
+    int m_lineLength;
+    unsigned long long m_curFrame;
+    unsigned long long m_curApiCallNumber;
+    float m_maxItemDuration;
 
-   vogleditor_timelineModel* m_pModel;
-   QPixmap* m_pPixmap;
+    vogleditor_timelineModel *m_pModel;
+    QPixmap *m_pPixmap;
 
-   void drawBaseTimeline(QPainter* painter, const QRect& rect, int gap);
-   void drawTimelineItem(QPainter* painter, vogleditor_timelineItem* pItem, int height, float &minimumOffset);
-   bool drawCurrentApiCallMarker(QPainter* painter, QPolygon& triangle, vogleditor_timelineItem* pItem);
+    void drawBaseTimeline(QPainter *painter, const QRect &rect, int gap);
+    void drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, float &minimumOffset);
+    bool drawCurrentApiCallMarker(QPainter *painter, QPolygon &triangle, vogleditor_timelineItem *pItem);
 
-   float scaleDurationHorizontally(float value);
-   float scalePositionHorizontally(float value);
+    float scaleDurationHorizontally(float value);
+    float scalePositionHorizontally(float value);
 
 protected:
-    void paintEvent(QPaintEvent* event);
+    void paintEvent(QPaintEvent *event);
 
 signals:
 
-public slots:
-
+public
+slots:
 };
 
 #endif // VOGLEDITOR_QTIMELINEVIEW_H

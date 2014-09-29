@@ -37,7 +37,7 @@ class vogl_trace_packet;
 class vogleditor_apiCallItem : public vogleditor_snapshotItem
 {
 public:
-    vogleditor_apiCallItem(vogleditor_frameItem* pFrame, vogl_trace_packet* pTracePacket, const vogl_trace_gl_entrypoint_packet& glPacket)
+    vogleditor_apiCallItem(vogleditor_frameItem *pFrame, vogl_trace_packet *pTracePacket, const vogl_trace_gl_entrypoint_packet &glPacket)
         : m_pParentFrame(pFrame),
           m_glPacket(glPacket),
           m_pTracePacket(pTracePacket),
@@ -61,7 +61,7 @@ public:
         }
     }
 
-    inline vogleditor_frameItem* frame() const
+    inline vogleditor_frameItem *frame() const
     {
         return m_pParentFrame;
     }
@@ -86,12 +86,12 @@ public:
         return endTime() - startTime();
     }
 
-    const vogl_trace_gl_entrypoint_packet* getGLPacket() const
+    const vogl_trace_gl_entrypoint_packet *getGLPacket() const
     {
         return &m_glPacket;
     }
 
-    vogl_trace_packet* getTracePacket()
+    vogl_trace_packet *getTracePacket()
     {
         return m_pTracePacket;
     }
@@ -102,9 +102,9 @@ public:
     }
 
 private:
-    vogleditor_frameItem* m_pParentFrame;
+    vogleditor_frameItem *m_pParentFrame;
     const vogl_trace_gl_entrypoint_packet m_glPacket;
-    vogl_trace_packet* m_pTracePacket;
+    vogl_trace_packet *m_pTracePacket;
 
     uint64_t m_globalCallIndex;
     uint64_t m_begin_rdtsc;

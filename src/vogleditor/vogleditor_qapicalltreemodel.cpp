@@ -60,9 +60,9 @@ vogleditor_QApiCallTreeModel::~vogleditor_QApiCallTreeModel()
     m_itemList.clear();
 }
 
-bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
+bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
 {
-    vogleditor_apiCallTreeItem* parent = m_rootItem;
+    vogleditor_apiCallTreeItem *parent = m_rootItem;
     const vogl_trace_stream_start_of_file_packet &sof_packet = pTrace_reader->get_sof_packet();
     VOGL_NOTE_UNUSED(sof_packet);
 
@@ -73,12 +73,12 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
     // this will remain in the pending state until the first
     // api call is seen, then it will be made the CurFrame and
     // appended to the parent
-    vogleditor_frameItem* pCurFrame = NULL;
-    vogleditor_apiCallTreeItem* pCurParent = parent;
+    vogleditor_frameItem *pCurFrame = NULL;
+    vogleditor_apiCallTreeItem *pCurParent = parent;
 
     // Make a PendingSnapshot that may or may not be populated when reading the trace.
     // This snapshot will be assigned to the next API call that occurs.
-    vogleditor_gl_state_snapshot* pPendingSnapshot = NULL;
+    vogleditor_gl_state_snapshot *pPendingSnapshot = NULL;
 
     m_pTrace_ctypes = vogl_new(vogl_ctypes);
 
@@ -89,7 +89,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
 
     m_pTrace_ctypes->init(pTrace_reader->get_sof_packet().m_pointer_sizes);
 
-    for ( ; ; )
+    for (;;)
     {
         vogl_trace_file_reader::trace_file_reader_status_t read_status = pTrace_reader->read_next_packet();
 
@@ -105,14 +105,16 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
             return false;
         }
 
-        const vogl::vector<uint8_t> &packet_buf = pTrace_reader->get_packet_buf(); VOGL_NOTE_UNUSED(packet_buf);
+        const vogl::vector<uint8_t> &packet_buf = pTrace_reader->get_packet_buf();
+        VOGL_NOTE_UNUSED(packet_buf);
 
-        const vogl_trace_stream_packet_base &base_packet = pTrace_reader->get_base_packet(); VOGL_NOTE_UNUSED(base_packet);
+        const vogl_trace_stream_packet_base &base_packet = pTrace_reader->get_base_packet();
+        VOGL_NOTE_UNUSED(base_packet);
         const vogl_trace_gl_entrypoint_packet *pGL_packet = NULL;
 
         if (pTrace_reader->get_packet_type() == cTSPTGLEntrypoint)
         {
-            vogl_trace_packet* pTrace_packet = vogl_new(vogl_trace_packet, m_pTrace_ctypes);
+            vogl_trace_packet *pTrace_packet = vogl_new(vogl_trace_packet, m_pTrace_ctypes);
 
             if (!pTrace_packet->deserialize(pTrace_reader->get_packet_buf().get_ptr(), pTrace_reader->get_packet_buf().size(), false))
             {
@@ -135,7 +137,8 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
                 // This is entirely optional since the client is designed to dynamically get new snapshots
                 // if they don't exist.
                 GLuint cmd = pTrace_packet->get_param_value<GLuint>(0);
-                GLuint size = pTrace_packet->get_param_value<GLuint>(1); VOGL_NOTE_UNUSED(size);
+                GLuint size = pTrace_packet->get_param_value<GLuint>(1);
+                VOGL_NOTE_UNUSED(size);
 
                 if (cmd == cITCRKeyValueMap)
                 {
@@ -171,7 +174,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
                             }
                         }
 
-                        vogl_gl_state_snapshot* pGLSnapshot = vogl_new(vogl_gl_state_snapshot);
+                        vogl_gl_state_snapshot *pGLSnapshot = vogl_new(vogl_gl_state_snapshot);
                         pPendingSnapshot = vogl_new(vogleditor_gl_state_snapshot, pGLSnapshot);
 
                         timed_scope ts("pPendingSnapshot->deserialize");
@@ -220,7 +223,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
             if (pCurFrame == NULL)
             {
                 pCurFrame = vogl_new(vogleditor_frameItem, total_swaps);
-                vogleditor_apiCallTreeItem* pNewFrameNode = vogl_new(vogleditor_apiCallTreeItem, pCurFrame, pCurParent);
+                vogleditor_apiCallTreeItem *pNewFrameNode = vogl_new(vogleditor_apiCallTreeItem, pCurFrame, pCurParent);
                 pCurParent->appendChild(pNewFrameNode);
                 m_itemList.append(pNewFrameNode);
 
@@ -235,7 +238,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
             }
 
             // make item and node for the api call
-            vogleditor_apiCallItem* pCallItem = vogl_new(vogleditor_apiCallItem, pCurFrame, pTrace_packet, *pGL_packet);
+            vogleditor_apiCallItem *pCallItem = vogl_new(vogleditor_apiCallItem, pCurFrame, pTrace_packet, *pGL_packet);
             pCurFrame->appendCall(pCallItem);
 
             if (pPendingSnapshot != NULL)
@@ -244,7 +247,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader* pTrace_reader)
                 pPendingSnapshot = NULL;
             }
 
-            vogleditor_apiCallTreeItem* item = vogl_new(vogleditor_apiCallTreeItem, funcCall, pCallItem, pCurParent);
+            vogleditor_apiCallTreeItem *item = vogl_new(vogleditor_apiCallTreeItem, funcCall, pCallItem, pCurParent);
             pCurParent->appendChild(item);
             m_itemList.append(item);
 
@@ -294,7 +297,7 @@ QModelIndex vogleditor_QApiCallTreeModel::index(int row, int column, const QMode
     if (!parent.isValid())
         parentItem = m_rootItem;
     else
-        parentItem = static_cast<vogleditor_apiCallTreeItem*>(parent.internalPointer());
+        parentItem = static_cast<vogleditor_apiCallTreeItem *>(parent.internalPointer());
 
     vogleditor_apiCallTreeItem *childItem = parentItem->child(row);
     if (childItem)
@@ -303,10 +306,10 @@ QModelIndex vogleditor_QApiCallTreeModel::index(int row, int column, const QMode
         return QModelIndex();
 }
 
-QModelIndex vogleditor_QApiCallTreeModel::indexOf(const vogleditor_apiCallTreeItem* pItem) const
+QModelIndex vogleditor_QApiCallTreeModel::indexOf(const vogleditor_apiCallTreeItem *pItem) const
 {
     if (pItem != NULL)
-        return createIndex(pItem->row(), VOGL_ACTC_APICALL, (void*)pItem);
+        return createIndex(pItem->row(), VOGL_ACTC_APICALL, (void *)pItem);
     else
         return QModelIndex();
 }
@@ -316,8 +319,8 @@ QModelIndex vogleditor_QApiCallTreeModel::parent(const QModelIndex &index) const
     if (!index.isValid())
         return QModelIndex();
 
-    vogleditor_apiCallTreeItem* childItem = static_cast<vogleditor_apiCallTreeItem*>(index.internalPointer());
-    vogleditor_apiCallTreeItem* parentItem = childItem->parent();
+    vogleditor_apiCallTreeItem *childItem = static_cast<vogleditor_apiCallTreeItem *>(index.internalPointer());
+    vogleditor_apiCallTreeItem *parentItem = childItem->parent();
 
     if (parentItem == m_rootItem)
         return QModelIndex();
@@ -327,14 +330,14 @@ QModelIndex vogleditor_QApiCallTreeModel::parent(const QModelIndex &index) const
 
 int vogleditor_QApiCallTreeModel::rowCount(const QModelIndex &parent) const
 {
-    vogleditor_apiCallTreeItem* parentItem;
+    vogleditor_apiCallTreeItem *parentItem;
     if (parent.column() > 0)
         return 0;
 
     if (!parent.isValid())
         parentItem = m_rootItem;
     else
-        parentItem = static_cast<vogleditor_apiCallTreeItem*>(parent.internalPointer());
+        parentItem = static_cast<vogleditor_apiCallTreeItem *>(parent.internalPointer());
 
     return parentItem->childCount();
 }
@@ -350,7 +353,7 @@ QVariant vogleditor_QApiCallTreeModel::data(const QModelIndex &index, int role) 
     if (!index.isValid())
         return QVariant();
 
-    vogleditor_apiCallTreeItem* pItem = static_cast<vogleditor_apiCallTreeItem*>(index.internalPointer());
+    vogleditor_apiCallTreeItem *pItem = static_cast<vogleditor_apiCallTreeItem *>(index.internalPointer());
 
     if (pItem == NULL)
     {
@@ -404,9 +407,9 @@ void vogleditor_QApiCallTreeModel::set_highlight_search_string(const QString sea
     m_searchString = searchString;
 }
 
-QModelIndex vogleditor_QApiCallTreeModel::find_prev_search_result(vogleditor_apiCallTreeItem* start, const QString searchText)
+QModelIndex vogleditor_QApiCallTreeModel::find_prev_search_result(vogleditor_apiCallTreeItem *start, const QString searchText)
 {
-    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+    QLinkedListIterator<vogleditor_apiCallTreeItem *> iter(m_itemList);
 
     if (start != NULL)
     {
@@ -427,10 +430,10 @@ QModelIndex vogleditor_QApiCallTreeModel::find_prev_search_result(vogleditor_api
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the prev item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = NULL;
+    vogleditor_apiCallTreeItem *pFound = NULL;
     while (iter.hasPrevious())
     {
-        vogleditor_apiCallTreeItem* pItem = iter.peekPrevious();
+        vogleditor_apiCallTreeItem *pItem = iter.peekPrevious();
         QVariant data = pItem->columnData(VOGL_ACTC_APICALL, Qt::DisplayRole);
         QString string = data.toString();
         if (string.contains(searchText, Qt::CaseInsensitive))
@@ -445,9 +448,9 @@ QModelIndex vogleditor_QApiCallTreeModel::find_prev_search_result(vogleditor_api
     return indexOf(pFound);
 }
 
-QModelIndex vogleditor_QApiCallTreeModel::find_next_search_result(vogleditor_apiCallTreeItem* start, const QString searchText)
+QModelIndex vogleditor_QApiCallTreeModel::find_next_search_result(vogleditor_apiCallTreeItem *start, const QString searchText)
 {
-    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+    QLinkedListIterator<vogleditor_apiCallTreeItem *> iter(m_itemList);
 
     if (start != NULL)
     {
@@ -460,10 +463,10 @@ QModelIndex vogleditor_QApiCallTreeModel::find_next_search_result(vogleditor_api
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the next item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = NULL;
+    vogleditor_apiCallTreeItem *pFound = NULL;
     while (iter.hasNext())
     {
-        vogleditor_apiCallTreeItem* pItem = iter.peekNext();
+        vogleditor_apiCallTreeItem *pItem = iter.peekNext();
         QVariant data = pItem->columnData(VOGL_ACTC_APICALL, Qt::DisplayRole);
         QString string = data.toString();
         if (string.contains(searchText, Qt::CaseInsensitive))
@@ -478,9 +481,9 @@ QModelIndex vogleditor_QApiCallTreeModel::find_next_search_result(vogleditor_api
     return indexOf(pFound);
 }
 
-vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_prev_snapshot(vogleditor_apiCallTreeItem* start)
+vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_prev_snapshot(vogleditor_apiCallTreeItem *start)
 {
-    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+    QLinkedListIterator<vogleditor_apiCallTreeItem *> iter(m_itemList);
 
     if (start != NULL)
     {
@@ -501,7 +504,7 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_prev_snapshot(vog
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the prev item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = NULL;
+    vogleditor_apiCallTreeItem *pFound = NULL;
     while (iter.hasPrevious())
     {
         if (iter.peekPrevious()->has_snapshot())
@@ -516,9 +519,9 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_prev_snapshot(vog
     return pFound;
 }
 
-vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_next_snapshot(vogleditor_apiCallTreeItem* start)
+vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_snapshot(vogleditor_apiCallTreeItem *start)
 {
-    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+    QLinkedListIterator<vogleditor_apiCallTreeItem *> iter(m_itemList);
 
     // if start is NULL, then search will begin from top, otherwise it will begin from the start item and search onwards
     if (start != NULL)
@@ -532,7 +535,7 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_next_snapshot(vog
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the next item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = NULL;
+    vogleditor_apiCallTreeItem *pFound = NULL;
     while (iter.hasNext())
     {
         if (iter.peekNext()->has_snapshot())
@@ -547,10 +550,9 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_next_snapshot(vog
     return pFound;
 }
 
-
-vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_prev_drawcall(vogleditor_apiCallTreeItem* start)
+vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_prev_drawcall(vogleditor_apiCallTreeItem *start)
 {
-    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+    QLinkedListIterator<vogleditor_apiCallTreeItem *> iter(m_itemList);
 
     if (start != NULL)
     {
@@ -571,17 +573,17 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_prev_drawcall(vog
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the prev item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = NULL;
+    vogleditor_apiCallTreeItem *pFound = NULL;
     while (iter.hasPrevious())
     {
-        vogleditor_apiCallTreeItem* pItem = iter.peekPrevious();
+        vogleditor_apiCallTreeItem *pItem = iter.peekPrevious();
         if (pItem->apiCallItem() != NULL)
         {
             gl_entrypoint_id_t entrypointId = static_cast<gl_entrypoint_id_t>(pItem->apiCallItem()->getGLPacket()->m_entrypoint_id);
             if (vogl_is_draw_entrypoint(entrypointId) ||
-                    vogl_is_clear_entrypoint(entrypointId) ||
-                    (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
-                    (entrypointId == VOGL_ENTRYPOINT_glEnd))
+                vogl_is_clear_entrypoint(entrypointId) ||
+                (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
+                (entrypointId == VOGL_ENTRYPOINT_glEnd))
             {
                 pFound = iter.peekPrevious();
                 break;
@@ -594,9 +596,9 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_prev_drawcall(vog
     return pFound;
 }
 
-vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vogleditor_apiCallTreeItem* start)
+vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vogleditor_apiCallTreeItem *start)
 {
-    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+    QLinkedListIterator<vogleditor_apiCallTreeItem *> iter(m_itemList);
 
     if (iter.findNext(start) == false)
     {
@@ -606,17 +608,17 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vog
 
     // now the iterator is pointing to the desired start object in the list,
     // continually check the next item and find one with a snapshot
-    vogleditor_apiCallTreeItem* pFound = NULL;
+    vogleditor_apiCallTreeItem *pFound = NULL;
     while (iter.hasNext())
     {
-        vogleditor_apiCallTreeItem* pItem = iter.peekNext();
+        vogleditor_apiCallTreeItem *pItem = iter.peekNext();
         if (pItem->apiCallItem() != NULL)
         {
             gl_entrypoint_id_t entrypointId = static_cast<gl_entrypoint_id_t>(pItem->apiCallItem()->getGLPacket()->m_entrypoint_id);
             if (vogl_is_draw_entrypoint(entrypointId) ||
-                    vogl_is_clear_entrypoint(entrypointId) ||
-                    (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
-                    (entrypointId == VOGL_ENTRYPOINT_glEnd))
+                vogl_is_clear_entrypoint(entrypointId) ||
+                (entrypointId == VOGL_ENTRYPOINT_glBitmap) ||
+                (entrypointId == VOGL_ENTRYPOINT_glEnd))
             {
                 pFound = iter.peekNext();
                 break;
@@ -629,14 +631,14 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_next_drawcall(vog
     return pFound;
 }
 
-vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_call_number(unsigned int callNumber)
+vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_call_number(unsigned int callNumber)
 {
-    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+    QLinkedListIterator<vogleditor_apiCallTreeItem *> iter(m_itemList);
 
-    vogleditor_apiCallTreeItem* pFound = NULL;
+    vogleditor_apiCallTreeItem *pFound = NULL;
     while (iter.hasNext())
     {
-        vogleditor_apiCallTreeItem* pItem = iter.peekNext();
+        vogleditor_apiCallTreeItem *pItem = iter.peekNext();
         if (pItem->apiCallItem() != NULL)
         {
             if (pItem->apiCallItem()->globalCallIndex() == callNumber)
@@ -652,14 +654,14 @@ vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_call_number(unsig
     return pFound;
 }
 
-vogleditor_apiCallTreeItem* vogleditor_QApiCallTreeModel::find_frame_number(unsigned int frameNumber)
+vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::find_frame_number(unsigned int frameNumber)
 {
-    QLinkedListIterator<vogleditor_apiCallTreeItem*> iter(m_itemList);
+    QLinkedListIterator<vogleditor_apiCallTreeItem *> iter(m_itemList);
 
-    vogleditor_apiCallTreeItem* pFound = NULL;
+    vogleditor_apiCallTreeItem *pFound = NULL;
     while (iter.hasNext())
     {
-        vogleditor_apiCallTreeItem* pItem = iter.peekNext();
+        vogleditor_apiCallTreeItem *pItem = iter.peekNext();
         if (pItem->frameItem() != NULL)
         {
             if (pItem->frameItem()->frameNumber() == frameNumber)

@@ -29,9 +29,9 @@
 #include "vogleditor_apicalltreeitem.h"
 #include "vogleditor_frameitem.h"
 
-vogleditor_apiCallTimelineModel::vogleditor_apiCallTimelineModel(vogleditor_apiCallTreeItem* pRootApiCall) :
-    m_pRootApiCall(pRootApiCall),
-    m_rawBaseTime(0)
+vogleditor_apiCallTimelineModel::vogleditor_apiCallTimelineModel(vogleditor_apiCallTreeItem *pRootApiCall)
+    : m_pRootApiCall(pRootApiCall),
+      m_rawBaseTime(0)
 {
     refresh();
 }
@@ -42,7 +42,6 @@ void vogleditor_apiCallTimelineModel::refresh()
     {
         return;
     }
-
 
     float timelineStart = 0;
     float timelineEnd = 1;
@@ -57,7 +56,7 @@ void vogleditor_apiCallTimelineModel::refresh()
 
         uint64_t lastStart = 0;
         uint64_t lastEnd = 0;
-        vogleditor_apiCallTreeItem* pLastChild = m_pRootApiCall->child(numChildren-1);
+        vogleditor_apiCallTreeItem *pLastChild = m_pRootApiCall->child(numChildren - 1);
         pLastChild->frameItem()->getStartEndTimes(lastStart, lastEnd);
 
         m_rawBaseTime = firstStart;
@@ -70,7 +69,7 @@ void vogleditor_apiCallTimelineModel::refresh()
     if (m_rootItem != NULL)
     {
         if (m_rootItem->getDuration() == timelineEnd - timelineStart &&
-                m_rootItem->childCount() == numChildren)
+            m_rootItem->childCount() == numChildren)
         {
             // no need to make a new root
             skipCreation = true;
@@ -90,11 +89,11 @@ void vogleditor_apiCallTimelineModel::refresh()
         float frameStart = 0;
         for (int c = 0; c < numChildren; c++)
         {
-            vogleditor_apiCallTreeItem* pFrameItem = m_pRootApiCall->child(c);
+            vogleditor_apiCallTreeItem *pFrameItem = m_pRootApiCall->child(c);
             if (pFrameItem->childCount() > 0)
             {
                 frameStart = u64ToFloat(pFrameItem->child(0)->apiCallItem()->startTime() - m_rawBaseTime);
-                vogleditor_timelineItem* pFrameTimelineItem = new vogleditor_timelineItem(frameStart, m_rootItem);
+                vogleditor_timelineItem *pFrameTimelineItem = new vogleditor_timelineItem(frameStart, m_rootItem);
                 pFrameTimelineItem->setFrameItem(pFrameItem->frameItem());
                 m_rootItem->appendChild(pFrameTimelineItem);
             }
@@ -107,7 +106,7 @@ void vogleditor_apiCallTimelineModel::refresh()
         // recursively add each children
         for (int frameIndex = 0; frameIndex < numChildren; frameIndex++)
         {
-            vogleditor_apiCallTreeItem* pFrameChild = m_pRootApiCall->child(frameIndex);
+            vogleditor_apiCallTreeItem *pFrameChild = m_pRootApiCall->child(frameIndex);
 
             AddApiCallsToTimeline(pFrameChild, m_rootItem);
         }
@@ -121,16 +120,16 @@ float vogleditor_apiCallTimelineModel::u64ToFloat(uint64_t value)
 
     // How many bits are needed?
     int b = sizeof(uint64_t) * CHAR_BIT - 1;
-    for(; b >= 0; --b)
+    for (; b >= 0; --b)
     {
-        if(value & (1ull << b))
+        if (value & (1ull << b))
         {
             break;
         }
     }
 
     // If there are few enough significant bits, use normal cast and done.
-    if(b < mask_bit_count)
+    if (b < mask_bit_count)
     {
         return static_cast<float>(value & ~1ull);
     }
@@ -142,7 +141,7 @@ float vogleditor_apiCallTimelineModel::u64ToFloat(uint64_t value)
     value &= ~((1ull << (b - mask_bit_count)) - 1);
 
     // Finally, decide how to round the new LSB:
-    if(low_bits > ((1ull << (b - mask_bit_count)) / 2ull))
+    if (low_bits > ((1ull << (b - mask_bit_count)) / 2ull))
     {
         // Round up.
         value |= (1ull << (b - mask_bit_count));
@@ -156,18 +155,18 @@ float vogleditor_apiCallTimelineModel::u64ToFloat(uint64_t value)
     return static_cast<float>(value);
 }
 
-void vogleditor_apiCallTimelineModel::AddApiCallsToTimeline(vogleditor_apiCallTreeItem* pRoot, vogleditor_timelineItem* pDestRoot)
+void vogleditor_apiCallTimelineModel::AddApiCallsToTimeline(vogleditor_apiCallTreeItem *pRoot, vogleditor_timelineItem *pDestRoot)
 {
     int numChildren = pRoot->childCount();
     for (int c = 0; c < numChildren; c++)
     {
-        vogleditor_apiCallTreeItem* pChild = pRoot->child(c);
+        vogleditor_apiCallTreeItem *pChild = pRoot->child(c);
         if (pChild->apiCallItem() != NULL)
         {
             float beginFloat = u64ToFloat(pChild->apiCallItem()->startTime() - m_rawBaseTime);
             float endFloat = u64ToFloat(pChild->apiCallItem()->endTime() - m_rawBaseTime);
 
-            vogleditor_timelineItem* pNewItem = new vogleditor_timelineItem(beginFloat, endFloat, pDestRoot);
+            vogleditor_timelineItem *pNewItem = new vogleditor_timelineItem(beginFloat, endFloat, pDestRoot);
             pNewItem->setApiCallItem(pChild->apiCallItem());
             pDestRoot->appendChild(pNewItem);
             AddApiCallsToTimeline(pChild, pNewItem);

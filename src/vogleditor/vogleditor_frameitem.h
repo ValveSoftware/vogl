@@ -50,7 +50,7 @@ public:
         return m_frameNumber;
     }
 
-    void appendCall(vogleditor_apiCallItem* pItem)
+    void appendCall(vogleditor_apiCallItem *pItem)
     {
         m_apiCallList.append(pItem);
     }
@@ -60,7 +60,7 @@ public:
         return m_apiCallList.size();
     }
 
-    vogleditor_apiCallItem* call(int index) const
+    vogleditor_apiCallItem *call(int index) const
     {
         if (index < 0 || index > callCount())
         {
@@ -70,7 +70,7 @@ public:
         return m_apiCallList[index];
     }
 
-    bool getStartEndTimes(uint64_t& start, uint64_t& end) const
+    bool getStartEndTimes(uint64_t &start, uint64_t &end) const
     {
         int numCalls = callCount();
         if (numCalls == 0)
@@ -79,23 +79,23 @@ public:
         }
 
         start = m_apiCallList[0]->startTime();
-        end = m_apiCallList[numCalls-1]->endTime();
+        end = m_apiCallList[numCalls - 1]->endTime();
         return true;
     }
 
-    void set_screenshot_filename(const dynamic_string& filename)
+    void set_screenshot_filename(const dynamic_string &filename)
     {
         m_screenshot_filename = filename;
     }
 
-    const dynamic_string& get_screenshot_filename() const
+    const dynamic_string &get_screenshot_filename() const
     {
         return m_screenshot_filename;
     }
 
 private:
     uint64_t m_frameNumber;
-    QList<vogleditor_apiCallItem*> m_apiCallList;
+    QList<vogleditor_apiCallItem *> m_apiCallList;
 
     dynamic_string m_screenshot_filename;
 };

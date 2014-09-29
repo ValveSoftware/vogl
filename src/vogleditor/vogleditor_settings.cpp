@@ -20,11 +20,11 @@ vogleditor_settings::vogleditor_settings()
     m_settings = m_defaults;
 }
 
-dynamic_string vogleditor_settings::get_settings_path(const char* settingsFilename)
+dynamic_string vogleditor_settings::get_settings_path(const char *settingsFilename)
 {
     dynamic_string settingsPath;
-    const char* xdgConfigHome = getenv("XDG_CONFIG_HOME");
-    const char* home = getenv("HOME");
+    const char *xdgConfigHome = getenv("XDG_CONFIG_HOME");
+    const char *home = getenv("HOME");
     if (xdgConfigHome != NULL && strlen(xdgConfigHome) != 0)
     {
         settingsPath = xdgConfigHome;
@@ -41,7 +41,7 @@ dynamic_string vogleditor_settings::get_settings_path(const char* settingsFilena
     {
         settingsPath += home;
         settingsPath += "/.config/vogleditor/";
-        if (vogl::file_utils::does_dir_exist(settingsPath.c_str())== false)
+        if (vogl::file_utils::does_dir_exist(settingsPath.c_str()) == false)
         {
             if (vogl::file_utils::create_directories_from_full_path(settingsPath) == false)
             {
@@ -73,16 +73,16 @@ QString vogleditor_settings::to_string()
     return qstrSettings;
 }
 
-bool vogleditor_settings::from_json(const json_document& doc)
+bool vogleditor_settings::from_json(const json_document &doc)
 {
     // validate metadata
-    const json_node* pMetadata = doc.get_root()->find_child_object("metadata");
+    const json_node *pMetadata = doc.get_root()->find_child_object("metadata");
     if (pMetadata == NULL)
     {
         return false;
     }
 
-    const json_value& rFormatVersion = pMetadata->find_value("vogleditor_settings_file_format_version");
+    const json_value &rFormatVersion = pMetadata->find_value("vogleditor_settings_file_format_version");
     if (!rFormatVersion.is_valid() || rFormatVersion.as_uint32() != VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION_1)
     {
         return false;
@@ -91,7 +91,7 @@ bool vogleditor_settings::from_json(const json_document& doc)
     m_file_format_version = rFormatVersion.as_uint32(VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION);
 
     // validate that settings node exists
-    const json_node* pSettingsNode = doc.get_root()->find_child_object("settings");
+    const json_node *pSettingsNode = doc.get_root()->find_child_object("settings");
     if (pSettingsNode == NULL)
     {
         return false;
@@ -108,7 +108,7 @@ bool vogleditor_settings::from_json(const json_document& doc)
     return true;
 }
 
-bool vogleditor_settings::load(const char* settingsFile)
+bool vogleditor_settings::load(const char *settingsFile)
 {
     bool bLoaded = false;
     json_document settingsDoc;
@@ -121,7 +121,7 @@ bool vogleditor_settings::load(const char* settingsFile)
     return bLoaded;
 }
 
-bool vogleditor_settings::from_string(const char* settingsStr)
+bool vogleditor_settings::from_string(const char *settingsStr)
 {
     bool bResult = false;
     json_document doc;
@@ -133,13 +133,13 @@ bool vogleditor_settings::from_string(const char* settingsStr)
     return bResult;
 }
 
-bool vogleditor_settings::to_json(json_document& doc)
+bool vogleditor_settings::to_json(json_document &doc)
 {
-    json_node& metadata = doc.get_root()->add_object("metadata");
+    json_node &metadata = doc.get_root()->add_object("metadata");
     metadata.add_key_value("vogleditor_settings_file_format_version", to_hex_string(VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION));
 
     // settings
-    json_node& settings = doc.get_root()->add_object("settings");
+    json_node &settings = doc.get_root()->add_object("settings");
     settings.add_key_value("trim_large_trace_prompt_size", m_settings.trim_large_trace_prompt_size);
 
     settings.add_key_value("window_position_left", m_settings.window_position_left);
@@ -150,7 +150,7 @@ bool vogleditor_settings::to_json(json_document& doc)
     return true;
 }
 
-bool vogleditor_settings::save(const char* settingsFile)
+bool vogleditor_settings::save(const char *settingsFile)
 {
     json_document settingsDoc;
     if (this->to_json(settingsDoc) == false)

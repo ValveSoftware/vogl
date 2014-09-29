@@ -300,7 +300,7 @@ bool vogl_copy_buffer_to_image(void *pDst, uint32_t dst_size, uint32_t width, ui
 
 inline bool vogl_is_make_current_entrypoint(gl_entrypoint_id_t id)
 {
-    return (id == VOGL_ENTRYPOINT_glXMakeCurrent) 
+    return (id == VOGL_ENTRYPOINT_glXMakeCurrent)
         || (id == VOGL_ENTRYPOINT_wglMakeCurrent)
         || (id == VOGL_ENTRYPOINT_wglMakeContextCurrentARB)
         || (id == VOGL_ENTRYPOINT_wglMakeContextCurrentEXT);
@@ -874,17 +874,17 @@ typedef GLXContext vogl_gl_context;
 typedef Display *vogl_gl_display;
 typedef GLXDrawable vogl_gl_drawable;
 typedef GLXFBConfig vogl_gl_fb_config;
-#elif (VOGL_PLATFORM_HAS_WGL)
+#elif(VOGL_PLATFORM_HAS_WGL)
 typedef HGLRC vogl_gl_context;
 typedef HDC vogl_gl_display;
 typedef HWND vogl_gl_drawable;
 typedef int vogl_gl_fb_config;
 #else
-    // TODO
-    typedef void* vogl_gl_context;
-    typedef void* vogl_gl_display;
-    typedef int vogl_gl_drawable;
-    typedef int vogl_gl_fb_config;
+// TODO
+typedef void *vogl_gl_context;
+typedef void *vogl_gl_display;
+typedef int vogl_gl_drawable;
+typedef int vogl_gl_fb_config;
 #endif
 
 enum
@@ -919,34 +919,4 @@ int vogl_get_max_supported_mip_levels();
 bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_desc, uint64_t val_data, gl_entrypoint_id_t entrypoint_id, int param_index);
 
 #endif // VOGL_GL_UTILS_H
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

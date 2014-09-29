@@ -56,9 +56,9 @@ gl_enums &get_gl_enums()
 const vogl_client_side_array_desc_t g_vogl_client_side_array_descs[] =
     {
 #define VOGL_CLIENT_SIDE_ARRAY_DESC(id, entrypoint, is_enabled, get_binding, get_pointer, get_size, get_stride, get_type) \
-    {                                                                                                                    \
-        entrypoint, is_enabled, get_binding, get_pointer, get_size, get_stride, get_type                                 \
-    }                                                                                                                    \
+    {                                                                                                                     \
+        entrypoint, is_enabled, get_binding, get_pointer, get_size, get_stride, get_type                                  \
+    }                                                                                                                     \
     ,
 #include "vogl_client_side_array_descs.inc"
 #undef VOGL_CLIENT_SIDE_ARRAY_DESC
@@ -271,8 +271,8 @@ bool vogl_has_active_context()
     if (!GL_ENTRYPOINT(glXGetCurrentContext)())
         return false;
 
-#elif (VOGL_PLATFORM_HAS_WGL)
-    
+#elif(VOGL_PLATFORM_HAS_WGL)
+
     if (!GL_ENTRYPOINT(wglGetCurrentContext))
         return false;
     if (!GL_ENTRYPOINT(wglGetCurrentContext)())
@@ -776,7 +776,8 @@ void vogl_reset_pixel_transfer_states(const vogl_context_info &context_info)
     GL_ENTRYPOINT(glPixelTransferf)(GL_BLUE_BIAS, 0.0f);
     GL_ENTRYPOINT(glPixelTransferf)(GL_ALPHA_BIAS, 0.0f);
     GL_ENTRYPOINT(glPixelTransferf)(GL_DEPTH_BIAS, 0.0f);
-    if (context_info.supports_extension("GL_ARB_imaging")) {
+    if (context_info.supports_extension("GL_ARB_imaging"))
+    {
         GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_RED_SCALE, 1.0f);
         GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_GREEN_SCALE, 1.0f);
         GL_ENTRYPOINT(glPixelTransferf)(GL_POST_CONVOLUTION_BLUE_SCALE, 1.0f);
@@ -1036,12 +1037,13 @@ bool vogl_is_clear_entrypoint(gl_entrypoint_id_t id)
 //------------------------------------------------------------------------------
 bool vogl_is_start_nested_entrypoint(gl_entrypoint_id_t id)
 {
-    switch (id) {
+    switch (id)
+    {
         case VOGL_ENTRYPOINT_glBegin:
         case VOGL_ENTRYPOINT_glPushDebugGroup:
-          return true;
+            return true;
         default:
-          break;
+            break;
     }
     return false;
 }
@@ -1051,12 +1053,13 @@ bool vogl_is_start_nested_entrypoint(gl_entrypoint_id_t id)
 //------------------------------------------------------------------------------
 bool vogl_is_end_nested_entrypoint(gl_entrypoint_id_t id)
 {
-    switch (id) {
+    switch (id)
+    {
         case VOGL_ENTRYPOINT_glEnd:
         case VOGL_ENTRYPOINT_glPopDebugGroup:
-          return true;
+            return true;
         default:
-          break;
+            break;
     }
     return false;
 }
@@ -1330,14 +1333,14 @@ void vogl_state_saver::save(vogl_generic_state_type type, const vogl_context_inf
 {
     VOGL_FUNC_TRACER
 
-#define SAVE_INT_STATE(type, pname)                                              \
-    do                                                                           \
-    {                                                                            \
+#define SAVE_INT_STATE(type, pname)                                               \
+    do                                                                            \
+    {                                                                             \
         m_states.push_back(saved_state(type, pname, vogl_get_gl_integer(pname))); \
     } while (0)
-#define SAVE_FLOAT_STATE(type, pname)                                          \
-    do                                                                         \
-    {                                                                          \
+#define SAVE_FLOAT_STATE(type, pname)                                           \
+    do                                                                          \
+    {                                                                           \
         m_states.push_back(saved_state(type, pname, vogl_get_gl_float(pname))); \
     } while (0)
 
@@ -1376,9 +1379,9 @@ void vogl_state_saver::save(vogl_generic_state_type type, const vogl_context_inf
                 };
             uint32_t array_size = VOGL_ARRAY_SIZE(s_pixel_transfer_float_enums);
             if (!context_info || !context_info->supports_extension("GL_ARB_imaging"))
-                array_size -= 16;  // skip enums from GL_POST_COLOR_MATRIX_RED_SCALE
+                array_size -= 16; // skip enums from GL_POST_COLOR_MATRIX_RED_SCALE
             for (uint32_t i = 0; i < array_size; i++)
-                    SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
+                SAVE_FLOAT_STATE(cGSTPixelTransfer, s_pixel_transfer_float_enums[i]);
 
             break;
         }
@@ -1996,42 +1999,42 @@ void vogl_enable_generic_context_debug_messages()
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_context vogl_create_context(vogl_gl_display display, vogl_gl_fb_config fb_config, vogl_gl_context share_context, uint32_t major_ver, uint32_t minor_ver, uint32_t flags, vogl_context_desc *pDesc)
 {
-    #if VOGL_PLATFORM_HAS_GLX
-        vogl_context_attribs attribs;
-        attribs.add_key(GLX_CONTEXT_MAJOR_VERSION_ARB, major_ver);
-        attribs.add_key(GLX_CONTEXT_MINOR_VERSION_ARB, minor_ver);
+#if VOGL_PLATFORM_HAS_GLX
+    vogl_context_attribs attribs;
+    attribs.add_key(GLX_CONTEXT_MAJOR_VERSION_ARB, major_ver);
+    attribs.add_key(GLX_CONTEXT_MINOR_VERSION_ARB, minor_ver);
 
-        if (flags & (cCHCCoreProfileFlag | cCHCCompatProfileFlag))
-        {
-            uint32_t profile_mask = 0;
-            if (flags & cCHCCoreProfileFlag)
-                profile_mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+    if (flags & (cCHCCoreProfileFlag | cCHCCompatProfileFlag))
+    {
+        uint32_t profile_mask = 0;
+        if (flags & cCHCCoreProfileFlag)
+            profile_mask |= GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 
-            if (flags & cCHCCompatProfileFlag)
-                profile_mask |= GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
+        if (flags & cCHCCompatProfileFlag)
+            profile_mask |= GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
 
-            attribs.add_key(GLX_CONTEXT_PROFILE_MASK_ARB, profile_mask);
-        }
-        if (flags & eCHCDebugContextFlag)
-        {
-            attribs.add_key(GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB);
-        }
+        attribs.add_key(GLX_CONTEXT_PROFILE_MASK_ARB, profile_mask);
+    }
+    if (flags & eCHCDebugContextFlag)
+    {
+        attribs.add_key(GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB);
+    }
 
-        GLXContext context = GL_ENTRYPOINT(glXCreateContextAttribsARB)(display, fb_config, share_context, GL_TRUE, attribs.get_ptr());
+    GLXContext context = GL_ENTRYPOINT(glXCreateContextAttribsARB)(display, fb_config, share_context, GL_TRUE, attribs.get_ptr());
 
-        if (pDesc)
-        {
-            if (!context)
-                pDesc->clear();
-            else
-                pDesc->init(VOGL_ENTRYPOINT_glXCreateContextAttribsARB, GL_TRUE, (vogl_trace_ptr_value)context, (vogl_trace_ptr_value)share_context, attribs);
-        }
+    if (pDesc)
+    {
+        if (!context)
+            pDesc->clear();
+        else
+            pDesc->init(VOGL_ENTRYPOINT_glXCreateContextAttribsARB, GL_TRUE, (vogl_trace_ptr_value)context, (vogl_trace_ptr_value)share_context, attribs);
+    }
 
-        return context;
-    #else
-        VOGL_ASSERT(!"impl vogl_create_context");
-        return 0;
-    #endif
+    return context;
+#else
+    VOGL_ASSERT(!"impl vogl_create_context");
+    return 0;
+#endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2041,7 +2044,7 @@ vogl_gl_context vogl_get_current_context()
 {
 #if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentContext)();
-#elif (VOGL_PLATFORM_HAS_WGL)
+#elif(VOGL_PLATFORM_HAS_WGL)
     return GL_ENTRYPOINT(wglGetCurrentContext)();
 #else
     VOGL_ASSERT(!"impl vogl_get_current_context");
@@ -2056,7 +2059,7 @@ vogl_gl_display vogl_get_current_display()
 {
 #if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentDisplay)();
-#elif (VOGL_PLATFORM_HAS_WGL)
+#elif(VOGL_PLATFORM_HAS_WGL)
     // TODO: Not sure if this is the correct equivalent
     return GL_ENTRYPOINT(wglGetCurrentDC)();
 #else
@@ -2071,7 +2074,7 @@ vogl_gl_drawable vogl_get_current_drawable()
 {
 #if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentDrawable)();
-#elif (VOGL_PLATFORM_HAS_WGL)
+#elif(VOGL_PLATFORM_HAS_WGL)
     return WindowFromDC(GL_ENTRYPOINT(wglGetCurrentDC)());
 #else
     VOGL_ASSERT(!"impl vogl_get_current_drawable");
@@ -2083,27 +2086,27 @@ vogl_gl_drawable vogl_get_current_drawable()
 //----------------------------------------------------------------------------------------------------------------------
 vogl_gl_fb_config vogl_get_current_fb_config(uint32_t screen)
 {
-    #if VOGL_PLATFORM_HAS_GLX
-        GLXDrawable pDrawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
-        Display *pDisplay = GL_ENTRYPOINT(glXGetCurrentDisplay)();
-        if ((!pDrawable) || (!pDisplay))
-            return 0;
-
-        GLuint fbconfig_id = 0;
-        GL_ENTRYPOINT(glXQueryDrawable)(pDisplay, pDrawable, GLX_FBCONFIG_ID, &fbconfig_id);
-
-        GLint attrib_list[3] = { GLX_FBCONFIG_ID, static_cast<GLint>(fbconfig_id), None };
-        GLint nelements = 0;
-        GLXFBConfig *pConfigs = GL_ENTRYPOINT(glXChooseFBConfig)(pDisplay, screen, attrib_list, &nelements);
-
-        if ((pConfigs) && (nelements > 0))
-            return pConfigs[0];
-
+#if VOGL_PLATFORM_HAS_GLX
+    GLXDrawable pDrawable = GL_ENTRYPOINT(glXGetCurrentDrawable)();
+    Display *pDisplay = GL_ENTRYPOINT(glXGetCurrentDisplay)();
+    if ((!pDrawable) || (!pDisplay))
         return 0;
-    #else
-        VOGL_ASSERT(!"impl vogl_get_current_fb_config");
-        return 0;
-    #endif
+
+    GLuint fbconfig_id = 0;
+    GL_ENTRYPOINT(glXQueryDrawable)(pDisplay, pDrawable, GLX_FBCONFIG_ID, &fbconfig_id);
+
+    GLint attrib_list[3] = { GLX_FBCONFIG_ID, static_cast<GLint>(fbconfig_id), None };
+    GLint nelements = 0;
+    GLXFBConfig *pConfigs = GL_ENTRYPOINT(glXChooseFBConfig)(pDisplay, screen, attrib_list, &nelements);
+
+    if ((pConfigs) && (nelements > 0))
+        return pConfigs[0];
+
+    return 0;
+#else
+    VOGL_ASSERT(!"impl vogl_get_current_fb_config");
+    return 0;
+#endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2111,14 +2114,14 @@ vogl_gl_fb_config vogl_get_current_fb_config(uint32_t screen)
 //----------------------------------------------------------------------------------------------------------------------
 void vogl_make_current(vogl_gl_display display, vogl_gl_drawable drawable, vogl_gl_context context)
 {
-    #if VOGL_PLATFORM_HAS_GLX
-        GL_ENTRYPOINT(glXMakeCurrent)(display, drawable, context);
-    #elif VOGL_PLATFORM_HAS_WGL
-        VOGL_NOTE_UNUSED(drawable);
-        GL_ENTRYPOINT(wglMakeCurrent)(display, context);
-    #else
-        VOGL_ASSERT(!"impl vogl_make_current");
-    #endif
+#if VOGL_PLATFORM_HAS_GLX
+    GL_ENTRYPOINT(glXMakeCurrent)(display, drawable, context);
+#elif VOGL_PLATFORM_HAS_WGL
+    VOGL_NOTE_UNUSED(drawable);
+    GL_ENTRYPOINT(wglMakeCurrent)(display, context);
+#else
+    VOGL_ASSERT(!"impl vogl_make_current");
+#endif
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -2128,7 +2131,7 @@ void vogl_destroy_context(vogl_gl_display display, vogl_gl_context context)
 {
 #if VOGL_PLATFORM_HAS_GLX
     GL_ENTRYPOINT(glXDestroyContext)(display, context);
-#elif (VOGL_PLATFORM_HAS_WGL)
+#elif(VOGL_PLATFORM_HAS_WGL)
     VOGL_NOTE_UNUSED(display);
     GL_ENTRYPOINT(wglDeleteContext)(context);
 #else

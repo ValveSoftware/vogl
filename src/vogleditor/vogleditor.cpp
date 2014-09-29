@@ -73,41 +73,41 @@
 // globals
 //----------------------------------------------------------------------------------------------------------------------
 static QString g_PROJECT_NAME = "Vogl Editor";
-static const char* g_SETTINGS_FILE = "./vogleditor_settings.json";
+static const char *g_SETTINGS_FILE = "./vogleditor_settings.json";
 
-VoglEditor::VoglEditor(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::VoglEditor),
-    m_pFramebufferExplorer(NULL),
-    m_pTextureExplorer(NULL),
-    m_pRenderbufferExplorer(NULL),
-    m_pProgramExplorer(NULL),
-    m_pShaderExplorer(NULL),
-    m_pBufferExplorer(NULL),
-    m_pVertexArrayExplorer(NULL),
-    m_timeline(NULL),
-    m_pFramebufferTab_layout(NULL),
-    m_pTextureTab_layout(NULL),
-    m_pRenderbufferTab_layout(NULL),
-    m_pProgramArbTab_layout(NULL),
-    m_pProgramTab_layout(NULL),
-    m_pShaderTab_layout(NULL),
-    m_pBufferTab_layout(NULL),
-    m_pVertexArrayTab_layout(NULL),
-    m_currentSnapshot(NULL),
-    m_pCurrentCallTreeItem(NULL),
-    m_pVoglReplayProcess(new QProcess()),
-    m_pGenerateTraceButton(NULL),
-    m_pPlayButton(NULL),
-    m_pTrimButton(NULL),
-    m_pCollectScreenshotsButton(NULL),
-    m_pTraceReader(NULL),
-    m_pTimelineModel(NULL),
-    m_pApiCallTreeModel(NULL),
-    m_pStateTreeModel(NULL),
-    m_pLaunchTracerDialog(NULL),
-    m_pSnapshotStateOverlay(NULL),
-    m_bDelayUpdateUIForContext(false)
+VoglEditor::VoglEditor(QWidget *parent)
+    : QMainWindow(parent),
+      ui(new Ui::VoglEditor),
+      m_pFramebufferExplorer(NULL),
+      m_pTextureExplorer(NULL),
+      m_pRenderbufferExplorer(NULL),
+      m_pProgramExplorer(NULL),
+      m_pShaderExplorer(NULL),
+      m_pBufferExplorer(NULL),
+      m_pVertexArrayExplorer(NULL),
+      m_timeline(NULL),
+      m_pFramebufferTab_layout(NULL),
+      m_pTextureTab_layout(NULL),
+      m_pRenderbufferTab_layout(NULL),
+      m_pProgramArbTab_layout(NULL),
+      m_pProgramTab_layout(NULL),
+      m_pShaderTab_layout(NULL),
+      m_pBufferTab_layout(NULL),
+      m_pVertexArrayTab_layout(NULL),
+      m_currentSnapshot(NULL),
+      m_pCurrentCallTreeItem(NULL),
+      m_pVoglReplayProcess(new QProcess()),
+      m_pGenerateTraceButton(NULL),
+      m_pPlayButton(NULL),
+      m_pTrimButton(NULL),
+      m_pCollectScreenshotsButton(NULL),
+      m_pTraceReader(NULL),
+      m_pTimelineModel(NULL),
+      m_pApiCallTreeModel(NULL),
+      m_pStateTreeModel(NULL),
+      m_pLaunchTracerDialog(NULL),
+      m_pSnapshotStateOverlay(NULL),
+      m_bDelayUpdateUIForContext(false)
 {
     ui->setupUi(this);
 
@@ -212,8 +212,8 @@ VoglEditor::VoglEditor(QWidget *parent) :
     connect(m_pTrimButton, SIGNAL(clicked()), this, SLOT(trimCurrentTraceFile()));
     connect(m_pCollectScreenshotsButton, SIGNAL(clicked()), this, SLOT(collect_screenshots()));
 
-    connect(m_pProgramArbExplorer, SIGNAL(program_edited(vogl_arb_program_state*)), this, SLOT(slot_program_edited(vogl_arb_program_state*)));
-    connect(m_pProgramExplorer, SIGNAL(program_edited(vogl_program_state*)), this, SLOT(slot_program_edited(vogl_program_state*)));
+    connect(m_pProgramArbExplorer, SIGNAL(program_edited(vogl_arb_program_state *)), this, SLOT(slot_program_edited(vogl_arb_program_state *)));
+    connect(m_pProgramExplorer, SIGNAL(program_edited(vogl_program_state *)), this, SLOT(slot_program_edited(vogl_program_state *)));
 
     connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slot_readReplayStandardOutput()));
     connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardError()), this, SLOT(slot_readReplayStandardError()));
@@ -379,7 +379,7 @@ VoglEditor::~VoglEditor()
     }
 }
 
-VoglEditor::Prompt_Result VoglEditor::prompt_load_new_trace(const char* tracefile)
+VoglEditor::Prompt_Result VoglEditor::prompt_load_new_trace(const char *tracefile)
 {
     int ret = QMessageBox::warning(this, tr(g_PROJECT_NAME.toStdString().c_str()), tr("Would you like to load the new trace file?"),
                                    QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
@@ -433,13 +433,13 @@ VoglEditor::Prompt_Result VoglEditor::prompt_generate_trace()
         }
         else
         {
-#if defined (_WIN32)
+#if defined(_WIN32)
             // if the app to launch is a valid executable (alternatively it could be a name or number if it's Steam title) than make sure the opengl32.dll is in the same directory
             QFileInfo appDir(m_pLaunchTracerDialog->get_application_to_launch());
             if (appDir.exists())
             {
                 QDir dir = appDir.dir();
-                if(!QFileInfo::exists(dir.absolutePath() + "/opengl32.dll"))
+                if (!QFileInfo::exists(dir.absolutePath() + "/opengl32.dll"))
                 {
                     QMessageBox::StandardButton result = QMessageBox::information(this, "Reminder", "Before continuing, please copy the vogltrace*.dll into the application's directory and rename it to opengl32.dll", QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Ok);
                     if (result == QMessageBox::Cancel)
@@ -453,12 +453,12 @@ VoglEditor::Prompt_Result VoglEditor::prompt_generate_trace()
             QString cmdLine = m_pLaunchTracerDialog->get_command_line();
             QProcessEnvironment env = m_pLaunchTracerDialog->get_process_environment();
             bool bSuccess = launch_application_to_generate_trace(cmdLine, env);
-            QFileInfo fileInfo(m_pLaunchTracerDialog->get_trace_file_path() );
+            QFileInfo fileInfo(m_pLaunchTracerDialog->get_trace_file_path());
             if (bSuccess && fileInfo.exists())
             {
                 Prompt_Result result = prompt_load_new_trace(m_pLaunchTracerDialog->get_trace_file_path().toStdString().c_str());
                 if (result == vogleditor_prompt_success ||
-                        result == vogleditor_prompt_cancelled)
+                    result == vogleditor_prompt_cancelled)
                 {
                     bShowDialog = false;
                 }
@@ -474,7 +474,7 @@ VoglEditor::Prompt_Result VoglEditor::prompt_generate_trace()
     return vogleditor_prompt_success;
 }
 
-bool VoglEditor::launch_application_to_generate_trace(const QString& cmdLine, const QProcessEnvironment& environment)
+bool VoglEditor::launch_application_to_generate_trace(const QString &cmdLine, const QProcessEnvironment &environment)
 {
     vogleditor_output_message("Tracing application:");
     vogleditor_output_message(cmdLine.toStdString().c_str());
@@ -494,7 +494,7 @@ bool VoglEditor::launch_application_to_generate_trace(const QString& cmdLine, co
     {
         // This is a bad idea as it will wait forever,
         // but if the replay is taking forever then we have bigger problems.
-        if(m_pVoglReplayProcess->waitForFinished(-1))
+        if (m_pVoglReplayProcess->waitForFinished(-1))
         {
             vogleditor_output_message("Trace Completed!");
         }
@@ -576,7 +576,8 @@ VoglEditor::Prompt_Result VoglEditor::prompt_trim_trace_file(QString filename, u
     }
 
     QStringList arguments;
-    arguments << "replay" << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
+    arguments << "replay"
+              << "--trim_frame" << trimDialog.trim_frame() << "--trim_len" << trimDialog.trim_len() << "--trim_file" << trimDialog.trim_file() << filename;
 
     QDir appDirectory(QCoreApplication::applicationDirPath());
 
@@ -594,7 +595,7 @@ VoglEditor::Prompt_Result VoglEditor::prompt_trim_trace_file(QString filename, u
 
     // This is a bad idea as it will wait forever,
     // but if the replay is taking forever then we have bigger problems.
-    if(m_pVoglReplayProcess->waitForFinished(-1))
+    if (m_pVoglReplayProcess->waitForFinished(-1))
     {
         vogleditor_output_message("Trim Completed!");
     }
@@ -712,7 +713,7 @@ void VoglEditor::close_trace_file()
     }
 }
 
-void VoglEditor::write_child_api_calls(vogleditor_apiCallTreeItem* pItem, FILE* pFile)
+void VoglEditor::write_child_api_calls(vogleditor_apiCallTreeItem *pItem, FILE *pFile)
 {
     QString string = pItem->columnData(VOGL_ACTC_APICALL, Qt::DisplayRole).toString();
     vogl_fwrite(string.toStdString().c_str(), 1, string.size(), pFile);
@@ -742,9 +743,9 @@ void VoglEditor::on_actionExport_API_Calls_triggered()
         vogl::dynamic_string filename;
         filename.set(fileName.toStdString().c_str());
 
-        FILE* pFile = vogl_fopen(filename.c_str(), "w");
-        vogleditor_QApiCallTreeModel* pModel = static_cast<vogleditor_QApiCallTreeModel*>(ui->treeView->model());
-        vogleditor_apiCallTreeItem* pRoot = pModel->root();
+        FILE *pFile = vogl_fopen(filename.c_str(), "w");
+        vogleditor_QApiCallTreeModel *pModel = static_cast<vogleditor_QApiCallTreeModel *>(ui->treeView->model());
+        vogleditor_apiCallTreeItem *pRoot = pModel->root();
         for (int i = 0; i < pRoot->childCount(); i++)
         {
             write_child_api_calls(pRoot->child(i), pFile);
@@ -764,7 +765,7 @@ void VoglEditor::on_actionEdit_triggered()
     }
 }
 
-QString VoglEditor::get_sessionfile_name(const QString& tracefile, const vogl_trace_file_reader& traceReader)
+QString VoglEditor::get_sessionfile_name(const QString &tracefile, const vogl_trace_file_reader &traceReader)
 {
     dynamic_string tracefilename;
     file_utils::split_path(tracefile.toStdString().c_str(), NULL, NULL, &tracefilename, NULL);
@@ -780,7 +781,7 @@ QString VoglEditor::get_sessionfile_name(const QString& tracefile, const vogl_tr
     return sessionFile;
 }
 
-QString VoglEditor::get_sessiondata_folder(const QString& tracefile, const vogl_trace_file_reader& traceReader)
+QString VoglEditor::get_sessiondata_folder(const QString &tracefile, const vogl_trace_file_reader &traceReader)
 {
     dynamic_string baseSessionfileName;
     file_utils::split_path(get_sessionfile_name(tracefile, traceReader).toStdString().c_str(), NULL, NULL, &baseSessionfileName, NULL);
@@ -791,7 +792,7 @@ QString VoglEditor::get_sessiondata_folder(const QString& tracefile, const vogl_
     return sessionFolder;
 }
 
-QString VoglEditor::get_sessiondata_path(const QString& tracefile, const vogl_trace_file_reader& traceReader)
+QString VoglEditor::get_sessiondata_path(const QString &tracefile, const vogl_trace_file_reader &traceReader)
 {
     QString sessionFolder = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
     sessionFolder += "/sessions/";
@@ -801,7 +802,7 @@ QString VoglEditor::get_sessiondata_path(const QString& tracefile, const vogl_tr
     return sessionFolder;
 }
 
-QString VoglEditor::get_sessionfile_path(const QString& tracefile, const vogl_trace_file_reader& traceReader)
+QString VoglEditor::get_sessionfile_path(const QString &tracefile, const vogl_trace_file_reader &traceReader)
 {
     QString sessionFolder = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
     sessionFolder += "/sessions";
@@ -811,7 +812,7 @@ QString VoglEditor::get_sessionfile_path(const QString& tracefile, const vogl_tr
     return sessionFile;
 }
 
-bool VoglEditor::load_or_create_session(const char* tracefile, vogl_trace_file_reader* pTraceReader)
+bool VoglEditor::load_or_create_session(const char *tracefile, vogl_trace_file_reader *pTraceReader)
 {
     QString sessionFile = get_sessionfile_path(tracefile, *pTraceReader);
     QFileInfo sessionFileInfo(sessionFile);
@@ -852,7 +853,7 @@ bool VoglEditor::load_or_create_session(const char* tracefile, vogl_trace_file_r
 static const unsigned int VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1 = 1;
 static const unsigned int VOGLEDITOR_SESSION_FILE_FORMAT_VERSION = VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1;
 
-bool VoglEditor::load_session_from_disk(const QString& sessionFile)
+bool VoglEditor::load_session_from_disk(const QString &sessionFile)
 {
     // open the json doc
     json_document sessionDoc;
@@ -862,39 +863,39 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
     }
 
     // look for expected metadata
-    json_node* pMetadata = sessionDoc.get_root()->find_child_object("metadata");
+    json_node *pMetadata = sessionDoc.get_root()->find_child_object("metadata");
     if (pMetadata == NULL)
     {
         return false;
     }
 
-    const json_value& rFormatVersion = pMetadata->find_value("session_file_format_version");
+    const json_value &rFormatVersion = pMetadata->find_value("session_file_format_version");
     if (!rFormatVersion.is_valid())
     {
         return false;
     }
 
     if (rFormatVersion.as_uint32() < VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1 ||
-        rFormatVersion.as_uint32() > VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1 )
+        rFormatVersion.as_uint32() > VOGLEDITOR_SESSION_FILE_FORMAT_VERSION_1)
     {
         return false;
     }
 
     // load base trace file
-    json_node* pBaseTraceFile = sessionDoc.get_root()->find_child_object("base_trace_file");
+    json_node *pBaseTraceFile = sessionDoc.get_root()->find_child_object("base_trace_file");
     if (pBaseTraceFile == NULL)
     {
         return false;
     }
 
-    const json_value& rBaseTraceFilePath = pBaseTraceFile->find_value("rel_path");
+    const json_value &rBaseTraceFilePath = pBaseTraceFile->find_value("rel_path");
     if (!rBaseTraceFilePath.is_valid())
     {
         return false;
     }
 
     // verify UUID in session file matches the loaded trace file - confirming this session is actually for this version of the trace file.
-    const json_node* pBaseTraceFileUuid = pBaseTraceFile->find_child_array("uuid");
+    const json_node *pBaseTraceFileUuid = pBaseTraceFile->find_child_array("uuid");
     if (pBaseTraceFileUuid == NULL)
     {
         return false;
@@ -913,13 +914,13 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
     }
 
     // load session data if it is available
-    json_node* pSessionData = sessionDoc.get_root()->find_child_object("session_data");
+    json_node *pSessionData = sessionDoc.get_root()->find_child_object("session_data");
     if (pSessionData == NULL)
     {
         return false;
     }
 
-    const json_value& rSessionPath = pSessionData->find_value("rel_path");
+    const json_value &rSessionPath = pSessionData->find_value("rel_path");
     if (!rSessionPath.is_valid())
     {
         return false;
@@ -929,27 +930,27 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
 
     vogl_loose_file_blob_manager file_blob_manager;
     file_blob_manager.init(cBMFReadWrite, sessionDataPath.c_str());
-    vogl_blob_manager* pBlob_manager = static_cast<vogl_blob_manager*>(&file_blob_manager);
+    vogl_blob_manager *pBlob_manager = static_cast<vogl_blob_manager *>(&file_blob_manager);
 
     // load snapshots
-    const json_node* pSnapshots = pSessionData->find_child_array("snapshots");
+    const json_node *pSnapshots = pSessionData->find_child_array("snapshots");
     if (pSnapshots != NULL)
     {
         for (unsigned int i = 0; i < pSnapshots->size(); i++)
         {
-            const json_node* pSnapshotNode = pSnapshots->get_value_as_object(i);
+            const json_node *pSnapshotNode = pSnapshots->get_value_as_object(i);
             if (pSnapshotNode == NULL)
             {
                 return false;
             }
 
-            const json_value& uuid = pSnapshotNode->find_value("uuid");
-            const json_value& isValid = pSnapshotNode->find_value("is_valid");
-            const json_value& isEdited = pSnapshotNode->find_value("is_edited");
-            const json_value& isOutdated = pSnapshotNode->find_value("is_outdated");
-            const json_value& frameNumber = pSnapshotNode->find_value("frame_number");
-            const json_value& callIndex = pSnapshotNode->find_value("call_index");
-            const json_value& path = pSnapshotNode->find_value("rel_path");
+            const json_value &uuid = pSnapshotNode->find_value("uuid");
+            const json_value &isValid = pSnapshotNode->find_value("is_valid");
+            const json_value &isEdited = pSnapshotNode->find_value("is_edited");
+            const json_value &isOutdated = pSnapshotNode->find_value("is_outdated");
+            const json_value &frameNumber = pSnapshotNode->find_value("frame_number");
+            const json_value &callIndex = pSnapshotNode->find_value("call_index");
+            const json_value &path = pSnapshotNode->find_value("rel_path");
 
             // make sure expected nodes are valid
             if (!isValid.is_valid() || !isEdited.is_valid() || !isOutdated.is_valid())
@@ -957,7 +958,7 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
                 return false;
             }
 
-            vogl_gl_state_snapshot* pSnapshot = NULL;
+            vogl_gl_state_snapshot *pSnapshot = NULL;
 
             if (path.is_valid() && isValid.as_bool() && uuid.is_valid())
             {
@@ -975,14 +976,14 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
                 }
 
                 // attempt to verify the snapshot file
-                json_node* pSnapshotRoot = snapshotDoc.get_root();
+                json_node *pSnapshotRoot = snapshotDoc.get_root();
                 if (pSnapshotRoot == NULL)
                 {
                     vogl_warning_printf("Invalid snapshot file at %s.", path.as_string_ptr());
                     continue;
                 }
 
-                const json_value& snapshotUuid = pSnapshotRoot->find_value("uuid");
+                const json_value &snapshotUuid = pSnapshotRoot->find_value("uuid");
                 if (!snapshotUuid.is_valid())
                 {
                     vogl_warning_printf("Invalid 'uuid' in snapshot file at %s.", path.as_string_ptr());
@@ -1006,15 +1007,14 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
                 }
             }
 
-
-            vogleditor_gl_state_snapshot* pContainer = vogl_new(vogleditor_gl_state_snapshot, pSnapshot);
+            vogleditor_gl_state_snapshot *pContainer = vogl_new(vogleditor_gl_state_snapshot, pSnapshot);
             pContainer->set_edited(isEdited.as_bool());
             pContainer->set_outdated(isOutdated.as_bool());
 
             if (callIndex.is_valid())
             {
                 // the snapshot is associated with an api call
-                vogleditor_apiCallTreeItem* pItem = m_pApiCallTreeModel->find_call_number(callIndex.as_uint64());
+                vogleditor_apiCallTreeItem *pItem = m_pApiCallTreeModel->find_call_number(callIndex.as_uint64());
                 if (pItem != NULL)
                 {
                     pItem->set_snapshot(pContainer);
@@ -1022,8 +1022,16 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
                 else
                 {
                     vogl_warning_printf("Unable to find API call index %" PRIu64 " to load the snapshot into.", callIndex.as_uint64());
-                    if (pSnapshot != NULL) { vogl_delete(pSnapshot); pSnapshot = NULL; }
-                    if (pContainer != NULL) { vogl_delete(pContainer); pContainer = NULL; }
+                    if (pSnapshot != NULL)
+                    {
+                        vogl_delete(pSnapshot);
+                        pSnapshot = NULL;
+                    }
+                    if (pContainer != NULL)
+                    {
+                        vogl_delete(pContainer);
+                        pContainer = NULL;
+                    }
                 }
             }
             else if (frameNumber.is_valid())
@@ -1034,7 +1042,7 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
                 // If we allow NULL snapshots, then we could accidently remove the initial snapshot that was loaded with the trace file.
                 if (pSnapshot != NULL)
                 {
-                    vogleditor_apiCallTreeItem* pItem = m_pApiCallTreeModel->find_frame_number(frameNumber.as_uint64());
+                    vogleditor_apiCallTreeItem *pItem = m_pApiCallTreeModel->find_frame_number(frameNumber.as_uint64());
                     if (pItem != NULL)
                     {
                         pItem->set_snapshot(pContainer);
@@ -1042,34 +1050,50 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
                     else
                     {
                         vogl_warning_printf("Unable to find frame number %" PRIu64 " to load the snapshot into.", frameNumber.as_uint64());
-                        if (pSnapshot != NULL) { vogl_delete(pSnapshot); pSnapshot = NULL; }
-                        if (pContainer != NULL) { vogl_delete(pContainer); pContainer = NULL; }
+                        if (pSnapshot != NULL)
+                        {
+                            vogl_delete(pSnapshot);
+                            pSnapshot = NULL;
+                        }
+                        if (pContainer != NULL)
+                        {
+                            vogl_delete(pContainer);
+                            pContainer = NULL;
+                        }
                     }
                 }
             }
             else
             {
                 vogl_warning_printf("Session file contains invalid call or frame number for snapshot with uuid %s", uuid.as_string_ptr());
-                if (pSnapshot != NULL) { vogl_delete(pSnapshot); pSnapshot = NULL; }
-                if (pContainer != NULL) { vogl_delete(pContainer); pContainer = NULL; }
+                if (pSnapshot != NULL)
+                {
+                    vogl_delete(pSnapshot);
+                    pSnapshot = NULL;
+                }
+                if (pContainer != NULL)
+                {
+                    vogl_delete(pContainer);
+                    pContainer = NULL;
+                }
             }
         } // for each snapshot
-    } // if snapshots
+    }     // if snapshots
 
     // load per-frame screenshots
-    const json_node* pScreenshots = pSessionData->find_child_array("screenshots");
+    const json_node *pScreenshots = pSessionData->find_child_array("screenshots");
     if (pScreenshots != NULL)
     {
         for (unsigned int i = 0; i < pScreenshots->size(); i++)
         {
-            const json_node* pScreenshotNode = pScreenshots->get_value_as_object(i);
+            const json_node *pScreenshotNode = pScreenshots->get_value_as_object(i);
             if (pScreenshotNode == NULL)
             {
                 return false;
             }
 
-            const json_value& frameNumber = pScreenshotNode->find_value("frame_number");
-            const json_value& path = pScreenshotNode->find_value("screenshot_path");
+            const json_value &frameNumber = pScreenshotNode->find_value("frame_number");
+            const json_value &path = pScreenshotNode->find_value("screenshot_path");
 
             // make sure expected nodes are valid
             if (!frameNumber.is_valid() || !path.is_valid())
@@ -1078,7 +1102,7 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
             }
 
             // associate the screenshot with the frame
-            vogleditor_apiCallTreeItem* pItem = m_pApiCallTreeModel->find_frame_number(frameNumber.as_uint64());
+            vogleditor_apiCallTreeItem *pItem = m_pApiCallTreeModel->find_frame_number(frameNumber.as_uint64());
             if (pItem != NULL && pItem->frameItem() != NULL)
             {
                 pItem->frameItem()->set_screenshot_filename(path.as_string());
@@ -1088,7 +1112,7 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
                 vogl_warning_printf("Unable to associate screenshot with frame number %" PRIu64 ". The frame cannot be found", frameNumber.as_uint64());
             }
         } // for each screenshot
-    } // if screenshots
+    }     // if screenshots
 
     return true;
 }
@@ -1148,30 +1172,30 @@ bool VoglEditor::load_session_from_disk(const QString& sessionFile)
     }
 }
 */
-bool VoglEditor::save_session_to_disk(const QString& sessionFile, const QString& traceFile, vogl_trace_file_reader* pTraceReader, vogleditor_QApiCallTreeModel* pApiCallTreeModel)
+bool VoglEditor::save_session_to_disk(const QString &sessionFile, const QString &traceFile, vogl_trace_file_reader *pTraceReader, vogleditor_QApiCallTreeModel *pApiCallTreeModel)
 {
     // From the session file path, add the session data folder, and create the directories
     QFileInfo sessionFileInfo(sessionFile.toStdString().c_str());
     QString sessionFolder = sessionFileInfo.absolutePath();
     QString sessionDataFolder = sessionFolder + "/" + get_sessiondata_folder(traceFile, *pTraceReader);
     file_utils::create_directories(sessionDataFolder.toStdString().c_str(), false);
-    
+
     vogl_loose_file_blob_manager file_blob_manager;
     file_blob_manager.init(cBMFReadWrite, sessionDataFolder.toStdString().c_str());
-    vogl_blob_manager* pBlob_manager = static_cast<vogl_blob_manager*>(&file_blob_manager);
+    vogl_blob_manager *pBlob_manager = static_cast<vogl_blob_manager *>(&file_blob_manager);
 
     QCursor origCursor = this->cursor();
     setCursor(Qt::WaitCursor);
 
     json_document sessionDoc;
-    json_node& metadata = sessionDoc.get_root()->add_object("metadata");
+    json_node &metadata = sessionDoc.get_root()->add_object("metadata");
     metadata.add_key_value("session_file_format_version", to_hex_string(VOGLEDITOR_SESSION_FILE_FORMAT_VERSION));
 
     // find relative path from session file to trace file
     QDir absoluteSessionFileDir(sessionFolder);
     QString tracePathRelativeToSessionFile = absoluteSessionFileDir.relativeFilePath(traceFile);
 
-    json_node& baseTraceFile = sessionDoc.get_root()->add_object("base_trace_file");
+    json_node &baseTraceFile = sessionDoc.get_root()->add_object("base_trace_file");
     baseTraceFile.add_key_value("rel_path", tracePathRelativeToSessionFile.toStdString().c_str());
 
     json_node &uuid_array = baseTraceFile.add_array("uuid");
@@ -1180,23 +1204,23 @@ bool VoglEditor::save_session_to_disk(const QString& sessionFile, const QString&
         uuid_array.add_value(pTraceReader->get_sof_packet().m_uuid[i]);
     }
 
-    json_node& sessionDataNode = sessionDoc.get_root()->add_object("session_data");
+    json_node &sessionDataNode = sessionDoc.get_root()->add_object("session_data");
     sessionDataNode.add_key_value("rel_path", sessionDataFolder.toStdString().c_str());
-    json_node& snapshotArray = sessionDataNode.add_array("snapshots");
-    json_node& screenshotArray = sessionDataNode.add_array("screenshots");
+    json_node &snapshotArray = sessionDataNode.add_array("snapshots");
+    json_node &screenshotArray = sessionDataNode.add_array("screenshots");
 
     bool bSavedSuccessfully = true;
 
     if (pApiCallTreeModel != NULL)
     {
         // add snapshots
-        vogleditor_apiCallTreeItem* pItem = pApiCallTreeModel->find_next_snapshot(NULL);
-        vogleditor_apiCallTreeItem* pLastItem = NULL;
+        vogleditor_apiCallTreeItem *pItem = pApiCallTreeModel->find_next_snapshot(NULL);
+        vogleditor_apiCallTreeItem *pLastItem = NULL;
         while (pItem != pLastItem && pItem != NULL)
         {
             dynamic_string filename;
 
-            json_node& snapshotNode = snapshotArray.add_object();
+            json_node &snapshotNode = snapshotArray.add_object();
             if (pItem->get_snapshot()->get_snapshot() != NULL)
             {
                 dynamic_string strUUID;
@@ -1254,7 +1278,7 @@ bool VoglEditor::save_session_to_disk(const QString& sessionFile, const QString&
             pItem = pApiCallTreeModel->find_frame_number(i);
             if (pItem != NULL && pItem->frameItem() != NULL && pItem->frameItem()->get_screenshot_filename().size() > 0)
             {
-                json_node& screenshotNode = screenshotArray.add_object();
+                json_node &screenshotNode = screenshotArray.add_object();
                 screenshotNode.add_key_value("frame_number", pItem->frameItem()->frameNumber());
                 screenshotNode.add_key_value("screenshot_path", pItem->frameItem()->get_screenshot_filename().c_str());
             }
@@ -1306,7 +1330,7 @@ bool VoglEditor::save_snapshot_to_disk(vogl_gl_state_snapshot *pSnapshot, dynami
 //----------------------------------------------------------------------------------------------------------------------
 // read_state_snapshot_from_trace
 //----------------------------------------------------------------------------------------------------------------------
-vogl_gl_state_snapshot* VoglEditor::read_state_snapshot_from_trace(vogl_trace_file_reader* pTrace_reader)
+vogl_gl_state_snapshot *VoglEditor::read_state_snapshot_from_trace(vogl_trace_file_reader *pTrace_reader)
 {
     vogl_ctypes trace_gl_ctypes(pTrace_reader->get_sof_packet().m_pointer_sizes);
 
@@ -1352,66 +1376,68 @@ vogl_gl_state_snapshot* VoglEditor::read_state_snapshot_from_trace(vogl_trace_fi
 
         switch (entrypoint_id)
         {
-        case VOGL_ENTRYPOINT_glInternalTraceCommandRAD:
-        {
-            GLuint cmd = keyframe_trace_packet.get_param_value<GLuint>(0);
-            GLuint size = keyframe_trace_packet.get_param_value<GLuint>(1); VOGL_NOTE_UNUSED(size);
-
-            if (cmd == cITCRKeyValueMap)
+            case VOGL_ENTRYPOINT_glInternalTraceCommandRAD:
             {
-                key_value_map &kvm = keyframe_trace_packet.get_key_value_map();
+                GLuint cmd = keyframe_trace_packet.get_param_value<GLuint>(0);
+                GLuint size = keyframe_trace_packet.get_param_value<GLuint>(1);
+                VOGL_NOTE_UNUSED(size);
 
-                dynamic_string cmd_type(kvm.get_string("command_type"));
-                if (cmd_type == "state_snapshot")
+                if (cmd == cITCRKeyValueMap)
                 {
-                    dynamic_string id(kvm.get_string("binary_id"));
-                    if (id.is_empty())
-                    {
-                        vogl_error_printf("Missing binary_id field in glInternalTraceCommandRAD key_valye_map command type: \"%s\"\n", cmd_type.get_ptr());
-                        return NULL;
-                    }
+                    key_value_map &kvm = keyframe_trace_packet.get_key_value_map();
 
-                    uint8_vec snapshot_data;
+                    dynamic_string cmd_type(kvm.get_string("command_type"));
+                    if (cmd_type == "state_snapshot")
                     {
-                        timed_scope ts("get_multi_blob_manager().get");
-                        if (!pTrace_reader->get_multi_blob_manager().get(id, snapshot_data) || (snapshot_data.is_empty()))
+                        dynamic_string id(kvm.get_string("binary_id"));
+                        if (id.is_empty())
                         {
-                            vogl_error_printf("Failed reading snapshot blob data \"%s\"!\n", id.get_ptr());
+                            vogl_error_printf("Missing binary_id field in glInternalTraceCommandRAD key_valye_map command type: \"%s\"\n", cmd_type.get_ptr());
                             return NULL;
                         }
-                    }
 
-                    vogl_message_printf("Deserializing state snapshot \"%s\", %u bytes\n", id.get_ptr(), snapshot_data.size());
-
-                    json_document doc;
-                    {
-                        timed_scope ts("doc.binary_deserialize");
-                        if (!doc.binary_deserialize(snapshot_data) || (!doc.get_root()))
+                        uint8_vec snapshot_data;
                         {
-                            vogl_error_printf("Failed deserializing JSON snapshot blob data \"%s\"!\n", id.get_ptr());
+                            timed_scope ts("get_multi_blob_manager().get");
+                            if (!pTrace_reader->get_multi_blob_manager().get(id, snapshot_data) || (snapshot_data.is_empty()))
+                            {
+                                vogl_error_printf("Failed reading snapshot blob data \"%s\"!\n", id.get_ptr());
+                                return NULL;
+                            }
+                        }
+
+                        vogl_message_printf("Deserializing state snapshot \"%s\", %u bytes\n", id.get_ptr(), snapshot_data.size());
+
+                        json_document doc;
+                        {
+                            timed_scope ts("doc.binary_deserialize");
+                            if (!doc.binary_deserialize(snapshot_data) || (!doc.get_root()))
+                            {
+                                vogl_error_printf("Failed deserializing JSON snapshot blob data \"%s\"!\n", id.get_ptr());
+                                return NULL;
+                            }
+                        }
+
+                        pSnapshot = vogl_new(vogl_gl_state_snapshot);
+
+                        timed_scope ts("pSnapshot->deserialize");
+                        if (!pSnapshot->deserialize(*doc.get_root(), pTrace_reader->get_multi_blob_manager(), &trace_gl_ctypes))
+                        {
+                            vogl_delete(pSnapshot);
+                            pSnapshot = NULL;
+
+                            vogl_error_printf("Failed deserializing snapshot blob data \"%s\"!\n", id.get_ptr());
                             return NULL;
                         }
+
+                        found_snapshot = true;
                     }
-
-                    pSnapshot = vogl_new(vogl_gl_state_snapshot);
-
-                    timed_scope ts("pSnapshot->deserialize");
-                    if (!pSnapshot->deserialize(*doc.get_root(), pTrace_reader->get_multi_blob_manager(), &trace_gl_ctypes))
-                    {
-                        vogl_delete(pSnapshot);
-                        pSnapshot = NULL;
-
-                        vogl_error_printf("Failed deserializing snapshot blob data \"%s\"!\n", id.get_ptr());
-                        return NULL;
-                    }
-
-                    found_snapshot = true;
                 }
-            }
 
-            break;
-        }
-        default: break;
+                break;
+            }
+            default:
+                break;
         }
 
     } while (!found_snapshot);
@@ -1455,7 +1481,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
 
     dynamic_string actual_keyframe_filename;
 
-    vogl_trace_file_reader* tmpReader = vogl_open_trace_file(filename, actual_keyframe_filename, NULL);
+    vogl_trace_file_reader *tmpReader = vogl_open_trace_file(filename, actual_keyframe_filename, NULL);
 
     if (tmpReader == NULL)
     {
@@ -1535,8 +1561,8 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
 
     if (m_pApiCallTreeModel->hasChildren())
     {
-        ui->treeView->setExpanded(m_pApiCallTreeModel->index(0,0), true);
-        ui->treeView->setCurrentIndex(m_pApiCallTreeModel->index(0,0));
+        ui->treeView->setExpanded(m_pApiCallTreeModel->index(0, 0), true);
+        ui->treeView->setCurrentIndex(m_pApiCallTreeModel->index(0, 0));
     }
 
     int flagsColumnWidth = 30;
@@ -1575,13 +1601,13 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
             //$ TODO mikesart: read MAP_SYMS data here when symbols have been resolved.
             if (m_pTraceReader->get_archive_blob_manager().get(VOGL_TRACE_ARCHIVE_BACKTRACE_MAP_ADDRS_FILENAME, backtrace_data))
             {
-                json_node* pRoot = m_backtraceDoc.get_root();
-                if (m_backtraceDoc.deserialize((const char*)backtrace_data.get_ptr(), backtrace_data.size()))
+                json_node *pRoot = m_backtraceDoc.get_root();
+                if (m_backtraceDoc.deserialize((const char *)backtrace_data.get_ptr(), backtrace_data.size()))
                 {
                     bBacktraceVisible = pRoot->size() > 0;
                     for (uint i = 0; i < pRoot->size(); i++)
                     {
-                        json_node* pChild = pRoot->get_child(i);
+                        json_node *pChild = pRoot->get_child(i);
                         uint32_t index = 0;
                         VOGL_ASSERT("Backtrace node does not have an 'index' child" && pChild != NULL && pChild->get_value_as_uint32("index", index));
                         if (pChild != NULL && pChild->get_value_as_uint32("index", index))
@@ -1635,11 +1661,11 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
     return true;
 }
 
-void VoglEditor::displayMachineInfoHelper(QString prefix, const QString& sectionKeyStr, const vogl::json_value& value, QString& rMachineInfoStr)
+void VoglEditor::displayMachineInfoHelper(QString prefix, const QString &sectionKeyStr, const vogl::json_value &value, QString &rMachineInfoStr)
 {
     if (value.is_array())
     {
-        const json_node* pNode = value.get_node_ptr();
+        const json_node *pNode = value.get_node_ptr();
         for (uint element = 0; element < pNode->size(); element++)
         {
             dynamic_string elementStr = pNode->get_value(element).as_string();
@@ -1657,7 +1683,7 @@ void VoglEditor::displayMachineInfoHelper(QString prefix, const QString& section
     {
         // Check if this is the modoule list.
         bool is_module_list = (sectionKeyStr == "module_list");
-        const json_node* pNode = value.get_node_ptr();
+        const json_node *pNode = value.get_node_ptr();
 
         for (uint i = 0; i < pNode->size(); i++)
         {
@@ -1671,7 +1697,7 @@ void VoglEditor::displayMachineInfoHelper(QString prefix, const QString& section
 
             if (value2.is_array())
             {
-                const json_node* pNode2 = value2.get_node_ptr();
+                const json_node *pNode2 = value2.get_node_ptr();
 
                 // If this it module_list, then we get these items: base address, address size, uuid
                 // Check in btrace_get_machine_info() to see what's written there.
@@ -1735,7 +1761,7 @@ void VoglEditor::displayMachineInfo()
             bMachineInfoVisible = true;
             json_document doc;
             json_node *pRoot = doc.get_root();
-            if (doc.deserialize((const char*)machine_info_data.get_ptr(), machine_info_data.size()))
+            if (doc.deserialize((const char *)machine_info_data.get_ptr(), machine_info_data.size()))
             {
                 QString text;
                 for (uint i = 0; i < pRoot->size(); i++)
@@ -1813,7 +1839,7 @@ void VoglEditor::reset_snapshot_ui()
 
     ui->stateTreeView->setModel(NULL);
 
-    QWidget* pCurrentTab = ui->tabWidget->currentWidget();
+    QWidget *pCurrentTab = ui->tabWidget->currentWidget();
 
     VOGLEDITOR_DISABLE_STATE_TAB(ui->stateTab);
     VOGLEDITOR_DISABLE_STATE_TAB(ui->bufferTab);
@@ -1836,12 +1862,12 @@ void VoglEditor::reset_snapshot_ui()
 /// This function does not follow a traditional DFS search because we need to find the desired snapshot then return the one before it.
 /// An alternative approach would be to keep a stack of the found snapshots, or even to build up that stack / list as the user
 /// generates new snapshots.
-vogleditor_gl_state_snapshot* VoglEditor::findMostRecentSnapshot_helper(vogleditor_apiCallTreeItem* pItem, vogleditor_gl_state_snapshot*& pMostRecentSnapshot, const vogleditor_gl_state_snapshot* pCurSnapshot)
+vogleditor_gl_state_snapshot *VoglEditor::findMostRecentSnapshot_helper(vogleditor_apiCallTreeItem *pItem, vogleditor_gl_state_snapshot *&pMostRecentSnapshot, const vogleditor_gl_state_snapshot *pCurSnapshot)
 {
     // check if this item has a snapshot shot
     if (pItem->has_snapshot() && pItem->get_snapshot()->is_valid())
     {
-        vogleditor_gl_state_snapshot* pTmp = pItem->get_snapshot();
+        vogleditor_gl_state_snapshot *pTmp = pItem->get_snapshot();
         if (pTmp == pCurSnapshot)
         {
             // if we've reached the item with the current snapshot, we want to return the previous snapshot.
@@ -1856,7 +1882,7 @@ vogleditor_gl_state_snapshot* VoglEditor::findMostRecentSnapshot_helper(vogledit
 
     for (int i = 0; i < pItem->childCount(); i++)
     {
-        vogleditor_gl_state_snapshot* pTmp = findMostRecentSnapshot_helper(pItem->child(i), pMostRecentSnapshot, pCurSnapshot);
+        vogleditor_gl_state_snapshot *pTmp = findMostRecentSnapshot_helper(pItem->child(i), pMostRecentSnapshot, pCurSnapshot);
         if (pTmp != NULL)
         {
             if (pTmp == pCurSnapshot)
@@ -1879,14 +1905,14 @@ vogleditor_gl_state_snapshot* VoglEditor::findMostRecentSnapshot_helper(vogledit
 /// whether the returned value, or passed in reference parameter should be used as the most recent snapshot.
 /// It will either return NULL if there is no recent snapshot (which should only happen for the very first snapshot
 /// in a trace), or a pointer to a valid snapshot.
-vogleditor_gl_state_snapshot* VoglEditor::findMostRecentSnapshot(vogleditor_apiCallTreeItem* pItem, const vogleditor_gl_state_snapshot* pCurSnapshot)
+vogleditor_gl_state_snapshot *VoglEditor::findMostRecentSnapshot(vogleditor_apiCallTreeItem *pItem, const vogleditor_gl_state_snapshot *pCurSnapshot)
 {
-    vogleditor_gl_state_snapshot* pMostRecentSnapshot = NULL;
+    vogleditor_gl_state_snapshot *pMostRecentSnapshot = NULL;
     findMostRecentSnapshot_helper(pItem, pMostRecentSnapshot, pCurSnapshot);
     return pMostRecentSnapshot;
 }
 
-void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnapshot)
+void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot *pStateSnapshot)
 {
     if (pStateSnapshot == NULL)
     {
@@ -1924,7 +1950,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
 
     if (ui->stateTreeView->model() != NULL)
     {
-        if (static_cast<vogleditor_QStateTreeModel*>(ui->stateTreeView->model())->get_snapshot() == m_currentSnapshot)
+        if (static_cast<vogleditor_QStateTreeModel *>(ui->stateTreeView->model())->get_snapshot() == m_currentSnapshot)
         {
             // displaying the same snapshot, return
             return;
@@ -1944,7 +1970,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
         uint indexOfCurrentContext = 0;
         for (uint i = 0; i < contexts.size(); i++)
         {
-            vogl_context_snapshot* pContext = contexts[i];
+            vogl_context_snapshot *pContext = contexts[i];
             vogl_trace_ptr_value contextHandle = pContext->get_context_desc().get_trace_context();
             vogl_trace_ptr_value sharedContextHandle = pContext->get_context_desc().get_trace_share_context();
 
@@ -1960,19 +1986,19 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
             if (bSharesAContext)
             {
                 QString tmp;
-                additionalInfo.append(tmp.sprintf(" - shares context %p", (void*)sharedContextHandle));
+                additionalInfo.append(tmp.sprintf(" - shares context %p", (void *)sharedContextHandle));
 
                 // loop and add nested shared contexts
                 sharedContextHandle = pStateSnapshot->get_context(sharedContextHandle)->get_context_desc().get_trace_share_context();
                 while (sharedContextHandle != 0)
                 {
-                    additionalInfo.append(tmp.sprintf(", %p", (void*)sharedContextHandle));
+                    additionalInfo.append(tmp.sprintf(", %p", (void *)sharedContextHandle));
                     sharedContextHandle = pStateSnapshot->get_context(sharedContextHandle)->get_context_desc().get_trace_share_context();
                 }
             }
 
             QString contextTitle;
-            contextTitle.sprintf("Context %p%s", (void*)contextHandle, additionalInfo.toStdString().c_str());
+            contextTitle.sprintf("Context %p%s", (void *)contextHandle, additionalInfo.toStdString().c_str());
             ui->contextComboBox->addItem(contextTitle, QVariant::fromValue(contextHandle));
         }
 
@@ -1989,7 +2015,7 @@ void VoglEditor::update_ui_for_snapshot(vogleditor_gl_state_snapshot* pStateSnap
     this->setCursor(origCursor);
 }
 
-void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogleditor_gl_state_snapshot* pStateSnapshot)
+void VoglEditor::update_ui_for_context(vogl_context_snapshot *pContext, vogleditor_gl_state_snapshot *pStateSnapshot)
 {
     if (m_bDelayUpdateUIForContext)
     {
@@ -1997,7 +2023,7 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
         return;
     }
 
-    vogleditor_gl_state_snapshot* pBaseSnapshot = findMostRecentSnapshot(m_pApiCallTreeModel->root(), m_currentSnapshot);
+    vogleditor_gl_state_snapshot *pBaseSnapshot = findMostRecentSnapshot(m_pApiCallTreeModel->root(), m_currentSnapshot);
 
     // state viewer
     if (m_pStateTreeModel != NULL)
@@ -2013,10 +2039,10 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
     VOGLEDITOR_ENABLE_STATE_TAB(ui->stateTab);
 
     // vogl stores all the created objects in the deepest context, so need to find that context to populate the UI
-    vogl::vector<vogl_context_snapshot*> sharingContexts;
+    vogl::vector<vogl_context_snapshot *> sharingContexts;
     sharingContexts.push_back(pContext);
-    vogl_context_snapshot* pRootContext = pContext;
-    vogl_context_snapshot* pTmpContext = NULL;
+    vogl_context_snapshot *pRootContext = pContext;
+    vogl_context_snapshot *pTmpContext = NULL;
     while (pRootContext->get_context_desc().get_trace_share_context() != 0)
     {
         pTmpContext = pStateSnapshot->get_context(pRootContext->get_context_desc().get_trace_share_context());
@@ -2047,33 +2073,48 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
         GLuint cur2DBinding = pContext->get_general_state().get_value<GLuint>(GL_TEXTURE_2D_BINDING_EXT, curActiveTextureUnit - GL_TEXTURE0);
         displayTexture(cur2DBinding, false);
     }
-    if (textureCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->textureTab); }
+    if (textureCount > 0)
+    {
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->textureTab);
+    }
 
     // renderbuffers
     m_pRenderbufferExplorer->clear();
     int renderbufferCount = m_pRenderbufferExplorer->set_renderbuffer_objects(sharingContexts);
-    if (renderbufferCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->renderbufferTab); }
+    if (renderbufferCount > 0)
+    {
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->renderbufferTab);
+    }
 
     // framebuffer
     m_pFramebufferExplorer->clear();
     uint framebufferCount = m_pFramebufferExplorer->set_framebuffer_objects(pContext, sharingContexts, &(pStateSnapshot->get_default_framebuffer()));
     GLuint64 curDrawFramebuffer = pContext->get_general_state().get_value<GLuint64>(GL_DRAW_FRAMEBUFFER_BINDING);
     displayFramebuffer(curDrawFramebuffer, false);
-    if (framebufferCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->framebufferTab); }
+    if (framebufferCount > 0)
+    {
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->framebufferTab);
+    }
 
     // arb programs
     m_pProgramArbExplorer->clear();
     uint programArbCount = m_pProgramArbExplorer->set_program_objects(sharingContexts);
     GLuint64 curProgramArb = 0; // TODO: pContext->get_general_state().get_value<GLuint64>(GL_CURRENT_PROGRAM);
     m_pProgramArbExplorer->set_active_program(curProgramArb);
-    if (programArbCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->programArbTab); }
+    if (programArbCount > 0)
+    {
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->programArbTab);
+    }
 
     // programs
     m_pProgramExplorer->clear();
     uint programCount = m_pProgramExplorer->set_program_objects(sharingContexts);
     GLuint64 curProgram = pContext->get_general_state().get_value<GLuint64>(GL_CURRENT_PROGRAM);
     m_pProgramExplorer->set_active_program(curProgram);
-    if (programCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->programTab); }
+    if (programCount > 0)
+    {
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->programTab);
+    }
 
     // shaders
     m_pShaderExplorer->clear();
@@ -2089,7 +2130,7 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
             {
                 if ((*iter)->get_snapshot_handle() == curProgram)
                 {
-                    vogl_program_state* pProgramState = static_cast<vogl_program_state*>(*iter);
+                    vogl_program_state *pProgramState = static_cast<vogl_program_state *>(*iter);
                     if (pProgramState->get_attached_shaders().size() > 0)
                     {
                         uint curShader = pProgramState->get_attached_shaders()[0];
@@ -2105,12 +2146,18 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
                 break;
         }
     }
-    if (shaderCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->shaderTab); }
+    if (shaderCount > 0)
+    {
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->shaderTab);
+    }
 
     // buffers
     m_pBufferExplorer->clear();
     uint bufferCount = m_pBufferExplorer->set_buffer_objects(sharingContexts);
-    if (bufferCount > 0) { VOGLEDITOR_ENABLE_STATE_TAB(ui->bufferTab); }
+    if (bufferCount > 0)
+    {
+        VOGLEDITOR_ENABLE_STATE_TAB(ui->bufferTab);
+    }
 
     // vertex arrays
     m_pVertexArrayExplorer->clear();
@@ -2126,7 +2173,7 @@ void VoglEditor::update_ui_for_context(vogl_context_snapshot* pContext, vogledit
     m_pVertexArrayExplorer->endUpdate(true);
 }
 
-void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTreeItem* pApiCall)
+void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTreeItem *pApiCall)
 {
     if (pApiCall == NULL || pApiCall->apiCallItem() == NULL)
     {
@@ -2134,7 +2181,7 @@ void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTree
     }
 
     gl_entrypoint_id_t callId = (gl_entrypoint_id_t)pApiCall->apiCallItem()->getGLPacket()->m_entrypoint_id;
-    vogl_trace_packet& trace_packet = *(pApiCall->apiCallItem()->getTracePacket());
+    vogl_trace_packet &trace_packet = *(pApiCall->apiCallItem()->getTracePacket());
 
     if (callId == VOGL_ENTRYPOINT_glDrawElements)
     {
@@ -2143,8 +2190,8 @@ void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTree
         vogl_trace_ptr_value trace_indices_ptr_value = trace_packet.get_param_ptr_value(3);
         m_pVertexArrayExplorer->set_element_array_options(count, type, (uint32_t)trace_indices_ptr_value, 0, trace_packet.get_key_value_map().get_blob(string_hash("indices")), 0, 0);
     }
-    else if ( callId == VOGL_ENTRYPOINT_glDrawRangeElements ||
-              callId == VOGL_ENTRYPOINT_glDrawRangeElementsEXT )
+    else if (callId == VOGL_ENTRYPOINT_glDrawRangeElements ||
+             callId == VOGL_ENTRYPOINT_glDrawRangeElementsEXT)
     {
         GLsizei count = trace_packet.get_param_value<GLsizei>(3);
         GLenum type = trace_packet.get_param_value<GLenum>(4);
@@ -2279,90 +2326,90 @@ void VoglEditor::update_vertex_array_explorer_for_apicall(vogleditor_apiCallTree
 
 void VoglEditor::on_stateTreeView_clicked(const QModelIndex &index)
 {
-    vogleditor_stateTreeItem* pStateItem = static_cast<vogleditor_stateTreeItem*>(index.internalPointer());
+    vogleditor_stateTreeItem *pStateItem = static_cast<vogleditor_stateTreeItem *>(index.internalPointer());
     if (pStateItem == NULL)
     {
         return;
     }
 
-    switch(pStateItem->getStateType())
+    switch (pStateItem->getStateType())
     {
-    case vogleditor_stateTreeItem::cTEXTURE:
-    {
-        vogleditor_stateTreeTextureItem* pTextureItem = static_cast<vogleditor_stateTreeTextureItem*>(pStateItem);
-        if (pTextureItem == NULL)
+        case vogleditor_stateTreeItem::cTEXTURE:
         {
+            vogleditor_stateTreeTextureItem *pTextureItem = static_cast<vogleditor_stateTreeTextureItem *>(pStateItem);
+            if (pTextureItem == NULL)
+            {
+                break;
+            }
+
+            displayTexture(pTextureItem->get_texture_state()->get_snapshot_handle(), true);
+
             break;
         }
-
-        displayTexture(pTextureItem->get_texture_state()->get_snapshot_handle(), true);
-
-        break;
-    }
-    case vogleditor_stateTreeItem::cPROGRAM:
-    {
-        vogleditor_stateTreeProgramItem* pProgramItem = static_cast<vogleditor_stateTreeProgramItem*>(pStateItem);
-        if (pProgramItem == NULL)
+        case vogleditor_stateTreeItem::cPROGRAM:
         {
+            vogleditor_stateTreeProgramItem *pProgramItem = static_cast<vogleditor_stateTreeProgramItem *>(pStateItem);
+            if (pProgramItem == NULL)
+            {
+                break;
+            }
+
+            displayProgram(pProgramItem->get_current_state()->get_snapshot_handle(), true);
+
             break;
         }
-
-        displayProgram(pProgramItem->get_current_state()->get_snapshot_handle(), true);
-
-        break;
-    }
-    case vogleditor_stateTreeItem::cPROGRAMARB:
-    {
-        vogleditor_stateTreeArbProgramItem* pProgramArbItem = static_cast<vogleditor_stateTreeArbProgramItem*>(pStateItem);
-        if (pProgramArbItem == NULL)
+        case vogleditor_stateTreeItem::cPROGRAMARB:
         {
+            vogleditor_stateTreeArbProgramItem *pProgramArbItem = static_cast<vogleditor_stateTreeArbProgramItem *>(pStateItem);
+            if (pProgramArbItem == NULL)
+            {
+                break;
+            }
+
+            displayProgramArb(pProgramArbItem->get_current_state()->get_snapshot_handle(), true);
+
             break;
         }
-
-        displayProgramArb(pProgramArbItem->get_current_state()->get_snapshot_handle(), true);
-
-        break;
-    }
-    case vogleditor_stateTreeItem::cSHADER:
-    {
-        vogleditor_stateTreeShaderItem* pShaderItem = static_cast<vogleditor_stateTreeShaderItem*>(pStateItem);
-        if (pShaderItem == NULL)
+        case vogleditor_stateTreeItem::cSHADER:
         {
+            vogleditor_stateTreeShaderItem *pShaderItem = static_cast<vogleditor_stateTreeShaderItem *>(pStateItem);
+            if (pShaderItem == NULL)
+            {
+                break;
+            }
+
+            displayShader(pShaderItem->get_current_state()->get_snapshot_handle(), true);
+
             break;
         }
-
-        displayShader(pShaderItem->get_current_state()->get_snapshot_handle(), true);
-
-        break;
-    }
-    case vogleditor_stateTreeItem::cFRAMEBUFFER:
-    {
-        vogleditor_stateTreeFramebufferItem* pFramebufferItem = static_cast<vogleditor_stateTreeFramebufferItem*>(pStateItem);
-        if (pFramebufferItem == NULL)
+        case vogleditor_stateTreeItem::cFRAMEBUFFER:
         {
+            vogleditor_stateTreeFramebufferItem *pFramebufferItem = static_cast<vogleditor_stateTreeFramebufferItem *>(pStateItem);
+            if (pFramebufferItem == NULL)
+            {
+                break;
+            }
+
+            displayFramebuffer(pFramebufferItem->get_framebuffer_state()->get_snapshot_handle(), true);
+
             break;
         }
-
-        displayFramebuffer(pFramebufferItem->get_framebuffer_state()->get_snapshot_handle(), true);
-
-        break;
-    }
-    case vogleditor_stateTreeItem::cBUFFER:
-    {
-        vogleditor_stateTreeBufferItem* pBufferItem = static_cast<vogleditor_stateTreeBufferItem*>(pStateItem);
-        if (pBufferItem == NULL)
+        case vogleditor_stateTreeItem::cBUFFER:
         {
+            vogleditor_stateTreeBufferItem *pBufferItem = static_cast<vogleditor_stateTreeBufferItem *>(pStateItem);
+            if (pBufferItem == NULL)
+            {
+                break;
+            }
+
+            displayBuffer(pBufferItem->get_buffer_state()->get_snapshot_handle(), true);
+
             break;
         }
-
-        displayBuffer(pBufferItem->get_buffer_state()->get_snapshot_handle(), true);
-
-        break;
-    }
-    case vogleditor_stateTreeItem::cDEFAULT:
-    {
-        return;
-    }
+        case vogleditor_stateTreeItem::cDEFAULT:
+        {
+            return;
+        }
     }
 }
 
@@ -2446,7 +2493,7 @@ bool VoglEditor::displayTexture(GLuint64 textureHandle, bool bBringTabToFront)
     return bDisplayedTexture;
 }
 
-void VoglEditor::slot_treeView_currentChanged(const QModelIndex & current, const QModelIndex & previous)
+void VoglEditor::slot_treeView_currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
     VOGL_NOTE_UNUSED(previous);
     onApiCallSelected(current, false);
@@ -2459,14 +2506,14 @@ void VoglEditor::on_treeView_clicked(const QModelIndex &index)
 
 void VoglEditor::onApiCallSelected(const QModelIndex &index, bool bAllowStateSnapshot)
 {
-    vogleditor_apiCallTreeItem* pCallTreeItem = static_cast<vogleditor_apiCallTreeItem*>(index.internalPointer());
+    vogleditor_apiCallTreeItem *pCallTreeItem = static_cast<vogleditor_apiCallTreeItem *>(index.internalPointer());
     if (pCallTreeItem == NULL)
     {
         return;
     }
 
-    vogleditor_frameItem* pFrameItem = pCallTreeItem->frameItem();
-    vogleditor_apiCallItem* pApiCallItem = pCallTreeItem->apiCallItem();
+    vogleditor_frameItem *pFrameItem = pCallTreeItem->frameItem();
+    vogleditor_apiCallItem *pApiCallItem = pCallTreeItem->apiCallItem();
 
     if (bAllowStateSnapshot && pCallTreeItem == m_pCurrentCallTreeItem)
     {
@@ -2474,7 +2521,7 @@ void VoglEditor::onApiCallSelected(const QModelIndex &index, bool bAllowStateSna
         if (pApiCallItem != NULL && pApiCallItem->needs_snapshot())
         {
             // get the snapshot after the current api call
-            vogleditor_gl_state_snapshot* pNewSnapshot = NULL;
+            vogleditor_gl_state_snapshot *pNewSnapshot = NULL;
             QCursor origCursor = cursor();
             setCursor(Qt::WaitCursor);
             m_traceReplayer.replay(m_pTraceReader, m_pApiCallTreeModel->root(), &pNewSnapshot, pApiCallItem->globalCallIndex(), false);
@@ -2489,11 +2536,11 @@ void VoglEditor::onApiCallSelected(const QModelIndex &index, bool bAllowStateSna
         if (m_backtraceToJsonMap.size() > 0)
         {
             QString tmp;
-            json_node* pBacktraceNode = m_backtraceToJsonMap[(uint)pApiCallItem->backtraceHashIndex()];
+            json_node *pBacktraceNode = m_backtraceToJsonMap[(uint)pApiCallItem->backtraceHashIndex()];
             if (pBacktraceNode != NULL)
             {
-                json_node* pAddrs = pBacktraceNode->find_child_array("addrs");
-                json_node* pSyms = pBacktraceNode->find_child_array("syms");
+                json_node *pAddrs = pBacktraceNode->find_child_array("addrs");
+                json_node *pSyms = pBacktraceNode->find_child_array("syms");
 
                 for (uint i = 0; i < pAddrs->size(); i++)
                 {
@@ -2600,7 +2647,7 @@ void VoglEditor::on_prevSnapshotButton_clicked()
 {
     if (m_pApiCallTreeModel != NULL)
     {
-        vogleditor_apiCallTreeItem* pPrevItemWithSnapshot = m_pApiCallTreeModel->find_prev_snapshot(m_pCurrentCallTreeItem);
+        vogleditor_apiCallTreeItem *pPrevItemWithSnapshot = m_pApiCallTreeModel->find_prev_snapshot(m_pCurrentCallTreeItem);
         if (pPrevItemWithSnapshot != NULL)
         {
             selectApicallModelIndex(m_pApiCallTreeModel->indexOf(pPrevItemWithSnapshot), true, true);
@@ -2613,7 +2660,7 @@ void VoglEditor::on_nextSnapshotButton_clicked()
 {
     if (m_pApiCallTreeModel != NULL)
     {
-        vogleditor_apiCallTreeItem* pNextItemWithSnapshot = m_pApiCallTreeModel->find_next_snapshot(m_pCurrentCallTreeItem);
+        vogleditor_apiCallTreeItem *pNextItemWithSnapshot = m_pApiCallTreeModel->find_next_snapshot(m_pCurrentCallTreeItem);
         if (pNextItemWithSnapshot != NULL)
         {
             selectApicallModelIndex(m_pApiCallTreeModel->indexOf(pNextItemWithSnapshot), true, true);
@@ -2626,7 +2673,7 @@ void VoglEditor::on_prevDrawcallButton_clicked()
 {
     if (m_pApiCallTreeModel != NULL)
     {
-        vogleditor_apiCallTreeItem* pPrevItem = m_pApiCallTreeModel->find_prev_drawcall(m_pCurrentCallTreeItem);
+        vogleditor_apiCallTreeItem *pPrevItem = m_pApiCallTreeModel->find_prev_drawcall(m_pCurrentCallTreeItem);
         if (pPrevItem != NULL)
         {
             selectApicallModelIndex(m_pApiCallTreeModel->indexOf(pPrevItem), true, true);
@@ -2639,7 +2686,7 @@ void VoglEditor::on_nextDrawcallButton_clicked()
 {
     if (m_pApiCallTreeModel != NULL)
     {
-        vogleditor_apiCallTreeItem* pNextItem = m_pApiCallTreeModel->find_next_drawcall(m_pCurrentCallTreeItem);
+        vogleditor_apiCallTreeItem *pNextItem = m_pApiCallTreeModel->find_next_drawcall(m_pCurrentCallTreeItem);
         if (pNextItem != NULL)
         {
             selectApicallModelIndex(m_pApiCallTreeModel->indexOf(pNextItem), true, true);
@@ -2656,7 +2703,7 @@ void VoglEditor::slot_takeSnapshotButton_clicked()
     }
 }
 
-void VoglEditor::slot_program_edited(vogl_arb_program_state* pNewProgramState)
+void VoglEditor::slot_program_edited(vogl_arb_program_state *pNewProgramState)
 {
     VOGL_NOTE_UNUSED(pNewProgramState);
 
@@ -2673,7 +2720,7 @@ void VoglEditor::slot_program_edited(vogl_arb_program_state* pNewProgramState)
     ui->treeView->setFocus();
 }
 
-void VoglEditor::slot_program_edited(vogl_program_state* pNewProgramState)
+void VoglEditor::slot_program_edited(vogl_program_state *pNewProgramState)
 {
     VOGL_NOTE_UNUSED(pNewProgramState);
 
@@ -2691,7 +2738,7 @@ void VoglEditor::slot_program_edited(vogl_program_state* pNewProgramState)
 }
 
 // if an edited snapshot has already been found, mark the node (and all children) as dirty.
-void VoglEditor::recursive_update_snapshot_flags(vogleditor_apiCallTreeItem* pItem, bool& bFoundEditedSnapshot)
+void VoglEditor::recursive_update_snapshot_flags(vogleditor_apiCallTreeItem *pItem, bool &bFoundEditedSnapshot)
 {
     // check if this item has a snapshot shot
     if (pItem->has_snapshot())
@@ -2780,7 +2827,7 @@ void VoglEditor::on_contextComboBox_currentIndexChanged(int index)
         vogl_trace_ptr_value contextHandle = ui->contextComboBox->itemData(index).value<vogl_trace_ptr_value>();
         if (contextHandle != 0)
         {
-            vogl_context_snapshot* pContext = m_currentSnapshot->get_context(contextHandle);
+            vogl_context_snapshot *pContext = m_currentSnapshot->get_context(contextHandle);
             update_ui_for_context(pContext, m_currentSnapshot);
         }
     }
