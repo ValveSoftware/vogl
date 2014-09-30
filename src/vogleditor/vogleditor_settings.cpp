@@ -12,10 +12,15 @@ vogleditor_settings::vogleditor_settings()
     : m_file_format_version(VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION_1)
 {
     m_defaults.trim_large_trace_prompt_size = 200;
+
     m_defaults.window_position_left = 0;
     m_defaults.window_position_top = 0;
     m_defaults.window_size_width = 1024;
     m_defaults.window_size_height = 768;
+
+    m_defaults.groups_state_render = false;
+    m_defaults.groups_push_pop_markers = true;
+    m_defaults.groups_nested_calls = true;
 
     m_settings = m_defaults;
 }
@@ -105,6 +110,10 @@ bool vogleditor_settings::from_json(const json_document &doc)
     m_settings.window_size_width = pSettingsNode->value_as_int("window_size_width", m_settings.window_size_width);
     m_settings.window_size_height = pSettingsNode->value_as_int("window_size_height", m_settings.window_size_height);
 
+    m_settings.groups_state_render = pSettingsNode->value_as_bool("groups_state_render", m_settings.groups_state_render);
+    m_settings.groups_push_pop_markers = pSettingsNode->value_as_bool("groups_push_pop_markers", m_settings.groups_push_pop_markers);
+    m_settings.groups_nested_calls = pSettingsNode->value_as_bool("groups_nested_calls", m_settings.groups_nested_calls);
+
     return true;
 }
 
@@ -146,6 +155,10 @@ bool vogleditor_settings::to_json(json_document &doc)
     settings.add_key_value("window_position_top", m_settings.window_position_top);
     settings.add_key_value("window_size_width", m_settings.window_size_width);
     settings.add_key_value("window_size_height", m_settings.window_size_height);
+
+    settings.add_key_value("groups_state_render", m_settings.groups_state_render);
+    settings.add_key_value("groups_push_pop_markers", m_settings.groups_push_pop_markers);
+    settings.add_key_value("groups_nested_calls", m_settings.groups_nested_calls);
 
     return true;
 }

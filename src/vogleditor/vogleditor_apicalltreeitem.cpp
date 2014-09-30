@@ -27,6 +27,7 @@
 #include <QIcon>
 
 #include "vogleditor_apicalltreeitem.h"
+#include "vogleditor_groupitem.h"
 #include "vogleditor_qapicalltreemodel.h"
 
 #include "vogleditor_frameitem.h"
@@ -35,10 +36,13 @@
 #include "vogl_trace_packet.h"
 #include "vogl_trace_stream_types.h"
 #include "vogleditor_gl_state_snapshot.h"
+#include "vogleditor_settings.h"
 
+// Constructor for root node
 vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_QApiCallTreeModel *pModel)
     : m_parentItem(NULL),
       m_pApiCallItem(NULL),
+      m_pGroupItem(NULL),
       m_pFrameItem(NULL),
       m_pModel(pModel),
       m_localRowIndex(0)
@@ -56,6 +60,7 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_QApiCallTreeMo
 vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_frameItem *frameItem, vogleditor_apiCallTreeItem *parent)
     : m_parentItem(parent),
       m_pApiCallItem(NULL),
+      m_pGroupItem(NULL),
       m_pFrameItem(frameItem),
       m_pModel(NULL),
       m_localRowIndex(0)
@@ -73,15 +78,32 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_frameItem *fra
     }
 }
 
-// Constructor for apiCall nodes
-vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(QString nodeText, vogleditor_apiCallItem *apiCallItem, vogleditor_apiCallTreeItem *parent)
+// Constructor for group nodes
+vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_groupItem *groupItem, vogleditor_apiCallTreeItem *parent)
     : m_parentItem(parent),
-      m_pApiCallItem(apiCallItem),
+      m_pApiCallItem(NULL),
+      m_pGroupItem(groupItem),
       m_pFrameItem(NULL),
       m_pModel(NULL),
       m_localRowIndex(0)
 {
-    m_columnData[VOGL_ACTC_APICALL] = nodeText;
+    m_columnData[VOGL_ACTC_APICALL] = cTREEITEM_STATECHANGES;
+    if (m_parentItem != NULL)
+    {
+        m_pModel = m_parentItem->m_pModel;
+    }
+}
+
+// Constructor for apiCall nodes
+vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_apiCallItem *apiCallItem, vogleditor_apiCallTreeItem *parent)
+    : m_parentItem(parent),
+      m_pApiCallItem(apiCallItem),
+      m_pGroupItem(NULL),
+      m_pFrameItem(NULL),
+      m_pModel(NULL),
+      m_localRowIndex(0)
+{
+    m_columnData[VOGL_ACTC_APICALL] = apiCallItem->apiFunctionCall();
 
     if (apiCallItem != NULL)
     {
@@ -108,6 +130,12 @@ vogleditor_apiCallTreeItem::~vogleditor_apiCallTreeItem()
         m_pFrameItem = NULL;
     }
 
+    if (m_pGroupItem != NULL)
+    {
+        vogl_delete(m_pGroupItem);
+        m_pGroupItem = NULL;
+    }
+
     if (m_pApiCallItem != NULL)
     {
         vogl_delete(m_pApiCallItem);
@@ -127,11 +155,32 @@ vogleditor_apiCallTreeItem *vogleditor_apiCallTreeItem::parent() const
 {
     return m_parentItem;
 }
+bool vogleditor_apiCallTreeItem::isApiCall() const
+{
+    return m_pApiCallItem != NULL;
+}
+bool vogleditor_apiCallTreeItem::isGroup() const
+{
+    return (g_settings.groups_state_render() && (m_pGroupItem != NULL));
+}
+bool vogleditor_apiCallTreeItem::isFrame() const
+{
+    return m_pFrameItem != NULL;
+}
+bool vogleditor_apiCallTreeItem::isRoot() const
+{
+    return !(isApiCall() | isGroup() | isFrame());
+}
 
 void vogleditor_apiCallTreeItem::appendChild(vogleditor_apiCallTreeItem *pChild)
 {
     pChild->m_localRowIndex = m_childItems.size();
     m_childItems.append(pChild);
+}
+
+void vogleditor_apiCallTreeItem::popChild()
+{
+    m_childItems.removeLast();
 }
 
 int vogleditor_apiCallTreeItem::childCount() const
@@ -154,9 +203,65 @@ vogleditor_apiCallItem *vogleditor_apiCallTreeItem::apiCallItem() const
     return m_pApiCallItem;
 }
 
+vogleditor_groupItem *vogleditor_apiCallTreeItem::groupItem() const
+{
+    return m_pGroupItem;
+}
+
 vogleditor_frameItem *vogleditor_apiCallTreeItem::frameItem() const
 {
     return m_pFrameItem;
+}
+
+uint64_t vogleditor_apiCallTreeItem::startTime() const
+{
+    uint64_t startTime = 0;
+
+    if (m_pApiCallItem)
+    {
+        startTime = m_pApiCallItem->startTime();
+    }
+    else if (m_pGroupItem)
+    {
+        startTime = m_pGroupItem->startTime();
+    }
+    else if (m_pFrameItem)
+    {
+        startTime = m_pFrameItem->startTime();
+    }
+    else // root
+    {
+        startTime = child(0)->startTime();
+    }
+    return startTime;
+}
+
+uint64_t vogleditor_apiCallTreeItem::endTime() const
+{
+    uint64_t endTime = 0;
+
+    if (m_pApiCallItem)
+    {
+        endTime = m_pApiCallItem->endTime();
+    }
+    else if (m_pGroupItem)
+    {
+        endTime = m_pGroupItem->endTime();
+    }
+    else if (m_pFrameItem)
+    {
+        endTime = m_pFrameItem->endTime();
+    }
+    else // root
+    {
+        endTime = child(childCount() - 1)->endTime();
+    }
+    return endTime;
+}
+
+uint64_t vogleditor_apiCallTreeItem::duration() const
+{
+    return endTime() - startTime();
 }
 
 void vogleditor_apiCallTreeItem::set_snapshot(vogleditor_gl_state_snapshot *pSnapshot)
@@ -260,6 +365,26 @@ QVariant vogleditor_apiCallTreeItem::columnData(int column, int role) const
     }
 
     return QVariant();
+}
+
+void vogleditor_apiCallTreeItem::setApiCallColumnData(QString name)
+{
+    setColumnData(QVariant(name), VOGL_ACTC_APICALL);
+}
+
+void vogleditor_apiCallTreeItem::setColumnData(QVariant data, int column)
+{
+    m_columnData[column] = data;
+}
+
+QString vogleditor_apiCallTreeItem::apiCallColumnData() const
+{
+    return (columnData(VOGL_ACTC_APICALL, Qt::DisplayRole)).toString();
+}
+
+QString vogleditor_apiCallTreeItem::apiCallStringArg() const
+{
+    return isApiCall() ? apiCallItem()->stringArg() : QString();
 }
 
 int vogleditor_apiCallTreeItem::row() const

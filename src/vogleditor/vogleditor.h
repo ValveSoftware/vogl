@@ -136,6 +136,7 @@ private:
     bool open_trace_file(vogl::dynamic_string filename);
 
     void onApiCallSelected(const QModelIndex &index, bool bAllowStateSnapshot);
+    void setTimeline(vogleditor_apiCallTreeItem *pCallTreeItem);
     bool displayTexture(GLuint64 textureHandle, bool bBringTabToFront);
     void displayFramebuffer(GLuint64 framebufferHandle, bool bBringTabToFront);
     bool displayShader(GLuint64 shaderHandle, bool bBringTabToFront);

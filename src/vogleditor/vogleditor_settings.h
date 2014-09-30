@@ -15,6 +15,10 @@ struct vogleditor_setting_struct
     int window_size_width;
     int window_size_height;
     unsigned int trim_large_trace_prompt_size;
+
+    bool groups_state_render;
+    bool groups_push_pop_markers;
+    bool groups_nested_calls;
 };
 
 class vogleditor_settings
@@ -71,6 +75,31 @@ public:
     void set_trim_large_trace_prompt_size(unsigned int trim_large_trace_prompt_size)
     {
         m_settings.trim_large_trace_prompt_size = trim_large_trace_prompt_size;
+    }
+
+    bool groups_state_render()
+    {
+        return m_settings.groups_state_render;
+    }
+    bool groups_push_pop_markers()
+    {
+        return m_settings.groups_push_pop_markers;
+    }
+    bool groups_nested_calls()
+    {
+        return m_settings.groups_nested_calls;
+    }
+    void set_groups_state_render(bool groups_state_render)
+    {
+        m_settings.groups_state_render = groups_state_render;
+    }
+    void set_groups_push_pop_markers(bool groups_push_pop_markers)
+    {
+        m_settings.groups_push_pop_markers = groups_push_pop_markers;
+    }
+    void set_groups_nested_calls(bool groups_nested_calls)
+    {
+        m_settings.groups_nested_calls = groups_nested_calls;
     }
 
 private:

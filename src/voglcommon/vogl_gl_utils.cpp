@@ -1032,6 +1032,24 @@ bool vogl_is_clear_entrypoint(gl_entrypoint_id_t id)
     return false;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// vogl_is_frame_buffer_write_entrypoint
+//----------------------------------------------------------------------------------------------------------------------
+bool vogl_is_frame_buffer_write_entrypoint(gl_entrypoint_id_t id)
+{
+    VOGL_FUNC_TRACER
+
+    switch (id)
+    {
+        case VOGL_ENTRYPOINT_glEnd:
+        case VOGL_ENTRYPOINT_glBitmap:
+            return true;
+        default:
+            break;
+    }
+    return vogl_is_draw_entrypoint(id) || vogl_is_clear_entrypoint(id);
+}
+
 //------------------------------------------------------------------------------
 // vogl_is_start_nested_entrypoint
 //------------------------------------------------------------------------------
@@ -1040,7 +1058,12 @@ bool vogl_is_start_nested_entrypoint(gl_entrypoint_id_t id)
     switch (id)
     {
         case VOGL_ENTRYPOINT_glBegin:
-        case VOGL_ENTRYPOINT_glPushDebugGroup:
+            // TODO: Add after control is added to settings dialog
+            //      case VOGL_ENTRYPOINT_glPushMatrix:
+            //      case VOGL_ENTRYPOINT_glPushAttrib:
+            //      case VOGL_ENTRYPOINT_glPushClientAttrib:
+            //      case VOGL_ENTRYPOINT_glPushName:
+            //      case VOGL_ENTRYPOINT_glNewList:
             return true;
         default:
             break;
@@ -1056,7 +1079,44 @@ bool vogl_is_end_nested_entrypoint(gl_entrypoint_id_t id)
     switch (id)
     {
         case VOGL_ENTRYPOINT_glEnd:
+            // TODO: Add after control is added to settings dialog
+            //      case VOGL_ENTRYPOINT_glPopMatrix:
+            //      case VOGL_ENTRYPOINT_glPopAttrib:
+            //      case VOGL_ENTRYPOINT_glPopClientAttrib:
+            //      case VOGL_ENTRYPOINT_glPopName:
+            //      case VOGL_ENTRYPOINT_glEndList:
+            return true;
+        default:
+            break;
+    }
+    return false;
+}
+
+//------------------------------------------------------------------------------
+// vogl_is_marker_push_entrypoint
+//------------------------------------------------------------------------------
+bool vogl_is_marker_push_entrypoint(gl_entrypoint_id_t id)
+{
+    switch (id)
+    {
+        case VOGL_ENTRYPOINT_glPushDebugGroup:
+            //case VOGL_ENTRYPOINT_glPushGroupMarkerEXT:
+            return true;
+        default:
+            break;
+    }
+    return false;
+}
+
+//------------------------------------------------------------------------------
+// vogl_is_marker_pop_entrypoint
+//------------------------------------------------------------------------------
+bool vogl_is_marker_pop_entrypoint(gl_entrypoint_id_t id)
+{
+    switch (id)
+    {
         case VOGL_ENTRYPOINT_glPopDebugGroup:
+            //case VOGL_ENTRYPOINT_glPopGroupMarkerEXT:
             return true;
         default:
             break;

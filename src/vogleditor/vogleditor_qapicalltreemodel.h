@@ -28,11 +28,17 @@
 
 #include <QAbstractItemModel>
 #include <QLinkedList>
+#include "vogl_common.h"
 
 class QVariant;
 class vogleditor_apiCallTreeItem;
 class vogl_ctypes;
 class vogl_trace_file_reader;
+class vogleditor_groupItem;
+class vogleditor_frameItem;
+class vogl_trace_packet;
+class vogleditor_apiCallItem;
+
 struct vogl_trace_gl_entrypoint_packet;
 
 class vogleditor_QApiCallTreeModel : public QAbstractItemModel
@@ -60,6 +66,9 @@ public:
         return m_rootItem;
     }
 
+    vogleditor_apiCallTreeItem *create_group(vogleditor_frameItem *pFrameObj,
+                                             vogleditor_groupItem *&pGroupObj,
+                                             vogleditor_apiCallTreeItem *pParentNode);
     void set_highlight_search_string(const QString searchString);
     QModelIndex find_prev_search_result(vogleditor_apiCallTreeItem *start, const QString searchText);
     QModelIndex find_next_search_result(vogleditor_apiCallTreeItem *start, const QString searchText);
@@ -77,6 +86,16 @@ signals:
 
 public
 slots:
+
+private:
+    gl_entrypoint_id_t itemApiCallId(vogleditor_apiCallTreeItem *apiCall) const;
+    gl_entrypoint_id_t lastItemApiCallId() const;
+
+    bool processMarkerPushEntrypoint(gl_entrypoint_id_t id);
+    bool processMarkerPopEntrypoint(gl_entrypoint_id_t id);
+    bool processStartNestedEntrypoint(gl_entrypoint_id_t id);
+    bool processEndNestedEntrypoint(gl_entrypoint_id_t id);
+    bool processFrameBufferWriteEntrypoint(gl_entrypoint_id_t id);
 
 private:
     vogleditor_apiCallTreeItem *m_rootItem;

@@ -72,6 +72,11 @@ public:
         m_curFrame = frameNumber;
     }
 
+    inline void setCurrentGroup(unsigned long long groupNumber)
+    {
+        setCurrentApiCall(groupNumber);
+    }
+
     inline void setCurrentApiCall(unsigned long long apiCallNumber)
     {
         m_curApiCallNumber = apiCallNumber;
@@ -96,6 +101,7 @@ private:
     float m_horizontalScale;
     int m_lineLength;
     unsigned long long m_curFrame;
+    unsigned long long m_curGroup;
     unsigned long long m_curApiCallNumber;
     float m_maxItemDuration;
 
