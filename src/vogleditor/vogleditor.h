@@ -100,9 +100,11 @@ private slots:
     Prompt_Result prompt_generate_trace();
     void playCurrentTraceFile();
     void trimCurrentTraceFile();
+    void dumpDrawFrameBuffers();
     void collect_screenshots();
 
     Prompt_Result prompt_trim_trace_file(QString filename, uint maxFrameIndex, uint maxAllowedTrimLen);
+    Prompt_Result prompt_dump_draws(QString filename);
 
     void on_stateTreeView_clicked(const QModelIndex &index);
 
@@ -198,6 +200,7 @@ private:
     QToolButton* m_pGenerateTraceButton;
     QToolButton* m_pPlayButton;
     QToolButton* m_pTrimButton;
+    QToolButton* m_pDumpButton;
 
     QToolButton* m_pCollectScreenshotsButton;
 

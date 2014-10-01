@@ -51,6 +51,7 @@
 #include "vogleditor_qbufferexplorer.h"
 #include "vogleditor_qstatetreemodel.h"
 #include "vogleditor_qtrimdialog.h"
+#include "vogleditor_qdumpdialog.h"
 #include "vogleditor_qframebufferexplorer.h"
 #include "vogleditor_qlaunchtracerdialog.h"
 #include "vogleditor_qprogramarbexplorer.h"
@@ -100,6 +101,7 @@ VoglEditor::VoglEditor(QWidget *parent) :
     m_pGenerateTraceButton(NULL),
     m_pPlayButton(NULL),
     m_pTrimButton(NULL),
+    m_pDumpButton(NULL),
     m_pCollectScreenshotsButton(NULL),
     m_pTraceReader(NULL),
     m_pTimelineModel(NULL),
@@ -194,6 +196,10 @@ VoglEditor::VoglEditor(QWidget *parent) :
     m_pTrimButton = new QToolButton(ui->mainToolBar);
     m_pTrimButton->setText("Trim Trace");
     m_pTrimButton->setEnabled(false);
+    
+    m_pDumpButton = new QToolButton(ui->mainToolBar);
+    m_pDumpButton->setText("Dump_Draws");
+    m_pDumpButton->setEnabled(false);
 
     m_pCollectScreenshotsButton = new QToolButton(ui->mainToolBar);
     m_pCollectScreenshotsButton->setText("Collect Per-Frame Screenshots");
@@ -202,6 +208,7 @@ VoglEditor::VoglEditor(QWidget *parent) :
     ui->mainToolBar->addWidget(m_pGenerateTraceButton);
     ui->mainToolBar->addWidget(m_pPlayButton);
     ui->mainToolBar->addWidget(m_pTrimButton);
+    ui->mainToolBar->addWidget(m_pDumpButton);
     ui->mainToolBar->addWidget(m_pCollectScreenshotsButton);
 
     m_pSnapshotStateOverlay = new vogleditor_QSnapshotOverlayWidget(ui->snapshotLayoutWidget);
@@ -210,6 +217,7 @@ VoglEditor::VoglEditor(QWidget *parent) :
     connect(m_pGenerateTraceButton, SIGNAL(clicked()), this, SLOT(prompt_generate_trace()));
     connect(m_pPlayButton, SIGNAL(clicked()), this, SLOT(playCurrentTraceFile()));
     connect(m_pTrimButton, SIGNAL(clicked()), this, SLOT(trimCurrentTraceFile()));
+    connect(m_pDumpButton, SIGNAL(clicked()), this, SLOT(dumpDrawFrameBuffers()));
     connect(m_pCollectScreenshotsButton, SIGNAL(clicked()), this, SLOT(collect_screenshots()));
 
     connect(m_pProgramArbExplorer, SIGNAL(program_edited(vogl_arb_program_state*)), this, SLOT(slot_program_edited(vogl_arb_program_state*)));
@@ -298,6 +306,12 @@ VoglEditor::~VoglEditor()
     {
         delete m_pTrimButton;
         m_pTrimButton = NULL;
+    }
+    
+    if (m_pDumpButton != NULL)
+    {
+        delete m_pDumpButton;
+        m_pDumpButton = NULL;
     }
 
     if (m_pCollectScreenshotsButton != NULL)
@@ -537,12 +551,14 @@ void VoglEditor::playCurrentTraceFile()
     // update UI
     m_pPlayButton->setEnabled(false);
     m_pTrimButton->setEnabled(false);
+    m_pDumpButton->setEnabled(false);
     m_pCollectScreenshotsButton->setEnabled(false);
 
     m_traceReplayer.replay(m_pTraceReader, m_pApiCallTreeModel->root(), NULL, 0, true);
 
     m_pPlayButton->setEnabled(true);
     m_pTrimButton->setEnabled(true);
+    m_pDumpButton->setEnabled(true);
     m_pCollectScreenshotsButton->setEnabled(true);
 
     setCursor(origCursor);
@@ -636,6 +652,85 @@ VoglEditor::Prompt_Result VoglEditor::prompt_trim_trace_file(QString filename, u
     {
         vogleditor_output_error("Failed to trim the trace file.");
         QMessageBox::critical(this, tr("Error"), tr("Failed to trim the trace file."));
+    }
+    return vogleditor_prompt_error;
+}
+
+void VoglEditor::dumpDrawFrameBuffers()
+{
+    prompt_dump_draws(m_openFilename);
+}
+
+/// \return True if the new trim file is now open in the editor
+/// \return False if there was an error, or the user elected NOT to open the new trim file
+VoglEditor::Prompt_Result VoglEditor::prompt_dump_draws(QString filename)
+{
+    // TODO : Get the min & max GL Call indices here and pass to dialog
+    vogleditor_QDumpDialog dumpDialog(filename, this);
+    int code = dumpDialog.exec();
+    
+    if (code == QDialog::Rejected)
+    {
+        return vogleditor_prompt_cancelled;
+    }
+    
+    QStringList arguments;
+    arguments << "replay" << "--dump_framebuffer_on_draw" << "--dump_framebuffer_on_draw_first_gl_call" << dumpDialog.dump_first_gl_call() << "--dump_framebuffer_on_draw_last_gl_call" << dumpDialog.dump_last_gl_call() << "--dump_framebuffer_on_draw_prefix" << dumpDialog.dump_prefix() << filename;
+    // TODO : When dumping draws we want the dumped images to be stored relative to the trace dir
+    QDir appDirectory(QCoreApplication::applicationDirPath());
+
+    QString executable = appDirectory.absoluteFilePath((sizeof(void *) > 4) ? "./vogl64" : "./vogl32");
+    QString cmdLine = executable + " " + arguments.join(" ");
+
+    vogleditor_output_message("Dumping framebuffers for draws");
+    vogleditor_output_message(cmdLine.toStdString().c_str());
+    vogl_printf("VOGL CMD: %s", cmdLine.toStdString().c_str());
+    m_pVoglReplayProcess->start(executable, arguments);
+    if (m_pVoglReplayProcess->waitForStarted() == false)
+    {
+        vogleditor_output_error("voglreplay could not be executed.");
+        return vogleditor_prompt_error;
+    }
+
+    // This is a bad idea as it will wait forever,
+    // but if the replay is taking forever then we have bigger problems.
+    if(m_pVoglReplayProcess->waitForFinished(-1))
+    {
+        vogleditor_output_message("Trim Completed!");
+    }
+
+    int procRetValue = m_pVoglReplayProcess->exitCode();
+
+    bool bCompleted = false;
+    if (procRetValue == -2)
+    {
+        // proc failed to starts
+        vogleditor_output_error("voglreplay could not be executed.");
+    }
+    else if (procRetValue == -1)
+    {
+        // proc crashed
+        vogleditor_output_error("voglreplay aborted unexpectedly.");
+    }
+    else if (procRetValue == 0)
+    {
+        // success
+        bCompleted = true;
+    }
+    else
+    {
+        // some other return value
+        bCompleted = false;
+    }
+
+    if (bCompleted)
+    {
+        vogleditor_output_message("Framebuffers for draws successfully dumped.");
+    }
+    else
+    {
+        vogleditor_output_error("Failed to dump draw output.");
+        QMessageBox::critical(this, tr("Error"), tr("Failed to dump draw output."));
     }
     return vogleditor_prompt_error;
 }
@@ -1620,6 +1715,7 @@ bool VoglEditor::open_trace_file(dynamic_string filename)
     // update toolbar
     m_pPlayButton->setEnabled(true);
     m_pTrimButton->setEnabled(true);
+    m_pDumpButton->setEnabled(true);
     m_pCollectScreenshotsButton->setEnabled(true);
 
     // timeline
@@ -1788,6 +1884,7 @@ void VoglEditor::reset_tracefile_ui()
 
     m_pPlayButton->setEnabled(false);
     m_pTrimButton->setEnabled(false);
+    m_pDumpButton->setEnabled(false);
     m_pCollectScreenshotsButton->setEnabled(false);
 
     VOGLEDITOR_DISABLE_BOTTOM_TAB(ui->machineInfoTab);
