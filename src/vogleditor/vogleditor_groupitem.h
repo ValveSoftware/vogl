@@ -23,47 +23,25 @@
  *
  **************************************************************************/
 
-#ifndef VOGLEDITOR_FRAMEITEM_H
-#define VOGLEDITOR_FRAMEITEM_H
+#pragma once
 
 #include <QList>
-
-// external class (could be predeclared if
-// definitions were move to a .cpp file)
+#include "vogleditor_snapshotitem.h"
 #include "vogleditor_apicallitem.h"
 
-class vogleditor_frameItem : public vogleditor_snapshotItem
+class vogleditor_frameItem;
+
+class vogleditor_groupItem : public vogleditor_snapshotItem
 {
 public:
-    vogleditor_frameItem(uint64_t frameNumber)
-        : m_frameNumber(frameNumber)
+    vogleditor_groupItem(vogleditor_frameItem *pFrameItem)
+        : m_pParentFrame(pFrameItem)
     {
     }
 
-    ~vogleditor_frameItem()
+    ~vogleditor_groupItem()
     {
         m_apiCallList.clear();
-        m_groupList.clear();
-    }
-
-    inline uint64_t frameNumber() const
-    {
-        return m_frameNumber;
-    }
-
-    void appendGroup(vogleditor_groupItem *pItem)
-    {
-        m_groupList.append(pItem);
-    }
-
-    vogleditor_apiCallItem *popApiCall()
-    {
-        return m_apiCallList.takeLast();
-    }
-
-    vogleditor_groupItem *popGroup()
-    {
-        return m_groupList.takeLast();
     }
 
     void appendCall(vogleditor_apiCallItem *pItem)
@@ -82,63 +60,39 @@ public:
         {
             return NULL;
         }
-
         return m_apiCallList[index];
     }
 
-    bool getStartEndTimes(uint64_t &start, uint64_t &end) const
+    inline uint64_t firstApiCallIndex() const
     {
-        if (callCount() == 0)
+        return apiCallIndex(0);
+    }
+
+    inline uint64_t apiCallIndex(int index = 0) const
+    {
+        if (vogleditor_apiCallItem *apiCallItem = call(index))
         {
-            return false;
+            return apiCallItem->globalCallIndex();
         }
-
-        start = startTime();
-        end = endTime();
-        return true;
+        return uint64_t(-1); // (-1 index won't be found)
     }
 
-    uint64_t startTime() const
+    inline uint64_t startTime() const
     {
-        return apiCallStartTime(0);
+        return m_apiCallList[0]->startTime();
     }
 
-    uint64_t endTime() const
+    inline uint64_t endTime() const
     {
-        return apiCallEndTime(callCount() - 1);
+        return m_apiCallList[callCount() - 1]->endTime();
     }
 
-    uint64_t apiCallStartTime(uint index) const
+    inline uint64_t duration() const
     {
-        return m_apiCallList[index]->startTime();
-    }
-
-    uint64_t apiCallEndTime(uint index) const
-    {
-        return m_apiCallList[index]->endTime();
-    }
-
-    uint64_t duration() const
-    {
-        return (endTime() - startTime());
-    }
-
-    void set_screenshot_filename(const dynamic_string &filename)
-    {
-        m_screenshot_filename = filename;
-    }
-
-    const dynamic_string &get_screenshot_filename() const
-    {
-        return m_screenshot_filename;
+        return endTime() - startTime();
     }
 
 private:
-    uint64_t m_frameNumber;
+    vogleditor_frameItem *m_pParentFrame;
     QList<vogleditor_apiCallItem *> m_apiCallList;
-    QList<vogleditor_groupItem *> m_groupList;
-
-    dynamic_string m_screenshot_filename;
 };
-
-#endif // VOGLEDITOR_FRAMEITEM_H

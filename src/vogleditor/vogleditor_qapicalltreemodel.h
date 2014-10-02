@@ -28,11 +28,17 @@
 
 #include <QAbstractItemModel>
 #include <QLinkedList>
+#include "vogl_common.h"
 
 class QVariant;
 class vogleditor_apiCallTreeItem;
 class vogl_ctypes;
 class vogl_trace_file_reader;
+class vogleditor_groupItem;
+class vogleditor_frameItem;
+class vogl_trace_packet;
+class vogleditor_apiCallItem;
+
 struct vogl_trace_gl_entrypoint_packet;
 
 class vogleditor_QApiCallTreeModel : public QAbstractItemModel
@@ -40,10 +46,10 @@ class vogleditor_QApiCallTreeModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
-    vogleditor_QApiCallTreeModel(QObject* parent = 0);
+    vogleditor_QApiCallTreeModel(QObject *parent = 0);
     ~vogleditor_QApiCallTreeModel();
 
-    bool init(vogl_trace_file_reader* pTrace_reader);
+    bool init(vogl_trace_file_reader *pTrace_reader);
 
     virtual QVariant data(const QModelIndex &index, int role) const;
     virtual Qt::ItemFlags flags(const QModelIndex &index) const;
@@ -53,36 +59,48 @@ public:
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const;
     virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
-    QModelIndex indexOf(const vogleditor_apiCallTreeItem* pItem) const;
+    QModelIndex indexOf(const vogleditor_apiCallTreeItem *pItem) const;
 
-    vogleditor_apiCallTreeItem* root() const
+    vogleditor_apiCallTreeItem *root() const
     {
         return m_rootItem;
     }
 
+    vogleditor_apiCallTreeItem *create_group(vogleditor_frameItem *pFrameObj,
+                                             vogleditor_groupItem *&pGroupObj,
+                                             vogleditor_apiCallTreeItem *pParentNode);
     void set_highlight_search_string(const QString searchString);
-    QModelIndex find_prev_search_result(vogleditor_apiCallTreeItem* start, const QString searchText);
-    QModelIndex find_next_search_result(vogleditor_apiCallTreeItem* start, const QString searchText);
+    QModelIndex find_prev_search_result(vogleditor_apiCallTreeItem *start, const QString searchText);
+    QModelIndex find_next_search_result(vogleditor_apiCallTreeItem *start, const QString searchText);
 
-    vogleditor_apiCallTreeItem* find_prev_snapshot(vogleditor_apiCallTreeItem* start);
-    vogleditor_apiCallTreeItem* find_next_snapshot(vogleditor_apiCallTreeItem* start);
+    vogleditor_apiCallTreeItem *find_prev_snapshot(vogleditor_apiCallTreeItem *start);
+    vogleditor_apiCallTreeItem *find_next_snapshot(vogleditor_apiCallTreeItem *start);
 
-    vogleditor_apiCallTreeItem* find_prev_drawcall(vogleditor_apiCallTreeItem* start);
-    vogleditor_apiCallTreeItem* find_next_drawcall(vogleditor_apiCallTreeItem* start);
+    vogleditor_apiCallTreeItem *find_prev_drawcall(vogleditor_apiCallTreeItem *start);
+    vogleditor_apiCallTreeItem *find_next_drawcall(vogleditor_apiCallTreeItem *start);
 
-    vogleditor_apiCallTreeItem* find_call_number(unsigned int callNumber);
-    vogleditor_apiCallTreeItem* find_frame_number(unsigned int frameNumber);
-
-
+    vogleditor_apiCallTreeItem *find_call_number(unsigned int callNumber);
+    vogleditor_apiCallTreeItem *find_frame_number(unsigned int frameNumber);
 
 signals:
 
-public slots:
+public
+slots:
 
 private:
-    vogleditor_apiCallTreeItem* m_rootItem;
-    vogl_ctypes* m_pTrace_ctypes;
-    QLinkedList<vogleditor_apiCallTreeItem*> m_itemList;
+    gl_entrypoint_id_t itemApiCallId(vogleditor_apiCallTreeItem *apiCall) const;
+    gl_entrypoint_id_t lastItemApiCallId() const;
+
+    bool processMarkerPushEntrypoint(gl_entrypoint_id_t id);
+    bool processMarkerPopEntrypoint(gl_entrypoint_id_t id);
+    bool processStartNestedEntrypoint(gl_entrypoint_id_t id);
+    bool processEndNestedEntrypoint(gl_entrypoint_id_t id);
+    bool processFrameBufferWriteEntrypoint(gl_entrypoint_id_t id);
+
+private:
+    vogleditor_apiCallTreeItem *m_rootItem;
+    vogl_ctypes *m_pTrace_ctypes;
+    QLinkedList<vogleditor_apiCallTreeItem *> m_itemList;
     QString m_searchString;
 };
 

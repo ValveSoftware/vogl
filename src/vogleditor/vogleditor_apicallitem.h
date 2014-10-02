@@ -26,18 +26,17 @@
 #ifndef VOGLEDITOR_APICALLITEM_H
 #define VOGLEDITOR_APICALLITEM_H
 
-#include <QList>
-
 #include "vogleditor_snapshotitem.h"
 
 // predeclared classes
 class vogleditor_frameItem;
+class vogleditor_groupItem;
 class vogl_trace_packet;
 
 class vogleditor_apiCallItem : public vogleditor_snapshotItem
 {
 public:
-    vogleditor_apiCallItem(vogleditor_frameItem* pFrame, vogl_trace_packet* pTracePacket, const vogl_trace_gl_entrypoint_packet& glPacket)
+    vogleditor_apiCallItem(vogleditor_frameItem *pFrame, vogl_trace_packet *pTracePacket, const vogl_trace_gl_entrypoint_packet &glPacket)
         : m_pParentFrame(pFrame),
           m_glPacket(glPacket),
           m_pTracePacket(pTracePacket),
@@ -61,9 +60,14 @@ public:
         }
     }
 
-    inline vogleditor_frameItem* frame() const
+    inline vogleditor_frameItem *frame() const
     {
         return m_pParentFrame;
+    }
+
+    inline vogleditor_groupItem *group() const
+    {
+        return m_pParentGroup;
     }
 
     inline uint64_t globalCallIndex() const
@@ -86,12 +90,12 @@ public:
         return endTime() - startTime();
     }
 
-    const vogl_trace_gl_entrypoint_packet* getGLPacket() const
+    const vogl_trace_gl_entrypoint_packet *getGLPacket() const
     {
         return &m_glPacket;
     }
 
-    vogl_trace_packet* getTracePacket()
+    vogl_trace_packet *getTracePacket()
     {
         return m_pTracePacket;
     }
@@ -101,10 +105,61 @@ public:
         return m_backtrace_hash_index;
     }
 
+    // Returns the api function call and its args as a string
+    QString apiFunctionCall()
+    {
+        const gl_entrypoint_desc_t &entrypoint_desc = g_vogl_entrypoint_descs[m_pTracePacket->get_entrypoint_id()];
+
+        QString funcCall = entrypoint_desc.m_pName;
+
+        // format parameters
+        funcCall.append("( ");
+        dynamic_string paramStr;
+        for (uint param_index = 0; param_index < m_pTracePacket->total_params(); param_index++)
+        {
+            if (param_index != 0)
+                funcCall.append(", ");
+
+            paramStr.clear();
+            m_pTracePacket->pretty_print_param(paramStr, param_index, false);
+
+            funcCall.append(paramStr.c_str());
+        }
+        funcCall.append(" )");
+
+        if (m_pTracePacket->has_return_value())
+        {
+            funcCall.append(" = ");
+            paramStr.clear();
+            m_pTracePacket->pretty_print_return_value(paramStr, false);
+            funcCall.append(paramStr.c_str());
+        }
+        return funcCall;
+    }
+
+    // Returns the string argument of an apicall in apiFunctionCall() output format
+    //
+    // TODO: (as needed) Add logic to return which string (argument count) from
+    //                   a multi-string argument list (or all as a QStringList)
+    QString stringArg()
+    {
+        QString apiCall = apiFunctionCall();
+
+        QString sec, name;
+        int start = 1;
+        while (!(sec = apiCall.section('\'', start, start)).isEmpty())
+        {
+            name.append(sec);
+            start += 2;
+        }
+        return name;
+    }
+
 private:
-    vogleditor_frameItem* m_pParentFrame;
+    vogleditor_frameItem *m_pParentFrame;
+    vogleditor_groupItem *m_pParentGroup;
     const vogl_trace_gl_entrypoint_packet m_glPacket;
-    vogl_trace_packet* m_pTracePacket;
+    vogl_trace_packet *m_pTracePacket;
 
     uint64_t m_globalCallIndex;
     uint64_t m_begin_rdtsc;
