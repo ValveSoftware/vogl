@@ -91,11 +91,11 @@ private:
     gl_entrypoint_id_t itemApiCallId(vogleditor_apiCallTreeItem *apiCall) const;
     gl_entrypoint_id_t lastItemApiCallId() const;
 
-    bool processMarkerPushEntrypoint(gl_entrypoint_id_t id);
-    bool processMarkerPopEntrypoint(gl_entrypoint_id_t id);
-    bool processStartNestedEntrypoint(gl_entrypoint_id_t id);
-    bool processEndNestedEntrypoint(gl_entrypoint_id_t id);
-    bool processFrameBufferWriteEntrypoint(gl_entrypoint_id_t id);
+    bool isMarkerPushEntrypoint(gl_entrypoint_id_t id) const;
+    bool isMarkerPopEntrypoint(gl_entrypoint_id_t id) const;
+    bool isStartNestedEntrypoint(gl_entrypoint_id_t id) const;
+    bool isEndNestedEntrypoint(gl_entrypoint_id_t id) const;
+    bool isFrameBufferWriteEntrypoint(gl_entrypoint_id_t id) const;
 
 private:
     vogleditor_apiCallTreeItem *m_rootItem;
