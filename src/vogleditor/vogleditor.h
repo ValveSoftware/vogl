@@ -103,9 +103,11 @@ slots:
     Prompt_Result prompt_generate_trace();
     void playCurrentTraceFile();
     void trimCurrentTraceFile();
+    void dumpDrawFrameBuffers();
     void collect_screenshots();
 
     Prompt_Result prompt_trim_trace_file(QString filename, uint maxFrameIndex, uint maxAllowedTrimLen);
+    Prompt_Result prompt_dump_draws(QString filename);
 
     void on_stateTreeView_clicked(const QModelIndex &index);
 
@@ -176,34 +178,35 @@ private:
     bool save_snapshot_to_disk(vogl_gl_state_snapshot *pSnapshot, dynamic_string filename, vogl_blob_manager *pBlob_manager);
 
     QString m_openFilename;
-    vogleditor_QFramebufferExplorer *m_pFramebufferExplorer;
-    vogleditor_QTextureExplorer *m_pTextureExplorer;
-    vogleditor_QTextureExplorer *m_pRenderbufferExplorer;
-    vogleditor_QProgramArbExplorer *m_pProgramArbExplorer;
-    vogleditor_QProgramExplorer *m_pProgramExplorer;
-    vogleditor_QShaderExplorer *m_pShaderExplorer;
-    vogleditor_QBufferExplorer *m_pBufferExplorer;
-    vogleditor_QVertexArrayExplorer *m_pVertexArrayExplorer;
-    vogleditor_QTimelineView *m_timeline;
+    vogleditor_QFramebufferExplorer* m_pFramebufferExplorer;
+    vogleditor_QTextureExplorer* m_pTextureExplorer;
+    vogleditor_QTextureExplorer* m_pRenderbufferExplorer;
+    vogleditor_QProgramArbExplorer* m_pProgramArbExplorer;
+    vogleditor_QProgramExplorer* m_pProgramExplorer;
+    vogleditor_QShaderExplorer* m_pShaderExplorer;
+    vogleditor_QBufferExplorer* m_pBufferExplorer;
+    vogleditor_QVertexArrayExplorer* m_pVertexArrayExplorer;
+    vogleditor_QTimelineView* m_timeline;
 
-    QGridLayout *m_pFramebufferTab_layout;
-    QGridLayout *m_pTextureTab_layout;
-    QGridLayout *m_pRenderbufferTab_layout;
-    QGridLayout *m_pProgramArbTab_layout;
-    QGridLayout *m_pProgramTab_layout;
-    QGridLayout *m_pShaderTab_layout;
-    QGridLayout *m_pBufferTab_layout;
-    QGridLayout *m_pVertexArrayTab_layout;
+    QGridLayout* m_pFramebufferTab_layout;
+    QGridLayout* m_pTextureTab_layout;
+    QGridLayout* m_pRenderbufferTab_layout;
+    QGridLayout* m_pProgramArbTab_layout;
+    QGridLayout* m_pProgramTab_layout;
+    QGridLayout* m_pShaderTab_layout;
+    QGridLayout* m_pBufferTab_layout;
+    QGridLayout* m_pVertexArrayTab_layout;
 
-    vogleditor_gl_state_snapshot *m_currentSnapshot;
-    vogleditor_apiCallTreeItem *m_pCurrentCallTreeItem;
+    vogleditor_gl_state_snapshot* m_currentSnapshot;
+    vogleditor_apiCallTreeItem* m_pCurrentCallTreeItem;
 
-    QProcess *m_pVoglReplayProcess;
-    QToolButton *m_pGenerateTraceButton;
-    QToolButton *m_pPlayButton;
-    QToolButton *m_pTrimButton;
+    QProcess* m_pVoglReplayProcess;
+    QToolButton* m_pGenerateTraceButton;
+    QToolButton* m_pPlayButton;
+    QToolButton* m_pTrimButton;
+    QToolButton* m_pDumpButton;
 
-    QToolButton *m_pCollectScreenshotsButton;
+    QToolButton* m_pCollectScreenshotsButton;
 
     vogleditor_traceReplayer m_traceReplayer;
     vogl_trace_file_reader *m_pTraceReader;
