@@ -25,7 +25,7 @@ sudo apt-get install build-essential pkg-config cmake libx11-dev \
                      zip wget libtinyxml-dev liblzma-dev libunwind8-dev \
                      libturbojpeg libdwarf-dev mesa-common-dev qt5-qmake\
                      freeglut3-dev qt5-default libqt5x11extras5-dev git \
-                     libsdl2-gfx-dev libsdl2-image-dev libsdl2-ttf-dev
+                     libsdl2-gfx-dev libsdl2-image-dev libsdl2-ttf-dev libjpeg-turbo8-dev
 ```
 
 ## Get Source and Build ##
