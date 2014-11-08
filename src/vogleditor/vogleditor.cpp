@@ -77,40 +77,40 @@
 static QString g_PROJECT_NAME = "Vogl Editor";
 static const char *g_SETTINGS_FILE = "./vogleditor_settings.json";
 
-VoglEditor::VoglEditor(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::VoglEditor),
-    m_pFramebufferExplorer(NULL),
-    m_pTextureExplorer(NULL),
-    m_pRenderbufferExplorer(NULL),
-    m_pProgramExplorer(NULL),
-    m_pShaderExplorer(NULL),
-    m_pBufferExplorer(NULL),
-    m_pVertexArrayExplorer(NULL),
-    m_timeline(NULL),
-    m_pFramebufferTab_layout(NULL),
-    m_pTextureTab_layout(NULL),
-    m_pRenderbufferTab_layout(NULL),
-    m_pProgramArbTab_layout(NULL),
-    m_pProgramTab_layout(NULL),
-    m_pShaderTab_layout(NULL),
-    m_pBufferTab_layout(NULL),
-    m_pVertexArrayTab_layout(NULL),
-    m_currentSnapshot(NULL),
-    m_pCurrentCallTreeItem(NULL),
-    m_pVoglReplayProcess(new QProcess()),
-    m_pGenerateTraceButton(NULL),
-    m_pPlayButton(NULL),
-    m_pTrimButton(NULL),
-    m_pDumpButton(NULL),
-    m_pCollectScreenshotsButton(NULL),
-    m_pTraceReader(NULL),
-    m_pTimelineModel(NULL),
-    m_pApiCallTreeModel(NULL),
-    m_pStateTreeModel(NULL),
-    m_pLaunchTracerDialog(NULL),
-    m_pSnapshotStateOverlay(NULL),
-    m_bDelayUpdateUIForContext(false)
+VoglEditor::VoglEditor(QWidget *parent)
+    : QMainWindow(parent),
+      ui(new Ui::VoglEditor),
+      m_pFramebufferExplorer(NULL),
+      m_pTextureExplorer(NULL),
+      m_pRenderbufferExplorer(NULL),
+      m_pProgramExplorer(NULL),
+      m_pShaderExplorer(NULL),
+      m_pBufferExplorer(NULL),
+      m_pVertexArrayExplorer(NULL),
+      m_timeline(NULL),
+      m_pFramebufferTab_layout(NULL),
+      m_pTextureTab_layout(NULL),
+      m_pRenderbufferTab_layout(NULL),
+      m_pProgramArbTab_layout(NULL),
+      m_pProgramTab_layout(NULL),
+      m_pShaderTab_layout(NULL),
+      m_pBufferTab_layout(NULL),
+      m_pVertexArrayTab_layout(NULL),
+      m_currentSnapshot(NULL),
+      m_pCurrentCallTreeItem(NULL),
+      m_pVoglReplayProcess(new QProcess()),
+      m_pGenerateTraceButton(NULL),
+      m_pPlayButton(NULL),
+      m_pTrimButton(NULL),
+      m_pDumpButton(NULL),
+      m_pCollectScreenshotsButton(NULL),
+      m_pTraceReader(NULL),
+      m_pTimelineModel(NULL),
+      m_pApiCallTreeModel(NULL),
+      m_pStateTreeModel(NULL),
+      m_pLaunchTracerDialog(NULL),
+      m_pSnapshotStateOverlay(NULL),
+      m_bDelayUpdateUIForContext(false)
 {
     ui->setupUi(this);
 
@@ -197,7 +197,7 @@ VoglEditor::VoglEditor(QWidget *parent) :
     m_pTrimButton = new QToolButton(ui->mainToolBar);
     m_pTrimButton->setText("Trim Trace...");
     m_pTrimButton->setEnabled(false);
-    
+
     m_pDumpButton = new QToolButton(ui->mainToolBar);
     m_pDumpButton->setText("Dump Per-Draw Framebuffers...");
     m_pDumpButton->setEnabled(false);
@@ -308,7 +308,7 @@ VoglEditor::~VoglEditor()
         delete m_pTrimButton;
         m_pTrimButton = NULL;
     }
-    
+
     if (m_pDumpButton != NULL)
     {
         delete m_pDumpButton;
@@ -670,14 +670,16 @@ VoglEditor::Prompt_Result VoglEditor::prompt_dump_draws(QString filename)
     // TODO : Get the min & max GL Call indices here and pass to dialog
     vogleditor_QDumpDialog dumpDialog(filename, this);
     int code = dumpDialog.exec();
-    
+
     if (code == QDialog::Rejected)
     {
         return vogleditor_prompt_cancelled;
     }
-    
+
     QStringList arguments;
-    arguments << "replay" << "--dump_framebuffer_on_draw" << "--dump_framebuffer_on_draw_first_gl_call" << dumpDialog.dump_first_gl_call() << "--dump_framebuffer_on_draw_last_gl_call" << dumpDialog.dump_last_gl_call() << "--dump_framebuffer_on_draw_prefix" << dumpDialog.dump_prefix() << filename;
+    arguments << "replay"
+              << "--dump_framebuffer_on_draw"
+              << "--dump_framebuffer_on_draw_first_gl_call" << dumpDialog.dump_first_gl_call() << "--dump_framebuffer_on_draw_last_gl_call" << dumpDialog.dump_last_gl_call() << "--dump_framebuffer_on_draw_prefix" << dumpDialog.dump_prefix() << filename;
     // TODO : When dumping draws we want the dumped images to be stored relative to the trace dir
     QDir appDirectory(QCoreApplication::applicationDirPath());
 
@@ -696,7 +698,7 @@ VoglEditor::Prompt_Result VoglEditor::prompt_dump_draws(QString filename)
 
     // This is a bad idea as it will wait forever,
     // but if the replay is taking forever then we have bigger problems.
-    if(m_pVoglReplayProcess->waitForFinished(-1))
+    if (m_pVoglReplayProcess->waitForFinished(-1))
     {
         vogleditor_output_message("Trim Completed!");
     }

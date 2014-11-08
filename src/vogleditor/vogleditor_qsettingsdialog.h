@@ -3,8 +3,9 @@
 
 #include <QDialog>
 
-namespace Ui {
-class vogleditor_QSettingsDialog;
+namespace Ui
+{
+    class vogleditor_QSettingsDialog;
 }
 
 class vogleditor_QSettingsDialog : public QDialog
@@ -15,7 +16,7 @@ public:
     explicit vogleditor_QSettingsDialog(QWidget *parent = 0);
     ~vogleditor_QSettingsDialog();
 
-    void save(const char* settingsFile);
+    void save(const char *settingsFile);
 
 private:
     Ui::vogleditor_QSettingsDialog *ui;
