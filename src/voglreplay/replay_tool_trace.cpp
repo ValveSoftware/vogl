@@ -125,7 +125,11 @@ getfullpath(const char *filename)
     char buf[PATH_MAX];
 
     // Get the full path to our executable. It should be running in vogl/bin/x86_64 (or i386).
+#if defined(PLATFORM_OSX)
+    if ((file_utils::get_exec_filename(buf, sizeof(buf)) <= 0))
+#else
     if ((readlink("/proc/self/exe", buf, sizeof(buf)) <= 0))
+#endif
         errorf(VOGL_FUNCTION_INFO_CSTR, "ERROR: readlink failed '%s.'\n", strerror(errno));
 
     // Get just the directory name and relative path to libvogltrace.so.
