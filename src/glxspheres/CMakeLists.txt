@@ -8,6 +8,7 @@ require_sdl2()
 require_m()
 require_gl()
 require_glu()
+require_app()
 
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
@@ -35,14 +36,8 @@ target_link_libraries(${PROJECT_NAME}
     ${GL_LIBRARY}
     ${GLU_LIBRARY}
     ${SDL2_LIBRARY}
+    ${APP_LIBRARY}
     )
-
-if(NOT MSVC)
-    find_package(X11 REQUIRED)
-    target_link_libraries(${PROJECT_NAME}
-	${X11_X11_LIB}
-    )
-endif()
 
 build_options_finalize()
 

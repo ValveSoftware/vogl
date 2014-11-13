@@ -5,8 +5,7 @@ include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
 require_sdl2()
-
-find_package(X11 REQUIRED)
+require_app()
 
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -47,7 +46,7 @@ target_link_libraries(${PROJECT_NAME}
     ${LibBackTrace_LIBRARY}
     voglcommon
     ${CMAKE_DL_LIBS}
-    ${X11_X11_LIB}
+    ${APP_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
     voglcore
     ${SDL2_LIBRARY}

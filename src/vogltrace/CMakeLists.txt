@@ -7,9 +7,8 @@ include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
 require_libjpegturbo()
+require_app()
 request_backtrace()
-
-find_package(X11 REQUIRED)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -68,7 +67,7 @@ target_link_libraries(${PROJECT_NAME}
     voglcore
     ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_DL_LIBS}
-    ${X11_LIBRARIES}
+    ${APP_LIBRARY}
     ${LibJpegTurbo_LIBRARY}
 )
 

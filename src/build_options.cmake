@@ -483,6 +483,22 @@ function(request_backtrace)
     endif()
 endfunction()
 
+function(require_app)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+        find_package(X11 REQUIRED)
+        set(APP_LIBRARY ${X11_X11_LIB} PARENT_SCOPE)
+
+    elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set(APP_LIBRARY "" PARENT_SCOPE)
+
+    elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+        set(APP_LIBRARY "" PARENT_SCOPE)
+
+    else()
+        set(APP_LIBRARY "" PARENT_SCOPE)
+    endif()
+endfunction()
+
 # What compiler toolchain are we building on?
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     add_compiler_flag("-DCOMPILER_GCC=1")
