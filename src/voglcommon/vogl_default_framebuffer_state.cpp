@@ -84,7 +84,12 @@ bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attr
         attribs.m_height = attrs.height;
 
         return true;
-    #else
+
+	#elif (VOGL_PLATFORM_HAS_CGL)
+        VOGL_ASSERT(!"UNIMPLEMENTED vogl_get_default_framebuffer_attribs");
+		return false;
+
+	#elif (VOGL_PLATFORM_HAS_WGL)
         HDC hDeviceContext = GL_ENTRYPOINT(wglGetCurrentDC)();
         if (hDeviceContext == NULL)
             return false;

@@ -60,6 +60,10 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
 #if (VOGL_PLATFORM_HAS_GLX)
     if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
         pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+	VOGL_ASSERT(!"UNIMPLEMENTED vogl_get_proc_address_helper");
+
 #elif (VOGL_PLATFORM_HAS_WGL)
     if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
         pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
@@ -92,6 +96,11 @@ bool load_gl()
         vogl_error_printf("Failed getting address of glXGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
         return false;
     }
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+	VOGL_ASSERT(!"UNIMPLEMENTED load_gl");
+	return(false);
+
 #elif (VOGL_PLATFORM_HAS_WGL)
     GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
     if (!GL_ENTRYPOINT(wglGetProcAddress))

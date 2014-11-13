@@ -282,6 +282,8 @@ void vogl_init_gl_entrypoint_descs()
         // They must correspond with the GL enum prefixes in glx_enum_desc.inc, gl_enum_desc.inc, etc.
         if ((desc.m_pName[0] == 'w') && (desc.m_pName[1] == 'g') && (desc.m_pName[2] == 'l'))
             desc.m_pAPI_prefix = "WGL";
+        else if ((desc.m_pName[0] == 'C') && (desc.m_pName[1] == 'G') && (desc.m_pName[2] == 'L'))
+            desc.m_pAPI_prefix = "CGL";
         else if ((desc.m_pName[0] == 'g') && (desc.m_pName[1] == 'l') && (desc.m_pName[2] == 'X'))
             desc.m_pAPI_prefix = "GLX";
         else if ((desc.m_pName[0] == 'g') && (desc.m_pName[1] == 'l'))
