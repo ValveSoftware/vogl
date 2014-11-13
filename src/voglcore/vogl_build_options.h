@@ -230,8 +230,8 @@
     #define VOGL_PLATFORM_HAS_AGL 1
     #define VOGL_PLATFORM_SUPPORTS_BTRACE 0
     #define VOGL_PLATFORM_HAS_X11 0
-    #error "TODO -- I don't know if OSX has a uint definition or not."
-    #define VOGL_PLATFORM_HAS_SDL 0
+    #define VOGL_PLATFORM_HAS_UINT 1
+    #define VOGL_PLATFORM_HAS_SDL 1
 
 #elif defined(PLATFORM_WINDOWS)
     #define VOGL_HAS_PROC_FILESYSTEM 0
