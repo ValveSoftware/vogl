@@ -60,6 +60,28 @@ cmake -DQt5_DIR="C:\Qt\5.3\msvc2013_opengl\lib\cmake\Qt5" -G "Visual Studio 12 2
 Note: The path to Qt5 might need to be adjusted depending on your install location.
 After compiling with Visual Studio, the binaries are placed in the vogl\vogl_build\Release (or Debug) directory.
 
+### Mac OS X ###
+
+Install the required build dependencies using Homebrew:
+
+```
+brew install pkg-config cmake sdl2 qt5 xz jpeg-turbo tinyxml
+```
+
+Then build with:
+
+```
+git clone https://github.com/ValveSoftware/vogl.git
+
+mkdir -p vogl/vogl_build/mac
+cd       vogl/vogl_build/mac
+
+cmake ../.. -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.3.2/
+make
+```
+
+Note: the Mac port is not yet functional.
+
 ## Capturing ##
 
 ```
