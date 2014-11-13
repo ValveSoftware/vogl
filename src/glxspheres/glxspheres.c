@@ -34,6 +34,8 @@
   #include <GL/glx.h>
   #include <GL/glu.h>
   #include <X11/Xlib.h>
+#elif defined(__APPLE__)
+  #include <OpenGL/glu.h>
 #else
   #include <GL/glu.h>
 #endif
@@ -42,7 +44,7 @@
 
 static double rrtime()
 {
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
     struct timeval cur_time;
     gettimeofday(&cur_time, NULL);
     return ((unsigned long long)(cur_time.tv_sec) * 1000000ULL + (unsigned long long)(cur_time.tv_usec)) / 1000000.0;
@@ -291,6 +293,11 @@ void buildfont()
     }
 
     XCloseDisplay(dpy);
+
+#elif defined(__APPLE__)
+	/* TODO */
+	fprintf(stderr, "UNIMPLEMENTED buildfont\n");
+
 #else
     HDC hdc = wglGetCurrentDC();
 
@@ -709,7 +716,7 @@ int main(int argc, char **argv)
                 ncolors = np2(vinfo->colormap_size);
             }
 #else
-            // TODO: Just assume 256 for Windows?
+            // TODO: Just assume 256 for non-X11 platforms?
             ncolors = 256;
 #endif
 
