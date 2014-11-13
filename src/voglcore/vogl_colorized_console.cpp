@@ -251,10 +251,11 @@ namespace vogl
     {
     }
 
-    bool colorized_console::console_output_func(eConsoleMessageType type, const char *pMsg, void *pData)
+    bool colorized_console::console_output_func(eConsoleMessageType type, uint32_t flags, const char *pMsg, void *pData)
     {
-        pData;
-        if (console::get_output_disabled())
+        (void) pData;
+
+        if (type > console::get_output_level())
             return true;
 
         FILE *pFile = (type == cMsgError) ? stderr : stdout;
