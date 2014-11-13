@@ -44,6 +44,10 @@
 #include <sys/stat.h>
 #endif
 
+#if defined(VOGL_USE_OSX_API)
+#include <crt_externs.h>
+#endif
+
 namespace vogl
 {
 #if defined(VOGL_USE_LINUX_API)
@@ -75,6 +79,38 @@ namespace vogl
 
         return s_buf.get_const_ptr();
     }
+
+#elif defined(VOGL_USE_OSX_API)
+    static const char *get_proc_cmdline()
+    {
+        static bool s_inited = false;
+        static vogl::vector<char> s_buf;
+
+        if (!s_inited)
+        {
+            s_inited = true;
+            
+            int    argc = *_NSGetArgc();
+            char **argv = *_NSGetArgv();
+            
+            for (int n = 0; n < argc; n++)
+            	{
+            	char *arg    = argv[n];
+		        int   argLen = strlen(arg);
+		        
+		        for (int m = 0; m < argLen; m++)
+		            s_buf.push_back(arg[m]);
+
+		        s_buf.push_back(' ');
+		        }
+
+            s_buf.push_back(0);
+            s_buf.push_back(0);
+        }
+
+        return s_buf.get_const_ptr();
+    }
+
 #endif 
 
     dynamic_string_array get_command_line_params(int argc, char *argv[])
