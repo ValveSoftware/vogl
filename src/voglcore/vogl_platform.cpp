@@ -120,6 +120,10 @@ vogl_exception_callback_t vogl_set_exception_callback(vogl_exception_callback_t 
 
 #include <signal.h>
 
+#if defined(PLATFORM_OSX)
+#include <unistd.h>
+#endif
+
 static const int MAX_SIGNALS = 16;
 struct sigaction g_prev_sigactions[MAX_SIGNALS];
 
