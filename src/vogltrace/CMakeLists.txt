@@ -45,7 +45,7 @@ include_directories(
 )
 
 # Not sure if -Wl,-Bsymbolic is needed or useful?
-if (NOT MSVC)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   add_shared_linker_flag("-Wl,-Bsymbolic")
   add_shared_linker_flag("-Wl,--version-script=${PROJECT_SOURCE_DIR}/libvogltrace_linker_script.txt")
 endif()

@@ -260,7 +260,7 @@ if (WITH_ASAN)
     set(CMAKE_SHARED_LINK_FLAGS_LIST "${CMAKE_SHARED_LINK_FLAGS_LIST} -fsanitize=address")
 endif()
 
-if (NOT MSVC)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set(CMAKE_EXE_LINK_FLAGS_LIST "-Wl,--no-undefined")
 
     # When linking shared libraries, the AddressSanitizer run-time is not linked,
@@ -474,7 +474,7 @@ function(require_glu)
 endfunction()
 
 function(request_backtrace)
-    if (NOT MSVC)
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         set( LibBackTrace_INCLUDE "${SRC_DIR}/libbacktrace" PARENT_SCOPE )
         set( LibBackTrace_LIBRARY "backtracevogl" PARENT_SCOPE )
     else()
@@ -505,7 +505,7 @@ if (WIN32)
     set( LIBRT "" )
     set( LIBDL "" )
 
-elseif (UNIX)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set( LIBRT rt )
     set( LIBDL dl )
 else()
