@@ -41,6 +41,11 @@
     #include <sys/sysinfo.h>
 #endif
 
+#if defined(VOGL_USE_OSX_API)
+	#include <unistd.h>
+	#include <sys/sysctl.h>
+#endif
+
 #if defined(PLATFORM_WINDOWS)
     #include <process.h>
 #endif
@@ -219,10 +224,14 @@ namespace vogl
         m_in_lock = false;
 #endif
 
+#if VOGL_USE_OSX_API
+		m_spinlock = 0;
+#else
         if (pthread_spin_init(&m_spinlock, 0))
         {
             VOGL_FAIL("spinlock: pthread_spin_init() failed");
         }
+#endif
     }
 
     spinlock::~spinlock()
@@ -231,15 +240,21 @@ namespace vogl
         VOGL_ASSERT(!m_in_lock);
 #endif
 
+#if !VOGL_USE_OSX_API
         pthread_spin_destroy(&m_spinlock);
+#endif
     }
 
     void spinlock::lock()
     {
+#if VOGL_USE_OSX_API
+        OSSpinLockLock(&m_spinlock);
+#else
         if (pthread_spin_lock(&m_spinlock))
         {
             VOGL_FAIL("spinlock: pthread_spin_lock() failed");
         }
+#endif
 
 #ifdef VOGL_BUILD_DEBUG
         VOGL_ASSERT(!m_in_lock);
@@ -254,10 +269,14 @@ namespace vogl
         m_in_lock = false;
 #endif
 
+#if VOGL_USE_OSX_API
+        OSSpinLockUnlock(&m_spinlock);
+#else
         if (pthread_spin_unlock(&m_spinlock))
         {
             VOGL_FAIL("spinlock: pthread_spin_unlock() failed");
         }
+#endif
     }
 
     task_pool::task_pool()
