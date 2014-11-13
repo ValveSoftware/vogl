@@ -4,39 +4,33 @@ param:			retval retained
 dlflags:		notlistable handcode nop
 aglflags:		client-handcode server-handcode
 vectorequiv:	*
-category:		cgl
-
-CheckExtension(extName, extString)
-	return 		GLboolean
-	param		extName				GLubyte					in  reference
-	param		extString			GLubyte					in  reference
-	category	glu
+category:		CGL
 
 ChoosePixelFormat(attribs, pix, npix)
 	return 		CGLError
 	param		attribs				CGLPixelFormatAttribute	in  reference
 	param		pix					CGLPixelFormatObj		out	reference
 	param		npix				GLint					out	reference
-	category	cgl
+	category	CGL
 
 ClearDrawable(ctx)
 	return 		CGLError
 	param		ctx					CGLContextObj			in value
-	category	cgl
+	category	CGL
 
 CopyContext(src, dst, mask)
 	return 		CGLError
 	param		src					CGLContextObj			in  value
 	param		dst					CGLContextObj			in  value
 	param		mask				GLbitfield				in  value
-	category	cgl
+	category	CGL
 
 CreateContext(pix, share, ctx)
 	return 		CGLError
 	param		pix					CGLPixelFormatObj		in  value
 	param		share				CGLContextObj			in  value
 	param		ctx					CGLContextObj			out reference
-	category	cgl
+	category	CGL
 
 CreatePBuffer(width, height, target, internalFormat, max_level, pbuffer)
 	return 		CGLError
@@ -46,7 +40,7 @@ CreatePBuffer(width, height, target, internalFormat, max_level, pbuffer)
 	param		internalFormat		GLenum					in  value
 	param		max_level			GLint					in  value
 	param		pbuffer				CGLPBufferObj			out reference
-	category	cgl
+	category	CGL
 
 DescribePBuffer(obj, width, height, target, internalFormat, mipmap)
 	return 		CGLError
@@ -56,7 +50,7 @@ DescribePBuffer(obj, width, height, target, internalFormat, mipmap)
 	param		target				GLenum					out reference
 	param		internalFormat		GLenum					out reference
 	param		mipmap				GLint					out reference
-	category	cgl
+	category	CGL
 
 DescribePixelFormat(pix, pix_num, attrib, value)
 	return 		CGLError
@@ -64,7 +58,7 @@ DescribePixelFormat(pix, pix_num, attrib, value)
 	param		pix_num				GLint                   in  value
 	param		attrib				CGLPixelFormatAttribute in  value
 	param		value				GLint                   out reference
-	category	cgl
+	category	CGL
 
 DescribeRenderer(rend, rend_num, prop, value)
 	return 		CGLError
@@ -72,53 +66,53 @@ DescribeRenderer(rend, rend_num, prop, value)
 	param		rend_num			GLint					in  value
 	param		prop				CGLRendererProperty		in  value
 	param		value				GLint					out	reference
-	category	cgl
+	category	CGL
 
 DestroyContext(ctx)
 	return 		CGLError
 	param		ctx					CGLContextObj			in value
-	category	cgl
+	category	CGL
 
 DestroyPBuffer(pbuffer)
 	return 		CGLError
 	param		pbuffer				CGLPBufferObj			in value
-	category	cgl
+	category	CGL
 
 DestroyPixelFormat(pix)
 	return 		CGLError
 	param		pix					CGLPixelFormatObj       in  value
-	category	cgl
+	category	CGL
 
 DestroyRendererInfo(rend)
 	return 		CGLError
 	param		rend				CGLRendererInfoObj		in  value
-	category	cgl
+	category	CGL
 
 Disable(rend, pname)
 	return 		CGLError
 	param		rend				CGLRendererInfoObj		in  value
 	param		pname				CGLContextEnable		in  value
-	category	cgl
+	category	CGL
 
 Enable(ctx, pname)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
 	param		pname				CGLContextEnable		in  value
-	category	cgl
+	category	CGL
 
 ErrorString(error)
 	return 		CharPointer
 	param		error				CGLError				in  value
-	category	cgl
+	category	CGL
 
 FlushDrawable(ctx)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
-	category	cgl
+	category	CGL
 
 GetCurrentContext()
 	return 		CGLContextObj
-	category	cgl
+	category	CGL
 
 GetOffScreen(ctx, width, height, rowbytes, baseaddr)
 	return 		CGLError
@@ -127,20 +121,20 @@ GetOffScreen(ctx, width, height, rowbytes, baseaddr)
 	param		height				GLsizei					out reference
 	param		rowbytes			GLint					out reference
 	param		baseaddr			VoidPointer				out reference
-	category	cgl
+	category	CGL
 
 GetOption(pname, param)
 	return 		CGLError
 	param		pname				CGLGlobalOption			in  value
 	param		param				GLint					out reference
-	category	cgl
+	category	CGL
 
 GetParameter(ctx, pname, params)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
 	param		pname				CGLContextParameter		in  value
 	param		params				GLint					out reference
-	category	cgl
+	category	CGL
 
 GetPBuffer(ctx, pbuffer, face, level, screen)
 	return 		CGLError
@@ -149,17 +143,17 @@ GetPBuffer(ctx, pbuffer, face, level, screen)
 	param		face				GLenum					out reference
 	param		level				GLint					out reference
 	param		screen				GLint					out reference
-	category	cgl
+	category	CGL
 
 GetPixelFormat(ctx)
 	return 		CGLPixelFormatObj
 	param		ctx					CGLContextObj			in value
-	category	cgl
+	category	CGL
 
 GetShareGroup(ctx)
 	return 		CGLShareGroupObj
 	param		ctx					CGLContextObj			in value
-	category	cgl
+	category	CGL
 
 GetSurface(ctx, cid, wid, sid)
 	return 		CGLError
@@ -167,85 +161,72 @@ GetSurface(ctx, cid, wid, sid)
 	param		cid					CGSConnectionID			out reference
 	param		wid					CGSWindowID				out reference
 	param		sid					CGSSurfaceID			out reference
-	category	cgl
+	category	CGL
 
 GetVersion(majorvers, minorvers)
 	return 		void
 	param		majorvers			GLint					out reference
 	param		minorvers			GLint					out reference
-	category	cgl
+	category	CGL
 
 GetVirtualScreen(ctx, screen)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
 	param		screen				GLint					out reference
-	category	cgl
+	category	CGL
 
 LockContext(ctx)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
-	category	cgl
-
-LookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
-	return 		void
-	param		eyeX				GLdouble				in  value
-	param		eyeY				GLdouble				in  value
-	param		eyeZ				GLdouble				in  value
-	param		centerX				GLdouble				in  value
-	param		centerY				GLdouble				in  value
-	param		centerZ				GLdouble				in  value
-	param		upX					GLdouble				in  value
-	param		upY					GLdouble				in  value
-	param		upZ					GLdouble				in  value
-	category	glu
+	category	CGL
 
 QueryRendererInfo(display_mask, rend, nrend)
 	return 		CGLError
 	param		display_mask		GLuint					in  value
 	param		rend				CGLRendererInfoObj		out reference
 	param		nrend				GLint					out reference
-	category	cgl
+	category	CGL
 
 ReleaseContext(ctx)
 	return 		void
 	param		ctx					CGLContextObj			in  value
-	category	cgl
+	category	CGL
 
 ReleasePixelFormat(pix)
 	return 		void
 	param		pix					CGLPixelFormatObj       in  value
-	category	cgl
+	category	CGL
 
 RetainContext(ctx)
 	return 		CGLContextObj
 	param		ctx					CGLContextObj			in  value
-	category	cgl
+	category	CGL
 
 RetainPBuffer(pbuffer)
 	return 		CGLPBufferObj
 	param		pbuffer				CGLPBufferObj			in  value
-	category	cgl
+	category	CGL
 
 RetainPixelFormat(pix)
 	return 		CGLPixelFormatObj
 	param		pix					CGLPixelFormatObj       in  value
-	category	cgl
+	category	CGL
 
 SetCurrentContext(ctx)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
-	category	cgl
+	category	CGL
 
 SetFullScreen(ctx)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
-	category	cgl
+	category	CGL
 
 SetGlobalOption(pname, params)
 	return 		CGLError
 	param		pname				CGLGlobalOption			in  value
 	param		params				GLint					out reference
-	category	cgl
+	category	CGL
 
 SetOffScreen(ctx, width, height, rowbytes, baseaddr)
 	return 		CGLError
@@ -254,20 +235,20 @@ SetOffScreen(ctx, width, height, rowbytes, baseaddr)
 	param		height				GLsizei					in  value
 	param		rowbytes			GLint					in  value
 	param		baseaddr			void					out reference
-	category	cgl
+	category	CGL
 
 SetOption(pname, param)
 	return 		CGLError
 	param		pname				CGLGlobalOption			in  value
 	param		param				GLint					in  value
-	category	cgl
+	category	CGL
 
 SetParameter(ctx, pname, params)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
 	param		pname				CGLContextParameter		in  value
 	param		params				GLint					in	reference
-	category	cgl
+	category	CGL
 
 SetPBuffer(ctx, pbuffer, face, level, screen)
 	return 		CGLError
@@ -276,7 +257,7 @@ SetPBuffer(ctx, pbuffer, face, level, screen)
 	param		face				GLenum					in  value
 	param		level				GLint					in  value
 	param		screen				GLint					in  value
-	category	cgl
+	category	CGL
 
 SetSurface(ctx, cid, wid, sid)
 	return 		CGLError
@@ -284,13 +265,13 @@ SetSurface(ctx, cid, wid, sid)
 	param		cid					CGSConnectionID			in  value
 	param		wid					CGSWindowID				in  value
 	param		sid					CGSSurfaceID			in  value
-	category	cgl
+	category	CGL
 
 SetVirtualScreen(ctx, screen)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
 	param		screen				GLint					in	value
-	category	cgl
+	category	CGL
 
 TexImageIOSurface2D(ctx, target, internal_format, width, height, format, type, ioSurface, plane)
 	return 		CGLError
@@ -303,24 +284,24 @@ TexImageIOSurface2D(ctx, target, internal_format, width, height, format, type, i
 	param		type				GLenum					in  value
 	param		ioSurface			IOSurfaceRef			in  value
 	param		plane				GLuint					in  value
-	category	cgl
+	category	CGL
 
 TexImagePBuffer(ctx, pbuffer, source)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
 	param		pbuffer				CGLPBufferObj			in  value
 	param		source				GLenum					in  value
-	category	cgl
+	category	CGL
 
 UnlockContext(ctx)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
-	category	cgl
+	category	CGL
 
 UpdateContext(ctx)
 	return 		CGLError
 	param		ctx					CGLContextObj			in  value
-	category	cgl
+	category	CGL
 
 
 

@@ -581,7 +581,7 @@ public:
                             pCur_func_def->m_lib = cGL;
                         else if (pCur_func_def->m_category == "glX")
                             pCur_func_def->m_lib = cGLX;
-                        else if (pCur_func_def->m_category == "cgl")
+                        else if (pCur_func_def->m_category == "CGL")
                             pCur_func_def->m_lib = cCGL;
                         else if (pCur_func_def->m_category == "wgl")
                             pCur_func_def->m_lib = cWGL;
@@ -2209,7 +2209,7 @@ public:
         // plain GLX/CGL/WGL functions.
         cleanup_redundant_functions(&m_glx_funcs, m_glxext_funcs, "glx");
         cleanup_redundant_functions(&m_gl_funcs, m_glxext_funcs, "gl");
-        cleanup_redundant_functions(&m_cgl_funcs, m_cglext_funcs, "cgl");
+        cleanup_redundant_functions(&m_cgl_funcs, m_cglext_funcs, "CGL");
         cleanup_redundant_functions(&m_gl_funcs, m_cglext_funcs, "gl");
         cleanup_redundant_functions(&m_wgl_funcs, m_wglext_funcs, "wgl");
         cleanup_redundant_functions(&m_gl_funcs, m_wglext_funcs, "gl");
@@ -2315,15 +2315,15 @@ public:
             return false;
         }
 
-        if (!determine_ctypes("cgl", m_cgl_funcs, m_cgl_typemap, m_gl_typemap))
+        if (!determine_ctypes("CGL", m_cgl_funcs, m_cgl_typemap, m_gl_typemap))
         {
-            vogl_error_printf("Failed determined cgl c types!\n");
+            vogl_error_printf("Failed determined CGL c types!\n");
             return false;
         }
 
-        if (!determine_ctypes("cgl", m_cglext_funcs, m_cgl_typemap, m_gl_typemap))
+        if (!determine_ctypes("CGL", m_cglext_funcs, m_cgl_typemap, m_gl_typemap))
         {
-            vogl_error_printf("Failed determined cgl c types!\n");
+            vogl_error_printf("Failed determined CGL c types!\n");
             return false;
         }
 
@@ -2505,8 +2505,8 @@ public:
         process_func_defs("gl", m_gl_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
         process_func_defs("glX", m_glx_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
         process_func_defs("glX", m_glxext_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
-        process_func_defs("cgl", m_cgl_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
-        process_func_defs("cgl", m_cglext_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
+        process_func_defs("CGL", m_cgl_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
+        process_func_defs("CGL", m_cglext_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
         process_func_defs("wgl", m_wgl_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
         process_func_defs("wgl", m_wglext_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, funcs_with_custom_array_size_macros, custom_return_param_array_size_macros, funcs_with_return_param_array_size_macros);
 
@@ -2515,8 +2515,8 @@ public:
         create_array_size_macros("gl", m_gl_funcs, m_gl_so_dylib_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("glX", m_glx_funcs, m_gl_so_dylib_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("glX", m_glxext_funcs, m_gl_so_dylib_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
-        create_array_size_macros("cgl", m_cgl_funcs, m_gl_so_dylib_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
-        create_array_size_macros("cgl", m_cglext_funcs, m_gl_so_dylib_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
+        create_array_size_macros("CGL", m_cgl_funcs, m_gl_so_dylib_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
+        create_array_size_macros("CGL", m_cglext_funcs, m_gl_so_dylib_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("wgl", m_wgl_funcs, m_gl_so_dylib_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
         create_array_size_macros("wgl", m_wglext_funcs, m_gl_so_dylib_dll_function_exports, custom_array_size_macros, custom_array_size_macro_indices, custom_array_size_macro_names, cur_func_id);
 
@@ -2869,9 +2869,9 @@ public:
             return false;
         if (!m_glx_ext_enumerations.dump_to_description_macro_file(out_inc_dir, "glx_ext_desc.inc", "GLX", m_glx_typemap, m_gl_typemap))
             return false;
-        if (!m_cgl_enumerations.dump_to_description_macro_file(out_inc_dir, "cgl_enum_desc.inc", "cgl", m_cgl_typemap, m_gl_typemap))
+        if (!m_cgl_enumerations.dump_to_description_macro_file(out_inc_dir, "cgl_enum_desc.inc", "CGL", m_cgl_typemap, m_gl_typemap))
             return false;
-        if (!m_cgl_ext_enumerations.dump_to_description_macro_file(out_inc_dir, "cgl_ext_desc.inc", "cgl", m_cgl_typemap, m_gl_typemap))
+        if (!m_cgl_ext_enumerations.dump_to_description_macro_file(out_inc_dir, "cgl_ext_desc.inc", "CGL", m_cgl_typemap, m_gl_typemap))
             return false;
         if (!m_wgl_enumerations.dump_to_description_macro_file(out_inc_dir, "wgl_enum_desc.inc", "WGL", m_wgl_typemap, m_gl_typemap))
             return false;
@@ -2888,8 +2888,8 @@ public:
         dump_func_proto_macros(pFile, "gl", m_gl_funcs, m_gl_so_dylib_dll_function_exports);
         dump_func_proto_macros(pFile, "glX", m_glx_funcs, m_gl_so_dylib_dll_function_exports);
         dump_func_proto_macros(pFile, "glX", m_glxext_funcs, m_gl_so_dylib_dll_function_exports);
-        dump_func_proto_macros(pFile, "cgl", m_cgl_funcs, m_gl_so_dylib_dll_function_exports);
-        dump_func_proto_macros(pFile, "cgl", m_cglext_funcs, m_gl_so_dylib_dll_function_exports);
+        dump_func_proto_macros(pFile, "CGL", m_cgl_funcs, m_gl_so_dylib_dll_function_exports);
+        dump_func_proto_macros(pFile, "CGL", m_cglext_funcs, m_gl_so_dylib_dll_function_exports);
         dump_func_proto_macros(pFile, "wgl", m_wgl_funcs, m_gl_so_dylib_dll_function_exports);
         dump_func_proto_macros(pFile, "wgl", m_wglext_funcs, m_gl_so_dylib_dll_function_exports);
 
@@ -2935,8 +2935,8 @@ public:
         dump_func_def_macros(pFile, "gl", m_gl_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs);
         dump_func_def_macros(pFile, "glX", m_glx_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs);
         dump_func_def_macros(pFile, "glX", m_glxext_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs);
-        dump_func_def_macros(pFile, "cgl", m_cgl_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs);
-        dump_func_def_macros(pFile, "cgl", m_cglext_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs);
+        dump_func_def_macros(pFile, "CGL", m_cgl_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs);
+        dump_func_def_macros(pFile, "CGL", m_cglext_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs);
         dump_func_def_macros(pFile, "wgl", m_wgl_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs);
         dump_func_def_macros(pFile, "wgl", m_wglext_funcs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs);
         dump_function_def_undef_macros(pFile);
@@ -2983,8 +2983,8 @@ public:
         dump_func_desc_macros(pFile, "gl", m_gl_funcs, m_apitrace_gl_func_specs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
         dump_func_desc_macros(pFile, "glX", m_glx_funcs, m_apitrace_gl_func_specs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
         dump_func_desc_macros(pFile, "glX", m_glxext_funcs, m_apitrace_gl_func_specs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
-        dump_func_desc_macros(pFile, "cgl", m_cgl_funcs, m_apitrace_gl_func_specs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
-        dump_func_desc_macros(pFile, "cgl", m_cglext_funcs, m_apitrace_gl_func_specs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
+        dump_func_desc_macros(pFile, "CGL", m_cgl_funcs, m_apitrace_gl_func_specs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
+        dump_func_desc_macros(pFile, "CGL", m_cglext_funcs, m_apitrace_gl_func_specs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
         dump_func_desc_macros(pFile, "wgl", m_wgl_funcs, m_apitrace_gl_func_specs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
         dump_func_desc_macros(pFile, "wgl", m_wglext_funcs, m_apitrace_gl_func_specs, m_gl_so_dylib_dll_function_exports, m_whitelisted_funcs, m_nullable_funcs, m_whitelisted_displaylist_funcs);
         dump_function_def_undef_macros(pFile);
@@ -3264,7 +3264,7 @@ local:
                 func.set(line_str).right(2);
                 pSpecs = &gl_funcs;
             }
-            else if (line_str.find_left("cgl") == 0)
+            else if (line_str.find_left("CGL") == 0)
             {
                 func.set(line_str).right(3);
                 pSpecs = &cgl_funcs;
