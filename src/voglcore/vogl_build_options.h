@@ -123,6 +123,8 @@
     #define VOGL_PLATFORM_PC 1
     #if defined(PLATFORM_LINUX)
         #define VOGL_USE_LINUX_API 1
+    #elif defined(PLATFORM_OSX)
+        #define VOGL_USE_OSX_API 1
     #endif
 
     #if defined(PLATFORM_64BIT) || defined(__MINGW64__) || defined(_LP64) || defined(__LP64__)
@@ -216,8 +218,8 @@
 #if defined(PLATFORM_LINUX)
     #define VOGL_HAS_PROC_FILESYSTEM 1
     #define VOGL_PLATFORM_HAS_GLX 1
+    #define VOGL_PLATFORM_HAS_CGL 0
     #define VOGL_PLATFORM_HAS_WGL 0
-    #define VOGL_PLATFORM_HAS_AGL 0
     #define VOGL_PLATFORM_SUPPORTS_BTRACE 1
     #define VOGL_PLATFORM_HAS_X11 1
     #define VOGL_PLATFORM_HAS_UINT 1
@@ -226,8 +228,8 @@
 #elif defined(PLATFORM_OSX)
     #define VOGL_HAS_PROC_FILESYSTEM 0
     #define VOGL_PLATFORM_HAS_GLX 0
+    #define VOGL_PLATFORM_HAS_CGL 1
     #define VOGL_PLATFORM_HAS_WGL 0
-    #define VOGL_PLATFORM_HAS_AGL 1
     #define VOGL_PLATFORM_SUPPORTS_BTRACE 0
     #define VOGL_PLATFORM_HAS_X11 0
     #define VOGL_PLATFORM_HAS_UINT 1
@@ -236,8 +238,8 @@
 #elif defined(PLATFORM_WINDOWS)
     #define VOGL_HAS_PROC_FILESYSTEM 0
     #define VOGL_PLATFORM_HAS_GLX 0
+    #define VOGL_PLATFORM_HAS_CGL 0
     #define VOGL_PLATFORM_HAS_WGL 1
-    #define VOGL_PLATFORM_HAS_AGL 0
     #define VOGL_PLATFORM_SUPPORTS_BTRACE 0
     #define VOGL_PLATFORM_HAS_X11 0
     #define VOGL_PLATFORM_HAS_UINT 0
