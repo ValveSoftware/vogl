@@ -198,6 +198,23 @@ namespace vogl
         {
             status = sem_wait(&m_sem);
         }
+#if defined(VOGL_USE_OSX_API)
+		else
+		{
+			vogl::timer		timer;
+			
+			timer.start();
+			do
+				{
+				status = sem_trywait(&m_sem);
+				if (status == 0)
+					break;
+
+				usleep(1000);
+				}
+			while (timer.get_elapsed_ms() < milliseconds);
+		}
+#else
         else
         {
             struct timespec interval;
@@ -205,6 +222,7 @@ namespace vogl
             interval.tv_nsec = (milliseconds % 1000) * 1000000L;
             status = sem_timedwait(&m_sem, &interval);
         }
+#endif
 
         if (status)
         {
