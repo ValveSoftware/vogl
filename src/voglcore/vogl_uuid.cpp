@@ -37,7 +37,7 @@ namespace vogl
 {
     md5_hash gen_uuid()
     {
-    #if defined(PLATFORM_LINUX)
+    #if defined(PLATFORM_LINUX) || defined(PLATFORM_OSX)
 
         uint32_t buf[] = { 0xABCDEF, 0x12345678, 0xFFFECABC, 0xABCDDEF0 };
         plat_rand_s(buf, VOGL_ARRAY_SIZE(buf));
