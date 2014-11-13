@@ -622,6 +622,8 @@ void vogl_tracked_check_heap(const char *pFile_line)
 #elif defined(VOGL_USE_LINUX_API)
     // App MUST have been linked with -mlcheck! Unfortunately -mlcheck() causes the CRT's heap API's to be unusable on some dev boxes, no idea why.
     mcheck_check_all();
+#elif defined(VOGL_USE_OSX_API)
+	VOGL_VERIFY(malloc_zone_check(NULL));
 #else
     fprintf(stderr, "%s: Need implementation\n", __FUNCTION__);
 #endif
