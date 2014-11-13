@@ -38,6 +38,10 @@
 #include <sys/syscall.h>
 #include <sys/time.h>
 
+#if defined(PLATFORM_OSX)
+	#include <unistd.h>
+#endif
+
 int plat_chdir(const char* path)
 {
     return chdir(path);

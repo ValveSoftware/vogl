@@ -51,7 +51,12 @@ namespace vogl
         QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER *>(pTicks));
     }
 #elif defined(COMPILER_GCCLIKE)
-    #include <sys/timex.h>
+
+	#if defined(VOGL_USE_LINUX_API)
+	    #include <sys/timex.h>
+	#elif defined(VOGL_USE_OSX_API)
+		#include <sys/time.h>
+	#endif
 
     inline void query_counter(timer_ticks *pTicks)
     {

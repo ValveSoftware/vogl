@@ -27,6 +27,10 @@
 #include <iomanip>
 #include <sstream>
 
+#if defined(PLATFORM_OSX)
+	#include <unistd.h>
+#endif
+
 #include "vogl_common.h"
 #include "vogl_gl_replayer.h"
 #include "vogl_colorized_console.h"

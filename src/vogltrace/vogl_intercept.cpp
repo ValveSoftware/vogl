@@ -48,6 +48,9 @@
 #if defined(PLATFORM_POSIX)
     #include <unistd.h>
     #include <sys/syscall.h>
+#endif
+
+#if defined(VOGL_USE_LINUX_API)
     #include <X11/Xatom.h>
 #endif
 

@@ -45,7 +45,7 @@ const bool c_vogl_little_endian_platform = false;
 
 const bool c_vogl_big_endian_platform = !c_vogl_little_endian_platform;
 
-#if defined(COMPILER_GCCLIKE)
+#if defined(VOGL_USE_LINUX_API)
     #define vogl_fopen(f, m) fopen64(f, m)
     #define vogl_fopen_s(pDstFile, f, m) *(pDstFile) = fopen64(f, m)
     #define vogl_fseek fseeko64

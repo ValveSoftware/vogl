@@ -37,7 +37,7 @@
     #include "vogl_winhdr.h"
 #endif
 
-#if defined(COMPILER_GCCLIKE)
+#if defined(VOGL_USE_LINUX_API)
     #include <sys/sysinfo.h>
 #endif
 
@@ -55,7 +55,8 @@ namespace vogl
             SYSTEM_INFO g_system_info;
             GetSystemInfo(&g_system_info);
             g_number_of_processors = math::maximum<uint32_t>(1U, g_system_info.dwNumberOfProcessors);
-        #elif defined(COMPILER_GCCLIKE)
+
+        #elif defined(VOGL_USE_LINUX_API)
             g_number_of_processors = math::maximum<int>(1, get_nprocs());
         #else
             g_number_of_processors = 1;

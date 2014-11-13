@@ -30,7 +30,8 @@
 #include "vogl_core.h"
 
 #include <sys/types.h>
-#ifdef PLATFORM_LINUX
+
+#ifdef PLATFORM_POSIX
 	#include <sys/mman.h>
 	#include <err.h>
 	#include <fcntl.h>
