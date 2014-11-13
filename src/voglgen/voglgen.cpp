@@ -3474,6 +3474,15 @@ local:
     {
         dynamic_string proto;
 
+		// Feral: TBD if this is the correct approach
+    	if (strcmp(pFunc_prefix, func.get_lib_name()) != 0)
+    	{
+			vogl_warning_printf("Function's library prefix (%s) does not match supplied prefix (%s), overriding prefix to produce %s%s\n",
+									func.get_lib_name(), pFunc_prefix, func.get_lib_name(), func.m_name.get_ptr());
+
+			pFunc_prefix = func.get_lib_name();
+    	}
+
         dynamic_string full_func_name(cVarArg, "%s%s", pFunc_prefix, func.m_name.get_ptr());
 
         dynamic_string exported_param((func.m_return == "void") ? "DEF_PROTO_INTERNAL_VOID" : "DEF_PROTO_INTERNAL");
@@ -3740,6 +3749,15 @@ local:
         for (uint32_t func_index = 0; func_index < gl_funcs.size(); func_index++)
         {
             const gl_function_def &func = gl_funcs[func_index];
+
+			// Feral: TBD if this is the correct approach
+    		if (strcmp(pFunc_prefix, func.get_lib_name()) != 0)
+    		{
+				vogl_warning_printf("Function's library prefix (%s) does not match supplied prefix (%s), overriding prefix to produce %s%s\n",
+										func.get_lib_name(), pFunc_prefix, func.get_lib_name(), func.m_name.get_ptr());
+
+				pFunc_prefix = func.get_lib_name();
+	    	}
 
             dynamic_string full_func_name(cVarArg, "%s%s", pFunc_prefix, func.m_name.get_ptr());
 

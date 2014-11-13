@@ -305,3 +305,24 @@ UpdateContext(ctx)
 
 
 
+
+
+CheckExtension(extName, extString)
+	return 		GLboolean
+	param		extName				GLubyte					in  reference
+	param		extString			GLubyte					in  reference
+	category	glu
+
+LookAt(eyeX, eyeY, eyeZ, centerX, centerY, centerZ, upX, upY, upZ)
+	return 		void
+	param		eyeX				GLdouble				in  value
+	param		eyeY				GLdouble				in  value
+	param		eyeZ				GLdouble				in  value
+	param		centerX				GLdouble				in  value
+	param		centerY				GLdouble				in  value
+	param		centerZ				GLdouble				in  value
+	param		upX					GLdouble				in  value
+	param		upY					GLdouble				in  value
+	param		upZ					GLdouble				in  value
+	category	glu
+
