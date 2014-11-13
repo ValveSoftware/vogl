@@ -128,6 +128,9 @@ bool vogl_get_default_framebuffer_attribs(vogl_default_framebuffer_attribs &attr
         }
 
         return true;
+    #else
+		#error "Implement vogl_get_default_framebuffer_attribs for this platform."
+        return(false);
     #endif
 }
 
