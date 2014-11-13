@@ -122,7 +122,7 @@ void vogl_ctypes::change_pointer_sizes(uint32_t trace_ptr_size)
     }
 
 // Mark up long and XID types, which are unsigned longs
-#if defined(PLATFORM_LINUX)
+#if defined(PLATFORM_LINUX) || defined(PLATFORM_OSX)
     #define DEF_LONG_TYPE(x) m_vogl_ctype_descs[x].m_size = trace_ptr_size;
 #elif defined(PLATFORM_WINDOWS)
     #define DEF_LONG_TYPE(x) m_vogl_ctype_descs[x].m_size = sizeof(long);
