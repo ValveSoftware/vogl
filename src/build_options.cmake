@@ -118,10 +118,7 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
           "-Wno-packed"
           "-Wno-c++11-long-long"
           "-Wno-c++11-extensions"
-          "-Wno-gnu-anonymous-struct"
-          "-Wno-gnu-zero-variadic-macro-arguments"
           "-Wno-nested-anon-types"
-          "-Wno-gnu-redeclared-enum"
 
           "-Wno-pedantic"
           "-Wno-header-hygiene"
@@ -136,6 +133,21 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
           # This needs to be removed after fixing the VOGL_NO_ATOMICS, etc.
           "-Wno-undef"
           )
+
+        if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+            set(CMAKE_CXX_FLAGS_LIST ${CMAKE_CXX_FLAGS_LIST}
+                "-Wno-gnu-anonymous-struct"
+                "-Wno-gnu-zero-variadic-macro-arguments"
+                "-Wno-gnu-redeclared-enum"
+                )
+
+        elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+            set(CMAKE_CXX_FLAGS_LIST ${CMAKE_CXX_FLAGS_LIST}
+                "-Wno-duplicate-enum"
+                )
+
+        endif()
+
   endif()
 
 endif()
@@ -374,6 +386,12 @@ function(require_libjpegturbo)
     # so we don't need extra include dirs.
     if (LibJpegTurbo_LIBRARY)
         set(LibJpegTurbo_INCLUDE "" PARENT_SCOPE)
+
+    # On Darwin we assume a Homebrew install
+    elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set(LibJpegTurbo_INCLUDE "/usr/local/opt/jpeg-turbo/include"            PARENT_SCOPE)
+        set(LibJpegTurbo_LIBRARY "/usr/local/opt/jpeg-turbo/lib/libturbojpeg.a" PARENT_SCOPE)
+
     else()
         if (BUILD_X64)
             set(BITS_STRING "x64")
@@ -397,6 +415,19 @@ function(require_sdl2)
         find_library(SDL2_LIBRARY SDL2
             DOC "SDL2 Library"
 	    HINTS ${PC_SDL2_LIBDIR} ${PC_SDL2_LIBRARY_DIRS} )
+
+    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        include(FindPkgConfig)
+        pkg_search_module(PC_SDL2 REQUIRED sdl2)
+
+        find_path(SDL2_INCLUDE SDL.h
+            DOC "SDL2 Include Path"
+            HINTS ${PC_SDL2_INCLUDEDIR} ${PC_SDL2_INCLUDE_DIRS} )
+
+        find_library(SDL2_LIBRARY SDL2
+            DOC "SDL2 Library"
+            HINTS ${PC_SDL2_LIBDIR} ${PC_SDL2_LIBRARY_DIRS} )
+
     elseif (MSVC)
         set(SDL2Root "${CMAKE_EXTERNAL_PATH}/SDL")
 
@@ -443,6 +474,11 @@ function(require_gl)
 	find_library(GL_LIBRARY GL
 	    DOC "OpenGL Library"
 	    HINTS ${PC_GL_LIBDIR} ${PC_GL_LIBRARY_DIRS} )
+
+    elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set(GL_INCLUDE ""                  CACHE PATH     "OpenGL Include Path")
+        set(GL_LIBRARY "-framework OpenGL" CACHE FILEPATH "OpenGL Library")
+
     elseif (MSVC)
 	set(GL_INCLUDE ""	      CACHE PATH "OpenGL Include Path")
 	set(GL_LIBRARY "opengl32.lib" CACHE FILEPATH "OpenGL Library")
@@ -464,6 +500,11 @@ function(require_glu)
 	find_library(GLU_LIBRARY GLU
 	    DOC "GLU Library"
 	    HINTS ${PC_GLU_LIBDIR} ${PC_GLU_LIBRARY_DIRS} )
+
+    elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+        set(GLU_INCLUDE ""                CACHE PATH     "GLU Include Path")
+        set(GLU_LIBRARY "-framework GLUT" CACHE FILEPATH "GLU Library")
+
     elseif (MSVC)
 	set(GLU_INCLUDE ""	    CACHE PATH "GLU Include Path")
 	set(GLU_LIBRARY "glu32.lib" CACHE FILEPATH "GLU Library")
@@ -524,6 +565,11 @@ if (WIN32)
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     set( LIBRT rt )
     set( LIBDL dl )
+
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set( LIBRT "" )
+    set( LIBDL "" )
+
 else()
     message(FATAL_ERROR "Need to determine what the library name for 'rt' is for non-windows, non-unix platforms (or if it's even needed).")
 endif()

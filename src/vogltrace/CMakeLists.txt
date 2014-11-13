@@ -26,6 +26,10 @@ set(SRC_LIST
     # ${SRC_DIR}/common/pinggame.cpp
 )
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(CMAKE_MACOSX_RPATH TRUE)
+endif()
+
 if (VOGLTRACE_NO_PUBLIC_EXPORTS)
 	message("libvogltrace.so will NOT define GL/GLX public exports")
     add_compiler_flag("-DNO_PUBLIC_EXPORTS")
@@ -60,6 +64,24 @@ endif()
 add_library(${PROJECT_NAME} SHARED ${SRC_LIST})
 add_dependencies(${PROJECT_NAME} voglgen_make_inc)
 
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # Set version to match OpenGL.framework
+    set_target_properties (${PROJECT_NAME} PROPERTIES
+        SOVERSION "1.0.0"
+        VERSION   "1.0.0"
+        )
+    
+    # Set name to match Mac convention
+    #
+    # The version number comes before the .dylib on the Mac ("foo.1.2.3.dylib").
+    #
+    # As we also add a "32" or "64" suffix to indicate architecture we insert a hypen
+    # to make it clear this isn't part of the version number ("foo.1.2.3-64.dylib").
+    set(CMAKE_SHARED_LIBRARY_SUFFIX "-${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
+endif()
+
+
 target_link_libraries(${PROJECT_NAME}
     ${TELEMETRY_LIBRARY}
     ${LibBackTrace_LIBRARY}
@@ -70,6 +92,27 @@ target_link_libraries(${PROJECT_NAME}
     ${APP_LIBRARY}
     ${LibJpegTurbo_LIBRARY}
 )
+
+# Create OpenGL.framework
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_custom_command(
+        TARGET ${PROJECT_NAME} POST_BUILD
+
+        COMMENT           "Creating OpenGL.framework"
+        WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+
+        COMMAND rm    -fR "OpenGL.framework"
+        COMMAND mkdir -p  "OpenGL.framework/Versions/A/Resources"
+
+        COMMAND cp "${PROJECT_SOURCE_DIR}/libvogltrace_framework_plist.txt" "OpenGL.framework/Versions/A/Resources/Info.plist"
+        COMMAND ln -sf "$<TARGET_FILE:vogltrace>"                           "OpenGL.framework/Versions/A/OpenGL"
+        COMMAND ln -sf "A"                                                  "OpenGL.framework/Versions/Current"
+        COMMAND ln -sf "Versions/Current/OpenGL"                            "OpenGL.framework/OpenGL"
+        COMMAND ln -sf "Versions/Current/Resources"                         "OpenGL.framework/Resources"
+        )
+
+endif()
+
 
 build_options_finalize()
 
