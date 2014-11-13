@@ -68,6 +68,10 @@
 // loki
 #include "TypeTraits.h"
 
+#if defined(PLATFORM_OSX)
+	#include "gl_types.h"
+#endif
+
 #include <turbojpeg.h>
 
 #include "vogl_cmdline_opts.h"
@@ -83,6 +87,10 @@
 
 #if VOGL_PLATFORM_HAS_GLX
     #define CONTEXT_TYPE GLXContext
+
+#elif VOGL_PLATFORM_HAS_CGL
+	#define CONTEXT_TYPE CGLContextObj
+
 #elif VOGL_PLATFORM_HAS_WGL
     #define CONTEXT_TYPE HGLRC
 #else
@@ -704,6 +712,10 @@ void vogl_init()
 
             vogl_message_printf("Manually loaded %s\n", VOGL_LIBGL_SO_FILENAME);
         }
+
+	#elif (VOGL_PLATFORM_HAS_CGL)
+		VOGL_ASSERT(!"UNIMPLEMENTED vogl_init");
+	
     #elif (VOGL_PLATFORM_HAS_WGL)
         g_vogl_actual_gl_entrypoints.m_wglGetProcAddress = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(PLAT_RTLD_NEXT, "wglGetProcAddress"));
         if (!g_vogl_actual_gl_entrypoints.m_wglGetProcAddress)
@@ -2613,8 +2625,14 @@ public:
     {
         #if (VOGL_PLATFORM_HAS_GLX)
             return GL_ENTRYPOINT(glXMakeCurrent)(get_display(), get_drawable(), new_context);
+
+		#elif (VOGL_PLATFORM_HAS_CGL)
+			VOGL_ASSERT(!"UNIMPLEMENTED MakeCurrent");
+			return false;
+
         #elif (VOGL_PLATFORM_HAS_WGL)
             return GL_ENTRYPOINT(wglMakeCurrent)(get_hdc(), new_context) != GL_FALSE;
+
         #else
             #error "Need a MakeCurrent implementation for this platform."
         #endif
@@ -2624,8 +2642,14 @@ public:
     {
         #if (VOGL_PLATFORM_HAS_GLX)
             return GL_ENTRYPOINT(glXGetCurrentContext)();
+
+		#elif (VOGL_PLATFORM_HAS_CGL)
+			VOGL_ASSERT(!"UNIMPLEMENTED GetCurrentContext");
+			return false;
+
         #elif (VOGL_PLATFORM_HAS_WGL)
             return GL_ENTRYPOINT(wglGetCurrentContext)();
+
         #else
             #error "Need a GetCurrentContext implementation for this platform."
             return CONTEXT_TYPE(0);
@@ -4517,6 +4541,13 @@ static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
             }
         }
     }
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+    static void vogl_add_make_current_key_value_fields(CGLContextObj cglContext, vogl_context *pVOGL_context, vogl_entrypoint_serializer &serializer)
+    {
+    	VOGL_ASSERT(!"UNIMPLEMENTED vogl_add_make_current_key_value_fields");
+    }
+
 
 #elif (VOGL_PLATFORM_HAS_WGL)
 

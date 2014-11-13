@@ -188,6 +188,10 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
     #if (VOGL_PLATFORM_HAS_GLX)
         if ((!pFunc) && (g_vogl_actual_gl_entrypoints.m_glXGetProcAddress))
             pFunc = reinterpret_cast<vogl_void_func_ptr_t>(g_vogl_actual_gl_entrypoints.m_glXGetProcAddress(reinterpret_cast<const GLubyte *>(pName)));
+
+	#elif (VOGL_PLATFORM_HAS_CGL)
+		VOGL_ASSERT(!"UNIMPLEMENTED vogl_get_proc_address_helper_return_actual");
+
     #elif (VOGL_PLATFORM_HAS_WGL)
         if ((!pFunc) && (g_vogl_actual_gl_entrypoints.m_wglGetProcAddress))
             pFunc = reinterpret_cast<vogl_void_func_ptr_t>(g_vogl_actual_gl_entrypoints.m_wglGetProcAddress(pName));
