@@ -54,7 +54,7 @@ static vogl_ctype_desc_t g_vogl_ctype_descs[] =
         name, VOGL_INVALID_CTYPE, #name, #ctype, 0, false, false, false, false, false \
     }                                                                                \
     ,
-#include "gl_glx_wgl_ctypes.inc"
+#include "gl_glx_cgl_wgl_ctypes.inc"
 #undef DEF_TYPE
     };
 
@@ -296,12 +296,12 @@ void vogl_init_gl_ctypes()
         desc.m_is_pointer = ctype_traits::isPointer;      \
         desc.m_loki_type_flags = ctype_traits::typeFlags; \
     }
-#include "gl_glx_wgl_ctypes.inc"
+#include "gl_glx_cgl_wgl_ctypes.inc"
 #undef DEF_TYPE
 
 // Define ptr to pointee mappings
 #define DEF_PTR_TO_POINTEE_TYPE(ptr_ctype, pointee_ctype) g_vogl_ctype_descs[ptr_ctype].m_pointee_ctype = pointee_ctype;
-#include "gl_glx_wgl_ctypes_ptr_to_pointee.inc"
+#include "gl_glx_cgl_wgl_ctypes_ptr_to_pointee.inc"
 #undef DEF_PTR_TO_POINTEE_TYPE
 
     vogl_define_special_ctypes();
