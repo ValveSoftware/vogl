@@ -202,7 +202,7 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper_return_actual(const char *pNam
 // global constructor init
 // Note: Be VERY careful what you do in here! It's called very early during init (long before main, during c++ init)
 //----------------------------------------------------------------------------------------------------------------------
-#if defined(PLATFORM_LINUX)
+#if defined(PLATFORM_LINUX) || defined(PLATFORM_OSX)
 
 #include "vogl_file_utils.h"
 
