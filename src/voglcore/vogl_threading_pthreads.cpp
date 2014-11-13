@@ -63,6 +63,17 @@ namespace vogl
 
         #elif defined(VOGL_USE_LINUX_API)
             g_number_of_processors = math::maximum<int>(1, get_nprocs());
+
+		#elif defined(VOGL_USE_OSX_API)
+			size_t	paramLen;
+			int		numCPUs;
+
+			numCPUs  = 1;
+			paramLen = sizeof(numCPUs);
+
+			if (sysctlbyname("hw.logicalcpu", &numCPUs, &paramLen, NULL, 0) == 0)
+				g_number_of_processors = numCPUs;
+
         #else
             g_number_of_processors = 1;
         #endif
