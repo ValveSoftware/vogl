@@ -3294,7 +3294,7 @@ local:
                 }
                 if (!pCType)
                 {
-                    vogl_warning_printf("Unable to map spec type %s\n", func.m_return.get_ptr());
+                    vogl_warning_printf("Unable to map spec return type %s\n", func.m_return.get_ptr());
                     return false;
                 }
 
@@ -3319,7 +3319,7 @@ local:
 
                 if (!pCType)
                 {
-                    vogl_warning_printf("Unable to map spec type %s\n", param.m_type.get_ptr());
+                    vogl_warning_printf("Unable to map spec param %s type %s\n", param.m_name.get_ptr(), param.m_type.get_ptr());
                     return false;
                 }
 
