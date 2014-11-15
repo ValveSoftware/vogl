@@ -145,6 +145,7 @@ private:
     void displayProgramArb(GLuint64 programArbHandle, bool bBringTabToFront);
     void displayProgram(GLuint64 programHandle, bool bBringTabToFront);
     bool displayBuffer(GLuint64 bufferHandle, bool bBringTabToFront);
+    bool resetApiCallTreeModel();
 
     bool launch_application_to_generate_trace(const QString &cmdLine, const QProcessEnvironment &environment);
 

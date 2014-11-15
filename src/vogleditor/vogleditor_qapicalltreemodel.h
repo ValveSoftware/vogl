@@ -97,6 +97,9 @@ private:
     bool isEndNestedEntrypoint(gl_entrypoint_id_t id) const;
     bool isFrameBufferWriteEntrypoint(gl_entrypoint_id_t id) const;
 
+    bool displayMarkerTextAsLabel() const;
+    bool hideMarkerPopApiCall() const;
+
 private:
     vogleditor_apiCallTreeItem *m_rootItem;
     vogl_ctypes *m_pTrace_ctypes;

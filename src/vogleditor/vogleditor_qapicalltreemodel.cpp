@@ -290,16 +290,8 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
             vogleditor_apiCallItem *pCallItem = NULL;
             vogleditor_apiCallTreeItem *item = NULL;
 
-            // Comment following if-statement to allow marker_pop_entrypoint
-            // apicalls (e.g., glPopDebugGroup) to be added to apicall tree.
-            //
-            // TODO: Have settings dialog control if marker_pop apicalls are to
-            //       be added to tree
-            //if (!isMarkerPopEntrypoint(entrypoint_id)
-            //
-            // TEMPORARY:
-            // For now only omit for state/render groups setting
-            if (!(g_settings.groups_state_render() && isMarkerPopEntrypoint(entrypoint_id)))
+            // Optionally display Debug marker pop entrypoints
+            if (!(isMarkerPopEntrypoint(entrypoint_id) && hideMarkerPopApiCall()))
             {
                 // make apicall item
                 pCallItem = vogl_new(vogleditor_apiCallItem, pCurFrame, pTrace_packet, *pGL_packet);
@@ -363,9 +355,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                     // Make sure parent is a marker_push
                     if (isMarkerPushEntrypoint(itemApiCallId(pCurParent)))
                     {
-                        // TEMPORARY:
-                        // for now, only enable renaming for state/render groups
-                        if (g_settings.groups_state_render())
+                        if (displayMarkerTextAsLabel())
                         {
                             // Rename marker_push/pop tree nodes
                             QString msg = pCurParent->apiCallStringArg();
@@ -373,11 +363,11 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                             QString pushstring = "\"" + msg + "\"" + " group";
                             pCurParent->setApiCallColumnData(pushstring);
 
-                            // TODO: Set when settings dialog controls if marker_pop
-                            //       apicalls are added to tree
-                            //
-                            //QString popstring =  pushstring + " end";
-                            //item->setApiCallColumnData(popstring);
+                            if (!hideMarkerPopApiCall())
+                            {
+                                QString popstring = pushstring + " end";
+                                item->setApiCallColumnData(popstring);
+                            }
                         }
                         pCurParent = pCurParent->parent();
                     }
@@ -413,43 +403,57 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
 
 bool vogleditor_QApiCallTreeModel::isMarkerPushEntrypoint(gl_entrypoint_id_t id) const
 {
-    if (!g_settings.groups_push_pop_markers())
+    QString funcname = g_vogl_entrypoint_descs[id].m_pName;
+    if (g_settings.is_active_debug_marker(funcname))
     {
-        return false;
+        return vogl_is_marker_push_entrypoint(id);
     }
-    return vogl_is_marker_push_entrypoint(id);
+    return false;
 }
 bool vogleditor_QApiCallTreeModel::isMarkerPopEntrypoint(gl_entrypoint_id_t id) const
 {
-    if (!g_settings.groups_push_pop_markers())
+    QString funcname = g_vogl_entrypoint_descs[id].m_pName;
+    if (g_settings.is_active_debug_marker(funcname))
     {
-        return false;
+        return vogl_is_marker_pop_entrypoint(id);
     }
-    return vogl_is_marker_pop_entrypoint(id);
+    return false;
 }
 bool vogleditor_QApiCallTreeModel::isStartNestedEntrypoint(gl_entrypoint_id_t id) const
 {
-    if (!g_settings.groups_nested_calls())
+    QString funcname = g_vogl_entrypoint_descs[id].m_pName;
+    if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
     {
-        return false;
+        return vogl_is_start_nested_entrypoint(id);
     }
-    return vogl_is_start_nested_entrypoint(id);
+    return false;
 }
 bool vogleditor_QApiCallTreeModel::isEndNestedEntrypoint(gl_entrypoint_id_t id) const
 {
-    if (!g_settings.groups_nested_calls())
+    QString funcname = g_vogl_entrypoint_descs[id].m_pName;
+    if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
     {
-        return false;
+        return vogl_is_end_nested_entrypoint(id);
     }
-    return vogl_is_end_nested_entrypoint(id);
+    return false;
 }
 bool vogleditor_QApiCallTreeModel::isFrameBufferWriteEntrypoint(gl_entrypoint_id_t id) const
 {
-    if (!g_settings.groups_state_render())
+    if (g_settings.group_state_render_stat())
     {
-        return false;
+        return vogl_is_frame_buffer_write_entrypoint(id);
     }
-    return vogl_is_frame_buffer_write_entrypoint(id);
+    return false;
+}
+
+bool vogleditor_QApiCallTreeModel::displayMarkerTextAsLabel() const
+{
+    return g_settings.group_debug_marker_option_name_stat() && g_settings.group_debug_marker_option_name_used();
+}
+
+bool vogleditor_QApiCallTreeModel::hideMarkerPopApiCall() const
+{
+    return g_settings.group_debug_marker_option_omit_stat() && g_settings.group_debug_marker_option_omit_used();
 }
 
 gl_entrypoint_id_t vogleditor_QApiCallTreeModel::itemApiCallId(vogleditor_apiCallTreeItem *apiCallTreeItem) const
@@ -488,7 +492,7 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::create_group(vogledito
  *       > add treeItem object to children of parent treeItem 
  *       > add treeItem object to tree model's (this) apiCallItem list
  */
-    if (!g_settings.groups_state_render())
+    if (!g_settings.group_state_render_stat())
     {
         return pParentNode;
     }
