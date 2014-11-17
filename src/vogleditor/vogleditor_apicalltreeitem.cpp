@@ -161,7 +161,7 @@ bool vogleditor_apiCallTreeItem::isApiCall() const
 }
 bool vogleditor_apiCallTreeItem::isGroup() const
 {
-    return (g_settings.groups_state_render() && (m_pGroupItem != NULL));
+    return (g_settings.group_state_render_stat() && (m_pGroupItem != NULL));
 }
 bool vogleditor_apiCallTreeItem::isFrame() const
 {
