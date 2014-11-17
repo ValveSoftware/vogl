@@ -32,6 +32,7 @@
 #include "vogl_trace_file_reader.h"
 #include "vogl_trace_packet.h"
 #include "vogl_trace_stream_types.h"
+#include "vogleditor_output.h"
 #include "vogleditor_gl_state_snapshot.h"
 #include "vogleditor_apicalltreeitem.h"
 #include "vogleditor_frameitem.h"
@@ -332,44 +333,56 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
             }
             else if (isEndNestedEntrypoint(entrypoint_id))
             {
-                if (!pCurParent->isFrame())
+                // only terminate nesting if parent is_start_nested
+                if (isStartNestedEntrypoint(itemApiCallId(pCurParent)))
                 {
-                    // only terminate nesting if parent is_start_nested
-                    if (isStartNestedEntrypoint(itemApiCallId(pCurParent)))
-                    {
-                        pCurParent = pCurParent->parent();
-                    }
+                    pCurParent = pCurParent->parent();
+                }
+                else
+                {
+                    QString msg(QString("*** Information: unpaired \"") + QString(g_vogl_entrypoint_descs[entrypoint_id].m_pName) + QString("\"."));
+                    vogleditor_output_message(msg.toStdString().c_str());
+                    vogl_printf(msg.toStdString().c_str());
+                    vogl_printf("\n");
                 }
             }
             else if (isMarkerPushEntrypoint(entrypoint_id))
             {
+                if (displayMarkerTextAsLabel())
+                {
+                    // Rename marker_push tree node
+                    QString msg = item->apiCallStringArg();
+
+                    QString pushstring = "\"" + msg + "\"" + " group";
+                    item->setApiCallColumnData(pushstring);
+                }
+
                 // start marker_push with this item as parent
                 pCurParent = item;
             }
             else if (isMarkerPopEntrypoint(entrypoint_id))
             {
-                // move parent up one level (but not past Frame parent)
-                // [e.g., if there was no corresponding marker_push]
-                if (!pCurParent->isFrame())
+                // Make sure parent is a marker_push
+                if (isMarkerPushEntrypoint(itemApiCallId(pCurParent)))
                 {
-                    // Make sure parent is a marker_push
-                    if (isMarkerPushEntrypoint(itemApiCallId(pCurParent)))
+                    if (displayMarkerTextAsLabel() && (!hideMarkerPopApiCall()))
                     {
-                        if (displayMarkerTextAsLabel())
-                        {
-                            // Rename marker_push/pop tree nodes
-                            QString msg = pCurParent->apiCallStringArg();
+                        // Rename marker_push/pop tree nodes
+                        QString msg = pCurParent->apiCallStringArg();
 
-                            QString pushstring = "\"" + msg + "\"" + " group";
-                            pCurParent->setApiCallColumnData(pushstring);
-
-                            if (!hideMarkerPopApiCall())
-                            {
-                                QString popstring = pushstring + " end";
-                                item->setApiCallColumnData(popstring);
-                            }
-                        }
-                        pCurParent = pCurParent->parent();
+                        QString popstring = "\"" + msg + "\"" + " group end";
+                        item->setApiCallColumnData(popstring);
+                    }
+                    pCurParent = pCurParent->parent();
+                }
+                else
+                {
+                    //if (!hideMarkerPopApiCall()) // inform or not? yes for now
+                    {
+                        QString msg(QString("*** Information: unpaired \"") + QString(g_vogl_entrypoint_descs[entrypoint_id].m_pName) + QString("\"."));
+                        vogleditor_output_message(msg.toStdString().c_str());
+                        vogl_printf(msg.toStdString().c_str());
+                        vogl_printf("\n");
                     }
                 }
             } // vogl_is_marker_pop_entrypoint
@@ -403,45 +416,60 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
 
 bool vogleditor_QApiCallTreeModel::isMarkerPushEntrypoint(gl_entrypoint_id_t id) const
 {
-    QString funcname = g_vogl_entrypoint_descs[id].m_pName;
-    if (g_settings.is_active_debug_marker(funcname))
+    if (id != VOGL_ENTRYPOINT_INVALID)
     {
-        return vogl_is_marker_push_entrypoint(id);
+        QString funcname = g_vogl_entrypoint_descs[id].m_pName;
+        if (g_settings.is_active_debug_marker(funcname))
+        {
+            return vogl_is_marker_push_entrypoint(id);
+        }
     }
     return false;
 }
 bool vogleditor_QApiCallTreeModel::isMarkerPopEntrypoint(gl_entrypoint_id_t id) const
 {
-    QString funcname = g_vogl_entrypoint_descs[id].m_pName;
-    if (g_settings.is_active_debug_marker(funcname))
+    if (id != VOGL_ENTRYPOINT_INVALID)
     {
-        return vogl_is_marker_pop_entrypoint(id);
+        QString funcname = g_vogl_entrypoint_descs[id].m_pName;
+        if (g_settings.is_active_debug_marker(funcname))
+        {
+            return vogl_is_marker_pop_entrypoint(id);
+        }
     }
     return false;
 }
 bool vogleditor_QApiCallTreeModel::isStartNestedEntrypoint(gl_entrypoint_id_t id) const
 {
-    QString funcname = g_vogl_entrypoint_descs[id].m_pName;
-    if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
+    if (id != VOGL_ENTRYPOINT_INVALID)
     {
-        return vogl_is_start_nested_entrypoint(id);
+        QString funcname = g_vogl_entrypoint_descs[id].m_pName;
+        if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
+        {
+            return vogl_is_start_nested_entrypoint(id);
+        }
     }
     return false;
 }
 bool vogleditor_QApiCallTreeModel::isEndNestedEntrypoint(gl_entrypoint_id_t id) const
 {
-    QString funcname = g_vogl_entrypoint_descs[id].m_pName;
-    if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
+    if (id != VOGL_ENTRYPOINT_INVALID)
     {
-        return vogl_is_end_nested_entrypoint(id);
+        QString funcname = g_vogl_entrypoint_descs[id].m_pName;
+        if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
+        {
+            return vogl_is_end_nested_entrypoint(id);
+        }
     }
     return false;
 }
 bool vogleditor_QApiCallTreeModel::isFrameBufferWriteEntrypoint(gl_entrypoint_id_t id) const
 {
-    if (g_settings.group_state_render_stat())
+    if (id != VOGL_ENTRYPOINT_INVALID)
     {
-        return vogl_is_frame_buffer_write_entrypoint(id);
+        if (g_settings.group_state_render_stat())
+        {
+            return vogl_is_frame_buffer_write_entrypoint(id);
+        }
     }
     return false;
 }
