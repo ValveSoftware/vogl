@@ -35930,7 +35930,41 @@ DrawTextureNV(texture, sampler, x0, y0, x1, y1, z, s0, t0, s1, t1)
 	glxropcode	?
 	glxflags	ignore
 	offset		?
-	
+
+###############################################################################
+#
+# Extension #??? (unpublished)
+# APPLE_flush_render commands
+#
+###############################################################################
+
+FlushRenderAPPLE()
+	return		void
+	category	APPLE_fence
+	version		1.0
+	extension
+	glxropcode	?
+	glxflags	ignore
+	offset		?
+
+FinishRenderAPPLE()
+	return		void
+	category	APPLE_fence
+	version		1.0
+	extension
+	glxropcode	?
+	glxflags	ignore
+	offset		?
+
+SwapAPPLE()
+	return		void
+	category	APPLE_fence
+	version		1.0
+	extension
+	glxropcode	?
+	glxflags	ignore
+	offset		?
+
 ###############################################################################
 #
 # Custom Fake GL Functions - For Internal Use

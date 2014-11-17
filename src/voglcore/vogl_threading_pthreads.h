@@ -44,6 +44,10 @@
     #include <unistd.h>
 #endif
 
+#if defined(VOGL_USE_OSX_API)
+	#include <libkern/OSAtomic.h>
+#endif
+
 namespace vogl
 {
     // g_number_of_processors defaults to 1. Will be higher on multicore machines.
@@ -124,7 +128,11 @@ namespace vogl
         void unlock();
 
     private:
+#if VOGL_USE_OSX_API
+		OSSpinLock m_spinlock;
+#else
         pthread_spinlock_t m_spinlock;
+#endif
 
 #ifdef VOGL_BUILD_DEBUG
         bool m_in_lock;

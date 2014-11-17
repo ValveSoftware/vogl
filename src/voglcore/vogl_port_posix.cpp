@@ -38,6 +38,10 @@
 #include <sys/syscall.h>
 #include <sys/time.h>
 
+#if defined(PLATFORM_OSX)
+	#include <unistd.h>
+#endif
+
 int plat_chdir(const char* path)
 {
     return chdir(path);
@@ -104,7 +108,7 @@ pid_t plat_gettid()
 
 uint64_t plat_posix_gettid()
 {
-    return static_cast<uint64_t>(pthread_self());
+    return reinterpret_cast<uintptr_t>(pthread_self());
 }
 
 pid_t plat_getpid()

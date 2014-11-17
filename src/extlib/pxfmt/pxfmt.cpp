@@ -31,8 +31,7 @@
 #include <algorithm> // For std::max()
 #include <assert.h>
 
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include "pxfmt_gl.h"
 #include "pxfmt.h"
 #include <cmath>  // For std::floor() and pow()
 
@@ -2372,6 +2371,8 @@ pxfmt_sized_format validate_internal_format(const GLenum internalformat)
     case GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT:
         return PXFMT_COMPRESSED_SRGB_ALPHA_DXT5;
 #endif // defined(_WIN32)
+
+#if !defined(__APPLE__)
     case GL_COMPRESSED_RGBA_FXT1_3DFX:
         return PXFMT_COMPRESSED_RGB_FXT1;
     case GL_COMPRESSED_RGB_FXT1_3DFX:
@@ -2396,6 +2397,8 @@ pxfmt_sized_format validate_internal_format(const GLenum internalformat)
         return PXFMT_COMPRESSED_RG11_EAC;
     case GL_COMPRESSED_SIGNED_RG11_EAC:
         return PXFMT_COMPRESSED_SIGNED_RG11_EAC;
+#endif
+
     default:
         // If we get to here, this is an unsupported compressed-texture
         // internalformat:

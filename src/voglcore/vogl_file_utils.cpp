@@ -47,6 +47,10 @@
     #include <libgen.h>
 #endif
 
+#if defined(VOGL_USE_OSX_API)
+	#include <crt_externs.h>
+#endif
+
 namespace vogl
 {
 #ifdef VOGL_USE_WIN32_API
@@ -947,6 +951,15 @@ namespace vogl
 		pPath[0] = '\0';
 
 		return pPath;
+
+	#elif defined(VOGL_USE_OSX_API)
+		char **argv = *_NSGetArgv();
+		
+		strncpy(pPath, argv[0], dest_len);
+	
+		vogl_warning_printf("UNTESTED: file_utils::get_exec_filename returning [%s]\n", pPath);
+		return pPath;
+	
 	#elif defined(VOGL_USE_WIN32_API)
 		DWORD result = GetModuleFileNameA(0, pPath, safe_int_cast<DWORD>(dest_len));
 		VOGL_VERIFY(result != 0);

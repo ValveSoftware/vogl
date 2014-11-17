@@ -271,6 +271,10 @@ bool vogl_has_active_context()
     if (!GL_ENTRYPOINT(glXGetCurrentContext)())
         return false;
 
+#elif(VOGL_PLATFORM_HAS_CGL)
+    VOGL_ASSERT(!"UNIMPLEMENTED vogl_has_active_context");
+    return false;
+
 #elif(VOGL_PLATFORM_HAS_WGL)
 
     if (!GL_ENTRYPOINT(wglGetCurrentContext))
@@ -2119,9 +2123,15 @@ vogl_gl_display vogl_get_current_display()
 {
 #if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentDisplay)();
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+    VOGL_ASSERT(!"UNIMPLEMENTED vogl_get_current_display");
+    return(NULL);
+
 #elif(VOGL_PLATFORM_HAS_WGL)
     // TODO: Not sure if this is the correct equivalent
     return GL_ENTRYPOINT(wglGetCurrentDC)();
+
 #else
     VOGL_ASSERT(!"impl vogl_get_current_display");
 #endif
@@ -2134,8 +2144,14 @@ vogl_gl_drawable vogl_get_current_drawable()
 {
 #if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentDrawable)();
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+    VOGL_ASSERT(!"UNIMPLEMENTED vogl_get_current_drawable");
+    return(NULL);
+
 #elif(VOGL_PLATFORM_HAS_WGL)
     return WindowFromDC(GL_ENTRYPOINT(wglGetCurrentDC)());
+
 #else
     VOGL_ASSERT(!"impl vogl_get_current_drawable");
 #endif

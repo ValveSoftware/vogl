@@ -48,7 +48,7 @@ add_subdirectory(src/vogleditor) # 9
 add_subdirectory(src/extlib/pxfmt) # 12
 add_subdirectory(src/ktxtool) # 13
 
-if (NOT WIN32)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     add_subdirectory(src/libbacktrace) # 10
     add_subdirectory(src/libbacktrace_test) # 11
 endif()

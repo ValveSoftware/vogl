@@ -37,8 +37,13 @@
     #include "vogl_winhdr.h"
 #endif
 
-#if defined(COMPILER_GCCLIKE)
+#if defined(VOGL_USE_LINUX_API)
     #include <sys/sysinfo.h>
+#endif
+
+#if defined(VOGL_USE_OSX_API)
+	#include <unistd.h>
+	#include <sys/sysctl.h>
 #endif
 
 #if defined(PLATFORM_WINDOWS)
@@ -55,8 +60,20 @@ namespace vogl
             SYSTEM_INFO g_system_info;
             GetSystemInfo(&g_system_info);
             g_number_of_processors = math::maximum<uint32_t>(1U, g_system_info.dwNumberOfProcessors);
-        #elif defined(COMPILER_GCCLIKE)
+
+        #elif defined(VOGL_USE_LINUX_API)
             g_number_of_processors = math::maximum<int>(1, get_nprocs());
+
+		#elif defined(VOGL_USE_OSX_API)
+			size_t	paramLen;
+			int		numCPUs;
+
+			numCPUs  = 1;
+			paramLen = sizeof(numCPUs);
+
+			if (sysctlbyname("hw.logicalcpu", &numCPUs, &paramLen, NULL, 0) == 0)
+				g_number_of_processors = numCPUs;
+
         #else
             g_number_of_processors = 1;
         #endif
@@ -192,6 +209,23 @@ namespace vogl
         {
             status = sem_wait(&m_sem);
         }
+#if defined(VOGL_USE_OSX_API)
+		else
+		{
+			vogl::timer		timer;
+			
+			timer.start();
+			do
+				{
+				status = sem_trywait(&m_sem);
+				if (status == 0)
+					break;
+
+				usleep(1000);
+				}
+			while (timer.get_elapsed_ms() < milliseconds);
+		}
+#else
         else
         {
             struct timespec interval;
@@ -199,6 +233,7 @@ namespace vogl
             interval.tv_nsec = (milliseconds % 1000) * 1000000L;
             status = sem_timedwait(&m_sem, &interval);
         }
+#endif
 
         if (status)
         {
@@ -218,10 +253,14 @@ namespace vogl
         m_in_lock = false;
 #endif
 
+#if VOGL_USE_OSX_API
+		m_spinlock = 0;
+#else
         if (pthread_spin_init(&m_spinlock, 0))
         {
             VOGL_FAIL("spinlock: pthread_spin_init() failed");
         }
+#endif
     }
 
     spinlock::~spinlock()
@@ -230,15 +269,21 @@ namespace vogl
         VOGL_ASSERT(!m_in_lock);
 #endif
 
+#if !VOGL_USE_OSX_API
         pthread_spin_destroy(&m_spinlock);
+#endif
     }
 
     void spinlock::lock()
     {
+#if VOGL_USE_OSX_API
+        OSSpinLockLock(&m_spinlock);
+#else
         if (pthread_spin_lock(&m_spinlock))
         {
             VOGL_FAIL("spinlock: pthread_spin_lock() failed");
         }
+#endif
 
 #ifdef VOGL_BUILD_DEBUG
         VOGL_ASSERT(!m_in_lock);
@@ -253,10 +298,14 @@ namespace vogl
         m_in_lock = false;
 #endif
 
+#if VOGL_USE_OSX_API
+        OSSpinLockUnlock(&m_spinlock);
+#else
         if (pthread_spin_unlock(&m_spinlock))
         {
             VOGL_FAIL("spinlock: pthread_spin_unlock() failed");
         }
+#endif
     }
 
     task_pool::task_pool()

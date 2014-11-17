@@ -136,6 +136,12 @@ typedef unsigned long XID;
     typedef char CHAR;
     typedef unsigned long DWORD;
     typedef int INT;
+
+	#if !VOGL_PLATFORM_HAS_X11
+    typedef int BOOL;
+    typedef int32_t INT32;
+    #endif
+
     typedef int64_t INT64;
     typedef float FLOAT;
     typedef void* HANDLE;
@@ -154,6 +160,8 @@ typedef unsigned long XID;
     UndefinedTypeThisPlatform(RECT);
 #endif
 
+
+// X11
 typedef struct __GLXcontextRec *GLXContext;
 typedef XID GLXPixmap;
 typedef XID GLXDrawable;
@@ -168,6 +176,27 @@ typedef void (*__GLXextFuncPtr)(void);
 typedef XID GLXVideoCaptureDeviceNV;
 typedef unsigned int GLXVideoDeviceNV;
 
+
+// Mac OS X
+typedef int CGLContextEnable;
+typedef int CGLContextParameter;
+typedef int CGLError;
+typedef int CGLGlobalOption;
+typedef int CGLPixelFormatAttribute;
+typedef int CGLRendererProperty;
+typedef int CGSConnectionID;
+typedef int CGSSurfaceID;
+typedef int CGSWindowID;
+
+typedef struct __IOSurface					*IOSurfaceRef;
+typedef struct _CGLContextObject			*CGLContextObj;
+typedef struct _CGLPBufferObject			*CGLPBufferObj;
+typedef struct _CGLPixelFormatObject		*CGLPixelFormatObj;
+typedef struct _CGLRendererInfoObject		*CGLRendererInfoObj;
+typedef struct CGLShareGroupRec				*CGLShareGroupObj;
+
+
+// Windows
 #define DECLARE_WGL_HANDLE(name) struct name##__{int unused;}; typedef struct name##__ *name
 
 DECLARE_WGL_HANDLE(HPBUFFERARB);

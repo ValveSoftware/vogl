@@ -43,7 +43,7 @@
 
 #include <pthread.h>
 
-#if PLATFORM_POSIX
+#if defined(PLATFORM_LINUX)
     #include <X11/Xlib.h>
     #include <X11/Xutil.h>
     #include <X11/Xmd.h>

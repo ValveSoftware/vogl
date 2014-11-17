@@ -98,7 +98,8 @@ static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)
 #define MZ_FFLUSH fflush
 #define MZ_FREOPEN(f, m, s) freopen(f, m, s)
 #define MZ_DELETE_FILE remove
-#elif defined(COMPILER_GCCLIKE) && _LARGEFILE64_SOURCE
+
+#elif defined(VOGL_USE_LINUX_API) && _LARGEFILE64_SOURCE
     #ifndef MINIZ_NO_TIME
     #include <utime.h>
 #endif
@@ -113,6 +114,23 @@ static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)
 #define MZ_FFLUSH fflush
 #define MZ_FREOPEN(p, m, s) freopen64(p, m, s)
 #define MZ_DELETE_FILE remove
+
+#elif defined(VOGL_USE_OSX_API) && _LARGEFILE64_SOURCE
+    #ifndef MINIZ_NO_TIME
+    #include <utime.h>
+	#endif
+#define MZ_FOPEN(f, m) fopen(f, m)
+#define MZ_FCLOSE fclose
+#define MZ_FREAD fread
+#define MZ_FWRITE fwrite
+#define MZ_FTELL64 ftello
+#define MZ_FSEEK64 fseeko
+#define MZ_FILE_STAT_STRUCT stat
+#define MZ_FILE_STAT stat
+#define MZ_FFLUSH fflush
+#define MZ_FREOPEN(p, m, s) freopen(p, m, s)
+#define MZ_DELETE_FILE remove
+
 #else
 #pragma message("Using fopen, ftello, fseeko, stat() etc. path for file I/O - this path may not support large files.")
 #ifndef MINIZ_NO_TIME

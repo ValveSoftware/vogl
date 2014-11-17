@@ -13,11 +13,11 @@ endif()
 
 find_package(Qt5 COMPONENTS Widgets Gui Core REQUIRED)
 find_package(Threads REQUIRED)
-find_package(X11 REQUIRED)
 
 require_pthreads()
 request_backtrace()
 require_sdl2()
+require_app()
 
 include_directories(
     ${SRC_DIR}
@@ -195,7 +195,7 @@ target_link_libraries(${PROJECT_NAME}
     pxfmt
     ${CMAKE_DL_LIBS}
     ${SDL2_LIBRARY}
-    ${X11_X11_LIB}
+    ${APP_LIBRARY}
 )
 
 if (MSVC)

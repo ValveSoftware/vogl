@@ -71,7 +71,7 @@ static void *g_gl_func_epilog_func_user_data;
             g_gl_func_epilog_func_ptr(VOGL_ENTRYPOINT_##func_name, g_gl_func_epilog_func_user_data, &pStack_data); \
     }
 
-#include "gl_glx_wgl_protos.inc"
+#include "gl_glx_cgl_wgl_protos.inc"
 
 //----------------------------------------------------------------------------------------------------------------------
 // Function vogl_init_actual_gl_entrypoints
@@ -110,7 +110,7 @@ void vogl_init_actual_gl_entrypoints(vogl_gl_get_proc_address_helper_func_ptr_t 
 
 #define DEF_PROTO(exported, category, ret, ret_type, num_params, name, args, params) exported(category, ret, ret_type, num_params, name, args, params)
 #define DEF_PROTO_VOID(exported, category, ret, ret_type, num_params, name, args, params) exported(category, ret, ret_type, num_params, name, args, params)
-#include "gl_glx_wgl_protos.inc"
+#include "gl_glx_cgl_wgl_protos.inc"
 #undef DEF_PROTO_UNIVERSAL
 }
 
@@ -141,7 +141,7 @@ void vogl_init_actual_gl_entrypoints(vogl_gl_get_proc_address_helper_func_ptr_t 
 //$ TODO mikesart: backtrace code...
 gl_entrypoint_desc_t g_vogl_entrypoint_descs[VOGL_NUM_ENTRYPOINTS] =
     {
-#include "gl_glx_wgl_func_descs.inc"
+#include "gl_glx_cgl_wgl_func_descs.inc"
     };
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ gl_entrypoint_param_desc_t g_vogl_entrypoint_param_descs[VOGL_NUM_ENTRYPOINTS][V
 
 static uint32_t g_custom_array_size_macro_indices[] =
     {
-#include "gl_glx_wgl_array_size_macro_func_param_indices.inc"
+#include "gl_glx_cgl_wgl_array_size_macro_func_param_indices.inc"
     };
 
 // This function casues the compiler to run for "awhile" on MSVC and GCC. We should move it to its own file and 
@@ -230,7 +230,7 @@ void vogl_init_gl_entrypoint_descs()
 #define DEF_FUNCTION_RETURN(spectype, type, ctype)
 #define DEF_FUNCTION_END(exported, category, ret, ret_type, num_params, name, args, params) pDst += VOGL_MAX_ENTRYPOINT_PARAMETERS;
 
-#include "gl_glx_wgl_func_descs.inc"
+#include "gl_glx_cgl_wgl_func_descs.inc"
 
     for (uint32_t i = 0; i < VOGL_ARRAY_SIZE(g_custom_array_size_macro_indices); i++)
     {
@@ -282,6 +282,8 @@ void vogl_init_gl_entrypoint_descs()
         // They must correspond with the GL enum prefixes in glx_enum_desc.inc, gl_enum_desc.inc, etc.
         if ((desc.m_pName[0] == 'w') && (desc.m_pName[1] == 'g') && (desc.m_pName[2] == 'l'))
             desc.m_pAPI_prefix = "WGL";
+        else if ((desc.m_pName[0] == 'C') && (desc.m_pName[1] == 'G') && (desc.m_pName[2] == 'L'))
+            desc.m_pAPI_prefix = "CGL";
         else if ((desc.m_pName[0] == 'g') && (desc.m_pName[1] == 'l') && (desc.m_pName[2] == 'X'))
             desc.m_pAPI_prefix = "GLX";
         else if ((desc.m_pName[0] == 'g') && (desc.m_pName[1] == 'l'))

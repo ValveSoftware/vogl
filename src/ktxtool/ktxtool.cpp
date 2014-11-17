@@ -13,7 +13,7 @@
 #include "vogl_image.h"
 #include "vogl_image_utils.h"
 
-#include <GL/gl.h>
+#include "pxfmt_gl.h"
 #include "pxfmt.h"
 
 using namespace vogl;

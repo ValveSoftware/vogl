@@ -59,11 +59,23 @@ set(GENERATOR_INPUT_FILES
     ${SPEC_DIR}/glxenumext.spec
     ${SPEC_DIR}/glxext.spec
     ${SPEC_DIR}/gl_glx_displaylist_whitelist.txt
-    ${SPEC_DIR}/gl_glx_wgl_nongenerated_so_export_list.txt
+    ${SPEC_DIR}/gl_glx_cgl_wgl_nongenerated_so_export_list.txt
     ${SPEC_DIR}/gl_glx_nullable_funcs.txt
     ${SPEC_DIR}/gl_glx_simple_replay_funcs.txt
     ${SPEC_DIR}/gl_glx_so_export_list.txt
     ${SPEC_DIR}/gl_glx_whitelisted_funcs.txt
+
+    ${SPEC_DIR}/cgl.spec
+    ${SPEC_DIR}/cgl.tm
+    ${SPEC_DIR}/cglenum.spec
+    ${SPEC_DIR}/cglenumext.spec
+    ${SPEC_DIR}/cglext.spec
+
+    ${SPEC_DIR}/gl_cgl_displaylist_whitelist.txt
+    ${SPEC_DIR}/gl_cgl_nullable_funcs.txt
+    ${SPEC_DIR}/gl_cgl_simple_replay_funcs.txt
+    ${SPEC_DIR}/gl_cgl_dylib_export_list.txt
+    ${SPEC_DIR}/gl_cgl_whitelisted_funcs.txt
 
     ${SPEC_DIR}/wgl.spec
     ${SPEC_DIR}/wgl.tm
@@ -86,20 +98,20 @@ set(GENERATED_FILES
     ${VOGLTRACEDIR}/libvogltrace_linker_script.txt
 
     # All of the generated include files.
-    ${VOGLINCDIR}/gl_glx_wgl_array_size_macros.inc
-    ${VOGLINCDIR}/gl_glx_wgl_array_size_macros_validator.inc
-    ${VOGLINCDIR}/gl_glx_wgl_array_size_macro_func_param_indices.inc
-    ${VOGLINCDIR}/gl_glx_wgl_categories.inc
-    ${VOGLINCDIR}/gl_glx_wgl_ctypes.inc
-    ${VOGLINCDIR}/gl_glx_wgl_ctypes_ptr_to_pointee.inc
-    ${VOGLINCDIR}/gl_glx_wgl_custom_func_handler_validator.inc
-    ${VOGLINCDIR}/gl_glx_wgl_custom_return_param_array_size_macro_validator.inc
-    ${VOGLINCDIR}/gl_glx_wgl_func_defs.inc
-    ${VOGLINCDIR}/gl_glx_wgl_func_descs.inc
-    ${VOGLINCDIR}/gl_glx_wgl_func_return_param_array_size_macros.inc
-    ${VOGLINCDIR}/gl_glx_wgl_protos.inc
-    ${VOGLINCDIR}/gl_glx_wgl_replay_helper_macros.inc
-    ${VOGLINCDIR}/gl_glx_wgl_simple_replay_funcs.inc    
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_array_size_macros.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_array_size_macros_validator.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_array_size_macro_func_param_indices.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_categories.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_ctypes.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_ctypes_ptr_to_pointee.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_custom_func_handler_validator.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_custom_return_param_array_size_macro_validator.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_func_defs.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_func_descs.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_func_return_param_array_size_macros.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_protos.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_replay_helper_macros.inc
+    ${VOGLINCDIR}/gl_glx_cgl_wgl_simple_replay_funcs.inc    
 
     # platform independent files
     ${VOGLINCDIR}/gl_enums.inc
@@ -111,6 +123,12 @@ set(GENERATED_FILES
     ${VOGLINCDIR}/glx_enum_desc.inc
     ${VOGLINCDIR}/glx_ext_desc.inc
     ${VOGLINCDIR}/glx_ext_enums.inc
+
+	# CGL specific files
+    ${VOGLINCDIR}/cgl_enums.inc
+    ${VOGLINCDIR}/cgl_enum_desc.inc
+    ${VOGLINCDIR}/cgl_ext_desc.inc
+    ${VOGLINCDIR}/cgl_ext_enums.inc
 
     # And the wgl specific ones
     ${VOGLINCDIR}/wgl_enums.inc

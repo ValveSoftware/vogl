@@ -1,8 +1,9 @@
 /**************************************************************************
  *
- * Copyright 2013-2014 RAD Game Tools and Valve Software
- * Copyright 2010-2014 Rich Geldreich and Tenacious Software LLC
- * All Rights Reserved.
+ * Copyright 2014 LunarG, Inc.  All Rights Reserved.
+ * Copyright (C) 1999-2007  Brian Paul   All Rights Reserved.
+ * Copyright (C) 2008  VMware, Inc.  All Rights Reserved.
+ * Copyright (c) 2011 VMware, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,46 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
+ * This file was originally authored by Ian Elliott (ian@lunarg.com).
+ *
  **************************************************************************/
 
-// File: vogl_uuid.cpp
-#include "vogl_port.h"
-#include "vogl_uuid.h"
+#ifndef PXFMT_GL_H
+#define PXFMT_GL_H
 
-#if defined(VOGL_USE_WIN32_API)
-	#include <rpc.h>
-    #pragma comment(lib, "Rpcrt4.lib")
+#if defined(__APPLE__)
+	#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
+
+	#include <OpenGL/gl.h>
+	#include <OpenGL/gl3.h>
+	#include <OpenGL/glext.h>
+
+	#define GL_ALPHA_INTEGER GL_ALPHA_INTEGER_EXT
+#else
+	#include <GL/gl.h>
+	#include <GL/glext.h>
 #endif
 
-namespace vogl
-{
-    md5_hash gen_uuid()
-    {
-    #if defined(PLATFORM_LINUX) || defined(PLATFORM_OSX)
+#endif // PXFMT_GL_H
 
-        uint32_t buf[] = { 0xABCDEF, 0x12345678, 0xFFFECABC, 0xABCDDEF0 };
-        plat_rand_s(buf, VOGL_ARRAY_SIZE(buf));
-
-        return md5_hash(buf[0], buf[1], buf[2], buf[3]);
-
-    #elif defined(VOGL_USE_WIN32_API)
-
-        UUID windowsUuid;
-        RPC_STATUS rpcStatus = UuidCreate(&windowsUuid);
-        VOGL_VERIFY(SUCCEEDED(rpcStatus));
-
-        return md5_hash(windowsUuid.Data1, windowsUuid.Data2, windowsUuid.Data3, windowsUuid.Data4);
-
-    #else
-        VOGL_ASSUME(!"Need implementation of gen_uuid for this platform.");
-    #endif
-    }
-
-    uint64_t gen_uuid64()
-    {
-        md5_hash h(gen_uuid());
-        return (static_cast<uint64_t>(h[0]) | (static_cast<uint64_t>(h[1]) << 32U)) ^
-               (static_cast<uint64_t>(h[3]) | (static_cast<uint64_t>(h[2]) << 20U));
-    }
-
-} // namespace vogl
