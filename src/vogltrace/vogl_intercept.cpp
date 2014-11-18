@@ -48,6 +48,9 @@
 #if defined(PLATFORM_POSIX)
     #include <unistd.h>
     #include <sys/syscall.h>
+#endif
+
+#if defined(VOGL_USE_LINUX_API)
     #include <X11/Xatom.h>
 #endif
 
@@ -65,6 +68,10 @@
 // loki
 #include "TypeTraits.h"
 
+#if defined(PLATFORM_OSX)
+	#include "gl_types.h"
+#endif
+
 #include <turbojpeg.h>
 
 #include "vogl_cmdline_opts.h"
@@ -80,6 +87,10 @@
 
 #if VOGL_PLATFORM_HAS_GLX
     #define CONTEXT_TYPE GLXContext
+
+#elif VOGL_PLATFORM_HAS_CGL
+	#define CONTEXT_TYPE CGLContextObj
+
 #elif VOGL_PLATFORM_HAS_WGL
     #define CONTEXT_TYPE HGLRC
 #else
@@ -701,6 +712,10 @@ void vogl_init()
 
             vogl_message_printf("Manually loaded %s\n", VOGL_LIBGL_SO_FILENAME);
         }
+
+	#elif (VOGL_PLATFORM_HAS_CGL)
+		VOGL_ASSERT(!"UNIMPLEMENTED vogl_init");
+	
     #elif (VOGL_PLATFORM_HAS_WGL)
         g_vogl_actual_gl_entrypoints.m_wglGetProcAddress = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(PLAT_RTLD_NEXT, "wglGetProcAddress"));
         if (!g_vogl_actual_gl_entrypoints.m_wglGetProcAddress)
@@ -2610,8 +2625,14 @@ public:
     {
         #if (VOGL_PLATFORM_HAS_GLX)
             return GL_ENTRYPOINT(glXMakeCurrent)(get_display(), get_drawable(), new_context);
+
+		#elif (VOGL_PLATFORM_HAS_CGL)
+			VOGL_ASSERT(!"UNIMPLEMENTED MakeCurrent");
+			return false;
+
         #elif (VOGL_PLATFORM_HAS_WGL)
             return GL_ENTRYPOINT(wglMakeCurrent)(get_hdc(), new_context) != GL_FALSE;
+
         #else
             #error "Need a MakeCurrent implementation for this platform."
         #endif
@@ -2621,8 +2642,14 @@ public:
     {
         #if (VOGL_PLATFORM_HAS_GLX)
             return GL_ENTRYPOINT(glXGetCurrentContext)();
+
+		#elif (VOGL_PLATFORM_HAS_CGL)
+			VOGL_ASSERT(!"UNIMPLEMENTED GetCurrentContext");
+			return false;
+
         #elif (VOGL_PLATFORM_HAS_WGL)
             return GL_ENTRYPOINT(wglGetCurrentContext)();
+
         #else
             #error "Need a GetCurrentContext implementation for this platform."
             return CONTEXT_TYPE(0);
@@ -3921,6 +3948,38 @@ static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoin
     vogl_dump_ptr_param(pContext, serializer, "RETURN_XDISPLAY_PTR", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pPtr);
 }
 
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, CGLContextObj context)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_CGLCONTEXTOBJ", VOGL_RETURN_PARAM_INDEX, "result", pType, type, context);
+}
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, CGLPBufferObj pbuffer)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_CGLPBUFFEROBJ", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pbuffer);
+}
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, CGLPixelFormatObj pixelFormat)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_CGLPIXELFORMATOBJ", VOGL_RETURN_PARAM_INDEX, "result", pType, type, pixelFormat);
+}
+
+static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, CGLShareGroupObj shareGroup)
+{
+    VOGL_NOTE_UNUSED(size);
+
+    // opaque data
+    vogl_dump_ptr_param(pContext, serializer, "RETURN_CGLSHAREGROUPOBJ", VOGL_RETURN_PARAM_INDEX, "result", pType, type, shareGroup);
+}
+
 static inline void vogl_dump_return_param(vogl_context *pContext, vogl_entrypoint_serializer &serializer, const char *pType, vogl_ctype_t type, int64_t size, HDC hdc)
 {
     VOGL_NOTE_UNUSED(size);
@@ -4514,6 +4573,13 @@ static PROC vogl_wglGetProcAddress(LPCSTR lpszProc)
             }
         }
     }
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+    static void vogl_add_make_current_key_value_fields(CGLContextObj cglContext, vogl_context *pVOGL_context, vogl_entrypoint_serializer &serializer)
+    {
+    	VOGL_ASSERT(!"UNIMPLEMENTED vogl_add_make_current_key_value_fields");
+    }
+
 
 #elif (VOGL_PLATFORM_HAS_WGL)
 
@@ -9138,13 +9204,13 @@ static void vogl_check_entrypoints()
 
 #define CUSTOM_FUNC_HANDLER_DEFINED(id) g_vogl_entrypoint_descs[id].m_has_custom_func_handler = true; //printf("%u %s\n", id, g_vogl_entrypoint_descs[id].m_pName);
 #define CUSTOM_FUNC_HANDLER_NOT_DEFINED(id)
-#include "gl_glx_wgl_custom_func_handler_validator.inc"
+#include "gl_glx_cgl_wgl_custom_func_handler_validator.inc"
 #undef CUSTOM_FUNC_HANDLER_DEFINED
 #undef CUSTOM_FUNC_HANDLER_NOT_DEFINED
 
 #define VALIDATE_ARRAY_SIZE_MACRO_DEFINED(name, index) defined_array_size_macros.insert(index, #name);
 #define VALIDATE_ARRAY_SIZE_MACRO_NOT_DEFINED(name, index) undefined_array_size_macros.insert(index, #name);
-#include "gl_glx_wgl_array_size_macros_validator.inc"
+#include "gl_glx_cgl_wgl_array_size_macros_validator.inc"
 #undef VALIDATE_ARRAY_SIZE_MACRO_DEFINED
 #undef VALIDATE_ARRAY_SIZE_MACRO_NOT_DEFINED
 
@@ -9152,7 +9218,7 @@ static void vogl_check_entrypoints()
 
 #define CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_DEFINED(macro_name, func_name)
 #define CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_NOT_DEFINED(macro_name, func_name) g_vogl_entrypoint_descs[VOGL_ENTRYPOINT_##func_name].m_custom_return_param_array_size_macro_is_missing = true;
-#include "gl_glx_wgl_custom_return_param_array_size_macro_validator.inc"
+#include "gl_glx_cgl_wgl_custom_return_param_array_size_macro_validator.inc"
 #undef CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_DEFINED
 #undef CUSTOM_FUNC_RETURN_PARAM_ARRAY_SIZE_HANDLER_NOT_DEFINED
 
@@ -9256,9 +9322,9 @@ static void vogl_check_entrypoints()
 //----------------------------------------------------------------------------------------------------------------------
 // Include generated macros to define the internal entrypoint funcs
 //----------------------------------------------------------------------------------------------------------------------
-#include "gl_glx_wgl_array_size_macros.inc"
-#include "gl_glx_wgl_func_return_param_array_size_macros.inc"
-#include "gl_glx_wgl_func_defs.inc"
+#include "gl_glx_cgl_wgl_array_size_macros.inc"
+#include "gl_glx_cgl_wgl_func_return_param_array_size_macros.inc"
+#include "gl_glx_cgl_wgl_func_defs.inc"
 
 #ifndef NO_PUBLIC_EXPORTS
 //----------------------------------------------------------------------------------------------------------------------
@@ -9292,8 +9358,8 @@ static void vogl_check_entrypoints()
 #define DEF_FUNCTION_END_VOID(exported, category, ret, ret_type_enum, num_params, name, args, params)
 #define DEF_FUNCTION_PARAM_COMPUTE_ARRAY_SIZE_GL_ENUM(pname) -1
 
-#include "gl_glx_wgl_array_size_macros.inc"
-#include "gl_glx_wgl_func_defs.inc"
+#include "gl_glx_cgl_wgl_array_size_macros.inc"
+#include "gl_glx_cgl_wgl_func_defs.inc"
 #endif
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -9320,7 +9386,7 @@ static void vogl_init_wrapper_func_ptrs()
 #define DEF_PROTO_VOID(exported, category, ret, ret_type, num_params, name, args, params) \
     pDst->m_pWrapper_func = reinterpret_cast<vogl_void_func_ptr_t>(vogl_##name);            \
     ++pDst;
-#include "gl_glx_wgl_protos.inc"
+#include "gl_glx_cgl_wgl_protos.inc"
 #undef DEF_PROTO
 #undef DEF_PROTO_VOID
 }

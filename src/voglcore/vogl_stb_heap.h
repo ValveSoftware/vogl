@@ -30,7 +30,8 @@
 #include "vogl_core.h"
 
 #include <sys/types.h>
-#ifdef PLATFORM_LINUX
+
+#ifdef PLATFORM_POSIX
 	#include <sys/mman.h>
 	#include <err.h>
 	#include <fcntl.h>
@@ -51,7 +52,11 @@ class stb_heap
 
 public:
     stb_heap()
+#if defined(VOGL_USE_OSX_API)
+        : m_page_size(sysconf(_SC_PAGESIZE))
+#else
         : m_page_size(sysconf(_SC_PAGE_SIZE))
+#endif
     {
         stbm_heap_config config;
         memset(&config, 0, sizeof(config));

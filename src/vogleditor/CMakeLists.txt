@@ -13,11 +13,11 @@ endif()
 
 find_package(Qt5 COMPONENTS Widgets Gui Core REQUIRED)
 find_package(Threads REQUIRED)
-find_package(X11 REQUIRED)
 
 require_pthreads()
 request_backtrace()
 require_sdl2()
+require_app()
 
 include_directories(
     ${SRC_DIR}
@@ -53,6 +53,7 @@ set(SRC_LIST
     vogleditor_qtextureviewer.cpp
     vogleditor_qtimelineview.cpp
     vogleditor_qtrimdialog.cpp
+    vogleditor_qdumpdialog.cpp
     vogleditor_qvertexarrayexplorer.cpp
     vogleditor_output.cpp
     vogleditor_settings.cpp
@@ -101,6 +102,7 @@ set(UI_HEADER_LIST
     vogleditor_qtextureexplorer.h
     vogleditor_qtimelineview.h
     vogleditor_qtrimdialog.h
+    vogleditor_qdumpdialog.h
     vogleditor_qvertexarrayexplorer.h
    )
 
@@ -152,6 +154,7 @@ set(FORM_LIST
     vogleditor_qshaderexplorer.ui
     vogleditor_qtextureexplorer.ui
     vogleditor_qtrimdialog.ui
+    vogleditor_qdumpdialog.ui
     vogleditor_qvertexarrayexplorer.ui
    )
 
@@ -192,7 +195,7 @@ target_link_libraries(${PROJECT_NAME}
     pxfmt
     ${CMAKE_DL_LIBS}
     ${SDL2_LIBRARY}
-    ${X11_X11_LIB}
+    ${APP_LIBRARY}
 )
 
 if (MSVC)

@@ -86,6 +86,8 @@ void plat_virtual_free(void* free_addr, size_t size);
 
 #if defined(PLATFORM_LINUX)
     inline const char* plat_get_system_gl_module_name() { return "libGL.so.1"; }
+#elif defined(PLATFORM_OSX)
+    inline const char* plat_get_system_gl_module_name() { return "OpenGL"; }
 #elif defined(PLATFORM_WINDOWS)
     inline const char* plat_get_system_gl_module_name() { return "opengl32.dll"; }
 #else

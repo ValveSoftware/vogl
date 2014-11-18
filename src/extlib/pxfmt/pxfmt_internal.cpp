@@ -34,8 +34,7 @@
 #include <algorithm> // For std::max()
 #include <assert.h>
 
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include "pxfmt_gl.h"
 #include "pxfmt.h"
 #include <cmath>  // For std::floor() and pow()
 

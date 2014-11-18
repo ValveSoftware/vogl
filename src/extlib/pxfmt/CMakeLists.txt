@@ -19,6 +19,7 @@ set(SRC_LIST
     pxfmt_internal.h
     pxfmt_internal.cpp
     pxfmt_dlopen.h
+    pxfmt_gl.h
     pxfmt_case_statements.inl
     texcompress_etc_tmp.h
 )

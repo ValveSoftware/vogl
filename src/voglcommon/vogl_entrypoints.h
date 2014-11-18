@@ -35,7 +35,7 @@
 
 #define DEF_PROTO(exported, category, ret, ret_type, num_params, name, args, params) typedef ret(GLAPIENTRY *name##_func_ptr_t) args;
 #define DEF_PROTO_VOID(exported, category, ret, ret_type, num_params, name, args, params) typedef ret(GLAPIENTRY *name##_func_ptr_t) args;
-#include "gl_glx_wgl_protos.inc"
+#include "gl_glx_cgl_wgl_protos.inc"
 #undef DEF_PROTO
 #undef DEF_PROTO_VOID
 
@@ -45,12 +45,12 @@ struct actual_gl_entrypoints_t
 // The "direct" func pointers refer DIRECTLY to the driver's GL entrypoints. DO NOT call them unless you know why you need to.
 #define DEF_PROTO(exported, category, ret, ret_type, num_params, name, args, params) name##_func_ptr_t m_##name##_direct;
 #define DEF_PROTO_VOID(exported, category, ret, ret_type, num_params, name, args, params) name##_func_ptr_t m_##name##_direct;
-#include "gl_glx_wgl_protos.inc"
+#include "gl_glx_cgl_wgl_protos.inc"
 
 // The non-direct func pointers (use these by default) pointer to wrappers funcs in vogl_entrypoints.cpp which call our global prolog function before calling the direct func ptr, then the epilog.
 #define DEF_PROTO(exported, category, ret, ret_type, num_params, name, args, params) name##_func_ptr_t m_##name;
 #define DEF_PROTO_VOID(exported, category, ret, ret_type, num_params, name, args, params) name##_func_ptr_t m_##name;
-#include "gl_glx_wgl_protos.inc"
+#include "gl_glx_cgl_wgl_protos.inc"
 };
 
 extern actual_gl_entrypoints_t g_vogl_actual_gl_entrypoints;
@@ -84,7 +84,7 @@ enum gl_entrypoint_id_t
 {
     VOGL_ENTRYPOINT_INVALID = -1,
 
-#include "gl_glx_wgl_func_descs.inc"
+#include "gl_glx_cgl_wgl_func_descs.inc"
 
     VOGL_NUM_ENTRYPOINTS
 };

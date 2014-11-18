@@ -25,7 +25,7 @@ sudo apt-get install build-essential pkg-config cmake libx11-dev \
                      zip wget libtinyxml-dev liblzma-dev libunwind8-dev \
                      libturbojpeg libdwarf-dev mesa-common-dev qt5-qmake\
                      freeglut3-dev qt5-default libqt5x11extras5-dev git \
-                     libsdl2-gfx-dev libsdl2-image-dev libsdl2-ttf-dev
+                     libsdl2-gfx-dev libsdl2-image-dev libsdl2-ttf-dev libjpeg-turbo8-dev
 ```
 
 ## Get Source and Build ##
@@ -59,6 +59,28 @@ cmake -DQt5_DIR="C:\Qt\5.3\msvc2013_opengl\lib\cmake\Qt5" -G "Visual Studio 12 2
 
 Note: The path to Qt5 might need to be adjusted depending on your install location.
 After compiling with Visual Studio, the binaries are placed in the vogl\vogl_build\Release (or Debug) directory.
+
+### Mac OS X ###
+
+Install the required build dependencies using Homebrew:
+
+```
+brew install pkg-config cmake sdl2 qt5 xz jpeg-turbo tinyxml
+```
+
+Then build with:
+
+```
+git clone https://github.com/ValveSoftware/vogl.git
+
+mkdir -p vogl/vogl_build/mac
+cd       vogl/vogl_build/mac
+
+cmake ../.. -DCMAKE_PREFIX_PATH=/usr/local/Cellar/qt5/5.3.2/
+make
+```
+
+Note: the Mac port is not yet functional.
 
 ## Capturing ##
 

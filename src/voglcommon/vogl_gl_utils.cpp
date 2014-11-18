@@ -271,6 +271,10 @@ bool vogl_has_active_context()
     if (!GL_ENTRYPOINT(glXGetCurrentContext)())
         return false;
 
+#elif(VOGL_PLATFORM_HAS_CGL)
+    VOGL_ASSERT(!"UNIMPLEMENTED vogl_has_active_context");
+    return false;
+
 #elif(VOGL_PLATFORM_HAS_WGL)
 
     if (!GL_ENTRYPOINT(wglGetCurrentContext))
@@ -1058,12 +1062,11 @@ bool vogl_is_start_nested_entrypoint(gl_entrypoint_id_t id)
     switch (id)
     {
         case VOGL_ENTRYPOINT_glBegin:
-            // TODO: Add after control is added to settings dialog
-            //      case VOGL_ENTRYPOINT_glPushMatrix:
-            //      case VOGL_ENTRYPOINT_glPushAttrib:
-            //      case VOGL_ENTRYPOINT_glPushClientAttrib:
-            //      case VOGL_ENTRYPOINT_glPushName:
-            //      case VOGL_ENTRYPOINT_glNewList:
+        case VOGL_ENTRYPOINT_glNewList:
+        case VOGL_ENTRYPOINT_glPushName:
+        case VOGL_ENTRYPOINT_glPushMatrix:
+        case VOGL_ENTRYPOINT_glPushAttrib:
+        case VOGL_ENTRYPOINT_glPushClientAttrib:
             return true;
         default:
             break;
@@ -1079,12 +1082,11 @@ bool vogl_is_end_nested_entrypoint(gl_entrypoint_id_t id)
     switch (id)
     {
         case VOGL_ENTRYPOINT_glEnd:
-            // TODO: Add after control is added to settings dialog
-            //      case VOGL_ENTRYPOINT_glPopMatrix:
-            //      case VOGL_ENTRYPOINT_glPopAttrib:
-            //      case VOGL_ENTRYPOINT_glPopClientAttrib:
-            //      case VOGL_ENTRYPOINT_glPopName:
-            //      case VOGL_ENTRYPOINT_glEndList:
+        case VOGL_ENTRYPOINT_glEndList:
+        case VOGL_ENTRYPOINT_glPopName:
+        case VOGL_ENTRYPOINT_glPopMatrix:
+        case VOGL_ENTRYPOINT_glPopAttrib:
+        case VOGL_ENTRYPOINT_glPopClientAttrib:
             return true;
         default:
             break;
@@ -2119,9 +2121,15 @@ vogl_gl_display vogl_get_current_display()
 {
 #if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentDisplay)();
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+    VOGL_ASSERT(!"UNIMPLEMENTED vogl_get_current_display");
+    return(NULL);
+
 #elif(VOGL_PLATFORM_HAS_WGL)
     // TODO: Not sure if this is the correct equivalent
     return GL_ENTRYPOINT(wglGetCurrentDC)();
+
 #else
     VOGL_ASSERT(!"impl vogl_get_current_display");
 #endif
@@ -2134,8 +2142,14 @@ vogl_gl_drawable vogl_get_current_drawable()
 {
 #if (VOGL_PLATFORM_HAS_GLX)
     return GL_ENTRYPOINT(glXGetCurrentDrawable)();
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+    VOGL_ASSERT(!"UNIMPLEMENTED vogl_get_current_drawable");
+    return(NULL);
+
 #elif(VOGL_PLATFORM_HAS_WGL)
     return WindowFromDC(GL_ENTRYPOINT(wglGetCurrentDC)());
+
 #else
     VOGL_ASSERT(!"impl vogl_get_current_drawable");
 #endif

@@ -154,6 +154,7 @@ bool tool_info_mode(vogl::vector<command_line_param_desc> *desc)
     uint64_t total_gl_entrypoint_packets = 0;
     uint64_t total_gl_commands = 0;
     uint64_t total_glx_commands = 0;
+    uint64_t total_cgl_commands = 0;
     uint64_t total_wgl_commands = 0;
     uint64_t total_unknown_commands = 0;
     uint64_t total_draws = 0;
@@ -252,6 +253,8 @@ bool tool_info_mode(vogl::vector<command_line_param_desc> *desc)
 
             if (!strcmp(entrypoint_desc.m_pAPI_prefix, "GLX"))
                 total_glx_commands++;
+            else if (!strcmp(entrypoint_desc.m_pAPI_prefix, "CGL"))
+                total_cgl_commands++;
             else if (!strcmp(entrypoint_desc.m_pAPI_prefix, "WGL"))
                 total_wgl_commands++;
             else if (!strcmp(entrypoint_desc.m_pAPI_prefix, "GL"))
@@ -420,6 +423,7 @@ done:
     PRINT_UINT64_VAR(total_gl_entrypoint_packets);
     PRINT_UINT64_VAR(total_gl_commands);
     PRINT_UINT64_VAR(total_glx_commands);
+    PRINT_UINT64_VAR(total_cgl_commands);
     PRINT_UINT64_VAR(total_wgl_commands);
     PRINT_UINT64_VAR(total_unknown_commands);
 

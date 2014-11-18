@@ -45,11 +45,16 @@ const bool c_vogl_little_endian_platform = false;
 
 const bool c_vogl_big_endian_platform = !c_vogl_little_endian_platform;
 
-#if defined(COMPILER_GCCLIKE)
+#if defined(VOGL_USE_LINUX_API)
     #define vogl_fopen(f, m) fopen64(f, m)
     #define vogl_fopen_s(pDstFile, f, m) *(pDstFile) = fopen64(f, m)
     #define vogl_fseek fseeko64
     #define vogl_ftell ftello64
+#elif defined(VOGL_USE_OSX_API)
+    #define vogl_fopen(f, m) fopen(f, m)
+    #define vogl_fopen_s(pDstFile, f, m) *(pDstFile) = fopen(f, m)
+    #define vogl_fseek fseeko
+    #define vogl_ftell ftello
 #elif defined(COMPILER_MSVC)
     inline FILE *vogl_fopen(const char *pFilename, const char *pMode)
     {

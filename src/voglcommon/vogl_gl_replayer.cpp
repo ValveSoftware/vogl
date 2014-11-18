@@ -29,7 +29,7 @@
 #include "vogl_sync_object.h"
 #include "vogl_trace_file_writer.h"
 #include "vogl_texture_format.h"
-#include "gl_glx_wgl_replay_helper_macros.inc"
+#include "gl_glx_cgl_wgl_replay_helper_macros.inc"
 #include "vogl_backtrace.h"
 
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
@@ -60,6 +60,10 @@ vogl_void_func_ptr_t vogl_get_proc_address_helper(const char *pName)
 #if (VOGL_PLATFORM_HAS_GLX)
     if ((!pFunc) && (GL_ENTRYPOINT(glXGetProcAddress)))
         pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(glXGetProcAddress)(reinterpret_cast<const GLubyte *>(pName)));
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+	VOGL_ASSERT(!"UNIMPLEMENTED vogl_get_proc_address_helper");
+
 #elif (VOGL_PLATFORM_HAS_WGL)
     if ((!pFunc) && (GL_ENTRYPOINT(wglGetProcAddress)))
         pFunc = reinterpret_cast<vogl_void_func_ptr_t>(GL_ENTRYPOINT(wglGetProcAddress)(pName));
@@ -92,6 +96,11 @@ bool load_gl()
         vogl_error_printf("Failed getting address of glXGetProcAddress() from %s!\n", plat_get_system_gl_module_name());
         return false;
     }
+
+#elif (VOGL_PLATFORM_HAS_CGL)
+	VOGL_ASSERT(!"UNIMPLEMENTED load_gl");
+	return(false);
+
 #elif (VOGL_PLATFORM_HAS_WGL)
     GL_ENTRYPOINT(wglGetProcAddress) = reinterpret_cast<wglGetProcAddress_func_ptr_t>(plat_dlsym(g_actual_libgl_module_handle, "wglGetProcAddress"));
     if (!GL_ENTRYPOINT(wglGetProcAddress))
@@ -4523,7 +4532,7 @@ vogl_gl_replayer::status_t vogl_gl_replayer::process_gl_entrypoint_packet_intern
 #define VOGL_SIMPLE_REPLAY_FUNC_END(name) ); \
     break;                                  \
     }
-#include "gl_glx_wgl_simple_replay_funcs.inc"
+#include "gl_glx_cgl_wgl_simple_replay_funcs.inc"
 #undef VOGL_SIMPLE_REPLAY_FUNC_BEGIN
 #undef VOGL_SIMPLE_REPLAY_FUNC_PARAM_VALUE
 #undef VOGL_SIMPLE_REPLAY_FUNC_PARAM_SEPERATOR

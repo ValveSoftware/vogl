@@ -31,7 +31,12 @@
 #include "vogl_port.h"
 #include "vogl_threading.h"
 #include "vogl_strutils.h"
-#include <malloc.h>
+
+#if defined(PLATFORM_OSX)
+	#include <malloc/malloc.h>
+#else
+	#include <malloc.h>
+#endif
 
 // Set to 1 to enable stb_malloc, otherwise voglcore uses plain malloc/free/realloc
 #ifndef VOGL_USE_STB_MALLOC
@@ -54,7 +59,7 @@
 #include "vogl_winhdr.h"
 #endif
 
-#if defined(COMPILER_GCCLIKE)
+#if defined(VOGL_USE_LINUX_API)
 #include "mcheck.h"
 #endif
 
@@ -614,9 +619,11 @@ void vogl_tracked_check_heap(const char *pFile_line)
     // Also see_CrtSetDbgFlag ()
     int status = _CrtCheckMemory();
     VOGL_VERIFY(status == TRUE);
-#elif defined(COMPILER_GCCLIKE)
+#elif defined(VOGL_USE_LINUX_API)
     // App MUST have been linked with -mlcheck! Unfortunately -mlcheck() causes the CRT's heap API's to be unusable on some dev boxes, no idea why.
     mcheck_check_all();
+#elif defined(VOGL_USE_OSX_API)
+	VOGL_VERIFY(malloc_zone_check(NULL));
 #else
     fprintf(stderr, "%s: Need implementation\n", __FUNCTION__);
 #endif
