@@ -5,10 +5,12 @@ include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
 require_app()
+require_gl()
 
 include_directories(
     ${SRC_DIR}/voglcore
     ${SRC_DIR}/extlib/pxfmt
+    ${SRC_DIR}/extlib/include
     )
 
 include_directories(
