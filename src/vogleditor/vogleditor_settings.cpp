@@ -1,4 +1,3 @@
-#include <QStringList>
 #include "vogleditor_settings.h"
 #include "vogl_common.h"
 #include "vogl_file_utils.h"
@@ -8,6 +7,8 @@ vogleditor_settings g_settings;
 
 static const unsigned int VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION_1 = 1;
 static const unsigned int VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION = VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION_1;
+
+static const char *g_SETTINGS_FILE = "./vogleditor_settings.json";
 
 vogleditor_settings::vogleditor_settings()
     : m_file_format_version(VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION_1)
@@ -76,7 +77,7 @@ vogleditor_settings::vogleditor_settings()
     update_group_active_lists();
 }
 
-dynamic_string vogleditor_settings::get_settings_path(const char *settingsFilename)
+dynamic_string vogleditor_settings::get_settings_path()
 {
     dynamic_string settingsPath;
     const char *xdgConfigHome = getenv("XDG_CONFIG_HOME");
@@ -110,7 +111,7 @@ dynamic_string vogleditor_settings::get_settings_path(const char *settingsFilena
         // the settings file will end up in the current working directory
     }
 
-    settingsPath += settingsFilename;
+    settingsPath += g_SETTINGS_FILE;
     return settingsPath;
 }
 
@@ -198,11 +199,11 @@ bool vogleditor_settings::from_json(const json_document &doc)
     return true;
 }
 
-bool vogleditor_settings::load(const char *settingsFile)
+bool vogleditor_settings::load()
 {
     bool bLoaded = false;
     json_document settingsDoc;
-    dynamic_string path = get_settings_path(settingsFile);
+    dynamic_string path = get_settings_path();
     if (settingsDoc.deserialize_file(path.c_str()))
     {
         bLoaded = this->from_json(settingsDoc);
@@ -274,7 +275,7 @@ bool vogleditor_settings::to_json(json_document &doc)
     return true;
 }
 
-bool vogleditor_settings::save(const char *settingsFile)
+bool vogleditor_settings::save()
 {
     json_document settingsDoc;
     if (this->to_json(settingsDoc) == false)
@@ -282,7 +283,7 @@ bool vogleditor_settings::save(const char *settingsFile)
         return false;
     }
 
-    dynamic_string path = get_settings_path(settingsFile);
+    dynamic_string path = get_settings_path();
     bool bSavedSuccessfully = settingsDoc.serialize_to_file(path.c_str());
     return bSavedSuccessfully;
 }
