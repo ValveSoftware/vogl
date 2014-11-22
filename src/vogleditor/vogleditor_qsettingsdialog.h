@@ -17,7 +17,10 @@ public:
     ~vogleditor_QSettingsDialog();
 
     bool groupOptionsChanged();
-    void save(const char *settingsFile);
+    void save();
+
+signals:
+    void settingsChanged();
 
 private
 slots:
@@ -27,6 +30,7 @@ slots:
     void groupboxNestOptionsCB(bool);
     void radiobuttonNameCB(bool);
     void radiobuttonOmitCB(bool);
+    void acceptCB();
     void cancelCB();
 
 private:

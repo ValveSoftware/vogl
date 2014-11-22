@@ -104,6 +104,7 @@ set(UI_HEADER_LIST
     vogleditor_qtrimdialog.h
     vogleditor_qdumpdialog.h
     vogleditor_qvertexarrayexplorer.h
+    vogleditor_settings.h
    )
 
 # these are for non-QOBJECT headers
@@ -115,7 +116,6 @@ set(HEADER_LIST
     vogleditor_frameitem.h
     vogleditor_gl_state_snapshot.h
     vogleditor_output.h
-    vogleditor_settings.h
     vogleditor_snapshotitem.h
     vogleditor_statetreearbprogramitem.h
     vogleditor_statetreearbprogramenvitem.h
