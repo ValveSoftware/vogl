@@ -1,13 +1,13 @@
-#ifndef VOGLEDITOR_SETTINGS_H
-#define VOGLEDITOR_SETTINGS_H
+#ifndef VOGLEDITOR_QSETTINGS_H
+#define VOGLEDITOR_QSETTINGS_H
 
 #include "vogl_dynamic_string.h"
 #include "vogl_json.h"
 #include <QStringList>
 #include <QVector>
 
-class vogleditor_settings;
-extern vogleditor_settings g_settings;
+class vogleditor_qsettings;
+extern vogleditor_qsettings g_settings;
 
 struct vogleditor_setting_struct
 {
@@ -44,13 +44,13 @@ struct vogleditor_setting_struct
     QVector<bool> nest_options_used;
 };
 
-class vogleditor_settings : public QObject
+class vogleditor_qsettings : public QObject
 {
     Q_OBJECT
 
 public:
-    vogleditor_settings();
-    virtual ~vogleditor_settings()
+    vogleditor_qsettings();
+    virtual ~vogleditor_qsettings()
     {
     }
 
@@ -318,4 +318,4 @@ private:
     bool from_json(const vogl::json_document &doc);
 };
 
-#endif // VOGLEDITOR_SETTINGS_H
+#endif // VOGLEDITOR_QSETTINGS_H

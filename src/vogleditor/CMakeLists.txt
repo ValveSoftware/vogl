@@ -45,6 +45,7 @@ set(SRC_LIST
     vogleditor_qlaunchtracerdialog.cpp
     vogleditor_qprogramarbexplorer.cpp
     vogleditor_qprogramexplorer.cpp
+    vogleditor_qsettings.cpp
     vogleditor_qsettingsdialog.cpp
     vogleditor_qshaderexplorer.cpp
     vogleditor_qsnapshotoverlaywidget.cpp
@@ -56,7 +57,6 @@ set(SRC_LIST
     vogleditor_qdumpdialog.cpp
     vogleditor_qvertexarrayexplorer.cpp
     vogleditor_output.cpp
-    vogleditor_settings.cpp
     vogleditor_statetreearbprogramitem.cpp
     vogleditor_statetreearbprogramenvitem.cpp
     vogleditor_statetreebufferitem.cpp
@@ -94,6 +94,7 @@ set(UI_HEADER_LIST
     vogleditor_qlaunchtracerdialog.h
     vogleditor_qprogramarbexplorer.h
     vogleditor_qprogramexplorer.h
+    vogleditor_qsettings.h
     vogleditor_qsettingsdialog.h
     vogleditor_qshaderexplorer.h
     vogleditor_qsnapshotoverlaywidget.h
@@ -104,7 +105,6 @@ set(UI_HEADER_LIST
     vogleditor_qtrimdialog.h
     vogleditor_qdumpdialog.h
     vogleditor_qvertexarrayexplorer.h
-    vogleditor_settings.h
    )
 
 # these are for non-QOBJECT headers

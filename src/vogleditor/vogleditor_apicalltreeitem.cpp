@@ -36,7 +36,7 @@
 #include "vogl_trace_packet.h"
 #include "vogl_trace_stream_types.h"
 #include "vogleditor_gl_state_snapshot.h"
-#include "vogleditor_settings.h"
+#include "vogleditor_qsettings.h"
 
 // Constructor for root node
 vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_QApiCallTreeModel *pModel)

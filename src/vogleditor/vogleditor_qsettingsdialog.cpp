@@ -1,7 +1,7 @@
 #include "vogleditor_qsettingsdialog.h"
 #include "ui_vogleditor_qsettingsdialog.h"
 
-#include "vogleditor_settings.h"
+#include "vogleditor_qsettings.h"
 
 vogleditor_QSettingsDialog::vogleditor_QSettingsDialog(QWidget *parent)
     : QDialog(parent),
@@ -17,7 +17,7 @@ vogleditor_QSettingsDialog::vogleditor_QSettingsDialog(QWidget *parent)
     connect(ui->buttonBox, SIGNAL(accepted()), SLOT(acceptCB()));
     connect(ui->buttonBox, SIGNAL(rejected()), SLOT(cancelCB()));
 
-    connect(this, &vogleditor_QSettingsDialog::settingsChanged, &g_settings, &vogleditor_settings::update_group_active_lists);
+    connect(this, &vogleditor_QSettingsDialog::settingsChanged, &g_settings, &vogleditor_qsettings::update_group_active_lists);
 
     // Startup settings tab
     QString strSettings = g_settings.to_string();

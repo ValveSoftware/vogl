@@ -1,16 +1,16 @@
-#include "vogleditor_settings.h"
+#include "vogleditor_qsettings.h"
 #include "vogl_common.h"
 #include "vogl_file_utils.h"
 
 // declared as extern in header
-vogleditor_settings g_settings;
+vogleditor_qsettings g_settings;
 
 static const unsigned int VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION_1 = 1;
 static const unsigned int VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION = VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION_1;
 
 static const char *g_SETTINGS_FILE = "./vogleditor_settings.json";
 
-vogleditor_settings::vogleditor_settings()
+vogleditor_qsettings::vogleditor_qsettings()
     : m_file_format_version(VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION_1)
 {
     m_defaults.tab_page = 0;
@@ -77,7 +77,7 @@ vogleditor_settings::vogleditor_settings()
     update_group_active_lists();
 }
 
-dynamic_string vogleditor_settings::get_settings_path()
+dynamic_string vogleditor_qsettings::get_settings_path()
 {
     dynamic_string settingsPath;
     const char *xdgConfigHome = getenv("XDG_CONFIG_HOME");
@@ -115,7 +115,7 @@ dynamic_string vogleditor_settings::get_settings_path()
     return settingsPath;
 }
 
-QString vogleditor_settings::to_string()
+QString vogleditor_qsettings::to_string()
 {
     json_document settingsDoc;
     if (this->to_json(settingsDoc) == false)
@@ -130,7 +130,7 @@ QString vogleditor_settings::to_string()
     return qstrSettings;
 }
 
-bool vogleditor_settings::from_json(const json_document &doc)
+bool vogleditor_qsettings::from_json(const json_document &doc)
 {
     // validate metadata
     const json_node *pMetadata = doc.get_root()->find_child_object("metadata");
@@ -199,7 +199,7 @@ bool vogleditor_settings::from_json(const json_document &doc)
     return true;
 }
 
-bool vogleditor_settings::load()
+bool vogleditor_qsettings::load()
 {
     bool bLoaded = false;
     json_document settingsDoc;
@@ -216,7 +216,7 @@ bool vogleditor_settings::load()
     return bLoaded;
 }
 
-bool vogleditor_settings::from_string(const char *settingsStr)
+bool vogleditor_qsettings::from_string(const char *settingsStr)
 {
     bool bResult = false;
     json_document doc;
@@ -228,7 +228,7 @@ bool vogleditor_settings::from_string(const char *settingsStr)
     return bResult;
 }
 
-bool vogleditor_settings::to_json(json_document &doc)
+bool vogleditor_qsettings::to_json(json_document &doc)
 {
     json_node &metadata = doc.get_root()->add_object("metadata");
     metadata.add_key_value("vogleditor_settings_file_format_version", to_hex_string(VOGLEDITOR_SETTINGS_FILE_FORMAT_VERSION));
@@ -275,7 +275,7 @@ bool vogleditor_settings::to_json(json_document &doc)
     return true;
 }
 
-bool vogleditor_settings::save()
+bool vogleditor_qsettings::save()
 {
     json_document settingsDoc;
     if (this->to_json(settingsDoc) == false)
