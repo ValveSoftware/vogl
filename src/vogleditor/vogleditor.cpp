@@ -41,7 +41,6 @@
 #include "vogl_file_utils.h"
 
 #include "vogleditor_output.h"
-#include "vogleditor_settings.h"
 #include "vogleditor_statetreearbprogramitem.h"
 #include "vogleditor_statetreeprogramitem.h"
 #include "vogleditor_statetreebufferitem.h"
@@ -56,6 +55,7 @@
 #include "vogleditor_qlaunchtracerdialog.h"
 #include "vogleditor_qprogramarbexplorer.h"
 #include "vogleditor_qprogramexplorer.h"
+#include "vogleditor_qsettings.h"
 #include "vogleditor_qsettingsdialog.h"
 #include "vogleditor_qshaderexplorer.h"
 #include "vogleditor_qsnapshotoverlaywidget.h"
@@ -122,7 +122,7 @@ VoglEditor::VoglEditor(QWidget *parent)
     this->move(g_settings.window_position_left(), g_settings.window_position_top());
     this->resize(g_settings.window_size_width(), g_settings.window_size_height());
 
-    connect(&g_settings, &vogleditor_settings::treeDisplayChanged, this, &VoglEditor::resetApiCallTreeModel);
+    connect(&g_settings, &vogleditor_qsettings::treeDisplayChanged, this, &VoglEditor::resetApiCallTreeModel);
 
     vogleditor_output_init(ui->outputTextEdit);
     vogleditor_output_message("Welcome to VoglEditor!");

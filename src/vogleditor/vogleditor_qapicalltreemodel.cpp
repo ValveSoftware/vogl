@@ -39,7 +39,7 @@
 #include "vogleditor_groupitem.h"
 #include "vogleditor_apicallitem.h"
 #include "vogleditor_output.h"
-#include "vogleditor_settings.h"
+#include "vogleditor_qsettings.h"
 
 vogleditor_QApiCallTreeModel::vogleditor_QApiCallTreeModel(QObject *parent)
     : QAbstractItemModel(parent)
