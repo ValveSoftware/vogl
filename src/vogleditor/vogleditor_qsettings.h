@@ -1,13 +1,13 @@
-#ifndef VOGLEDITOR_SETTINGS_H
-#define VOGLEDITOR_SETTINGS_H
+#ifndef VOGLEDITOR_QSETTINGS_H
+#define VOGLEDITOR_QSETTINGS_H
 
 #include "vogl_dynamic_string.h"
 #include "vogl_json.h"
 #include <QStringList>
 #include <QVector>
 
-class vogleditor_settings;
-extern vogleditor_settings g_settings;
+class vogleditor_qsettings;
+extern vogleditor_qsettings g_settings;
 
 struct vogleditor_setting_struct
 {
@@ -44,20 +44,26 @@ struct vogleditor_setting_struct
     QVector<bool> nest_options_used;
 };
 
-class vogleditor_settings
+class vogleditor_qsettings : public QObject
 {
+    Q_OBJECT
+
 public:
-    vogleditor_settings();
-    virtual ~vogleditor_settings()
+    vogleditor_qsettings();
+    virtual ~vogleditor_qsettings()
     {
     }
 
-    bool load(const char *settingsFile);
-    bool save(const char *settingsFile);
+    bool load();
+    bool save();
 
     QString to_string();
     bool from_string(const char *settingsStr);
 
+signals:
+    void treeDisplayChanged();
+
+public:
     int tab_page()
     {
         return m_settings.tab_page;
@@ -243,6 +249,7 @@ public:
     {
         m_active_debug_marker = active_debug_marker();
         m_active_nest_options = active_nest_options();
+        emit treeDisplayChanged();
     }
 
     bool is_active_state_render_nest(QString str)
@@ -306,9 +313,9 @@ private:
     QStringList m_active_debug_marker;
     QStringList m_active_nest_options;
 
-    vogl::dynamic_string get_settings_path(const char *settingsFilename);
+    vogl::dynamic_string get_settings_path();
     bool to_json(vogl::json_document &doc);
     bool from_json(const vogl::json_document &doc);
 };
 
-#endif // VOGLEDITOR_SETTINGS_H
+#endif // VOGLEDITOR_QSETTINGS_H

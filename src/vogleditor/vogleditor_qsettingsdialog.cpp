@@ -1,7 +1,7 @@
 #include "vogleditor_qsettingsdialog.h"
 #include "ui_vogleditor_qsettingsdialog.h"
 
-#include "vogleditor_settings.h"
+#include "vogleditor_qsettings.h"
 
 vogleditor_QSettingsDialog::vogleditor_QSettingsDialog(QWidget *parent)
     : QDialog(parent),
@@ -9,15 +9,15 @@ vogleditor_QSettingsDialog::vogleditor_QSettingsDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // (TODO?: connect signals to g_settings)
-
     // tab parent
     ui->tabWidget->setCurrentIndex(g_settings.tab_page());
 
-    connect(ui->tabWidget, SIGNAL(currentChanged(int)),
-            SLOT(tabCB(int)));
+    connect(ui->tabWidget, SIGNAL(currentChanged(int)), SLOT(tabCB(int)));
 
+    connect(ui->buttonBox, SIGNAL(accepted()), SLOT(acceptCB()));
     connect(ui->buttonBox, SIGNAL(rejected()), SLOT(cancelCB()));
+
+    connect(this, &vogleditor_QSettingsDialog::settingsChanged, &g_settings, &vogleditor_qsettings::update_group_active_lists);
 
     // Startup settings tab
     QString strSettings = g_settings.to_string();
@@ -32,7 +32,6 @@ vogleditor_QSettingsDialog::vogleditor_QSettingsDialog(QWidget *parent)
     ui->checkboxStateRender->setEnabled(g_settings.group_state_render_used());
 
     connect(ui->checkboxStateRender, SIGNAL(stateChanged(int)),
-            //SLOT(checkboxCB(int)));
             SLOT(checkboxStateRenderCB(int)));
 
     // Debug markers
@@ -256,29 +255,30 @@ QVector<bool> vogleditor_QSettingsDialog::groupState()
 
 void vogleditor_QSettingsDialog::reset()
 {
-    // Set in same order as saved in ::groupState()
-    //
-    // TODO: QMap these, widget key to value, in constructor
-    //       so order won't matter
-    int i = 0;
-    ui->checkboxStateRender->setChecked(m_bGroupInitialState[i++]);
-
-    ui->groupboxNestOptions->setChecked(m_bGroupInitialState[i++]);
-
-    QList<QCheckBox *> checkboxes = ui->groupboxDebugMarker->findChildren<QCheckBox *>();
-    for (int indx = 0; indx < checkboxes.count(); indx++)
+    if (groupOptionsChanged())
     {
-        checkboxes[indx]->setChecked(m_bGroupInitialState[i++]);
-    }
-    checkboxes = ui->groupboxNestOptions->findChildren<QCheckBox *>();
-    for (int indx = 0; indx < checkboxes.count(); indx++)
-    {
-        checkboxes[indx]->setChecked(m_bGroupInitialState[i++]);
-    }
+        // Set in same order as saved (from ::groupState())
+        //
+        // TODO: QMap these, widget key to value, in constructor
+        //       so order won't matter
+        int i = 0;
+        ui->checkboxStateRender->setChecked(m_bGroupInitialState[i++]);
+        ui->groupboxNestOptions->setChecked(m_bGroupInitialState[i++]);
 
-    ui->radiobuttonDebugMarkerNameOption->setChecked(m_bGroupInitialState[i++]);
-    ui->radiobuttonDebugMarkerOmitOption->setChecked(m_bGroupInitialState[i++]);
+        QList<QCheckBox *> checkboxes = ui->groupboxDebugMarker->findChildren<QCheckBox *>();
+        for (int indx = 0; indx < checkboxes.count(); indx++)
+        {
+            checkboxes[indx]->setChecked(m_bGroupInitialState[i++]);
+        }
+        checkboxes = ui->groupboxNestOptions->findChildren<QCheckBox *>();
+        for (int indx = 0; indx < checkboxes.count(); indx++)
+        {
+            checkboxes[indx]->setChecked(m_bGroupInitialState[i++]);
+        }
 
+        ui->radiobuttonDebugMarkerNameOption->setChecked(m_bGroupInitialState[i++]);
+        ui->radiobuttonDebugMarkerOmitOption->setChecked(m_bGroupInitialState[i++]);
+    }
 } // reset
 
 bool vogleditor_QSettingsDialog::groupOptionsChanged()
@@ -286,13 +286,23 @@ bool vogleditor_QSettingsDialog::groupOptionsChanged()
     return m_bGroupInitialState != groupState();
 }
 
+void vogleditor_QSettingsDialog::acceptCB()
+{
+    save();
+
+    if (groupOptionsChanged())
+    {
+        emit settingsChanged();
+    }
+}
+
 void vogleditor_QSettingsDialog::cancelCB()
 {
     reset();
 }
 
-void vogleditor_QSettingsDialog::save(const char *settingsFile)
+void vogleditor_QSettingsDialog::save()
 {
     g_settings.from_string(ui->textEdit->toPlainText().toStdString().c_str());
-    g_settings.save(settingsFile);
+    g_settings.save();
 }

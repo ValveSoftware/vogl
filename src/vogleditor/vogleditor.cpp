@@ -41,7 +41,6 @@
 #include "vogl_file_utils.h"
 
 #include "vogleditor_output.h"
-#include "vogleditor_settings.h"
 #include "vogleditor_statetreearbprogramitem.h"
 #include "vogleditor_statetreeprogramitem.h"
 #include "vogleditor_statetreebufferitem.h"
@@ -56,6 +55,7 @@
 #include "vogleditor_qlaunchtracerdialog.h"
 #include "vogleditor_qprogramarbexplorer.h"
 #include "vogleditor_qprogramexplorer.h"
+#include "vogleditor_qsettings.h"
 #include "vogleditor_qsettingsdialog.h"
 #include "vogleditor_qshaderexplorer.h"
 #include "vogleditor_qsnapshotoverlaywidget.h"
@@ -75,7 +75,6 @@
 // globals
 //----------------------------------------------------------------------------------------------------------------------
 static QString g_PROJECT_NAME = "Vogl Editor";
-static const char *g_SETTINGS_FILE = "./vogleditor_settings.json";
 
 VoglEditor::VoglEditor(QWidget *parent)
     : QMainWindow(parent),
@@ -115,13 +114,15 @@ VoglEditor::VoglEditor(QWidget *parent)
     ui->setupUi(this);
 
     // load the settings file. This will only succeed if the file already exists
-    g_settings.load(g_SETTINGS_FILE);
+    g_settings.load();
 
     // always save/resave the file wiill either be created or so that new settings will be added
-    g_settings.save(g_SETTINGS_FILE);
+    g_settings.save();
 
     this->move(g_settings.window_position_left(), g_settings.window_position_top());
     this->resize(g_settings.window_size_width(), g_settings.window_size_height());
+
+    connect(&g_settings, &vogleditor_qsettings::treeDisplayChanged, this, &VoglEditor::resetApiCallTreeModel);
 
     vogleditor_output_init(ui->outputTextEdit);
     vogleditor_output_message("Welcome to VoglEditor!");
@@ -237,7 +238,7 @@ VoglEditor::~VoglEditor()
     g_settings.set_window_position_top(this->y());
     g_settings.set_window_size_width(this->width());
     g_settings.set_window_size_height(this->height());
-    g_settings.save(g_SETTINGS_FILE);
+    g_settings.save();
 
     // save current session if there is one
     if (m_pTraceReader != NULL && m_pApiCallTreeModel != NULL)
@@ -855,18 +856,7 @@ void VoglEditor::on_actionExport_API_Calls_triggered()
 void VoglEditor::on_actionEdit_triggered()
 {
     vogleditor_QSettingsDialog dialog(this);
-    int code = dialog.exec();
-
-    if (code == QDialog::Accepted)
-    {
-        dialog.save(g_SETTINGS_FILE);
-        // if groups changed update tree display
-        if (dialog.groupOptionsChanged())
-        {
-            g_settings.update_group_active_lists();
-            resetApiCallTreeModel();
-        }
-    }
+    dialog.exec();
 }
 
 QString VoglEditor::get_sessionfile_name(const QString &tracefile, const vogl_trace_file_reader &traceReader)
