@@ -34,18 +34,19 @@ class vogleditor_apiCallTreeItem;
 class vogleditor_apiCallTimelineModel : public vogleditor_timelineModel
 {
 public:
-    explicit vogleditor_apiCallTimelineModel(vogleditor_apiCallTreeItem* pRootApiCall);
+    explicit vogleditor_apiCallTimelineModel(vogleditor_apiCallTreeItem *pRootApiCall);
     void refresh();
 
 signals:
 
-public slots:
+public
+slots:
 
 private:
-    void AddApiCallsToTimeline(vogleditor_apiCallTreeItem* pRoot, vogleditor_timelineItem* pDestRoot);
+    void AddApiCallsToTimeline(vogleditor_apiCallTreeItem *pRoot, vogleditor_timelineItem *pDestRoot);
     float u64ToFloat(uint64_t value);
 
-    vogleditor_apiCallTreeItem* m_pRootApiCall;
+    vogleditor_apiCallTreeItem *m_pRootApiCall;
     uint64_t m_rawBaseTime;
 };
 

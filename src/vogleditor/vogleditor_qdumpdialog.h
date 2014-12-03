@@ -6,8 +6,9 @@
 
 class QAbstractButton;
 
-namespace Ui {
-class vogleditor_QDumpDialog;
+namespace Ui
+{
+    class vogleditor_QDumpDialog;
 }
 
 class vogleditor_QDumpDialog : public QDialog
@@ -33,7 +34,8 @@ public:
         return m_prefix;
     }
 
-private slots:
+private
+slots:
     void on_buttonBox1_clicked(QAbstractButton *button);
 
     void on_buttonBox1_rejected();
@@ -41,7 +43,7 @@ private slots:
     void on_dumpFirstLineEdit_textChanged(const QString &arg1);
 
     void on_dumpLastLineEdit_textChanged(const QString &arg1);
-    
+
     void on_dumpPrefixLineEdit_textChanged(const QString &arg1);
 
 private:

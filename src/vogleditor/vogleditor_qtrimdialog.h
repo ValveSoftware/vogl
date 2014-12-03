@@ -6,8 +6,9 @@
 
 class QAbstractButton;
 
-namespace Ui {
-class vogleditor_QTrimDialog;
+namespace Ui
+{
+    class vogleditor_QTrimDialog;
 }
 
 class vogleditor_QTrimDialog : public QDialog
@@ -33,7 +34,8 @@ public:
         return m_trim_file;
     }
 
-private slots:
+private
+slots:
     void on_buttonBox_clicked(QAbstractButton *button);
 
     void on_buttonBox_rejected();

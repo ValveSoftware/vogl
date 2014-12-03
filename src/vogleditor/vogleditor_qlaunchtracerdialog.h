@@ -4,8 +4,9 @@
 #include <QDialog>
 #include <QProcessEnvironment>
 
-namespace Ui {
-class VoglEditor_QLaunchTracerDialog;
+namespace Ui
+{
+    class VoglEditor_QLaunchTracerDialog;
 }
 
 class vogleditor_QLaunchTracerDialog : public QDialog
@@ -21,7 +22,8 @@ public:
     QProcessEnvironment get_process_environment();
     QString get_trace_file_path();
 
-private slots:
+private
+slots:
     void on_applicationLineEdit_textChanged(const QString &text);
 
     void on_traceFileLineEdit_textChanged(const QString &text);

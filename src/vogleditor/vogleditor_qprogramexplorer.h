@@ -10,8 +10,9 @@ class vogl_gl_object_state;
 class vogl_program_state;
 typedef vogl::vector<vogl_gl_object_state *> vogl_gl_object_state_ptr_vec;
 
-namespace Ui {
-class vogleditor_QProgramExplorer;
+namespace Ui
+{
+    class vogleditor_QProgramExplorer;
 }
 
 class vogleditor_QProgramExplorer : public QWidget
@@ -24,11 +25,12 @@ public:
 
     void clear();
 
-    uint set_program_objects(vogl::vector<vogl_context_snapshot*> sharingContexts);
+    uint set_program_objects(vogl::vector<vogl_context_snapshot *> sharingContexts);
 
     bool set_active_program(unsigned long long programHandle);
 
-private slots:
+private
+slots:
     void on_programListBox_currentIndexChanged(int index);
 
     void on_shaderListBox_currentIndexChanged(int index);
@@ -48,15 +50,14 @@ private:
 
     Ui::vogleditor_QProgramExplorer *ui;
     vogl_gl_object_state_ptr_vec m_objects;
-    vogl::vector<vogl_context_snapshot*> m_sharing_contexts;
+    vogl::vector<vogl_context_snapshot *> m_sharing_contexts;
 
     uint add_program_objects(vogl_gl_object_state_ptr_vec objects);
 
-    void update_uniforms_for_program(vogl_program_state* pProgramState);
+    void update_uniforms_for_program(vogl_program_state *pProgramState);
 
 signals:
-    void program_edited(vogl_program_state* pProgramState);
-
+    void program_edited(vogl_program_state *pProgramState);
 };
 
 #endif // VOGLEDITOR_QPROGRAMEXPLORER_H

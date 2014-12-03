@@ -43,8 +43,8 @@ public:
     {
         if (m_pSnapshot != NULL)
         {
-           vogl_delete(m_pSnapshot);
-           m_pSnapshot = NULL;
+            vogl_delete(m_pSnapshot);
+            m_pSnapshot = NULL;
         }
     }
 
@@ -56,28 +56,28 @@ public:
         return true;
     }
 
-    virtual void set_snapshot(vogleditor_gl_state_snapshot* pSnapshot)
+    virtual void set_snapshot(vogleditor_gl_state_snapshot *pSnapshot)
     {
-       if (m_pSnapshot != NULL)
-       {
-          vogl_delete(m_pSnapshot);
-       }
+        if (m_pSnapshot != NULL)
+        {
+            vogl_delete(m_pSnapshot);
+        }
 
-       m_pSnapshot = pSnapshot;
+        m_pSnapshot = pSnapshot;
     }
 
     virtual bool has_snapshot() const
     {
-       return (m_pSnapshot != NULL);
+        return (m_pSnapshot != NULL);
     }
 
-    virtual vogleditor_gl_state_snapshot* get_snapshot() const
+    virtual vogleditor_gl_state_snapshot *get_snapshot() const
     {
-       return m_pSnapshot;
+        return m_pSnapshot;
     }
 
 private:
-    vogleditor_gl_state_snapshot* m_pSnapshot;
+    vogleditor_gl_state_snapshot *m_pSnapshot;
 };
 
 #endif // VOGLEDITOR_SNAPSHOTITEM_H

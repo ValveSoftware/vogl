@@ -12,8 +12,9 @@ typedef vogl::vector<vogl_gl_object_state *> vogl_gl_object_state_ptr_vec;
 
 class vogl_texture_state;
 
-namespace Ui {
-class vogleditor_QTextureExplorer;
+namespace Ui
+{
+    class vogleditor_QTextureExplorer;
 }
 
 class vogleditor_QTextureExplorer : public QWidget
@@ -24,10 +25,10 @@ public:
     explicit vogleditor_QTextureExplorer(QWidget *parent = 0);
     ~vogleditor_QTextureExplorer();
 
-    uint set_texture_objects(vogl::vector<vogl_context_snapshot*> sharingContexts);
-    uint set_renderbuffer_objects(vogl::vector<vogl_context_snapshot*> sharingContexts);
+    uint set_texture_objects(vogl::vector<vogl_context_snapshot *> sharingContexts);
+    uint set_renderbuffer_objects(vogl::vector<vogl_context_snapshot *> sharingContexts);
     uint set_texture_objects(vogl_gl_object_state_ptr_vec objects);
-    uint add_texture_object(vogl_texture_state& textureState, vogl::dynamic_string bufferType);
+    uint add_texture_object(vogl_texture_state &textureState, vogl::dynamic_string bufferType);
 
     bool set_active_texture(unsigned long long textureHandle);
 
@@ -44,7 +45,8 @@ private:
 
     uint add_texture_objects(vogl_gl_object_state_ptr_vec objects);
 
-private slots:
+private
+slots:
     void selectedTextureIndexChanged(int index);
     void channelSelectionChanged(int index);
     void alphaBlendButtonClicked();

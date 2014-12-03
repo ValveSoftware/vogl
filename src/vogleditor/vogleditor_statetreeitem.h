@@ -38,38 +38,57 @@ class vogleditor_stateTreeItem
 {
 public:
     // Constructor for the root node
-    vogleditor_stateTreeItem(QList<QVariant> columnTitles, vogleditor_QStateTreeModel* pModel);
+    vogleditor_stateTreeItem(QList<QVariant> columnTitles, vogleditor_QStateTreeModel *pModel);
 
     // Constructor for other nodes
-    vogleditor_stateTreeItem(QString name, QString value, vogleditor_stateTreeItem* parent);
+    vogleditor_stateTreeItem(QString name, QString value, vogleditor_stateTreeItem *parent);
 
     virtual ~vogleditor_stateTreeItem();
 
-    vogleditor_stateTreeItem* parent() const;
+    vogleditor_stateTreeItem *parent() const;
 
     void setValue(QString value);
 
-    void setValue(int value) { QString tmp; setValue(tmp.sprintf("%d", value)); }
-    void setValue(uint value) { QString tmp; setValue(tmp.sprintf("%u", value)); }
-    void setValue(bool value) { QString tmp; setValue(tmp.sprintf("%s", value ? "GL_TRUE" :"GL_FALSE")); }
-    void setValue(void* value) { QString tmp; setValue(tmp.sprintf("%p", value)); }
-    void setValue(const char* value) { setValue(QString(value)); }
+    void setValue(int value)
+    {
+        QString tmp;
+        setValue(tmp.sprintf("%d", value));
+    }
+    void setValue(uint value)
+    {
+        QString tmp;
+        setValue(tmp.sprintf("%u", value));
+    }
+    void setValue(bool value)
+    {
+        QString tmp;
+        setValue(tmp.sprintf("%s", value ? "GL_TRUE" : "GL_FALSE"));
+    }
+    void setValue(void *value)
+    {
+        QString tmp;
+        setValue(tmp.sprintf("%p", value));
+    }
+    void setValue(const char *value)
+    {
+        setValue(QString(value));
+    }
 
-    QString getValueFromBools(const bool* values, uint count) const;
-    QString getValueFromInts(const int* values, uint count) const;
-    QString getValueFromUints(const uint* values, uint count) const;
-    QString getValueFromFloats(const float* values, uint count) const;
-    QString getValueFromDoubles(const double* values, uint count) const;
-    QString getValueFromEnums(const int* values, uint count) const;
-    QString getValueFromPtrs(const int* values, uint count) const;
+    QString getValueFromBools(const bool *values, uint count) const;
+    QString getValueFromInts(const int *values, uint count) const;
+    QString getValueFromUints(const uint *values, uint count) const;
+    QString getValueFromFloats(const float *values, uint count) const;
+    QString getValueFromDoubles(const double *values, uint count) const;
+    QString getValueFromEnums(const int *values, uint count) const;
+    QString getValueFromPtrs(const int *values, uint count) const;
 
-    void appendChild(vogleditor_stateTreeItem* pChild);
+    void appendChild(vogleditor_stateTreeItem *pChild);
 
-    void transferChildren(vogleditor_stateTreeItem* pNewParent);
+    void transferChildren(vogleditor_stateTreeItem *pNewParent);
 
     int childCount() const;
 
-    vogleditor_stateTreeItem* child(int index) const;
+    vogleditor_stateTreeItem *child(int index) const;
 
     int columnCount() const;
 
@@ -79,12 +98,22 @@ public:
 
     virtual bool hasChanged() const;
 
-    virtual QString getDiffedValue() const { return ""; }
+    virtual QString getDiffedValue() const
+    {
+        return "";
+    }
 
-    virtual void wasEdited(bool bEdited) { m_bWasEdited = bEdited; }
-    virtual bool wasEdited() const { return m_bWasEdited; }
+    virtual void wasEdited(bool bEdited)
+    {
+        m_bWasEdited = bEdited;
+    }
+    virtual bool wasEdited() const
+    {
+        return m_bWasEdited;
+    }
 
-    typedef enum {
+    typedef enum
+    {
         cDEFAULT,
         cTEXTURE,
         cSHADER,
@@ -94,13 +123,16 @@ public:
         cBUFFER
     } state_tree_type;
 
-    virtual vogleditor_stateTreeItem::state_tree_type getStateType() const { return cDEFAULT; }
+    virtual vogleditor_stateTreeItem::state_tree_type getStateType() const
+    {
+        return cDEFAULT;
+    }
 
 protected:
-    QList<vogleditor_stateTreeItem*> m_childItems;
+    QList<vogleditor_stateTreeItem *> m_childItems;
     QList<QVariant> m_columnData;
-    vogleditor_stateTreeItem* m_parentItem;
-    vogleditor_QStateTreeModel* m_pModel;
+    vogleditor_stateTreeItem *m_parentItem;
+    vogleditor_QStateTreeModel *m_pModel;
     bool m_bWasEdited;
 
     static QString enum_to_string(GLenum id)
@@ -109,7 +141,7 @@ protected:
         tmp = get_gl_enums().find_name(id);
         if (tmp.isNull() || tmp.isEmpty())
         {
-           tmp = tmp.sprintf("0x%04x", id);
+            tmp = tmp.sprintf("0x%04x", id);
         }
         return tmp;
     }
@@ -125,53 +157,56 @@ protected:
         static QString tmp;
         return tmp.sprintf("%" PRIu64, value);
     }
-
 };
 
 class vogleditor_stateTreeStateVecDiffableItem : public vogleditor_stateTreeItem
 {
 public:
-    vogleditor_stateTreeStateVecDiffableItem(QString name, QString value, vogleditor_stateTreeItem* parent)
+    vogleditor_stateTreeStateVecDiffableItem(QString name, QString value, vogleditor_stateTreeItem *parent)
         : vogleditor_stateTreeItem(name, value, parent),
           m_pDiffBaseState(NULL)
     {
     }
 
-    virtual void set_diff_base_state(const vogl_state_vector* pBaseState)
+    virtual void set_diff_base_state(const vogl_state_vector *pBaseState)
     {
         m_pDiffBaseState = pBaseState;
     }
 
 protected:
-    const vogl_state_vector* m_pDiffBaseState;
+    const vogl_state_vector *m_pDiffBaseState;
 };
-
 
 template <typename T>
 class vogleditor_stateTreeDatatypeItem : public vogleditor_stateTreeStateVecDiffableItem
 {
 public:
-   vogleditor_stateTreeDatatypeItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent);
-   virtual ~vogleditor_stateTreeDatatypeItem() { m_pStateVec = NULL; }
+    vogleditor_stateTreeDatatypeItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem *parent);
+    virtual ~vogleditor_stateTreeDatatypeItem()
+    {
+        m_pStateVec = NULL;
+    }
 
-   virtual bool hasChanged() const;
+    virtual bool hasChanged() const;
 
-   virtual QString getDiffedValue() const;
+    virtual QString getDiffedValue() const;
 
 protected:
-   GLenum m_name;
-   unsigned int m_index;
-   unsigned int m_numComponents;
-   bool m_isIndexed;
-   const vogl_state_vector* m_pStateVec;
+    GLenum m_name;
+    unsigned int m_index;
+    unsigned int m_numComponents;
+    bool m_isIndexed;
+    const vogl_state_vector *m_pStateVec;
 };
 
 class vogleditor_stateTreeStateVecBoolItem : public vogleditor_stateTreeDatatypeItem<bool>
 {
 public:
-    vogleditor_stateTreeStateVecBoolItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, bool* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent);
-    vogleditor_stateTreeStateVecBoolItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent);
-    virtual ~vogleditor_stateTreeStateVecBoolItem() {}
+    vogleditor_stateTreeStateVecBoolItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, bool *values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem *parent);
+    vogleditor_stateTreeStateVecBoolItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, int *values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem *parent);
+    virtual ~vogleditor_stateTreeStateVecBoolItem()
+    {
+    }
 
     virtual QString getDiffedValue() const;
 };
@@ -179,43 +214,51 @@ public:
 class vogleditor_stateTreeStateVecIntItem : public vogleditor_stateTreeDatatypeItem<int>
 {
 public:
-   vogleditor_stateTreeStateVecIntItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent);
-   virtual ~vogleditor_stateTreeStateVecIntItem() {}
+    vogleditor_stateTreeStateVecIntItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, int *values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem *parent);
+    virtual ~vogleditor_stateTreeStateVecIntItem()
+    {
+    }
 
-   virtual QString getDiffedValue() const;
+    virtual QString getDiffedValue() const;
 };
 
 class vogleditor_stateTreeStateVecFloatItem : public vogleditor_stateTreeDatatypeItem<float>
 {
 public:
-   vogleditor_stateTreeStateVecFloatItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, float* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent);
-   virtual ~vogleditor_stateTreeStateVecFloatItem() {}
+    vogleditor_stateTreeStateVecFloatItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, float *values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem *parent);
+    virtual ~vogleditor_stateTreeStateVecFloatItem()
+    {
+    }
 
-   virtual QString getDiffedValue() const;
+    virtual QString getDiffedValue() const;
 };
 
 class vogleditor_stateTreeStateVecEnumItem : public vogleditor_stateTreeDatatypeItem<int>
 {
 public:
-   vogleditor_stateTreeStateVecEnumItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent);
-   virtual ~vogleditor_stateTreeStateVecEnumItem() {}
+    vogleditor_stateTreeStateVecEnumItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, int *values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem *parent);
+    virtual ~vogleditor_stateTreeStateVecEnumItem()
+    {
+    }
 
-   virtual QString getDiffedValue() const;
+    virtual QString getDiffedValue() const;
 };
 
 class vogleditor_stateTreeStateVecPtrItem : public vogleditor_stateTreeDatatypeItem<int>
 {
 public:
-   vogleditor_stateTreeStateVecPtrItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent);
-   virtual ~vogleditor_stateTreeStateVecPtrItem() {}
+    vogleditor_stateTreeStateVecPtrItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, int *values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem *parent);
+    virtual ~vogleditor_stateTreeStateVecPtrItem()
+    {
+    }
 
-   virtual QString getDiffedValue() const;
+    virtual QString getDiffedValue() const;
 };
 
-class vogleditor_stateTreeStateVecMatrixRowItem: public vogleditor_stateTreeStateVecDiffableItem
+class vogleditor_stateTreeStateVecMatrixRowItem : public vogleditor_stateTreeStateVecDiffableItem
 {
 public:
-    vogleditor_stateTreeStateVecMatrixRowItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, float* values, unsigned int numComponents, unsigned int rowIndex, bool isIndexed, vogleditor_stateTreeItem* parent);
+    vogleditor_stateTreeStateVecMatrixRowItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, float *values, unsigned int numComponents, unsigned int rowIndex, bool isIndexed, vogleditor_stateTreeItem *parent);
 
     virtual ~vogleditor_stateTreeStateVecMatrixRowItem()
     {
@@ -231,14 +274,14 @@ private:
     unsigned int m_index;
     unsigned int m_numComponents;
     bool m_isIndexed;
-    const vogl_state_vector* m_pState;
+    const vogl_state_vector *m_pState;
     unsigned int m_rowIndex;
 };
 
-class vogleditor_stateTreeStateVecMatrixItem: public vogleditor_stateTreeStateVecDiffableItem
+class vogleditor_stateTreeStateVecMatrixItem : public vogleditor_stateTreeStateVecDiffableItem
 {
 public:
-    vogleditor_stateTreeStateVecMatrixItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, float* values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent);
+    vogleditor_stateTreeStateVecMatrixItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, float *values, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem *parent);
 
     virtual ~vogleditor_stateTreeStateVecMatrixItem()
     {
@@ -246,19 +289,19 @@ public:
         m_pDiffBaseState = NULL;
     }
 
-   virtual void set_diff_base_state(const vogl_state_vector* pBaseState)
+    virtual void set_diff_base_state(const vogl_state_vector *pBaseState)
     {
         m_pDiffBaseState = pBaseState;
 
-        for (vogleditor_stateTreeStateVecMatrixRowItem** iter = m_rowItems.begin(); iter != m_rowItems.end(); iter++)
+        for (vogleditor_stateTreeStateVecMatrixRowItem **iter = m_rowItems.begin(); iter != m_rowItems.end(); iter++)
         {
             (*iter)->set_diff_base_state(pBaseState);
         }
     }
 
 private:
-    const vogl_state_vector* m_pState;
-    vogl::vector<vogleditor_stateTreeStateVecMatrixRowItem*> m_rowItems;
+    const vogl_state_vector *m_pState;
+    vogl::vector<vogleditor_stateTreeStateVecMatrixRowItem *> m_rowItems;
 };
 
 #endif // VOGLEDITOR_STATETREEITEM_H

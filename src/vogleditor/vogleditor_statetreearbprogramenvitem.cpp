@@ -1,6 +1,6 @@
 #include "vogleditor_statetreearbprogramenvitem.h"
 
-vogleditor_stateTreeArbProgramEnvParameterItem::vogleditor_stateTreeArbProgramEnvParameterItem(unsigned int paramIndex, vec4F_vec& envParams, vogleditor_stateTreeItem* parent)
+vogleditor_stateTreeArbProgramEnvParameterItem::vogleditor_stateTreeArbProgramEnvParameterItem(unsigned int paramIndex, vec4F_vec &envParams, vogleditor_stateTreeItem *parent)
     : vogleditor_stateTreeItem(int_to_string(paramIndex), getValueFromFloats(envParams[paramIndex].get_ptr(), 4), parent),
       m_paramIndex(paramIndex),
       m_state(envParams[paramIndex]),
@@ -42,7 +42,7 @@ QString vogleditor_stateTreeArbProgramEnvParameterItem::getDiffedValue() const
 }
 
 //=============================================================================
-vogleditor_stateTreeArbProgramEnvItem::vogleditor_stateTreeArbProgramEnvItem(QString name, unsigned int index, vogleditor_stateTreeItem* parentNode, vogl_arb_program_environment_state& state)
+vogleditor_stateTreeArbProgramEnvItem::vogleditor_stateTreeArbProgramEnvItem(QString name, unsigned int index, vogleditor_stateTreeItem *parentNode, vogl_arb_program_environment_state &state)
     : vogleditor_stateTreeItem(name, "", parentNode),
       m_index(index),
       m_pState(&state),
@@ -79,9 +79,9 @@ bool vogleditor_stateTreeArbProgramEnvItem::hasChanged() const
             }
 
             // Also mark as different if any parameters are different
-            for (QList<vogleditor_stateTreeItem*>::const_iterator childIter = m_childItems.begin(); childIter != m_childItems.end(); childIter++)
+            for (QList<vogleditor_stateTreeItem *>::const_iterator childIter = m_childItems.begin(); childIter != m_childItems.end(); childIter++)
             {
-                const vogleditor_stateTreeArbProgramEnvParameterItem* pItem = static_cast<const vogleditor_stateTreeArbProgramEnvParameterItem*>(*childIter);
+                const vogleditor_stateTreeArbProgramEnvParameterItem *pItem = static_cast<const vogleditor_stateTreeArbProgramEnvParameterItem *>(*childIter);
                 if (pItem->hasChanged())
                     return true;
             }
@@ -112,4 +112,3 @@ QString vogleditor_stateTreeArbProgramEnvItem::getDiffedValue() const
     // didn't find the current enum in the base state, so this one must be new
     return "non-existent";
 }
-

@@ -11,7 +11,7 @@ vogleditor_output::~vogleditor_output()
 {
 }
 
-void vogleditor_output::message(const char* pMessage)
+void vogleditor_output::message(const char *pMessage)
 {
     if (m_pTextEdit != NULL)
     {
@@ -19,7 +19,7 @@ void vogleditor_output::message(const char* pMessage)
     }
 }
 
-void vogleditor_output::warning(const char* pWarning)
+void vogleditor_output::warning(const char *pWarning)
 {
     if (m_pTextEdit != NULL)
     {
@@ -28,7 +28,7 @@ void vogleditor_output::warning(const char* pWarning)
     }
 }
 
-void vogleditor_output::error(const char* pError)
+void vogleditor_output::error(const char *pError)
 {
     if (m_pTextEdit != NULL)
     {

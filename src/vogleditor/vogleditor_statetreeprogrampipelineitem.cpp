@@ -2,7 +2,7 @@
 #include "vogleditor_statetreeprogramitem.h"
 
 //=============================================================================
-vogleditor_stateTreeProgramPipelineUIntItem::vogleditor_stateTreeProgramPipelineUIntItem(QString name, uint (vogl_sso_state::* func)(void) const, vogleditor_stateTreeItem* parent, const vogl_sso_state& state)
+vogleditor_stateTreeProgramPipelineUIntItem::vogleditor_stateTreeProgramPipelineUIntItem(QString name, uint (vogl_sso_state::*func)(void) const, vogleditor_stateTreeItem *parent, const vogl_sso_state &state)
     : vogleditor_stateTreeProgramPipelineDiffableItem(name, "", parent, state),
       m_pFunc(func)
 {
@@ -28,7 +28,7 @@ QString vogleditor_stateTreeProgramPipelineUIntItem::getDiffedValue() const
 }
 
 //=============================================================================
-vogleditor_stateTreeProgramPipelineUIntVecItem::vogleditor_stateTreeProgramPipelineUIntVecItem(QString name, uint (vogl_sso_state::* func)(uint) const, uint index, vogleditor_stateTreeItem* parent, const vogl_sso_state& state)
+vogleditor_stateTreeProgramPipelineUIntVecItem::vogleditor_stateTreeProgramPipelineUIntVecItem(QString name, uint (vogl_sso_state::*func)(uint) const, uint index, vogleditor_stateTreeItem *parent, const vogl_sso_state &state)
     : vogleditor_stateTreeProgramPipelineDiffableItem(name, "", parent, state),
       m_pFunc(func),
       m_index(index)
@@ -55,7 +55,7 @@ QString vogleditor_stateTreeProgramPipelineUIntVecItem::getDiffedValue() const
 }
 
 //=============================================================================
-vogleditor_stateTreeProgramPipelineItem::vogleditor_stateTreeProgramPipelineItem(QString name, GLuint64 handle, vogleditor_stateTreeItem* parent, const vogl_sso_state& state)
+vogleditor_stateTreeProgramPipelineItem::vogleditor_stateTreeProgramPipelineItem(QString name, GLuint64 handle, vogleditor_stateTreeItem *parent, const vogl_sso_state &state)
     : vogleditor_stateTreeItem(name, "", parent),
       m_handle(handle),
       m_pState(&state),

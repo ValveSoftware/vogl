@@ -2,21 +2,21 @@
 #include "vogl_general_context_state.h"
 #include "vogl_state_vector.h"
 
-vogleditor_stateTreeContextGeneralCompressTextureFormatItem::vogleditor_stateTreeContextGeneralCompressTextureFormatItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector& stateVec, int formatEnum, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem* parent)
-   : vogleditor_stateTreeDatatypeItem<int>(glenumName, name, index, stateVec, numComponents, isIndexed, parent),
-     m_formatEnum(formatEnum),
-     m_pDiffBaseGeneralState(NULL)
+vogleditor_stateTreeContextGeneralCompressTextureFormatItem::vogleditor_stateTreeContextGeneralCompressTextureFormatItem(QString glenumName, GLenum name, unsigned int index, const vogl_state_vector &stateVec, int formatEnum, unsigned int numComponents, bool isIndexed, vogleditor_stateTreeItem *parent)
+    : vogleditor_stateTreeDatatypeItem<int>(glenumName, name, index, stateVec, numComponents, isIndexed, parent),
+      m_formatEnum(formatEnum),
+      m_pDiffBaseGeneralState(NULL)
 {
     static QString tmp;
 
-    switch(numComponents)
+    switch (numComponents)
     {
-    case 1:
-        setValue(enum_to_string(m_formatEnum));
-        break;
-    default:
-        VOGL_ASSERT(!"Unhandled component count in vogleditor_stateTreeContextGeneralCompressTextureFormatItem");
-        break;
+        case 1:
+            setValue(enum_to_string(m_formatEnum));
+            break;
+        default:
+            VOGL_ASSERT(!"Unhandled component count in vogleditor_stateTreeContextGeneralCompressTextureFormatItem");
+            break;
     }
 }
 
@@ -34,23 +34,23 @@ bool vogleditor_stateTreeContextGeneralCompressTextureFormatItem::hasChanged() c
         return true;
     }
 
-    int* pFormats = vogl_new_array(int, base_num_formats);
+    int *pFormats = vogl_new_array(int, base_num_formats);
     if (m_pDiffBaseGeneralState->get<int>(GL_COMPRESSED_TEXTURE_FORMATS, 0, pFormats, base_num_formats))
     {
         // search for the current format in the list of base formats
-       for(int i = 0; i < base_num_formats; i++)
-       {
-           if (m_formatEnum == pFormats[i])
-           {
-               // the format was found, so consider this as unchanged
-               vogl_delete_array(pFormats);
-               return false;
-           }
-       }
+        for (int i = 0; i < base_num_formats; i++)
+        {
+            if (m_formatEnum == pFormats[i])
+            {
+                // the format was found, so consider this as unchanged
+                vogl_delete_array(pFormats);
+                return false;
+            }
+        }
 
-       // the format was not found, consider it as changed
-       vogl_delete_array(pFormats);
-       return true;
+        // the format was not found, consider it as changed
+        vogl_delete_array(pFormats);
+        return true;
     }
     else
     {
@@ -64,7 +64,7 @@ bool vogleditor_stateTreeContextGeneralCompressTextureFormatItem::hasChanged() c
 
 //=============================================================================
 
-vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(QString name, QString value, vogleditor_stateTreeItem* parent, vogl_general_context_state& generalState, const vogl_context_info& info)
+vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(QString name, QString value, vogleditor_stateTreeItem *parent, vogl_general_context_state &generalState, const vogl_context_info &info)
     : vogleditor_stateTreeItem(name, value, parent),
       m_pState(&generalState),
       m_pDiffBaseState(NULL)
@@ -79,35 +79,86 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
 
     QString tmp;
 
-#define GET_PTR(name, num) if (generalState.get<int>(name, 0, iVals, num)) { vogleditor_stateTreeStateVecPtrItem* pPtrItem = new vogleditor_stateTreeStateVecPtrItem(#name, name, 0, generalState, iVals, num, false, this); this->m_diffableItems.push_back(pPtrItem); this->appendChild(pPtrItem); }
-#define GET_BOOL(name, num) if (generalState.get<bool>(name, 0, bVals, num)) { vogleditor_stateTreeStateVecBoolItem* pBoolItem = new vogleditor_stateTreeStateVecBoolItem(#name, name, 0, generalState, bVals, num, false, this); this->m_diffableItems.push_back(pBoolItem); this->appendChild(pBoolItem); }
-#define GET_INT(name, num) if (generalState.get<int>(name, 0, iVals, num)) { vogleditor_stateTreeStateVecIntItem* pIntItem = new vogleditor_stateTreeStateVecIntItem(#name, name, 0, generalState, iVals, num, false, this); this->m_diffableItems.push_back(pIntItem); this->appendChild(pIntItem); }
-#define GET_ENUM(name, num) if (generalState.get<int>(name, 0, iVals, num)) { vogleditor_stateTreeStateVecEnumItem* pEnumItem = new vogleditor_stateTreeStateVecEnumItem(#name, name, 0, generalState, iVals, num, false, this); this->m_diffableItems.push_back(pEnumItem); this->appendChild(pEnumItem); }
-#define GET_FLOAT(name, num) if (generalState.get<float>(name, 0, fVals, num)) { vogleditor_stateTreeStateVecFloatItem* pFloatItem = new vogleditor_stateTreeStateVecFloatItem(#name, name, 0, generalState, fVals, num, false, this); this->m_diffableItems.push_back(pFloatItem); this->appendChild(pFloatItem); }
+#define GET_PTR(name, num)                                                                                                                              \
+    if (generalState.get<int>(name, 0, iVals, num))                                                                                                     \
+    {                                                                                                                                                   \
+        vogleditor_stateTreeStateVecPtrItem *pPtrItem = new vogleditor_stateTreeStateVecPtrItem(#name, name, 0, generalState, iVals, num, false, this); \
+        this->m_diffableItems.push_back(pPtrItem);                                                                                                      \
+        this->appendChild(pPtrItem);                                                                                                                    \
+    }
+#define GET_BOOL(name, num)                                                                                                                                \
+    if (generalState.get<bool>(name, 0, bVals, num))                                                                                                       \
+    {                                                                                                                                                      \
+        vogleditor_stateTreeStateVecBoolItem *pBoolItem = new vogleditor_stateTreeStateVecBoolItem(#name, name, 0, generalState, bVals, num, false, this); \
+        this->m_diffableItems.push_back(pBoolItem);                                                                                                        \
+        this->appendChild(pBoolItem);                                                                                                                      \
+    }
+#define GET_INT(name, num)                                                                                                                              \
+    if (generalState.get<int>(name, 0, iVals, num))                                                                                                     \
+    {                                                                                                                                                   \
+        vogleditor_stateTreeStateVecIntItem *pIntItem = new vogleditor_stateTreeStateVecIntItem(#name, name, 0, generalState, iVals, num, false, this); \
+        this->m_diffableItems.push_back(pIntItem);                                                                                                      \
+        this->appendChild(pIntItem);                                                                                                                    \
+    }
+#define GET_ENUM(name, num)                                                                                                                                \
+    if (generalState.get<int>(name, 0, iVals, num))                                                                                                        \
+    {                                                                                                                                                      \
+        vogleditor_stateTreeStateVecEnumItem *pEnumItem = new vogleditor_stateTreeStateVecEnumItem(#name, name, 0, generalState, iVals, num, false, this); \
+        this->m_diffableItems.push_back(pEnumItem);                                                                                                        \
+        this->appendChild(pEnumItem);                                                                                                                      \
+    }
+#define GET_FLOAT(name, num)                                                                                                                                  \
+    if (generalState.get<float>(name, 0, fVals, num))                                                                                                         \
+    {                                                                                                                                                         \
+        vogleditor_stateTreeStateVecFloatItem *pFloatItem = new vogleditor_stateTreeStateVecFloatItem(#name, name, 0, generalState, fVals, num, false, this); \
+        this->m_diffableItems.push_back(pFloatItem);                                                                                                          \
+        this->appendChild(pFloatItem);                                                                                                                        \
+    }
 
-#define GET_MATRIX(name, num) if (generalState.get<float>(name, 0, fVals, num)) {\
-    vogleditor_stateTreeStateVecMatrixItem* pMatrixNode = new vogleditor_stateTreeStateVecMatrixItem(#name, name, 0, generalState, fVals, num, false, this);\
-    this->m_diffableItems.push_back(pMatrixNode);\
-    this->appendChild(pMatrixNode); }
+#define GET_MATRIX(name, num)                                                                                                                                    \
+    if (generalState.get<float>(name, 0, fVals, num))                                                                                                            \
+    {                                                                                                                                                            \
+        vogleditor_stateTreeStateVecMatrixItem *pMatrixNode = new vogleditor_stateTreeStateVecMatrixItem(#name, name, 0, generalState, fVals, num, false, this); \
+        this->m_diffableItems.push_back(pMatrixNode);                                                                                                            \
+        this->appendChild(pMatrixNode);                                                                                                                          \
+    }
 
 #define STR_INT(val) tmp.sprintf("%d", val)
 
-    // TODO: Properly support diffing indexed state
-#define GET_INDEXED_INT(name, num, totalIndices) if (totalIndices > 0) {vogleditor_stateTreeItem* pNode = new vogleditor_stateTreeItem(#name, "", this);\
-    for (int i = 0; i < totalIndices; i++) {\
-        if (generalState.get<int>(name, i, iVals, num, true)) {\
-            vogleditor_stateTreeStateVecIntItem* pIntItem = new vogleditor_stateTreeStateVecIntItem(STR_INT(i), name, i, generalState, &(iVals[i]), num, true, pNode);\
-            this->m_diffableItems.push_back(pIntItem);\
-            pNode->appendChild(pIntItem); }\
-    } pNode->setValue(tmp.sprintf("[%d]", pNode->childCount())); this->appendChild(pNode);}
+// TODO: Properly support diffing indexed state
+#define GET_INDEXED_INT(name, num, totalIndices)                                                                                                                           \
+    if (totalIndices > 0)                                                                                                                                                  \
+    {                                                                                                                                                                      \
+        vogleditor_stateTreeItem *pNode = new vogleditor_stateTreeItem(#name, "", this);                                                                                   \
+        for (int i = 0; i < totalIndices; i++)                                                                                                                             \
+        {                                                                                                                                                                  \
+            if (generalState.get<int>(name, i, iVals, num, true))                                                                                                          \
+            {                                                                                                                                                              \
+                vogleditor_stateTreeStateVecIntItem *pIntItem = new vogleditor_stateTreeStateVecIntItem(STR_INT(i), name, i, generalState, &(iVals[i]), num, true, pNode); \
+                this->m_diffableItems.push_back(pIntItem);                                                                                                                 \
+                pNode->appendChild(pIntItem);                                                                                                                              \
+            }                                                                                                                                                              \
+        }                                                                                                                                                                  \
+        pNode->setValue(tmp.sprintf("[%d]", pNode->childCount()));                                                                                                         \
+        this->appendChild(pNode);                                                                                                                                          \
+    }
 
-#define GET_INDEXED_BOOL(name, num, totalIndices) if (totalIndices > 0) {vogleditor_stateTreeItem* pNode = new vogleditor_stateTreeItem(#name, "", this);\
-    for (int i = 0; i < totalIndices; i++) {\
-        if (generalState.get<bool>(name, i, bVals, num, true)) {\
-            vogleditor_stateTreeStateVecBoolItem* pBoolItem = new vogleditor_stateTreeStateVecBoolItem(STR_INT(i), name, i, generalState, &(bVals[i]), num, true, pNode);\
-            this->m_diffableItems.push_back(pBoolItem);\
-            pNode->appendChild(pBoolItem); }\
-    } pNode->setValue(tmp.sprintf("[%d]", pNode->childCount())); this->appendChild(pNode);}
+#define GET_INDEXED_BOOL(name, num, totalIndices)                                                                                                                             \
+    if (totalIndices > 0)                                                                                                                                                     \
+    {                                                                                                                                                                         \
+        vogleditor_stateTreeItem *pNode = new vogleditor_stateTreeItem(#name, "", this);                                                                                      \
+        for (int i = 0; i < totalIndices; i++)                                                                                                                                \
+        {                                                                                                                                                                     \
+            if (generalState.get<bool>(name, i, bVals, num, true))                                                                                                            \
+            {                                                                                                                                                                 \
+                vogleditor_stateTreeStateVecBoolItem *pBoolItem = new vogleditor_stateTreeStateVecBoolItem(STR_INT(i), name, i, generalState, &(bVals[i]), num, true, pNode); \
+                this->m_diffableItems.push_back(pBoolItem);                                                                                                                   \
+                pNode->appendChild(pBoolItem);                                                                                                                                \
+            }                                                                                                                                                                 \
+        }                                                                                                                                                                     \
+        pNode->setValue(tmp.sprintf("[%d]", pNode->childCount()));                                                                                                            \
+        this->appendChild(pNode);                                                                                                                                             \
+    }
 
     GET_INT(GL_ACCUM_ALPHA_BITS, 1);
     GET_INT(GL_ACCUM_BLUE_BITS, 1);
@@ -181,13 +232,13 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
     {
         if (num_compressed_texture_formats > 0)
         {
-            int* pFormats = vogl_new_array(int, num_compressed_texture_formats);
+            int *pFormats = vogl_new_array(int, num_compressed_texture_formats);
             if (generalState.get<int>(GL_COMPRESSED_TEXTURE_FORMATS, 0, pFormats, num_compressed_texture_formats))
             {
-                vogleditor_stateTreeItem* pNode = new vogleditor_stateTreeItem("GL_COMPRESSED_TEXTURE_FORMATS", tmp.sprintf("[%d]", num_compressed_texture_formats), this);
+                vogleditor_stateTreeItem *pNode = new vogleditor_stateTreeItem("GL_COMPRESSED_TEXTURE_FORMATS", tmp.sprintf("[%d]", num_compressed_texture_formats), this);
                 for (int i = 0; i < num_compressed_texture_formats; i++)
                 {
-                    vogleditor_stateTreeContextGeneralCompressTextureFormatItem* pEnumItem = new vogleditor_stateTreeContextGeneralCompressTextureFormatItem(STR_INT(i), GL_COMPRESSED_TEXTURE_FORMATS, i, generalState, pFormats[i], 1, true, pNode);
+                    vogleditor_stateTreeContextGeneralCompressTextureFormatItem *pEnumItem = new vogleditor_stateTreeContextGeneralCompressTextureFormatItem(STR_INT(i), GL_COMPRESSED_TEXTURE_FORMATS, i, generalState, pFormats[i], 1, true, pNode);
                     m_formatItems.push_back(pEnumItem);
                     pNode->appendChild(pEnumItem);
                 }
@@ -316,7 +367,7 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
     GET_INT(GL_LINE_STIPPLE_PATTERN, 1);
     GET_INT(GL_LINE_STIPPLE_REPEAT, 1);
     GET_FLOAT(GL_LINE_WIDTH_GRANULARITY, 1); // replaced with GL_SMOOTH_LINE_WIDTH_GRANULARITY
-    GET_FLOAT(GL_LINE_WIDTH_RANGE, 2);// replaced with GL_SMOOTH_LINE_WIDTH_RANGE
+    GET_FLOAT(GL_LINE_WIDTH_RANGE, 2);       // replaced with GL_SMOOTH_LINE_WIDTH_RANGE
     GET_INT(GL_LIST_BASE, 1);
     GET_INT(GL_LIST_INDEX, 1);
     GET_ENUM(GL_LIST_MODE, 1);
@@ -354,7 +405,7 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
     GET_INT(GL_MAX_ARRAY_TEXTURE_LAYERS, 1);
     GET_INT(GL_MAX_ATTRIB_STACK_DEPTH, 1);
     GET_INT(GL_MAX_CLIENT_ATTRIB_STACK_DEPTH, 1);
-    GET_INT(GL_MAX_CLIP_PLANES, 1); // aka GL_MAX_CLIP_DISTANCES
+    GET_INT(GL_MAX_CLIP_PLANES, 1);    // aka GL_MAX_CLIP_DISTANCES
     GET_INT(GL_MAX_CLIP_DISTANCES, 1); // alias to GL_MAX_CLIP_PLANES
     GET_INT(GL_MAX_COLOR_ATTACHMENTS, 1);
     GET_INT(GL_MAX_COLOR_MATRIX_STACK_DEPTH, 1);
@@ -461,7 +512,6 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
     GET_BOOL(GL_MULTISAMPLE, 1);
     GET_BOOL(GL_MINMAX, 1);
 
-
     GET_INT(GL_NAME_STACK_DEPTH, 1);
     GET_BOOL(GL_NORMAL_ARRAY, 1);
     GET_INT(GL_NORMAL_ARRAY_BUFFER_BINDING, 1);
@@ -538,7 +588,7 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
     GET_INT(GL_PROJECTION_STACK_DEPTH, 1);
     GET_INT(GL_PROGRAM_BINARY_FORMATS, 1);
     GET_INT(GL_PROGRAM_PIPELINE_BINDING, 1);
-    GET_BOOL(GL_PROGRAM_POINT_SIZE, 1);  // alias of GL_VERTEX_PROGRAM_POINT_SIZE from GL2
+    GET_BOOL(GL_PROGRAM_POINT_SIZE, 1); // alias of GL_VERTEX_PROGRAM_POINT_SIZE from GL2
     GET_ENUM(GL_PROVOKING_VERTEX, 1);
 
     GET_ENUM(GL_READ_BUFFER, 1);
@@ -601,14 +651,32 @@ vogleditor_stateTreeContextGeneralItem::vogleditor_stateTreeContextGeneralItem(Q
     GET_BOOL(GL_STEREO, 1);
     GET_INT(GL_SUBPIXEL_BITS, 1);
 
-#define GET_TC_BOOL(name, index, num) if (generalState.get<bool>(name, index, bVals, num)) { vogleditor_stateTreeStateVecBoolItem* pBoolItem = new vogleditor_stateTreeStateVecBoolItem(#name, name, index, generalState, bVals, num, false, pTexUnitNode); this->m_diffableItems.push_back(pBoolItem); pTexUnitNode->appendChild(pBoolItem); }
-#define GET_TC_INT(name, index, num) if (generalState.get<int>(name, index, iVals, num)) { vogleditor_stateTreeStateVecIntItem* pIntItem = new vogleditor_stateTreeStateVecIntItem(#name, name, index, generalState, iVals, num, false, pTexUnitNode); this->m_diffableItems.push_back(pIntItem); pTexUnitNode->appendChild(pIntItem); }
-#define GET_TC_FLOAT(name, index, num) if (generalState.get<float>(name, index, fVals, num)) { vogleditor_stateTreeStateVecFloatItem* pFloatItem = new vogleditor_stateTreeStateVecFloatItem(#name, name, index, generalState, fVals, num, false, pTexUnitNode); this->m_diffableItems.push_back(pFloatItem); pTexUnitNode->appendChild(pFloatItem); }
+#define GET_TC_BOOL(name, index, num)                                                                                                                                  \
+    if (generalState.get<bool>(name, index, bVals, num))                                                                                                               \
+    {                                                                                                                                                                  \
+        vogleditor_stateTreeStateVecBoolItem *pBoolItem = new vogleditor_stateTreeStateVecBoolItem(#name, name, index, generalState, bVals, num, false, pTexUnitNode); \
+        this->m_diffableItems.push_back(pBoolItem);                                                                                                                    \
+        pTexUnitNode->appendChild(pBoolItem);                                                                                                                          \
+    }
+#define GET_TC_INT(name, index, num)                                                                                                                                \
+    if (generalState.get<int>(name, index, iVals, num))                                                                                                             \
+    {                                                                                                                                                               \
+        vogleditor_stateTreeStateVecIntItem *pIntItem = new vogleditor_stateTreeStateVecIntItem(#name, name, index, generalState, iVals, num, false, pTexUnitNode); \
+        this->m_diffableItems.push_back(pIntItem);                                                                                                                  \
+        pTexUnitNode->appendChild(pIntItem);                                                                                                                        \
+    }
+#define GET_TC_FLOAT(name, index, num)                                                                                                                                    \
+    if (generalState.get<float>(name, index, fVals, num))                                                                                                                 \
+    {                                                                                                                                                                     \
+        vogleditor_stateTreeStateVecFloatItem *pFloatItem = new vogleditor_stateTreeStateVecFloatItem(#name, name, index, generalState, fVals, num, false, pTexUnitNode); \
+        this->m_diffableItems.push_back(pFloatItem);                                                                                                                      \
+        pTexUnitNode->appendChild(pFloatItem);                                                                                                                            \
+    }
 
     const uint max_texture_unit = info.get_max_texture_image_units();
     for (unsigned int texcoord_index = 0; texcoord_index < max_texture_unit; texcoord_index++)
     {
-        vogleditor_stateTreeItem* pTexUnitNode = new vogleditor_stateTreeItem(tmp.sprintf("GL_TEXTURE%u", texcoord_index), "", this);
+        vogleditor_stateTreeItem *pTexUnitNode = new vogleditor_stateTreeItem(tmp.sprintf("GL_TEXTURE%u", texcoord_index), "", this);
         this->appendChild(pTexUnitNode);
 
         GET_TC_INT(GL_SAMPLER_BINDING, texcoord_index, 1);

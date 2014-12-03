@@ -27,7 +27,7 @@ class vogleditor_stateTreeProgramPipelineItem;
 class vogleditor_stateTreeContextAttributesItem : public vogleditor_stateTreeItem
 {
 public:
-    vogleditor_stateTreeContextAttributesItem(QString name, vogleditor_stateTreeItem* parent, const vogl_context_desc& desc)
+    vogleditor_stateTreeContextAttributesItem(QString name, vogleditor_stateTreeItem *parent, const vogl_context_desc &desc)
         : vogleditor_stateTreeItem(name, "", parent),
           m_pState(&desc),
           m_pDiffBaseState(NULL)
@@ -35,9 +35,16 @@ public:
         setValue(attribsToString(desc.get_attribs()));
     }
 
-    virtual ~vogleditor_stateTreeContextAttributesItem() { m_pState = NULL; m_pDiffBaseState = NULL; }
+    virtual ~vogleditor_stateTreeContextAttributesItem()
+    {
+        m_pState = NULL;
+        m_pDiffBaseState = NULL;
+    }
 
-    void set_diff_base_state(const vogl_context_desc* pBaseState) { m_pDiffBaseState = pBaseState; }
+    void set_diff_base_state(const vogl_context_desc *pBaseState)
+    {
+        m_pDiffBaseState = pBaseState;
+    }
 
     virtual bool hasChanged() const
     {
@@ -46,7 +53,7 @@ public:
             return false;
         }
 
-        const vogl_context_attribs& attribs = m_pState->get_attribs();
+        const vogl_context_attribs &attribs = m_pState->get_attribs();
 
         for (uint i = 0; i < attribs.size(); i++)
         {
@@ -73,10 +80,10 @@ public:
     }
 
 private:
-    const vogl_context_desc* m_pState;
-    const vogl_context_desc* m_pDiffBaseState;
+    const vogl_context_desc *m_pState;
+    const vogl_context_desc *m_pDiffBaseState;
 
-    QString attribsToString(const vogl_context_attribs& attribs) const
+    QString attribsToString(const vogl_context_attribs &attribs) const
     {
         QString attribStr;
         static QString tmp;
@@ -107,8 +114,8 @@ private:
             // check for a value to go with the above attrib
             if (i + 1 < attribs.size())
             {
-               i += 1;
-               attribStr += tmp.sprintf(" = 0x%x", attribs[i]);
+                i += 1;
+                attribStr += tmp.sprintf(" = 0x%x", attribs[i]);
             }
         }
 
@@ -123,7 +130,7 @@ private:
 class vogleditor_stateTreeContextCreationItem : public vogleditor_stateTreeItem
 {
 public:
-    vogleditor_stateTreeContextCreationItem(QString name, vogleditor_stateTreeItem* parent, const vogl_context_desc& desc)
+    vogleditor_stateTreeContextCreationItem(QString name, vogleditor_stateTreeItem *parent, const vogl_context_desc &desc)
         : vogleditor_stateTreeItem(name, "", parent),
           m_pState(&desc),
           m_pDiffBaseState(NULL)
@@ -133,9 +140,16 @@ public:
         setValue(QString(creation_func_entrypoint_desc.m_pName));
     }
 
-    virtual ~vogleditor_stateTreeContextCreationItem() { m_pState = NULL; m_pDiffBaseState = NULL; }
+    virtual ~vogleditor_stateTreeContextCreationItem()
+    {
+        m_pState = NULL;
+        m_pDiffBaseState = NULL;
+    }
 
-    void set_diff_base_state(const vogl_context_desc* pBaseState) { m_pDiffBaseState = pBaseState; }
+    void set_diff_base_state(const vogl_context_desc *pBaseState)
+    {
+        m_pDiffBaseState = pBaseState;
+    }
 
     virtual bool hasChanged() const
     {
@@ -159,15 +173,14 @@ public:
     }
 
 private:
-    const vogl_context_desc* m_pState;
-    const vogl_context_desc* m_pDiffBaseState;
+    const vogl_context_desc *m_pState;
+    const vogl_context_desc *m_pDiffBaseState;
 };
-
 
 class vogleditor_stateTreeContextDirectItem : public vogleditor_stateTreeItem
 {
 public:
-    vogleditor_stateTreeContextDirectItem(QString name, vogleditor_stateTreeItem* parent, const vogl_context_desc& desc)
+    vogleditor_stateTreeContextDirectItem(QString name, vogleditor_stateTreeItem *parent, const vogl_context_desc &desc)
         : vogleditor_stateTreeItem(name, "", parent),
           m_pState(&desc),
           m_pDiffBaseState(NULL)
@@ -175,9 +188,16 @@ public:
         setValue((bool)desc.get_direct());
     }
 
-    virtual ~vogleditor_stateTreeContextDirectItem() { m_pState = NULL; m_pDiffBaseState = NULL; }
+    virtual ~vogleditor_stateTreeContextDirectItem()
+    {
+        m_pState = NULL;
+        m_pDiffBaseState = NULL;
+    }
 
-    void set_diff_base_state(const vogl_context_desc* pBaseState) { m_pDiffBaseState = pBaseState; }
+    void set_diff_base_state(const vogl_context_desc *pBaseState)
+    {
+        m_pDiffBaseState = pBaseState;
+    }
 
     virtual bool hasChanged() const
     {
@@ -201,24 +221,31 @@ public:
     }
 
 private:
-    const vogl_context_desc* m_pState;
-    const vogl_context_desc* m_pDiffBaseState;
+    const vogl_context_desc *m_pState;
+    const vogl_context_desc *m_pDiffBaseState;
 };
 
 class vogleditor_stateTreeContextSharedItem : public vogleditor_stateTreeItem
 {
 public:
-    vogleditor_stateTreeContextSharedItem(QString name, vogleditor_stateTreeItem* parent, const vogl_context_desc& desc)
+    vogleditor_stateTreeContextSharedItem(QString name, vogleditor_stateTreeItem *parent, const vogl_context_desc &desc)
         : vogleditor_stateTreeItem(name, "", parent),
           m_pState(&desc),
           m_pDiffBaseState(NULL)
     {
-        setValue((void*)desc.get_trace_share_context());
+        setValue((void *)desc.get_trace_share_context());
     }
 
-    virtual ~vogleditor_stateTreeContextSharedItem() { m_pState = NULL; m_pDiffBaseState = NULL; }
+    virtual ~vogleditor_stateTreeContextSharedItem()
+    {
+        m_pState = NULL;
+        m_pDiffBaseState = NULL;
+    }
 
-    void set_diff_base_state(const vogl_context_desc* pBaseState) { m_pDiffBaseState = pBaseState; }
+    void set_diff_base_state(const vogl_context_desc *pBaseState)
+    {
+        m_pDiffBaseState = pBaseState;
+    }
 
     virtual bool hasChanged() const
     {
@@ -238,29 +265,41 @@ public:
         }
 
         vogl_trace_ptr_value value = m_pDiffBaseState->get_trace_share_context();
-        return getValueFromPtrs((int*)&value, 1);
+        return getValueFromPtrs((int *)&value, 1);
     }
 
 private:
-    const vogl_context_desc* m_pState;
-    const vogl_context_desc* m_pDiffBaseState;
+    const vogl_context_desc *m_pState;
+    const vogl_context_desc *m_pDiffBaseState;
 };
 
 class vogleditor_stateTreeContextMaterialItem : public vogleditor_stateTreeItem
 {
 public:
-    vogleditor_stateTreeContextMaterialItem(QString name, unsigned int face, vogleditor_stateTreeItem* parent, vogl_material_state& state)
+    vogleditor_stateTreeContextMaterialItem(QString name, unsigned int face, vogleditor_stateTreeItem *parent, vogl_material_state &state)
         : vogleditor_stateTreeItem(name, "", parent),
           m_face(face),
           m_pState(&state),
           m_pDiffBaseState(NULL)
     {
-        vogl_state_vector* pStateVec = state.get_state_vector(face);
+        vogl_state_vector *pStateVec = state.get_state_vector(face);
 
-        int iVals[4] = {0,0,0,0};
-        float fVals[4] = {0,0,0,0};
-#define GET_FLOAT(side, name, num) if (pStateVec->get<float>(name, 0, fVals, num)) { vogleditor_stateTreeStateVecFloatItem* pItem = new vogleditor_stateTreeStateVecFloatItem(#name, name, 0, *(pStateVec), fVals, num, false, this); m_diffableItems.push_back(pItem); this->appendChild(pItem); }
-#define GET_INT(side, name, num) if (pStateVec->get<int>(name, 0, iVals, num)) { vogleditor_stateTreeStateVecIntItem* pItem = new vogleditor_stateTreeStateVecIntItem(#name, name, 0, *(pStateVec), iVals, num, false, this); m_diffableItems.push_back(pItem); this->appendChild(pItem); }
+        int iVals[4] = { 0, 0, 0, 0 };
+        float fVals[4] = { 0, 0, 0, 0 };
+#define GET_FLOAT(side, name, num)                                                                                                                       \
+    if (pStateVec->get<float>(name, 0, fVals, num))                                                                                                      \
+    {                                                                                                                                                    \
+        vogleditor_stateTreeStateVecFloatItem *pItem = new vogleditor_stateTreeStateVecFloatItem(#name, name, 0, *(pStateVec), fVals, num, false, this); \
+        m_diffableItems.push_back(pItem);                                                                                                                \
+        this->appendChild(pItem);                                                                                                                        \
+    }
+#define GET_INT(side, name, num)                                                                                                                     \
+    if (pStateVec->get<int>(name, 0, iVals, num))                                                                                                    \
+    {                                                                                                                                                \
+        vogleditor_stateTreeStateVecIntItem *pItem = new vogleditor_stateTreeStateVecIntItem(#name, name, 0, *(pStateVec), iVals, num, false, this); \
+        m_diffableItems.push_back(pItem);                                                                                                            \
+        this->appendChild(pItem);                                                                                                                    \
+    }
         VOGL_ASSERT(pStateVec->size() == 6);
         GET_FLOAT(face, GL_AMBIENT, 4);
         GET_FLOAT(face, GL_DIFFUSE, 4);
@@ -272,64 +311,66 @@ public:
 #undef GET_INT
     }
 
-    virtual ~vogleditor_stateTreeContextMaterialItem() { m_pState = NULL; m_pDiffBaseState = NULL;}
+    virtual ~vogleditor_stateTreeContextMaterialItem()
+    {
+        m_pState = NULL;
+        m_pDiffBaseState = NULL;
+    }
 
-    void set_diff_base_state(const vogl_material_state* pBaseState)
+    void set_diff_base_state(const vogl_material_state *pBaseState)
     {
         m_pDiffBaseState = pBaseState;
 
-        for (vogleditor_stateTreeStateVecDiffableItem** iter = m_diffableItems.begin(); iter != m_diffableItems.end(); iter++)
+        for (vogleditor_stateTreeStateVecDiffableItem **iter = m_diffableItems.begin(); iter != m_diffableItems.end(); iter++)
         {
             (*iter)->set_diff_base_state(m_pDiffBaseState->get_state_vector(m_face));
         }
     }
 
- private:
+private:
     const unsigned int m_face;
-    const vogl_material_state* m_pState;
-    const vogl_material_state* m_pDiffBaseState;
-    vogl::vector<vogleditor_stateTreeStateVecDiffableItem*> m_diffableItems;
+    const vogl_material_state *m_pState;
+    const vogl_material_state *m_pDiffBaseState;
+    vogl::vector<vogleditor_stateTreeStateVecDiffableItem *> m_diffableItems;
 };
-
 
 class vogleditor_stateTreeContextItem : public vogleditor_stateTreeItem
 {
 public:
-
-    vogleditor_stateTreeContextItem(QString name, QString value, vogleditor_stateTreeItem* parent, vogl_context_snapshot& contextState);
+    vogleditor_stateTreeContextItem(QString name, QString value, vogleditor_stateTreeItem *parent, vogl_context_snapshot &contextState);
 
     virtual ~vogleditor_stateTreeContextItem();
 
-    void set_diff_base_state(const vogl_context_snapshot* pBaseState);
+    void set_diff_base_state(const vogl_context_snapshot *pBaseState);
 
 private:
-    vogl_context_snapshot* m_pState;
-    const vogl_context_snapshot* m_pDiffBaseState;
-    vogleditor_stateTreeContextAttributesItem* m_pAttributesItem;
-    vogleditor_stateTreeContextCreationItem* m_pCreationItem;
-    vogleditor_stateTreeContextDirectItem* m_pDirectItem;
-    vogleditor_stateTreeContextSharedItem* m_pSharedItem;
-    vogleditor_stateTreePolygonStippleItem* m_pPolygonStippleItem;
-    vogleditor_stateTreeTexEnvItem* m_pTexEnvItem;
-    vogl::vector<vogleditor_stateTreeContextInfoItem*> m_contextInfoItems;
-    vogl::vector<vogleditor_stateTreeContextGeneralItem*> m_generalStateItems;
-    vogl::vector<vogleditor_stateTreeStateVecDiffableItem*> m_diffableItems;
-    vogl::vector<vogleditor_stateTreeTextureItem*> m_textureItems;
-    vogl::vector<vogleditor_stateTreeSamplerItem*> m_samplerItems;
-    vogl::vector<vogleditor_stateTreeBufferItem*> m_bufferItems;
-    vogl::vector<vogleditor_stateTreeLightItem*> m_lightItems;
-    vogl::vector<vogleditor_stateTreeContextMaterialItem*> m_materialItems;
-    vogl::vector<vogleditor_stateTreeMatrixStackItem*> m_matrixStackItems;
-    vogl::vector<vogleditor_stateTreeQueryItem*> m_queryItems;
-    vogl::vector<vogleditor_stateTreeRenderbufferItem*> m_renderbufferItems;
-    vogl::vector<vogleditor_stateTreeVertexArrayItem*> m_vertexArrayItems;
-    vogl::vector<vogleditor_stateTreeFramebufferItem*> m_framebufferItems;
-    vogl::vector<vogleditor_stateTreeShaderItem*> m_shaderItems;
-    vogl::vector<vogleditor_stateTreeProgramItem*> m_programItems;
-    vogl::vector<vogleditor_stateTreeSyncItem*> m_syncItems;
-    vogl::vector<vogleditor_stateTreeArbProgramItem*> m_arbProgramItems;
-    vogl::vector<vogleditor_stateTreeArbProgramEnvItem*> m_arbProgramEnvItems;
-    vogl::vector<vogleditor_stateTreeProgramPipelineItem*> m_programPipelineItems;
+    vogl_context_snapshot *m_pState;
+    const vogl_context_snapshot *m_pDiffBaseState;
+    vogleditor_stateTreeContextAttributesItem *m_pAttributesItem;
+    vogleditor_stateTreeContextCreationItem *m_pCreationItem;
+    vogleditor_stateTreeContextDirectItem *m_pDirectItem;
+    vogleditor_stateTreeContextSharedItem *m_pSharedItem;
+    vogleditor_stateTreePolygonStippleItem *m_pPolygonStippleItem;
+    vogleditor_stateTreeTexEnvItem *m_pTexEnvItem;
+    vogl::vector<vogleditor_stateTreeContextInfoItem *> m_contextInfoItems;
+    vogl::vector<vogleditor_stateTreeContextGeneralItem *> m_generalStateItems;
+    vogl::vector<vogleditor_stateTreeStateVecDiffableItem *> m_diffableItems;
+    vogl::vector<vogleditor_stateTreeTextureItem *> m_textureItems;
+    vogl::vector<vogleditor_stateTreeSamplerItem *> m_samplerItems;
+    vogl::vector<vogleditor_stateTreeBufferItem *> m_bufferItems;
+    vogl::vector<vogleditor_stateTreeLightItem *> m_lightItems;
+    vogl::vector<vogleditor_stateTreeContextMaterialItem *> m_materialItems;
+    vogl::vector<vogleditor_stateTreeMatrixStackItem *> m_matrixStackItems;
+    vogl::vector<vogleditor_stateTreeQueryItem *> m_queryItems;
+    vogl::vector<vogleditor_stateTreeRenderbufferItem *> m_renderbufferItems;
+    vogl::vector<vogleditor_stateTreeVertexArrayItem *> m_vertexArrayItems;
+    vogl::vector<vogleditor_stateTreeFramebufferItem *> m_framebufferItems;
+    vogl::vector<vogleditor_stateTreeShaderItem *> m_shaderItems;
+    vogl::vector<vogleditor_stateTreeProgramItem *> m_programItems;
+    vogl::vector<vogleditor_stateTreeSyncItem *> m_syncItems;
+    vogl::vector<vogleditor_stateTreeArbProgramItem *> m_arbProgramItems;
+    vogl::vector<vogleditor_stateTreeArbProgramEnvItem *> m_arbProgramEnvItems;
+    vogl::vector<vogleditor_stateTreeProgramPipelineItem *> m_programPipelineItems;
 };
 
 #endif // VOGLEDITOR_STATETREECONTEXTITEM_H

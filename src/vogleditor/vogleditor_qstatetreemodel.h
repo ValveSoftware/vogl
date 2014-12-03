@@ -41,38 +41,38 @@ class vogleditor_QStateTreeModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
-    vogleditor_QStateTreeModel(QObject* parent);
-    vogleditor_QStateTreeModel(vogleditor_gl_state_snapshot* pSnapshot, vogl_context_snapshot *pContext, vogleditor_gl_state_snapshot* pDiffBaseSnapshot, QObject* parent);
+    vogleditor_QStateTreeModel(QObject *parent);
+    vogleditor_QStateTreeModel(vogleditor_gl_state_snapshot *pSnapshot, vogl_context_snapshot *pContext, vogleditor_gl_state_snapshot *pDiffBaseSnapshot, QObject *parent);
 
     virtual ~vogleditor_QStateTreeModel();
 
     // QAbstractItemModel interface
-    virtual QModelIndex index(int row, int column, const QModelIndex& parent) const;
+    virtual QModelIndex index(int row, int column, const QModelIndex &parent) const;
 
-    virtual QModelIndex parent(const QModelIndex& child) const;
+    virtual QModelIndex parent(const QModelIndex &child) const;
 
-    virtual int rowCount(const QModelIndex& parent) const;
+    virtual int rowCount(const QModelIndex &parent) const;
 
-    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
 
-    virtual QVariant data(const QModelIndex& index, int role) const;
+    virtual QVariant data(const QModelIndex &index, int role) const;
 
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const;
 
     // end QAbstractItemModel interface
 
-    vogleditor_stateTreeItem* root() const;
+    vogleditor_stateTreeItem *root() const;
 
-    vogleditor_gl_state_snapshot* get_snapshot() const;
+    vogleditor_gl_state_snapshot *get_snapshot() const;
 
 private:
-    vogleditor_stateTreeItem* m_rootItem;
+    vogleditor_stateTreeItem *m_rootItem;
     QList<QVariant> m_ColumnTitles;
-    vogleditor_gl_state_snapshot* m_pSnapshot;
-    const vogleditor_gl_state_snapshot* m_pBaseSnapshot;
+    vogleditor_gl_state_snapshot *m_pSnapshot;
+    const vogleditor_gl_state_snapshot *m_pBaseSnapshot;
 
-    void setupModelData(vogleditor_gl_state_snapshot *pSnapshot, vogl_context_snapshot *pContext, vogleditor_stateTreeItem* parent);
+    void setupModelData(vogleditor_gl_state_snapshot *pSnapshot, vogl_context_snapshot *pContext, vogleditor_stateTreeItem *parent);
 };
 
 #endif // VOGLEDITOR_QSTATETREEMODEL_H

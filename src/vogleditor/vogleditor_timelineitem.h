@@ -36,20 +36,20 @@ class vogleditor_apiCallItem;
 class vogleditor_timelineItem
 {
 public:
-    vogleditor_timelineItem(float time, vogleditor_timelineItem* parent = 0);
+    vogleditor_timelineItem(float time, vogleditor_timelineItem *parent = 0);
     vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent = 0);
     ~vogleditor_timelineItem();
 
     void appendChild(vogleditor_timelineItem *child);
 
-    vogleditor_timelineItem* child(int row);
-    vogleditor_timelineItem* parent();
+    vogleditor_timelineItem *child(int row);
+    vogleditor_timelineItem *parent();
 
     int childCount() const;
 
-    QBrush* getBrush();
+    QBrush *getBrush();
 
-    void setBrush(QBrush* brush);
+    void setBrush(QBrush *brush);
 
     float getBeginTime() const;
     float getEndTime() const;
@@ -60,39 +60,39 @@ public:
     bool isSpan() const;
     bool isMarker() const;
 
-    vogleditor_frameItem* getFrameItem() const
+    vogleditor_frameItem *getFrameItem() const
     {
         return m_pFrameItem;
     }
 
-    void setFrameItem(vogleditor_frameItem* pFrameItem)
+    void setFrameItem(vogleditor_frameItem *pFrameItem)
     {
         m_pFrameItem = pFrameItem;
     }
 
-    vogleditor_apiCallItem* getApiCallItem() const
+    vogleditor_apiCallItem *getApiCallItem() const
     {
         return m_pApiCallItem;
     }
 
-    void setApiCallItem(vogleditor_apiCallItem* pItem )
+    void setApiCallItem(vogleditor_apiCallItem *pItem)
     {
         m_pApiCallItem = pItem;
     }
 
 private:
-    QBrush* m_brush;
+    QBrush *m_brush;
     float m_beginTime;
     float m_endTime;
     float m_duration;
     bool m_isSpan;
     float m_maxChildDuration;
 
-    QList<vogleditor_timelineItem*> m_childItems;
+    QList<vogleditor_timelineItem *> m_childItems;
 
-    vogleditor_timelineItem* m_parentItem;
-    vogleditor_frameItem* m_pFrameItem;
-    vogleditor_apiCallItem* m_pApiCallItem;
+    vogleditor_timelineItem *m_parentItem;
+    vogleditor_frameItem *m_pFrameItem;
+    vogleditor_apiCallItem *m_pApiCallItem;
 };
 
 #endif // VOGLEDITOR_TIMELINEITEM_H

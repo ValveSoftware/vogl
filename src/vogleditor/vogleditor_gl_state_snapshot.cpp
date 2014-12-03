@@ -1,6 +1,6 @@
 #include "vogleditor_gl_state_snapshot.h"
 
-vogleditor_gl_state_snapshot::vogleditor_gl_state_snapshot(vogl_gl_state_snapshot* pSnapshot)
+vogleditor_gl_state_snapshot::vogleditor_gl_state_snapshot(vogl_gl_state_snapshot *pSnapshot)
     : m_pSnapshot(pSnapshot),
       m_bEdited(false),
       m_bOutdated(false)

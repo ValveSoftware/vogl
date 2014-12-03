@@ -3,13 +3,13 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-vogleditor_QTrimDialog::vogleditor_QTrimDialog(QString parentTraceFile, uint maxFrameIndex, uint maxTrimLength, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::vogleditor_QTrimDialog),
-    m_maxFrameIndex(maxFrameIndex),
-    m_maxTrimLength(maxTrimLength),
-    m_trim_frame("0"),
-    m_trim_len("1")
+vogleditor_QTrimDialog::vogleditor_QTrimDialog(QString parentTraceFile, uint maxFrameIndex, uint maxTrimLength, QWidget *parent)
+    : QDialog(parent),
+      ui(new Ui::vogleditor_QTrimDialog),
+      m_maxFrameIndex(maxFrameIndex),
+      m_maxTrimLength(maxTrimLength),
+      m_trim_frame("0"),
+      m_trim_len("1")
 {
     ui->setupUi(this);
     ui->trimFrameLineEdit->setText(m_trim_frame);
@@ -62,7 +62,7 @@ void vogleditor_QTrimDialog::on_buttonBox_clicked(QAbstractButton *button)
             QString message = ui->trimFileLineEdit->text();
             message += " already exits.\nWould you like to overwrite it?";
             int ret = QMessageBox::warning(this, tr("File Already Exists"), tr(message.toStdString().c_str()),
-                                 QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
+                                           QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
 
             if (ret == QMessageBox::No)
             {

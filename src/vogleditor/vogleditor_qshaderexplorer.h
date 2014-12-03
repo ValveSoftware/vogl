@@ -9,8 +9,9 @@ class vogl_context_snapshot;
 class vogl_gl_object_state;
 typedef vogl::vector<vogl_gl_object_state *> vogl_gl_object_state_ptr_vec;
 
-namespace Ui {
-class vogleditor_QShaderExplorer;
+namespace Ui
+{
+    class vogleditor_QShaderExplorer;
 }
 
 class vogleditor_QShaderExplorer : public QWidget
@@ -23,11 +24,12 @@ public:
 
     void clear();
 
-    uint set_shader_objects(vogl::vector<vogl_context_snapshot*> sharingContexts);
+    uint set_shader_objects(vogl::vector<vogl_context_snapshot *> sharingContexts);
 
     bool set_active_shader(unsigned long long shaderHandle);
 
-private slots:
+private
+slots:
     void on_shaderListbox_currentIndexChanged(int index);
 
 private:

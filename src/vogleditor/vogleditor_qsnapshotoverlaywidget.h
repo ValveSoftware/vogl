@@ -28,7 +28,8 @@ class vogleditor_OverlayWidget : public QWidget
     }
 
 public:
-    explicit vogleditor_OverlayWidget(QWidget * parent = 0) : QWidget(parent)
+    explicit vogleditor_OverlayWidget(QWidget *parent = 0)
+        : QWidget(parent)
     {
         setAttribute(Qt::WA_NoSystemBackground);
         newParent();
@@ -36,13 +37,13 @@ public:
 
 protected:
     //! Catches resize and child events from the parent widget
-    bool eventFilter(QObject * obj, QEvent * ev) Q_DECL_OVERRIDE
+    bool eventFilter(QObject *obj, QEvent *ev) Q_DECL_OVERRIDE
     {
         if (obj == parent())
         {
             if (ev->type() == QEvent::Resize)
             {
-                QResizeEvent * rev = static_cast<QResizeEvent*>(ev);
+                QResizeEvent *rev = static_cast<QResizeEvent *>(ev);
                 this->resize(rev->size());
             }
             else if (ev->type() == QEvent::ChildAdded)
@@ -54,11 +55,12 @@ protected:
     }
 
     //! Tracks parent widget changes
-    bool event(QEvent* ev) Q_DECL_OVERRIDE
+    bool event(QEvent *ev) Q_DECL_OVERRIDE
     {
         if (ev->type() == QEvent::ParentAboutToChange)
         {
-            if (parent()) parent()->removeEventFilter(this);
+            if (parent())
+                parent()->removeEventFilter(this);
         }
         else if (ev->type() == QEvent::ParentChange)
         {
@@ -73,7 +75,7 @@ class vogleditor_QSnapshotOverlayWidget : public vogleditor_OverlayWidget
     Q_OBJECT
 
 public:
-    vogleditor_QSnapshotOverlayWidget(QWidget * parent = 0);
+    vogleditor_QSnapshotOverlayWidget(QWidget *parent = 0);
 
     ~vogleditor_QSnapshotOverlayWidget()
     {
@@ -96,7 +98,8 @@ protected:
         p.fillRect(rect(), QColor(100, 100, 100, 128));
     }
 
-private slots:
+private
+slots:
     void slot_takeSnapshotButtonClicked()
     {
         emit takeSnapshotButtonClicked();
@@ -106,7 +109,7 @@ signals:
     void takeSnapshotButtonClicked();
 
 private:
-    QPushButton* m_pTakeSnapshotButton;
+    QPushButton *m_pTakeSnapshotButton;
 };
 
 #endif // VOGLEDITOR_QSNAPSHOTOVERLAYWIDGET_H

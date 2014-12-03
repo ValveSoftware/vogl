@@ -36,16 +36,17 @@ GCC_DIAGNOSTIC_POP()
 #include "vogl_buffer_state.h"
 #include "vogl_vector.h"
 
-Q_DECLARE_METATYPE(vogl_buffer_state*);
+Q_DECLARE_METATYPE(vogl_buffer_state *);
 
-vogleditor_QBufferExplorer::vogleditor_QBufferExplorer(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::vogleditor_QBufferExplorer)
+vogleditor_QBufferExplorer::vogleditor_QBufferExplorer(QWidget *parent)
+    : QWidget(parent),
+      ui(new Ui::vogleditor_QBufferExplorer)
 {
     ui->setupUi(this);
 
     ui->bufferTableWidget->setColumnCount(2);
-    ui->bufferTableWidget->setHorizontalHeaderLabels(QStringList() << "Byte Offset" << "Value");
+    ui->bufferTableWidget->setHorizontalHeaderLabels(QStringList() << "Byte Offset"
+                                                                   << "Value");
 
     m_formatParams.push_back(vogleditor_buffer_format_params(1, 1, "0x%02hhx", "8-bit hex"));
     m_formatParams.push_back(vogleditor_buffer_format_params(2, 1, "0x%04hx", "16-bit hex"));
@@ -89,7 +90,7 @@ void vogleditor_QBufferExplorer::clear()
     ui->bufferTableWidget->setRowCount(0);
 }
 
-uint vogleditor_QBufferExplorer::set_buffer_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
+uint vogleditor_QBufferExplorer::set_buffer_objects(vogl::vector<vogl_context_snapshot *> sharingContexts)
 {
     clear();
 
@@ -111,7 +112,7 @@ uint vogleditor_QBufferExplorer::add_buffer_objects(vogl_gl_object_state_ptr_vec
     {
         if ((*iter)->get_type() == cGLSTBuffer)
         {
-            vogl_buffer_state* pState = static_cast<vogl_buffer_state*>(*iter);
+            vogl_buffer_state *pState = static_cast<vogl_buffer_state *>(*iter);
 
             QString valueStr;
 
@@ -146,7 +147,7 @@ bool vogleditor_QBufferExplorer::set_active_buffer(unsigned long long bufferHand
 {
     for (int i = 0; i < ui->bufferComboBox->count(); i++)
     {
-        vogl_buffer_state* pState = ui->bufferComboBox->itemData(i).value<vogl_buffer_state*>();
+        vogl_buffer_state *pState = ui->bufferComboBox->itemData(i).value<vogl_buffer_state *>();
         if (pState->get_snapshot_handle() == bufferHandle)
         {
             ui->bufferComboBox->setCurrentIndex(i);
@@ -157,73 +158,73 @@ bool vogleditor_QBufferExplorer::set_active_buffer(unsigned long long bufferHand
     return false;
 }
 
-void vogleditor_QBufferExplorer::append_value(vogl::dynamic_string& rString, void *dataPtr, uint formatParamIndex)
+void vogleditor_QBufferExplorer::append_value(vogl::dynamic_string &rString, void *dataPtr, uint formatParamIndex)
 {
-    switch(formatParamIndex)
+    switch (formatParamIndex)
     {
-    case 0: // 8-bit hex
-    case 13: // unsigned byte
-    {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint8_t*)dataPtr);
-        break;
-    }
-    case 1: // 16-bit hex
-    case 15: // unsigned short
-    {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint16_t*)dataPtr);
-        break;
-    }
-    case 2: // 32-bit hex
-    case 20: // uint
-    case 21: // uint vec2
-    case 22: // uint vec3
-    case 23: // uint vec4
-    {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint32_t*)dataPtr);
-        break;
-    }
-    case 3: // 64-bit hex
-    {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint64_t*)dataPtr);
-        break;
-    }
-    case 12: // byte
-    {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int8_t*)dataPtr);
-        break;
-    }
-    case 14: // short
-    {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int16_t*)dataPtr);
-        break;
-    }
-    case 4: // float
-    case 5: // float vec2
-    case 6: // float vec3
-    case 7: // float vec4
-    {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(float*)dataPtr);
-        break;
-    }
+        case 0:  // 8-bit hex
+        case 13: // unsigned byte
+        {
+            rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint8_t *)dataPtr);
+            break;
+        }
+        case 1:  // 16-bit hex
+        case 15: // unsigned short
+        {
+            rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint16_t *)dataPtr);
+            break;
+        }
+        case 2:  // 32-bit hex
+        case 20: // uint
+        case 21: // uint vec2
+        case 22: // uint vec3
+        case 23: // uint vec4
+        {
+            rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint32_t *)dataPtr);
+            break;
+        }
+        case 3: // 64-bit hex
+        {
+            rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(uint64_t *)dataPtr);
+            break;
+        }
+        case 12: // byte
+        {
+            rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int8_t *)dataPtr);
+            break;
+        }
+        case 14: // short
+        {
+            rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int16_t *)dataPtr);
+            break;
+        }
+        case 4: // float
+        case 5: // float vec2
+        case 6: // float vec3
+        case 7: // float vec4
+        {
+            rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(float *)dataPtr);
+            break;
+        }
 
-    case 8: // double
-    case 9: // double vec2
-    case 10: // double vec3
-    case 11: // double vec4
-    {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(double*)dataPtr);
-        break;
-    }
-    case 16: // int
-    case 17: // int vec2
-    case 18: // int vec3
-    case 19: // int vec4
-    {
-        rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int32_t*)dataPtr);
-        break;
-    }
-    default:
-        VOGL_ASSERT(!"Unsupported buffer data format");
+        case 8:  // double
+        case 9:  // double vec2
+        case 10: // double vec3
+        case 11: // double vec4
+        {
+            rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(double *)dataPtr);
+            break;
+        }
+        case 16: // int
+        case 17: // int vec2
+        case 18: // int vec3
+        case 19: // int vec4
+        {
+            rString = rString.format_append(m_formatParams[formatParamIndex].m_string_formatter, *(int32_t *)dataPtr);
+            break;
+        }
+        default:
+            VOGL_ASSERT(!"Unsupported buffer data format");
     }
 }
 
@@ -234,21 +235,21 @@ void vogleditor_QBufferExplorer::on_bufferComboBox_currentIndexChanged(int index
     int count = ui->bufferComboBox->count();
     if (index >= 0 && index < count)
     {
-        vogl_buffer_state* pObjState = ui->bufferComboBox->itemData(index).value<vogl_buffer_state*>();
+        vogl_buffer_state *pObjState = ui->bufferComboBox->itemData(index).value<vogl_buffer_state *>();
         if (pObjState == NULL)
         {
             VOGL_ASSERT(!"NULL buffer object type in vogleditor_QBufferExplorer");
             return;
         }
 
-        const uint8_vec& data = pObjState->get_buffer_data();
+        const uint8_vec &data = pObjState->get_buffer_data();
 
         vogleditor_buffer_format_params format = m_formatParams[ui->formatComboBox->currentIndex()];
         uint numComponents = format.m_component_count;
         uint numElements = data.size() / (format.m_component_byte_count * numComponents);
         ui->bufferTableWidget->setRowCount(numElements);
 
-        const uint8_t* dataPtr = data.get_const_ptr();
+        const uint8_t *dataPtr = data.get_const_ptr();
 
         for (uint32_t i = 0; i < numElements; i++)
         {
@@ -256,7 +257,7 @@ void vogleditor_QBufferExplorer::on_bufferComboBox_currentIndexChanged(int index
 
             for (uint32_t c = 0; c < numComponents; c++)
             {
-                append_value(value, (void*)dataPtr, ui->formatComboBox->currentIndex());
+                append_value(value, (void *)dataPtr, ui->formatComboBox->currentIndex());
 
                 // increment to next component
                 dataPtr += format.m_component_byte_count;
@@ -265,7 +266,7 @@ void vogleditor_QBufferExplorer::on_bufferComboBox_currentIndexChanged(int index
                     value += ", ";
             }
 
-            ui->bufferTableWidget->setItem(i, 0, new QTableWidgetItem(QString("%1").arg(i*format.m_component_byte_count*numComponents)));
+            ui->bufferTableWidget->setItem(i, 0, new QTableWidgetItem(QString("%1").arg(i * format.m_component_byte_count * numComponents)));
             ui->bufferTableWidget->setItem(i, 1, new QTableWidgetItem(value.c_str()));
         }
     }
