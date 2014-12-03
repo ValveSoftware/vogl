@@ -29,7 +29,7 @@
 #include "vogleditor_snapshotitem.h"
 #include "vogleditor_apicallitem.h"
 
-class vogleditor_frameItem;
+#include "vogleditor_frameitem.h"
 
 class vogleditor_groupItem : public vogleditor_snapshotItem
 {
@@ -37,6 +37,7 @@ public:
     vogleditor_groupItem(vogleditor_frameItem *pFrameItem)
         : m_pParentFrame(pFrameItem)
     {
+        pFrameItem->appendGroup(this);
     }
 
     ~vogleditor_groupItem()

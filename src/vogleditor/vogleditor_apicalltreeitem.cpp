@@ -76,6 +76,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_frameItem *fra
     {
         m_pModel = m_parentItem->m_pModel;
     }
+
+    parent->appendChild(this);
 }
 
 // Constructor for group nodes
@@ -92,6 +94,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_groupItem *gro
     {
         m_pModel = m_parentItem->m_pModel;
     }
+
+    parent->appendChild(this);
 }
 
 // Constructor for apiCall nodes
@@ -120,6 +124,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_apiCallItem *a
     {
         m_pModel = m_parentItem->m_pModel;
     }
+
+    parent->appendChild(this);
 }
 
 vogleditor_apiCallTreeItem::~vogleditor_apiCallTreeItem()
