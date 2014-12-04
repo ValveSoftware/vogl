@@ -202,7 +202,6 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
             {
                 pCurFrame = vogl_new(vogleditor_frameItem, total_swaps);
                 vogleditor_apiCallTreeItem *pNewFrameNode = vogl_new(vogleditor_apiCallTreeItem, pCurFrame, pParentRoot);
-                pParentRoot->appendChild(pNewFrameNode);
                 m_itemList.append(pNewFrameNode);
 
                 if (pPendingSnapshot != NULL)
@@ -310,7 +309,6 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
 
                 // make tree item for the apicall
                 item = vogl_new(vogleditor_apiCallTreeItem, pCallItem, pCurParent);
-                pCurParent->appendChild(item);
                 m_itemList.append(item);
             }
 
@@ -512,25 +510,15 @@ vogleditor_apiCallTreeItem *vogleditor_QApiCallTreeModel::create_group(vogledito
                                                                        vogleditor_groupItem *&pCurGroupObj,
                                                                        vogleditor_apiCallTreeItem *pParentNode)
 {
-    /* Operations:
- *     + create groupItem object
- *       > add groupItem object to current frame's groupItem list
- * 
- *     + create treeItem object (apiCallTreeItem of "group" type)
- *       > add treeItem object to children of parent treeItem 
- *       > add treeItem object to tree model's (this) apiCallItem list
- */
     if (!g_settings.group_state_render_stat())
     {
         return pParentNode;
     }
-    // Make a new group item
+    // Make new group item and add to frame group list
     pCurGroupObj = vogl_new(vogleditor_groupItem, pCurFrameObj);
-    pCurFrameObj->appendGroup(pCurGroupObj); // (move this to constructor?)
 
-    // Make a new (group) tree item and insert into tree
+    // Make a new (group type) apicalltree item and insert into tree
     vogleditor_apiCallTreeItem *pNewGroupNode = vogl_new(vogleditor_apiCallTreeItem, pCurGroupObj, pParentNode);
-    pParentNode->appendChild(pNewGroupNode);
     m_itemList.append(pNewGroupNode);
     return pNewGroupNode;
 }
