@@ -156,26 +156,26 @@ float vogleditor_apiCallTimelineModel::u64ToFloat(uint64_t value)
     return static_cast<float>(value);
 }
 
-void vogleditor_apiCallTimelineModel::AddApiCallsToTimeline(vogleditor_apiCallTreeItem *pRoot, vogleditor_timelineItem *pDestRoot)
+void vogleditor_apiCallTimelineModel::AddApiCallsToTimeline(vogleditor_apiCallTreeItem *pParentCallTreeItem, vogleditor_timelineItem *pParentTimelineItem)
 {
-    int numChildren = pRoot->childCount();
+    int numChildren = pParentCallTreeItem->childCount();
     for (int c = 0; c < numChildren; c++)
     {
-        vogleditor_apiCallTreeItem *pChild = pRoot->child(c);
+        vogleditor_apiCallTreeItem *pChildCallTreeItem = pParentCallTreeItem->child(c);
 
-        if (pChild->isGroup())
+        if (pChildCallTreeItem->isGroup())
         {
-            AddApiCallsToTimeline(pChild, pDestRoot);
+            AddApiCallsToTimeline(pChildCallTreeItem, pParentTimelineItem);
         }
-        else if (pChild->isApiCall())
+        else if (pChildCallTreeItem->isApiCall())
         {
-            float beginFloat = u64ToFloat(pChild->startTime() - m_rawBaseTime);
-            float endFloat = u64ToFloat(pChild->endTime() - m_rawBaseTime);
+            float beginFloat = u64ToFloat(pChildCallTreeItem->startTime() - m_rawBaseTime);
+            float endFloat = u64ToFloat(pChildCallTreeItem->endTime() - m_rawBaseTime);
 
-            vogleditor_timelineItem *pNewItem = new vogleditor_timelineItem(beginFloat, endFloat, pDestRoot);
-            pNewItem->setApiCallItem(pChild->apiCallItem());
-            pDestRoot->appendChild(pNewItem);
-            AddApiCallsToTimeline(pChild, pNewItem);
+            vogleditor_timelineItem *pNewTimelineItem = new vogleditor_timelineItem(beginFloat, endFloat, pParentTimelineItem);
+            pNewTimelineItem->setApiCallItem(pChildCallTreeItem->apiCallItem());
+            pParentTimelineItem->appendChild(pNewTimelineItem);
+            AddApiCallsToTimeline(pChildCallTreeItem, pNewTimelineItem);
         }
     }
 }
