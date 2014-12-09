@@ -37,11 +37,6 @@ public:
     explicit vogleditor_apiCallTimelineModel(vogleditor_apiCallTreeItem *pRootApiCall);
     void refresh();
 
-signals:
-
-public
-slots:
-
 private:
     void AddApiCallsToTimeline(vogleditor_apiCallTreeItem *pRoot, vogleditor_timelineItem *pDestRoot);
     float u64ToFloat(uint64_t value);

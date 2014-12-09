@@ -26,10 +26,6 @@
 #ifndef VOGLEDITOR_TIMELINEMODEL_H
 #define VOGLEDITOR_TIMELINEMODEL_H
 
-#include <QList>
-#include <QVariant>
-#include <QAbstractItemModel>
-
 class vogleditor_timelineItem;
 
 class vogleditor_timelineModel
@@ -42,13 +38,6 @@ public:
 
 protected:
     vogleditor_timelineItem *m_rootItem;
-
-signals:
-
-public
-slots:
-
-private:
 };
 
 #endif // VOGLEDITOR_TIMELINEMODEL_H
