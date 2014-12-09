@@ -12,7 +12,6 @@
 vogleditor_traceReplayer::vogleditor_traceReplayer()
     : m_pTraceReplayer(vogl_new(vogl_gl_replayer))
 {
-
 }
 
 vogleditor_traceReplayer::~vogleditor_traceReplayer()
@@ -39,7 +38,7 @@ bool vogleditor_traceReplayer::process_events()
     SDL_Event wnd_event;
     while (SDL_PollEvent(&wnd_event))
     {
-        switch(wnd_event.type)
+        switch (wnd_event.type)
         {
             case SDL_WINDOWEVENT_SHOWN:
             case SDL_WINDOWEVENT_RESTORED:
@@ -57,7 +56,7 @@ bool vogleditor_traceReplayer::process_events()
 
             case SDL_WINDOWEVENT:
             {
-                switch(wnd_event.window.event)
+                switch (wnd_event.window.event)
                 {
                     case SDL_WINDOWEVENT_CLOSE:
                         vogl_message_printf("Exiting\n");
@@ -74,11 +73,10 @@ bool vogleditor_traceReplayer::process_events()
         }
     }
 
-
     return true;
 }
 
-bool vogleditor_traceReplayer::applying_snapshot_and_process_resize(const vogl_gl_state_snapshot* pSnapshot)
+bool vogleditor_traceReplayer::applying_snapshot_and_process_resize(const vogl_gl_state_snapshot *pSnapshot)
 {
     vogl_gl_replayer::status_t status = m_pTraceReplayer->begin_applying_snapshot(pSnapshot, false);
 
@@ -108,37 +106,37 @@ bool vogleditor_traceReplayer::applying_snapshot_and_process_resize(const vogl_g
     return bStatus;
 }
 
-vogleditor_tracereplayer_result vogleditor_traceReplayer::take_state_snapshot_if_needed(vogleditor_gl_state_snapshot** ppNewSnapshot, uint32_t apiCallNumber)
+vogleditor_tracereplayer_result vogleditor_traceReplayer::take_state_snapshot_if_needed(vogleditor_gl_state_snapshot **ppNewSnapshot, uint32_t apiCallNumber)
 {
     vogleditor_tracereplayer_result result = VOGLEDITOR_TRR_SUCCESS;
 
     if (ppNewSnapshot != NULL)
     {
-       // get the snapshot after the selected api call
-       if ((!*ppNewSnapshot) && (m_pTraceReplayer->get_last_processed_call_counter() == static_cast<int64_t>(apiCallNumber)))
-       {
-          dynamic_string info;
-          vogleditor_output_message(info.format("Taking snapshot on API call # %u...", apiCallNumber).c_str());
+        // get the snapshot after the selected api call
+        if ((!*ppNewSnapshot) && (m_pTraceReplayer->get_last_processed_call_counter() == static_cast<int64_t>(apiCallNumber)))
+        {
+            dynamic_string info;
+            vogleditor_output_message(info.format("Taking snapshot on API call # %u...", apiCallNumber).c_str());
 
-          vogl_gl_state_snapshot* pNewSnapshot = m_pTraceReplayer->snapshot_state();
-          if (pNewSnapshot == NULL)
-          {
-              result = VOGLEDITOR_TRR_ERROR;
-              vogleditor_output_error("... snapshot failed!");
-          }
-          else
-          {
-              result = VOGLEDITOR_TRR_SNAPSHOT_SUCCESS;
-              vogleditor_output_message("... snapshot succeeded!\n");
-              *ppNewSnapshot = vogl_new(vogleditor_gl_state_snapshot, pNewSnapshot);
-              if (*ppNewSnapshot == NULL)
-              {
-                 result = VOGLEDITOR_TRR_ERROR;
-                 vogleditor_output_error("Allocating memory for snapshot container failed!");
-                 vogl_delete(pNewSnapshot);
-              }
-          }
-       }
+            vogl_gl_state_snapshot *pNewSnapshot = m_pTraceReplayer->snapshot_state();
+            if (pNewSnapshot == NULL)
+            {
+                result = VOGLEDITOR_TRR_ERROR;
+                vogleditor_output_error("... snapshot failed!");
+            }
+            else
+            {
+                result = VOGLEDITOR_TRR_SNAPSHOT_SUCCESS;
+                vogleditor_output_message("... snapshot succeeded!\n");
+                *ppNewSnapshot = vogl_new(vogleditor_gl_state_snapshot, pNewSnapshot);
+                if (*ppNewSnapshot == NULL)
+                {
+                    result = VOGLEDITOR_TRR_ERROR;
+                    vogleditor_output_error("Allocating memory for snapshot container failed!");
+                    vogl_delete(pNewSnapshot);
+                }
+            }
+        }
     }
 
     return result;
@@ -149,7 +147,7 @@ inline bool status_indicates_end(vogl_gl_replayer::status_t status)
     return (status == vogl_gl_replayer::cStatusHardFailure) || (status == vogl_gl_replayer::cStatusAtEOF);
 }
 
-vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apicallTreeItem(vogleditor_apiCallTreeItem* pItem, vogleditor_gl_state_snapshot** ppNewSnapshot, uint64_t apiCallNumber)
+vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apicallTreeItem(vogleditor_apiCallTreeItem *pItem, vogleditor_gl_state_snapshot **ppNewSnapshot, uint64_t apiCallNumber)
 {
     vogleditor_tracereplayer_result result = VOGLEDITOR_TRR_SUCCESS;
 
@@ -161,10 +159,10 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
         pItem->frameItem()->set_screenshot_filename(screenshot_filename.format("%s_%07" PRIu64 ".png", m_screenshot_prefix.c_str(), pItem->frameItem()->frameNumber()));
     }
 
-    vogleditor_apiCallItem* pApiCall = pItem->apiCallItem();
+    vogleditor_apiCallItem *pApiCall = pItem->apiCallItem();
     if (pApiCall != NULL)
     {
-        vogl_trace_packet* pTrace_packet = pApiCall->getTracePacket();
+        vogl_trace_packet *pTrace_packet = pApiCall->getTracePacket();
 
         vogl_gl_replayer::status_t status = vogl_gl_replayer::cStatusOK;
 
@@ -229,7 +227,7 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
 
     if (result == VOGLEDITOR_TRR_SUCCESS && pItem->has_snapshot() && pItem->get_snapshot()->is_edited() && pItem->get_snapshot()->is_valid())
     {
-        if(applying_snapshot_and_process_resize(pItem->get_snapshot()->get_snapshot()))
+        if (applying_snapshot_and_process_resize(pItem->get_snapshot()->get_snapshot()))
         {
             result = VOGLEDITOR_TRR_SUCCESS;
         }
@@ -256,115 +254,115 @@ vogleditor_tracereplayer_result vogleditor_traceReplayer::recursive_replay_apica
     return result;
 }
 
-vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file_reader* m_pTraceReader, vogleditor_apiCallTreeItem* pRootItem, vogleditor_gl_state_snapshot** ppNewSnapshot, uint64_t apiCallNumber, bool endlessMode)
+vogleditor_tracereplayer_result vogleditor_traceReplayer::replay(vogl_trace_file_reader *m_pTraceReader, vogleditor_apiCallTreeItem *pRootItem, vogleditor_gl_state_snapshot **ppNewSnapshot, uint64_t apiCallNumber, bool endlessMode)
 {
-   // reset to beginnning of trace file.
-   m_pTraceReader->seek_to_frame(0);
+    // reset to beginnning of trace file.
+    m_pTraceReader->seek_to_frame(0);
 
-   int initial_window_width = 1280;
-   int initial_window_height = 1024;
+    int initial_window_width = 1280;
+    int initial_window_height = 1024;
 
-   if (!m_window.open(initial_window_width, initial_window_height))
-   {
-      vogleditor_output_error("Failed opening GL replayer window!");
-      return VOGLEDITOR_TRR_ERROR;
-   }
+    if (!m_window.open(initial_window_width, initial_window_height))
+    {
+        vogleditor_output_error("Failed opening GL replayer window!");
+        return VOGLEDITOR_TRR_ERROR;
+    }
 
-   uint replayer_flags = cGLReplayerForceDebugContexts;
+    uint replayer_flags = cGLReplayerForceDebugContexts;
 
-   if (m_screenshot_prefix.size() > 0)
-   {
-       replayer_flags |= cGLReplayerDumpScreenshots;
-       m_pTraceReplayer->set_screenshot_prefix(m_screenshot_prefix.c_str());
-   }
-   
-   if (m_fs_preprocessor.size() > 0)
-   {
-       replayer_flags |= cGLReplayerFSPreprocessor;
-       m_pTraceReplayer->set_fs_preprocessor(m_fs_preprocessor.c_str());
-       // Only check FSpp options when FS preprocessor is enabled
-       if (m_fs_preprocessor_options.size() > 0)
-          m_pTraceReplayer->set_fs_preprocessor_options(m_fs_preprocessor_options.c_str());
+    if (m_screenshot_prefix.size() > 0)
+    {
+        replayer_flags |= cGLReplayerDumpScreenshots;
+        m_pTraceReplayer->set_screenshot_prefix(m_screenshot_prefix.c_str());
+    }
 
-       if (m_fs_preprocessor_prefix.size() > 0)
-           m_pTraceReplayer->set_fs_preprocessor_prefix(m_fs_preprocessor_prefix.c_str());
-   }
+    if (m_fs_preprocessor.size() > 0)
+    {
+        replayer_flags |= cGLReplayerFSPreprocessor;
+        m_pTraceReplayer->set_fs_preprocessor(m_fs_preprocessor.c_str());
+        // Only check FSpp options when FS preprocessor is enabled
+        if (m_fs_preprocessor_options.size() > 0)
+            m_pTraceReplayer->set_fs_preprocessor_options(m_fs_preprocessor_options.c_str());
 
-   if (!m_pTraceReplayer->init(replayer_flags, &m_window, m_pTraceReader->get_sof_packet(), m_pTraceReader->get_multi_blob_manager()))
-   {
-      vogleditor_output_error("Failed initializing GL replayer!");
-      m_window.close();
-      return VOGLEDITOR_TRR_ERROR;
-   }
+        if (m_fs_preprocessor_prefix.size() > 0)
+            m_pTraceReplayer->set_fs_preprocessor_prefix(m_fs_preprocessor_prefix.c_str());
+    }
 
-   timer tm;
-   tm.start();
+    if (!m_pTraceReplayer->init(replayer_flags, &m_window, m_pTraceReader->get_sof_packet(), m_pTraceReader->get_multi_blob_manager()))
+    {
+        vogleditor_output_error("Failed initializing GL replayer!");
+        m_window.close();
+        return VOGLEDITOR_TRR_ERROR;
+    }
 
-   vogleditor_tracereplayer_result result = VOGLEDITOR_TRR_SUCCESS;
+    timer tm;
+    tm.start();
 
-   for ( ; ; )
-   {
-      if (process_events() == false)
-      {
-          result = VOGLEDITOR_TRR_USER_EXIT;
-          break;
-      }
+    vogleditor_tracereplayer_result result = VOGLEDITOR_TRR_SUCCESS;
 
-      if (pRootItem->childCount() > 0)
-      {
-          vogleditor_apiCallTreeItem* pFirstFrame = pRootItem->child(0);
+    for (;;)
+    {
+        if (process_events() == false)
+        {
+            result = VOGLEDITOR_TRR_USER_EXIT;
+            break;
+        }
 
-          bool bStatus = true;
-          // if the first snapshot has not been edited, then restore it here, otherwise it will get restored in the recursive call below.
-          if (pFirstFrame->has_snapshot() && !pFirstFrame->get_snapshot()->is_edited())
-          {
-              // Attempt to initialize GL func pointers here so they're available when loading from a snapshot at start of trace
-              if (load_gl())
-                  vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
+        if (pRootItem->childCount() > 0)
+        {
+            vogleditor_apiCallTreeItem *pFirstFrame = pRootItem->child(0);
 
-              bStatus = applying_snapshot_and_process_resize(pFirstFrame->get_snapshot()->get_snapshot());
-          }
+            bool bStatus = true;
+            // if the first snapshot has not been edited, then restore it here, otherwise it will get restored in the recursive call below.
+            if (pFirstFrame->has_snapshot() && !pFirstFrame->get_snapshot()->is_edited())
+            {
+                // Attempt to initialize GL func pointers here so they're available when loading from a snapshot at start of trace
+                if (load_gl())
+                    vogl_init_actual_gl_entrypoints(vogl_get_proc_address_helper);
 
-          if (bStatus)
-          {
-              // replay each API call.
-              result = recursive_replay_apicallTreeItem(pRootItem, ppNewSnapshot, apiCallNumber);
+                bStatus = applying_snapshot_and_process_resize(pFirstFrame->get_snapshot()->get_snapshot());
+            }
 
-              if (result == VOGLEDITOR_TRR_ERROR)
-              {
-                  QString msg = QString("Replay ending abruptly at frame index %1, global api call %2").arg(m_pTraceReplayer->get_frame_index()).arg(m_pTraceReplayer->get_last_processed_call_counter());
-                  vogleditor_output_error(msg.toStdString().c_str());
-                  break;
-              }
-              else if (result == VOGLEDITOR_TRR_SNAPSHOT_SUCCESS)
-              {
-                  break;
-              }
-              else if (result == VOGLEDITOR_TRR_USER_EXIT)
-              {
-                  vogleditor_output_message("Replay stopped");
-                  break;
-              }
-              else
-              {
-                  QString msg = QString("At trace EOF, frame index %1").arg(m_pTraceReplayer->get_frame_index());
-                  vogleditor_output_message(msg.toStdString().c_str());
-                  if (!endlessMode)
-                  {
-                      break;
-                  }
-              }
-          }
-          else
-          {
-              break;
-          }
-      }
-   }
+            if (bStatus)
+            {
+                // replay each API call.
+                result = recursive_replay_apicallTreeItem(pRootItem, ppNewSnapshot, apiCallNumber);
 
-   m_pTraceReplayer->deinit();
-   m_window.close();
-   return result;
+                if (result == VOGLEDITOR_TRR_ERROR)
+                {
+                    QString msg = QString("Replay ending abruptly at frame index %1, global api call %2").arg(m_pTraceReplayer->get_frame_index()).arg(m_pTraceReplayer->get_last_processed_call_counter());
+                    vogleditor_output_error(msg.toStdString().c_str());
+                    break;
+                }
+                else if (result == VOGLEDITOR_TRR_SNAPSHOT_SUCCESS)
+                {
+                    break;
+                }
+                else if (result == VOGLEDITOR_TRR_USER_EXIT)
+                {
+                    vogleditor_output_message("Replay stopped");
+                    break;
+                }
+                else
+                {
+                    QString msg = QString("At trace EOF, frame index %1").arg(m_pTraceReplayer->get_frame_index());
+                    vogleditor_output_message(msg.toStdString().c_str());
+                    if (!endlessMode)
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    m_pTraceReplayer->deinit();
+    m_window.close();
+    return result;
 }
 
 bool vogleditor_traceReplayer::pause()

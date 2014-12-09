@@ -35,20 +35,22 @@ GCC_DIAGNOSTIC_POP()
 #include "vogl_gl_state_snapshot.h"
 #include "vogl_arb_program_state.h"
 
-Q_DECLARE_METATYPE(vogl_arb_program_state*);
+Q_DECLARE_METATYPE(vogl_arb_program_state *);
 
-vogleditor_QProgramArbExplorer::vogleditor_QProgramArbExplorer(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::vogleditor_QProgramArbExplorer),
-    m_pProgramEnvState(NULL),
-    m_maxEnvParameters(0),
-    m_maxLocalParameters(0)
+vogleditor_QProgramArbExplorer::vogleditor_QProgramArbExplorer(QWidget *parent)
+    : QWidget(parent),
+      ui(new Ui::vogleditor_QProgramArbExplorer),
+      m_pProgramEnvState(NULL),
+      m_maxEnvParameters(0),
+      m_maxLocalParameters(0)
 {
     ui->setupUi(this);
 
     ui->saveShaderButton->setEnabled(false);
     ui->uniformTableWidget->setColumnCount(3);
-    ui->uniformTableWidget->setHorizontalHeaderLabels(QStringList() << "Name" << "Value" << "Type");
+    ui->uniformTableWidget->setHorizontalHeaderLabels(QStringList() << "Name"
+                                                                    << "Value"
+                                                                    << "Type");
     ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
     ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Interactive);
@@ -69,7 +71,7 @@ void vogleditor_QProgramArbExplorer::clear()
     m_pProgramEnvState = NULL;
 }
 
-uint vogleditor_QProgramArbExplorer::set_program_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
+uint vogleditor_QProgramArbExplorer::set_program_objects(vogl::vector<vogl_context_snapshot *> sharingContexts)
 {
     clear();
 
@@ -97,7 +99,7 @@ uint vogleditor_QProgramArbExplorer::add_program_objects(vogl_gl_object_state_pt
     {
         if ((*iter)->get_type() == cGLSTARBProgram)
         {
-            vogl_arb_program_state* pState = static_cast<vogl_arb_program_state*>(*iter);
+            vogl_arb_program_state *pState = static_cast<vogl_arb_program_state *>(*iter);
 
             QString valueStr;
             valueStr = valueStr.sprintf("Program %" PRIu64 " - %s", pState->get_snapshot_handle(), get_gl_enums().find_name(pState->get_target()));
@@ -119,7 +121,7 @@ bool vogleditor_QProgramArbExplorer::set_active_program(unsigned long long progr
     int index = 0;
     for (vogl_gl_object_state_ptr_vec::iterator iter = m_objects.begin(); iter != m_objects.end(); iter++)
     {
-        vogl_arb_program_state* pState = static_cast<vogl_arb_program_state*>(*iter);
+        vogl_arb_program_state *pState = static_cast<vogl_arb_program_state *>(*iter);
         if (pState->get_snapshot_handle() == programHandle)
         {
             ui->programListBox->setCurrentIndex(index);
@@ -137,7 +139,7 @@ void vogleditor_QProgramArbExplorer::on_programListBox_currentIndexChanged(int i
     int count = ui->programListBox->count();
     if (index >= 0 && index < count)
     {
-        vogl_arb_program_state* pObjState = ui->programListBox->itemData(index).value<vogl_arb_program_state*>();
+        vogl_arb_program_state *pObjState = ui->programListBox->itemData(index).value<vogl_arb_program_state *>();
         if (pObjState == NULL)
         {
             VOGL_ASSERT(!"NULL object type in vogleditor_QProgramArbExplorer");
@@ -145,7 +147,7 @@ void vogleditor_QProgramArbExplorer::on_programListBox_currentIndexChanged(int i
         }
 
         // the program strings may not be NULL terminated, so create the string this way to ensure it don't read past the end
-        QString programString = QString::fromLocal8Bit((const char*)pObjState->get_program_string().get_const_ptr(), pObjState->get_program_string_size());
+        QString programString = QString::fromLocal8Bit((const char *)pObjState->get_program_string().get_const_ptr(), pObjState->get_program_string_size());
         ui->shaderTextEdit->setText(programString);
 
         update_uniforms_for_source(programString);
@@ -154,9 +156,9 @@ void vogleditor_QProgramArbExplorer::on_programListBox_currentIndexChanged(int i
     }
 }
 
-void vogleditor_QProgramArbExplorer::update_uniforms_for_source(const QString& programSource)
+void vogleditor_QProgramArbExplorer::update_uniforms_for_source(const QString &programSource)
 {
-    vogl_arb_program_state* pObjState = ui->programListBox->itemData(ui->programListBox->currentIndex()).value<vogl_arb_program_state*>();
+    vogl_arb_program_state *pObjState = ui->programListBox->itemData(ui->programListBox->currentIndex()).value<vogl_arb_program_state *>();
 
     // clear the table
     ui->uniformTableWidget->setRowCount(0);
@@ -167,7 +169,7 @@ void vogleditor_QProgramArbExplorer::update_uniforms_for_source(const QString& p
         programEnvIndex = vogl_arb_program_environment_state::cFragmentTarget;
     }
 
-    const vec4F_vec& envParams = m_pProgramEnvState->get_env_params(programEnvIndex);
+    const vec4F_vec &envParams = m_pProgramEnvState->get_env_params(programEnvIndex);
     uint rowIndex = 0;
     for (uint i = 0; i < m_maxEnvParameters; i++)
     {
@@ -183,7 +185,7 @@ void vogleditor_QProgramArbExplorer::update_uniforms_for_source(const QString& p
         }
     }
 
-    const vec4F_vec& localParams = pObjState->get_program_local_params();
+    const vec4F_vec &localParams = pObjState->get_program_local_params();
     for (uint i = 0; i < m_maxLocalParameters; i++)
     {
         QString varName = QString("program.local[%1]").arg(i);
@@ -216,7 +218,7 @@ void vogleditor_QProgramArbExplorer::on_saveShaderButton_clicked()
     int index = ui->programListBox->currentIndex();
     if (index >= 0 && ui->programListBox->count() > 0)
     {
-        vogl_arb_program_state* pProgramState = ui->programListBox->itemData(index).value<vogl_arb_program_state*>();
+        vogl_arb_program_state *pProgramState = ui->programListBox->itemData(index).value<vogl_arb_program_state *>();
         if (pProgramState == NULL)
         {
             VOGL_ASSERT(!"NULL program object type in vogleditor_QProgramArbExplorer");

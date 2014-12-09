@@ -3,14 +3,14 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-vogleditor_QDumpDialog::vogleditor_QDumpDialog(QString parentTraceFile, QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::vogleditor_QDumpDialog),
-    m_minGlCall(0),
-    m_maxGlCall(1000000),
-    m_first_gl_call("0"),
-    m_last_gl_call("1000000"),
-    m_prefix("")
+vogleditor_QDumpDialog::vogleditor_QDumpDialog(QString parentTraceFile, QWidget *parent)
+    : QDialog(parent),
+      ui(new Ui::vogleditor_QDumpDialog),
+      m_minGlCall(0),
+      m_maxGlCall(1000000),
+      m_first_gl_call("0"),
+      m_last_gl_call("1000000"),
+      m_prefix("")
 {
     ui->setupUi(this);
     ui->dumpFirstLineEdit->setText(m_first_gl_call);
@@ -26,7 +26,7 @@ vogleditor_QDumpDialog::~vogleditor_QDumpDialog()
 void vogleditor_QDumpDialog::on_buttonBox1_clicked(QAbstractButton *button)
 {
     if (button == (QAbstractButton *)ui->buttonBox1->button(QDialogButtonBox::Ok))
-//    if (button == ui->buttonBox1->button(QDialogButtonBox::Ok))
+    //    if (button == ui->buttonBox1->button(QDialogButtonBox::Ok))
     {
         // validate the dump start gl call
         bool bValidCall = false;

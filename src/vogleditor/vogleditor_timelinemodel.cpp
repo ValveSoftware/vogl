@@ -40,7 +40,7 @@ vogleditor_timelineModel::~vogleditor_timelineModel()
     }
 }
 
-vogleditor_timelineItem* vogleditor_timelineModel::get_root_item()
+vogleditor_timelineItem *vogleditor_timelineModel::get_root_item()
 {
     return m_rootItem;
 }

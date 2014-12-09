@@ -26,7 +26,6 @@
 #include "vogl_warnings.h"
 #include "vogleditor_qvertexarrayexplorer.h"
 
-
 GCC_DIAGNOSTIC_PUSH()
 GCC_DIAGNOSTIC_IGNORED(packed)
 #include "ui_vogleditor_qvertexarrayexplorer.h"
@@ -36,22 +35,22 @@ GCC_DIAGNOSTIC_POP()
 #include "vogl_gl_state_snapshot.h"
 #include "vogl_vao_state.h"
 
-Q_DECLARE_METATYPE(vogl_vao_state*);
+Q_DECLARE_METATYPE(vogl_vao_state *);
 
-vogleditor_QVertexArrayExplorer::vogleditor_QVertexArrayExplorer(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::vogleditor_QVertexArrayExplorer),
-    m_pVaoState(NULL),
-    m_numUiUpdatesInProgress(0),
-    m_pVaoElementArray(NULL),
-    m_bUserSetOptions(false),
-    m_currentCallElementCount(0),
-    m_currentCallElementTypeIndex(0),
-    m_currentCallElementByteOffset(0),
-    m_currentCallElementBaseVertex(0),
-    m_currentCallElementIndices(NULL),
-    m_currentCallInstanceCount(0),
-    m_currentCallBaseInstance(0)
+vogleditor_QVertexArrayExplorer::vogleditor_QVertexArrayExplorer(QWidget *parent)
+    : QWidget(parent),
+      ui(new Ui::vogleditor_QVertexArrayExplorer),
+      m_pVaoState(NULL),
+      m_numUiUpdatesInProgress(0),
+      m_pVaoElementArray(NULL),
+      m_bUserSetOptions(false),
+      m_currentCallElementCount(0),
+      m_currentCallElementTypeIndex(0),
+      m_currentCallElementByteOffset(0),
+      m_currentCallElementBaseVertex(0),
+      m_currentCallElementIndices(NULL),
+      m_currentCallInstanceCount(0),
+      m_currentCallBaseInstance(0)
 {
     ui->setupUi(this);
 
@@ -102,7 +101,7 @@ void vogleditor_QVertexArrayExplorer::clear()
     ui->vertexTableWidget->clear();
 }
 
-uint vogleditor_QVertexArrayExplorer::set_vertexarray_objects(vogl_context_snapshot* pContext, vogl::vector<vogl_context_snapshot*> sharingContexts)
+uint vogleditor_QVertexArrayExplorer::set_vertexarray_objects(vogl_context_snapshot *pContext, vogl::vector<vogl_context_snapshot *> sharingContexts)
 {
     m_sharing_contexts.clear();
     m_attrib_buffers.clear();
@@ -125,7 +124,7 @@ uint vogleditor_QVertexArrayExplorer::set_vertexarray_objects(vogl_context_snaps
     {
         if ((*iter)->get_type() == cGLSTVertexArray)
         {
-            vogl_vao_state* pState = static_cast<vogl_vao_state*>(*iter);
+            vogl_vao_state *pState = static_cast<vogl_vao_state *>(*iter);
 
             QString valueStr;
 
@@ -163,7 +162,7 @@ bool vogleditor_QVertexArrayExplorer::set_active_vertexarray(unsigned long long 
 {
     for (int i = 0; i < ui->vertexArrayComboBox->count(); i++)
     {
-        vogl_vao_state* pState = ui->vertexArrayComboBox->itemData(i).value<vogl_vao_state*>();
+        vogl_vao_state *pState = ui->vertexArrayComboBox->itemData(i).value<vogl_vao_state *>();
         if (pState->get_snapshot_handle() == vertexArrayHandle)
         {
             ui->vertexArrayComboBox->setCurrentIndex(i);
@@ -174,7 +173,7 @@ bool vogleditor_QVertexArrayExplorer::set_active_vertexarray(unsigned long long 
     return false;
 }
 
-void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, int32_t baseVertex, vogl::uint8_vec* pClientSideElements, uint32_t instanceCount, uint32_t baseInstance)
+void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, int32_t baseVertex, vogl::uint8_vec *pClientSideElements, uint32_t instanceCount, uint32_t baseInstance)
 {
     // determine type index in combo box, or use whatever the current setting is if a known type is supplied
     uint32_t typeIndex = ui->elementTypeComboBox->currentIndex();
@@ -214,7 +213,7 @@ void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, 
 void vogleditor_QVertexArrayExplorer::auto_update_element_count()
 {
     // default to the element array attached to the selected VAO.
-    const uint8_vec* pElementArray = (m_pVaoElementArray != NULL) ? m_pVaoElementArray : m_currentCallElementIndices;
+    const uint8_vec *pElementArray = (m_pVaoElementArray != NULL) ? m_pVaoElementArray : m_currentCallElementIndices;
 
     // Determine how many indices and vertices to display
     if (pElementArray != NULL)
@@ -246,9 +245,9 @@ void vogleditor_QVertexArrayExplorer::auto_update_element_count()
     }
 }
 
-QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t index, const vogl_buffer_state& bufferState, const vogl_vertex_attrib_desc& attribDesc)
+QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t index, const vogl_buffer_state &bufferState, const vogl_vertex_attrib_desc &attribDesc)
 {
-/*
+    /*
     attribDesc.m_size; // number of components
     attribDesc.m_type; // byte, unsigned byte, short, ushort, int, uint (accepted by VertexAttribPointer and VertexAttribIPointer);
                        // half_float, float, double, fixed, Int2101010Rev, Uint2101010Rev, & uint10f11f11fRev also accepted by glVertexAttribPointer;
@@ -273,7 +272,7 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
         index /= attribDesc.m_divisor;
     }
 
-    uint32_t curAttributeDataIndex = stride*index;
+    uint32_t curAttributeDataIndex = stride * index;
 
     // make sure accessing this attribute's components will not read past the end of the buffer
     uint32_t bufferSize = bufferState.get_buffer_data().size();
@@ -285,7 +284,7 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
     }
 
     // index into the buffer
-    const uint8_t* pCurAttributeData = &(bufferState.get_buffer_data()[curAttributeDataIndex]);
+    const uint8_t *pCurAttributeData = &(bufferState.get_buffer_data()[curAttributeDataIndex]);
 
     // print each component
     dynamic_string attributeValueString;
@@ -297,7 +296,7 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
         // print the data appropriately
         if (attribDesc.m_type == GL_BYTE)
         {
-            int8_t* pData = (int8_t*)pCurAttributeData;
+            int8_t *pData = (int8_t *)pCurAttributeData;
             if (!attribDesc.m_normalized)
             {
                 attributeValueString.format_append("%hhd", *pData);
@@ -310,7 +309,7 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
         }
         else if (attribDesc.m_type == GL_UNSIGNED_BYTE)
         {
-            uint8_t* pData = (uint8_t*)pCurAttributeData;
+            uint8_t *pData = (uint8_t *)pCurAttributeData;
             if (!attribDesc.m_normalized)
             {
                 attributeValueString.format_append("%hhu", *pData);
@@ -323,7 +322,7 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
         }
         else if (attribDesc.m_type == GL_SHORT)
         {
-            int16_t* pData = (int16_t*)pCurAttributeData;
+            int16_t *pData = (int16_t *)pCurAttributeData;
             if (!attribDesc.m_normalized)
             {
                 attributeValueString.format_append("%hd", *pData);
@@ -336,7 +335,7 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
         }
         else if (attribDesc.m_type == GL_UNSIGNED_SHORT)
         {
-            uint16_t* pData = (uint16_t*)pCurAttributeData;
+            uint16_t *pData = (uint16_t *)pCurAttributeData;
             if (!attribDesc.m_normalized)
             {
                 attributeValueString.format_append("%hu", *pData);
@@ -349,7 +348,7 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
         }
         else if (attribDesc.m_type == GL_INT)
         {
-            int32_t* pData = (int32_t*)pCurAttributeData;
+            int32_t *pData = (int32_t *)pCurAttributeData;
             if (!attribDesc.m_normalized)
             {
                 attributeValueString.format_append("%d", *pData);
@@ -362,7 +361,7 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
         }
         else if (attribDesc.m_type == GL_UNSIGNED_INT)
         {
-            uint32_t* pData = (uint32_t*)pCurAttributeData;
+            uint32_t *pData = (uint32_t *)pCurAttributeData;
             if (!attribDesc.m_normalized)
             {
                 attributeValueString.format_append("%u", *pData);
@@ -375,12 +374,12 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
         }
         else if (attribDesc.m_type == GL_FLOAT)
         {
-            float* pData = (float*)pCurAttributeData;
+            float *pData = (float *)pCurAttributeData;
             attributeValueString.format_append("%.8g", *pData);
         }
         else if (attribDesc.m_type == GL_DOUBLE)
         {
-            double* pData = (double*)pCurAttributeData;
+            double *pData = (double *)pCurAttributeData;
             attributeValueString.format_append("%.17g", *pData);
         }
         else
@@ -402,7 +401,6 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
     return attributeValueString.c_str();
 }
 
-
 void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged(int index)
 {
     if (index < 0 || index >= ui->vertexArrayComboBox->count())
@@ -410,7 +408,7 @@ void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged
         return;
     }
 
-    m_pVaoState = ui->vertexArrayComboBox->itemData(index).value<vogl_vao_state*>();
+    m_pVaoState = ui->vertexArrayComboBox->itemData(index).value<vogl_vao_state *>();
 
     update_array_table_headers();
 
@@ -438,47 +436,47 @@ void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged
     }
 }
 
-bool vogleditor_QVertexArrayExplorer::calculate_element_and_format_as_string(const uint8_vec* pElementArray, uint32_t index, int typeIndex, int byteOffset, int baseVertex, uint32_t& elementValue, QString& elementString)
+bool vogleditor_QVertexArrayExplorer::calculate_element_and_format_as_string(const uint8_vec *pElementArray, uint32_t index, int typeIndex, int byteOffset, int baseVertex, uint32_t &elementValue, QString &elementString)
 {
     if (pElementArray != NULL)
     {
         if (typeIndex == 0)
         {
             // GL_UNSIGNED_BYTE
-            if (byteOffset + sizeof(uint8_t)*(index+1) > pElementArray->size_in_bytes())
+            if (byteOffset + sizeof(uint8_t) * (index + 1) > pElementArray->size_in_bytes())
             {
                 elementString = "Out of bounds";
                 return false;
             }
             else
             {
-                elementValue = ((uint8_t*)(pElementArray->get_ptr() + byteOffset))[index];
+                elementValue = ((uint8_t *)(pElementArray->get_ptr() + byteOffset))[index];
             }
         }
         else if (typeIndex == 1)
         {
             // GL_UNSIGNED_SHORT
-            if (byteOffset + sizeof(uint16_t)*(index+1) > pElementArray->size_in_bytes())
+            if (byteOffset + sizeof(uint16_t) * (index + 1) > pElementArray->size_in_bytes())
             {
                 elementString = "Out of bounds";
                 return false;
             }
             else
             {
-                elementValue = ((uint16_t*)(pElementArray->get_ptr() + byteOffset))[index];
+                elementValue = ((uint16_t *)(pElementArray->get_ptr() + byteOffset))[index];
             }
         }
         else if (typeIndex == 2)
         {
             // GL_UNSIGNED_INT
-            if (byteOffset + sizeof(uint32_t)*(index+1) > pElementArray->size_in_bytes())
+            if (byteOffset + sizeof(uint32_t) * (index + 1) > pElementArray->size_in_bytes())
             {
                 elementString = "Out of bounds";
                 return false;
             }
             else
             {
-                elementValue = ((uint32_t*)(pElementArray->get_ptr() + byteOffset))[index];
+                elementValue = ((uint32_t *)(pElementArray->get_ptr() + byteOffset))[index];
             }
         }
         else
@@ -526,7 +524,7 @@ void vogleditor_QVertexArrayExplorer::update_array_table_headers()
             {
                 if (allBuffers[b]->get_snapshot_handle() == array_binding)
                 {
-                    m_attrib_buffers[i] = static_cast<vogl_buffer_state*>(allBuffers[b]);
+                    m_attrib_buffers[i] = static_cast<vogl_buffer_state *>(allBuffers[b]);
                     break;
                 }
             }
@@ -542,7 +540,7 @@ void vogleditor_QVertexArrayExplorer::update_array_table_headers()
         {
             if (allBuffers[b]->get_snapshot_handle() == elementArrayBufferHandle)
             {
-                m_pVaoElementArray = &(static_cast<vogl_buffer_state*>(allBuffers[b])->get_buffer_data());
+                m_pVaoElementArray = &(static_cast<vogl_buffer_state *>(allBuffers[b])->get_buffer_data());
                 break;
             }
         }
@@ -611,7 +609,7 @@ void vogleditor_QVertexArrayExplorer::update_vertex_array_table()
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
     // Identify the correct element array to reference
-    const uint8_vec* pElementArray = m_pVaoElementArray;
+    const uint8_vec *pElementArray = m_pVaoElementArray;
     if (pElementArray == NULL)
     {
         if (m_currentCallElementIndices != NULL)

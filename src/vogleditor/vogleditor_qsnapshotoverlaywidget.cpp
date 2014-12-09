@@ -1,6 +1,6 @@
 #include "vogleditor_qsnapshotoverlaywidget.h"
 
-vogleditor_QSnapshotOverlayWidget::vogleditor_QSnapshotOverlayWidget(QWidget* parent)
+vogleditor_QSnapshotOverlayWidget::vogleditor_QSnapshotOverlayWidget(QWidget *parent)
     : vogleditor_OverlayWidget(parent),
       m_pTakeSnapshotButton()
 {
@@ -11,10 +11,9 @@ vogleditor_QSnapshotOverlayWidget::vogleditor_QSnapshotOverlayWidget(QWidget* pa
     m_pTakeSnapshotButton->setMaximumHeight(200);
     m_pTakeSnapshotButton->setMaximumWidth(200);
 
-    QGridLayout* pGridLayout = new QGridLayout(this);
+    QGridLayout *pGridLayout = new QGridLayout(this);
     pGridLayout->addWidget(m_pTakeSnapshotButton, 1, 1);
     this->setLayout(pGridLayout);
 
     connect(m_pTakeSnapshotButton, SIGNAL(clicked()), this, SLOT(slot_takeSnapshotButtonClicked()));
 }
-

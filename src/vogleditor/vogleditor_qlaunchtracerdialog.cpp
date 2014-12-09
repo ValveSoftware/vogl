@@ -4,23 +4,23 @@
 #include <QProcessEnvironment>
 #include "ui_vogleditor_qlaunchtracerdialog.h"
 
-vogleditor_QLaunchTracerDialog::vogleditor_QLaunchTracerDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::VoglEditor_QLaunchTracerDialog)
+vogleditor_QLaunchTracerDialog::vogleditor_QLaunchTracerDialog(QWidget *parent)
+    : QDialog(parent),
+      ui(new Ui::VoglEditor_QLaunchTracerDialog)
 {
     ui->setupUi(this);
 
     QDir appDirectory(QCoreApplication::applicationDirPath());
     QDir vogltraceDir(appDirectory.absoluteFilePath("./"));
 
-    // only enable the steam launcher box if the script is available
+// only enable the steam launcher box if the script is available
 #if defined(PLATFORM_WINDOWS)
     // vogl64.exe / vogl32.exe does not yet properly support windows, so disable it
     // Eventually, remove this line and enable the code below so that vogl*.exe can be found
     ui->vogltraceCheckBox->setEnabled(false);
 
-    //// the '.exe' is necessary on Windows to find the file, but not necessary to execute it.
-    //ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists((sizeof(void *) > 4) ? "vogl64.exe" : "vogl32.exe"));
+//// the '.exe' is necessary on Windows to find the file, but not necessary to execute it.
+//ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists((sizeof(void *) > 4) ? "vogl64.exe" : "vogl32.exe"));
 #else
     ui->vogltraceCheckBox->setEnabled(vogltraceDir.exists((sizeof(void *) > 4) ? "vogl64" : "vogl32"));
 #endif

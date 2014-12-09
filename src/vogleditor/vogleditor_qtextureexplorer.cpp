@@ -37,11 +37,11 @@ GCC_DIAGNOSTIC_POP()
 #include "vogl_renderbuffer_state.h"
 #include <QColorDialog>
 
-Q_DECLARE_METATYPE(vogl_gl_object_state*);
+Q_DECLARE_METATYPE(vogl_gl_object_state *);
 
-vogleditor_QTextureExplorer::vogleditor_QTextureExplorer(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::vogleditor_QTextureExplorer)
+vogleditor_QTextureExplorer::vogleditor_QTextureExplorer(QWidget *parent)
+    : QWidget(parent),
+      ui(new Ui::vogleditor_QTextureExplorer)
 {
     ui->setupUi(this);
 
@@ -105,7 +105,7 @@ unsigned int vogleditor_QTextureExplorer::get_preferred_height() const
     return m_textureViewer.get_preferred_height() + ui->textureObjectListbox->height() * 2 + 50;
 }
 
-uint vogleditor_QTextureExplorer::set_texture_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
+uint vogleditor_QTextureExplorer::set_texture_objects(vogl::vector<vogl_context_snapshot *> sharingContexts)
 {
     clear();
 
@@ -122,7 +122,7 @@ uint vogleditor_QTextureExplorer::set_texture_objects(vogl::vector<vogl_context_
     return textureCount;
 }
 
-uint vogleditor_QTextureExplorer::set_renderbuffer_objects(vogl::vector<vogl_context_snapshot*> sharingContexts)
+uint vogleditor_QTextureExplorer::set_renderbuffer_objects(vogl::vector<vogl_context_snapshot *> sharingContexts)
 {
     clear();
 
@@ -157,7 +157,7 @@ uint vogleditor_QTextureExplorer::add_texture_objects(vogl_gl_object_state_ptr_v
 
         if ((*iter)->get_type() == cGLSTTexture)
         {
-            vogl_texture_state* pTexState = static_cast<vogl_texture_state*>(*iter);
+            vogl_texture_state *pTexState = static_cast<vogl_texture_state *>(*iter);
 
             QString valueStr;
             valueStr = valueStr.sprintf("Texture %" PRIu64 " - %s (%u samples) (%u x %u x %u) %s", pTexState->get_snapshot_handle(), get_gl_enums().find_name(pTexState->get_target()), pTexState->get_num_samples(), pTexState->get_texture().get_width(), pTexState->get_texture().get_height(), pTexState->get_texture().get_depth(), get_gl_enums().find_name(pTexState->get_texture().get_ogl_internal_fmt()));
@@ -166,7 +166,7 @@ uint vogleditor_QTextureExplorer::add_texture_objects(vogl_gl_object_state_ptr_v
         }
         else if ((*iter)->get_type() == cGLSTRenderbuffer)
         {
-            vogl_renderbuffer_state* pRbState = static_cast<vogl_renderbuffer_state*>(*iter);
+            vogl_renderbuffer_state *pRbState = static_cast<vogl_renderbuffer_state *>(*iter);
 
             QString valueStr;
             valueStr = valueStr.sprintf("Renderbuffer %" PRIu64 " - %s (%u samples) (%u x %u) %s", pRbState->get_snapshot_handle(), "GL_RENDERBUFFER", pRbState->get_texture().get_num_samples(), pRbState->get_desc().get_int_or_default(GL_RENDERBUFFER_WIDTH), pRbState->get_desc().get_int_or_default(GL_RENDERBUFFER_HEIGHT), get_gl_enums().find_name(pRbState->get_desc().get_int_or_default(GL_RENDERBUFFER_INTERNAL_FORMAT)));
@@ -182,14 +182,14 @@ uint vogleditor_QTextureExplorer::add_texture_objects(vogl_gl_object_state_ptr_v
     return textureCount;
 }
 
-uint vogleditor_QTextureExplorer::add_texture_object(vogl_texture_state& textureState, vogl::dynamic_string bufferType)
+uint vogleditor_QTextureExplorer::add_texture_object(vogl_texture_state &textureState, vogl::dynamic_string bufferType)
 {
     m_objects.push_back(&textureState);
 
     QString valueStr;
     valueStr = valueStr.sprintf("%s (%u x %u) %s", bufferType.c_str(), textureState.get_texture().get_width(), textureState.get_texture().get_height(), get_gl_enums().find_name(textureState.get_texture().get_ogl_internal_fmt()));
 
-    ui->textureObjectListbox->addItem(valueStr, QVariant::fromValue((vogl_gl_object_state*)&textureState));
+    ui->textureObjectListbox->addItem(valueStr, QVariant::fromValue((vogl_gl_object_state *)&textureState));
     return 1;
 }
 
@@ -199,7 +199,7 @@ bool vogleditor_QTextureExplorer::set_active_texture(unsigned long long textureH
     int index = 0;
     for (vogl_gl_object_state_ptr_vec::iterator iter = m_objects.begin(); iter != m_objects.end(); iter++)
     {
-        vogl_texture_state* pTexState = static_cast<vogl_texture_state*>(*iter);
+        vogl_texture_state *pTexState = static_cast<vogl_texture_state *>(*iter);
         if (pTexState->get_snapshot_handle() == textureHandle)
         {
             ui->textureObjectListbox->setCurrentIndex(index);
@@ -217,22 +217,22 @@ void vogleditor_QTextureExplorer::selectedTextureIndexChanged(int index)
     int count = ui->textureObjectListbox->count();
     if (index >= 0 && index < count)
     {
-        vogl_gl_object_state* pObjState = ui->textureObjectListbox->itemData(index).value<vogl_gl_object_state*>();
+        vogl_gl_object_state *pObjState = ui->textureObjectListbox->itemData(index).value<vogl_gl_object_state *>();
         if (pObjState == NULL)
         {
             VOGL_ASSERT(!"NULL object type in TextureExplorer");
             return;
         }
 
-        vogl_texture_state* pTexState = NULL;
+        vogl_texture_state *pTexState = NULL;
 
         if (pObjState->get_type() == cGLSTTexture)
         {
-            pTexState = static_cast<vogl_texture_state*>(pObjState);
+            pTexState = static_cast<vogl_texture_state *>(pObjState);
         }
         else if (pObjState->get_type() == cGLSTRenderbuffer)
         {
-            vogl_renderbuffer_state* pRbState = static_cast<vogl_renderbuffer_state*>(pObjState);
+            vogl_renderbuffer_state *pRbState = static_cast<vogl_renderbuffer_state *>(pObjState);
             if (pRbState != NULL)
             {
                 pTexState = &(pRbState->get_texture());
@@ -332,7 +332,7 @@ void vogleditor_QTextureExplorer::channelSelectionChanged(int index)
     m_textureViewer.setChannelSelectionOption(channelSelection);
     bool bAlphaBlending = (channelSelection == VOGL_CSO_RGBA ||
                            channelSelection == VOGL_CSO_ONE_MINUS_RGBA ||
-                           channelSelection == VOGL_CSO_ONE_OVER_RGBA );
+                           channelSelection == VOGL_CSO_ONE_OVER_RGBA);
 
     ui->alphaBlendColorButton->setEnabled(bAlphaBlending);
 }
@@ -361,22 +361,22 @@ void vogleditor_QTextureExplorer::on_arrayElementSpinBox_valueChanged(int index)
 
 void vogleditor_QTextureExplorer::on_sampleSpinBox_valueChanged(int sample)
 {
-    vogl_gl_object_state* pObjState = ui->textureObjectListbox->itemData(ui->textureObjectListbox->currentIndex()).value<vogl_gl_object_state*>();
+    vogl_gl_object_state *pObjState = ui->textureObjectListbox->itemData(ui->textureObjectListbox->currentIndex()).value<vogl_gl_object_state *>();
     if (pObjState == NULL)
     {
         VOGL_ASSERT(!"NULL object type in TextureExplorer");
         return;
     }
 
-    vogl_texture_state* pTexState = NULL;
+    vogl_texture_state *pTexState = NULL;
 
     if (pObjState->get_type() == cGLSTTexture)
     {
-        pTexState = static_cast<vogl_texture_state*>(pObjState);
+        pTexState = static_cast<vogl_texture_state *>(pObjState);
     }
     else if (pObjState->get_type() == cGLSTRenderbuffer)
     {
-        vogl_renderbuffer_state* pRbState = static_cast<vogl_renderbuffer_state*>(pObjState);
+        vogl_renderbuffer_state *pRbState = static_cast<vogl_renderbuffer_state *>(pObjState);
         if (pRbState != NULL)
         {
             pTexState = &(pRbState->get_texture());
@@ -389,7 +389,7 @@ void vogleditor_QTextureExplorer::on_sampleSpinBox_valueChanged(int sample)
 
     if (pTexState != NULL)
     {
-        const vogl::ktx_texture* pKTXTexture = &(pTexState->get_texture(sample));
+        const vogl::ktx_texture *pKTXTexture = &(pTexState->get_texture(sample));
 
         uint baseLevel = pTexState->get_params().get_value<uint>(GL_TEXTURE_BASE_LEVEL);
         uint maxLevel = pTexState->get_params().get_value<uint>(GL_TEXTURE_MAX_LEVEL);

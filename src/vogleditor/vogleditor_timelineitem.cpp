@@ -23,11 +23,10 @@
  *
  **************************************************************************/
 
-
 #include "vogleditor_timelineitem.h"
 
-vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timelineItem* parent)
-    :  m_beginTime(time),
+vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timelineItem *parent)
+    : m_beginTime(time),
       m_endTime(time),
       m_duration(0),
       m_isSpan(false),
@@ -38,8 +37,8 @@ vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timeline
 {
 }
 
-vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem* parent)
-    :  m_beginTime(begin),
+vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent)
+    : m_beginTime(begin),
       m_endTime(end),
       m_duration(end - begin),
       m_isSpan(true),
@@ -60,7 +59,7 @@ vogleditor_timelineItem::~vogleditor_timelineItem()
     m_childItems.clear();
 }
 
-void vogleditor_timelineItem::appendChild(vogleditor_timelineItem* child)
+void vogleditor_timelineItem::appendChild(vogleditor_timelineItem *child)
 {
     m_childItems.append(child);
 
@@ -76,7 +75,7 @@ void vogleditor_timelineItem::appendChild(vogleditor_timelineItem* child)
     }
 }
 
-vogleditor_timelineItem* vogleditor_timelineItem::child(int row)
+vogleditor_timelineItem *vogleditor_timelineItem::child(int row)
 {
     return m_childItems[row];
 }
@@ -86,12 +85,12 @@ int vogleditor_timelineItem::childCount() const
     return m_childItems.size();
 }
 
-vogleditor_timelineItem* vogleditor_timelineItem::parent()
+vogleditor_timelineItem *vogleditor_timelineItem::parent()
 {
     return m_parentItem;
 }
 
-QBrush* vogleditor_timelineItem::getBrush()
+QBrush *vogleditor_timelineItem::getBrush()
 {
     // if a local brush isn't set, use the parent's brush as a default
     if (m_brush == NULL)
@@ -109,7 +108,7 @@ QBrush* vogleditor_timelineItem::getBrush()
     return m_brush;
 }
 
-void vogleditor_timelineItem::setBrush(QBrush* brush)
+void vogleditor_timelineItem::setBrush(QBrush *brush)
 {
     m_brush = brush;
 }

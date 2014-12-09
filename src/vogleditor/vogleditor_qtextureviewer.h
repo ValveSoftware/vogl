@@ -70,7 +70,7 @@ public:
     explicit QTextureViewer(QWidget *parent = 0);
     void paint(QPainter *painter, QPaintEvent *event);
 
-    void setTexture(const vogl::ktx_texture* pTexture, uint baseMipLevel, uint maxMipLevel);
+    void setTexture(const vogl::ktx_texture *pTexture, uint baseMipLevel, uint maxMipLevel);
 
     void setChannelSelectionOption(ChannelSelectionOption channels)
     {
@@ -84,7 +84,7 @@ public:
 
     void deleteTexture()
     {
-        for (vogl::vector<vogl::image_u8*>::iterator it = m_image.begin(); it < m_image.end(); ++it)
+        for (vogl::vector<vogl::image_u8 *>::iterator it = m_image.begin(); it < m_image.end(); ++it)
         {
             vogl::image_u8 *img = *it;
             img->clear();
@@ -100,7 +100,10 @@ public:
         deleteTexture();
     }
 
-    inline QColor getBackgroundColor() const { return m_background.color(); }
+    inline QColor getBackgroundColor() const
+    {
+        return m_background.color();
+    }
 
     inline void setBackgroundColor(QBrush color)
     {
@@ -110,7 +113,10 @@ public:
         repaint();
     }
 
-    double getZoomFactor() const { return m_zoomFactor; }
+    double getZoomFactor() const
+    {
+        return m_zoomFactor;
+    }
     void setZoomFactor(double zoomFactor)
     {
         if (m_zoomFactor != zoomFactor)
@@ -120,7 +126,10 @@ public:
         }
     }
 
-    bool getInverted() const { return m_bInvert; }
+    bool getInverted() const
+    {
+        return m_bInvert;
+    }
     void setInverted(bool bInvert)
     {
         if (m_bInvert != bInvert)
@@ -168,11 +177,11 @@ private:
     double m_zoomFactor;
     bool m_bInvert;
 
-    vogl::map<uint,QPixmap> m_pixmaps;
-    vogl::map<uint, vogl::color_quad_u8*> m_pixmapData;
+    vogl::map<uint, QPixmap> m_pixmaps;
+    vogl::map<uint, vogl::color_quad_u8 *> m_pixmapData;
 
-    const vogl::ktx_texture* m_pKtxTexture;
-    vogl::vector<vogl::image_u8*> m_image;
+    const vogl::ktx_texture *m_pKtxTexture;
+    vogl::vector<vogl::image_u8 *> m_image;
     uint m_baseMipLevel;
     uint m_maxMipLevel;
     uint m_arrayIndex;
@@ -181,23 +190,23 @@ private:
     void delete_pixmaps()
     {
         m_pixmaps.clear();
-        for (vogl::map<uint, vogl::color_quad_u8*>::iterator iter = m_pixmapData.begin(); iter != m_pixmapData.end(); iter++)
+        for (vogl::map<uint, vogl::color_quad_u8 *>::iterator iter = m_pixmapData.begin(); iter != m_pixmapData.end(); iter++)
         {
-            delete [] iter->second;
+            delete[] iter->second;
             iter->second = NULL;
         }
         m_pixmapData.clear();
     }
 
-    void adjustChannels(ChannelSelectionOption selection, unsigned char& r, unsigned char& g, unsigned char& b, unsigned char& a);
+    void adjustChannels(ChannelSelectionOption selection, unsigned char &r, unsigned char &g, unsigned char &b, unsigned char &a);
 
 protected:
     void paintEvent(QPaintEvent *event);
 
 signals:
 
-public slots:
-
+public
+slots:
 };
 
 #endif // VOGLEDITOR_QTEXTUREVIEWER_H

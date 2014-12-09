@@ -3,7 +3,7 @@
 #include "vogl_query_state.h"
 #include <inttypes.h>
 
-vogleditor_stateTreeQueryItem::vogleditor_stateTreeQueryItem(QString name, GLuint64 handle, vogleditor_stateTreeItem* parent, const vogl_query_state* pState)
+vogleditor_stateTreeQueryItem::vogleditor_stateTreeQueryItem(QString name, GLuint64 handle, vogleditor_stateTreeItem *parent, const vogl_query_state *pState)
     : vogleditor_stateTreeItem(name, "", parent),
       m_handle(handle),
       m_pState(pState),
@@ -14,7 +14,7 @@ vogleditor_stateTreeQueryItem::vogleditor_stateTreeQueryItem(QString name, GLuin
     setValue(tmp);
 }
 
-void vogleditor_stateTreeQueryItem::set_diff_base_state(const vogl_query_state* pBaseState)
+void vogleditor_stateTreeQueryItem::set_diff_base_state(const vogl_query_state *pBaseState)
 {
     m_pDiffBaseState = pBaseState;
 }
