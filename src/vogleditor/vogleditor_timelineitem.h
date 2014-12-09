@@ -27,8 +27,7 @@
 #define VOGLEDITOR_TIMELINEITEM_H
 
 #include <QList>
-#include <QVariant>
-#include <QAbstractItemModel>
+#include <QBrush>
 
 class vogleditor_frameItem;
 class vogleditor_apiCallItem;
