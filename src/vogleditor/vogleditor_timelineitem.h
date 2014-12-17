@@ -36,8 +36,9 @@ class vogleditor_apiCallItem;
 class vogleditor_timelineItem
 {
 public:
-    vogleditor_timelineItem(float time, vogleditor_timelineItem *parent = 0);
-    vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent = 0);
+    vogleditor_timelineItem(float time, vogleditor_timelineItem *parent, vogleditor_frameItem *frameItem);
+    vogleditor_timelineItem(float begin, float end);
+    vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_apiCallItem *apiCallItem);
     ~vogleditor_timelineItem();
 
     void appendChild(vogleditor_timelineItem *child);
