@@ -111,9 +111,8 @@ vogleditor_QSettingsDialog::vogleditor_QSettingsDialog(QWidget *parent)
 
 vogleditor_QSettingsDialog::~vogleditor_QSettingsDialog()
 {
-    delete ui;
     clearLayout(ui->verticalLayout_tabGroups);
-
+    delete ui;
 } // destructor
 
 void vogleditor_QSettingsDialog::clearLayout(QLayout *layout)
