@@ -234,6 +234,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
             {
                 if (isMarkerPushEntrypoint(entrypoint_id))
                 {
+                    pCurParent->setDurationColumn();
                     pCurParent = pCurParent->parent();
                 }
 
@@ -249,6 +250,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                         {
                             // ...end current group and start a new one
                             // to which this will be added (in post-processing)
+                            pCurParent->setDurationColumn();
                             pCurParent = pCurParent->parent();
                             pCurParent = create_group(pCurFrame, pCurGroup, pCurParent);
                         }
@@ -279,6 +281,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
 
                     if (bStartNewGroup)
                     {
+                        pCurParent->setDurationColumn();
                         pCurParent = pCurParent->parent();
                         pCurParent = create_group(pCurFrame, pCurGroup, pCurParent);
                     }
@@ -318,6 +321,11 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
             {
                 total_swaps++;
 
+                if (pCurParent->isGroup())
+                {
+                    pCurParent->setDurationColumn();
+                }
+
                 // reset the CurParent back to the original parent so that the next frame will be at the root level
                 pCurParent = pParentRoot;
 
@@ -352,7 +360,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                     QString msg = item->apiCallStringArg();
 
                     QString pushstring = "\"" + msg + "\"" + " group";
-                    item->setApiCallColumnData(pushstring);
+                    item->setApiCallColumn(pushstring);
                 }
 
                 // start marker_push with this item as parent
@@ -369,7 +377,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                         QString msg = pCurParent->apiCallStringArg();
 
                         QString popstring = "\"" + msg + "\"" + " group end";
-                        item->setApiCallColumnData(popstring);
+                        item->setApiCallColumn(popstring);
                     }
                     pCurParent = pCurParent->parent();
                 }
@@ -393,9 +401,9 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                 if (pCurParent->isGroup())
                 {
                     // If a series, set group name only once
-                    if (pCurParent->apiCallColumnData() != cTREEITEM_RENDER)
+                    if (pCurParent->apiCallColumn() != cTREEITEM_RENDER)
                     {
-                        pCurParent->setApiCallColumnData(cTREEITEM_RENDER);
+                        pCurParent->setApiCallColumn(cTREEITEM_RENDER);
                     }
                 }
             } // vogl_is_frame_buffer_write_entrypoint
@@ -403,6 +411,12 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
 
         if (pTrace_reader->get_packet_type() == cTSPTEOF)
         {
+            // Close any remaining State/Render group
+            if (pCurParent->isGroup())
+            {
+                pCurParent->setDurationColumn();
+            }
+
             found_eof_packet = true;
             vogl_printf("Found trace file EOF packet on swap %" PRIu64 "\n", total_swaps);
             break;

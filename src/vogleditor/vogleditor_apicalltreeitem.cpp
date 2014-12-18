@@ -373,7 +373,27 @@ QVariant vogleditor_apiCallTreeItem::columnData(int column, int role) const
     return QVariant();
 }
 
-void vogleditor_apiCallTreeItem::setApiCallColumnData(QString name)
+void vogleditor_apiCallTreeItem::setDurationColumn(uint64_t span)
+{
+    if (0 == span)
+    {
+        if (isApiCall())
+        {
+            span = apiCallItem()->duration();
+        }
+        else if (isGroup())
+        {
+            span = groupItem()->duration();
+        }
+        else if (isFrame())
+        {
+            span = frameItem()->duration();
+        }
+    }
+    setColumnData(QVariant(qulonglong(span)), VOGL_ACTC_DURATION);
+}
+
+void vogleditor_apiCallTreeItem::setApiCallColumn(QString name)
 {
     setColumnData(QVariant(name), VOGL_ACTC_APICALL);
 }
@@ -383,7 +403,7 @@ void vogleditor_apiCallTreeItem::setColumnData(QVariant data, int column)
     m_columnData[column] = data;
 }
 
-QString vogleditor_apiCallTreeItem::apiCallColumnData() const
+QString vogleditor_apiCallTreeItem::apiCallColumn() const
 {
     return (columnData(VOGL_ACTC_APICALL, Qt::DisplayRole)).toString();
 }
