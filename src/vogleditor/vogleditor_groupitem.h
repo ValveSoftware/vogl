@@ -90,6 +90,18 @@ public:
 
     inline uint64_t duration() const
     {
+        vogleditor_apiCallItem *child;
+
+        uint64_t total = 0;
+        foreach(child, m_apiCallList)
+        {
+            total += child->duration();
+        }
+        return total;
+    }
+
+    inline uint64_t elapsed() const
+    {
         return endTime() - startTime();
     }
 
