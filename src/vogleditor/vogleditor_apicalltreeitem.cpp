@@ -51,8 +51,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_QApiCallTreeMo
     m_columnData[VOGL_ACTC_INDEX] = "Index";
     m_columnData[VOGL_ACTC_FLAGS] = "";
     m_columnData[VOGL_ACTC_GLCONTEXT] = "GL Context";
-    //m_ColumnTitles[VOGL_ACTC_BEGINTIME] = "Begin Time";
-    //m_ColumnTitles[VOGL_ACTC_ENDTIME] = "End Time";
+    //m_columnData[VOGL_ACTC_BEGINTIME] = "Begin Time";
+    //m_columnData[VOGL_ACTC_ENDTIME] = "End Time";
     m_columnData[VOGL_ACTC_DURATION] = "Duration (ns)";
 }
 
@@ -115,8 +115,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_apiCallItem *a
         m_columnData[VOGL_ACTC_FLAGS] = "";
         dynamic_string strContext;
         m_columnData[VOGL_ACTC_GLCONTEXT] = strContext.format("0x%" PRIx64, apiCallItem->getGLPacket()->m_context_handle).c_str();
-        //m_columnData[VOGL_ACTC_BEGINTIME] = apiCallItem->startTime();
-        //m_columnData[VOGL_ACTC_ENDTIME] = apiCallItem->endTime();
+        //m_columnData[VOGL_ACTC_BEGINTIME] = (qulonglong)apiCallItem->startTime();
+        //m_columnData[VOGL_ACTC_ENDTIME] = (qulonglong)apiCallItem->endTime();
         m_columnData[VOGL_ACTC_DURATION] = (qulonglong)apiCallItem->duration();
     }
 
