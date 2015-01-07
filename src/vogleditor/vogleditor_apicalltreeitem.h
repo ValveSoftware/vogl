@@ -101,8 +101,9 @@ public:
 
     QVariant columnData(int column, int role) const;
 
-    void setApiCallColumnData(QString name);
-    QString apiCallColumnData() const;
+    void setDurationColumn(uint64_t span = 0);
+    void setApiCallColumn(QString name);
+    QString apiCallColumn() const;
     QString apiCallStringArg() const;
 
     int row() const;

@@ -24,20 +24,38 @@
  **************************************************************************/
 
 #include "vogleditor_timelineitem.h"
+#include "vogl_common.h"
 
-vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timelineItem *parent)
+// Timeline markers (frame demarcations)
+vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timelineItem *parent, vogleditor_frameItem *frameItem)
     : m_beginTime(time),
       m_endTime(time),
       m_duration(0),
       m_isSpan(false),
       m_maxChildDuration(0),
       m_parentItem(parent),
+      m_pFrameItem(frameItem),
+      m_pApiCallItem(NULL)
+{
+    VOGL_ASSERT(parent != NULL);
+    parent->appendChild(this);
+}
+
+// Timeline root (fullspan)
+vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end)
+    : m_beginTime(begin),
+      m_endTime(end),
+      m_duration(end - begin),
+      m_isSpan(true),
+      m_maxChildDuration(end - begin),
+      m_parentItem(NULL),
       m_pFrameItem(NULL),
       m_pApiCallItem(NULL)
 {
 }
 
-vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent)
+// Timeline segmented spans
+vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_apiCallItem *apiCallItem)
     : m_beginTime(begin),
       m_endTime(end),
       m_duration(end - begin),
@@ -45,8 +63,10 @@ vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogledi
       m_maxChildDuration(end - begin),
       m_parentItem(parent),
       m_pFrameItem(NULL),
-      m_pApiCallItem(NULL)
+      m_pApiCallItem(apiCallItem)
 {
+    VOGL_ASSERT(parent != NULL);
+    parent->appendChild(this);
 }
 
 vogleditor_timelineItem::~vogleditor_timelineItem()
