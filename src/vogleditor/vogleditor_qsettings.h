@@ -19,29 +19,31 @@ struct vogleditor_setting_struct
     int window_size_height;
     unsigned int trim_large_trace_prompt_size;
 
-    QString state_render_name;
-    QStringList state_render_nest_list;
-    bool state_render_stat;
-    bool state_render_used;
+    // State/Render groups checkbox
+    QString state_render_name;          // checkbox label
+    bool state_render_stat;             // checked status of checkbox
+    bool state_render_used;             // enabled status of checkbox
+    QStringList state_render_nest_list; // list of allowable nest options
 
-    QStringList debug_marker_list;
-    QVector<bool> debug_marker_stat;
-    QVector<bool> debug_marker_used;
-
-    QString debug_marker_option_name_labl;
-    bool debug_marker_option_name_stat;
-    bool debug_marker_option_name_used;
-
+    // Debug marker groups groupbox
+    QStringList debug_marker_list;   // checkbox labels in groupbox
+    QVector<bool> debug_marker_stat; // checked status of checkboxes
+    QVector<bool> debug_marker_used; // enabled status of checkboxes
+    // TODO: seems these could also be made into QStringList and QVector<bool>
+    QString debug_marker_option_name_labl; // radiobutton labels in groupbox
     QString debug_marker_option_omit_labl;
+    bool debug_marker_option_name_stat; // checked status of radiobuttons
     bool debug_marker_option_omit_stat;
+    bool debug_marker_option_name_used; // enabled status of radiobuttons
     bool debug_marker_option_omit_used;
 
-    QString groupbox_nest_options_name;
-    bool groupbox_nest_options_stat;
-    bool groupbox_nest_options_used;
-    QStringList nest_options_list;
-    QVector<bool> nest_options_stat;
-    QVector<bool> nest_options_used;
+    // Nest options groupbox
+    QString groupbox_nest_options_name; // checkbox label of groupbox header
+    bool groupbox_nest_options_stat;    // checked status of header checkbox
+    bool groupbox_nest_options_used;    // enabled status of header checkbox
+    QStringList nest_options_list;      // checkbox labels in groupbox
+    QVector<bool> nest_options_stat;    // checked status of checkboxes
+    QVector<bool> nest_options_used;    // enabled status of checkboxes
 };
 
 class vogleditor_qsettings : public QObject
