@@ -37,9 +37,9 @@ vogleditor_QSettingsDialog::vogleditor_QSettingsDialog(QWidget *parent)
     // Debug markers
     QVector<QCheckBox *> checkboxList;
 
-    QStringList group_debug_marker_names = g_settings.group_debug_marker_names();
-    QVector<bool> debug_marker_stat = g_settings.group_debug_marker_stat();
-    QVector<bool> debug_marker_used = g_settings.group_debug_marker_used();
+    QStringList group_debug_marker_names = g_settings.group_debug_marker_name_list();
+    QVector<bool> debug_marker_stat = g_settings.group_debug_marker_stat_list();
+    QVector<bool> debug_marker_used = g_settings.group_debug_marker_used_list();
     int debug_marker_cnt = group_debug_marker_names.size();
     for (int i = 0; i < debug_marker_cnt; i++)
     {
@@ -83,9 +83,9 @@ vogleditor_QSettingsDialog::vogleditor_QSettingsDialog(QWidget *parent)
     }
 
     // Checkboxes
-    QStringList group_nest_options_names = g_settings.group_nest_options_names();
-    QVector<bool> nest_options_stat = g_settings.group_nest_options_stat();
-    QVector<bool> nest_options_used = g_settings.group_nest_options_used();
+    QStringList group_nest_options_names = g_settings.group_nest_options_name_list();
+    QVector<bool> nest_options_stat = g_settings.group_nest_options_stat_list();
+    QVector<bool> nest_options_used = g_settings.group_nest_options_used_list();
     int nest_options_cnt = group_nest_options_names.size();
     for (int i = 0; i < nest_options_cnt; i++)
     {
@@ -165,8 +165,8 @@ void vogleditor_QSettingsDialog::groupboxNestOptionsCB(bool bVal)
 void vogleditor_QSettingsDialog::checkboxCB(int state)
 {
     g_settings.set_group_state_render_stat(ui->checkboxStateRender->isChecked());
-    g_settings.set_group_debug_marker_stat(checkboxValues(ui->groupboxDebugMarker));
-    g_settings.set_group_nest_options_stat(checkboxValues(ui->groupboxNestOptions));
+    g_settings.set_group_debug_marker_stat_list(checkboxValues(ui->groupboxDebugMarker));
+    g_settings.set_group_nest_options_stat_list(checkboxValues(ui->groupboxNestOptions));
 
     setEnableDebugMarkerOptions();
 

@@ -455,7 +455,7 @@ bool vogleditor_QApiCallTreeModel::isStartNestedEntrypoint(gl_entrypoint_id_t id
     if (id != VOGL_ENTRYPOINT_INVALID)
     {
         QString funcname = g_vogl_entrypoint_descs[id].m_pName;
-        if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
+        if (g_settings.is_active_nest_options(funcname) || g_settings.is_selected_state_render_nest(funcname))
         {
             return vogl_is_start_nested_entrypoint(id);
         }
@@ -467,7 +467,7 @@ bool vogleditor_QApiCallTreeModel::isEndNestedEntrypoint(gl_entrypoint_id_t id) 
     if (id != VOGL_ENTRYPOINT_INVALID)
     {
         QString funcname = g_vogl_entrypoint_descs[id].m_pName;
-        if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
+        if (g_settings.is_active_nest_options(funcname) || g_settings.is_selected_state_render_nest(funcname))
         {
             return vogl_is_end_nested_entrypoint(id);
         }
