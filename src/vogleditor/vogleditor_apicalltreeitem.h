@@ -111,6 +111,7 @@ public:
 
     bool isApiCall() const;
     bool isGroup() const;
+    bool isGroupAncestry() const;
     bool isFrame() const;
     bool isRoot() const;
 

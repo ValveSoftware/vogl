@@ -299,7 +299,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                 // make apicall item
                 pCallItem = vogl_new(vogleditor_apiCallItem, pCurFrame, pTrace_packet, *pGL_packet);
                 pCurFrame->appendCall(pCallItem);
-                if (pCurParent->isGroup())
+                if (pCurParent->isGroupAncestry())
                 {
                     pCurGroup->appendCall(pCallItem);
                 }

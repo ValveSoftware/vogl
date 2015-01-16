@@ -169,6 +169,25 @@ bool vogleditor_apiCallTreeItem::isGroup() const
 {
     return (g_settings.group_state_render_stat() && (m_pGroupItem != NULL));
 }
+bool vogleditor_apiCallTreeItem::isGroupAncestry() const
+{
+    bool bRetVal = false;
+
+    if (g_settings.group_state_render_stat())
+    {
+        vogleditor_apiCallTreeItem const *pCallTreeItem = this;
+        while (pCallTreeItem)
+        {
+            if (pCallTreeItem->isGroup())
+            {
+                bRetVal = true;
+                break;
+            }
+            pCallTreeItem = pCallTreeItem->parent();
+        }
+    }
+    return bRetVal;
+}
 bool vogleditor_apiCallTreeItem::isFrame() const
 {
     return m_pFrameItem != NULL;
