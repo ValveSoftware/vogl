@@ -27,16 +27,18 @@
 #define VOGLEDITOR_TIMELINEITEM_H
 
 #include <QList>
-#include <QBrush>
+class QBrush;
 
 class vogleditor_frameItem;
+class vogleditor_groupItem;
 class vogleditor_apiCallItem;
 
 class vogleditor_timelineItem
 {
 public:
-    vogleditor_timelineItem(float time, vogleditor_timelineItem *parent, vogleditor_frameItem *frameItem);
     vogleditor_timelineItem(float begin, float end);
+    vogleditor_timelineItem(float time, vogleditor_timelineItem *parent, vogleditor_frameItem *groupItem);
+    vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_groupItem *groupItem);
     vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_apiCallItem *apiCallItem);
     ~vogleditor_timelineItem();
 
@@ -60,9 +62,20 @@ public:
     bool isSpan() const;
     bool isMarker() const;
 
+    // (Currently only isGroupItem() is used)
+    bool isApiCallItem();
+    bool isGroupItem();
+    bool isFrameItem();
+    bool isRootItem();
+
     vogleditor_frameItem *getFrameItem() const
     {
         return m_pFrameItem;
+    }
+
+    vogleditor_groupItem *getGroupItem() const
+    {
+        return m_pGroupItem;
     }
 
     void setFrameItem(vogleditor_frameItem *pFrameItem)
@@ -81,6 +94,9 @@ public:
     }
 
 private:
+    unsigned int randomRGB();
+
+private:
     QBrush *m_brush;
     float m_beginTime;
     float m_endTime;
@@ -92,6 +108,7 @@ private:
 
     vogleditor_timelineItem *m_parentItem;
     vogleditor_frameItem *m_pFrameItem;
+    vogleditor_groupItem *m_pGroupItem;
     vogleditor_apiCallItem *m_pApiCallItem;
 };
 

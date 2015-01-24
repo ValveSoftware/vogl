@@ -401,9 +401,9 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                 if (pCurParent->isGroup())
                 {
                     // If a series, set group name only once
-                    if (pCurParent->apiCallColumn() != cTREEITEM_RENDER)
+                    if (pCurParent->isStateChangeGroup())
                     {
-                        pCurParent->setApiCallColumn(cTREEITEM_RENDER);
+                        pCurParent->setRenderGroup();
                     }
                 }
             } // vogl_is_frame_buffer_write_entrypoint

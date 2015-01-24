@@ -98,10 +98,10 @@ private:
     QPen m_trianglePen;
     QPen m_textPen;
     QFont m_textFont;
+    float m_roundoff;
     float m_horizontalScale;
     int m_lineLength;
     unsigned long long m_curFrame;
-    unsigned long long m_curGroup;
     unsigned long long m_curApiCallNumber;
     float m_maxItemDuration;
 

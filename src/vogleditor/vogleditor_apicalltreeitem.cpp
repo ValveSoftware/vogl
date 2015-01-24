@@ -377,6 +377,7 @@ void vogleditor_apiCallTreeItem::setDurationColumn(uint64_t span)
 {
     if (0 == span)
     {
+        // If given span is 0, use span of current tree item.
         if (isApiCall())
         {
             span = apiCallItem()->duration();
@@ -401,6 +402,26 @@ void vogleditor_apiCallTreeItem::setApiCallColumn(QString name)
 void vogleditor_apiCallTreeItem::setColumnData(QVariant data, int column)
 {
     m_columnData[column] = data;
+}
+
+bool vogleditor_apiCallTreeItem::isRenderGroup()
+{
+    return (apiCallColumn() == cTREEITEM_RENDER);
+}
+
+bool vogleditor_apiCallTreeItem::isStateChangeGroup()
+{
+    return (apiCallColumn() == cTREEITEM_STATECHANGES);
+}
+
+void vogleditor_apiCallTreeItem::setRenderGroup()
+{
+    setApiCallColumn(cTREEITEM_RENDER);
+}
+
+void vogleditor_apiCallTreeItem::setStateChangeGroup()
+{
+    setApiCallColumn(cTREEITEM_STATECHANGES);
 }
 
 QString vogleditor_apiCallTreeItem::apiCallColumn() const

@@ -205,6 +205,11 @@ public:
         m_settings.debug_marker_option_omit_used = used;
     }
 
+    bool group_debug_marker_in_use()
+    {
+        return group_debug_marker_stat_list().contains(true);
+    }
+
     // Nest options
 
     // Groupbox
