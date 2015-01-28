@@ -56,7 +56,7 @@ enum VOGL_API_CALL_TREE_COLUMN
 //       possibly be confused with a marker_push entrypoint name that could also
 //       be named "Render"
 const QString cTREEITEM_STATECHANGES("State changes");
-const QString cTREEITEM_RENDER("Render");
+const QString cTREEITEM_RENDER("Draw calls");
 
 class vogleditor_apiCallTreeItem
 {
