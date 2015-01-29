@@ -32,6 +32,7 @@
 
 vogleditor_QTimelineView::vogleditor_QTimelineView(QWidget *parent)
     : QWidget(parent),
+      m_roundoff(cVOGL_TIMELINEOFFSET),
       m_curFrame(0),
       m_curApiCallNumber(0),
       m_pModel(NULL),
@@ -58,16 +59,6 @@ vogleditor_QTimelineView::vogleditor_QTimelineView(QWidget *parent)
 
     m_horizontalScale = 1;
     m_lineLength = 1;
-
-    char *envptr = getenv("VOGL_TIMELINEOFFSET");
-    if (envptr)
-    {
-        m_roundoff = QString(envptr).toFloat();
-    }
-    else
-    {
-        m_roundoff = 0.085;
-    }
 }
 
 vogleditor_QTimelineView::~vogleditor_QTimelineView()
