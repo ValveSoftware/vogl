@@ -212,9 +212,18 @@ void vogleditor_apiCallTimelineModel::AddApiCallsToTimeline(vogleditor_apiCallTr
             // Add random color for debug marker group parent
             if (g_settings.group_debug_marker_in_use())
             {
-                if (vogl_is_marker_push_entrypoint(pChildCallTreeItem->apiCallItem()->getTracePacket()->get_entrypoint_id()))
+                // (For now) only if State/Render groups are enabled so that
+                // default timeline display isn't affected (debug marker groups
+                // are checked on)
+                // TODO: remove check for state/render status if/when consensus
+                //       is the debug marker groups should be separately colored
+                //       by default (when checked on)
+                if (g_settings.group_state_render_stat())
                 {
-                    pNewTimelineItem->setBrush(new QBrush(QColor(randomRGB())));
+                    if (vogl_is_marker_push_entrypoint(pChildCallTreeItem->apiCallItem()->getTracePacket()->get_entrypoint_id()))
+                    {
+                        pNewTimelineItem->setBrush(new QBrush(QColor(randomRGB())));
+                    }
                 }
             }
         }
