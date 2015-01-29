@@ -160,15 +160,17 @@ float vogleditor_apiCallTimelineModel::u64ToFloat(uint64_t value)
 
 unsigned int vogleditor_apiCallTimelineModel::randomRGB()
 {
-    unsigned int rgbval = 0;
 
-    for (int i = 0; i < 3; i++)
-    {
-        // mask out some lower bits from each component for more contrast
-        rgbval |= (rand() & 0xF8) << (i * 8);
-    }
+    // TODO: If Debug marker groups are allowed to be colored independent of the
+    //       State/Render groups setting, then force their colors to be a strong
+    //       mix of blue/red and blue/green to distinguish them separately from
+    //       independent apicalls which are a mix of red/green.
+    //static int sSwap = 2;
+    //sSwap = 3 - sSwap;
+    //return  (0xC0 | (0x40 << sSwap * 8) | (rand() & ((0xFF << sSwap * 8) | 0xFF)));
 
-    return rgbval;
+    // mask out some lower bits from each component for greater contrast
+    return (rand() & 0xF8F8F8);
 }
 
 void vogleditor_apiCallTimelineModel::AddApiCallsToTimeline(vogleditor_apiCallTreeItem *pParentCallTreeItem, vogleditor_timelineItem *pParentTimelineItem)
