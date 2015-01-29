@@ -94,9 +94,6 @@ public:
     }
 
 private:
-    unsigned int randomRGB();
-
-private:
     QBrush *m_brush;
     float m_beginTime;
     float m_endTime;
