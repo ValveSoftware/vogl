@@ -29,6 +29,7 @@
 #include <QList>
 #include <QVariant>
 #include "vogl_core.h"
+#include "vogl_common.h"
 
 class vogleditor_frameItem;
 class vogleditor_groupItem;
@@ -120,6 +121,8 @@ public:
 
     void setRenderGroup();
     void setStateChangeGroup();
+
+    gl_entrypoint_id_t entrypoint_id() const;
 
 private:
     void setColumnData(QVariant data, int column);
