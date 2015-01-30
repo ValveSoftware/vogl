@@ -22,28 +22,28 @@ struct vogleditor_setting_struct
     // State/Render groups checkbox
     QString state_render_name;          // checkbox label
     bool state_render_stat;             // checked status of checkbox
-    bool state_render_used;             // enabled status of checkbox
+    bool state_render_able;             // enabled status of checkbox
     QStringList state_render_nest_list; // list of allowable nest options
 
     // Debug marker groups groupbox
     QStringList debug_marker_name_list;   // checkbox labels in groupbox
     QVector<bool> debug_marker_stat_list; // checked status of checkboxes
-    QVector<bool> debug_marker_used_list; // enabled status of checkboxes
+    QVector<bool> debug_marker_able_list; // enabled status of checkboxes
     // TODO: seems these could also be made into QStringList and QVector<bool>
     QString debug_marker_option_name_labl; // radiobutton labels in groupbox
     QString debug_marker_option_omit_labl;
     bool debug_marker_option_name_stat; // checked status of radiobuttons
     bool debug_marker_option_omit_stat;
-    bool debug_marker_option_name_used; // enabled status of radiobuttons
-    bool debug_marker_option_omit_used;
+    bool debug_marker_option_name_able; // enabled status of radiobuttons
+    bool debug_marker_option_omit_able;
 
     // Nest options groupbox
     QString groupbox_nest_options_name;   // checkbox label of groupbox header
     bool groupbox_nest_options_stat;      // checked status of header checkbox
-    bool groupbox_nest_options_used;      // enabled status of header checkbox
+    bool groupbox_nest_options_able;      // enabled status of header checkbox
     QStringList nest_options_name_list;   // checkbox labels in groupbox
     QVector<bool> nest_options_stat_list; // checked status of checkboxes
-    QVector<bool> nest_options_used_list; // enabled status of checkboxes
+    QVector<bool> nest_options_able_list; // enabled status of checkboxes
 };
 
 class vogleditor_qsettings : public QObject
@@ -133,9 +133,9 @@ public:
     {
         m_settings.state_render_stat = state_render_stat;
     }
-    bool group_state_render_used()
+    bool group_state_render_able()
     {
-        return m_settings.state_render_used;
+        return m_settings.state_render_able;
     }
 
     // Debug marker
@@ -153,13 +153,13 @@ public:
         m_settings.debug_marker_stat_list = debug_marker_stat_list;
     }
 
-    QVector<bool> group_debug_marker_used_list()
+    QVector<bool> group_debug_marker_able_list()
     {
-        return m_settings.debug_marker_used_list;
+        return m_settings.debug_marker_able_list;
     }
-    void set_group_debug_marker_used_list(QVector<bool> debug_marker_used_list)
+    void set_group_debug_marker_able_list(QVector<bool> debug_marker_able_list)
     {
-        m_settings.debug_marker_used_list = debug_marker_used_list;
+        m_settings.debug_marker_able_list = debug_marker_able_list;
     }
 
     QString group_debug_marker_option_name_label()
@@ -170,9 +170,9 @@ public:
     {
         return m_settings.debug_marker_option_name_stat;
     }
-    bool group_debug_marker_option_name_used()
+    bool group_debug_marker_option_name_able()
     {
-        return m_settings.debug_marker_option_name_used;
+        return m_settings.debug_marker_option_name_able;
     }
 
     QString group_debug_marker_option_omit_label()
@@ -183,26 +183,26 @@ public:
     {
         return m_settings.debug_marker_option_omit_stat;
     }
-    bool group_debug_marker_option_omit_used()
+    bool group_debug_marker_option_omit_able()
     {
-        return m_settings.debug_marker_option_omit_used;
+        return m_settings.debug_marker_option_omit_able;
     }
 
     void set_group_debug_marker_option_name_stat(bool stat)
     {
         m_settings.debug_marker_option_name_stat = stat;
     }
-    void set_group_debug_marker_option_name_used(bool used)
+    void set_group_debug_marker_option_name_able(bool used)
     {
-        m_settings.debug_marker_option_name_used = used;
+        m_settings.debug_marker_option_name_able = used;
     }
     void set_group_debug_marker_option_omit_stat(bool stat)
     {
         m_settings.debug_marker_option_omit_stat = stat;
     }
-    void set_group_debug_marker_option_omit_used(bool used)
+    void set_group_debug_marker_option_omit_able(bool used)
     {
-        m_settings.debug_marker_option_omit_used = used;
+        m_settings.debug_marker_option_omit_able = used;
     }
 
     bool group_debug_marker_in_use()
@@ -225,9 +225,9 @@ public:
     {
         m_settings.groupbox_nest_options_stat = b_val;
     }
-    bool groupbox_nest_options_used()
+    bool groupbox_nest_options_able()
     {
-        return m_settings.groupbox_nest_options_used;
+        return m_settings.groupbox_nest_options_able;
     }
 
     // Checkboxes
@@ -243,13 +243,13 @@ public:
     {
         m_settings.nest_options_stat_list = nest_options_stat_list;
     }
-    QVector<bool> group_nest_options_used_list()
+    QVector<bool> group_nest_options_able_list()
     {
-        return m_settings.nest_options_used_list;
+        return m_settings.nest_options_able_list;
     }
-    void set_group_nest_options_used_list(QVector<bool> nest_options_used_list)
+    void set_group_nest_options_able_list(QVector<bool> nest_options_able_list)
     {
-        m_settings.nest_options_used_list = nest_options_used_list;
+        m_settings.nest_options_able_list = nest_options_able_list;
     }
 
     void update_group_active_lists()

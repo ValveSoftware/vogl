@@ -461,5 +461,5 @@ int vogleditor_apiCallTreeItem::row() const
 
 gl_entrypoint_id_t vogleditor_apiCallTreeItem::entrypoint_id() const
 {
-   return m_pApiCallItem ? m_pApiCallItem->getTracePacket()->get_entrypoint_id() : VOGL_ENTRYPOINT_INVALID;
+    return m_pApiCallItem ? m_pApiCallItem->getTracePacket()->get_entrypoint_id() : VOGL_ENTRYPOINT_INVALID;
 }

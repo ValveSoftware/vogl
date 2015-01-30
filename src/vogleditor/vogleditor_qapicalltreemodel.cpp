@@ -488,12 +488,12 @@ bool vogleditor_QApiCallTreeModel::isFrameBufferWriteEntrypoint(gl_entrypoint_id
 
 bool vogleditor_QApiCallTreeModel::displayMarkerTextAsLabel() const
 {
-    return g_settings.group_debug_marker_option_name_stat() && g_settings.group_debug_marker_option_name_used();
+    return g_settings.group_debug_marker_option_name_stat() && g_settings.group_debug_marker_option_name_able();
 }
 
 bool vogleditor_QApiCallTreeModel::hideMarkerPopApiCall() const
 {
-    return g_settings.group_debug_marker_option_omit_stat() && g_settings.group_debug_marker_option_omit_used();
+    return g_settings.group_debug_marker_option_omit_stat() && g_settings.group_debug_marker_option_omit_able();
 }
 
 gl_entrypoint_id_t vogleditor_QApiCallTreeModel::itemApiCallId(vogleditor_apiCallTreeItem *apiCallTreeItem) const
