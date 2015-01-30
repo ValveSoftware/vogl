@@ -23,54 +23,100 @@
  *
  **************************************************************************/
 
+#include <QBrush>
+
 #include "vogleditor_timelineitem.h"
 #include "vogl_common.h"
 
-// Timeline markers (frame demarcations)
-vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timelineItem *parent, vogleditor_frameItem *frameItem)
-    : m_beginTime(time),
-      m_endTime(time),
-      m_duration(0),
-      m_isSpan(false),
-      m_maxChildDuration(0),
-      m_parentItem(parent),
-      m_pFrameItem(frameItem),
-      m_pApiCallItem(NULL)
-{
-    VOGL_ASSERT(parent != NULL);
-    parent->appendChild(this);
-}
-
 // Timeline root (fullspan)
 vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end)
-    : m_beginTime(begin),
+    : m_brush(NULL),
+      m_beginTime(begin),
       m_endTime(end),
       m_duration(end - begin),
       m_isSpan(true),
       m_maxChildDuration(end - begin),
       m_parentItem(NULL),
       m_pFrameItem(NULL),
+      m_pGroupItem(NULL),
       m_pApiCallItem(NULL)
 {
 }
 
-// Timeline segmented spans
-vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_apiCallItem *apiCallItem)
-    : m_beginTime(begin),
+// Timeline markers (frame demarcations)
+vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timelineItem *parent, vogleditor_frameItem *frameItem)
+    : m_brush(NULL),
+      m_beginTime(time),
+      m_endTime(time),
+      m_duration(0),
+      m_isSpan(false),
+      m_maxChildDuration(0),
+      m_parentItem(parent),
+      m_pFrameItem(frameItem),
+      m_pGroupItem(NULL),
+      m_pApiCallItem(NULL)
+{
+    VOGL_ASSERT(parent != NULL);
+    parent->appendChild(this);
+}
+
+// Timeline groups
+vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_groupItem *groupItem)
+    : m_brush(NULL),
+      m_beginTime(begin),
       m_endTime(end),
       m_duration(end - begin),
       m_isSpan(true),
       m_maxChildDuration(end - begin),
       m_parentItem(parent),
       m_pFrameItem(NULL),
+      m_pGroupItem(groupItem),
+      m_pApiCallItem(NULL)
+{
+    VOGL_ASSERT(parent != NULL);
+    parent->appendChild(this);
+}
+
+// Timeline segmented spans
+vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_apiCallItem *apiCallItem)
+    : m_brush(NULL),
+      m_beginTime(begin),
+      m_endTime(end),
+      m_duration(end - begin),
+      m_isSpan(true),
+      m_maxChildDuration(end - begin),
+      m_parentItem(parent),
+      m_pFrameItem(NULL),
+      m_pGroupItem(NULL),
       m_pApiCallItem(apiCallItem)
 {
     VOGL_ASSERT(parent != NULL);
     parent->appendChild(this);
 }
 
+bool vogleditor_timelineItem::isApiCallItem()
+{
+    return (m_pApiCallItem != NULL);
+}
+
+bool vogleditor_timelineItem::isGroupItem()
+{
+    return (m_pGroupItem != NULL);
+}
+
+bool vogleditor_timelineItem::isFrameItem()
+{
+    return (m_pFrameItem != NULL);
+}
+
+bool vogleditor_timelineItem::isRootItem()
+{
+    return !(isApiCallItem() | isGroupItem() | isFrameItem());
+}
+
 vogleditor_timelineItem::~vogleditor_timelineItem()
 {
+    delete m_brush;
     for (int i = 0; i < m_childItems.size(); i++)
     {
         delete m_childItems[i];
@@ -112,16 +158,12 @@ vogleditor_timelineItem *vogleditor_timelineItem::parent()
 
 QBrush *vogleditor_timelineItem::getBrush()
 {
-    // if a local brush isn't set, use the parent's brush as a default
+    // if local brush isn't set, use first non-null ancestor's brush as default
     if (m_brush == NULL)
     {
         if (parent() != NULL)
         {
             return parent()->getBrush();
-        }
-        else
-        {
-            return NULL;
         }
     }
 

@@ -46,16 +46,17 @@ enum VOGL_API_CALL_TREE_COLUMN
     VOGL_ACTC_INDEX,
     VOGL_ACTC_GLCONTEXT,
     VOGL_ACTC_FLAGS,
-    //    VOGL_ACTC_BEGINTIME,
-    //    VOGL_ACTC_ENDTIME,
+    //VOGL_ACTC_BEGINTIME,
+    //VOGL_ACTC_ENDTIME,
     VOGL_ACTC_DURATION,
     VOGL_MAX_ACTC
 };
 
+// TODO: Maybe think about a less general group name for "Render" so as not to
+//       possibly be confused with a marker_push entrypoint name that could also
+//       be named "Render"
 const QString cTREEITEM_STATECHANGES("State changes");
-// TODO: Maybe think about a more unique name so as not to be confused with,
-//       e.g., a marker_push entrypoint that has also been named "Render"
-const QString cTREEITEM_RENDER("Render");
+const QString cTREEITEM_RENDER("Draw calls");
 
 class vogleditor_apiCallTreeItem
 {
@@ -110,8 +111,15 @@ public:
 
     bool isApiCall() const;
     bool isGroup() const;
+    bool isGroupAncestry() const;
     bool isFrame() const;
     bool isRoot() const;
+
+    bool isRenderGroup();
+    bool isStateChangeGroup();
+
+    void setRenderGroup();
+    void setStateChangeGroup();
 
 private:
     void setColumnData(QVariant data, int column);

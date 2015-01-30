@@ -23,12 +23,15 @@
  *
  **************************************************************************/
 
+#include <QBrush>
+
 #include "vogleditor_apicalltimelinemodel.h"
 #include "vogleditor_timelineitem.h"
 #include "vogleditor_qapicalltreemodel.h"
 #include "vogleditor_apicalltreeitem.h"
 #include "vogleditor_groupitem.h"
 #include "vogleditor_frameitem.h"
+#include "vogleditor_qsettings.h"
 
 vogleditor_apiCallTimelineModel::vogleditor_apiCallTimelineModel(vogleditor_apiCallTreeItem *pRootApiCall)
     : m_pRootApiCall(pRootApiCall),
@@ -93,7 +96,7 @@ void vogleditor_apiCallTimelineModel::refresh()
             vogleditor_apiCallTreeItem *pFrameItem = m_pRootApiCall->child(c);
             if (pFrameItem->childCount() > 0)
             {
-                // add frame to root(root will manage deletion of frame object)
+                // add frame to root (root will manage deletion of frame object)
                 frameStart = u64ToFloat(pFrameItem->startTime() - m_rawBaseTime);
                 new vogleditor_timelineItem(frameStart, m_rootItem, pFrameItem->frameItem());
             }
@@ -155,24 +158,77 @@ float vogleditor_apiCallTimelineModel::u64ToFloat(uint64_t value)
     return static_cast<float>(value);
 }
 
+unsigned int vogleditor_apiCallTimelineModel::randomRGB()
+{
+
+    // TODO: If Debug marker groups are allowed to be colored independent of the
+    //       State/Render groups setting, then force their colors to be a strong
+    //       mix of blue/red and blue/green to distinguish them separately from
+    //       independent apicalls which are a mix of red/green.
+    //static int sSwap = 2;
+    //sSwap = 3 - sSwap;
+    //return  (0xC0 | (0x40 << sSwap * 8) | (rand() & ((0xFF << sSwap * 8) | 0xFF)));
+
+    // mask out some lower bits from each component for greater contrast
+    return (rand() & 0xF8F8F8);
+}
+
 void vogleditor_apiCallTimelineModel::AddApiCallsToTimeline(vogleditor_apiCallTreeItem *pParentCallTreeItem, vogleditor_timelineItem *pParentTimelineItem)
 {
+    vogleditor_timelineItem *pNewTimelineItem;
+
     int numChildren = pParentCallTreeItem->childCount();
     for (int c = 0; c < numChildren; c++)
     {
         vogleditor_apiCallTreeItem *pChildCallTreeItem = pParentCallTreeItem->child(c);
 
+        float beginFloat = u64ToFloat(pChildCallTreeItem->startTime() - m_rawBaseTime);
+        float endFloat = u64ToFloat(pChildCallTreeItem->endTime() - m_rawBaseTime);
+
         if (pChildCallTreeItem->isGroup())
         {
-            AddApiCallsToTimeline(pChildCallTreeItem, pParentTimelineItem);
+            // Create a group timelineItem with group color
+            pNewTimelineItem = new vogleditor_timelineItem(beginFloat, endFloat, m_rootItem, pChildCallTreeItem->groupItem());
+            QColor color;
+            if (pChildCallTreeItem->isStateChangeGroup())
+            {
+                color = Qt::green;
+            }
+            else if (pChildCallTreeItem->isRenderGroup())
+            {
+                color = Qt::red;
+            }
+            pNewTimelineItem->setBrush(new QBrush(color, Qt::Dense5Pattern));
         }
-        else if (pChildCallTreeItem->isApiCall())
+        else // (API call)
         {
-            float beginFloat = u64ToFloat(pChildCallTreeItem->startTime() - m_rawBaseTime);
-            float endFloat = u64ToFloat(pChildCallTreeItem->endTime() - m_rawBaseTime);
+            // close a timeline parent group if the tree parent group has ended
+            if (!pChildCallTreeItem->parent()->isGroup() && pParentTimelineItem->isGroupItem())
+            {
+                pParentTimelineItem = pParentTimelineItem->parent();
+            }
 
-            vogleditor_timelineItem *pNewTimelineItem = new vogleditor_timelineItem(beginFloat, endFloat, pParentTimelineItem, pChildCallTreeItem->apiCallItem());
-            AddApiCallsToTimeline(pChildCallTreeItem, pNewTimelineItem);
+            // Create new timeline apicall item
+            pNewTimelineItem = new vogleditor_timelineItem(beginFloat, endFloat, pParentTimelineItem, pChildCallTreeItem->apiCallItem());
+
+            // Add random color for debug marker group parent
+            if (g_settings.group_debug_marker_in_use())
+            {
+                // (For now) only if State/Render groups are enabled so that
+                // default timeline display isn't affected (debug marker groups
+                // are checked on)
+                // TODO: remove check for state/render status if/when consensus
+                //       is the debug marker groups should be separately colored
+                //       by default (when checked on)
+                if (g_settings.group_state_render_stat())
+                {
+                    if (vogl_is_marker_push_entrypoint(pChildCallTreeItem->apiCallItem()->getTracePacket()->get_entrypoint_id()))
+                    {
+                        pNewTimelineItem->setBrush(new QBrush(QColor(randomRGB())));
+                    }
+                }
+            }
         }
+        AddApiCallsToTimeline(pChildCallTreeItem, pNewTimelineItem);
     }
 }

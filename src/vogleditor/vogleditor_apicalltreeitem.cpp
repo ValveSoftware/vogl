@@ -51,8 +51,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_QApiCallTreeMo
     m_columnData[VOGL_ACTC_INDEX] = "Index";
     m_columnData[VOGL_ACTC_FLAGS] = "";
     m_columnData[VOGL_ACTC_GLCONTEXT] = "GL Context";
-    //m_ColumnTitles[VOGL_ACTC_BEGINTIME] = "Begin Time";
-    //m_ColumnTitles[VOGL_ACTC_ENDTIME] = "End Time";
+    //m_columnData[VOGL_ACTC_BEGINTIME] = "Begin Time";
+    //m_columnData[VOGL_ACTC_ENDTIME] = "End Time";
     m_columnData[VOGL_ACTC_DURATION] = "Duration (ns)";
 }
 
@@ -115,8 +115,8 @@ vogleditor_apiCallTreeItem::vogleditor_apiCallTreeItem(vogleditor_apiCallItem *a
         m_columnData[VOGL_ACTC_FLAGS] = "";
         dynamic_string strContext;
         m_columnData[VOGL_ACTC_GLCONTEXT] = strContext.format("0x%" PRIx64, apiCallItem->getGLPacket()->m_context_handle).c_str();
-        //m_columnData[VOGL_ACTC_BEGINTIME] = apiCallItem->startTime();
-        //m_columnData[VOGL_ACTC_ENDTIME] = apiCallItem->endTime();
+        //m_columnData[VOGL_ACTC_BEGINTIME] = (qulonglong)apiCallItem->startTime();
+        //m_columnData[VOGL_ACTC_ENDTIME] = (qulonglong)apiCallItem->endTime();
         m_columnData[VOGL_ACTC_DURATION] = (qulonglong)apiCallItem->duration();
     }
 
@@ -168,6 +168,25 @@ bool vogleditor_apiCallTreeItem::isApiCall() const
 bool vogleditor_apiCallTreeItem::isGroup() const
 {
     return (g_settings.group_state_render_stat() && (m_pGroupItem != NULL));
+}
+bool vogleditor_apiCallTreeItem::isGroupAncestry() const
+{
+    bool bRetVal = false;
+
+    if (g_settings.group_state_render_stat())
+    {
+        vogleditor_apiCallTreeItem const *pCallTreeItem = this;
+        while (pCallTreeItem)
+        {
+            if (pCallTreeItem->isGroup())
+            {
+                bRetVal = true;
+                break;
+            }
+            pCallTreeItem = pCallTreeItem->parent();
+        }
+    }
+    return bRetVal;
 }
 bool vogleditor_apiCallTreeItem::isFrame() const
 {
@@ -377,6 +396,7 @@ void vogleditor_apiCallTreeItem::setDurationColumn(uint64_t span)
 {
     if (0 == span)
     {
+        // If given span is 0, use span of current tree item.
         if (isApiCall())
         {
             span = apiCallItem()->duration();
@@ -401,6 +421,26 @@ void vogleditor_apiCallTreeItem::setApiCallColumn(QString name)
 void vogleditor_apiCallTreeItem::setColumnData(QVariant data, int column)
 {
     m_columnData[column] = data;
+}
+
+bool vogleditor_apiCallTreeItem::isRenderGroup()
+{
+    return (apiCallColumn() == cTREEITEM_RENDER);
+}
+
+bool vogleditor_apiCallTreeItem::isStateChangeGroup()
+{
+    return (apiCallColumn() == cTREEITEM_STATECHANGES);
+}
+
+void vogleditor_apiCallTreeItem::setRenderGroup()
+{
+    setApiCallColumn(cTREEITEM_RENDER);
+}
+
+void vogleditor_apiCallTreeItem::setStateChangeGroup()
+{
+    setApiCallColumn(cTREEITEM_STATECHANGES);
 }
 
 QString vogleditor_apiCallTreeItem::apiCallColumn() const

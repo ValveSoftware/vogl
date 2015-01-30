@@ -299,7 +299,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                 // make apicall item
                 pCallItem = vogl_new(vogleditor_apiCallItem, pCurFrame, pTrace_packet, *pGL_packet);
                 pCurFrame->appendCall(pCallItem);
-                if (pCurParent->isGroup())
+                if (pCurParent->isGroupAncestry())
                 {
                     pCurGroup->appendCall(pCallItem);
                 }
@@ -401,9 +401,9 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                 if (pCurParent->isGroup())
                 {
                     // If a series, set group name only once
-                    if (pCurParent->apiCallColumn() != cTREEITEM_RENDER)
+                    if (pCurParent->isStateChangeGroup())
                     {
-                        pCurParent->setApiCallColumn(cTREEITEM_RENDER);
+                        pCurParent->setRenderGroup();
                     }
                 }
             } // vogl_is_frame_buffer_write_entrypoint
@@ -455,7 +455,7 @@ bool vogleditor_QApiCallTreeModel::isStartNestedEntrypoint(gl_entrypoint_id_t id
     if (id != VOGL_ENTRYPOINT_INVALID)
     {
         QString funcname = g_vogl_entrypoint_descs[id].m_pName;
-        if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
+        if (g_settings.is_active_nest_options(funcname) || g_settings.is_selected_state_render_nest(funcname))
         {
             return vogl_is_start_nested_entrypoint(id);
         }
@@ -467,7 +467,7 @@ bool vogleditor_QApiCallTreeModel::isEndNestedEntrypoint(gl_entrypoint_id_t id) 
     if (id != VOGL_ENTRYPOINT_INVALID)
     {
         QString funcname = g_vogl_entrypoint_descs[id].m_pName;
-        if (g_settings.is_active_nest_options(funcname) || g_settings.is_active_state_render_nest(funcname))
+        if (g_settings.is_active_nest_options(funcname) || g_settings.is_selected_state_render_nest(funcname))
         {
             return vogl_is_end_nested_entrypoint(id);
         }

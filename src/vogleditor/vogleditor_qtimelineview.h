@@ -40,6 +40,8 @@ QT_END_NAMESPACE
 #include "vogleditor_timelinemodel.h"
 #include "vogleditor_timelineitem.h"
 
+static const float cVOGL_TIMELINEOFFSET = 0.085f;
+
 class vogleditor_QTimelineView : public QWidget
 {
     Q_OBJECT
@@ -98,10 +100,10 @@ private:
     QPen m_trianglePen;
     QPen m_textPen;
     QFont m_textFont;
+    float m_roundoff;
     float m_horizontalScale;
     int m_lineLength;
     unsigned long long m_curFrame;
-    unsigned long long m_curGroup;
     unsigned long long m_curApiCallNumber;
     float m_maxItemDuration;
 

@@ -38,6 +38,7 @@ public:
     void refresh();
 
 private:
+    unsigned int randomRGB();
     void AddApiCallsToTimeline(vogleditor_apiCallTreeItem *pRoot, vogleditor_timelineItem *pDestRoot);
     float u64ToFloat(uint64_t value);
 
