@@ -498,16 +498,7 @@ bool vogleditor_QApiCallTreeModel::hideMarkerPopApiCall() const
 
 gl_entrypoint_id_t vogleditor_QApiCallTreeModel::itemApiCallId(vogleditor_apiCallTreeItem *apiCallTreeItem) const
 {
-    gl_entrypoint_id_t callId = VOGL_ENTRYPOINT_INVALID;
-    if (apiCallTreeItem)
-    {
-        vogleditor_apiCallItem *callItem = apiCallTreeItem->apiCallItem();
-        if (callItem)
-        {
-            callId = callItem->getTracePacket()->get_entrypoint_id();
-        }
-    }
-    return callId;
+    return apiCallTreeItem ? apiCallTreeItem->entrypoint_id() : VOGL_ENTRYPOINT_INVALID;
 }
 
 gl_entrypoint_id_t vogleditor_QApiCallTreeModel::lastItemApiCallId() const

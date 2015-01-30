@@ -458,3 +458,8 @@ int vogleditor_apiCallTreeItem::row() const
     // note, this is just the row within the current level of the hierarchy
     return m_localRowIndex;
 }
+
+gl_entrypoint_id_t vogleditor_apiCallTreeItem::entrypoint_id() const
+{
+   return m_pApiCallItem ? m_pApiCallItem->getTracePacket()->get_entrypoint_id() : VOGL_ENTRYPOINT_INVALID;
+}

@@ -222,7 +222,7 @@ void vogleditor_apiCallTimelineModel::AddApiCallsToTimeline(vogleditor_apiCallTr
                 //       by default (when checked on)
                 if (g_settings.group_state_render_stat())
                 {
-                    if (vogl_is_marker_push_entrypoint(pChildCallTreeItem->apiCallItem()->getTracePacket()->get_entrypoint_id()))
+                    if (vogl_is_marker_push_entrypoint(pChildCallTreeItem->entrypoint_id()))
                     {
                         pNewTimelineItem->setBrush(new QBrush(QColor(randomRGB())));
                     }
