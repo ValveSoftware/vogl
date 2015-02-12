@@ -382,24 +382,22 @@ function(require_libjpegturbo)
         PATHS /opt/libjpeg-turbo/lib 
     )
 
-    # On platforms that find this, the include files will have also been installed to the system
-    # so we don't need extra include dirs.
-    if (LibJpegTurbo_LIBRARY)
-        set(LibJpegTurbo_INCLUDE "" PARENT_SCOPE)
+    IF(LibJpegTurbo_LIBRARY)
+      find_path(LibJpegTurbo_INCLUDE_DIR
+                NAME turbojpeg.h
+                PATHS /opt/libjpeg-turbo/inc /opt/libjpeg-turbo/include
+               )
+      IF(NOT LibJpegTurbo_INCLUDE_DIR)
+        message(FATAL_ERROR "Unable to find turbojpeg.h")
+      ENDIF()
+      set(LibJpegTurbo_INCLUDE "${LibJpegTurbo_INCLUDE_DIR}" PARENT_SCOPE)
 
     # On Darwin we assume a Homebrew install
     elseif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         set(LibJpegTurbo_INCLUDE "/usr/local/opt/jpeg-turbo/include"            PARENT_SCOPE)
         set(LibJpegTurbo_LIBRARY "/usr/local/opt/jpeg-turbo/lib/libturbojpeg.a" PARENT_SCOPE)
-
     else()
-        if (BUILD_X64)
-            set(BITS_STRING "x64")
-        else()
-            set(BITS_STRING "x86")
-        endif()
-        set(LibJpegTurbo_INCLUDE "${CMAKE_PREFIX_PATH}/libjpeg-turbo-2.1.3/include" PARENT_SCOPE)
-        set(LibJpegTurbo_LIBRARY "${CMAKE_PREFIX_PATH}/libjpeg-turbo-2.1.3/lib_${BITS_STRING}/turbojpeg.lib" PARENT_SCOPE)
+        message(FATAL_ERROR "Unable to find libturbojpeg.so")
     endif()
 endfunction()
 
