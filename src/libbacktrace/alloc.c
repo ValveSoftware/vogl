@@ -33,6 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.  */
 #include "config.h"
 
 #include <errno.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
@@ -59,7 +60,34 @@ backtrace_alloc (struct backtrace_state *state ATTRIBUTE_UNUSED,
   return ret;
 }
 
-/* Free memory.  */
+/* Allocate memory like strdup. */
+
+char *
+backtrace_strdup (struct backtrace_state *state, const char *str,
+                  backtrace_error_callback error_callback,
+                  void *data)
+{
+   char *ret;
+
+   ret = NULL;
+
+   if (str)
+   {
+      size_t size;
+      void *mem;
+
+      size = strlen(str) + 1;
+      mem = backtrace_alloc (state, size, error_callback, data);
+      if (mem)
+      {
+         memcpy(mem, str, size);
+         ret = (char *)mem;
+      }
+   }
+   return ret;
+}
+
+/* Free memory allocated by backtrace_alloc.  */
 
 void
 backtrace_free (struct backtrace_state *state ATTRIBUTE_UNUSED,
