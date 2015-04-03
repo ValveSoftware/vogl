@@ -116,7 +116,7 @@ else ()
     set (BACKTRACE_SUPPORTED 0)
 endif ()
 
-check_symbol_exists (mmap sys/mman.h HAVE_MMAP)
+check_symbol_exists (mmap "sys/mman.h" HAVE_MMAP)
 
 if (HAVE_MMAP)
     set (VIEW_FILE mmapio.c)
