@@ -5,30 +5,36 @@ include("${SRC_DIR}/build_options.cmake")
 
 require_pthreads()
 
-file( GLOB_RECURSE HDRS *.[h|inl] )
-
 set(SPEC_DIR "${SRC_DIR}/../glspec")
 
+# Always look. It won't be found on Windows. Later build scripts will
+# understand how to WAR it being missing.
+find_package(TinyXML2)
+
+if (NOT TinyXML2_FOUND)
+  message(WARNING "TinyXML2 Not Found; will build it.")
+  add_library( tinyxml2 STATIC tinyxml2/tinyxml2.cpp tinyxml2/tinyxml2.h )
+
+  set( TinyXML2_LIBRARIES    tinyxml2 )
+  set( TinyXML2_INCLUDE_DIR  tinyxml2 )
+endif()
+
 file( GLOB SPECS "${SPEC_DIR}/*.spec" "${SPEC_DIR}/*.tm" "${SPEC_DIR}/*.xml" )
-set(SRC_LIST ${HDRS} ${SPECS}
-    voglgen.cpp
-    tinyxml2/tinyxml2.cpp)
+set(SRC_LIST ${SPECS} voglgen.cpp)
 
 # Add a source group to easily look at the spec files.
 if (MSVC)
     SOURCE_GROUP( "Specs Files" FILES ${SPECS} )
 endif()
 
-add_definitions(-DTIXML_USE_STL)
-
 include_directories(
-    ${SRC_DIR}/voglcore
+    ${SRC_DIR}/voglcore ${TinyXML2_INCLUDES}
 )
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 
 target_link_libraries(${PROJECT_NAME}
-    voglcore
+     ${TinyXML2_LIBRARIES} voglcore
 )
 
 set(FORCE_REGENERATE ${SPEC_DIR}/force_regenerate)

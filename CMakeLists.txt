@@ -13,10 +13,6 @@ if (WIN32)
     set(WIN32_PTHREADS_INCLUDE_PATH "${WIN32_PTHREADS_PATH}/include")
 endif()
 
-# Always look. It won't be found on Windows. Later build scripts will understand how to 
-# WAR it being missing.
-find_package(TinyXML)
-
 message("")
 message("cmake options:")
 message("  -DCMAKE_BUILD_TYPE='${CMAKE_BUILD_TYPE}': Build debug or release. (Debug|Release)")
