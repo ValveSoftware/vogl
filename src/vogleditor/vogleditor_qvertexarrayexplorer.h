@@ -4,12 +4,17 @@
 #include <QWidget>
 #include "vogl_core.h"
 #include "gl_types.h"
+#include "vogleditor_output.h"
+#include <QVector3D>
+
 class vogl_buffer_state;
 class vogl_context_snapshot;
 class vogl_vao_state;
 class vogl_gl_object_state;
 typedef vogl::vector<vogl_gl_object_state *> vogl_gl_object_state_ptr_vec;
 struct vogl_vertex_attrib_desc;
+
+class vogleditor_QVertexVisualizer;
 
 namespace Ui
 {
@@ -33,7 +38,7 @@ public:
     // This is intended to only by called by an external object to set the UI.
     // Since these values are (ideally) set based on the current API call, we should not automatically update the UI after these are set.
     // However, the user may manually change the settings in the UI; that's fine.
-    void set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, int32_t baseVertex, vogl::uint8_vec *pClientSideElements, uint32_t instanceCount, uint32_t baseInstance);
+    void set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, int32_t baseVertex, vogl::uint8_vec *pClientSideElements, uint32_t instanceCount, uint32_t baseInstance, GLenum drawMode);
 
     void beginUpdate()
     {
@@ -82,6 +87,7 @@ private:
     const vogl::uint8_vec *m_currentCallElementIndices;
     uint32_t m_currentCallInstanceCount;
     uint32_t m_currentCallBaseInstance;
+    GLenum m_currentCallDrawMode;
 
     void auto_update_element_count();
 
@@ -93,9 +99,13 @@ private:
     void update_array_table_headers();
     void update_vertex_array_table();
     void update_instance_array_table();
+    void update_vertex_array_visualizations();
 
     bool calculate_element_and_format_as_string(const vogl::uint8_vec *pElementArray, uint32_t index, int typeIndex, int byteOffset, int baseVertex, uint32_t &elementValue, QString &elementString);
     QString format_buffer_data_as_string(uint32_t index, const vogl_buffer_state &bufferState, const vogl_vertex_attrib_desc &attribDesc);
+
+    vogl::vector<vogleditor_QVertexVisualizer*> m_vertexVisualizers;
+    QVector3D buffer_data_to_QVector3D(uint32_t index, const vogl_buffer_state &bufferState, const vogl_vertex_attrib_desc &attribDesc);
 };
 
 #endif // VOGLEDITOR_QVERTEXARRAYEXPLORER_H

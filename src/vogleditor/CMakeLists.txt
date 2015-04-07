@@ -56,6 +56,7 @@ set(SRC_LIST
     vogleditor_qtrimdialog.cpp
     vogleditor_qdumpdialog.cpp
     vogleditor_qvertexarrayexplorer.cpp
+    vogleditor_qvertexvisualizer.cpp
     vogleditor_output.cpp
     vogleditor_statetreearbprogramitem.cpp
     vogleditor_statetreearbprogramenvitem.cpp
@@ -105,6 +106,7 @@ set(UI_HEADER_LIST
     vogleditor_qtrimdialog.h
     vogleditor_qdumpdialog.h
     vogleditor_qvertexarrayexplorer.h
+    vogleditor_qvertexvisualizer.h
    )
 
 # these are for non-QOBJECT headers

@@ -23,6 +23,8 @@
  *
  **************************************************************************/
 
+#include <QVBoxLayout>
+
 #include "vogl_warnings.h"
 #include "vogleditor_qvertexarrayexplorer.h"
 
@@ -34,6 +36,8 @@ GCC_DIAGNOSTIC_POP()
 #include "vogl_gl_object.h"
 #include "vogl_gl_state_snapshot.h"
 #include "vogl_vao_state.h"
+
+#include "vogleditor_qvertexvisualizer.h"
 
 Q_DECLARE_METATYPE(vogl_vao_state *);
 
@@ -74,6 +78,7 @@ vogleditor_QVertexArrayExplorer::vogleditor_QVertexArrayExplorer(QWidget *parent
 
     ui->baseInstanceSpinBox->setMinimum(0);
     ui->baseInstanceSpinBox->setMaximum(INT_MAX);
+
 }
 
 vogleditor_QVertexArrayExplorer::~vogleditor_QVertexArrayExplorer()
@@ -173,7 +178,7 @@ bool vogleditor_QVertexArrayExplorer::set_active_vertexarray(unsigned long long 
     return false;
 }
 
-void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, int32_t baseVertex, vogl::uint8_vec *pClientSideElements, uint32_t instanceCount, uint32_t baseInstance)
+void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, GLenum type, uint32_t byteOffset, int32_t baseVertex, vogl::uint8_vec *pClientSideElements, uint32_t instanceCount, uint32_t baseInstance, GLenum drawMode)
 {
     // determine type index in combo box, or use whatever the current setting is if a known type is supplied
     uint32_t typeIndex = ui->elementTypeComboBox->currentIndex();
@@ -197,6 +202,7 @@ void vogleditor_QVertexArrayExplorer::set_element_array_options(uint32_t count, 
     m_currentCallElementByteOffset = byteOffset;
     m_currentCallInstanceCount = instanceCount;
     m_currentCallBaseInstance = baseInstance;
+    m_currentCallDrawMode = drawMode;
 
     beginUpdate();
     ui->countSpinBox->setValue(m_currentCallElementCount);
@@ -399,6 +405,134 @@ QString vogleditor_QVertexArrayExplorer::format_buffer_data_as_string(uint32_t i
         attributeValueString += " }";
 
     return attributeValueString.c_str();
+}
+
+QVector3D vogleditor_QVertexArrayExplorer::buffer_data_to_QVector3D(uint32_t index, const vogl_buffer_state &bufferState, const vogl_vertex_attrib_desc &attribDesc)
+{
+    //Works like format_buffer_data_as_string but returns QVector3D
+
+    uint32_t bytesPerComponent = vogl_get_gl_type_size(attribDesc.m_type);
+    uint32_t bytesPerAttribute = bytesPerComponent * attribDesc.m_size;
+
+    uint32_t stride = (attribDesc.m_stride != 0) ? attribDesc.m_stride : bytesPerAttribute;
+
+    // account for divisor
+    if (attribDesc.m_divisor != 0)
+    {
+        index /= attribDesc.m_divisor;
+    }
+
+    uint32_t curAttributeDataIndex = stride * index;
+
+    // make sure accessing this attribute's components will not read past the end of the buffer
+    uint32_t bufferSize = bufferState.get_buffer_data().size();
+    if (index > bufferSize ||
+        curAttributeDataIndex > bufferSize ||
+        curAttributeDataIndex + bytesPerAttribute > bufferSize)
+    {
+        return QVector3D();
+    }
+
+    // index into the buffer
+    const uint8_t *pCurAttributeData = &(bufferState.get_buffer_data()[curAttributeDataIndex]);
+
+    float values[attribDesc.m_size];
+    for (int i = 0; i < attribDesc.m_size; i++)
+    {
+        values[i]=0;
+        // convert the data appropriately
+        if (attribDesc.m_type == GL_BYTE)
+        {
+            int8_t *pData = (int8_t *)pCurAttributeData;
+            if (!attribDesc.m_normalized)
+                values[i]=(float)*pData;
+            else
+            {
+                float normalized = (float)*pData / (float)SCHAR_MAX;
+                values[i]=normalized;
+            }
+        }
+        else if (attribDesc.m_type == GL_UNSIGNED_BYTE)
+        {
+            uint8_t *pData = (uint8_t *)pCurAttributeData;
+            if (!attribDesc.m_normalized)
+                values[i]=(float)*pData;
+            else
+            {
+                float normalized = (float)*pData / (float)UCHAR_MAX;
+                values[i]=normalized;
+            }
+        }
+        else if (attribDesc.m_type == GL_SHORT)
+        {
+            int16_t *pData = (int16_t *)pCurAttributeData;
+            if (!attribDesc.m_normalized)
+                values[i]=(float)*pData;
+            else
+            {
+                float normalized = (float)*pData / (float)SHRT_MAX;
+                values[i]=normalized;
+            }
+        }
+        else if (attribDesc.m_type == GL_UNSIGNED_SHORT)
+        {
+            uint16_t *pData = (uint16_t *)pCurAttributeData;
+            if (!attribDesc.m_normalized)
+                values[i]=(float)*pData;
+            else
+            {
+                float normalized = (float)*pData / (float)USHRT_MAX;
+                values[i]=normalized;
+            }
+        }
+        else if (attribDesc.m_type == GL_INT)
+        {
+            int32_t *pData = (int32_t *)pCurAttributeData;
+            if (!attribDesc.m_normalized)
+                values[i]=(float)*pData;
+            else
+            {
+                float normalized = (float)*pData / (float)INT_MAX;
+                values[i]=normalized;
+            }
+        }
+        else if (attribDesc.m_type == GL_UNSIGNED_INT)
+        {
+            uint32_t *pData = (uint32_t *)pCurAttributeData;
+            if (!attribDesc.m_normalized)
+                values[i]=(float)*pData;
+            else
+            {
+                float normalized = (float)*pData / (float)UINT_MAX;
+                values[i]=normalized;
+            }
+        }
+        else if (attribDesc.m_type == GL_FLOAT)
+        {
+            float *pData = (float *)pCurAttributeData;
+            values[i]=*pData;
+        }
+        else if (attribDesc.m_type == GL_DOUBLE)
+        {
+            double *pData = (double *)pCurAttributeData;
+            values[i]=(float)*pData;
+        }
+//        else
+//        {
+            // half-float, fixed, int_2_10_10_10_REV, UINT_2_10_10_10_REV, UINT_10F_11F_11F_REV
+//        }
+        pCurAttributeData += bytesPerComponent;
+    }
+
+    QVector3D vertex;
+    vertex.setX(values[0]);
+    if (attribDesc.m_size>1)
+        vertex.setY(values[1]);
+    if (attribDesc.m_size>2)
+        vertex.setZ(values[2]);
+    return vertex;
+//    return attributeValueString.c_str();
+
 }
 
 void vogleditor_QVertexArrayExplorer::on_vertexArrayComboBox_currentIndexChanged(int index)
@@ -670,7 +804,90 @@ void vogleditor_QVertexArrayExplorer::update_vertex_array_table()
         ui->vertexTableWidget->horizontalHeader()->resizeSection(i, tmpWidth);
     }
 
+    update_vertex_array_visualizations();
+
     QApplication::restoreOverrideCursor();
+}
+
+
+void vogleditor_QVertexArrayExplorer::update_vertex_array_visualizations()
+{
+    vogl::vector<uint> attrib_buffers_to_render;
+    for (uint b = 0; b < m_attrib_buffers.size(); b++)
+    {
+        // make sure buffer is available and that divisor is 0 (which means it is NOT a per-instance attribute)
+        if (m_attrib_buffers[b] != NULL && m_pVaoState->get_vertex_attrib_desc(b).m_divisor == 0)
+        {
+            attrib_buffers_to_render.push_back(b);
+        }
+    }
+
+//    vogleditor_output_message((QString::number(attrib_buffers_to_render.size()).append(" attrib_buffers found. ").append(QString::number(vertexVisualizers.size()))).toLocal8Bit());
+
+    //Ensure we have the correct number of vertexVisualizers.
+    if (m_vertexVisualizers.size()<attrib_buffers_to_render.size())
+    {
+        for (uint b = m_vertexVisualizers.size(); b < attrib_buffers_to_render.size(); b++)
+        {
+//            vogleditor_output_message("Adding vis.");
+            vogleditor_QVertexVisualizer *vis = new vogleditor_QVertexVisualizer(this);
+            m_vertexVisualizers.push_back(vis);
+            ui->horizontalLayout_3->addWidget(vis);
+        }
+    }
+    else if (m_vertexVisualizers.size()>attrib_buffers_to_render.size())
+    {
+        for (uint b = m_vertexVisualizers.size(); b > attrib_buffers_to_render.size(); b--)
+        {
+//            vogleditor_output_message("Deleting vis.");
+            m_vertexVisualizers.at(b-1)->deleteLater();
+            m_vertexVisualizers.pop_back();
+        }
+    }
+
+    // Identify the correct element array to reference
+    const uint8_vec *pElementArray = m_pVaoElementArray;
+    if (pElementArray == NULL)
+    {
+        if (m_currentCallElementIndices != NULL)
+        {
+            pElementArray = m_currentCallElementIndices;
+        }
+        else
+        {
+            // no element array means there will be implied indices (ie, in the case of glDrawArrays)
+            pElementArray = NULL;
+        }
+    }
+
+    int32_t indexCount = ui->countSpinBox->value();
+    int byteOffset = ui->byteOffsetSpinBox->value();
+    int baseVertex = ui->baseVertexSpinBox->value();
+    int elementType = ui->elementTypeComboBox->currentIndex();
+    QString elementString;
+    for (uint b = 0; b < attrib_buffers_to_render.size(); b++)
+    {
+        QString label = QString("Attrib %1 (Buffer %2)").arg(b).arg(m_attrib_buffers[attrib_buffers_to_render[b]]->get_snapshot_handle());
+        m_vertexVisualizers.at(b)->setLabel(label);
+        m_vertexVisualizers.at(b)->setDrawMode(m_currentCallDrawMode);
+        //Add the vertex values
+        QVector<QVector3D> vertices;
+        for (int i = 0; i < indexCount; i++)
+        {
+            uint32_t elementIndex = i;
+            //We should not have to format the element as a string in order to work out if it is valid:
+            bool bValidElement = calculate_element_and_format_as_string(pElementArray, elementIndex, elementType, byteOffset, baseVertex, elementIndex, elementString);
+            if (bValidElement)
+            {
+//                QString vertexstring = format_buffer_data_as_string(elementIndex, *(m_attrib_buffers[attrib_buffers_to_render[b]]), m_pVaoState->get_vertex_attrib_desc(b));
+                QVector3D vertex = buffer_data_to_QVector3D(elementIndex, *(m_attrib_buffers[attrib_buffers_to_render[b]]), m_pVaoState->get_vertex_attrib_desc(b));
+                vertices.push_back(vertex);
+            }
+            else
+                break;
+        }
+        m_vertexVisualizers.at(b)->setVertices(vertices);
+    }
 }
 
 void vogleditor_QVertexArrayExplorer::update_instance_array_table()
