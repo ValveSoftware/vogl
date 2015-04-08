@@ -2250,7 +2250,6 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
         case VOGL_GLENUM:
         {
             const char *pName;
-
             if (entrypoint_id != VOGL_ENTRYPOINT_INVALID)
                 pName = get_gl_enums().find_name(val_data, entrypoint_id, param_index);
             else
@@ -2283,9 +2282,44 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
         }
         case VOGL_GLHANDLEARB:
         case VOGL_GLUINT:
-        case VOGL_GLBITFIELD:
         {
             str.format_append("%u", *reinterpret_cast<const uint32_t *>(&val_data));
+            handled = true;
+            break;
+        }
+        case VOGL_GLBITFIELD:
+        {
+            if (val_data==0)
+            {
+                str.format_append("0");
+            }else{
+                bool first = true;
+                for (int bit = 0; bit < sizeof(uint64_t)*8; bit++)
+                {
+                    uint64_t mask = (((uint64_t)1) << bit);
+                    uint64_t flag = mask & val_data;
+                    if (flag)
+                    {
+                        if (!first)
+                            str.format_append(" | ");
+                        first=false;
+
+                        const char *pName;
+                        if (entrypoint_id != VOGL_ENTRYPOINT_INVALID)
+                            pName = get_gl_enums().find_name(flag, entrypoint_id, param_index);
+                        else
+                            pName = get_gl_enums().find_name(flag);
+
+                        if (pName)
+                        {
+                            VOGL_ASSERT(get_gl_enums().find_enum(pName) == val_data);
+
+                            str += pName;
+                        }else
+                            str.format_append("%" PRIi64, flag);
+                    }
+                }
+            }
             handled = true;
             break;
         }
