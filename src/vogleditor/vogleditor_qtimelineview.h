@@ -54,11 +54,7 @@ public:
     inline void setModel(vogleditor_timelineModel *pModel)
     {
         m_pModel = pModel;
-        if (m_pModel == NULL)
-        {
-            deletePixmap();
-        }
-        else
+        if (m_pModel != NULL)
         {
             m_maxItemDuration = m_pModel->get_root_item()->getMaxChildDuration();
         }
@@ -84,17 +80,7 @@ public:
         m_curApiCallNumber = apiCallNumber;
     }
 
-    void deletePixmap()
-    {
-        if (m_pPixmap != NULL)
-        {
-            delete m_pPixmap;
-            m_pPixmap = NULL;
-        }
-    }
-
 private:
-    QBrush m_background;
     QBrush m_triangleBrushWhite;
     QBrush m_triangleBrushBlack;
     QPen m_trianglePen;
@@ -106,9 +92,12 @@ private:
     unsigned long long m_curFrame;
     unsigned long long m_curApiCallNumber;
     float m_maxItemDuration;
+    float m_zoom;
+    float m_scroll;
+    int m_mouseDragStartPos;
+    int m_mouseDragStartScroll;
 
     vogleditor_timelineModel *m_pModel;
-    QPixmap *m_pPixmap;
 
     void drawBaseTimeline(QPainter *painter, const QRect &rect, int gap);
     void drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, float &minimumOffset);
@@ -117,8 +106,12 @@ private:
     float scaleDurationHorizontally(float value);
     float scalePositionHorizontally(float value);
 
+    void scrollToPx(int scroll);
 protected:
     void paintEvent(QPaintEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent * event);    
+    void mouseMoveEvent(QMouseEvent *event);
 
 signals:
 
