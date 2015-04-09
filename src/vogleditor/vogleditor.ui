@@ -39,7 +39,7 @@
        <widget class="QWidget" name="timelineLayoutWidget">
         <layout class="QVBoxLayout" name="timelineLayout" stretch="0">
          <property name="spacing">
-          <number>6</number>
+          <number>0</number>
          </property>
          <property name="sizeConstraint">
           <enum>QLayout::SetDefaultConstraint</enum>
@@ -49,6 +49,19 @@
          </property>
          <item>
           <widget class="QGraphicsView" name="timelineViewPlaceholder"/>
+         </item>
+         <item>
+          <widget class="QScrollBar" name="timelineScrollBar">
+           <property name="maximum">
+            <number>0</number>
+           </property>
+           <property name="singleStep">
+            <number>40</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -388,7 +401,7 @@
      <x>0</x>
      <y>0</y>
      <width>1025</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

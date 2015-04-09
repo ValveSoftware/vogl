@@ -25,6 +25,7 @@
 
 #include <QPainter>
 #include <QPaintEvent>
+#include <QScrollBar>
 #include "vogleditor_qtimelineview.h"
 #include "vogleditor_qsettings.h"
 #include "vogleditor_frameitem.h"
@@ -95,6 +96,11 @@ void vogleditor_QTimelineView::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
+void vogleditor_QTimelineView::resizeEvent(QResizeEvent *)
+{
+    m_scrollBar->setPageStep(width());
+}
+
 void vogleditor_QTimelineView::wheelEvent(QWheelEvent *event)
 {
     if (event->modifiers() & Qt::ControlModifier)
@@ -105,20 +111,29 @@ void vogleditor_QTimelineView::wheelEvent(QWheelEvent *event)
         else
             m_zoom=m_zoom/(1.2f);
         m_zoom = qMax(m_zoom, 1.0f);
+        emit(scrollRangeChanged(0, m_zoom*width()-width()));
         //Keep timeline stationary under the mouse:
         scrollToPx(((m_scroll+event->x())/oldZoom)*m_zoom-event->x());
     }else
     {
-        scrollToPx(m_scroll-=event->angleDelta().y()/3);
+        scrollToPx(m_scroll-event->angleDelta().y()/3);
     }
 }
 
+void vogleditor_QTimelineView::resetZoom()
+{
+    m_zoom=1;
+    emit(scrollRangeChanged(0, 0));
+}
 
 void vogleditor_QTimelineView::scrollToPx(int scroll)
 {
+    if (m_scroll==scroll)
+        return;
     m_scroll=scroll;
     m_scroll=qMax(m_scroll, 0.0f);
     m_scroll=qMin(m_scroll, m_zoom*width()-width());
+    emit(scrollPosChanged(m_scroll));
     update();
 }
 
@@ -215,6 +230,14 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
         if (bFoundFrame && bFoundApiCall)
             break;
     }
+}
+
+void vogleditor_QTimelineView::setScrollBar(QScrollBar *scrollBar)
+{
+    m_scrollBar=scrollBar;
+    connect(this, SIGNAL(scrollPosChanged(int)), m_scrollBar, SLOT(setValue(int)));
+    connect(this, SIGNAL(scrollRangeChanged(int,int)), m_scrollBar, SLOT(setRange(int,int)));
+    connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollToPx(int)));
 }
 
 bool vogleditor_QTimelineView::drawCurrentApiCallMarker(QPainter *painter,

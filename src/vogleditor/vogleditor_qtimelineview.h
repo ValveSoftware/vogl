@@ -31,6 +31,7 @@
 QT_BEGIN_NAMESPACE
 class QPainter;
 class QPaintEvent;
+class QScrollBar;
 QT_END_NAMESPACE
 
 #include <QBrush>
@@ -50,6 +51,7 @@ public:
     virtual ~vogleditor_QTimelineView();
 
     void paint(QPainter *painter, QPaintEvent *event);
+    void setScrollBar(QScrollBar *scrollBar);
 
     inline void setModel(vogleditor_timelineModel *pModel)
     {
@@ -96,6 +98,7 @@ private:
     float m_scroll;
     int m_mouseDragStartPos;
     int m_mouseDragStartScroll;
+    QScrollBar *m_scrollBar;
 
     vogleditor_timelineModel *m_pModel;
 
@@ -105,16 +108,18 @@ private:
 
     float scaleDurationHorizontally(float value);
     float scalePositionHorizontally(float value);
-
+public slots:
     void scrollToPx(int scroll);
+    void resetZoom();
 protected:
     void paintEvent(QPaintEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent * event);    
     void mouseMoveEvent(QMouseEvent *event);
-
+    void resizeEvent(QResizeEvent *);
 signals:
-
+    void scrollRangeChanged(int min, int max);
+    void scrollPosChanged(int pos);
 public
 slots:
 };

@@ -31,6 +31,7 @@
 #include <QMessageBox>
 #include <QCoreApplication>
 #include <QGraphicsBlurEffect>
+#include <QScrollBar>
 
 #include "ui_vogleditor.h"
 #include "vogleditor.h"
@@ -181,10 +182,11 @@ VoglEditor::VoglEditor(QWidget *parent)
     // setup timeline
     m_timeline = new vogleditor_QTimelineView();
     m_timeline->setMinimumHeight(100);
-    ui->timelineLayout->addWidget(m_timeline);
     ui->timelineLayout->removeWidget(ui->timelineViewPlaceholder);
     delete ui->timelineViewPlaceholder;
     ui->timelineViewPlaceholder = NULL;
+    ui->timelineLayout->insertWidget(0, m_timeline);
+    m_timeline->setScrollBar(ui->timelineScrollBar);
 
     // add buttons to toolbar
     m_pGenerateTraceButton = new QToolButton(ui->mainToolBar);

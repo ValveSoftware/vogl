@@ -45,6 +45,7 @@ class QModelIndex;
 class QProcess;
 class QProcessEnvironment;
 class QToolButton;
+class QScrollBar;
 class vogl_arb_program_state;
 class vogl_program_state;
 class vogleditor_apiCallTimelineModel;
