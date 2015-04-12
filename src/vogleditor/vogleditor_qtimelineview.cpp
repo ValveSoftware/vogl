@@ -26,6 +26,8 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include <QScrollBar>
+#include <QMouseEvent>
+#include <QToolTip>
 #include "vogleditor_qtimelineview.h"
 #include "vogleditor_qsettings.h"
 #include "vogleditor_frameitem.h"
@@ -88,6 +90,16 @@ void vogleditor_QTimelineView::mousePressEvent(QMouseEvent *event)
     }
 }
 
+void vogleditor_QTimelineView::mouseReleaseEvent(QMouseEvent *event)
+{
+    if (qAbs(event->pos().x()-m_mouseDragStartPos)<3)
+    {
+        vogleditor_timelineItem *pItem = itemUnderPos(event->pos());
+        if (pItem!=NULL)
+            emit(timelineItemClicked(pItem->getApiCallItem()));
+    }
+}
+
 void vogleditor_QTimelineView::mouseMoveEvent(QMouseEvent *event)
 {
     if(event->buttons() & Qt::LeftButton)
@@ -118,6 +130,27 @@ void vogleditor_QTimelineView::wheelEvent(QWheelEvent *event)
     {
         scrollToPx(m_scroll-event->angleDelta().y()/3);
     }
+}
+
+bool vogleditor_QTimelineView::event(QEvent *event)
+{
+    if (event->type() == QEvent::ToolTip) {
+        QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
+
+        vogleditor_timelineItem* pItem = itemUnderPos(helpEvent->pos());
+        if (pItem!=NULL)
+        {
+            QString tip = QString::number(pItem->getApiCallItem()->globalCallIndex());
+            tip.append(": ");
+            tip.append(pItem->getApiCallItem()->apiFunctionCall());
+            QToolTip::showText(helpEvent->globalPos(), tip, this);
+        } else {
+            QToolTip::hideText();
+            event->ignore();
+        }
+        return true;
+    }
+    return QWidget::event(event);
 }
 
 void vogleditor_QTimelineView::resetZoom()
@@ -158,11 +191,12 @@ void vogleditor_QTimelineView::drawBaseTimeline(QPainter *painter, const QRect &
 
 void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
 {
-    int gap = 10;
+    m_timelineItemPosCache.clear();
+    m_gap = 10;
     int arrowHeight = 10;
-    int arrowTop = height() / 2 - gap - arrowHeight;
+    int arrowTop = height() / 2 - m_gap - arrowHeight;
     int arrowHalfWidth = 3;
-    m_lineLength = width()*m_zoom - 2 * gap;
+    m_lineLength = width()*m_zoom - 2 * m_gap;
 
     QPolygon triangle(3);
     triangle.setPoint(0, 0, arrowTop);
@@ -170,7 +204,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
     triangle.setPoint(2, arrowHalfWidth, arrowTop + arrowHeight);
 
     painter->translate(-m_scroll, 0);
-    drawBaseTimeline(painter, event->rect(), gap);
+    drawBaseTimeline(painter, event->rect(), m_gap);
 
     if (m_pModel == NULL)
     {
@@ -184,13 +218,13 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
 
     // translate drawing to vertical center of rect
     // everything will have a small gap on the left and right sides
-    painter->translate(gap, height() / 2);
+    painter->translate(m_gap, height() / 2);
 
     m_horizontalScale = (float)m_lineLength / (float)m_pModel->get_root_item()->getDuration();
 
     // we don't want to draw the root item, but all of its children
     int numChildren = m_pModel->get_root_item()->childCount();
-    int i_height = height() / 2 - 2 * gap;
+    int i_height = height() / 2 - 2 * m_gap;
 
     painter->setBrush(m_triangleBrushWhite);
     painter->setPen(m_trianglePen);
@@ -305,6 +339,35 @@ float vogleditor_QTimelineView::scalePositionHorizontally(float value)
     return offset;
 }
 
+vogleditor_timelineItem *vogleditor_QTimelineView::itemUnderPos(QPoint pos)
+{
+    int x=pos.x()+m_scroll-m_gap;
+    {
+        QLinkedListIterator<timelineItemPos> i(m_timelineItemPosCache);
+        while (i.hasNext())
+        {
+            timelineItemPos itempos = i.next();
+            //See if we have gone beyond the pos
+            if (itempos.leftOffset > x)
+                break;
+            if (itempos.leftOffset<x && itempos.rightOffset>x)
+                return itempos.pItem;
+        }
+    }
+    {
+        QLinkedListIterator<timelineItemPos> i(m_timelineItemPosCache);
+        while (i.hasNext())
+        {
+            timelineItemPos itempos = i.next();
+            if (itempos.leftOffset > x+1)
+                break;
+            if (itempos.leftOffset< x+1  && itempos.rightOffset> x-1 )
+                return itempos.pItem;
+        }
+    }
+    return NULL;
+}
+
 void vogleditor_QTimelineView::drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, float &minimumOffset)
 {
     float duration = pItem->getDuration();
@@ -328,6 +391,13 @@ void vogleditor_QTimelineView::drawTimelineItem(QPainter *painter, vogleditor_ti
         float rightOffset = leftOffset + scaledWidth;
         if (minimumOffset < rightOffset && rightOffset>m_scroll && leftOffset<m_scroll+width() )
         {
+            //Add the position of this item to the timelineItemPosCache for use by itemUnderPos().
+            timelineItemPos itemPos;
+            itemPos.pItem=pItem;
+            itemPos.leftOffset=leftOffset;
+            itemPos.rightOffset=rightOffset;
+            m_timelineItemPosCache.append(itemPos);
+
             // Set brush fill color
             if (pItem->getBrush())
             {

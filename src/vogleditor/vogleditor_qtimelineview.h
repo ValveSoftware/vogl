@@ -37,6 +37,7 @@ QT_END_NAMESPACE
 #include <QBrush>
 #include <QFont>
 #include <QPen>
+#include <QLinkedList>
 
 #include "vogleditor_timelinemodel.h"
 #include "vogleditor_timelineitem.h"
@@ -99,6 +100,7 @@ private:
     int m_mouseDragStartPos;
     int m_mouseDragStartScroll;
     QScrollBar *m_scrollBar;
+    int m_gap;
 
     vogleditor_timelineModel *m_pModel;
 
@@ -108,20 +110,30 @@ private:
 
     float scaleDurationHorizontally(float value);
     float scalePositionHorizontally(float value);
+    vogleditor_timelineItem* itemUnderPos(QPoint pos);
+
+    struct timelineItemPos
+    {
+        vogleditor_timelineItem *pItem;
+        float leftOffset;
+        float rightOffset;
+    };
+    QLinkedList<timelineItemPos> m_timelineItemPosCache;
 public slots:
     void scrollToPx(int scroll);
     void resetZoom();
 protected:
     void paintEvent(QPaintEvent *event);
     void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent * event);    
     void mouseMoveEvent(QMouseEvent *event);
     void resizeEvent(QResizeEvent *);
+    bool event(QEvent *event);
 signals:
     void scrollRangeChanged(int min, int max);
     void scrollPosChanged(int pos);
-public
-slots:
+    void timelineItemClicked(vogleditor_apiCallItem *pItem);
 };
 
 #endif // VOGLEDITOR_QTIMELINEVIEW_H
