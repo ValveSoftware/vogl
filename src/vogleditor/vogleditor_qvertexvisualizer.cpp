@@ -70,7 +70,33 @@ void vogleditor_QVertexVisualizer::paintEvent(QPaintEvent *event)
         transformedVertices.push_back((VPMatrix*vertex).toVector2D().toPointF());
     }
     //TODO Support more drawing modes.
-    if (m_draw_mode==GL_LINE_STRIP)
+    if (m_draw_mode==GL_TRIANGLES){
+        for (int i =0; i<transformedVertices.size()/3; i++)
+        {
+            int j=i*3;
+            painter.drawLine(transformedVertices[j],transformedVertices[j+1]);
+            painter.drawLine(transformedVertices[j+1],transformedVertices[j+2]);
+            painter.drawLine(transformedVertices[j+2],transformedVertices[j]);
+        }
+        painter.restore();
+    }else if (m_draw_mode==GL_TRIANGLE_STRIP){
+        for (int i =0; i<transformedVertices.size()-2; i=i+1)
+        {
+            painter.drawLine(transformedVertices[i],transformedVertices[i+1]);
+            painter.drawLine(transformedVertices[i+2],transformedVertices[i]);
+        }
+        if(transformedVertices.size()>3)
+            painter.drawLine(transformedVertices[transformedVertices.size()-2],transformedVertices[transformedVertices.size()-1]);
+        painter.restore();
+    }else if (m_draw_mode==GL_TRIANGLE_FAN){
+        for (int i=1; i<transformedVertices.size()-1; i++)
+        {
+            painter.drawLine(transformedVertices[0],transformedVertices[i]);
+            painter.drawLine(transformedVertices[i],transformedVertices[i+1]);
+            painter.drawLine(transformedVertices[i+1],transformedVertices[0]);
+        }
+        painter.restore();
+    }else if (m_draw_mode==GL_LINE_STRIP)
     {
         for (int i =0; i<transformedVertices.size()-1; i++)
             painter.drawLine(transformedVertices[i],transformedVertices[i+1]);
@@ -80,18 +106,25 @@ void vogleditor_QVertexVisualizer::paintEvent(QPaintEvent *event)
         for (int i =0; i<transformedVertices.size()-1; i=i+2)
             painter.drawLine(transformedVertices[i],transformedVertices[i+1]);
         painter.restore();
+    }else if (m_draw_mode==GL_LINE_LOOP || m_draw_mode==GL_POLYGON)
+    {
+        for (int i =0; i<transformedVertices.size()-1; i++)
+            painter.drawLine(transformedVertices[i],transformedVertices[i+1]);
+        painter.drawLine(transformedVertices[transformedVertices.size()-1],transformedVertices[0]);
+        painter.restore();
     }else if (m_draw_mode==GL_POINTS )
     {
         for (int i =0; i<transformedVertices.size(); i++)
             painter.drawPoint(transformedVertices[i]);
         painter.restore();
-    }else if (m_draw_mode==GL_TRIANGLES){
-        for (int i =0; i<transformedVertices.size()/3; i++)
+    }else if (m_draw_mode==GL_QUADS){
+        for (int i =0; i<transformedVertices.size()/4; i++)
         {
-            int j=i*3;
+            int j=i*4;
             painter.drawLine(transformedVertices[j],transformedVertices[j+1]);
             painter.drawLine(transformedVertices[j+1],transformedVertices[j+2]);
-            painter.drawLine(transformedVertices[j+2],transformedVertices[j]);
+            painter.drawLine(transformedVertices[j+2],transformedVertices[j+3]);
+            painter.drawLine(transformedVertices[j+3],transformedVertices[j]);
         }
         painter.restore();
     }else
@@ -142,6 +175,8 @@ void vogleditor_QVertexVisualizer::showContextMenu(const QPoint &pos)
    modes.append(QPair<GLenum, QString>(GL_TRIANGLE_STRIP_ADJACENCY,"GL_TRIANGLE_STRIP_ADJACENCY"));
    modes.append(QPair<GLenum, QString>(GL_TRIANGLE_STRIP_ADJACENCY,"GL_TRIANGLES_ADJACENCY"));
    modes.append(QPair<GLenum, QString>(GL_PATCHES,"GL_PATCHES"));
+   modes.append(QPair<GLenum, QString>(GL_QUADS,"GL_QUADS"));
+   modes.append(QPair<GLenum, QString>(GL_POLYGON,"GL_POLYGON"));
    QActionGroup drawModeGroup(&drawModeMenu);
    drawModeGroup.setExclusive(true);
    QPair<GLenum, QString> mode;
@@ -153,7 +188,11 @@ void vogleditor_QVertexVisualizer::showContextMenu(const QPoint &pos)
        drawModeMenu.addAction(action);
        action->setCheckable(true);
        //At the moment we only supports these modes:
-       if (!(mode.first==GL_LINES || mode.first==GL_TRIANGLES || mode.first==GL_LINE_STRIP || mode.first==GL_POINTS))
+       if (!(mode.first==GL_LINES || mode.first==GL_TRIANGLES ||
+             mode.first==GL_LINE_STRIP || mode.first==GL_POINTS ||
+             mode.first==GL_LINE_LOOP || mode.first==GL_TRIANGLE_STRIP ||
+             mode.first==GL_TRIANGLE_FAN || mode.first==GL_QUADS ||
+             mode.first==GL_POLYGON))
            action->setEnabled(false);
        if (mode.first==m_draw_mode)
            action->setChecked(true);
