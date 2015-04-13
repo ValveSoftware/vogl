@@ -2312,7 +2312,7 @@ bool pretty_print_param_val(dynamic_string &str, const vogl_ctype_desc_t &ctype_
 
                         if (pName)
                         {
-                            VOGL_ASSERT(get_gl_enums().find_enum(pName) == val_data);
+                            VOGL_ASSERT(get_gl_enums().find_enum(pName) == flag);
 
                             str += pName;
                         }else
