@@ -727,13 +727,13 @@ void vogleditor_QVertexArrayExplorer::update_array_table_headers()
     {
         // no instanced vertex data, so collapse the view
         QList<int> sizes;
-        sizes << 1 << 0;
+        sizes << 1 << 1 << 0;
         ui->splitter->setSizes(sizes);
     }
     else
     {
         QList<int> sizes;
-        sizes << 1 << 1;
+        sizes << 1 << 1 << 1;
         ui->splitter->setSizes(sizes);
     }
 }
@@ -821,25 +821,20 @@ void vogleditor_QVertexArrayExplorer::update_vertex_array_visualizations()
             attrib_buffers_to_render.push_back(b);
         }
     }
-
-//    vogleditor_output_message((QString::number(attrib_buffers_to_render.size()).append(" attrib_buffers found. ").append(QString::number(vertexVisualizers.size()))).toLocal8Bit());
-
     //Ensure we have the correct number of vertexVisualizers.
     if (m_vertexVisualizers.size()<attrib_buffers_to_render.size())
     {
         for (uint b = m_vertexVisualizers.size(); b < attrib_buffers_to_render.size(); b++)
         {
-//            vogleditor_output_message("Adding vis.");
             vogleditor_QVertexVisualizer *vis = new vogleditor_QVertexVisualizer(this);
             m_vertexVisualizers.push_back(vis);
-            ui->horizontalLayout_3->addWidget(vis);
+            ui->vertexVisualizersLayout->addWidget(vis);
         }
     }
     else if (m_vertexVisualizers.size()>attrib_buffers_to_render.size())
     {
         for (uint b = m_vertexVisualizers.size(); b > attrib_buffers_to_render.size(); b--)
         {
-//            vogleditor_output_message("Deleting vis.");
             m_vertexVisualizers.at(b-1)->deleteLater();
             m_vertexVisualizers.pop_back();
         }

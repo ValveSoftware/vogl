@@ -39,7 +39,6 @@ void vogleditor_QVertexVisualizer::setVertices(QVector<QVector3D> vertices)
         maxValue=qMax(maxValue, qAbs(vertex.y()));
         maxValue=qMax(maxValue, qAbs(vertex.z()));
     }
-    vogleditor_output_message(QString::number(maxValue).toLocal8Bit());
     m_projection->setToIdentity();
     m_projection->ortho(-maxValue,maxValue,-maxValue,maxValue,-maxValue,maxValue);
 }
@@ -132,6 +131,11 @@ void vogleditor_QVertexVisualizer::paintEvent(QPaintEvent *event)
         painter.restore();
         painter.drawText(QRectF(0, 0, width(), height()), Qt::AlignCenter | Qt::AlignVCenter , "Draw mode\nnot supported\nby visualizer.");
     }
+    if (!isWindow())
+    {
+        painter.setPen(QColor(160,160,160));
+        painter.drawLine(width()-1, 0, width()-1, height());
+    }
 }
 
 void vogleditor_QVertexVisualizer::mousePressEvent(QMouseEvent *event)
@@ -150,7 +154,7 @@ void vogleditor_QVertexVisualizer::mouseMoveEvent(QMouseEvent *event)
         setXRotation(m_xRot - 8 * dy);
         setYRotation(m_yRot - 8 * dx);
         m_lastPos = event->pos();
-   }
+    }
 }
 
 void vogleditor_QVertexVisualizer::showContextMenu(const QPoint &pos)
