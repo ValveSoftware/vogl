@@ -230,7 +230,7 @@ VoglEditor::VoglEditor(QWidget *parent)
     connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slot_readReplayStandardOutput()));
     connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardError()), this, SLOT(slot_readReplayStandardError()));
 
-    connect(m_timeline, SIGNAL(timelineItemClicked(vogleditor_apiCallItem *)), this, SLOT(selectAPICallItem(vogleditor_apiCallItem *)));
+    connect(m_timeline, SIGNAL(timelineItemClicked(vogleditor_snapshotItem *)), this, SLOT(selectAPICallItem(vogleditor_snapshotItem *)));
 
     reset_tracefile_ui();
 }
@@ -2961,7 +2961,7 @@ void VoglEditor::on_treeView_activated(const QModelIndex &index)
     onApiCallSelected(index, true);
 }
 
-void VoglEditor::selectAPICallItem(vogleditor_apiCallItem *pItem)
+void VoglEditor::selectAPICallItem(vogleditor_snapshotItem *pItem)
 {
     QModelIndexList hits = m_pApiCallTreeModel->match(m_pApiCallTreeModel->index(0, 0), Qt::UserRole, QVariant::fromValue((void*)pItem), 1, Qt::MatchExactly | Qt::MatchRecursive | Qt::MatchWrap);
     if (hits.count() > 0)

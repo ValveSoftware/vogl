@@ -44,6 +44,8 @@ QT_END_NAMESPACE
 
 static const float cVOGL_TIMELINEOFFSET = 0.085f;
 
+class vogleditor_snapshotItem;
+
 class vogleditor_QTimelineView : public QWidget
 {
     Q_OBJECT
@@ -133,7 +135,7 @@ protected:
 signals:
     void scrollRangeChanged(int min, int max);
     void scrollPosChanged(int pos);
-    void timelineItemClicked(vogleditor_apiCallItem *pItem);
+    void timelineItemClicked(vogleditor_snapshotItem *pItem);
 };
 
 #endif // VOGLEDITOR_QTIMELINEVIEW_H

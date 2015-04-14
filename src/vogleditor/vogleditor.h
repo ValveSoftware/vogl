@@ -60,7 +60,7 @@ class vogleditor_QSnapshotOverlayWidget;
 class vogleditor_QTimelineView;
 class vogleditor_QVertexArrayExplorer;
 class vogleditor_QLaunchTracerDialog;
-class vogleditor_apiCallItem;
+class vogleditor_snapshotItem;
 
 class VoglEditor : public QMainWindow
 {
@@ -133,7 +133,7 @@ slots:
 
     void on_treeView_activated(const QModelIndex &index);
 
-    void selectAPICallItem(vogleditor_apiCallItem *pItem);
+    void selectAPICallItem(vogleditor_snapshotItem *pItem);
 
 private:
     Ui::VoglEditor *ui;

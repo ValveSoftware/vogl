@@ -624,10 +624,15 @@ QVariant vogleditor_QApiCallTreeModel::data(const QModelIndex &index, int role) 
     }
 
     //This allows QAbstractItemModel::match() to find the QModelIndex from the vogleditor_apiCallItem* it represents.
-    //Please note that this uses vogleditor_apiCallItem* and not vogleditor_apiCallTreeItem*.
+    //Please note that this uses vogleditor_snapshotItem* and not vogleditor_apiCallTreeItem*.
     //Using vogleditor_apiCallTreeItem* with QAbstractItemModel::match() will silently fail.
     if (role == Qt::UserRole)
-        return QVariant::fromValue((void*)(pItem->apiCallItem()));
+    {
+        if (pItem->isApiCall())
+            return QVariant::fromValue((void*)(pItem->apiCallItem()));
+        else if (pItem->isGroup())
+            return QVariant::fromValue((void*)(pItem->groupItem()));
+    }
 
     return pItem->columnData(index.column(), role);
 }

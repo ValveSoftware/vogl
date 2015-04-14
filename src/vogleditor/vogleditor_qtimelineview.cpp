@@ -95,8 +95,10 @@ void vogleditor_QTimelineView::mouseReleaseEvent(QMouseEvent *event)
     if (qAbs(event->pos().x()-m_mouseDragStartPos)<3)
     {
         vogleditor_timelineItem *pItem = itemUnderPos(event->pos());
-        if (pItem!=NULL)
+        if (pItem!=NULL && pItem->isApiCallItem())
             emit(timelineItemClicked(pItem->getApiCallItem()));
+        if (pItem!=NULL && pItem->isGroupItem())
+            emit(timelineItemClicked(pItem->getGroupItem()));
     }
 }
 
@@ -140,10 +142,22 @@ bool vogleditor_QTimelineView::event(QEvent *event)
         vogleditor_timelineItem* pItem = itemUnderPos(helpEvent->pos());
         if (pItem!=NULL)
         {
-            QString tip = QString::number(pItem->getApiCallItem()->globalCallIndex());
-            tip.append(": ");
-            tip.append(pItem->getApiCallItem()->apiFunctionCall());
-            QToolTip::showText(helpEvent->globalPos(), tip, this);
+            if (pItem->isApiCallItem())
+            {
+                QString tip = QString::number(pItem->getApiCallItem()->globalCallIndex());
+                tip.append(": ");
+                tip.append(pItem->getApiCallItem()->apiFunctionCall());
+                QToolTip::showText(helpEvent->globalPos(), tip, this);
+            }
+            else if(pItem->isGroupItem())
+            {
+                QString tip;
+                if (pItem->getGroupItem()->callCount()>1)
+                    tip = tr("%1 Calls").arg(QString::number(pItem->getGroupItem()->callCount()));
+                else
+                    tip = tr("1 Call");
+                QToolTip::showText(helpEvent->globalPos(), tip, this);
+            }
         } else {
             QToolTip::hideText();
             event->ignore();
