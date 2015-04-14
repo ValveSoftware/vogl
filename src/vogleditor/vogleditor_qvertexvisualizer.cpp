@@ -47,10 +47,15 @@ void vogleditor_QVertexVisualizer::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     painter.drawText(QRectF(0, 0, width(), height()), Qt::AlignCenter | Qt::AlignBottom , m_label);
-
     painter.save();
-    painter.scale(height()/2,-height()/2);
-    painter.translate(1.0f*((float)width()/(float)height()),-1);
+    int textheight;
+    if (isWindow())
+        textheight=0;
+    else
+        textheight = painter.fontMetrics().height();
+    float viewPortHeight = height()-textheight;
+    painter.scale(viewPortHeight/2,-viewPortHeight/2);
+    painter.translate(1.0f*((float)width()/viewPortHeight),-1);
     QPen pen = painter.pen();
     pen.setWidth(0);
     painter.setPen(pen);
