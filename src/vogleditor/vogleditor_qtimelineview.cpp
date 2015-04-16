@@ -36,11 +36,11 @@
 vogleditor_QTimelineView::vogleditor_QTimelineView(QWidget *parent)
     : QWidget(parent),
       m_roundoff(cVOGL_TIMELINEOFFSET),
-      m_curFrame(0),
-      m_curApiCallNumber(0),
-      m_pModel(NULL),
+      m_curFrameTime(-1),
+      m_curApiCallTime(-1),
       m_zoom(1),
-      m_scroll(0)
+      m_scroll(0),
+      m_pModel(NULL)
 {
     QLinearGradient gradient(QPointF(0, 1), QPointF(0, 0));
     gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
@@ -254,29 +254,25 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
     painter->setBrush(m_triangleBrushWhite);
     painter->setPen(m_trianglePen);
 
-    bool bFoundFrame = false;
-    bool bFoundApiCall = false;
-
-    for (int c = 0; c < numChildren; c++)
+    if (m_curFrameTime!=-1)
     {
-        vogleditor_timelineItem *pChild = rootItem->child(c);
+        painter->save();
+        painter->setBrush(m_triangleBrushBlack);
+        painter->translate(scalePositionHorizontally(m_curFrameTime), 0);
+        painter->drawPolygon(triangle);
+        painter->restore();
+    }
 
-        // draw current frame marker
-        if (bFoundFrame == false && pChild->getFrameItem() != NULL && pChild->getFrameItem()->frameNumber() == m_curFrame)
-        {
-            painter->save();
-            painter->setBrush(m_triangleBrushBlack);
-            painter->translate(scalePositionHorizontally(pChild->getBeginTime()), 0);
-            painter->drawPolygon(triangle);
-            painter->restore();
-            bFoundFrame = true;
-        }
+    // draw current api call marker
+    if (m_curApiCallTime!=-1)
+    {
+        float xpos = scalePositionHorizontally(m_curApiCallTime);
+        xpos -= m_roundoff;
 
-        // draw current api call marker
-        bFoundApiCall = drawCurrentApiCallMarker(painter, triangle, pChild);
-
-        if (bFoundFrame && bFoundApiCall)
-            break;
+        painter->save();
+        painter->translate(xpos, 0);
+        painter->drawPolygon(triangle);
+        painter->restore();
     }
 }
 
@@ -286,51 +282,6 @@ void vogleditor_QTimelineView::setScrollBar(QScrollBar *scrollBar)
     connect(this, SIGNAL(scrollPosChanged(int)), m_scrollBar, SLOT(setValue(int)));
     connect(this, SIGNAL(scrollRangeChanged(int,int)), m_scrollBar, SLOT(setRange(int,int)));
     connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollToPx(int)));
-}
-
-bool vogleditor_QTimelineView::drawCurrentApiCallMarker(QPainter *painter,
-                                                        QPolygon &triangle,
-                                                        vogleditor_timelineItem *pItem)
-{
-    bool bRetVal = false;
-
-    if (pItem->isApiCallItem() || pItem->isGroupItem())
-    {
-        unsigned long long callNumber;
-        if (pItem->isApiCallItem())
-        {
-            callNumber = pItem->getApiCallItem()->globalCallIndex();
-        }
-        else
-        {
-            callNumber = pItem->getGroupItem()->firstApiCallIndex();
-        }
-
-        if (callNumber == m_curApiCallNumber)
-        {
-            float xpos = scalePositionHorizontally(pItem->getBeginTime());
-            xpos -= m_roundoff;
-
-            painter->save();
-            painter->translate(xpos, 0);
-            painter->drawPolygon(triangle);
-            painter->restore();
-            bRetVal = true;
-        }
-        else
-        {
-            // check children
-            int numChildren = pItem->childCount();
-            for (int c = 0; c < numChildren; c++)
-            {
-                if ((bRetVal = drawCurrentApiCallMarker(painter, triangle, pItem->child(c))))
-                {
-                    break;
-                }
-            }
-        }
-    }
-    return bRetVal;
 }
 
 float vogleditor_QTimelineView::scaleDurationHorizontally(float value)

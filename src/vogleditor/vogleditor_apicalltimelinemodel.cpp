@@ -158,6 +158,11 @@ float vogleditor_apiCallTimelineModel::u64ToFloat(uint64_t value)
     return static_cast<float>(value);
 }
 
+float vogleditor_apiCallTimelineModel::absoluteToRelativeTime(uint64_t time)
+{
+    return u64ToFloat(time - m_rawBaseTime);
+}
+
 unsigned int vogleditor_apiCallTimelineModel::randomRGB()
 {
 

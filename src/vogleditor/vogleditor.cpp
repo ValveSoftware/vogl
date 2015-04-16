@@ -2681,17 +2681,17 @@ void VoglEditor::setTimeline(vogleditor_apiCallTreeItem *pCallTreeItem)
 
     if (pApiCallItem != NULL)
     {
-        m_timeline->setCurrentApiCall(pApiCallItem->globalCallIndex());
+        m_timeline->setCurrentApiCall(pApiCallItem);
     }
 
     if (pGroupItem != NULL)
     {
-        m_timeline->setCurrentGroup(pGroupItem->firstApiCallIndex());
+        m_timeline->setCurrentGroup(pGroupItem);
     }
 
     if (pFrameItem != NULL)
     {
-        m_timeline->setCurrentFrame(pFrameItem->frameNumber());
+        m_timeline->setCurrentFrame(pFrameItem);
     }
 
     m_timeline->repaint();

@@ -39,8 +39,12 @@ QT_END_NAMESPACE
 #include <QPen>
 #include <QLinkedList>
 
-#include "vogleditor_timelinemodel.h"
+#include "vogleditor_apicalltimelinemodel.h"
 #include "vogleditor_timelineitem.h"
+
+#include "vogleditor_frameitem.h"
+#include "vogleditor_groupitem.h"
+#include "vogleditor_apicallitem.h"
 
 static const float cVOGL_TIMELINEOFFSET = 0.085f;
 
@@ -56,12 +60,17 @@ public:
     void paint(QPainter *painter, QPaintEvent *event);
     void setScrollBar(QScrollBar *scrollBar);
 
-    inline void setModel(vogleditor_timelineModel *pModel)
+    inline void setModel(vogleditor_apiCallTimelineModel *pModel)
     {
+        m_curFrameTime=-1;
+        m_curApiCallTime=-1;
+
         m_pModel = pModel;
         if (m_pModel != NULL)
         {
             m_maxItemDuration = m_pModel->get_root_item()->getMaxChildDuration();
+            if (m_pModel->get_root_item()->isGroupItem())
+                m_firstCallTime = m_pModel->get_root_item()->getGroupItem()->startTime();
         }
     }
 
@@ -70,21 +79,24 @@ public:
         return m_pModel;
     }
 
-    inline void setCurrentFrame(unsigned long long frameNumber)
+    void setCurrentFrame(vogleditor_frameItem *frame)
     {
-        m_curFrame = frameNumber;
+        if (m_pModel != NULL)
+            m_curFrameTime=m_pModel->absoluteToRelativeTime(frame->startTime());
     }
-
-    inline void setCurrentGroup(unsigned long long groupNumber)
+    
+    inline void setCurrentGroup(vogleditor_groupItem *group)
     {
-        setCurrentApiCall(groupNumber);
+        if (m_pModel != NULL)
+            m_curApiCallTime=m_pModel->absoluteToRelativeTime(group->startTime());
     }
-
-    inline void setCurrentApiCall(unsigned long long apiCallNumber)
+    
+    void setCurrentApiCall(vogleditor_apiCallItem *apiCall)
     {
-        m_curApiCallNumber = apiCallNumber;
+        if (m_pModel != NULL)
+            m_curApiCallTime=m_pModel->absoluteToRelativeTime(apiCall->startTime());
     }
-
+    
 private:
     QBrush m_triangleBrushWhite;
     QBrush m_triangleBrushBlack;
@@ -94,8 +106,9 @@ private:
     float m_roundoff;
     float m_horizontalScale;
     int m_lineLength;
-    unsigned long long m_curFrame;
-    unsigned long long m_curApiCallNumber;
+    uint64_t m_firstCallTime;
+    float m_curFrameTime;
+    float m_curApiCallTime;
     float m_maxItemDuration;
     float m_zoom;
     float m_scroll;
@@ -104,11 +117,10 @@ private:
     QScrollBar *m_scrollBar;
     int m_gap;
 
-    vogleditor_timelineModel *m_pModel;
+    vogleditor_apiCallTimelineModel *m_pModel;
 
     void drawBaseTimeline(QPainter *painter, const QRect &rect, int gap);
     void drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, float &minimumOffset);
-    bool drawCurrentApiCallMarker(QPainter *painter, QPolygon &triangle, vogleditor_timelineItem *pItem);
 
     float scaleDurationHorizontally(float value);
     float scalePositionHorizontally(float value);
