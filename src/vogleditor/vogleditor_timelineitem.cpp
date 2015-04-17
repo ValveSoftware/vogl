@@ -29,7 +29,7 @@
 #include "vogl_common.h"
 
 // Timeline root (fullspan)
-vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end)
+vogleditor_timelineItem::vogleditor_timelineItem(double begin, double end)
     : m_brush(NULL),
       m_beginTime(begin),
       m_endTime(end),
@@ -44,7 +44,7 @@ vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end)
 }
 
 // Timeline markers (frame demarcations)
-vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timelineItem *parent, vogleditor_frameItem *frameItem)
+vogleditor_timelineItem::vogleditor_timelineItem(double time, vogleditor_timelineItem *parent, vogleditor_frameItem *frameItem)
     : m_brush(NULL),
       m_beginTime(time),
       m_endTime(time),
@@ -61,7 +61,7 @@ vogleditor_timelineItem::vogleditor_timelineItem(float time, vogleditor_timeline
 }
 
 // Timeline groups
-vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_groupItem *groupItem)
+vogleditor_timelineItem::vogleditor_timelineItem(double begin, double end, vogleditor_timelineItem *parent, vogleditor_groupItem *groupItem)
     : m_brush(NULL),
       m_beginTime(begin),
       m_endTime(end),
@@ -78,7 +78,7 @@ vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogledi
 }
 
 // Timeline segmented spans
-vogleditor_timelineItem::vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_apiCallItem *apiCallItem)
+vogleditor_timelineItem::vogleditor_timelineItem(double begin, double end, vogleditor_timelineItem *parent, vogleditor_apiCallItem *apiCallItem)
     : m_brush(NULL),
       m_beginTime(begin),
       m_endTime(end),
@@ -175,17 +175,17 @@ void vogleditor_timelineItem::setBrush(QBrush *brush)
     m_brush = brush;
 }
 
-float vogleditor_timelineItem::getBeginTime() const
+double vogleditor_timelineItem::getBeginTime() const
 {
     return m_beginTime;
 }
 
-float vogleditor_timelineItem::getEndTime() const
+double vogleditor_timelineItem::getEndTime() const
 {
     return m_endTime;
 }
 
-float vogleditor_timelineItem::getDuration() const
+double vogleditor_timelineItem::getDuration() const
 {
     return m_duration;
 }
@@ -200,7 +200,7 @@ bool vogleditor_timelineItem::isMarker() const
     return !m_isSpan;
 }
 
-float vogleditor_timelineItem::getMaxChildDuration() const
+double vogleditor_timelineItem::getMaxChildDuration() const
 {
     return m_maxChildDuration;
 }

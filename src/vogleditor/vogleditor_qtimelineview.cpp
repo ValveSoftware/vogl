@@ -135,24 +135,24 @@ void vogleditor_QTimelineView::wheelEvent(QWheelEvent *event)
     if (event->modifiers() & Qt::ControlModifier)
     {
         float oldZoom=m_zoom;
-        float oldScroll=m_scroll;
+        int oldScroll=m_scroll;
         if (event->angleDelta().y()>0)
             m_zoom=m_zoom*(1.2f);
         else
             m_zoom=m_zoom/(1.2f);
         m_zoom = qMax(m_zoom, 1.0f);
 
-        if ((long int)m_zoom*((long int)width())+(long int)m_gap*2 > 2147483647)
+        if ((long int)m_zoom*((long int)width())+(long int)m_gap*2+(long int)width() > 2147483647)
         {
             m_zoom=oldZoom;
             return;
         }
 
         //Update the scrolol range in scroll bars before updating the scroll position.
-        emit(scrollRangeChanged(0, m_zoom*width()-width()));
+        emit(scrollRangeChanged(0, (int)((double)m_zoom*(double)width()-width())));
 
         //Keep time line stationary under the mouse (using the oldScroll in case m_scroll was changes when updating the limits):
-        scrollToPx(((oldScroll+event->x())/oldZoom)*m_zoom-event->x());
+        scrollToPx(((double)(oldScroll+event->x())/(double)oldZoom)*(double)m_zoom-event->x());
     }else
     {
         scrollToPx(m_scroll-event->angleDelta().y()/3);
@@ -203,8 +203,8 @@ void vogleditor_QTimelineView::scrollToPx(int scroll)
     if (m_scroll==scroll)
         return;
     m_scroll=scroll;
-    m_scroll=qMax(m_scroll, 0.0f);
-    m_scroll=qMin(m_scroll, m_zoom*width()-width());
+    m_scroll=qMax(m_scroll, 0);
+    m_scroll=qMin(m_scroll, (int)((double)m_zoom*(double)width()-width()));
     emit(scrollPosChanged(m_scroll));    
     deletePixmap();
     update();
@@ -235,7 +235,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
     int arrowHeight = 10;
     int arrowTop = height() / 2 - m_gap - arrowHeight;
     int arrowHalfWidth = 3;
-    m_lineLength = width()*m_zoom - 2 * m_gap;
+    m_lineLength = (double)width()*(double)m_zoom - 2 * m_gap;
 
     QPolygon triangle(3);
     triangle.setPoint(0, 0, arrowTop);
@@ -243,7 +243,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
     triangle.setPoint(2, arrowHalfWidth, arrowTop + arrowHeight);
 
     painter->save();
-    painter->translate(-m_scroll, 0);
+    painter->translate(-m_scroll, 0);    
     drawBaseTimeline(painter, event->rect(), m_gap);
     //Go back to unscrolled coordinates to paint the pixmap to the widget.
     painter->restore();
@@ -271,7 +271,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
         // everything will have a small gap on the left and right sides
         pixmapPainter.translate(m_gap, height() / 2);
 
-        m_horizontalScale = (float)m_lineLength / (float)m_pModel->get_root_item()->getDuration();
+        m_horizontalScale = (double)m_lineLength / (double)m_pModel->get_root_item()->getDuration();
 
         // we don't want to draw the root item, but all of its children
         int numChildren = m_pModel->get_root_item()->childCount();
@@ -280,7 +280,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
         pixmapPainter.setBrush(m_triangleBrushWhite);
         pixmapPainter.setPen(m_trianglePen);
 
-        float minimumOffset = 0;
+        double minimumOffset = 0;
         vogleditor_timelineItem *rootItem = m_pModel->get_root_item();
         for (int c = 0; c < numChildren; c++)
         {
@@ -294,6 +294,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
     painter->translate(-m_scroll, 0);
     painter->setBrush(m_triangleBrushWhite);
     painter->setPen(m_trianglePen);
+
     // translate drawing to vertical center of rect
     // everything will have a small gap on the left and right sides
     painter->translate(m_gap, height() / 2);
@@ -311,7 +312,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
     // draw current api call marker
     if (m_curApiCallTime!=-1)
     {
-        float xpos = scalePositionHorizontally(m_curApiCallTime);
+        double xpos = scalePositionHorizontally(m_curApiCallTime);
         xpos -= m_roundoff;
 
         painter->save();
@@ -330,9 +331,9 @@ void vogleditor_QTimelineView::setScrollBar(QScrollBar *scrollBar)
     connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(scrollToPx(int)));
 }
 
-float vogleditor_QTimelineView::scaleDurationHorizontally(float value)
+double vogleditor_QTimelineView::scaleDurationHorizontally(double value)
 {
-    float scaled = value * m_horizontalScale;
+    double scaled = (double)value * (double)m_horizontalScale;
     if (scaled <= m_horizontalScale)
     {
         scaled = m_horizontalScale;
@@ -341,11 +342,11 @@ float vogleditor_QTimelineView::scaleDurationHorizontally(float value)
     return scaled;
 }
 
-float vogleditor_QTimelineView::scalePositionHorizontally(float value)
+double vogleditor_QTimelineView::scalePositionHorizontally(double value)
 {
-    float horizontalShift = m_pModel->get_root_item()->getBeginTime();
-    float horizontalLength = m_pModel->get_root_item()->getDuration();
-    float offset = ((value - horizontalShift) / horizontalLength) * m_lineLength;
+    double horizontalShift = m_pModel->get_root_item()->getBeginTime();
+    double horizontalLength = m_pModel->get_root_item()->getDuration();
+    double offset = ((value - horizontalShift) / horizontalLength) * m_lineLength;
 
     return offset;
 }
@@ -361,7 +362,7 @@ vogleditor_timelineItem *vogleditor_QTimelineView::itemUnderPos(QPoint pos)
             //See if we have gone beyond the pos
             if (itempos.leftOffset > x)
                 break;
-            if (itempos.leftOffset<x && itempos.rightOffset>x)
+            if (itempos.leftOffset<=x && itempos.rightOffset>=x)
             {
                 return itempos.pItem;
             }
@@ -374,14 +375,14 @@ vogleditor_timelineItem *vogleditor_QTimelineView::itemUnderPos(QPoint pos)
             timelineItemPos itempos = i.next();
             if (itempos.leftOffset > x+1)
                 break;
-            if (itempos.leftOffset< x+1  && itempos.rightOffset> x-1 )
+            if (itempos.leftOffset<= x+1  && itempos.rightOffset>= x-1 )
                 return itempos.pItem;
         }
     }
     return NULL;
 }
 
-void vogleditor_QTimelineView::drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, float &minimumOffset)
+void vogleditor_QTimelineView::drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, double &minimumOffset)
 {
     float duration = pItem->getDuration();
     if (duration < 0)
@@ -399,18 +400,11 @@ void vogleditor_QTimelineView::drawTimelineItem(QPainter *painter, vogleditor_ti
     else
     {
         // only draw if the item will extend beyond the minimum offset and it is on-screen
-        float leftOffset = scalePositionHorizontally(pItem->getBeginTime());
-        float scaledWidth = scaleDurationHorizontally(duration);
-        float rightOffset = leftOffset + scaledWidth;
+        double leftOffset = scalePositionHorizontally(pItem->getBeginTime());
+        double scaledWidth = scaleDurationHorizontally(duration);
+        double rightOffset = leftOffset + scaledWidth;
         if (minimumOffset < rightOffset && rightOffset>m_scroll && leftOffset<m_scroll+width() )
         {
-            //Add the position of this item to the timelineItemPosCache for use by itemUnderPos().
-            timelineItemPos itemPos;
-            itemPos.pItem=pItem;
-            itemPos.leftOffset=leftOffset;
-            itemPos.rightOffset=rightOffset;
-            m_timelineItemPosCache.append(itemPos);
-
             // Set brush fill color
             if (pItem->getBrush())
             {
@@ -436,14 +430,23 @@ void vogleditor_QTimelineView::drawTimelineItem(QPainter *painter, vogleditor_ti
 
             // update minimum offset
             minimumOffset = leftOffset + scaledWidth;
+            int startTimePx = leftOffset - m_roundoff;
+            int durationPx = scaledWidth + m_roundoff;
 
             // draw the colored box that represents this item
-            QRectF rect;
-            rect.setLeft(leftOffset - m_roundoff);
+            QRect rect;
+            rect.setLeft(startTimePx);
             rect.setTop(-height / 2);
-            rect.setWidth(scaledWidth + m_roundoff);
+            rect.setWidth(durationPx);
             rect.setHeight(height);
             painter->drawRect(rect);
+
+            //Add the position of this item to the timelineItemPosCache for use by itemUnderPos().
+            timelineItemPos itemPos;
+            itemPos.pItem=pItem;
+            itemPos.leftOffset=startTimePx;
+            itemPos.rightOffset=startTimePx+durationPx;
+            m_timelineItemPosCache.append(itemPos);
         }
 
         // If only State/Render groups to display, we're done (if debug groups

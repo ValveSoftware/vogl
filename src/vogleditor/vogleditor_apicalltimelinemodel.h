@@ -36,7 +36,7 @@ class vogleditor_apiCallTimelineModel : public vogleditor_timelineModel
 public:
     explicit vogleditor_apiCallTimelineModel(vogleditor_apiCallTreeItem *pRootApiCall);
     void refresh();
-    float absoluteToRelativeTime(uint64_t time);
+    double absoluteToRelativeTime(uint64_t time);
 
 private:
     unsigned int randomRGB();

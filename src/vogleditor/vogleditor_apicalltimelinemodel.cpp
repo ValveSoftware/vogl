@@ -47,8 +47,8 @@ void vogleditor_apiCallTimelineModel::refresh()
         return;
     }
 
-    float timelineStart = 0;
-    float timelineEnd = 1;
+    double timelineStart = 0;
+    double timelineEnd = 1;
     m_rawBaseTime = timelineStart;
 
     int numChildren = m_pRootApiCall->childCount();
@@ -64,8 +64,8 @@ void vogleditor_apiCallTimelineModel::refresh()
         pLastChild->frameItem()->getStartEndTimes(lastStart, lastEnd);
 
         m_rawBaseTime = firstStart;
-        timelineStart = u64ToFloat(firstStart - m_rawBaseTime);
-        timelineEnd = u64ToFloat(lastEnd - m_rawBaseTime);
+        timelineStart = firstStart - m_rawBaseTime;
+        timelineEnd = lastEnd - m_rawBaseTime;
     }
 
     // see if we actually have to update some of this stuff
@@ -90,14 +90,14 @@ void vogleditor_apiCallTimelineModel::refresh()
         m_rootItem = new vogleditor_timelineItem(timelineStart, timelineEnd);
 
         // add markers for the start of each frame
-        float frameStart = 0;
+        double frameStart = 0;
         for (int c = 0; c < numChildren; c++)
         {
             vogleditor_apiCallTreeItem *pFrameItem = m_pRootApiCall->child(c);
             if (pFrameItem->childCount() > 0)
             {
                 // add frame to root (root will manage deletion of frame object)
-                frameStart = u64ToFloat(pFrameItem->startTime() - m_rawBaseTime);
+                frameStart = pFrameItem->startTime() - m_rawBaseTime;
                 new vogleditor_timelineItem(frameStart, m_rootItem, pFrameItem->frameItem());
             }
             else
@@ -158,9 +158,9 @@ float vogleditor_apiCallTimelineModel::u64ToFloat(uint64_t value)
     return static_cast<float>(value);
 }
 
-float vogleditor_apiCallTimelineModel::absoluteToRelativeTime(uint64_t time)
+double vogleditor_apiCallTimelineModel::absoluteToRelativeTime(uint64_t time)
 {
-    return u64ToFloat(time - m_rawBaseTime);
+    return time - m_rawBaseTime;
 }
 
 unsigned int vogleditor_apiCallTimelineModel::randomRGB()
@@ -187,8 +187,8 @@ void vogleditor_apiCallTimelineModel::AddApiCallsToTimeline(vogleditor_apiCallTr
     {
         vogleditor_apiCallTreeItem *pChildCallTreeItem = pParentCallTreeItem->child(c);
 
-        float beginFloat = u64ToFloat(pChildCallTreeItem->startTime() - m_rawBaseTime);
-        float endFloat = u64ToFloat(pChildCallTreeItem->endTime() - m_rawBaseTime);
+        double beginFloat = pChildCallTreeItem->startTime() - m_rawBaseTime;
+        double endFloat = pChildCallTreeItem->endTime() - m_rawBaseTime;
 
         if (pChildCallTreeItem->isGroup())
         {

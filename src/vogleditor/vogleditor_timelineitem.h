@@ -36,10 +36,10 @@ class vogleditor_apiCallItem;
 class vogleditor_timelineItem
 {
 public:
-    vogleditor_timelineItem(float begin, float end);
-    vogleditor_timelineItem(float time, vogleditor_timelineItem *parent, vogleditor_frameItem *groupItem);
-    vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_groupItem *groupItem);
-    vogleditor_timelineItem(float begin, float end, vogleditor_timelineItem *parent, vogleditor_apiCallItem *apiCallItem);
+    vogleditor_timelineItem(double begin, double end);
+    vogleditor_timelineItem(double time, vogleditor_timelineItem *parent, vogleditor_frameItem *groupItem);
+    vogleditor_timelineItem(double begin, double end, vogleditor_timelineItem *parent, vogleditor_groupItem *groupItem);
+    vogleditor_timelineItem(double begin, double end, vogleditor_timelineItem *parent, vogleditor_apiCallItem *apiCallItem);
     ~vogleditor_timelineItem();
 
     void appendChild(vogleditor_timelineItem *child);
@@ -53,11 +53,11 @@ public:
 
     void setBrush(QBrush *brush);
 
-    float getBeginTime() const;
-    float getEndTime() const;
-    float getDuration() const;
+    double getBeginTime() const;
+    double getEndTime() const;
+    double getDuration() const;
 
-    float getMaxChildDuration() const;
+    double getMaxChildDuration() const;
 
     bool isSpan() const;
     bool isMarker() const;
@@ -95,11 +95,11 @@ public:
 
 private:
     QBrush *m_brush;
-    float m_beginTime;
-    float m_endTime;
-    float m_duration;
+    double m_beginTime;
+    double m_endTime;
+    double m_duration;
     bool m_isSpan;
-    float m_maxChildDuration;
+    double m_maxChildDuration;
 
     QList<vogleditor_timelineItem *> m_childItems;
 

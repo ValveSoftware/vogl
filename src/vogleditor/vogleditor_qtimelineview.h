@@ -116,15 +116,15 @@ private:
     QPen m_trianglePen;
     QPen m_textPen;
     QFont m_textFont;
-    float m_roundoff;
+    double m_roundoff;
     float m_horizontalScale;
     int m_lineLength;
     uint64_t m_firstCallTime;
-    float m_curFrameTime;
-    float m_curApiCallTime;
+    double m_curFrameTime;
+    double m_curApiCallTime;
     float m_maxItemDuration;
     float m_zoom;
-    float m_scroll;
+    int m_scroll;
     int m_mouseDragStartPos;
     int m_mouseDragStartScroll;
     QScrollBar *m_scrollBar;
@@ -134,17 +134,17 @@ private:
     QPixmap *m_pPixmap;
 
     void drawBaseTimeline(QPainter *painter, const QRect &rect, int gap);
-    void drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, float &minimumOffset);
+    void drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, double &minimumOffset);
 
-    float scaleDurationHorizontally(float value);
-    float scalePositionHorizontally(float value);
+    double scaleDurationHorizontally(double value);
+    double scalePositionHorizontally(double value);
     vogleditor_timelineItem* itemUnderPos(QPoint pos);
 
     struct timelineItemPos
     {
         vogleditor_timelineItem *pItem;
-        float leftOffset;
-        float rightOffset;
+        int leftOffset;
+        int rightOffset;
     };
     QLinkedList<timelineItemPos> m_timelineItemPosCache;
 public slots:
