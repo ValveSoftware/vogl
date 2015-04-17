@@ -31,16 +31,24 @@
 QT_BEGIN_NAMESPACE
 class QPainter;
 class QPaintEvent;
+class QScrollBar;
 QT_END_NAMESPACE
 
 #include <QBrush>
 #include <QFont>
 #include <QPen>
+#include <QLinkedList>
 
-#include "vogleditor_timelinemodel.h"
+#include "vogleditor_apicalltimelinemodel.h"
 #include "vogleditor_timelineitem.h"
 
+#include "vogleditor_frameitem.h"
+#include "vogleditor_groupitem.h"
+#include "vogleditor_apicallitem.h"
+
 static const float cVOGL_TIMELINEOFFSET = 0.085f;
+
+class vogleditor_snapshotItem;
 
 class vogleditor_QTimelineView : public QWidget
 {
@@ -50,10 +58,14 @@ public:
     virtual ~vogleditor_QTimelineView();
 
     void paint(QPainter *painter, QPaintEvent *event);
+    void setScrollBar(QScrollBar *scrollBar);
 
-    inline void setModel(vogleditor_timelineModel *pModel)
+    inline void setModel(vogleditor_apiCallTimelineModel *pModel)
     {
-        m_pModel = pModel;
+        m_curFrameTime=-1;
+        m_curApiCallTime=-1;
+
+        m_pModel = pModel;        
         if (m_pModel == NULL)
         {
             deletePixmap();
@@ -61,6 +73,8 @@ public:
         else
         {
             m_maxItemDuration = m_pModel->get_root_item()->getMaxChildDuration();
+            if (m_pModel->get_root_item()->isGroupItem())
+                m_firstCallTime = m_pModel->get_root_item()->getGroupItem()->startTime();
         }
     }
 
@@ -69,19 +83,22 @@ public:
         return m_pModel;
     }
 
-    inline void setCurrentFrame(unsigned long long frameNumber)
+    void setCurrentFrame(vogleditor_frameItem *frame)
     {
-        m_curFrame = frameNumber;
+        if (m_pModel != NULL)
+            m_curFrameTime=m_pModel->absoluteToRelativeTime(frame->startTime());
     }
-
-    inline void setCurrentGroup(unsigned long long groupNumber)
+    
+    inline void setCurrentGroup(vogleditor_groupItem *group)
     {
-        setCurrentApiCall(groupNumber);
+        if (m_pModel != NULL)
+            m_curApiCallTime=m_pModel->absoluteToRelativeTime(group->startTime());
     }
-
-    inline void setCurrentApiCall(unsigned long long apiCallNumber)
+    
+    void setCurrentApiCall(vogleditor_apiCallItem *apiCall)
     {
-        m_curApiCallNumber = apiCallNumber;
+        if (m_pModel != NULL)
+            m_curApiCallTime=m_pModel->absoluteToRelativeTime(apiCall->startTime());
     }
 
     void deletePixmap()
@@ -94,36 +111,57 @@ public:
     }
 
 private:
-    QBrush m_background;
     QBrush m_triangleBrushWhite;
     QBrush m_triangleBrushBlack;
     QPen m_trianglePen;
     QPen m_textPen;
     QFont m_textFont;
-    float m_roundoff;
+    double m_roundoff;
     float m_horizontalScale;
     int m_lineLength;
-    unsigned long long m_curFrame;
-    unsigned long long m_curApiCallNumber;
+    uint64_t m_firstCallTime;
+    double m_curFrameTime;
+    double m_curApiCallTime;
     float m_maxItemDuration;
+    float m_zoom;
+    int m_scroll;
+    int m_mouseDragStartPos;
+    int m_mouseDragStartScroll;
+    QScrollBar *m_scrollBar;
+    int m_gap;
 
-    vogleditor_timelineModel *m_pModel;
+    vogleditor_apiCallTimelineModel *m_pModel;
     QPixmap *m_pPixmap;
 
     void drawBaseTimeline(QPainter *painter, const QRect &rect, int gap);
-    void drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, float &minimumOffset);
-    bool drawCurrentApiCallMarker(QPainter *painter, QPolygon &triangle, vogleditor_timelineItem *pItem);
+    void drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, double &minimumOffset);
 
-    float scaleDurationHorizontally(float value);
-    float scalePositionHorizontally(float value);
+    double scaleDurationHorizontally(double value);
+    double scalePositionHorizontally(double value);
+    vogleditor_timelineItem* itemUnderPos(QPoint pos);
 
+    struct timelineItemPos
+    {
+        vogleditor_timelineItem *pItem;
+        int leftOffset;
+        int rightOffset;
+    };
+    QLinkedList<timelineItemPos> m_timelineItemPosCache;
+public slots:
+    void scrollToPx(int scroll);
+    void resetZoom();
 protected:
     void paintEvent(QPaintEvent *event);
-
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent * event);    
+    void mouseMoveEvent(QMouseEvent *event);
+    void resizeEvent(QResizeEvent *);
+    bool event(QEvent *event);
 signals:
-
-public
-slots:
+    void scrollRangeChanged(int min, int max);
+    void scrollPosChanged(int pos);
+    void timelineItemClicked(vogleditor_snapshotItem *pItem);
 };
 
 #endif // VOGLEDITOR_QTIMELINEVIEW_H

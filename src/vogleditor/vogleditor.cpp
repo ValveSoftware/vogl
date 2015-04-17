@@ -31,6 +31,7 @@
 #include <QMessageBox>
 #include <QCoreApplication>
 #include <QGraphicsBlurEffect>
+#include <QScrollBar>
 
 #include "ui_vogleditor.h"
 #include "vogleditor.h"
@@ -181,10 +182,11 @@ VoglEditor::VoglEditor(QWidget *parent)
     // setup timeline
     m_timeline = new vogleditor_QTimelineView();
     m_timeline->setMinimumHeight(100);
-    ui->timelineLayout->addWidget(m_timeline);
     ui->timelineLayout->removeWidget(ui->timelineViewPlaceholder);
     delete ui->timelineViewPlaceholder;
     ui->timelineViewPlaceholder = NULL;
+    ui->timelineLayout->insertWidget(0, m_timeline);
+    m_timeline->setScrollBar(ui->timelineScrollBar);
 
     // add buttons to toolbar
     m_pGenerateTraceButton = new QToolButton(ui->mainToolBar);
@@ -227,6 +229,8 @@ VoglEditor::VoglEditor(QWidget *parent)
 
     connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(slot_readReplayStandardOutput()));
     connect(m_pVoglReplayProcess, SIGNAL(readyReadStandardError()), this, SLOT(slot_readReplayStandardError()));
+
+    connect(m_timeline, SIGNAL(timelineItemClicked(vogleditor_snapshotItem *)), this, SLOT(selectAPICallItem(vogleditor_snapshotItem *)));
 
     reset_tracefile_ui();
 }
@@ -2681,17 +2685,17 @@ void VoglEditor::setTimeline(vogleditor_apiCallTreeItem *pCallTreeItem)
 
     if (pApiCallItem != NULL)
     {
-        m_timeline->setCurrentApiCall(pApiCallItem->globalCallIndex());
+        m_timeline->setCurrentApiCall(pApiCallItem);
     }
 
     if (pGroupItem != NULL)
     {
-        m_timeline->setCurrentGroup(pGroupItem->firstApiCallIndex());
+        m_timeline->setCurrentGroup(pGroupItem);
     }
 
     if (pFrameItem != NULL)
     {
-        m_timeline->setCurrentFrame(pFrameItem->frameNumber());
+        m_timeline->setCurrentFrame(pFrameItem);
     }
 
     m_timeline->repaint();
@@ -2959,4 +2963,11 @@ void VoglEditor::on_contextComboBox_currentIndexChanged(int index)
 void VoglEditor::on_treeView_activated(const QModelIndex &index)
 {
     onApiCallSelected(index, true);
+}
+
+void VoglEditor::selectAPICallItem(vogleditor_snapshotItem *pItem)
+{
+    QModelIndexList hits = m_pApiCallTreeModel->match(m_pApiCallTreeModel->index(0, 0), Qt::UserRole, QVariant::fromValue((void*)pItem), 1, Qt::MatchExactly | Qt::MatchRecursive | Qt::MatchWrap);
+    if (hits.count() > 0)
+        selectApicallModelIndex(hits.at(0), true, true);
 }

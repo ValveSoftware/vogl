@@ -45,6 +45,7 @@ class QModelIndex;
 class QProcess;
 class QProcessEnvironment;
 class QToolButton;
+class QScrollBar;
 class vogl_arb_program_state;
 class vogl_program_state;
 class vogleditor_apiCallTimelineModel;
@@ -59,6 +60,7 @@ class vogleditor_QSnapshotOverlayWidget;
 class vogleditor_QTimelineView;
 class vogleditor_QVertexArrayExplorer;
 class vogleditor_QLaunchTracerDialog;
+class vogleditor_snapshotItem;
 
 class VoglEditor : public QMainWindow
 {
@@ -130,6 +132,8 @@ slots:
     void on_contextComboBox_currentIndexChanged(int index);
 
     void on_treeView_activated(const QModelIndex &index);
+
+    void selectAPICallItem(vogleditor_snapshotItem *pItem);
 
 private:
     Ui::VoglEditor *ui;
