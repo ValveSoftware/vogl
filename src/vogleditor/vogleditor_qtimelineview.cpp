@@ -120,14 +120,24 @@ void vogleditor_QTimelineView::wheelEvent(QWheelEvent *event)
     if (event->modifiers() & Qt::ControlModifier)
     {
         float oldZoom=m_zoom;
+        float oldScroll=m_scroll;
         if (event->angleDelta().y()>0)
             m_zoom=m_zoom*(1.2f);
         else
             m_zoom=m_zoom/(1.2f);
         m_zoom = qMax(m_zoom, 1.0f);
+
+        if ((long int)m_zoom*((long int)width())+(long int)m_gap*2 > 2147483647)
+        {
+            m_zoom=oldZoom;
+            return;
+        }
+
+        //Update the scrolol range in scroll bars before updating the scroll position.
         emit(scrollRangeChanged(0, m_zoom*width()-width()));
-        //Keep timeline stationary under the mouse:
-        scrollToPx(((m_scroll+event->x())/oldZoom)*m_zoom-event->x());
+
+        //Keep time line stationary under the mouse (using the oldScroll in case m_scroll was changes when updating the limits):
+        scrollToPx(((oldScroll+event->x())/oldZoom)*m_zoom-event->x());
     }else
     {
         scrollToPx(m_scroll-event->angleDelta().y()/3);
