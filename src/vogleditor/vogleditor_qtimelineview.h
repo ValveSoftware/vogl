@@ -65,8 +65,12 @@ public:
         m_curFrameTime=-1;
         m_curApiCallTime=-1;
 
-        m_pModel = pModel;
-        if (m_pModel != NULL)
+        m_pModel = pModel;        
+        if (m_pModel == NULL)
+        {
+            deletePixmap();
+        }
+        else
         {
             m_maxItemDuration = m_pModel->get_root_item()->getMaxChildDuration();
             if (m_pModel->get_root_item()->isGroupItem())
@@ -96,7 +100,16 @@ public:
         if (m_pModel != NULL)
             m_curApiCallTime=m_pModel->absoluteToRelativeTime(apiCall->startTime());
     }
-    
+
+    void deletePixmap()
+    {
+        if (m_pPixmap != NULL)
+        {
+            delete m_pPixmap;
+            m_pPixmap = NULL;
+        }
+    }
+
 private:
     QBrush m_triangleBrushWhite;
     QBrush m_triangleBrushBlack;
@@ -118,6 +131,7 @@ private:
     int m_gap;
 
     vogleditor_apiCallTimelineModel *m_pModel;
+    QPixmap *m_pPixmap;
 
     void drawBaseTimeline(QPainter *painter, const QRect &rect, int gap);
     void drawTimelineItem(QPainter *painter, vogleditor_timelineItem *pItem, int height, float &minimumOffset);

@@ -40,7 +40,8 @@ vogleditor_QTimelineView::vogleditor_QTimelineView(QWidget *parent)
       m_curApiCallTime(-1),
       m_zoom(1),
       m_scroll(0),
-      m_pModel(NULL)
+      m_pModel(NULL),
+      m_pPixmap(NULL)
 {
     QLinearGradient gradient(QPointF(0, 1), QPointF(0, 0));
     gradient.setCoordinateMode(QGradient::ObjectBoundingMode);
@@ -113,6 +114,20 @@ void vogleditor_QTimelineView::mouseMoveEvent(QMouseEvent *event)
 void vogleditor_QTimelineView::resizeEvent(QResizeEvent *)
 {
     m_scrollBar->setPageStep(width());
+
+    if (m_pPixmap != NULL)
+    {
+        int pmHeight = m_pPixmap->height();
+        int pmWidth = m_pPixmap->width();
+        float widthPctDelta = (float)(width() - pmWidth) / (float)pmWidth;
+        float heightPctDelta = (float)(height() - pmHeight) / (float)pmHeight;
+        // If the resize is of a 'signficant' amount, then delete the pixmap so that it will be regenerated at the new size.
+        if (fabs(widthPctDelta) > 0.2 ||
+                fabs(heightPctDelta) > 0.2)
+        {
+            deletePixmap();
+        }
+    }
 }
 
 void vogleditor_QTimelineView::wheelEvent(QWheelEvent *event)
@@ -190,7 +205,8 @@ void vogleditor_QTimelineView::scrollToPx(int scroll)
     m_scroll=scroll;
     m_scroll=qMax(m_scroll, 0.0f);
     m_scroll=qMin(m_scroll, m_zoom*width()-width());
-    emit(scrollPosChanged(m_scroll));
+    emit(scrollPosChanged(m_scroll));    
+    deletePixmap();
     update();
 }
 
@@ -215,7 +231,6 @@ void vogleditor_QTimelineView::drawBaseTimeline(QPainter *painter, const QRect &
 
 void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
 {
-    m_timelineItemPosCache.clear();
     m_gap = 10;
     int arrowHeight = 10;
     int arrowTop = height() / 2 - m_gap - arrowHeight;
@@ -227,8 +242,11 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
     triangle.setPoint(1, -arrowHalfWidth, arrowTop + arrowHeight);
     triangle.setPoint(2, arrowHalfWidth, arrowTop + arrowHeight);
 
+    painter->save();
     painter->translate(-m_scroll, 0);
     drawBaseTimeline(painter, event->rect(), m_gap);
+    //Go back to unscrolled coordinates to paint the pixmap to the widget.
+    painter->restore();
 
     if (m_pModel == NULL)
     {
@@ -240,35 +258,52 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
         return;
     }
 
+    if (m_pPixmap == NULL)
+    {
+        m_timelineItemPosCache.clear();
+        m_pPixmap = new QPixmap(event->rect().width(), event->rect().height());
+        m_pPixmap->fill(Qt::transparent);
+        QPainter pixmapPainter(m_pPixmap);
+
+        //Apply the scroll translation:
+        pixmapPainter.translate(-m_scroll, 0);
+        // translate drawing to vertical center of rect
+        // everything will have a small gap on the left and right sides
+        pixmapPainter.translate(m_gap, height() / 2);
+
+        m_horizontalScale = (float)m_lineLength / (float)m_pModel->get_root_item()->getDuration();
+
+        // we don't want to draw the root item, but all of its children
+        int numChildren = m_pModel->get_root_item()->childCount();
+        int i_height = height() / 2 - 2 * m_gap;
+
+        pixmapPainter.setBrush(m_triangleBrushWhite);
+        pixmapPainter.setPen(m_trianglePen);
+
+        float minimumOffset = 0;
+        vogleditor_timelineItem *rootItem = m_pModel->get_root_item();
+        for (int c = 0; c < numChildren; c++)
+        {
+            vogleditor_timelineItem *pChild = rootItem->child(c);
+            drawTimelineItem(&pixmapPainter, pChild, i_height, minimumOffset);
+        }
+    }
+
+    painter->drawPixmap(event->rect(), *m_pPixmap, m_pPixmap->rect());
+
+    painter->translate(-m_scroll, 0);
+    painter->setBrush(m_triangleBrushWhite);
+    painter->setPen(m_trianglePen);
     // translate drawing to vertical center of rect
     // everything will have a small gap on the left and right sides
     painter->translate(m_gap, height() / 2);
 
-    m_horizontalScale = (float)m_lineLength / (float)m_pModel->get_root_item()->getDuration();
-
-    // we don't want to draw the root item, but all of its children
-    int numChildren = m_pModel->get_root_item()->childCount();
-    int i_height = height() / 2 - 2 * m_gap;
-
-    painter->setBrush(m_triangleBrushWhite);
-    painter->setPen(m_trianglePen);
-
-    float minimumOffset = 0;
-    vogleditor_timelineItem *rootItem = m_pModel->get_root_item();
-    for (int c = 0; c < numChildren; c++)
-    {
-        vogleditor_timelineItem *pChild = rootItem->child(c);
-        drawTimelineItem(painter, pChild, i_height, minimumOffset);
-    }
-
-    painter->setBrush(m_triangleBrushWhite);
-    painter->setPen(m_trianglePen);
-
     if (m_curFrameTime!=-1)
     {
         painter->save();
-        painter->setBrush(m_triangleBrushBlack);
+        //translate to the point to draw marker
         painter->translate(scalePositionHorizontally(m_curFrameTime), 0);
+        painter->setBrush(m_triangleBrushBlack);
         painter->drawPolygon(triangle);
         painter->restore();
     }
@@ -280,6 +315,7 @@ void vogleditor_QTimelineView::paint(QPainter *painter, QPaintEvent *event)
         xpos -= m_roundoff;
 
         painter->save();
+        //translate to the point to draw marker
         painter->translate(xpos, 0);
         painter->drawPolygon(triangle);
         painter->restore();
@@ -326,7 +362,9 @@ vogleditor_timelineItem *vogleditor_QTimelineView::itemUnderPos(QPoint pos)
             if (itempos.leftOffset > x)
                 break;
             if (itempos.leftOffset<x && itempos.rightOffset>x)
+            {
                 return itempos.pItem;
+            }
         }
     }
     {
