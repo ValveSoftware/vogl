@@ -436,8 +436,8 @@ QVector3D vogleditor_QVertexArrayExplorer::buffer_data_to_QVector3D(uint32_t ind
     // index into the buffer
     const uint8_t *pCurAttributeData = &(bufferState.get_buffer_data()[curAttributeDataIndex]);
 
-    float values[attribDesc.m_size];
-    for (int i = 0; i < attribDesc.m_size; i++)
+    float values[3];
+    for (int i = 0; (i < attribDesc.m_size) && (i < 3); i++)
     {
         values[i]=0;
         // convert the data appropriately
