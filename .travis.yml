@@ -1,0 +1,98 @@
+language: cpp
+sudo: required
+dist: trusty
+
+# matrix:
+#   include:
+#     - compiler: gcc
+#       addons:
+#         apt:
+#           sources:
+#             - ubuntu-toolchain-r-test
+#           packages:
+#             - g++-4.9
+#       env: COMPILER=g++-4.9
+#     - compiler: gcc
+#       addons:
+#         apt:
+#           sources:
+#             - ubuntu-toolchain-r-test
+#           packages:
+#             - g++-5
+#       env: COMPILER=g++-5
+#     - compiler: clang
+#       addons:
+#         apt:
+#           sources:
+#             - ubuntu-toolchain-r-test
+#             - llvm-toolchain-precise-3.6
+#           packages:
+#             - clang-3.6
+#       env: COMPILER=clang++-3.6
+#     - compiler: clang
+#       addons:
+#         apt:
+#           sources:
+#             - ubuntu-toolchain-r-test
+#             - llvm-toolchain-precise-3.7
+#           packages:
+#             - clang-3.7
+#       env: COMPILER=clang++-3.7
+
+
+addons:
+  apt:
+    # sources:
+    #   - llvm-toolchain-precise-3.6
+    #   - ubuntu-toolchain-r-test
+    packages:
+      - build-essential
+      - pkg-config
+      - cmake
+      - libx11-dev
+      - zip
+      - wget
+      - libtinyxml-dev
+      # - libtinyxml2-dev
+      #Aboce not in the whitelist :/
+      - liblzma-dev
+      - libunwind8-dev 
+      - libturbojpeg
+      - libdwarf-dev
+      - mesa-common-dev
+      - freeglut3-dev
+      - libglu1-mesa-dev
+      - qt5-default
+      - libsdl2-dev
+      - libjpeg-turbo8-dev
+compiler:
+  - gcc
+  - clang
+git:
+  depth: 10
+before_install:
+  - echo "before_install"
+  - df -h
+  - date
+  - pwd
+  - uname -a -m
+  - gcc --version
+  - g++ --version
+  - clang --version
+  - which clang
+  - which g++
+  - git --version 
+  - git tag
+  - apt-cache show clang build-essential gcc
+  - lsb_release -a
+install:
+  - echo "install start"
+before_script:
+  - echo "before_script"
+script:
+  - mkdir build
+  - cd build
+  - echo ${CC}
+  - echo ${CXX}
+  - CC=${CC} CPP=${CXX} cmake ../ -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_X64=ON
+  - make all
