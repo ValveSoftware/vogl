@@ -66,6 +66,13 @@ else()
     set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG")
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS_LIST "-g -Wall -Wextra -Wno-old-style-cast")
+    set(CMAKE_CXX_FLAGS_RELEASE_LIST "-g -O2 -DNDEBUG -Wno-old-style-cast")
+    set(CMAKE_CXX_FLAGS_DEBUG_LIST "-g -O0 -D_DEBUG -Wno-old-style-cast")
+    #-Wno-unused-local-typedef -Wno-reserved-id-macro
+endif()
+
 if(USE_MALLOC)
     set(CMAKE_CXX_FLAGS_LIST "-DVOGL_USE_STB_MALLOC=0")
 endif()
