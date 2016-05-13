@@ -3,6 +3,7 @@
 
 #include "vogl_dynamic_string.h"
 #include "vogl_json.h"
+#include <QObject>
 #include <QStringList>
 #include <QVector>
 
