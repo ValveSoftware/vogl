@@ -40,33 +40,33 @@ vogleditor_qsettings::vogleditor_qsettings()
     // State/Render
     m_defaults.state_render_name = "State/Render groups";
     m_defaults.state_render_stat = false;
-    m_defaults.state_render_used = true;
+    m_defaults.state_render_able = true;
 
     // Debug marker
     for (int i = 0, cnt = m_defaults.debug_marker_name_list.count(); i < cnt; i++)
     {
         m_defaults.debug_marker_stat_list << true;
-        m_defaults.debug_marker_used_list << true;
+        m_defaults.debug_marker_able_list << true;
     }
     m_defaults.debug_marker_stat_list[1] = false; // glPush/PopGroupMarkerEXT
-    m_defaults.debug_marker_used_list[1] = false; // disable
+    m_defaults.debug_marker_able_list[1] = false; // disable
 
     m_defaults.debug_marker_option_name_labl = "Use text argument as label";
     m_defaults.debug_marker_option_name_stat = false;
-    m_defaults.debug_marker_option_name_used = true;
+    m_defaults.debug_marker_option_name_able = true;
 
     m_defaults.debug_marker_option_omit_labl = "Hide terminating API call";
     m_defaults.debug_marker_option_omit_stat = false;
-    m_defaults.debug_marker_option_omit_used = true;
+    m_defaults.debug_marker_option_omit_able = true;
 
     // Nest options
     m_defaults.groupbox_nest_options_name = "Nest options";
     m_defaults.groupbox_nest_options_stat = true;
-    m_defaults.groupbox_nest_options_used = true;
+    m_defaults.groupbox_nest_options_able = true;
     for (int i = 0, cnt = m_defaults.nest_options_name_list.count(); i < cnt; i++)
     {
         m_defaults.nest_options_stat_list << false;
-        m_defaults.nest_options_used_list << true;
+        m_defaults.nest_options_able_list << true;
     }
     m_defaults.nest_options_stat_list[0] = true; // glBegin/End
 
