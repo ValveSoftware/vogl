@@ -18,6 +18,7 @@ public:
     ~vogleditor_QLaunchTracerDialog();
 
     QString get_application_to_launch();
+    QString get_application_working_dir();
     QString get_command_line();
     QProcessEnvironment get_process_environment();
     QString get_trace_file_path();
@@ -28,7 +29,11 @@ slots:
 
     void on_traceFileLineEdit_textChanged(const QString &text);
 
+    void on_workingDirLineEdit_textChanged(const QString &text);
+
     void on_findApplicationButton_clicked();
+
+    void on_findWorkingDirButton_clicked();
 
     void on_findTraceFileButton_clicked();
 

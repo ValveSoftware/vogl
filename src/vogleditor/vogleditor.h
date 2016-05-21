@@ -151,7 +151,7 @@ private:
     bool displayBuffer(GLuint64 bufferHandle, bool bBringTabToFront);
     bool resetApiCallTreeModel();
 
-    bool launch_application_to_generate_trace(const QString &cmdLine, const QProcessEnvironment &environment);
+    bool launch_application_to_generate_trace(const QString &cmdLine, const QString &workingDir, const QProcessEnvironment &environment);
 
     Prompt_Result prompt_load_new_trace(const char *tracefile);
 
