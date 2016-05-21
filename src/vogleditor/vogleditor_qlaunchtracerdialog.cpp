@@ -152,12 +152,22 @@ QString vogleditor_QLaunchTracerDialog::get_application_to_launch()
     return ui->applicationLineEdit->text();
 }
 
+QString vogleditor_QLaunchTracerDialog::get_application_working_dir()
+{
+    return ui->workingDirLineEdit->text();
+}
+
 void vogleditor_QLaunchTracerDialog::on_applicationLineEdit_textChanged(const QString &text)
 {
     check_inputs();
 }
 
 void vogleditor_QLaunchTracerDialog::on_traceFileLineEdit_textChanged(const QString &text)
+{
+    check_inputs();
+}
+
+void vogleditor_QLaunchTracerDialog::on_workingDirLineEdit_textChanged(const QString &text)
 {
     check_inputs();
 }
@@ -179,6 +189,18 @@ void vogleditor_QLaunchTracerDialog::on_findApplicationButton_clicked()
     if (!selectedName.isEmpty())
     {
         ui->applicationLineEdit->setText(selectedName);
+    }
+}
+
+void vogleditor_QLaunchTracerDialog::on_findWorkingDirButton_clicked()
+{
+    // open file dialog
+    QString suggestedName = ui->workingDirLineEdit->text();
+    QString selectedName = QFileDialog::getExistingDirectory(this, tr("Find Application working directory"), suggestedName);
+
+    if (!selectedName.isEmpty())
+    {
+        ui->workingDirLineEdit->setText(selectedName);
     }
 }
 
