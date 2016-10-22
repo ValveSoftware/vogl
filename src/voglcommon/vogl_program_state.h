@@ -85,6 +85,15 @@ struct vogl_program_uniform_state
 
 typedef vogl::vector<vogl_program_uniform_state> vogl_uniform_state_vec;
 
+enum vogl_referenced_by_flags {
+    cBufferReferencedByVertex = 1,
+    cBufferReferencedByTesselationControl = 2,
+    cBufferReferencedByTesselationEvaluation = 4,
+    cBufferReferencedByGeometry = 8,
+    cBufferReferencedByFragment = 16,
+    cBufferReferencedByCompute = 32,
+};
+
 struct vogl_program_uniform_block_state
 {
     GLuint m_uniform_block_index;
@@ -92,6 +101,7 @@ struct vogl_program_uniform_block_state
     GLint m_uniform_block_binding_point;
     GLint m_uniform_block_data_size;
     GLint m_uniform_block_active_uniforms;
+    int m_referenced_by;
 
     void clear()
     {
@@ -100,6 +110,7 @@ struct vogl_program_uniform_block_state
         m_uniform_block_binding_point = 0;
         m_uniform_block_data_size = 0;
         m_uniform_block_active_uniforms = 0;
+        m_referenced_by = 0;
     }
 
     inline bool operator==(const vogl_program_uniform_block_state &rhs) const
@@ -112,6 +123,7 @@ struct vogl_program_uniform_block_state
         CMP(m_uniform_block_binding_point)
         CMP(m_uniform_block_data_size)
         CMP(m_uniform_block_active_uniforms)
+        CMP(m_referenced_by)
 #undef CMP
         return true;
     }
