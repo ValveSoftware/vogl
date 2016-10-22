@@ -261,7 +261,23 @@ bool vogl_program_state::snapshot_uniform_blocks(const vogl_context_info &contex
             GL_ENTRYPOINT(glGetActiveUniformBlockiv)(m_snapshot_handle, uniform_block_index, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &state.m_uniform_block_active_uniforms);
             VOGL_CHECK_GL_ERROR;
 
-            // TODO: Get and store referenced flags: GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER, GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER, or GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER, etc.
+#define GET_REFERENCED_BY(name, flag_name) do { \
+        GLint referenced; \
+        GL_ENTRYPOINT(glGetActiveUniformBlockiv)(m_snapshot_handle, uniform_block_index, GL_UNIFORM_BLOCK_REFERENCED_BY_ ## name ## _SHADER, &referenced); \
+        VOGL_CHECK_GL_ERROR; \
+        if (referenced) \
+            state.m_referenced_by |= cBufferReferencedBy ## flag_name; \
+    } while (0)
+
+            GET_REFERENCED_BY(VERTEX, Vertex);
+            GET_REFERENCED_BY(TESS_CONTROL, TesselationControl);
+            GET_REFERENCED_BY(TESS_EVALUATION, TesselationEvaluation);
+            GET_REFERENCED_BY(GEOMETRY, Geometry);
+            GET_REFERENCED_BY(FRAGMENT, Fragment);
+            if (context_info.get_version() >= VOGL_GL_VERSION_4_3)
+                GET_REFERENCED_BY(COMPUTE, Compute);
+
+#undef GET_REFERENCED_BY
 
             m_uniform_blocks.push_back(state);
         }
