@@ -559,6 +559,37 @@ void vogleditor_QProgramExplorer::update_uniforms_for_program(vogl_program_state
         } // end uniform element index
     }
 
+    const vogl_uniform_block_state_vec &uniformBlockVec = pProgramState->get_uniform_block_state_vec();
+    for (uint i = 0; i < uniformBlockVec.size(); i++)
+    {
+        QString varName = QString("%1").arg(uniformBlockVec[i].m_name.c_str());
+
+        ui->uniformTableWidget->insertRow(rowIndex);
+
+        QStringList references;
+        int referenced_by = uniformBlockVec[i].m_referenced_by;
+
+        if (referenced_by & cBufferReferencedByVertex)
+            references.append("vertex");
+        if (referenced_by & cBufferReferencedByTesselationControl)
+            references.append("tesselation control");
+        if (referenced_by & cBufferReferencedByTesselationEvaluation)
+            references.append("tesselation evaluation");
+        if (referenced_by & cBufferReferencedByGeometry)
+            references.append("geometry");
+        if (referenced_by & cBufferReferencedByFragment)
+            references.append("fragment");
+        if (referenced_by & cBufferReferencedByCompute)
+            references.append("compute");
+
+        ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_location, new QTableWidgetItem(QString("%1").arg(i)));
+        ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_name, new QTableWidgetItem(varName));
+        ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_value, new QTableWidgetItem(references.join(", ")));
+        ui->uniformTableWidget->setItem(rowIndex, vogleditor_utc_type, new QTableWidgetItem(QString("%1 bytes").arg(uniformBlockVec[i].m_uniform_block_data_size)));
+
+        rowIndex++;
+    }
+
     // resize columns so that they are properly sized, but still allow the user to resize them more if needed
     ui->uniformTableWidget->horizontalHeader()->setSectionResizeMode(vogleditor_utc_location, QHeaderView::ResizeToContents);
     uint tmpWidth = ui->uniformTableWidget->horizontalHeader()->sectionSize(vogleditor_utc_location);
