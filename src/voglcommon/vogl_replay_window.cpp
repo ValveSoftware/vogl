@@ -209,8 +209,56 @@ GLReplayContextType vogl_replay_window::create_new_context(GLReplayContextType r
 GLReplayContextType vogl_replay_window::create_context_attrib(GLReplayContextType replay_share_context, Bool direct, const int * pAttrib_list)
 {
     #if (VOGL_PLATFORM_HAS_SDL)
-        // TODO: This is actually a bit complicated, we need to decode the the attrib list into SDL attribs. 
-        #pragma message("warning Need to decode pAttrib_list into SDL attribs")
+        while (*pAttrib_list) {
+            int key = *pAttrib_list++;
+            int value = *pAttrib_list++;
+
+            switch (key) {
+                case GLX_CONTEXT_MAJOR_VERSION_ARB:
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, value);
+                    break;
+                case GLX_CONTEXT_MINOR_VERSION_ARB:
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, value);
+                    break;
+                case GLX_CONTEXT_PROFILE_MASK_ARB: {
+                    int mask = 0;
+                    switch (value) {
+                        case GLX_CONTEXT_CORE_PROFILE_BIT_ARB:
+                            mask = SDL_GL_CONTEXT_PROFILE_CORE;
+                            break;
+                        case GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB:
+                            mask = SDL_GL_CONTEXT_PROFILE_COMPATIBILITY;
+                            break;
+                        case GLX_CONTEXT_ES_PROFILE_BIT_EXT:
+                        //case GLX_CONTEXT_ES2_PROFILE_BIT_EXT:
+                            mask = SDL_GL_CONTEXT_PROFILE_ES;
+                            break;
+                        default:
+                            vogl_warning_printf("Unknown profile mask value: %d", value);
+                            break;
+                    }
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, mask);
+                    break;
+                }
+                case GLX_CONTEXT_FLAGS_ARB: {
+                    int flags = 0;
+                    if (value & GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB)
+                        flags |= SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+                    if (value & GLX_CONTEXT_ROBUST_ACCESS_BIT_ARB)
+                        flags |= SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG;
+                    if (value & GLX_CONTEXT_RESET_ISOLATION_BIT_ARB)
+                        flags |= SDL_GL_CONTEXT_RESET_ISOLATION_FLAG;
+                    if (value & GLX_CONTEXT_DEBUG_BIT_ARB)
+                        flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
+                    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, flags);
+                    break;
+                }
+                default:
+                    vogl_warning_printf("Unknown context attribute: %d = %d", key, value);
+                    break;
+            }
+        }
+
         if (replay_share_context)
         {
             VOGL_VERIFY(!"we do not yet support replay of shared context applications on SDL");
