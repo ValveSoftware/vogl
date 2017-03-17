@@ -27,3 +27,5 @@ voglinc/
 *.bin
 
 _out*/
+__nix_qt5__
+/result
