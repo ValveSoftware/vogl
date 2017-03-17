@@ -21,5 +21,9 @@ vogl_build/*
 voglinc/
 *~
 *.swp
+\#*
+.\#*
+*.a
+*.bin
 
 _out*/
