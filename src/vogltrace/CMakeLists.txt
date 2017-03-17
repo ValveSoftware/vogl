@@ -119,6 +119,5 @@ build_options_finalize()
 #
 #  Installation
 #
-install(TARGETS ${PROJECT_NAME}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib)
+install(TARGETS vogltrace
+        LIBRARY DESTINATION bin)
