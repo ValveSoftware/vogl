@@ -170,3 +170,9 @@ endif()
 
 build_options_finalize()
 
+#
+#  Installation
+#
+install(TARGETS voglgen
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib)

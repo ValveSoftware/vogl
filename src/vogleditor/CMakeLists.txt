@@ -229,3 +229,10 @@ if (MSVC)
 endif()
 
 build_options_finalize()
+
+#
+#  Installation
+#
+install(TARGETS vogleditor
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib)

@@ -116,3 +116,9 @@ endif()
 
 build_options_finalize()
 
+#
+#  Installation
+#
+install(TARGETS vogltrace
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib)
