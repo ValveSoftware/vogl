@@ -85,7 +85,7 @@ QString vogleditor_QLaunchTracerDialog::get_command_line()
     return cmdline;
 }
 
-QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment()
+QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment(bool just32bits)
 {
     QDir appDirectory(QCoreApplication::applicationDirPath());
 
@@ -119,9 +119,7 @@ QProcessEnvironment vogleditor_QLaunchTracerDialog::get_process_environment()
             m_process_environment.insert("VOGL_CMD_LINE", VOGL_CMD_LINE);
         }
 
-        QString libvogltrace32 = appDirectory.absoluteFilePath("./libvogltrace32.so");
-        QString libvogltrace64 = appDirectory.absoluteFilePath("./libvogltrace64.so");
-        QString LD_PRELOAD = libvogltrace32 + ":" + libvogltrace64;
+        QString LD_PRELOAD = appDirectory.absoluteFilePath(just32bits ? "./libvogltrace32.so" : "./libvogltrace64.so");
 
         if (getenv("LD_PRELOAD"))
         {

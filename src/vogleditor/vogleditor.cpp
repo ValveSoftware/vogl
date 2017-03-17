@@ -471,7 +471,7 @@ VoglEditor::Prompt_Result VoglEditor::prompt_generate_trace()
 #endif
 
             QString cmdLine = m_pLaunchTracerDialog->get_command_line();
-            QProcessEnvironment env = m_pLaunchTracerDialog->get_process_environment();
+            QProcessEnvironment env = m_pLaunchTracerDialog->get_process_environment (sizeof (void *) < 8);
             bool bSuccess = launch_application_to_generate_trace(cmdLine, env);
             QFileInfo fileInfo(m_pLaunchTracerDialog->get_trace_file_path());
             if (bSuccess && fileInfo.exists())
