@@ -37,6 +37,6 @@ build_options_finalize()
 #
 #  Installation
 #
-install(TARGETS voglserver
+install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)

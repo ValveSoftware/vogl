@@ -41,6 +41,6 @@ build_options_finalize()
 #
 #  Installation
 #
-install(TARGETS voglcmd
+install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)

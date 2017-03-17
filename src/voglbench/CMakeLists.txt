@@ -45,6 +45,6 @@ build_options_finalize()
 #
 #  Installation
 #
-install(TARGETS voglbench
+install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
