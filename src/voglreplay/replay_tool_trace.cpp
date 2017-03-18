@@ -289,12 +289,11 @@ tool_trace_mode(vogl::vector<command_line_param_desc> *desc)
     vogl_message_printf("Logfile: %s", args.vogl_logfile.c_str());
     vogl_printf(" (will have PID appended)\n");
 
-    dynamic_string vogltracepath32 = getfullpath("libvogltrace32.so");
-    dynamic_string vogltracepath64 = getfullpath("libvogltrace64.so");
+    dynamic_string vogltracepath = getfullpath((sizeof(void *) < 8) ? "libvogltrace32.so" : "libvogltrace64.so");
 
     // set up LD_PRELOAD string
     dynamic_string LD_PRELOAD = "LD_PRELOAD=\"";
-    LD_PRELOAD += vogltracepath32 + ":" + vogltracepath64;
+    LD_PRELOAD += vogltracepath;
 
     if (is_steam_file || getenv("LD_PRELOAD"))
         LD_PRELOAD += ":$LD_PRELOAD";
