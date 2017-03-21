@@ -1,0 +1,6 @@
+language: nix
+script:   nix-build shell.nix
+sudo:     false
+cache:
+  directories:
+    - /nix
