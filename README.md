@@ -1,5 +1,6 @@
 vogl
 =============
+[![Build Status](https://travis-ci.org/deepfire/vogl.svg?branch=master)](https://travis-ci.org/deepfire/vogl)
 
 #### NOTE ####
 
