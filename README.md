@@ -2,25 +2,13 @@ vogl
 =============
 [![Build Status](https://travis-ci.org/deepfire/vogl.svg?branch=master)](https://travis-ci.org/deepfire/vogl)
 
-#### NOTE ####
-
-April 16, 2014: Vogl history has been completely and utterly trounced. The original repository had an entire chroot build system that most folks weren't interested in. A few contributors (thanks Carl & Sir Anthony) took the time to build a much smaller source only vogl repository which we've replaced the original one with.
-
-A separate chroot repository (which will build this source repository) is now here:
-
-https://bitbucket.org/raddebugger/vogl_chroot
-
 ## Warning ##
 
 This project is alpha^2. If you are up for suffering through a bit of pain with early releases, please jump in - we'd love to have your help...
 
 ## Dependencies ##
 
-The chroot configuration script should be a good reference for vogl dependencies. It is located here:
-
-https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/chroot_configure.sh?at=master
-
-The build dependencies for ubuntu (14.04) can be installed using the following:
+The build dependencies for ubuntu (14.04) can be installed either using APT:
 ```
 sudo apt-get install build-essential pkg-config cmake libx11-dev \
                      zip wget libtinyxml-dev liblzma-dev libunwind8-dev \
@@ -28,10 +16,54 @@ sudo apt-get install build-essential pkg-config cmake libx11-dev \
                      freeglut3-dev qt5-default libqt5x11extras5-dev git \
                      libsdl2-gfx-dev libsdl2-image-dev libsdl2-ttf-dev libjpeg-turbo8-dev
 ```
+.. or using Nix, for which keep reading.
 
-## Get Source and Build ##
+### Get Source and Build ###
 
-#### Linux ####
+There are two build methods, due to development environment setup mechanisms: Nix and chroot.
+
+1. The Nix-based method:
+
+  - distribution-agnostic, but requires the Nix package manager to be installed
+  - fire-and-forget
+  - integrated with Travis CI
+  - allows fine dependency specification
+  - 100% declarative -- you get what you ask for (nothing is implied by any kind of "state")
+  - currently suffers from https://github.com/NixOS/nixpkgs/issues/9415
+    - ..but there is a remedy (nVidia-only at the moment): https://github.com/deepfire/nix-install-vendor-gl
+
+2. The old, chroot-based method.
+
+#### Nix-based ####
+
+##### Linux ####
+
+There are two options:
+
+1. Building and installing the package into the current user environment:
+
+```
+desktop@steamos:~/src/vogl$ nix-build --cores 8 shell.nix
+these derivations will be built:
+  /nix/store/zvdz4dhprf6kbnjf5sjcc8731rnbmd1z-vogl-2016-05-13.drv
+building path(s) ‘/nix/store/b88a5flgwjghw204wg5j8ahqs50l2qba-vogl-2016-05-13’
+_makeQtWrapperSetup
+unpacking sources
+unpacking source archive /nix/store/qm11psc7pp4nk2273msgln3x519iv1pb-vogl-cbc5f18
+...
+
+...
+```
+
+2. Entering the fully-dependency endowed build environment:
+```
+nix-shell
+```
+
+
+#### Chroot-based ####
+
+##### Linux ####
 
 ```
 git clone https://github.com/ValveSoftware/vogl.git  
@@ -45,7 +77,7 @@ The binaries are placed in the vogl/vogl_build directory.
 For debug builds, use "-DCMAKE_BUILD_TYPE=Debug"  
 For 32-bit builds, use "-DBUILD_X64=Off"  
 
-#### Windows ####
+##### Windows ####
 
 ```
 git clone https://github.com/ValveSoftware/vogl.git
@@ -61,7 +93,7 @@ cmake -DQt5_DIR="C:\Qt\5.3\msvc2013_opengl\lib\cmake\Qt5" -G "Visual Studio 12 2
 Note: The path to Qt5 might need to be adjusted depending on your install location.
 After compiling with Visual Studio, the binaries are placed in the vogl\vogl_build\Release (or Debug) directory.
 
-### Mac OS X ###
+##### Mac OS X ###
 
 Install the required build dependencies using Homebrew:
 

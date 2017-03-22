@@ -1,11 +1,11 @@
 # -*- indent-tabs-mode: nil -*-
-{ fetchgit, stdenv
-, cmake, git, pkgconfig, wget, zip
+{ cmake, git, pkgconfig, wget, zip
 , makeQtWrapper, qtbase, qtx11extras
 , libdwarf, libjpeg_turbo, libunwind, lzma, tinyxml, libX11
 , SDL2, SDL2_gfx, SDL2_image, SDL2_ttf
 , freeglut, mesa, mesa_glu
 ##
+, fetchgit, stdenv
 , localSource ? false
 }:
 let
