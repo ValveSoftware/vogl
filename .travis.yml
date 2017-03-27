@@ -1,6 +1,8 @@
 language: nix
 script:   nix-build shell.nix
-sudo:     false
+sudo:     true
+# Sudo containers start slower, but are isolated in a VM and get 8G of RAM, instead of 4G.
+
 cache:
   directories:
     - /nix
