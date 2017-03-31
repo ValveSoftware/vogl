@@ -16,7 +16,7 @@ sudo apt-get install build-essential pkg-config cmake libx11-dev \
                      freeglut3-dev qt5-default libqt5x11extras5-dev git \
                      libsdl2-gfx-dev libsdl2-image-dev libsdl2-ttf-dev libjpeg-turbo8-dev
 ```
-.. or using Nix, for which keep reading.
+> .. or using Nix, for which keep reading.
 
 ### Get Source and Build ###
 
@@ -38,12 +38,28 @@ There are two build methods, due to development environment setup mechanisms: Ni
 
 ##### Linux (Mac OS X untested, but not impossible) ####
 
-There are two options:
+First, you need to have Nix installed (citing http://nixos.org/nix/manual/#ch-installing-binary):
+
+```
+desktop@steamos:~/src/vogl$ bash <(curl https://nixos.org/nix/install)
+...
+
+## At the end, this will instruct you to either re-login,
+## or source the Nix environment setup script.  Do that.
+## Validation:
+
+desktop@steamos:~/src/vogl$ nix-env --query --installed   # ..which should list just `nix`, initially.
+```
+> NOTE: If security implications of this particular step worry you, please read
+> the following piece by Domen Kožar:
+> https://www.domenkozar.com/2015/09/27/friends-sometimes-let-friends-curl-to-shell/)
+
+Once that's behind us, the following two options become available:
 
 1. Building and installing the package into the current user environment:
 
 ```
-desktop@steamos:~/src/vogl$ nix-build --cores 8 shell.nix
+desktop@steamos:~/src/vogl$ nix-env --no-build-output --cores 0 -iE 'f: (import ./shell.nix {})'
 these derivations will be built:
   /nix/store/zvdz4dhprf6kbnjf5sjcc8731rnbmd1z-vogl-2016-05-13.drv
 building path(s) ‘/nix/store/b88a5flgwjghw204wg5j8ahqs50l2qba-vogl-2016-05-13’
