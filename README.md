@@ -128,6 +128,12 @@ https://bitbucket.org/raddebugger/vogl_chroot/src/master/bin/src/sl.cpp?at=maste
 
 We are currently working on making it much easier to launch and profile Steam apps.
 
+Note, that `vogleditor` used to attempt to launch the target application while
+preloading both 32-bit and 64-bit versions of the capture libraries, but this was
+error-prone -- in certain systems that would prevent the editor-based capturing at
+all.  So this was disabled, and now `vogleditor` only preloads captures of a
+single architecture -- one matching the particular `vogl` build, 32 or 64-bit.
+
 ## Replay ##
 
 ```
