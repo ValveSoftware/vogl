@@ -1,5 +1,5 @@
 { nixpkgs ? import <nixpkgs> {} }:
 
-nixpkgs.pkgs.qt57.callPackage
+nixpkgs.pkgs.libsForQt56.callPackage
   (import ./.)
   { }
