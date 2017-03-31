@@ -36,7 +36,7 @@ There are two build methods, due to development environment setup mechanisms: Ni
 
 #### Nix-based ####
 
-##### Linux ####
+##### Linux (Mac OS X untested, but not impossible) ####
 
 There are two options:
 
