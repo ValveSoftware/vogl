@@ -348,8 +348,7 @@ bool vogleditor_QApiCallTreeModel::init(vogl_trace_file_reader *pTrace_reader)
                 {
                     QString msg(QString("*** Information: unpaired \"") + QString(g_vogl_entrypoint_descs[entrypoint_id].m_pName) + QString("\"."));
                     vogleditor_output_message(msg.toStdString().c_str());
-                    vogl_printf("%s", msg.toStdString().c_str());
-                    vogl_printf("\n");
+                    vogl_printf("%s\n", msg.toStdString().c_str());
                 }
             }
             else if (isMarkerPushEntrypoint(entrypoint_id))
