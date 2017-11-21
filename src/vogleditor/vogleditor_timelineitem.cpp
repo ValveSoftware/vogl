@@ -27,6 +27,7 @@
 
 #include "vogleditor_timelineitem.h"
 #include "vogl_common.h"
+#include "fix_x11.h"
 
 // Timeline root (fullspan)
 vogleditor_timelineItem::vogleditor_timelineItem(double begin, double end)

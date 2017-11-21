@@ -1341,7 +1341,7 @@ private:
     int find_attrib_key(const vogl::vector<int> &attrib_list, int key_to_find);
 
     status_t create_context_attribs(
-        vogl_trace_context_ptr_value trace_context, vogl_trace_context_ptr_value trace_share_context, GLReplayContextType replay_share_context, Bool direct,
+        vogl_trace_context_ptr_value trace_context, vogl_trace_context_ptr_value trace_share_context, GLReplayContextType replay_share_context, int direct,
         const int *pTrace_attrib_list, int trace_attrib_list_size, bool expecting_attribs);
 
     status_t process_pending_make_current();

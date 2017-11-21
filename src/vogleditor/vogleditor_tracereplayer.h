@@ -2,6 +2,7 @@
 #define VOGLEDITOR_TRACEREPLAYER_H
 
 #include "vogl_common.h"
+#include "fix_x11.h"
 #include "vogl_replay_window.h"
 
 class vogl_gl_replayer;
