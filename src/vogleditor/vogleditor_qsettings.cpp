@@ -1,5 +1,6 @@
 #include "vogleditor_qsettings.h"
 #include "vogl_common.h"
+#include "fix_x11.h"
 #include "vogl_file_utils.h"
 
 // declared as extern in header

@@ -30,6 +30,7 @@
 #include <QVariant>
 #include "vogl_core.h"
 #include "vogl_common.h"
+#include "fix_x11.h"
 
 class vogleditor_frameItem;
 class vogleditor_groupItem;

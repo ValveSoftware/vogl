@@ -28,6 +28,7 @@
 
 // external classes (could be predeclared)
 #include "vogl_common.h"
+#include "fix_x11.h"
 #include "vogleditor_gl_state_snapshot.h"
 
 // base class for items that might have a snapshot

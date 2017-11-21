@@ -94,13 +94,13 @@ public:
     bool get_actual_dimensions(uint32_t &width, uint32_t &height) const;
 
     // Create a simple context for this window (using glXCreateContext)
-    GLReplayContextType create_context(GLReplayContextType replay_share_context, Bool direct);
+    GLReplayContextType create_context(GLReplayContextType replay_share_context, int direct);
 
     // Create a context using glXCreateNewContext, if available.
-    GLReplayContextType create_new_context(GLReplayContextType replay_share_context, int render_type, Bool direct);
+    GLReplayContextType create_new_context(GLReplayContextType replay_share_context, int render_type, int direct);
 
     // Create a context with CreateContextAttribs on this platform
-    GLReplayContextType create_context_attrib(GLReplayContextType replay_share_context, Bool direct, const int *pAttrib_list);
+    GLReplayContextType create_context_attrib(GLReplayContextType replay_share_context, int direct, const int *pAttrib_list);
 
     // Make the replay context current on this window
     bool make_current(GLReplayContextType context);
@@ -108,9 +108,9 @@ public:
     // Destroy this context, which should be associated with this window.
     void destroy_context(GLReplayContextType context);
 
-    Bool query_version(int *out_major, int *out_minor);
+    int query_version(int *out_major, int *out_minor);
 
-    Bool is_direct(GLReplayContextType replay_context);
+    int is_direct(GLReplayContextType replay_context);
 
     void swap_buffers();
 

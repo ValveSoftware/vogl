@@ -169,7 +169,7 @@ bool vogl_replay_window::get_actual_dimensions(uint32_t &width, uint32_t &height
     #endif
 }
 
-GLReplayContextType vogl_replay_window::create_context(GLReplayContextType replay_share_context, Bool direct)
+GLReplayContextType vogl_replay_window::create_context(GLReplayContextType replay_share_context, int direct)
 {
     #if (VOGL_PLATFORM_HAS_SDL)
         if (replay_share_context) 
@@ -187,7 +187,7 @@ GLReplayContextType vogl_replay_window::create_context(GLReplayContextType repla
     #endif
 }
 
-GLReplayContextType vogl_replay_window::create_new_context(GLReplayContextType replay_share_context, int render_type, Bool direct)
+GLReplayContextType vogl_replay_window::create_new_context(GLReplayContextType replay_share_context, int render_type, int direct)
 {
     #if (VOGL_PLATFORM_HAS_SDL)
         if (replay_share_context) 
@@ -206,7 +206,7 @@ GLReplayContextType vogl_replay_window::create_new_context(GLReplayContextType r
 }
 
 
-GLReplayContextType vogl_replay_window::create_context_attrib(GLReplayContextType replay_share_context, Bool direct, const int * pAttrib_list)
+GLReplayContextType vogl_replay_window::create_context_attrib(GLReplayContextType replay_share_context, int direct, const int * pAttrib_list)
 {
     #if (VOGL_PLATFORM_HAS_SDL)
         // TODO: This is actually a bit complicated, we need to decode the the attrib list into SDL attribs. 
@@ -245,7 +245,7 @@ void vogl_replay_window::destroy_context(GLReplayContextType context)
     #endif
 }
 
-Bool vogl_replay_window::is_direct(GLReplayContextType replay_context)
+int vogl_replay_window::is_direct(GLReplayContextType replay_context)
 {
     #if (VOGL_PLATFORM_HAS_SDL)
         // We don't have a good way to ask here, so just say yes.
@@ -267,7 +267,7 @@ void vogl_replay_window::swap_buffers()
 }
 
 
-Bool vogl_replay_window::query_version(int *out_major, int *out_minor)
+int vogl_replay_window::query_version(int *out_major, int *out_minor)
 {
     VOGL_ASSERT(out_major != NULL);
     VOGL_ASSERT(out_minor != NULL);

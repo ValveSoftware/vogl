@@ -29,6 +29,7 @@
 #include <QAbstractItemModel>
 #include <QLinkedList>
 #include "vogl_common.h"
+#include "fix_x11.h"
 
 class QVariant;
 class vogleditor_apiCallTreeItem;

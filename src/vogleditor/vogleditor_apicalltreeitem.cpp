@@ -32,6 +32,7 @@
 
 #include "vogleditor_frameitem.h"
 #include "vogl_common.h"
+#include "fix_x11.h"
 #include "vogl_trace_file_reader.h"
 #include "vogl_trace_packet.h"
 #include "vogl_trace_stream_types.h"
